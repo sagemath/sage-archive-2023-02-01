@@ -2,7 +2,13 @@
 
 """
 
-cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint reduce_b, PowComputer_class prime_pow) except -2:
+from sage.rings.integer cimport Integer
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.mpz cimport *
+
+include "sage/libs/linkages/padics/Polynomial_shared.pxi"
+
+cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint reduce_b, PowComputer_ prime_pow) except -2:
     """
     Comparison of two elements.
 
@@ -23,9 +29,15 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - If at least one needs to be reduced, returns
       0 (if ``a == b mod p^prec``) or 1 (otherwise)
     """
-    pass
+    # need to account for reduce_a and reduce_b
+    if a == b:
+        return 0
+    elif a < b:
+        return -1
+    else:
+        return 1
 
-cdef inline bint creduce(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     """
     Reduce modulo a power of the maximal ideal.
 
@@ -40,9 +52,20 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_class 
 
     - returns True if the reduction is zero; False otherwise.
     """
-    pass
+    out.__coeffs = (a % prime_pow.modulus).__coeffs
+    cdef long coeff_prec = prec / prime_pow.e + 1
+    cdef long break_pt = prec % prime_pow.e
+    if break_pt > len(out.__coeffs):
+        break_pt = len(out.__coeffs)
+    for i in range(break_pt):
+        out.__coeffs[i] %= prime_pow.base_ring.uniformizer_pow(coeff_prec)
+    coeff_prec -= 1
+    for i in range(break_pt, len(out.__coeffs)):
+        out.__coeffs[i] %= prime_pow.base_ring.uniformizer_pow(coeff_prec)
+    out.__normalize()
+    return out == 0
 
-cdef inline bint creduce_small(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline bint creduce_small(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     """
     Reduce modulo a power of the maximal ideal.
 
@@ -61,10 +84,10 @@ cdef inline bint creduce_small(celement out, celement a, long prec, PowComputer_
 
     - returns True if the reduction is zero; False otherwise.
     """
-    pass
+    return creduce(out, a, prec, prime_pow)
 
-cdef inline long cremove(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
-    """
+cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
+    r"""
     Extract the maximum power of the uniformizer dividing this element.
 
     INPUT:
@@ -77,11 +100,15 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_class 
     OUTPUT:
 
     - if `a = 0`, returns prec (the value of ``out`` is undefined).
-      Otherwise, returns the number of times `p` divides `a`.
+      Otherwise, returns the number of times `\pi` divides `a`.
     """
-    pass
+    if a == 0:
+        return prec
+    cdef long v = cvaluation(a, prec, prime_pow)
+    cshift(out, a, -v, prec, prime_pow, True)
+    return v
 
-cdef inline long cvaluation(celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) except -1:
     """
     Returns the maximum power of the uniformizer dividing this
     element.
@@ -100,9 +127,11 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_class prime_pow) 
     - if `a = 0`, returns prec.  Otherwise, returns the number of
       times p divides a.
     """
-    pass
+    if a == 0:
+        return prec
+    return min(c.valuation()*prime_pow.e + i for i, c in enumerate(a.__coeffs))
 
-cdef inline bint cisunit(celement a, PowComputer_class prime_pow) except -1:
+cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:
     """
     Returns whether this element has valuation zero.
 
@@ -115,9 +144,9 @@ cdef inline bint cisunit(celement a, PowComputer_class prime_pow) except -1:
 
     - returns True if `a` has valuation 0, and False otherwise.
     """
-    pass
+    return (cvaluation(a, 1, prime_pow) == 0)
 
-cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_class prime_pow, bint reduce_afterward) except -1:
+cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """
     Multiplies by a power of the uniformizer.
 
@@ -132,9 +161,42 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     - ``prime_pow`` -- the PowComputer for the ring.
     - ``reduce_afterward`` -- whether to reduce afterward.
     """
-    pass
+    cdef long q, r
+    modulus = prime_pow.modulus
+    if n > 0:
+        ans = a * prime_pow.poly_ring.gen()**n
+        ans %= modulus
+    elif n == 0:
+        ans = a
+    else:
+        q = n / prime_pow.e
+        r = n % prime_pow.e
+        # Multiply by (p/x^e)^n
+        if q:
+            ans = a * prime_pow.pxe ** q # should do this modulo prime_pow.modulus, rather than reducing afterward
+            ans %= modulus
+        else:
+            ans = a
+        if r:
+            K = modulus.base_ring().fraction_field()
+            Qpmodulus = modulus.change_ring(K)
+            R = Qpmodulus.parent()
+            # split modulus in half:
+            # modulus = p*c - x^r*d, where c and d are integral polynomials, and c has unit const term.
+            # Then p/x^r = d/c
+            c = ans[:r] / K.uniformizer()
+            d = -R(ans.list()[r:])
+            _, _, ci = Qpmodulus.xgcd(c)
+            ans *= d * ci
+            ans = ans / K.uniformizer()
+            ans = ans.change_ring(modulus.base_ring())
+            ans = ans % modulus
+    if reduce_afterward:
+        creduce(out, ans, prec, prime_pow)
+    else:
+        out.__coeffs = ans.__coeffs
 
-cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow) except -1:
     """
     Multiplies by a power of the uniformizer, assuming that the
     valuation of a is at least -n.
@@ -150,9 +212,9 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
     - ``prec`` -- long, a precision modulo which to reduce.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    cshift(out, a, n, prec, prime_pow, True)
 
-cdef inline int cinvert(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     """
     Inversion
 
@@ -165,9 +227,16 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_class p
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    K = prime_pow.base_ring.fraction_field()
+    Qpmodulus = prime_pow.modulus.change_ring(K)
+    g, _, inv = Qpmodulus.xgcd(a)
+    if g != 1:
+        raise ArithmeticError("Not invertible")
+    inv = inv.change_ring(prime_pow.base_ring) % prime_pow.modulus # The % may be unnecessary
+    # Need to reduce modulo prec
+    out.__coeffs = inv.__coeffs
 
-cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
     Division.
 
@@ -182,9 +251,10 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    cinvert(out, b, prec, prime_pow)
+    cmul(out, out, a, prec, prime_pow)
 
-cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ prime_pow) except -1:
     """
     Exponentiation.
 
@@ -196,9 +266,14 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_c
     - ``prec`` -- a long, the working absolute precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    # We do this the stupid way for now.
+    zn = PY_NEW(Integer)
+    mpz_set(zn.value, n)
+    ans = a**zn
+    ans %= prime_pow.modulus
+    out.__coeffs = ans.__coeffs
 
-cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow):
+cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     """
     Returns a list of digits in the series expansion.
 
@@ -216,7 +291,25 @@ cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow):
 
     OUTPUT:
 
-    - A list of p-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1*p + \cdots` modulo `p^{prec}`.
+    - A list of p-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1*pi + \cdots` modulo `pi^{prec}`.
     """
-    pass
+    raise NotImplementedError
+
+cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:
+    """
+    Teichmuller lifting.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` which is set to a `q-1` root of unity
+                 congruent to `value` mod `\pi`; or 0 if `a \equiv 0
+                 \pmod{\pi}`.
+    - ``value`` -- an ``celement``, the element mod `\pi` to lift.
+    - ``prec`` -- a long, the precision to which to lift.
+    - ``prime_pow`` -- the Powcomputer of the ring.
+    """
+    if value[0].valuation() > 0:
+        out.__coeffs = []
+    else:
+        out.__coeffs = [value[0].parent().teichmuller(value[0])]
 

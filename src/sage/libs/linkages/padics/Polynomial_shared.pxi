@@ -2,7 +2,7 @@
 This linkage file implements the padics API using Sage Polynomials.
 
 It is included into Polynomial_ram.pxi and Polynomial_unram.pxi,
-where functions that depend on the ramification of the defining polynomial afre placed.
+where functions that depend on the ramification of the defining polynomial are placed.
 
 AUTHORS:
 
@@ -19,8 +19,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
+from sage.rings.all import ZZ, QQ
+from sage.ext.stdsage cimport PY_NEW
 
-cdef inline int cconstruct(celement value, PowComputer_class prime_pow) except -1:
+cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     """
     Construct a new element.
 
@@ -29,9 +33,9 @@ cdef inline int cconstruct(celement value, PowComputer_class prime_pow) except -
     - ``unit`` -- an ``celement`` to be initialized.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    value.__init__(prime_pow.poly_ring)
 
-cdef inline int cdestruct(celement value, PowComputer_class prime_pow) except -1:
+cdef inline int cdestruct(celement value, PowComputer_ prime_pow) except -1:
     """
     Deallocate an element.
 
@@ -42,7 +46,7 @@ cdef inline int cdestruct(celement value, PowComputer_class prime_pow) except -1
     """
     pass
 
-cdef inline int cneg(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cneg(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     """
     Negation
 
@@ -55,9 +59,9 @@ cdef inline int cneg(celement out, celement a, long prec, PowComputer_class prim
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = (-a).__coeffs
 
-cdef inline int cadd(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cadd(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
     Addition
 
@@ -71,9 +75,9 @@ cdef inline int cadd(celement out, celement a, celement b, long prec, PowCompute
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = (a + b).__coeffs
 
-cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
     Subtraction.
 
@@ -87,9 +91,9 @@ cdef inline int csub(celement out, celement a, celement b, long prec, PowCompute
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = (a - b).__coeffs
 
-cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
     Multiplication.
 
@@ -103,9 +107,9 @@ cdef inline int cmul(celement out, celement a, celement b, long prec, PowCompute
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = (a*b).__coeffs
 
-cdef inline int csetone(celement out, PowComputer_class prime_pow) except -1:
+cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     """
     Sets to 1.
 
@@ -114,9 +118,10 @@ cdef inline int csetone(celement out, PowComputer_class prime_pow) except -1:
     - ``out`` -- the ``celement`` in which to store 1.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
+    out.__coeffs = [prime_pow.base_ring(1)]
     pass
 
-cdef inline int csetzero(celement out, PowComputer_class prime_pow) except -1:
+cdef inline int csetzero(celement out, PowComputer_ prime_pow) except -1:
     """
     Sets to 0.
 
@@ -125,9 +130,9 @@ cdef inline int csetzero(celement out, PowComputer_class prime_pow) except -1:
     - ``out`` -- the ``celement`` in which to store 0.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = []
 
-cdef inline bint cisone(celement a, PowComputer_class prime_pow) except -1:
+cdef inline bint cisone(celement a, PowComputer_ prime_pow) except -1:
     """
     Returns whether this element is equal to 1.
 
@@ -140,9 +145,10 @@ cdef inline bint cisone(celement a, PowComputer_class prime_pow) except -1:
 
     - returns True if `a = 1`, and False otherwise.
     """
-    pass
+    # Can do this more efficiently
+    return a == 1
 
-cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
+cdef inline bint ciszero(celement a, PowComputer_ prime_pow) except -1:
     """
     Returns whether this element is equal to 0.
 
@@ -155,9 +161,10 @@ cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
 
     - returns True if `a = 0`, and False otherwise.
     """
-    pass
+    # Can do this more efficiently
+    return a == 0
 
-cdef inline int ccopy(celement out, celement a, PowComputer_class prime_pow) except -1:
+cdef inline int ccopy(celement out, celement a, PowComputer_ prime_pow) except -1:
     """
     Copying.
 
@@ -167,9 +174,9 @@ cdef inline int ccopy(celement out, celement a, PowComputer_class prime_pow) exc
     - ``a`` -- the element to copy.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = copy(a.__coeffs)
 
-cdef inline cpickle(celement a, PowComputer_class prime_pow):
+cdef inline cpickle(celement a, PowComputer_ prime_pow):
     """
     Serialization into objects that Sage knows how to pickle.
 
@@ -182,9 +189,9 @@ cdef inline cpickle(celement a, PowComputer_class prime_pow):
 
     - a serializable object storing ``a``.
     """
-    pass
+    return a.__coeffs
 
-cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -1:
+cdef inline int cunpickle(celement out, x, PowComputer_ prime_pow) except -1:
     """
     Reconstruction from the output of meth:`cpickle`.
 
@@ -194,9 +201,9 @@ cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -
     - ``x`` -- the result of `meth`:cpickle.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    pass
+    out.__coeffs = x
 
-cdef inline long chash(celement a, long ordp, long prec, PowComputer_class prime_pow) except -1:
+cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow) except -1:
     """
     Hashing.
 
@@ -213,22 +220,7 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_class prime
 # It could be [] for some other linkages.
 _list_zero = Integer(0)
 
-cdef int cteichmuller(celement out, celement value, long prec, PowComputer_class prime_pow) except -1:
-    """
-    Teichmuller lifting.
-
-    INPUT:
-
-    - ``out`` -- an ``celement`` which is set to a `q-1` root of unity
-                 congruent to `value` mod `\pi`; or 0 if `a \equiv 0
-                 \pmod{\pi}`.
-    - ``value`` -- an ``celement``, the element mod `\pi` to lift.
-    - ``prec`` -- a long, the precision to which to lift.
-    - ``prime_pow`` -- the Powcomputer of the ring.
-    """
-    pass
-
-cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prime_pow) except -2:
+cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow) except -2:
     """
     Conversion from other Sage types.
 
@@ -242,9 +234,10 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prim
       storing the result in ``out``.
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    pass
+    # This needs to be improved
+    out.__coeffs = (prime_pow.poly_ring(x) % prime_pow.modulus).__coeffs
 
-cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
+cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_ prime_pow) except -2:
     """
     A fast pathway for conversion of integers that doesn't require
     precomputation of the valuation.
@@ -265,9 +258,12 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    pass
+    cdef Integer n = PY_NEW(Integer)
+    mpz_set(n.value, x)
+    out.__coeffs = [prime_pow.base_ring(n)]
+    out.__normalize()
 
-cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     """
     Converts the underlying `p`-adic element into an integer if
     possible.
@@ -279,9 +275,16 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
     -` ``prec`` -- a long, the precision of ``x``: currently not used.
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    pass
+    cdef Integer n
+    if len(x.__coeffs) > 1:
+        raise ValueError("Cannot convert to integer")
+    elif len(x.__coeffs) == 0:
+        mpz_set_ui(out, 0)
+    else:
+        n = ZZ(x.__coeffs[0])
+        mpz_set(out, n.value)
 
-cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:
+cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, PowComputer_ prime_pow) except? -10000:
     """
     A fast pathway for conversion of rationals that doesn't require
     precomputation of the valuation.
@@ -302,9 +305,12 @@ cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, Po
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    pass
+    cdef Rational c = Rational.__new__(Rational)
+    mpq_set(c.value, x)
+    out.__coeffs = [prime_pow.base_ring(c)]
+    out.__normalize()
 
-cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     """
     Converts the underlying `p`-adic element into a rational.
 
@@ -317,7 +323,11 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
                    reconstruction.
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    pass
-
-# In order to ensure that this file is not actually included, we make this file cause a compile error.
-cdef UndefinedType raise_compile_error
+    cdef Rational c
+    if len(x.__coeffs) > 1:
+        raise ValueError("Cannot convert to integer")
+    elif len(x.__coeffs) == 0:
+        mpq_set_ui(out, 0)
+    else:
+        c = QQ(x.__coeffs[0])
+        mpq_set(out, c.value)

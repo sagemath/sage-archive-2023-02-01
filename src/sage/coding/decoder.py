@@ -103,7 +103,7 @@ class Decoder(SageObject):
         We call it on a class::
 
             sage: codes.decoders.LinearCodeSyndromeDecoder.decoder_type()
-            {'dynamic', 'hard-decision', 'unique'}
+            {'dynamic', 'hard-decision'}
 
         We can also call it on a instance of a Decoder class::
 
@@ -111,7 +111,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.decoder_type()
-            {'complete', 'hard-decision', 'might-error', 'unique'}
+            {'complete', 'hard-decision', 'might-error'}
         """
         return cls._decoder_type
 
@@ -128,7 +128,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.decoder_type() #indirect doctest
-            {'complete', 'hard-decision', 'might-error', 'unique'}
+            {'complete', 'hard-decision', 'might-error'}
         """
         return self._decoder_type
 

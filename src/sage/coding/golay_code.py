@@ -167,7 +167,7 @@ class GolayCode(AbstractLinearCode):
 
             sage: C = codes.GolayCode(GF(2), extended=True)
             sage: Cd = C.dual_code(); Cd
-            24, 12, 8] Extended Golay code over GF(2)
+            [24, 12, 8] Extended Golay code over GF(2)
 
             sage: Cd == C
             True

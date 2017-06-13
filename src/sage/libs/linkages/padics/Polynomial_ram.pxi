@@ -177,6 +177,7 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
         if q:
             ans = a * prime_pow.pxe ** q # should do this modulo prime_pow.modulus, rather than reducing afterward
             ans %= modulus
+            ans = ans // modulus.base_ring().uniformizer()**q
         else:
             ans = a
         if r:
@@ -192,7 +193,7 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
             ans *= d * ci
             ans = ans % modulus
             ans = ans.change_ring(modulus.base_ring())
-            ans = ans // K.uniformizer()
+            ans = ans // modulus.base_ring().uniformizer()
     if reduce_afterward:
         creduce(out, ans, prec, prime_pow)
     else:
@@ -313,14 +314,23 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     p2 = (p-1)//2
     ccopy(prime_pow.poly_clist, a, prime_pow)
     for j in range(prec):
-        print prime_pow.poly_clist
         # the following is specific to the ramified over unramified case.
-        term = [c % p for c in prime_pow.poly_clist[0]._flint_rep().list()]
-        if not pos:
-            term = [c - p if c > p2 else c for c in term]
+        const_term = prime_pow.poly_clist[0]
+        print "const_term", const_term
+        if const_term._is_exact_zero():
+            term = []
+        else:
+            flint_rep = const_term._flint_rep_abs()[0]
+            term = [c % p for c in flint_rep.list()]
+            while term and not term[-1]:
+                del term[-1]
+            if not pos:
+                term = [c - p if c > p2 else c for c in term]
         ans.append(term)
         if j != prec-1:
             cshift(prime_pow.poly_clist, prime_pow.poly_clist, -1, prec-j, prime_pow, False)
+        if not prime_pow.poly_clist:
+            break
     return ans
 
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:

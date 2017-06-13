@@ -323,13 +323,19 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
     when `x = 0`).
 
     """
+    cdef long valuation = maxordp
+
     cdef Integer n = PY_NEW(Integer)
-    cdef long ret = cconv_mpz_t_shared(n.value, x, prec, absolute, prime_pow)
+    mpz_set(n.value, x)
+
     if n:
         out.__coeffs = [prime_pow.base_ring(n)]
+        if not absolute:
+            valuation = cremove(out, out, prec, prime_pow)
     else:
         out.__coeffs = []
-    return ret
+
+    return valuation
 
 cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -351,18 +357,20 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
     """
     cdef Integer n
 
-    if len(x.__coeffs) == 0:
+    if valshift:
+        cshift(prime_pow.powhelper_cconv_out, x, valshift, prec, prime_pow, True)
+    else:
+        prime_pow.powhelper_cconv_out = x
+
+    if len(prime_pow.powhelper_cconv_out.__coeffs) == 0:
         mpz_set_ui(out, 0)
-    elif len(x.__coeffs) == 1:
+    elif len(prime_pow.powhelper_cconv_out.__coeffs) == 1:
         # recursively let the underlying polynomial convert the constant
         # coefficient to an integer (if possible)
-        n = ZZ(x.__coeffs[0])
+        n = ZZ(prime_pow.powhelper_cconv_out.__coeffs[0])
         mpz_set(out, n.value)
     else:
         raise ValueError("cannot convert to integer")
-
-    if valshift:
-        raise NotImplementedError
 
 cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, PowComputer_ prime_pow) except? -10000:
     r"""
@@ -378,7 +386,7 @@ cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, Po
     - ``x`` -- an ``mpq_t`` giving the rational to be converted
 
     - ``prec`` -- a long, giving the precision desired: absolute or relative
-      depending on the ``absolute`` input
+      depending on ``absolute``
 
     - ``absolute`` -- if ``False`` then extracts the valuation and returns it,
       storing the unit in ``out``; if ``True`` then just reduces ``x`` modulo the
@@ -392,13 +400,14 @@ cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, Po
     when `x = 0`)
 
     """
-    if not absolute:
-        raise NotImplementedError
-
     cdef Rational r = PY_NEW(Rational)
     mpq_set(r.value, x)
     out.__coeffs = [prime_pow.base_ring(r)]
-    creduce(out, out, prec, prime_pow)
+
+    if absolute:
+        creduce(out, out, prec, prime_pow)
+    else:
+        return cremove(out, out, prec, prime_pow)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -422,15 +431,17 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
     """
     cdef Rational c
 
-    if len(x.__coeffs) == 0:
+    if valshift:
+        cshift(prime_pow.powhelper_cconv_out, x, valshift, prec, prime_pow, True)
+    else:
+        prime_pow.powhelper_cconv_out = x
+
+    if len(prime_pow.powhelper_cconv_out.__coeffs) == 0:
         mpq_set_ui(out, 0, 1)
-    elif len(x.__coeffs) == 1:
+    elif len(prime_pow.powhelper_cconv_out.__coeffs) == 1:
         # recursively let the underlying polynomial convert the constant
         # coefficient to a rational (if possible)
-        c = QQ(x.__coeffs[0])
+        c = QQ(prime_pow.powhelper_cconv_out.__coeffs[0])
         mpq_set(out, c.value)
     else:
         raise ValueError("cannot convert to ratioal")
-
-    if valshift:
-        raise NotImplementedError

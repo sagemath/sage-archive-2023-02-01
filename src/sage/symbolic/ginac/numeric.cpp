@@ -1899,7 +1899,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         mpq_t tmp;
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
-                        mpq_div(tmp, tmp, lh.v._bigrat);
+                        mpq_div(tmp, lh.v._bigrat, tmp);
                         if (mpz_cmp_ui(mpq_denref(tmp),1) != 0) {
                                 mpq_set(lh.v._bigrat, tmp);
                                 lh.hash = _mpq_pythonhash(lh.v._bigrat);

@@ -76,8 +76,8 @@ cdef class CAElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cdef long rprec = comb_prec(relprec, self.prime_pow.prec_cap)
-        cdef long aprec = comb_prec(absprec, min(self.prime_pow.prec_cap, xprec))
+        cdef long rprec = comb_prec(relprec, self.prime_pow.ram_prec_cap)
+        cdef long aprec = comb_prec(absprec, min(self.prime_pow.ram_prec_cap, xprec))
         if aprec <= val:
             csetzero(self.value, self.prime_pow)
             self.absprec = aprec
@@ -116,7 +116,7 @@ cdef class CAElement(pAdicTemplateElement):
             ...
             PrecisionError: Precision higher than allowed by the precision cap.
         """
-        if self.absprec > self.prime_pow.prec_cap:
+        if self.absprec > self.prime_pow.ram_prec_cap:
             raise PrecisionError("Precision higher than allowed by the precision cap.")
 
     def __copy__(self):
@@ -259,12 +259,12 @@ cdef class CAElement(pAdicTemplateElement):
         cdef CAElement right = _right
         cdef CAElement ans = self._new_c()
         cdef long vals, valr
-        if self.absprec == self.prime_pow.prec_cap and right.absprec == self.prime_pow.prec_cap:
+        if self.absprec == self.prime_pow.ram_prec_cap and right.absprec == self.prime_pow.ram_prec_cap:
             ans.absprec = self.absprec
         else:
             vals = self.valuation_c()
             valr = right.valuation_c()
-            ans.absprec = min(vals + valr + min(self.absprec - vals, right.absprec - valr), self.prime_pow.prec_cap)
+            ans.absprec = min(vals + valr + min(self.absprec - vals, right.absprec - valr), self.prime_pow.ram_prec_cap)
         cmul(ans.value, self.value, right.value, ans.absprec, ans.prime_pow)
         creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
@@ -448,11 +448,11 @@ cdef class CAElement(pAdicTemplateElement):
         elif shift == 0:
             return self
         cdef CAElement ans = self._new_c()
-        if shift >= self.prime_pow.prec_cap:
+        if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
-            ans.absprec = self.prime_pow.prec_cap
+            ans.absprec = self.prime_pow.ram_prec_cap
         else:
-            ans.absprec = min(self.absprec + shift, self.prime_pow.prec_cap)
+            ans.absprec = min(self.absprec + shift, self.prime_pow.ram_prec_cap)
             cshift(ans.value, self.value, shift, ans.absprec, ans.prime_pow, False)
         return ans
 
@@ -711,7 +711,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         cdef CAElement ans
         if absprec == maxordp:
-            absprec = self.prime_pow.prec_cap
+            absprec = self.prime_pow.ram_prec_cap
         if absprec <= self.absprec:
             return self
         ans = self._new_c()
@@ -904,7 +904,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         if self.valuation_c() > 0:
             csetzero(self.value, self.prime_pow)
-            self.absprec = self.prime_pow.prec_cap
+            self.absprec = self.prime_pow.ram_prec_cap
         elif self.absprec == 0:
             raise ValueError("not enough precision")
         else:
@@ -1107,7 +1107,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
         cdef CAElement ans = self._zero._new_c()
-        ans.absprec = ans.prime_pow.prec_cap
+        ans.absprec = ans.prime_pow.ram_prec_cap
         cconv_mpz_t(ans.value, (<Integer>x).value, ans.absprec, True, ans.prime_pow)
         return ans
 
@@ -1141,7 +1141,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         cdef CAElement ans
         _process_args_and_kwds(&aprec, &rprec, args, kwds, True, self._zero.prime_pow)
         if mpz_sgn((<Integer>x).value) == 0:
-            if aprec >= self._zero.prime_pow.prec_cap:
+            if aprec >= self._zero.prime_pow.ram_prec_cap:
                 return self._zero
             ans = self._zero._new_c()
             csetzero(ans.value, ans.prime_pow)
@@ -1294,8 +1294,8 @@ cdef class pAdicConvert_QQ_CA(Morphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef CAElement ans = self._zero._new_c()
-        cconv_mpq_t(ans.value, (<Rational>x).value, ans.prime_pow.prec_cap, True, ans.prime_pow)
-        ans.absprec = ans.prime_pow.prec_cap
+        cconv_mpq_t(ans.value, (<Rational>x).value, ans.prime_pow.ram_prec_cap, True, ans.prime_pow)
+        ans.absprec = ans.prime_pow.ram_prec_cap
         return ans
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -1330,7 +1330,7 @@ cdef class pAdicConvert_QQ_CA(Morphism):
         cdef CAElement ans
         _process_args_and_kwds(&aprec, &rprec, args, kwds, True, self._zero.prime_pow)
         if mpq_sgn((<Rational>x).value) == 0:
-            if aprec >= self._zero.prime_pow.prec_cap:
+            if aprec >= self._zero.prime_pow.ram_prec_cap:
                 return self._zero
             ans = self._zero._new_c()
             csetzero(ans.value, ans.prime_pow)

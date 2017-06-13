@@ -323,9 +323,6 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
     when `x = 0`).
 
     """
-    # TODO: is the returned value a multiple of e? If not, then
-    # cconv_mpz_t_shared needs to be adapted.
-
     cdef Integer n = PY_NEW(Integer)
     cdef long ret = cconv_mpz_t_shared(n.value, x, prec, absolute, prime_pow)
     if n:
@@ -336,7 +333,7 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
 
 cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     r"""
-    Set ``out`` to the integer represented by ``x``.
+    Set ``out`` to the integer approximated by ``x``.
 
     INPUT:
 
@@ -345,17 +342,14 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
 
     - ``x`` -- a ``celement`` giving the underlying `p`-adic element
 
-    - ``valshift`` -- a long giving the power of `p` to shift ``x`` by
+    - ``valshift`` -- a long giving the power of the uniformizer to shift ``x`` by
 
-    -` ``prec`` -- a long, the precision of ``x``; currently ignored
+    -` ``prec`` -- a long, the precision of ``x`` and ``out``
 
     - ``prime_pow`` -- a PowComputer for the ring
 
     """
     cdef Integer n
-
-    if valshift != 0:
-        raise NotImplementedError
 
     if len(x.__coeffs) == 0:
         mpz_set_ui(out, 0)
@@ -366,6 +360,9 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
         mpz_set(out, n.value)
     else:
         raise ValueError("cannot convert to integer")
+
+    if valshift:
+        raise NotImplementedError
 
 cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, PowComputer_ prime_pow) except? -10000:
     r"""
@@ -395,27 +392,45 @@ cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, Po
     when `x = 0`)
 
     """
-    raise NotImplementedError
+    if not absolute:
+        raise NotImplementedError
+
+    cdef Rational r = PY_NEW(Rational)
+    mpq_set(r.value, x)
+    out.__coeffs = [prime_pow.base_ring(r)]
+    creduce(out, out, prec, prime_pow)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     r"""
-    Converts the underlying `p`-adic element into a rational.
+    Set ``out`` to the rational approximated by ``x``.
 
-    - ``out`` -- gives a rational approximating the input.  Currently
-                 uses rational reconstruction but may change in the
-                 future to use a more naive method.
-    - ``x`` -- an ``celement`` giving the underlying `p`-adic element.
-    - ``valshift`` -- a long giving the power of `p` to shift `x` by.
-    -` ``prec`` -- a long, the precision of ``x``, used in rational
-                   reconstruction.
-    - ``prime_pow`` -- a PowComputer for the ring.
+    INPUT:
+
+    - ``out`` -- set to a rational approximating the input.  Currently uses
+      rational reconstruction but may change in the future to use a more naive
+      method.
+
+    - ``x`` -- a ``celement``, the element to convert
+
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x`
+      by before converting
+
+    - ``prec`` -- a long, the precision of ``x``; ignored
+
+    - ``prime_pow`` -- a PowComputer for the ring
+
     """
-    # TODO: This should probably go through the shared code path
     cdef Rational c
-    if len(x.__coeffs) > 1:
-        raise ValueError("Cannot convert to integer")
-    elif len(x.__coeffs) == 0:
+
+    if len(x.__coeffs) == 0:
         mpq_set_ui(out, 0, 1)
-    else:
+    elif len(x.__coeffs) == 1:
+        # recursively let the underlying polynomial convert the constant
+        # coefficient to a rational (if possible)
         c = QQ(x.__coeffs[0])
         mpq_set(out, c.value)
+    else:
+        raise ValueError("cannot convert to ratioal")
+
+    if valshift:
+        raise NotImplementedError

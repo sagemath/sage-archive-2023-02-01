@@ -1038,6 +1038,7 @@ class ParallelogramPolyomino(ClonableList):
             Ref. Delest, M.-P. and Viennot, G.
             "Algebraic Languages and Polyominoes Enumeration."
             Theoret. Comput. Sci. 34, 169-206, 1984.
+            (the bijection is described page 179 and page 180 Figure 6)
 
         EXAMPLES::
 
@@ -1068,6 +1069,8 @@ class ParallelogramPolyomino(ClonableList):
             Ref. Delest, M.-P. and Viennot, G.
             "Algebraic Languages and Polyominoes Enumeration."
             Theoret. Comput. Sci. 34, 169-206, 1984.
+            (the bijection is described in the previous article on page 179 
+            and 180. An example is given in Figure 6)
 
         INPUT:
 
@@ -1268,9 +1271,13 @@ class ParallelogramPolyomino(ClonableList):
         Convert the parallelogram polyominoe (PP) by using first
         the Delest-Viennot bijection between PP and dyck paths,
         and then by using the classical bijection between dyck paths
-        and ordered trees.
+        and ordered trees, described in the following article :
+            Ref. Dershowitz Nachum, Zaks Shmuel (1980),
+            Enumerations of ordered trees, Discrete Mathematics, 31: 9 28.
+            (see page 12 and Figure 3.1 of page 13)
 
-        See :meth:`_to_dyck_delest_viennot` and :meth:`to_ordered_tree()`.
+        See :meth:`_to_dyck_delest_viennot` for the exact references.
+        See also :meth:`to_ordered_tree()`.
 
         EXAMPLES:
 
@@ -1421,14 +1428,32 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return an ordered tree from the parallelogram polyomino
 
+        Different bijections can be specified.
+
+        The bijection 'via dyck and Delest-Viennot' is the composition of
+        :meth:`_to_dyck_delest_viennot` and the classical bijection between
+        dyck paths and ordered trees.
+
+        The bijection between Dyck Word and ordered trees is described here :
+            Ref. Dershowitz Nachum, Zaks Shmuel (1980),
+            "Enumerations of ordered trees", Discrete Mathematics, 31: 9-28,
+            (See page 12 and 13 and Figure 3.1).
+
+        The bijection 'Boussicault-Socci' is described in the article :
+            Ref. A. Boussicault, S. Rinaldi et S. Socci.
+            "The number of directed k-convex polyominoes"
+            27th Annual International Conference on Formal Power Series and
+            Algebraic Combinatorics (FPSAC 2015), 2015.
+            :arxiv:`1501.00872`
+
+
         INPUT:
 
         - ``bijection`` -- ``None`` (default) The name of bijection to use for
           the convertion. The possible value are, 'Boussicault-Socci',
-          'via dyck', 'via dyck and Delest-Viennot'. The default bijection is
+          'via dyck and Delest-Viennot'. The default bijection is
           'Boussicault-Socci'.
 
-        TODO: Faire de la biblio.
 
         EXAMPLES::
 
@@ -2440,40 +2465,6 @@ class ParallelogramPolyomino(ClonableList):
             res += drawing_tool.draw_line([w1, h], [w2, h])
         return res
 
-#   def _to_tikz_tree_with_bounce(self, directions=[0, 1]):
-#       r"""
-#       TODO
-#       """
-#       res = ""
-#       tikz_options = self.get_tikz_options()
-#       if self.size() == 1:
-#           return res
-#       grid_width = self.width() + 1
-#       grid_height = self.height() + 1
-#       drawing_tool = _drawing_tool(
-#           tikz_options,
-#           XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
-#       )
-#       if 0 in directions:
-#           for node in self.get_right_nodes():
-#               res += drawing_tool.draw_point(
-#                   [node[1], node[0]], tikz_options['color_bounce_0']
-#               )
-#       self.get_options()["tikz_options"]["point_size"]=1.5
-#       tikz_options = self.get_tikz_options()
-#       drawing_tool = _drawing_tool(
-#           tikz_options,
-#           XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
-#       )
-#       self.get_options()["tikz_options"]["point_size"]=3.5
-#       if 1 in directions:
-#           for node in self.get_left_nodes():
-#               res += drawing_tool.draw_point(
-#                   [node[1], node[0]], tikz_options['color_bounce_1']
-#               )
-#       res += drawing_tool.draw_point([0, 0])
-#       return res
-
     def _to_tikz_bounce(self, directions=[0, 1]):
         r"""
         Return the tikz code to display one or both bounces of ``self``.
@@ -2608,7 +2599,7 @@ class ParallelogramPolyomino(ClonableList):
             tikz_options,
             XY=lambda v: [v[0] + .5, grid_height-1-v[1] - .5]
         )
-        for node in self.get_nodes():
+        for node in self.get_BS_nodes():
             res += drawing_tool.draw_point([node[1], node[0]])
         res += drawing_tool.draw_point([0, 0])
         return res
@@ -2897,13 +2888,10 @@ class ParallelogramPolyomino(ClonableList):
         pos = self._get_node_position_at_column(column)
         return self._get_path_in_pair_of_tree_from_box(pos, 1)
 
-    def get_nodes(self):
+    def get_BS_nodes(self):
         r"""
-        Return the list of cells containing node of the left and planar tree in
-        the Boussicault-Socci bijection.
-
-        Todo : make a class containg all information about the Boussicault-Socci
-               bijection
+        Return the list of cells containing node of the left and right planar 
+        tree in the Boussicault-Socci bijection.
 
         EXAMPLES::
 
@@ -2917,7 +2905,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_nodes() )
+            sage: sorted( pp.get_BS_nodes() )
             [[0, 1], [1, 0], [1, 2], [2, 1], [3, 1], [4, 1]]
 
         You can draw the point inside the parallelogram polyomino by typing
@@ -2933,14 +2921,11 @@ class ParallelogramPolyomino(ClonableList):
             result.append(self._get_node_position_at_column(w))
         return result
 
-    def get_right_nodes(self):
+    def get_right_BS_nodes(self):
         r"""
         Return the list of cells containing node of the right planar tree in
         the Boussicault-Socci bijection between parallelogram polyominoes
         and pair of ordered trees.
-
-        Todo : make a class containg all information about the Boussicault-Socci
-               bijection
 
         EXAMPLES::
 
@@ -2954,7 +2939,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_right_nodes() )
+            sage: sorted( pp.get_right_BS_nodes() )
             [[1, 0], [1, 2]]
 
             sage: pp = ParallelogramPolyomino(
@@ -2967,7 +2952,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_right_nodes() )
+            sage: sorted( pp.get_right_BS_nodes() )
             [[1, 0], [1, 1], [1, 2], [2, 1], [3, 1], [4, 1]]
 
         You can draw the point inside the parallelogram polyomino by typing,
@@ -2987,14 +2972,11 @@ class ParallelogramPolyomino(ClonableList):
                 result.append(self._get_node_position_at_column(w))
         return result
 
-    def get_left_nodes(self):
+    def get_left_BS_nodes(self):
         r"""
         Return the list of cells containing node of the left planar tree in
         the Boussicault-Socci bijection between parallelogram polyominoes
         and pair of ordered trees.
-
-        Todo : make a class containg all information about the Boussicault-Socci
-               bijection
 
         EXAMPLES::
 
@@ -3008,7 +2990,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_left_nodes() )
+            sage: sorted( pp.get_left_BS_nodes() )
             [[0, 1], [2, 1], [3, 1], [4, 1]]
 
             sage: pp = ParallelogramPolyomino(
@@ -3021,7 +3003,7 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: sorted( pp.get_left_nodes() )
+            sage: sorted( pp.get_left_BS_nodes() )
             []
 
         You can draw the point inside the parallelogram polyomino by typing
@@ -3129,8 +3111,6 @@ class ParallelogramPolyomino(ClonableList):
             res += self._to_tikz_bounce(directions)
         if 'tree' in drawing_components and drawing_components["tree"]:
             res += self._to_tikz_tree()
-#           if len(directions) != 0:
-#              res += self._to_tikz_tree_with_bounce(directions)
         return res
 
     def geometry(self):

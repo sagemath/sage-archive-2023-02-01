@@ -7,6 +7,7 @@ cdef class PowComputer_relative(PowComputer_class):
     cdef public Polynomial_generic_dense_inexact modulus
     cdef Polynomial_generic_dense_inexact powhelper_oneunit
     cdef Polynomial_generic_dense_inexact powhelper_teichdiff
+    cdef Polynomial_generic_dense_inexact powhelper_cconv_out
     cdef unsigned long capdiv(self, unsigned long n)
 
 cdef class PowComputer_relative_unram(PowComputer_relative):

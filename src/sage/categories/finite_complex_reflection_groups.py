@@ -759,6 +759,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 EXAMPLES::
 
+                    sage: W = WeylGroup(['G', 2])
+                    sage: W.noncrossing_partition_lattice()
+                    Finite lattice containing 8 elements
+
                     sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
 
                     sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice() ) # optional - gap3

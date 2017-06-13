@@ -220,6 +220,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         xep = (self.poly_ring.gen()**self.e - Qpmodulus) / K.uniformizer()
         _, _, self.pxe = Qpmodulus.xgcd(xep)
         self.pxe = self.pxe.change_ring(poly.base_ring())
+        self.poly_clist = poly.parent()(0)
 
 def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, prec_type):
     """

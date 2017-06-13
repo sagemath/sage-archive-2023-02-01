@@ -155,6 +155,7 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     - ``out`` -- an ``celement`` to store the result.  If `n >= 0`
       then out will be set to `a * p^n`.
       If `n < 0`, out will be set to `a // p^-n`.
+      Aliasing is supported.
     - ``a`` -- the element to shift.
     - ``n`` -- long, the amount to shift by.
     - ``prec`` -- long, a precision modulo which to reduce.
@@ -170,8 +171,8 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     elif n == 0:
         ans = a
     else:
-        q = n / prime_pow.e
-        r = n % prime_pow.e
+        q = (-n) / prime_pow.e
+        r = (-n) % prime_pow.e
         # Multiply by (p/x^e)^n
         if q:
             ans = a * prime_pow.pxe ** q # should do this modulo prime_pow.modulus, rather than reducing afterward
@@ -185,13 +186,13 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
             # split modulus in half:
             # modulus = p*c - x^r*d, where c and d are integral polynomials, and c has unit const term.
             # Then p/x^r = d/c
-            c = ans[:r] / K.uniformizer()
-            d = -R(ans.list()[r:])
+            c = modulus[:r] / K.uniformizer()
+            d = -R(modulus.list()[r:])
             _, _, ci = Qpmodulus.xgcd(c)
             ans *= d * ci
-            ans = ans / K.uniformizer()
-            ans = ans.change_ring(modulus.base_ring())
             ans = ans % modulus
+            ans = ans.change_ring(modulus.base_ring())
+            ans = ans // K.uniformizer()
     if reduce_afterward:
         creduce(out, ans, prec, prime_pow)
     else:
@@ -275,6 +276,10 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ 
     ans %= prime_pow.modulus
     out.__coeffs = ans.__coeffs
 
+# The element is filled in for zero in the output of clist if necessary.
+# This WON'T work if the absolute inertia degree is 1.
+_list_zero = []
+
 cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     """
     Returns a list of digits in the series expansion.
@@ -295,7 +300,28 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
 
     - A list of p-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1*pi + \cdots` modulo `pi^{prec}`.
     """
-    raise NotImplementedError
+    # This is not very efficient, but there's no clear better way
+    # We assume this is only called on two-step extensions (for more general extensions, convert to the absolute field)
+    R = a.base_ring()
+    if R.degree() == 1:
+        raise NotImplementedError("Absolute extensions using Sage polynomials not completely supported")
+    if R.base_ring().degree() != 1:
+        raise TypeError("clist only allowed on towers of height 2")
+    cdef long j
+    ans = []
+    p = a.base_ring().prime()
+    p2 = (p-1)//2
+    ccopy(prime_pow.poly_clist, a, prime_pow)
+    for j in range(prec):
+        print prime_pow.poly_clist
+        # the following is specific to the ramified over unramified case.
+        term = [c % p for c in prime_pow.poly_clist[0]._flint_rep().list()]
+        if not pos:
+            term = [c - p if c > p2 else c for c in term]
+        ans.append(term)
+        if j != prec-1:
+            cshift(prime_pow.poly_clist, prime_pow.poly_clist, -1, prec-j, prime_pow, False)
+    return ans
 
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:
     """

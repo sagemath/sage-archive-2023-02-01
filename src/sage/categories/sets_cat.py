@@ -2575,48 +2575,95 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 assert realization.realization_of() is self
                 self._realizations.append(realization)
 
-            def inject_shorthands(self, verbose=True):
+            def inject_shorthands(self, shorthands=None, verbose=True):
                 """
                 Import standard shorthands into the global namespace.
 
                 INPUT:
 
-                - ``verbose`` -- boolean (default ``True``); if ``True``,
-                  prints the defined shorthands
+                - ``shorthands`` -- a list (or iterable) of strings (default: ``self._shorthands``)
+                - ``verbose`` -- boolean (default ``True``);
+                   whether to print the defined shorthands
 
-                EXAMPLES::
+                EXAMPLES:
+
+                When computing with a set with multiple realizations,
+                like :class:`SymmetricFunctions` or
+                :class:`~sage.categories.examples.with_realizations.SubsetAlgebra`,
+                it is convenient to define shorthands for the various
+                realizations, but cumbersome to do it by hand::
+
+                    sage: S = SymmetricFunctions(ZZ); S
+                    Symmetric Functions over Integer Ring
+                    sage: s = S.s(); s
+                    Symmetric Functions over Integer Ring in the Schur basis
+                    sage: e = S.e(); e
+                    Symmetric Functions over Integer Ring in the elementary basis
+
+                This method automatizes the process::
+
+                    sage: S.inject_shorthands()
+                    Defining e as shorthand for Symmetric Functions over Integer Ring in the elementary basis
+                    Defining f as shorthand for Symmetric Functions over Integer Ring in the forgotten basis
+                    Defining h as shorthand for Symmetric Functions over Integer Ring in the homogeneous basis
+                    Defining m as shorthand for Symmetric Functions over Integer Ring in the monomial basis
+                    Defining p as shorthand for Symmetric Functions over Integer Ring in the powersum basis
+                    Defining s as shorthand for Symmetric Functions over Integer Ring in the Schur basis
+                    sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
+                    s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
+
+                    sage: e
+                    Symmetric Functions over Integer Ring in the elementary basis
+                    sage: p
+                    Symmetric Functions over Integer Ring in the powersum basis
+                    sage: s
+                    Symmetric Functions over Integer Ring in the Schur basis
+
+                The messages can be silenced by setting ``verbose=False``::
 
                     sage: Q = QuasiSymmetricFunctions(ZZ)
-                    sage: Q.inject_shorthands()
-                    Injecting M as shorthand for Quasisymmetric functions over
-                     the Integer Ring in the Monomial basis
-                    Injecting F as shorthand for Quasisymmetric functions over
-                     the Integer Ring in the Fundamental basis
-                    Injecting E as shorthand for Quasisymmetric functions over
-                     the Integer Ring in the Essential basis
-                    doctest:...: RuntimeWarning: redefining global value `E`
-                    Injecting dI as shorthand for Quasisymmetric functions over
-                     the Integer Ring in the dualImmaculate basis
-                    Injecting QS as shorthand for Quasisymmetric functions over
-                     the Integer Ring in the Quasisymmetric Schur basis
+                    sage: Q.inject_shorthands(verbose=False)
+
                     sage: F[1,2,1] + 5*M[1,3] + F[2]^2
                     5*F[1, 1, 1, 1] - 5*F[1, 1, 2] - 3*F[1, 2, 1] + 6*F[1, 3] +
                     2*F[2, 2] + F[3, 1] + F[4]
+
                     sage: F
                     Quasisymmetric functions over the Integer Ring in the
                      Fundamental basis
                     sage: M
                     Quasisymmetric functions over the Integer Ring in the
                      Monomial basis
+
+                One can also just import a subset of the shorthands::
+
+                    sage: SQ = SymmetricFunctions(QQ)
+                    sage: SQ.inject_shorthands(['p', 's'], verbose=False)
+                    sage: p
+                    Symmetric Functions over Rational Field in the powersum basis
+                    sage: s
+                    Symmetric Functions over Rational Field in the Schur basis
+
+                Note that ``e`` is left unchanged::
+
+                    sage: e
+                    Symmetric Functions over Integer Ring in the elementary basis
+
+                TESTS::
+
+                    sage: e == S.e(), h == S.h(), m == S.m(), p == SQ.p(), s == SQ.s()
+                    (True, True, True, True, True)
                 """
                 from sage.misc.misc import inject_variable
-                if not hasattr(self, "_shorthands"):
-                    raise NotImplementedError("no shorthands defined for {}".format(self))
-                for shorthand in self._shorthands:
+                if shorthands is None:
+                    if not hasattr(self, "_shorthands"):
+                        raise NotImplementedError("no shorthands defined for {}".format(self))
+                    shorthands = self._shorthands
+                for shorthand in shorthands:
                     realization = getattr(self, shorthand)()
                     if verbose:
-                        print('Injecting {} as shorthand for {}'.format(shorthand, realization))
-                    inject_variable(shorthand, realization)
+                        print('Defining {} as shorthand for {}'.format(shorthand, realization))
+                    inject_variable(shorthand, realization, warn=False)
 
             @abstract_method(optional=True)
             def a_realization(self):

@@ -325,7 +325,7 @@ int print_order::compare_mul_symbol(const mul &lh, const symbol &rh) const
 		return cmpval;
 	}
 
-	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex1))
+	if (lh.seq.size() == 1 and lh.overall_coeff.is_one())
 		return 0;
 
 	// there is something of total degree 0 in front of the mul object
@@ -366,7 +366,7 @@ int print_order::compare_mul_power(const mul &lh, const power &rh) const
 		return cmpval;
 	}
 
-	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex1))
+	if (lh.seq.size() == 1 and lh.overall_coeff.is_one())
 		return 0;
 
 	// there is something of total degree 0 in front of the mul object
@@ -444,7 +444,7 @@ int print_order::compare_add_symbol(const add &lh, const symbol &rh) const
 		return cmpval;
 	}
 
-	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex0))
+	if (lh.seq.size() == 1 and lh.overall_coeff.is_zero())
 		return 0;
 
 	// there is something at the end of the add object
@@ -472,7 +472,7 @@ int print_order::compare_add_mul(const add &lh,
 		return cmpval;
 	}
 
-	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex0))
+	if (lh.seq.size() == 1 and lh.overall_coeff.is_zero())
 		return 0;
 
 	// there is something at the end of the object
@@ -500,7 +500,7 @@ int print_order::compare_add_power(const add &lh,
 		return cmpval;
 	}
 
-	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex0))
+	if (lh.seq.size() == 1 and lh.overall_coeff.is_zero())
 		return 0;
 
 	// there is something at the end of the object

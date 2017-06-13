@@ -74,8 +74,8 @@ class expairseq : public basic
 public:
 	expairseq(const ex & lh, const ex & rh);
 	expairseq(const exvector & v);
-	expairseq(const epvector & v, ex  oc, bool do_index_renaming = false);
-	expairseq(std::unique_ptr<epvector>, ex  oc, bool do_index_renaming = false);
+	expairseq(const epvector & v, const numeric& oc, bool do_index_renaming = false);
+	expairseq(std::unique_ptr<epvector>, const numeric& oc, bool do_index_renaming = false);
 	
 	// functions overriding virtual functions from base classes
 public:
@@ -101,8 +101,8 @@ protected:
 	
 	// new virtual functions which can be overridden by derived classes
 protected:
-	virtual ex thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming = false) const;
-	virtual ex thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false) const;
+	virtual ex thisexpairseq(const epvector & v, const numeric& oc, bool do_index_renaming = false) const;
+	virtual ex thisexpairseq(std::unique_ptr<epvector> vp, const numeric& oc, bool do_index_renaming = false) const;
 	virtual void printseq(const print_context & c, char delim,
 	                      unsigned this_precedence,
 	                      unsigned upper_precedence) const;
@@ -110,14 +110,14 @@ protected:
 	                       unsigned upper_precedence) const;
 	virtual expair split_ex_to_pair(const ex & e) const;
 	virtual expair combine_ex_with_coeff_to_pair(const ex & e,
-	                                             const ex & c) const;
+	                                             const numeric & c) const;
 	virtual expair combine_pair_with_coeff_to_pair(const expair & p,
-	                                               const ex & c) const;
+	                                               const numeric & c) const;
 	virtual ex recombine_pair_to_ex(const expair & p) const;
 	virtual bool expair_needs_further_processing(epp it);
-	virtual ex default_overall_coeff() const;
-	virtual void combine_overall_coeff(const ex & c);
-	virtual void combine_overall_coeff(const ex & c1, const ex & c2);
+	virtual numeric default_overall_coeff() const;
+	virtual void combine_overall_coeff(const numeric & c);
+	virtual void combine_overall_coeff(const numeric & c1, const numeric & c2);
 	virtual bool can_make_flat(const expair & p) const;
 	
 	// non-virtual functions in this class
@@ -168,7 +168,7 @@ protected:
 protected:
 	epvector seq;
 	mutable epvector seq_sorted;
-	ex overall_coeff;
+	numeric overall_coeff;
 #if EXPAIRSEQ_USE_HASHTAB
 	epplistvector hashtab;
 	unsigned hashtabsize;

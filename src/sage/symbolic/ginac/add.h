@@ -41,7 +41,7 @@ public:
 	add(const ex & lh, const ex & rh);
 	add(const exvector & v, bool hold=false);
 	add(const epvector & v);
-	add(const epvector & v, const ex & oc);
+	add(const epvector & v, const numeric & oc);
 //	add(std::unique_ptr<epvector> vp, const ex & oc);
 	
 	// functions overriding virtual functions from base classes
@@ -70,13 +70,13 @@ protected:
 	ex derivative(const symbol & s) const override;
 	unsigned return_type() const override;
 	tinfo_t return_type_tinfo() const override;
-	ex thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming = false) const override;
-	ex thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false) const override;
+	ex thisexpairseq(const epvector & v, const numeric & oc, bool do_index_renaming = false) const override;
+	ex thisexpairseq(std::unique_ptr<epvector> vp, const numeric & oc, bool do_index_renaming = false) const override;
 	expair split_ex_to_pair(const ex & e) const override;
 	expair combine_ex_with_coeff_to_pair(const ex & e,
-	                                     const ex & c) const override;
+	                                     const numeric & c) const override;
 	expair combine_pair_with_coeff_to_pair(const expair & p,
-	                                       const ex & c) const override;
+	                                     const numeric & c) const override;
 	ex recombine_pair_to_ex(const expair & p) const override;
 	ex expand(unsigned options=0) const override;
 	ex eval_infinity(epvector::const_iterator infinity_iter) const;

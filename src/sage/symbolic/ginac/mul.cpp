@@ -73,7 +73,7 @@ mul::mul()
 mul::mul(const ex & lh, const ex & rh)
 {
 	tinfo_key = &mul::tinfo_static;
-	overall_coeff = _ex1;
+	overall_coeff = *_num1_p;
 	construct_from_2_ex(lh,rh);
 	GINAC_ASSERT(is_canonical());
 }
@@ -81,7 +81,7 @@ mul::mul(const ex & lh, const ex & rh)
 mul::mul(const exvector & v, bool do_hold)
 {
 	tinfo_key = &mul::tinfo_static;
-	overall_coeff = _ex1;
+	overall_coeff = *_num1_p;
 	construct_from_exvector(v, do_hold);
 	GINAC_ASSERT(is_canonical());
 }
@@ -89,12 +89,12 @@ mul::mul(const exvector & v, bool do_hold)
 mul::mul(const epvector & v)
 {
 	tinfo_key = &mul::tinfo_static;
-	overall_coeff = _ex1;
+	overall_coeff = *_num1_p;
 	construct_from_epvector(v);
 	GINAC_ASSERT(is_canonical());
 }
 
-mul::mul(const epvector & v, const ex & oc, bool do_index_renaming)
+mul::mul(const epvector & v, const numeric & oc, bool do_index_renaming)
 {
 	tinfo_key = &mul::tinfo_static;
 	overall_coeff = oc;
@@ -119,7 +119,7 @@ mul::mul(const ex & lh, const ex & mh, const ex & rh)
 	factors.push_back(lh);
 	factors.push_back(mh);
 	factors.push_back(rh);
-	overall_coeff = _ex1;
+	overall_coeff = *_num1_p;
 	construct_from_exvector(factors);
 	GINAC_ASSERT(is_canonical());
 }
@@ -137,6 +137,8 @@ DEFAULT_ARCHIVING(mul)
 void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		const char *mul_sym, bool latex) const
 {
+        if (not is_exactly_a<numeric>(coeff_ex))
+                throw std::runtime_error("mul::print_overall_coeff: can't happen");
 	const numeric & num_coeff = ex_to<numeric>(coeff_ex);
 	std::stringstream tstream;
 	std::unique_ptr<print_context> tcontext_p;
@@ -154,9 +156,9 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		//(coeffstr.find('/') != std::string::npos) ||
 		//(coeffstr.find('*') != std::string::npos) ||
 		//(coeffstr.find('^') != std::string::npos));
-	if (num_coeff.is_integer() &&
-                num_coeff.is_equal(*_num_1_p) &&
-                !num_coeff.is_parent_pos_char())
+	if (num_coeff.is_integer()
+                and num_coeff.is_minus_one()
+                and not num_coeff.is_parent_pos_char())
 		c.s<<"-";
 	else if (parenthesis && coeffstr[0] == '-') {
 		// We want to move the '-' out of the parenthesis if it is
@@ -169,7 +171,7 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		else
 			c.s<<"(";
 		tstream.str("");
-		num_coeff.mul(*_num_1_p).print(*tcontext_p, 0);
+		(-num_coeff).print(*tcontext_p, 0);
 		c.s<<tstream.str();
 		if (latex)
 			c.s<<"\\right)";
@@ -274,18 +276,18 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 	if (!neg_powers.empty()) {
 		// Factors with negative exponent are printed as a fraction
 		if (latex_tags) {
-			ex numer = overall_coeff.numer();
-			const numeric &coeff_numer = ex_to<numeric>(numer);
+			const numeric& numer = overall_coeff.numer();
 			bool negate = false;
-			if (coeff_numer.is_integer() && coeff_numer.is_equal(*_num_1_p) &&
-					!coeff_numer.is_parent_pos_char()) {
+			if (numer.is_integer()
+                            and numer.is_minus_one()
+                            and not numer.is_parent_pos_char()) {
 				c.s<<"-";
 				negate = true;
 				//print_numer = coeff_numer.mul(*_num_1_p);
 			} else {
 				std::stringstream tstream;
 				std::unique_ptr<print_context> tcontext_p(new print_latex(tstream, c.options));
-				coeff_numer.print(*tcontext_p, 0);
+				numer.print(*tcontext_p, 0);
 				if (tstream.peek() == '-') {
 					c.s<<"-";
 					negate = true;
@@ -295,7 +297,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 				}*/
 			}
 
-			numeric print_numer = negate ? coeff_numer.mul(*_num_1_p) : coeff_numer;
+			numeric print_numer = negate ? -numer : numer;
 			c.s << "\\frac{";
 			if (others.empty()) {
 				if (print_numer.is_integer() && print_numer.is_one()){
@@ -322,7 +324,9 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			print_overall_coeff(overall_coeff, c,
 					others.size() == 0 ? "" : sep,
 					latex_tags);
-			if (others.empty() && overall_coeff.is_integer_pmone()) {
+			if (others.empty()
+                            and (overall_coeff.is_one()
+                                 or overall_coeff.is_minus_one())) {
 				c.s<<"1";
 			} else {
 				print_exvector(others, c, sep);
@@ -383,8 +387,8 @@ void mul::do_print_csrc(const print_csrc & c, unsigned level) const
 	if (precedence() <= level)
 		c.s << "(";
 
-	if (!overall_coeff.is_integer_one()) {
-		if (overall_coeff.is_integer_pmone()) {
+	if (not overall_coeff.is_one()) {
+		if (overall_coeff.is_minus_one()) {
 			c.s << "-";
 		}
 		else {
@@ -467,7 +471,7 @@ bool mul::info(unsigned inf) const
                         for (const auto & elem : seq)
 				if (!(recombine_pair_to_ex(elem).info(inf)))
 					return false;
-			if (overall_coeff.is_integer_one() && inf == info_flags::even)
+			if (overall_coeff.is_one() && inf == info_flags::even)
 				return true;
 			return overall_coeff.info(inf);
 		}
@@ -693,8 +697,9 @@ ex mul::eval(int level) const
 	} else if (seq_size==0) {
 		// *(;c) -> c
 		return overall_coeff;
-	} else if (seq_size==1 && overall_coeff.is_integer_one() &&
-		   !ex_to<numeric>(overall_coeff).is_parent_pos_char()) {
+	} else if (seq_size==1
+                   and overall_coeff.is_one()
+		   and not overall_coeff.is_parent_pos_char()) {
 		// *(x;1) -> x
 		// except in positive characteristic: 1*(x+2) = x in F_2
 		return recombine_pair_to_ex(*(seq.begin()));
@@ -708,8 +713,7 @@ ex mul::eval(int level) const
                 for (const auto & elem : addref.seq)
 			distrseq.push_back(addref.combine_pair_with_coeff_to_pair(elem, overall_coeff));
 		const ex& x = (new add(distrseq,
-		                ex_to<numeric>(addref.overall_coeff).
-		                mul_dyn(ex_to<numeric>(overall_coeff)))
+		                addref.overall_coeff.mul(overall_coeff))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
                 const add & result = ex_to<add>(x);
                 if (result.seq.size()==0)
@@ -738,7 +742,9 @@ ex mul::eval(int level) const
 			const numeric lead_coeff =
 				ex_to<numeric>(ex_to<add>(i->rest).\
 						lead_coeff()).div(c);
-			const bool canonicalizable = lead_coeff.is_integer();
+			const bool canonicalizable = (
+                                        lead_coeff.is_exact()
+                                        and lead_coeff.is_integer());
 
 			// The following comment is no longer true for pynac.
 			// We use the print order to determine the main variable
@@ -778,7 +784,7 @@ ex mul::eval(int level) const
 			auto primitive = new add(addref);
 			primitive->setflag(status_flags::dynallocated);
 			primitive->clearflag(status_flags::hash_calculated);
-			primitive->overall_coeff = ex_to<numeric>(primitive->overall_coeff).div_dyn(c);
+			primitive->overall_coeff /= c;
 			primitive->seq_sorted.resize(0);
 			for (auto & elem : primitive->seq)
 				elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(c);
@@ -794,9 +800,9 @@ ex mul::eval(int level) const
 				++j;
 			}
 			if (s.empty()) {
-				return ex_to<numeric>(overall_coeff).mul_dyn(oc);
+				return overall_coeff.mul(oc);
 			}
-			return (new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc))
+			return (new mul(s, overall_coeff.mul(oc))
 			       )->setflag(status_flags::dynallocated);
 		}
 	}
@@ -828,7 +834,7 @@ ex mul::eval_exponentials() const
 	else
 		s.push_back(expair(new_exp, _ex1));
 
-	mul * result = new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc));
+	mul * result = new mul(s, overall_coeff.mul(oc));
 	return result->setflag(status_flags::dynallocated);
 }
 
@@ -863,8 +869,9 @@ ex mul::evalf(int level, PyObject* parent) const
 	--level;
         for (const auto & elem : seq)
                s.push_back(combine_ex_with_coeff_to_pair(
-                        elem.rest.evalf(level, parent), elem.coeff));
-        return mul(s, overall_coeff.evalf(level, parent));
+                        elem.rest.evalf(level, parent),
+                        ex_to<numeric>(elem.coeff)));
+        return mul(s, ex_to<numeric>(overall_coeff.evalf(level, parent)));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const
@@ -1087,8 +1094,9 @@ ex mul::conjugate() const
 		}
 		newepv->push_back(split_ex_to_pair(c));
 	}
-	ex x = overall_coeff.conjugate();
-	if (!newepv && are_ex_trivially_equal(x, overall_coeff)) {
+        // known to be numeric
+	const numeric& x = overall_coeff.conj();
+	if (not newepv and x.is_equal(overall_coeff)) {
 		return *this;
 	}
 	ex result = thisexpairseq(newepv ? *newepv : seq, x);
@@ -1113,7 +1121,8 @@ ex mul::derivative(const symbol & s) const
 		expair ep = split_ex_to_pair(power(i->rest, i->coeff - _ex1) *
 		                             i->rest.diff(s));
 		ep.swap(*i2);
-		addseq.push_back((new mul(mulseq, overall_coeff * i->coeff))->setflag(status_flags::dynallocated));
+		addseq.push_back((new mul(mulseq,
+                     overall_coeff.mul(ex_to<numeric>(i->coeff))))->setflag(status_flags::dynallocated));
 		ep.swap(*i2);
 		++i; ++i2;
 	}
@@ -1189,12 +1198,12 @@ tinfo_t mul::return_type_tinfo() const
 	return this;
 }
 
-ex mul::thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming) const
+ex mul::thisexpairseq(const epvector & v, const numeric & oc, bool do_index_renaming) const
 {
 	return (new mul(v, oc, do_index_renaming))->setflag(status_flags::dynallocated);
 }
 
-ex mul::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
+ex mul::thisexpairseq(std::unique_ptr<epvector> vp, const numeric & oc, bool do_index_renaming) const
 {
 	return (new mul(*vp, oc, do_index_renaming))->setflag(status_flags::dynallocated);
 }
@@ -1210,10 +1219,8 @@ expair mul::split_ex_to_pair(const ex & e) const
 }
 	
 expair mul::combine_ex_with_coeff_to_pair(const ex & e,
-                                          const ex & c) const
+                                          const numeric & c) const
 {
-        GINAC_ASSERT(is_exactly_a<numeric>(c));
-
         // First, try a common shortcut:
         if (is_exactly_a<symbol>(e))
                 return expair(e, c);
@@ -1222,21 +1229,20 @@ expair mul::combine_ex_with_coeff_to_pair(const ex & e,
 	// we create a temporary power object
 	// otherwise it would be hard to correctly evaluate
 	// expression like (4^(1/3))^(3/2)
-	if (c.is_integer_one())
+	if (c.is_one())
 		return split_ex_to_pair(e);
 
 	return split_ex_to_pair(power(e,c));
 }
 	
 expair mul::combine_pair_with_coeff_to_pair(const expair & p,
-                                            const ex & c) const
+                                            const numeric & c) const
 {
         GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
-        GINAC_ASSERT(is_exactly_a<numeric>(c));
 
         if (is_exactly_a<symbol>(p.rest))
                 return expair(p.rest, p.coeff*c);
-	if (c.is_integer_one())
+	if (c.is_one())
 		return p;
         if (p.coeff.is_integer_one())
                 return expair(p.rest, c);
@@ -1281,26 +1287,22 @@ bool mul::expair_needs_further_processing(epp it)
 	return false;
 }       
 
-ex mul::default_overall_coeff() const
+numeric mul::default_overall_coeff() const
 {
-	return _ex1;
+	return *_num1_p;
 }
 
-void mul::combine_overall_coeff(const ex & c)
+void mul::combine_overall_coeff(const numeric & c)
 {
-	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
-	GINAC_ASSERT(is_exactly_a<numeric>(c));
-	overall_coeff = ex_to<numeric>(overall_coeff).mul_dyn(ex_to<numeric>(c));
+	overall_coeff *= c;
 }
 
-void mul::combine_overall_coeff(const ex & c1, const ex & c2)
+void mul::combine_overall_coeff(const numeric & c1, const numeric & c2)
 {
-	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
-	GINAC_ASSERT(is_exactly_a<numeric>(c1));
-	GINAC_ASSERT(is_exactly_a<numeric>(c2));
-	ex e = ex_to<numeric>(c1).power(ex_to<numeric>(c2));
-	GINAC_ASSERT(is_exactly_a<numeric>(e));
-	overall_coeff = ex_to<numeric>(overall_coeff).mul_dyn(ex_to<numeric>(e));
+	ex e = c1.power(c2);
+	if (not is_exactly_a<numeric>(e))
+                throw std::runtime_error("mul::combine_overall_coeff: can't happen");
+	overall_coeff *= ex_to<numeric>(e);
 }
 
 bool mul::can_make_flat(const expair & p) const
@@ -1382,25 +1384,25 @@ ex mul::expand(unsigned options) const
 
 				// Multiply add2 with the overall coefficient of add1 and append it to distrseq:
 				if (!add1.overall_coeff.is_zero()) {
-					if (add1.overall_coeff.is_integer_one())
+					if (add1.overall_coeff.is_one())
 						distrseq.insert(distrseq.end(),add2begin,add2end);
 					else
                                                 for (const auto & elem2 : add2.seq)
 							distrseq.push_back(expair(elem2.rest,
-                                                                ex_to<numeric>(elem2.coeff).mul_dyn(ex_to<numeric>(add1.overall_coeff))));
+                                                                ex_to<numeric>(elem2.coeff).mul_dyn(add1.overall_coeff)));
 				}
 
 				// Multiply add1 with the overall coefficient of add2 and append it to distrseq:
 				if (!add2.overall_coeff.is_zero()) {
-					if (add2.overall_coeff.is_integer_one())
+					if (add2.overall_coeff.is_one())
 						distrseq.insert(distrseq.end(),add1begin,add1end);
 					else
                                                 for (const auto & elem1 : add1.seq)
-							distrseq.push_back(expair(elem1.rest, ex_to<numeric>(elem1.coeff).mul_dyn(ex_to<numeric>(add2.overall_coeff))));
+							distrseq.push_back(expair(elem1.rest, ex_to<numeric>(elem1.coeff).mul_dyn(add2.overall_coeff)));
 				}
 
 				// Compute the new overall coefficient and put it together:
-				ex tmp_accu = (new add(distrseq, add1.overall_coeff*add2.overall_coeff))->setflag(status_flags::dynallocated);
+				ex tmp_accu = (new add(distrseq, add1.overall_coeff.mul(add2.overall_coeff)))->setflag(status_flags::dynallocated);
 
 				exvector add1_dummy_indices, add2_dummy_indices, add_indices;
 				lst dummy_subs;
@@ -1578,7 +1580,7 @@ ex mul::without_known_factor(const ex& f) const
 			s.push_back(elem);
 	}
 
-	mul * result = new mul(s, ex_to<numeric>(overall_coeff));
+	mul * result = new mul(s, overall_coeff);
 	return result->setflag(status_flags::dynallocated);
 }
 

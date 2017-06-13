@@ -495,7 +495,7 @@ ex power::eval(int level) const
 		num_basis = ex_to<numeric>(ebasis);
 
                 // (negative num)^even --> (positive num)^even
-                if (num_basis.info(info_flags::negative)
+                if (num_basis.is_negative()
                     and eexponent.info(info_flags::even)
                     and eexponent.info(info_flags::real))
                         return power(-num_basis, eexponent);
@@ -585,7 +585,7 @@ ex power::eval(int level) const
 
         // (negative oc)^even --> (positive oc)^even
         if (is_exactly_a<mul>(ebasis)
-            and ex_to<mul>(ebasis).overall_coeff.info(info_flags::negative)
+            and ex_to<mul>(ebasis).overall_coeff.is_negative()
             and eexponent.info(info_flags::even)
             and eexponent.info(info_flags::real))
                 return power(-ebasis, eexponent);
@@ -697,7 +697,7 @@ ex power::eval(int level) const
                                         auto  addp = new add(addref);
                                         addp->setflag(status_flags::dynallocated);
                                         addp->clearflag(status_flags::hash_calculated);
-                                        addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
+                                        addp->overall_coeff = addp->overall_coeff.div_dyn(icont);
                                         addp->seq_sorted.resize(0);
                                         for (auto & elem : addp->seq)
                                                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
@@ -716,12 +716,12 @@ ex power::eval(int level) const
 		if (is_exactly_a<mul>(ebasis)) {
 			GINAC_ASSERT(!num_exponent.is_integer()); // should have been handled above
 			const mul & mulref = ex_to<mul>(ebasis);
-			if (!mulref.overall_coeff.is_equal(_ex1)) {
-				const numeric & num_coeff = ex_to<numeric>(mulref.overall_coeff);
+			if (not mulref.overall_coeff.is_one()) {
+				const numeric & num_coeff = mulref.overall_coeff;
 				if (num_coeff.is_real()) {
 					if (num_coeff.is_positive()) {
 						auto mulp = new mul(mulref);
-						mulp->overall_coeff = _ex1;
+						mulp->overall_coeff = *_num1_p;
 						mulp->setflag(status_flags::dynallocated);
 						mulp->clearflag(status_flags::evaluated);
 						mulp->clearflag(status_flags::hash_calculated);
@@ -729,10 +729,10 @@ ex power::eval(int level) const
 						return (new mul(power(*mulp,exponent),
 						                power(num_coeff, num_exponent)))->setflag(status_flags::dynallocated);
 					} else {
-						GINAC_ASSERT(num_coeff.compare(*_num0_p)<0);
-						if (!num_coeff.is_equal(*_num_1_p)) {
+						GINAC_ASSERT(num_coeff.is_negative());
+						if (not num_coeff.is_minus_one()) {
 							auto mulp = new mul(mulref);
-							mulp->overall_coeff = _ex_1;
+							mulp->overall_coeff = *_num1_p;
 							mulp->setflag(status_flags::dynallocated);
 							mulp->clearflag(status_flags::evaluated);
 							mulp->clearflag(status_flags::hash_calculated);
@@ -933,7 +933,7 @@ ex power::derivative(const symbol & s) const
 		newseq.reserve(2);
 		newseq.push_back(expair(basis, exponent - _ex1));
 		newseq.push_back(expair(basis.diff(s), _ex1));
-		return mul(newseq, exponent);
+		return mul(newseq, ex_to<numeric>(exponent));
 	} else {
 	    // If the exponent is not a function of s, we have the following nice
 	    // looking formula.  We use this to avoid getting ugly and hard to
@@ -1005,10 +1005,11 @@ ex power::expand(unsigned options) const
 
 		// take care on the numeric coefficient
 		ex coef = (possign? _ex1 : _ex_1);
-		if (m.overall_coeff.info(info_flags::positive)
-                                and not m.overall_coeff.is_integer_one())
+		if (m.overall_coeff.is_positive()
+                                and not m.overall_coeff.is_one())
 			prodseq.push_back(power(m.overall_coeff, exponent));
-		else if (m.overall_coeff.info(info_flags::negative) && m.overall_coeff != _ex_1)
+		else if (m.overall_coeff.is_negative()
+                         and not m.overall_coeff.is_minus_one())
 			prodseq.push_back(power(-m.overall_coeff, exponent));
 		else
 			coef *= m.overall_coeff;
@@ -1036,8 +1037,8 @@ ex power::expand(unsigned options) const
 			distrseq.push_back(power(expanded_basis, a.recombine_pair_to_ex(elem)));
 		
 		// Make sure that e.g. (x+y)^(2+a) expands the (x+y)^2 factor
-		if (ex_to<numeric>(a.overall_coeff).is_integer()) {
-			const numeric &num_exponent = ex_to<numeric>(a.overall_coeff);
+		if (a.overall_coeff.is_integer()) {
+			const numeric &num_exponent = a.overall_coeff;
 			int int_exponent = num_exponent.to_int();
 			if (int_exponent > 0 && is_exactly_a<add>(expanded_basis))
 				distrseq.push_back(expand_add(ex_to<add>(expanded_basis), int_exponent, options));
@@ -1374,7 +1375,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
                         if (n == k)
                                 binomial_coefficient = *_num1_p;
                         else
-                                binomial_coefficient = binomial(numeric(n), numeric(k)) * (ex_to<numeric>(a.overall_coeff)).power(n-k);
+                                binomial_coefficient = binomial(numeric(n), numeric(k)) * a.overall_coeff.power(n-k);
 		}
 
 		// Multinomial expansion of power(+(x,...,z;0),k)*c^(n-k):
@@ -1428,7 +1429,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 	if (a.overall_coeff.is_zero()) {
 		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded).eval();
 	} else {
-		return dynallocate<add>(std::move(result), ex_to<numeric>(a.overall_coeff).power(n)).setflag(status_flags::expanded).eval();
+		return dynallocate<add>(std::move(result), a.overall_coeff.power(n)).setflag(status_flags::expanded).eval();
 	}
 }
 
@@ -1490,7 +1491,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	// second part: add terms coming from overall_coeff (if != 0)
 	if (!a.overall_coeff.is_zero()) {
 		for (auto & i : a.seq)
-			result.push_back(a.combine_pair_with_coeff_to_pair(i, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));
+			result.push_back(a.combine_pair_with_coeff_to_pair(i, a.overall_coeff.mul(*_num2_p)));
 	}
 
 	GINAC_ASSERT(result.size() == result_size);
@@ -1498,7 +1499,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	if (a.overall_coeff.is_zero()) {
 		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
 	} else {
-		return dynallocate<add>(std::move(result), ex_to<numeric>(a.overall_coeff).power(2)).setflag(status_flags::expanded);
+		return dynallocate<add>(std::move(result), a.overall_coeff.power(2)).setflag(status_flags::expanded);
 	}
 }
 
@@ -1542,7 +1543,7 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 		distrseq.push_back(p);
 	}
 
-	const mul & result = static_cast<const mul &>((new mul(distrseq, ex_to<numeric>(m.overall_coeff).power_dyn(n)))->setflag(status_flags::dynallocated));
+	const mul & result = static_cast<const mul &>((new mul(distrseq, m.overall_coeff.power_dyn(n)))->setflag(status_flags::dynallocated));
 	if (need_reexpand)
 		return ex(result).expand(options);
 	if (from_expand)

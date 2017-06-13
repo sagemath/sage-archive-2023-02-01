@@ -65,7 +65,7 @@ add::add()
 add::add(const ex & lh, const ex & rh)
 {
 	tinfo_key = &add::tinfo_static;
-	overall_coeff = _ex0;
+	overall_coeff = numeric(0);
 	construct_from_2_ex(lh,rh);
 	GINAC_ASSERT(is_canonical());
 }
@@ -73,7 +73,7 @@ add::add(const ex & lh, const ex & rh)
 add::add(const exvector & v, bool do_hold)
 {
 	tinfo_key = &add::tinfo_static;
-	overall_coeff = _ex0;
+	overall_coeff = numeric(0);
 	construct_from_exvector(v, do_hold);
 	GINAC_ASSERT(is_canonical());
 }
@@ -81,12 +81,12 @@ add::add(const exvector & v, bool do_hold)
 add::add(const epvector & v)
 {
 	tinfo_key = &add::tinfo_static;
-	overall_coeff = _ex0;
+	overall_coeff = numeric(0);
 	construct_from_epvector(v);
 	GINAC_ASSERT(is_canonical());
 }
 
-add::add(const epvector & v, const ex & oc)
+add::add(const epvector & v, const numeric & oc)
 {
 	tinfo_key = &add::tinfo_static;
 	overall_coeff = oc;
@@ -136,7 +136,8 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 		} else {
 			tcontext_p.reset(new print_dflt(tstream, c.options));
 		}
-		mul(elem.rest, elem.coeff).print(*tcontext_p, precedence());
+		mul m = mul(elem.rest, elem.coeff);
+		m.print(*tcontext_p, precedence());
 
 		if (!first) {
 			if (tstream.peek() == '-') {
@@ -152,7 +153,7 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 
 	// Finally print the "overall" numeric coefficient, if present.
 	// This is just the constant coefficient. 
-	if (!(ex_to<numeric>(overall_coeff)).is_zero()) {
+	if (not overall_coeff.is_zero()) {
 		std::stringstream tstream;
 		std::unique_ptr<print_context> tcontext_p;
 		if (latex) {
@@ -280,9 +281,8 @@ bool add::info(unsigned inf) const
 			return false;
 		}
 		case info_flags::positive: {
-                        const numeric& ocn = ex_to<numeric>(overall_coeff);
-                        bool positive_seen = ocn.is_positive();
-                        if (not positive_seen and not ocn.is_zero())
+                        bool positive_seen = overall_coeff.is_positive();
+                        if (not positive_seen and not overall_coeff.is_zero())
                                 return false;
 			for (const auto & elem : seq) {
 				ex t = recombine_pair_to_ex(elem);
@@ -296,9 +296,8 @@ bool add::info(unsigned inf) const
                         return positive_seen;
                 }
 		case info_flags::negative: {
-                        const numeric& ocn = ex_to<numeric>(overall_coeff);
-                        bool negative_seen = ocn.is_negative();
-                        if (not negative_seen and not ocn.is_zero())
+                        bool negative_seen = overall_coeff.is_negative();
+                        if (not negative_seen and not overall_coeff.is_zero())
                                 return false;
 			for (const auto & elem : seq) {
 				ex t = recombine_pair_to_ex(elem);
@@ -380,7 +379,7 @@ ex add::coeff(const ex & s, int n) const
 	}
 
 	return (new add(nonscalar ? coeffseq_cliff : coeffseq,
-	                n==0 ? overall_coeff : _ex0))->setflag(status_flags::dynallocated);
+	                n==0 ? overall_coeff : *_num0_p))->setflag(status_flags::dynallocated);
 }
 
 /** Perform automatic term rewriting rules in this class.  In the following
@@ -446,7 +445,7 @@ ex add::eval(int level) const
 				oc = oc.add((ex_to<numeric>(elem.rest)).mul(ex_to<numeric>(elem.coeff)));
 			else
 				s.push_back(elem);
-		return (new add(s, ex_to<numeric>(overall_coeff).add_dyn(oc)))
+		return (new add(s, overall_coeff + oc))
 		        ->setflag(status_flags::dynallocated);
 	}
 
@@ -495,7 +494,7 @@ ex add::conjugate() const
                         v.push_back(split_ex_to_pair(cj));
 		}
 	// we know the conjugate is a numeric
-        return (new add(v, ex_to<numeric>(overall_coeff).conj()))
+        return (new add(v, overall_coeff.conj()))
 		-> setflag(status_flags::dynallocated);
 }
 
@@ -513,7 +512,7 @@ ex add::real_part() const
 			if (!rp.is_zero())
 				v.push_back(split_ex_to_pair(rp));
 		}
-	return (new add(v, overall_coeff.real_part()))
+	return (new add(v, ex_to<numeric>(overall_coeff.real_part())))
 		-> setflag(status_flags::dynallocated);
 }
 
@@ -531,7 +530,7 @@ ex add::imag_part() const
 			if (!ip.is_zero())
 				v.push_back(split_ex_to_pair(ip));
 		}
-	return (new add(v, overall_coeff.imag_part()))
+	return (new add(v, ex_to<numeric>(overall_coeff.imag_part())))
 		-> setflag(status_flags::dynallocated);
 }
 
@@ -557,7 +556,7 @@ ex add::derivative(const symbol & y) const
 	// if performs the same function (differentiate each term).
 	for (const auto & elem : seq)
 		s.push_back(expair(elem.rest.diff(y), elem.coeff));
-	return (new add(s, _ex0))->setflag(status_flags::dynallocated);
+	return (new add(s, *_num0_p))->setflag(status_flags::dynallocated);
 }
 
 int add::compare_same_type(const basic & other) const
@@ -582,13 +581,13 @@ tinfo_t add::return_type_tinfo() const
 }
 
 // Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(const epvector & v, const ex & oc, bool /*do_index_renaming*/) const
+ex add::thisexpairseq(const epvector & v, const numeric & oc, bool /*do_index_renaming*/) const
 {
 	return (new add(v,oc))->setflag(status_flags::dynallocated);
 }
 
 //// Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool /*do_index_renaming*/) const
+ex add::thisexpairseq(std::unique_ptr<epvector> vp, const numeric & oc, bool /*do_index_renaming*/) const
 {
 	return (new add(*vp,oc))->setflag(status_flags::dynallocated);
 }
@@ -601,7 +600,7 @@ expair add::split_ex_to_pair(const ex & e) const
 		if (numfactor.is_integer_one())
                         return expair(e, _ex1);
                 auto mulcopyp = new mul(mulref);
-		mulcopyp->overall_coeff = _ex1;
+		mulcopyp->overall_coeff = *_num1_p;
 		mulcopyp->clearflag(status_flags::evaluated);
 		mulcopyp->clearflag(status_flags::hash_calculated);
 		mulcopyp->setflag(status_flags::dynallocated);
@@ -611,45 +610,44 @@ expair add::split_ex_to_pair(const ex & e) const
 }
 
 expair add::combine_ex_with_coeff_to_pair(const ex & e,
-										  const ex & c) const
+                const numeric & c) const
 {
-	GINAC_ASSERT(is_exactly_a<numeric>(c));
 	if (is_exactly_a<mul>(e)) {
 		const mul &mulref(ex_to<mul>(e));
-		const ex &numfactor = mulref.overall_coeff;
-		if (likely(numfactor.is_integer_one()))
+		const numeric &numfactor = mulref.overall_coeff;
+		if (likely(numfactor.is_one()))
                         return expair(e, c);
 		auto mulcopyp = new mul(mulref);
-		mulcopyp->overall_coeff = _ex1;
+		mulcopyp->overall_coeff = *_num1_p;
 		mulcopyp->clearflag(status_flags::evaluated);
 		mulcopyp->clearflag(status_flags::hash_calculated);
 		mulcopyp->setflag(status_flags::dynallocated);
-		if (c.is_integer_one())
+		if (c.is_one())
 			return expair(*mulcopyp, numfactor);
 		else
-			return expair(*mulcopyp, ex_to<numeric>(numfactor).mul_dyn(ex_to<numeric>(c)));
+			return expair(*mulcopyp,
+                                        numfactor*c);
 	} else if (is_exactly_a<numeric>(e)) {
-		if (c.is_integer_one())
+		if (c.is_one())
 			return expair(e, _ex1);
 		if (e.is_integer_one())
 			return expair(c, _ex1);
-		return expair(ex_to<numeric>(e).mul_dyn(ex_to<numeric>(c)), _ex1);
+		return expair(e*c, _ex1);
 	}
 	return expair(e, c);
 }
 
 expair add::combine_pair_with_coeff_to_pair(const expair & p,
-											const ex & c) const
+                const numeric & c) const
 {
 	GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
-	GINAC_ASSERT(is_exactly_a<numeric>(c));
 
 	if (is_exactly_a<numeric>(p.rest)) {
 		GINAC_ASSERT(ex_to<numeric>(p.coeff).is_one()); // should be normalized
-		return expair(ex_to<numeric>(p.rest).mul_dyn(ex_to<numeric>(c)),_ex1);
+		return expair(ex_to<numeric>(p.rest).mul_dyn(c),_ex1);
 	}
 
-	return expair(p.rest,ex_to<numeric>(p.coeff).mul_dyn(ex_to<numeric>(c)));
+	return expair(p.rest,ex_to<numeric>(p.coeff).mul_dyn(c));
 }
 
 ex add::recombine_pair_to_ex(const expair & p) const
@@ -724,7 +722,7 @@ ex add::combine_fractions() const
                         if (not denseq.empty()) {
                                 mul den(denseq);
                                 auto it = map.find(den);
-                                mul coeff(coseq, pair.coeff);
+                                mul coeff(coseq, ex_to<numeric>(pair.coeff));
                                 if (it != map.end()) {
                                         it->second += coeff;
                                 }

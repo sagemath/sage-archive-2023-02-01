@@ -103,7 +103,7 @@ void ex::collect_powers(power_ocvector_map& pomap) const
                         mul m = ex_to<mul>(the_pow.op(1));
                         numeric oc = ex_to<numeric>(m.overall_coeff);
                         if (oc.is_rational()) {
-                                m.overall_coeff = _ex1;
+                                m.overall_coeff = *_num1_p;
                                 ex mm = m.eval();
                                 add_to_pomap(pomap, the_pow.op(0), mm, oc);
                         }
@@ -129,9 +129,9 @@ void ex::collect_powers(power_ocvector_map& pomap) const
                         }
                         if (is_exactly_a<mul>(f.op(0))) {
                                 mul m = ex_to<mul>(f.op(0));
-                                numeric oc = ex_to<numeric>(m.overall_coeff);
+                                numeric oc = m.overall_coeff;
                                 if (oc.is_rational()) {
-                                        m.overall_coeff = _ex1;
+                                        m.overall_coeff = *_num1_p;
                                         ex mm = m.eval();
                                         add_to_pomap(pomap, symbol_E, mm, oc);
                                 }
@@ -168,7 +168,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 for (const auto& termex : a.seq) {
                         p = p + a.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p = p + a.overall_coeff.to_canonical(map, pomap, revmap);
+                p = p + a.overall_coeff.to_canonical();
                 return p;
         }
         else if (is_exactly_a<numeric>(*this))
@@ -201,7 +201,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 for (const auto& termex : m.seq) {
                         p = p * m.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p = p * m.overall_coeff.to_canonical(map, pomap, revmap);
+                p = p * m.overall_coeff.to_canonical();
                 return p;
         }
         else if (is_exactly_a<power>(*this))
@@ -223,7 +223,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                         mul m = ex_to<mul>(pow.exponent);
                         numeric oc = ex_to<numeric>(m.overall_coeff);
                         if (oc.is_rational()) {
-                                m.overall_coeff = _ex1;
+                                m.overall_coeff = *_num1_p;
                                 ex mm = m.eval();
                                 auto it = pomap.find(GiNaC::power(pow.basis, mm));
                                 if (it == pomap.end())

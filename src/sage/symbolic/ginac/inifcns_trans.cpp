@@ -412,11 +412,12 @@ REGISTER_FUNCTION(log, eval_func(log_eval).
 
 static ex logb_evalf(const ex & x, const ex & base, PyObject* parent)
 {
-        if ((base - exp(_ex1).hold()).is_zero())
+        if ((base - exp(_ex1).hold()).is_zero()) {
                 if (is_exactly_a<numeric>(x))
                         return log(ex_to<numeric>(x), parent);
                 else
                         return log(x);
+        }
 	if (is_exactly_a<numeric>(x) and is_exactly_a<numeric>(base))
 		return log(ex_to<numeric>(x), ex_to<numeric>(base));
 

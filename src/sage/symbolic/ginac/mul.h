@@ -44,7 +44,8 @@ public:
 	mul(const ex & lh, const ex & rh);
 	mul(const exvector & v, bool hold=false);
 	mul(const epvector & v);
-	mul(const epvector & v, const ex & oc, bool do_index_renaming = false);
+	mul(const epvector & v, const numeric & oc,
+                        bool do_index_renaming = false);
 //	mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false);
 	mul(const ex & lh, const ex & mh, const ex & rh);
 	
@@ -74,15 +75,17 @@ protected:
 	ex eval_ncmul(const exvector & v) const override;
 	unsigned return_type() const override;
 	tinfo_t return_type_tinfo() const override;
-	ex thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming = false) const override;
-	ex thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false) const override;
+	ex thisexpairseq(const epvector & v, const numeric & oc, bool do_index_renaming = false) const override;
+	ex thisexpairseq(std::unique_ptr<epvector> vp, const numeric & oc, bool do_index_renaming = false) const override;
 	expair split_ex_to_pair(const ex & e) const override;
-	expair combine_ex_with_coeff_to_pair(const ex & e, const ex & c) const override;
-	expair combine_pair_with_coeff_to_pair(const expair & p, const ex & c) const override;
+	expair combine_ex_with_coeff_to_pair(const ex & e,
+                        const numeric & c) const override;
+	expair combine_pair_with_coeff_to_pair(const expair & p,
+                        const numeric & c) const override;
 	bool expair_needs_further_processing(epp it) override;
-	ex default_overall_coeff() const override;
-	void combine_overall_coeff(const ex & c) override;
-	void combine_overall_coeff(const ex & c1, const ex & c2) override;
+	numeric default_overall_coeff() const override;
+	void combine_overall_coeff(const numeric & c) override;
+	void combine_overall_coeff(const numeric & c1, const numeric & c2) override;
 	bool can_make_flat(const expair & p) const override;
 	ex expand(unsigned options=0) const override;
 	void find_real_imag(ex&, ex&) const;

@@ -181,8 +181,7 @@ cdef inline bint cisone(celement a, PowComputer_ prime_pow) except -1:
     - ``prime_pow`` -- the PowComputer for the ring
 
     """
-    # Can do this more efficiently
-    return a == 1
+    return a.is_one()
 
 cdef inline bint ciszero(celement a, PowComputer_ prime_pow) except -1:
     """
@@ -195,8 +194,7 @@ cdef inline bint ciszero(celement a, PowComputer_ prime_pow) except -1:
     - ``prime_pow`` -- the PowComputer for the ring
 
     """
-    # Can do this more efficiently
-    return a == 0
+    return a.is_zero()
 
 cdef inline int ccopy(celement out, celement a, PowComputer_ prime_pow) except -1:
     """
@@ -211,7 +209,7 @@ cdef inline int ccopy(celement out, celement a, PowComputer_ prime_pow) except -
     - ``prime_pow`` -- the PowComputer for the ring
 
     """
-    out.__coeffs = copy((<celement?>a).__coeffs)
+    out.__coeffs = a.__coeffs[:]
 
 cdef inline cpickle(celement a, PowComputer_ prime_pow):
     """

@@ -923,7 +923,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: W.one().is_coxeter_element()
                 False
             """
-            return self.absolute_length() == self.parent().rank()
+            W = self.parent()
+            return self in W.prod(W.gens()).conjugacy_class()
 
         def covered_reflections_subgroup(self):
             """

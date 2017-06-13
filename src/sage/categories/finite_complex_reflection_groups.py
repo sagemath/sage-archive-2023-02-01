@@ -786,8 +786,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 R = self.reflections()
                 if L is None:
                     L = self.elements_below_coxeter_element(c=c)
-                    if c.is_coxeter_element():
-                        smart_covers = in_unitary_group = True
+                    try:
+                        if c.is_coxeter_element():
+                            smart_covers = in_unitary_group = True
+                    except AttributeError:
+                        pass
                 rels = []
                 ref_lens = {w: w.reflection_length(in_unitary_group=in_unitary_group)
                             for w in L}

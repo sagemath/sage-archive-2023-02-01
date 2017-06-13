@@ -2624,8 +2624,11 @@ cdef class Expression(CommutativeRingElement):
             # constants are wrappers around Sage objects, compare directly
             if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
                 return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
-
-            pynac_result = decide_relational(self._gobj)
+            sig_on()
+            try:
+                pynac_result = decide_relational(self._gobj)
+            finally:
+                sig_off()
             if pynac_result == relational_undecidable:
                 raise ValueError('undecidable relation: ' + repr(self))
 
@@ -3012,23 +3015,27 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators op
-        if is_a_relational(left._gobj):
-            if is_a_relational(_right._gobj):
-                op = compatible_relation(relational_operator(left._gobj),
-                                         relational_operator(_right._gobj))
-                x = relational(left._gobj.lhs() + _right._gobj.lhs(),
-                               left._gobj.rhs() + _right._gobj.rhs(),
-                               op)
+        sig_on()
+        try:
+            if is_a_relational(left._gobj):
+                if is_a_relational(_right._gobj):
+                    op = compatible_relation(relational_operator(left._gobj),
+                                             relational_operator(_right._gobj))
+                    x = relational(left._gobj.lhs() + _right._gobj.lhs(),
+                                   left._gobj.rhs() + _right._gobj.rhs(),
+                                   op)
+                else:
+                    x = relational(left._gobj.lhs() + _right._gobj,
+                                   left._gobj.rhs() + _right._gobj,
+                                   relational_operator(left._gobj))
+            elif is_a_relational(_right._gobj):
+                x = relational(left._gobj + _right._gobj.lhs(),
+                               left._gobj + _right._gobj.rhs(),
+                               relational_operator(_right._gobj))
             else:
-                x = relational(left._gobj.lhs() + _right._gobj,
-                               left._gobj.rhs() + _right._gobj,
-                               relational_operator(left._gobj))
-        elif is_a_relational(_right._gobj):
-            x = relational(left._gobj + _right._gobj.lhs(),
-                           left._gobj + _right._gobj.rhs(),
-                           relational_operator(_right._gobj))
-        else:
-            x = left._gobj + _right._gobj
+                x = left._gobj + _right._gobj
+        finally:
+            sig_off()
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _sub_(left, right):
@@ -3064,23 +3071,27 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
-        if is_a_relational(left._gobj):
-            if is_a_relational(_right._gobj):
-                op = compatible_relation(relational_operator(left._gobj),
-                                         relational_operator(_right._gobj))
-                x = relational(left._gobj.lhs() - _right._gobj.lhs(),
-                               left._gobj.rhs() - _right._gobj.rhs(),
-                               op)
+        sig_on()
+        try:
+            if is_a_relational(left._gobj):
+                if is_a_relational(_right._gobj):
+                    op = compatible_relation(relational_operator(left._gobj),
+                                             relational_operator(_right._gobj))
+                    x = relational(left._gobj.lhs() - _right._gobj.lhs(),
+                                   left._gobj.rhs() - _right._gobj.rhs(),
+                                   op)
+                else:
+                    x = relational(left._gobj.lhs() - _right._gobj,
+                                   left._gobj.rhs() - _right._gobj,
+                                   relational_operator(left._gobj))
+            elif is_a_relational(_right._gobj):
+                x = relational(left._gobj - _right._gobj.lhs(),
+                               left._gobj - _right._gobj.rhs(),
+                               relational_operator(_right._gobj))
             else:
-                x = relational(left._gobj.lhs() - _right._gobj,
-                               left._gobj.rhs() - _right._gobj,
-                               relational_operator(left._gobj))
-        elif is_a_relational(_right._gobj):
-            x = relational(left._gobj - _right._gobj.lhs(),
-                           left._gobj - _right._gobj.rhs(),
-                           relational_operator(_right._gobj))
-        else:
-            x = left._gobj - _right._gobj
+                x = left._gobj - _right._gobj
+        finally:
+            sig_off()
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _mul_(left, right):
@@ -3295,25 +3306,29 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
-        if is_a_relational(left._gobj):
-            if is_a_relational(_right._gobj):
-                op = compatible_relation(relational_operator(left._gobj),
-                                         relational_operator(_right._gobj))
-                x = relational(left._gobj.lhs() * _right._gobj.lhs(),
-                               left._gobj.rhs() * _right._gobj.rhs(),
-                               op)
-            else:
-                o = relational_operator(left._gobj)
-                x = relational(left._gobj.lhs() * _right._gobj,
-                               left._gobj.rhs() * _right._gobj,
+        sig_on()
+        try:
+            if is_a_relational(left._gobj):
+                if is_a_relational(_right._gobj):
+                    op = compatible_relation(relational_operator(left._gobj),
+                                             relational_operator(_right._gobj))
+                    x = relational(left._gobj.lhs() * _right._gobj.lhs(),
+                                   left._gobj.rhs() * _right._gobj.rhs(),
+                                   op)
+                else:
+                    o = relational_operator(left._gobj)
+                    x = relational(left._gobj.lhs() * _right._gobj,
+                                   left._gobj.rhs() * _right._gobj,
+                                   o)
+            elif is_a_relational(_right._gobj):
+                o = relational_operator(_right._gobj)
+                x = relational(left._gobj * _right._gobj.lhs(),
+                               left._gobj * _right._gobj.rhs(),
                                o)
-        elif is_a_relational(_right._gobj):
-            o = relational_operator(_right._gobj)
-            x = relational(left._gobj * _right._gobj.lhs(),
-                           left._gobj * _right._gobj.rhs(),
-                           o)
-        else:
-            x = left._gobj * _right._gobj
+            else:
+                x = left._gobj * _right._gobj
+        finally:
+            sig_off()
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _div_(left, right):
@@ -3397,6 +3412,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        sig_on()
         try:
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
@@ -3425,6 +3441,8 @@ cdef class Expression(CommutativeRingElement):
                 raise ZeroDivisionError("Symbolic division by zero")
             else:
                 raise
+        finally:
+            sig_off()
 
     def __invert__(self):
         """

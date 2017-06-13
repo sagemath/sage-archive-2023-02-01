@@ -780,8 +780,8 @@ ex expairseq::default_overall_coeff() const
 
 bool expairseq::overall_coeff_equals_default() const
 {
-    numeric num = ex_to<numeric>(overall_coeff);
-    return (num.is_integer() && num.is_equal(ex_to<numeric>(default_overall_coeff())));
+    return (overall_coeff.is_exact()
+         and overall_coeff.is_equal(default_overall_coeff()));
 }
 
 void expairseq::combine_overall_coeff(const ex &c)

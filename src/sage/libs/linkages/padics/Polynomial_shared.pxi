@@ -47,187 +47,218 @@ cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
 
 cdef inline int cdestruct(celement value, PowComputer_ prime_pow) except -1:
     """
-    Deallocate an element.
+    Deallocate ``value``.
 
     INPUT:
 
-    - ``unit`` -- an ``celement`` to be cleared.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``value`` -- a ``celement`` to be cleared
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
+    .. NOTE::
+
+        Just like ``cconstruct``, this function has no effect over polynomials.
+
     """
     pass
 
 cdef inline int cneg(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     """
-    Negation
+    Set ``out`` to the negative of ``a``.
 
     Note that no reduction is performed.
 
     INPUT:
 
-    - ``out`` -- an ``celement`` to store the negation.
-    - ``a`` -- an ``celement`` to be negated.
-    - ``prec`` -- a long, the precision: ignored.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- a ``celement`` to store the negation
+
+    - ``a`` -- a ``celement`` to be negated
+
+    - ``prec`` -- a long, the precision
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = (<celement?>(-a)).__coeffs
 
 cdef inline int cadd(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
-    Addition
+    Set ``out`` to the sum of ``a + b``.
 
     Note that no reduction is performed.
 
     INPUT:
 
-    - ``out`` -- an ``celement`` to store the sum.
-    - ``a`` -- an ``celement``, the first summand.
-    - ``b`` -- an ``celement``, the second summand.
-    - ``prec`` -- a long, the precision: ignored.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- a ``celement`` to store the sum
+
+    - ``a`` -- a ``celement``, the first summand
+
+    - ``b`` -- a ``celement``, the second summand
+
+    - ``prec`` -- a long, the precision
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = (<celement?>(a + b)).__coeffs
 
 cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
-    Subtraction.
+    Set ``out`` to the difference of ``a - b``.
 
     Note that no reduction is performed.
 
     INPUT:
 
-    - ``out`` -- an ``celement`` to store the difference.
-    - ``a`` -- an ``celement``, the first input.
-    - ``b`` -- an ``celement``, the second input.
-    - ``prec`` -- a long, the precision: ignored.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- a ``celement`` to store the difference
+
+    - ``a`` -- a ``celement``, the first input
+
+    - ``b`` -- a ``celement``, the second input
+
+    - ``prec`` -- a long, the precision
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = (<celement?>(a - b)).__coeffs
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
-    Multiplication.
+    Set ``out`` to the product of ``a*b``.
 
     Note that no reduction is performed.
 
     INPUT:
 
-    - ``out`` -- an ``celement`` to store the product.
-    - ``a`` -- an ``celement``, the first input.
-    - ``b`` -- an ``celement``, the second input.
-    - ``prec`` -- a long, the precision: ignored.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- a ``celement`` to store the product
+
+    - ``a`` -- a ``celement``, the first input
+
+    - ``b`` -- a ``celement``, the second input
+
+    - ``prec`` -- a long, the precision
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = (<celement?>(a*b)).__coeffs
 
 cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     """
-    Sets to 1.
+    Set ``out`` to 1.
 
     INPUT:
 
-    - ``out`` -- the ``celement`` in which to store 1.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- the ``celement`` in which to store 1
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = [prime_pow.base_ring(1)]
-    pass
 
 cdef inline int csetzero(celement out, PowComputer_ prime_pow) except -1:
     """
-    Sets to 0.
+    Set ``out`` to 0.
 
     INPUT:
 
-    - ``out`` -- the ``celement`` in which to store 0.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- the ``celement`` in which to store 0
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = []
 
 cdef inline bint cisone(celement a, PowComputer_ prime_pow) except -1:
     """
-    Returns whether this element is equal to 1.
+    Return whether ``a`` is equal to 1.
 
     INPUT:
 
-    - ``a`` -- the element to test.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``a`` -- the element to test
 
-    OUTPUT:
+    - ``prime_pow`` -- the PowComputer for the ring
 
-    - returns True if `a = 1`, and False otherwise.
     """
     # Can do this more efficiently
     return a == 1
 
 cdef inline bint ciszero(celement a, PowComputer_ prime_pow) except -1:
     """
-    Returns whether this element is equal to 0.
+    Return whether ``a`` is equal to 0.
 
     INPUT:
 
-    - ``a`` -- the element to test.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``a`` -- the element to test
 
-    OUTPUT:
+    - ``prime_pow`` -- the PowComputer for the ring
 
-    - returns True if `a = 0`, and False otherwise.
     """
     # Can do this more efficiently
     return a == 0
 
 cdef inline int ccopy(celement out, celement a, PowComputer_ prime_pow) except -1:
     """
-    Copying.
+    Copy ``a`` into ``out``.
 
     INPUT:
 
-    - ``out`` -- the ``celement`` to store the result.
-    - ``a`` -- the element to copy.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- the ``celement`` to store the result
+
+    - ``a`` -- the element from which to copy
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = copy((<celement?>a).__coeffs)
 
 cdef inline cpickle(celement a, PowComputer_ prime_pow):
     """
-    Serialization into objects that Sage knows how to pickle.
+    Return a representation of ``a`` for pickling.
 
     INPUT:
 
-    - ``a`` the element to pickle.
-    - ``prime_pow`` the PowComputer for the ring.
+    - ``a`` the element to pickle
 
-    OUTPUT:
+    - ``prime_pow`` the PowComputer for the ring
 
-    - a serializable object storing ``a``.
     """
     return a.__coeffs
 
 cdef inline int cunpickle(celement out, x, PowComputer_ prime_pow) except -1:
     """
-    Reconstruction from the output of meth:`cpickle`.
+    Reconstruct from the output of :meth:`cpickle`.
 
     INPUT:
 
-    - ``out`` -- the ``celement`` in which to store the result.
-    - ``x`` -- the result of `meth`:cpickle.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``out`` -- the ``celement`` in which to store the result
+
+    - ``x`` -- the result of `meth`:cpickle
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     out.__coeffs = x
 
 cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow) except -1:
     """
-    Hashing.
+    Return a hash value for ``a``.
 
     INPUT:
 
-    - ``a`` -- an ``celement`` storing the underlying element to hash.
-    - ``ordp`` -- a long storing the valuation.
-    - ``prec`` -- a long storing the precision.
-    - ``prime_pow`` -- a PowComputer for the ring.
+    - ``a`` -- the element to hash
+
+    - ``ordp`` -- the valuation as a long
+
+    - ``prec`` -- the precision as a long
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
     """
     pass
 
 # The element is filled in for zero in the output of clist if necessary.
-# It could be [] for some other linkages.
 _list_zero = Integer(0)
 
 cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow) except -2:

@@ -43,7 +43,7 @@ cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
         through ``__new__``. Their ``__init__`` has already been called by ``__new__``.
 
     """
-    pass
+    value.__init__(prime_pow.poly_ring)
 
 cdef inline int cdestruct(celement value, PowComputer_ prime_pow) except -1:
     """

@@ -493,6 +493,12 @@ ex power::eval(int level) const
 	if (is_exactly_a<numeric>(ebasis)) {
 		basis_is_numerical = true;
 		num_basis = ex_to<numeric>(ebasis);
+
+                // (negative num)^even --> (positive num)^even
+                if (num_basis.info(info_flags::negative)
+                    and eexponent.info(info_flags::even)
+                    and eexponent.info(info_flags::real))
+                        return power(-num_basis, eexponent);
 	}
 	if (is_exactly_a<numeric>(eexponent)) {
 		exponent_is_numerical = true;
@@ -577,6 +583,12 @@ ex power::eval(int level) const
                                           and ebasis.op(1).info(info_flags::real))))
 		return power(ebasis.op(0), ebasis.op(1) * eexponent);
 
+        // (negative oc)^even --> (positive oc)^even
+        if (is_exactly_a<mul>(ebasis)
+            and ex_to<mul>(ebasis).overall_coeff.info(info_flags::negative)
+            and eexponent.info(info_flags::even)
+            and eexponent.info(info_flags::real))
+                return power(-ebasis, eexponent);
 
 	if (exponent_is_numerical) {
 		// ^(c1,c2) -> c1^c2  (c1, c2 numeric(),
@@ -663,7 +675,6 @@ ex power::eval(int level) const
 		}
 	
 		if (num_exponent.is_integer()) {
-                        
                         // ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1) (c1 integer)
                         if (is_exactly_a<mul>(ebasis)) {
                                 return expand_mul(ex_to<mul>(ebasis), num_exponent, 0);

@@ -5196,7 +5196,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         """
         return isinstance(other, LinearCodeInformationSetDecoder)\
                 and self.code() == other.code()\
-                and self.number_errors() == other.number_errors()\
+                and self.decoding_interval() == other.decoding_interval()\
                 and self.window_size() == other.window_size()
 
     def _format_number_errors(self):
@@ -5354,7 +5354,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         C = self.code()
         if r in C:
             return r
-        return self._lee_brickell_algorithm(r, self.number_errors(), self.window_size())
+        return self._lee_brickell_algorithm(r, self.decoding_interval(), self.window_size())
 
     def window_size(self):
         r"""
@@ -5369,9 +5369,23 @@ class LinearCodeInformationSetDecoder(Decoder):
         """
         return self._window_size
 
-    def number_errors(self):
+    def decoding_radius(self):
         r"""
-         A pair of integers specifying the interval of errors this decoder will attempt to correct.
+        Return the maximal number of errors this decoder can decode.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2)
+            sage: D.decoding_radius()
+            2
+        """
+        return self._number_errors[1]
+
+    def decoding_interval(self):
+        r"""
+         A pair of integers specifying the interval of number of errors this
+         decoder will attempt to correct.
 
          The interval includes both end values.
 
@@ -5380,7 +5394,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
             sage: C = codes.GolayCode(GF(2))
             sage: D = C.decoder("InformationSet", 2)
-            sage: D.number_errors()
+            sage: D.decoding_interval()
             (0, 2)
         """
         return self._number_errors

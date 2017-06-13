@@ -38,9 +38,9 @@ cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
 
     .. NOTE::
 
-        For Polynomial elements, this function has no effect. The polynomials
-        are regular Python objects which have already been created somewhere else
-        through ``__new__``. Their ``__init__`` has already been called by ``__new__``.
+        For Polynomial elements, this function calls the ``__init__`` method of
+        ``celement``. When creating ``celement`` instances, we use ``__new__`` which
+        does not call ``__init__``, because of the metaclass that we are using.
 
     """
     value.__init__(prime_pow.poly_ring)
@@ -57,7 +57,8 @@ cdef inline int cdestruct(celement value, PowComputer_ prime_pow) except -1:
 
     .. NOTE::
 
-        Just like ``cconstruct``, this function has no effect over polynomials.
+        This function has no effect for polynomials. There is no manual garbage
+        collection necessary, as ``celement`` is a managed Python type.
 
     """
     pass

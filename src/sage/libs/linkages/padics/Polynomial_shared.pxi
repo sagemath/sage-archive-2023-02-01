@@ -254,7 +254,10 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
     - ``prime_pow`` -- the PowComputer for the ring
 
     """
-    pass
+    if ciszero(a, prime_pow):
+        return 0
+    
+    return hash((a._cache_key(), ordp, prec))
 
 # The element is filled in for zero in the output of clist if necessary.
 _list_zero = Integer(0)

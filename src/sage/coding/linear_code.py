@@ -5101,6 +5101,13 @@ class LinearCodeInformationSetDecoder(Decoder):
         sage: D
         Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding between 2 and 3 errors
 
+    We can also information set decode non-binary codes::
+
+        sage: C = codes.GolayCode(GF(3))
+        sage: D = C.decoder("InformationSet", 2)
+        sage: D
+        Information set decoder for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+
     The decoder class can be directly invoked as well::
 
         sage: C = codes.GolayCode(GF(2))
@@ -5339,6 +5346,17 @@ class LinearCodeInformationSetDecoder(Decoder):
                                      [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
                                      [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
             sage: C = codes.LinearCode(M)
+            sage: D = C.decoder('InformationSet', 2)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: y = Chan(c)
+            sage: D.decode_to_code(y) in C
+            True
+
+        Information-set decoding a non-binary code::
+
+            sage: C = codes.GolayCode(GF(3)); C
+            [12, 6, 6] Extended Golay code over GF(3)
             sage: D = C.decoder('InformationSet', 2)
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)

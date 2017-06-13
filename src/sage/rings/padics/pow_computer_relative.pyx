@@ -273,6 +273,8 @@ def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_fi
         <type 'sage.rings.padics.qadic_flint_FM.PowComputer_'>
 
     """
+    #from .relative_ramified_FM import PowComputer_
+    #PC = PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
     PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
     PC._prec_type = 'fixed-mod'
     return PC

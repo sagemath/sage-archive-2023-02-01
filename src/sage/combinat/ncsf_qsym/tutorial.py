@@ -46,12 +46,11 @@ names. ::
 
     sage: QSym = QuasiSymmetricFunctions(QQ)
     sage: QSym.inject_shorthands()
-    Injecting M as shorthand for Quasisymmetric functions over the Rational Field in the Monomial basis
-    Injecting F as shorthand for Quasisymmetric functions over the Rational Field in the Fundamental basis
-    Injecting E as shorthand for Quasisymmetric functions over the Rational Field in the Essential basis
-    doctest:...: RuntimeWarning: redefining global value `E`
-    Injecting dI as shorthand for Quasisymmetric functions over the Rational Field in the dualImmaculate basis
-    Injecting QS as shorthand for Quasisymmetric functions over the Rational Field in the Quasisymmetric Schur basis
+    Defining M as shorthand for Quasisymmetric functions over the Rational Field in the Monomial basis
+    Defining F as shorthand for Quasisymmetric functions over the Rational Field in the Fundamental basis
+    Defining E as shorthand for Quasisymmetric functions over the Rational Field in the Essential basis
+    Defining dI as shorthand for Quasisymmetric functions over the Rational Field in the dualImmaculate basis
+    Defining QS as shorthand for Quasisymmetric functions over the Rational Field in the Quasisymmetric Schur basis
 
 Now one can start constructing quasisymmetric functions.
 
@@ -143,7 +142,12 @@ related to the monomial symmetric functions by `m_\lambda =
 means the partition obtained by sorting the composition `c`::
 
     sage: SymmetricFunctions(QQ).inject_shorthands()
-    doctest:...: RuntimeWarning: redefining global value `e`
+    Defining e as shorthand for Symmetric Functions over Rational Field in the elementary basis
+    Defining f as shorthand for Symmetric Functions over Rational Field in the forgotten basis
+    Defining h as shorthand for Symmetric Functions over Rational Field in the homogeneous basis
+    Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
+    Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
+    Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
     sage: m[2,1]
     m[2, 1]
     sage: M(m[2,1])

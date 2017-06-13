@@ -6,7 +6,7 @@ where functions that depend on the ramification of the defining polynomial are p
 
 AUTHORS:
 
-- David Roe (2017-6-11) -- initial version
+- David Roe (2017-06-11): initial version
 """
 
 #*****************************************************************************

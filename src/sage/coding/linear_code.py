@@ -5054,6 +5054,11 @@ class LinearCodeInformationSetDecoder(Decoder):
     chooses anything above `d/2`, the algorithm does not guarantee to return a
     nearest codeword.
 
+    WARNING::
+
+        If there is no codeword within the specified decoding distance, then the
+        decoding algorithm is not promised to terminate.
+
     ALGORITHM:
 
     This implements the Lee--Brickell refinement of the above simple strategy,
@@ -5243,7 +5248,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         """
         return "\\textnormal{{Information set decoder for }}{0} \\textnormal{{decoding {1} errors}}".format(self.code()._latex_(), self._format_number_errors())
 
-    def _lee_brickell_algorithm(self, r, w, p):
+    def _lee_brickell_algorithm(self, r, tau, win):
         r"""
         The Lee-Brickell algorithm as described in the class doc.
 
@@ -5252,11 +5257,11 @@ class LinearCodeInformationSetDecoder(Decoder):
         - `r` -- a received word, i.e. a vector in the ambient space of
           :meth:`decoder.Decoder.code`.
 
-        - `w` -- an integer interval of acceptable Hamming weights for the error.
+        - `tau` -- an integer interval of acceptable Hamming weights for the error.
 
-        - `p` -- an integer, the window size.
+        - `win` -- an integer, the window size.
 
-        OUTPUT: A codeword whose distance to `r` satisfies `w`.
+        OUTPUT: A codeword whose distance to `r` satisfies `tau`.
 
         EXAMPLES::
 
@@ -5274,52 +5279,34 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: (y - c).hamming_weight() == 2
             True
         """
-        from sage.matrix.constructor import column_matrix
+        import itertools
+        from sage.misc.prandom import sample
         C = self.code()
         n, k = C.length(), C.dimension()
         F = C.base_ring()
-        one = F.one()
         G = C.generator_matrix()
-        columns = G.columns()
-        l = F.list()
-        #We define an iterator over the possible information sets
-        I = iter(Subsets(range(n), k))
-        while(True):
+        Fstar = F.list()[1:]
+        while True:
+            # step 1.
+            I = sample(range(n), k)
+            Gi = G.matrix_from_columns(I)
             try:
-                information_set = list(I.next())
-                columns = [G.column(i) for i in information_set]
-                Gi = column_matrix(columns)
-                try:
-                    Gi_G = Gi.inverse() * G
-                    rc = copy(r)
-                    #At every iteration, we will need the row corresponding
-                    #to the index where Gi_G's i-th column has a one.
-                    #We store this in a dictionary to save later computation.
-                    gs = dict()
-                    for i in information_set:
-                        gs[i] = Gi_G.row(list(Gi_G.column(i)).index(one))
-
-                    m = iter(VectorSpace(F, p))
-                    for i in Subsets(information_set, p):
-                        ind = 0
-                        v = vector(F, n)
-                        while(True):
-                            try:
-                                j = m.next()
-                                v += j[ind] * gs[i[ind]]
-                                errs = (rc - v).hamming_weight()
-                                if errs >= w[0] and errs <= w[1]:
-                                    return v
-                                ind = (ind + 1) % p
-                            except StopIteration:
-                                break
-                except ZeroDivisionError:
-                #in that case Gi was not invertible
-                #thus I was not an information set
-                    pass
-            except StopIteration:
-                raise DecodingError("Decoding failed")
-
+                Gi_inv = Gi.inverse()
+            except ZeroDivisionError:
+                # I was not an information set
+                continue
+            Gt = Gi_inv * G
+            #step 2.
+            y = r - vector([r[i] for i in I]) * Gt
+            g = Gt.rows()
+            #step 3.
+            for w in range(win):
+                for A in itertools.combinations(range(k), w):
+                    for m in itertools.product(Fstar, repeat=w):
+                        e = y - sum(m[i]*g[A[i]] for i in range(w))
+                        errs = e.hamming_weight()
+                        if  errs >= tau[0] and errs <= tau[1]:
+                            return r - e
 
     def decode_to_code(self, r):
         r"""

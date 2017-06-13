@@ -415,43 +415,6 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
             and A.has_coerce_map_from(P.base_ring())):
             return True
 
-    def __cmp__(self, other):
-        """
-        Compare this Laurent series ring to something else.
-
-        Laurent series rings are considered equal if the base ring, variable
-        names, and default truncation precision are the same.
-
-        First the base rings are compared, then the variable names, then
-        the default precision.
-
-        EXAMPLES::
-
-            sage: R.<t> = LaurentSeriesRing(ZZ)
-            sage: S.<t> = LaurentSeriesRing(ZZ)
-            sage: R is S
-            True
-            sage: R == S
-            True
-            sage: S.<t> = LaurentSeriesRing(ZZ, default_prec=10)
-            sage: R == S
-            False
-            sage: LaurentSeriesRing(ZZ,'t') == LaurentSeriesRing(QQ,'t')
-            False
-            sage: LaurentSeriesRing(QQ,'t') == 5
-            False
-        """
-        if not isinstance(other, LaurentSeriesRing_generic):
-            return cmp(type(self),type(other))
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        c = cmp(self.variable_name(), other.variable_name())
-        if c: return c
-        c = cmp(self.default_prec(), other.default_prec())
-        if c: return c
-        return 0
-
-
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         EXAMPLES::

@@ -32,12 +32,18 @@ cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
 
     INPUT:
 
-    - ``unit`` -- an ``celement`` to be initialized.
-    - ``prime_pow`` -- the PowComputer for the ring.
+    - ``value`` -- a ``celement`` to be initialized
+
+    - ``prime_pow`` -- the PowComputer for the ring
+
+    .. NOTE::
+
+        For Polynomial elements, this function has no effect. The polynomials
+        are regular Python objects which have already been created somewhere else
+        through ``__new__``. Their ``__init__`` has already been called by ``__new__``.
+
     """
-    if value is None:
-        raise TypeError
-    value.__init__(prime_pow.poly_ring)
+    pass
 
 cdef inline int cdestruct(celement value, PowComputer_ prime_pow) except -1:
     """

@@ -66,7 +66,7 @@ In fact it is an order in a number field::
 
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from sage.misc.cachefunc import cached_method
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_field import ComplexField, CDF
 from sage.rings.real_mpfr import RealField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -74,23 +74,23 @@ from sage.arith.srange import srange
 from sage.ext.fast_callable import fast_callable
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.interfaces.singular import singular
 from sage.graphs.graph import Graph
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module import VectorSpace
 from sage.numerical.gauss_legendre import integrate_vector
 from sage.misc.misc_c import prod
 import operator
-from sage.structure.sage_object import SageObject
 
-def voronoi_ghost(cpoints):
+def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
-    Convert a set of complex points to a list of real tuples `(x,y)`, as well
-    as 'ghost' points to surround the complex points.
+    Convert a set of complex points to a list of real tuples `(x,y)`,
+    and appends n points in a big circle around them.
 
-    In particular, given some list of complex points to surround by Voronoi
-    cells, this function creates a list of additional points so that the
-    Voronoi cells surrounding the points are bounded in the plane.
+    The effect is that, with n >= 3, a Voronoi decomposition will have only
+    finite cells around the original points. Furthermore, because
+    the extra points are placed on a circle centered on the average of the given
+    points, with a radius 3 times the largest distance between the center and
+    the given points, these finite cells form a simply connected region.
 
     INPUT:
 
@@ -105,8 +105,17 @@ def voronoi_ghost(cpoints):
 
         sage: from sage.schemes.riemann_surfaces.riemann_surface import voronoi_ghost
         sage: L = [1 + 1*I, 1 - 1*I, -1 + 1*I, -1 - 1*I]
-        sage: voronoi_ghost(L)
-        [(1, 1), (1, -1), (-1, 1), (-1, -1), (-2, -2), (-2, 2), (2, -2), (2, 2), (4, 0), (-4, 0), (0, 4), (0, -4)]
+        sage: voronoi_ghost(L) # abs tol 1e-6
+        [(1.0, 1.0),
+         (1.0, -1.0),
+         (-1.0, 1.0),
+         (-1.0, -1.0),
+         (3.0, 0.0),
+         (1.5000000000000004, 2.598076211353316),
+         (-1.4999999999999993, 2.598076211353316),
+         (-3.0, 0.0),
+         (-1.5000000000000013, -2.598076211353315),
+         (1.499999999999998, -2.598076211353317)]
 
     .. NOTE::
 
@@ -120,37 +129,12 @@ def voronoi_ghost(cpoints):
 
         It may be useful to add an option to compute a circle instead of a box.
     """
-    points = [(z.real_part(), z.imag_part()) for z in cpoints]
-    # If there's only a single point, return unit box.
-    if len(points) == 1:
-        return [(points[0][0] + 0.5, points[0][1] + 0.5), (points[0][0] + 0.5, points[0][1] - 0.5),
-                (points[0][0] - 0.5, points[0][1] + 0.5), (points[0][0] - 0.5, points[0][1] - 0.5)]
-    # Initialize maxes and mins. these form the initial box [x1,x2] x [y1, y2].
-    maxx = 2*max(x for x,y in points)
-    minx = 2*min(x for x,y in points)
-    maxy = 2*max(y for x,y in points)
-    miny = 2*min(y for x,y in points)
-    # Because of the structure of the initial box, these conditionals are
-    # added to ensure that none of the original points lie on the boundary
-    # of the box.
-    if abs(maxx) < 1e-8:
-        maxx = -minx
-    if abs(minx) < 1e-8:
-        minx = -maxx
-    if abs(maxy) < 1e-8:
-        maxy = -miny
-    if abs(miny) < 1e-8:
-        miny = -maxy
-    # These conditions are to ensure that the box is not trivial-
-    # i.e. is not of the form [x1,x1] x [y1, y2], etc.
-    if (abs(minx - maxx) < 10**(-8)):
-        minx = points[0][0] - (abs(maxy) + abs(miny))/2
-        maxx = points[0][0] + (abs(maxy) + abs(miny))/2
-    if (abs(miny - maxy) < 10**(-8)):
-        miny = points[0][1] - (abs(maxx) + abs(minx))/2
-        maxy = points[0][1] + (abs(maxx) + abs(minx))/2
-    return points + [(x,y) for x in [minx,maxx] for y in [miny,maxy]] \
-                  + [(2*maxx,0),(2*minx,0),(0,2*maxy),(0,2*miny)]
+    cpoints = [CC(c) for c in cpoints]
+    average = sum(cpoints)/len(cpoints)
+    radius = min(1,max(abs(c-average) for c in cpoints))
+    z = CC.zeta(n)
+    extra_points = [average+3*radius*z**i for i in range(n)]
+    return [(c.real_part(),c.imag_part()) for c in cpoints+extra_points]
 
 def bisect(L,t):
     r"""
@@ -195,7 +179,7 @@ def bisect(L,t):
     max = len(L) - 1
     # If the input t is not between 0 and 1, raise an error.
     if t < L[min][0] or t > L[max][0]:
-        raise ValueError("Value for t out of range")
+        raise ValueError("value for t out of range")
     # Main loop.
     while (min < max-1):
         # Bisect.
@@ -285,6 +269,25 @@ class RiemannSurface(object):
         sage: all( len(T.minpoly().roots(K)) > 0 for T in A)
         True
 
+    TESTS:
+
+    This elliptic curve has a relatively poorly conditioned set of branch points,
+    so it challenges the path choice a bit. The code just verifies that the period is quadratic,
+    because the curve has CM, but really the test is that the computation completes at all.::
+
+        sage: prec = 50
+        sage: Qx.<t> = QQ[]
+        sage: CC = ComplexField(prec)
+        sage: g = t^2-t-1
+        sage: phiCC = g.roots(CC)[1][0]
+        sage: K.<phi> = NumberField(g, embedding=phiCC)
+        sage: R.<X,Y> = K[]
+        sage: f = Y^2+X*Y+phi*Y-(X^3-X^2-2*phi*X+phi)
+        sage: S = RiemannSurface(f,prec=prec, differentials=[1])
+        sage: tau = S.riemann_matrix()[0, 0]
+        sage: tau.algdep(6).degree() == 2
+        True
+
     """
     def __init__(self, f, prec=53, certification=True, differentials=None):
         r"""
@@ -301,7 +304,7 @@ class RiemannSurface(object):
         self._certification = certification
         self._R = f.parent()
         if len(self._R.gens()) != 2:
-            raise ValueError('Only bivariate polynomials supported.')
+            raise ValueError('only bivariate polynomials supported.')
         z, w = self._R.gen(0), self._R.gen(1)
         self._CC = ComplexField(self._prec)
         self._RR = RealField(self._prec)
@@ -331,7 +334,7 @@ class RiemannSurface(object):
         for x in self._discriminant.factor():
             self.branch_locus += self._CCz(x[0](self._CCz.gen(),0)).roots(multiplicities=False)
         # Voronoi diagram and the important points associated with it
-        self.voronoi_diagram = Voronoi(voronoi_ghost(self.branch_locus))
+        self.voronoi_diagram = Voronoi(voronoi_ghost(self.branch_locus,CC=self._CC))
         self._vertices = [self._CC(x0,y0) for x0,y0 in self.voronoi_diagram.vertices]
         self._wvalues = [self.w_values(z0) for z0 in self._vertices]
         self._Sn = SymmetricGroup(srange(self.degree))
@@ -406,7 +409,7 @@ class RiemannSurface(object):
         Compute the edges::
 
             sage: S.downstairs_edges()
-            [(0, 1), (0, 3), (1, 2), (2, 6), (3, 4), (3, 6), (4, 5), (5, 6)]
+            [(0, 3), (0, 4), (1, 2), (1, 3), (2, 5), (3, 5), (4, 5)]
 
         This now gives an edgeset which one could use to form a graph.
 
@@ -467,8 +470,8 @@ class RiemannSurface(object):
             sage: currw = S.w_values(z1)
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            sage: S._compute_delta(z1, epsilon)
-            0.40790892870...
+            sage: S._compute_delta(z1, epsilon) # abs tol 1e-8
+            0.373789002731208
 
         If the Riemann surface doesn't have certified homotopy continuation,
         then the delta will just be the minimum distance away from a branch
@@ -479,17 +482,11 @@ class RiemannSurface(object):
             sage: currw = T.w_values(z1)
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            sage: T._compute_delta(z1, epsilon)
-            0.79056941504...
+            sage: T._compute_delta(z1, epsilon) # abs tol 1e-8
+            0.763762615825974
 
         """
-        # If we don't want certified computations, then doing this is
-        # unneccessary.
-        if (self._certification == False):
-            # Instead, we just compute the minimum distance between branch
-            # points and the point in question.
-            return min([abs(z1 - self.branch_locus[i]) for i in range(len(self.branch_locus))])/2
-        else:
+        if self._certification:
             wvalues = self.w_values(z1)
             # For computation of rho. Need the branch locus + roots of a0.
             badpoints = self.branch_locus + self._a0roots
@@ -506,6 +503,10 @@ class RiemannSurface(object):
                 lowerbound = self._a0[self._a0.degree()]*prod(abs((zk - z1) - rho) for zk in self._a0roots)/2
             M = 2*max(abs((upperbounds[k]/lowerbound))**(1/(k+1)) for k in range(self.degree-1))
             return rho*( ((rho*Y - epsilon)**2 + 4*epsilon*M).sqrt() - (rho*Y + epsilon))/(2*M - 2*rho*Y)
+        else:
+            # Instead, we just compute the minimum distance between branch
+            # points and the point in question.
+            return min([abs(z1 - self.branch_locus[i]) for i in range(len(self.branch_locus))])/2
 
     def homotopy_continuation(self, edge):
         r"""
@@ -524,46 +525,22 @@ class RiemannSurface(object):
         points indicates how they have been permuted due to the weaving of the
         curve.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We check that continued values along an edge correspond (up to the appropriate
+        permutation) to what is stored. Note that the permutation was originally
+        computed from this data.
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
-
-        First we traverse the first edge on the Voronoi diagram, which is
-        `(0,1)`::
-
-            sage: edge1 = (0,1)
-            sage: homotopyvalues = S.homotopy_continuation(edge1); homotopyvalues #abs tol 0.00000001
-            [-5.83317387179... + 1.6687560771...*I, -0.08373298599... - 0.0320669890287...*I, 5.91690685778... - 1.63668908809...*I]
-
-        Compare this with the w-values at the index 1 vertex::
-
-            sage: originalwvalues = S.w_values(S._vertices[1])
-            sage: abs(originalwvalues[0] - homotopyvalues[0]) #abs tol 0.00000001
-            0.000000000000...
-            sage: abs(originalwvalues[1] - homotopyvalues[1]) #abs tol 0.00000001
-            0.000000000000...
-            sage: abs(originalwvalues[2] - homotopyvalues[2]) #abs tol 0.00000001
-            0.000000000000...
-
-        This indicates that traversing the path of the edge along the surface
-        does not permute the points. On the other hand, consider the following::
-
-            sage: edge2 = (9,11)
-            sage: homotopyvalues = S.homotopy_continuation(edge2); homotopyvalues #abs tol 0.00000001
-            [-0.47094999230... - 0.8602729692...*I, -0.4725503696... + 0.59255942108...*I, 0.94350036195... + 0.267713548165...*I]
-
-        In this situation, the first and second roots are interchanged, which
-        indicates that the layers of the surface are interchanging when
-        traversing along the direction of the edge `(9,11)`::
-
-            sage: originalwvalues = S.w_values(S._vertices[11])
-            sage: abs(originalwvalues[0] - homotopyvalues[1]) #abs tol 0.00000001
-            0.00000000000...
-            sage: abs(originalwvalues[1] - homotopyvalues[0]) #abs tol 0.00000001
-            0.00000000000...
+            sage: edge1 = S.edge_permutations().keys()[0]
+            sage: sigma = S.edge_permutations()[edge1]
+            sage: continued_values = S.homotopy_continuation(edge1)
+            sage: stored_values = S.w_values(S._vertices[edge1[1]])
+            sage: all( abs(continued_values[i]-stored_values[sigma(i)]) < 1e-8 for i in range(3))
+            True
 
         """
         i0, i1 = edge
@@ -639,11 +616,9 @@ class RiemannSurface(object):
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)
             sage: neww = S._determine_new_w(z0,oldw,epsilon); neww #abs tol 0.00000001
-            [-5.9288247295... - 2.53001238598...*I, 5.9288247295... + 2.53001238598...*I]
+            [-2.62060824791250 + 4.69997976711063*I, 2.62060824791250 - 4.69997976711063*I]
 
-        Which should be exactly the same as the w-values we started with.
-        
-        ::
+        Which should be exactly the same as the w-values we started with.::
 
             sage: abs(neww[0] - oldw[0]) #abs tol 0.00000001
             0.000000000000...
@@ -729,7 +704,7 @@ class RiemannSurface(object):
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)[0]
             sage: neww = S._newton_iteration(z0,oldw,epsilon); neww #abs tol 0.00000001
-            -5.9288247295... - 2.53001238598...*I
+                -2.62060824791250 + 4.69997976711063*I
 
         Which should be exactly the same as the w-value we started with::
 
@@ -791,7 +766,20 @@ class RiemannSurface(object):
             sage: f = w^2 + z^3 - z^2
             sage: S = RiemannSurface(f)
             sage: edgeset = S.upstairs_edges(); edgeset
-            [[(0, 0), (1, 1)], [(0, 1), (1, 0)], [(0, 0), (3, 0)], [(0, 1), (3, 1)], [(1, 0), (2, 1)], [(1, 1), (2, 0)], [(2, 0), (6, 0)], [(2, 1), (6, 1)], [(3, 0), (4, 0)], [(3, 1), (4, 1)], [(3, 0), (6, 0)], [(3, 1), (6, 1)], [(4, 0), (5, 1)], [(4, 1), (5, 0)], [(5, 0), (6, 0)], [(5, 1), (6, 1)]]
+            [[(0, 0), (3, 1)],
+             [(0, 1), (3, 0)],
+             [(0, 0), (4, 0)],
+             [(0, 1), (4, 1)],
+             [(1, 0), (2, 1)],
+             [(1, 1), (2, 0)],
+             [(1, 0), (3, 0)],
+             [(1, 1), (3, 1)],
+             [(2, 0), (5, 0)],
+             [(2, 1), (5, 1)],
+             [(3, 0), (5, 0)],
+             [(3, 1), (5, 1)],
+             [(4, 0), (5, 1)],
+             [(4, 1), (5, 0)]]
 
         """
         edgeset = []
@@ -836,7 +824,7 @@ class RiemannSurface(object):
         Compute the edge permutation of (5,16) on the Voronoi diagram::
 
             sage: S._edge_permutation((5,16))
-            (1,2)
+            (0,2)
 
         This indicates that while traversing along the direction of `(5,16)`,
         the 2nd and 3rd layers of the Riemann surface are interchanging.
@@ -877,18 +865,22 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(f)
             sage: S.edge_permutations()
             {(0, 2): (),
-             (0, 6): (0,1),
+             (0, 4): (),
+             (1, 2): (),
+             (1, 7): (0,1),
              (2, 0): (),
-             (2, 7): (),
-             (4, 5): (),
-             (4, 6): (),
-             (5, 4): (),
-             (5, 7): (0,1),
-             (6, 0): (0,1),
-             (6, 4): (),
+             (2, 1): (),
+             (3, 4): (0,1),
+             (3, 5): (),
+             (4, 0): (),
+             (4, 3): (0,1),
+             (4, 7): (),
+             (5, 3): (),
+             (5, 6): (),
+             (6, 5): (),
              (6, 7): (),
-             (7, 2): (),
-             (7, 5): (0,1),
+             (7, 1): (0,1),
+             (7, 4): (),
              (7, 6): ()}
         """
         D=dict( (e,self._edge_permutation(e)) for e in self.downstairs_edges())
@@ -920,25 +912,25 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
             sage: G = S.monodromy_group(); G
-            [(0,2,1), (0,1), (1,2), (0,2), (1,2), (1,2), (0,2), (0,1)]
+            [(0,2,1), (0,1), (1,2), (0,2), (0,2), (1,2), (0,2), (0,1)]
 
         The permutations give the local monodromy generators for the branch points::
 
             sage: zip(S.branch_locus, G) #abs tol 0.0000001
-            [(0.000000000000000, (0,2,1)),
-             (-1.31362670141929, (0,1)),
-             (-0.819032851784253 - 1.02703471138023*I, (1,2)),
-             (-0.819032851784253 + 1.02703471138023*I, (0,2)),
-             (0.292309440469772 - 1.28069133740100*I, (1,2)),
-             (0.292309440469772 + 1.28069133740100*I, (1,2)),
-             (1.18353676202412 - 0.569961265016465*I, (0,2)),
-             (1.18353676202412 + 0.569961265016465*I, (0,1))]
+                [(0.000000000000000, (0,2,1)),
+                 (-1.31362670141929, (0,1)),
+                 (-0.819032851784253 - 1.02703471138023*I, (1,2)),
+                 (-0.819032851784253 + 1.02703471138023*I, (0,2)),
+                 (0.292309440469772 - 1.28069133740100*I, (0,2)),
+                 (0.292309440469772 + 1.28069133740100*I, (1,2)),
+                 (1.18353676202412 - 0.569961265016465*I, (0,2)),
+                 (1.18353676202412 + 0.569961265016465*I, (0,1))]
 
         We can obtain the local monodromy at infinity by taking the product of all
         the finite local monodromy generators::
 
             sage: prod(G)
-            (1,2)
+            (0,1)
 
         We read off the ramification types from the cycle types of the local
         monodromy, and we see that the total ramification (10=2+8*1) matches
@@ -1000,29 +992,16 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(g)
             sage: S.homology_basis()
             [[(1,
-               [(8, 1),
-                (1, 0),
-                (0, 0),
-                (4, 0),
-                (12, 0),
-                (5, 0),
-                (2, 1),
-                (3, 1),
-                (9, 1),
-                (12, 1),
-                (8, 1)])],
-             [(1,
-               [(5, 1),
+               [(10, 1),
                 (6, 1),
-                (7, 1),
                 (4, 0),
-                (12, 0),
                 (5, 0),
-                (2, 1),
-                (3, 1),
+                (10, 0),
+                (8, 0),
+                (7, 1),
                 (9, 1),
-                (12, 1),
-                (5, 1)])]]
+                (10, 1)])],
+             [(1, [(10, 1), (5, 1), (0, 0), (1, 0), (8, 0), (7, 1), (9, 1), (10, 1)])]]
 
         """
         if self.genus == 0:
@@ -1050,41 +1029,60 @@ class RiemannSurface(object):
                     i1 = cycles[j].index(v)
                     # Get the complex value of the vertex v.
                     vd = self._vertices[cycles[i][i0][0]]
-                    # Get the two adjacent vertices to v in each cycle. There is
-                    #some modular arithmetic here for if v is the last vertex in
-                    # the cycle, so that the next adjacent vertex is the first
-                    # element in the list. Also, I just skip straight to the
-                    # downstairs vertices since that's what we care about.
-                    vds = [cycles[i][i0-1][0],
-                           cycles[i][(i0+1)%len(cycles[i])][0],
-                           cycles[j][i1-1][0],
-                           cycles[j][(i1+1)%len(cycles[j])][0]]
-                    # The angles of the vectors.
-                    cds = [(self._vertices[vds[0]] - vd).argument(),
-                           (self._vertices[vds[1]] - vd).argument(),
-                           (self._vertices[vds[2]] - vd).argument(),
-                           (self._vertices[vds[3]] - vd).argument()]
-                    # Above, a_in = cds[0], a_out = cds[1]
-                    #        b_in = cds[2], b_out = cds[3].
-                    if cds[0] < cds[1]:
-                        if (cds[0] < cds[2] < cds[1]):
+
+                    # We are in the following situation:
+                    # We have two paths a_in->v->a_out and
+                    # b_in->v->b_out intersecting. We say they
+                    # are "positively oriented" if the a-path
+                    # and the b-path are oriented as the x and y axes, i.e.,
+                    # if, when we walk around v in counter-clockwise direction,
+                    # we encounter a_in,b_in,a_out,b_out.
+
+                    # we can also have that b_in and/or b_out overlaps with
+                    # a_in and/or a_out. If we just score the orientation of
+                    # b_in and b_out individually, we can deal with this
+                    # by just ignoring the overlapping vertex. The "half"
+                    # score will be appropriately complemented at one of the
+                    # next vertices.
+
+                    a_in=cycles[i][i0-1][0]
+                    a_out=cycles[i][(i0+1)%len(cycles[i])][0]
+                    b_in=cycles[j][i1-1][0]
+                    b_out=cycles[j][(i1+1)%len(cycles[j])][0]
+
+                    # we can get the angles (and hence the rotation order)
+                    # by taking the arguments of the differences.
+
+                    a_in_arg=(self._vertices[a_in]-vd).argument()
+                    a_out_arg=(self._vertices[a_out]-vd).argument()
+                    b_in_arg=(self._vertices[b_in]-vd).argument()
+                    b_out_arg=(self._vertices[b_out]-vd).argument()
+
+                    # we make sure to test overlap on the indices, so no rounding
+                    # problems occur with that.
+
+                    if (b_in != a_in) and (b_in != a_out):
+                        if ((a_in_arg<b_in_arg<a_out_arg) or
+                                (b_in_arg<a_out_arg<a_in_arg) or
+                                (a_out_arg<a_in_arg<b_in_arg)):
                             intsum += 1
-                        if ((cds[2] < cds[0]) or (cds[1] < cds[2])):
+                        elif ((a_out_arg<b_in_arg<a_in_arg) or
+                                (b_in_arg<a_in_arg<a_out_arg) or
+                                (a_in_arg<a_out_arg<b_in_arg)):
                             intsum -= 1
-                        if (cds[0] < cds[3] < cds[1]):
+                        else:
+                            raise RuntimeError("impossible edge orientation")
+                    if (b_out != a_in) and (b_out != a_out):
+                        if ((a_in_arg<b_out_arg<a_out_arg) or
+                                (b_out_arg<a_out_arg<a_in_arg) or
+                                (a_out_arg<a_in_arg<b_out_arg)):
                             intsum -= 1
-                        if ((cds[3] < cds[0]) or (cds[1] < cds[3])):
+                        elif ((a_out_arg<b_out_arg<a_in_arg) or
+                                (b_out_arg<a_in_arg<a_out_arg) or
+                                (a_in_arg<a_out_arg<b_out_arg)):
                             intsum += 1
-                    else:
-                        assert(cds[1] < cds[0])
-                        if (cds[1] < cds[2] < cds[0]):
-                            intsum -= 1
-                        if ((cds[2] < cds[1]) or (cds[0] < cds[2])):
-                            intsum += 1
-                        if (cds[1] < cds[3] < cds[0]):
-                            intsum += 1
-                        if ((cds[3] < cds[1]) or (cds[0] < cds[3])):
-                            intsum -= 1
+                        else:
+                            raise RuntimeError("impossible edge orientation")
                 assert (intsum%2) == 0
                 intsum = intsum//2
                 intersectionprod[i][j] = intsum
@@ -1093,7 +1091,7 @@ class RiemannSurface(object):
         Gmatrix = Matrix(intersectionprod)
         G_normalized,P = Gmatrix.symplectic_form()
         if G_normalized.rank() != 2*self.genus:
-            raise RuntimeError("")
+            raise RuntimeError("rank of homology pairing mismatches twice stored genus")
         # Define the cycle sets.
         acycles = [[] for i in range(self.genus)]
         bcycles = [[] for i in range(self.genus)]
@@ -1216,7 +1214,7 @@ class RiemannSurface(object):
             sage: M = S.riemann_matrix()
             sage: differentials = S.cohomology_basis()
             sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) #abs tol 0.00000001
-            (3.25260651745651e-19 + 0.0777066972231166*I)
+                (1.05412407678057e-16 - 0.217245437814098*I)
 
         ..NOTE::
 
@@ -1321,7 +1319,7 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(x^3 + y^3 + 1)
             sage: B = S.cohomology_basis()
             sage: S.matrix_of_integral_values(B) #abs tol 1e-12
-            [1.76663875028545 - 5.55111512312578e-17*I    0.883319375142723 + 1.52995403705719*I]
+                [-1.76663875028545 + 8.32667268468867e-17*I    -0.883319375142725 - 1.52995403705719*I]
 
         """
         cycles = self.homology_basis()
@@ -1374,9 +1372,9 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f, prec=60)
             sage: S.period_matrix() # abs tol 0.000001
-            [-0.775197805903... - 0.61819962132...*I  0.96665585280... - 0.770882318822...*I    1.74185365871... - 1.38908194015...*I                  0.430202326362... + 0.893324335546...*I -0.238744279457... - 0.495757604603...*I    2.94725379097... + 1.11395722593...*I]
-            [  2.17205598507... - 0.495757604603...*I  0.966655852808... + 0.220632890384...*I  -1.20540013226... - 0.275124714218...*I                1.74185365871... + 1.38908194015...*I    1.39685817917... + 1.11395722593...*I  -1.63560245862... - 0.618199621328...*I]
-            [  0.536453526445... + 1.11395722593...*I   0.966655852808... - 2.00728156147...*I  0.430202326362... - 0.893324335546...*I               -1.20540013226... + 0.275124714218...*I   2.70850951152... - 0.618199621328...*I  -1.31165133234... - 0.495757604603...*I]
+                [     1.7418536587120737 - 0.83883251171276598*I     -0.96665585280840573 - 1.4570321330409680*I     0.43020232636252808 + 0.89332433554698493*I    -0.96665585280840572 + 0.77088231882212970*I       1.7418536587120736 - 1.3890819401503318*I  -4.7379634937616544e-17 + 1.2363992426564041*I]
+                [     -1.2054001322661960 + 1.5115239568751870*I     -0.96665585280840575 + 1.0157663522718402*I       1.7418536587120737 + 1.3890819401503317*I    -0.96665585280840575 - 0.22063289038456399*I     -1.2054001322661960 - 0.27512471421878278*I -3.1875543871073830e-17 + 0.99151520920669361*I]
+                [     0.43020232636252808 + 1.8848395447536785*I     -0.96665585280840567 + 2.9987967706852274*I     -1.2054001322661960 + 0.27512471421878286*I     -0.96665585280840567 + 2.0072815614785338*I     0.43020232636252798 - 0.89332433554698499*I  -1.0148132334464322e-16 - 2.2279144518630977*I]
         """
         differentials = self.cohomology_basis()
         differentials = [fast_callable(omega,domain=self._CC)
@@ -1405,10 +1403,9 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f, prec=60)
             sage: S.riemann_matrix() #abs tol 0.0000001
-            [-0.125000000000... + 0.992156741649...*I  0.375000000000... - 0.330718913883...*I -0.750000000000... + 0.661437827766...*I]
-            [ 0.375000000000... - 0.330718913883...*I  0.874999999999... + 0.992156741649...*I -0.249999999999... - 0.661437827766...*I]
-            [-0.750000000000... + 0.661437827766...*I -0.250000000000... - 0.661437827766...*I   0.499999999999... + 1.32287565553...*I]
-
+                [      -0.25000000000000000 + 0.66143782776614767*I        0.62500000000000001 - 0.33071891388307385*I -7.8062556418956319e-18 - 1.3444106938820255e-17*I]
+                [       0.62500000000000001 - 0.33071891388307384*I       -0.43750000000000001 + 0.49607837082461076*I    -0.49999999999999999 + 1.7780915628762273e-17*I]
+                [ 1.0191500421363742e-17 - 1.7347234759768071e-17*I    -0.50000000000000001 + 2.7321894746634712e-17*I        0.25000000000000001 + 0.66143782776614767*I]
         """
         PeriodMatrix = self.period_matrix()
         Am = PeriodMatrix[0:self.genus,0:self.genus]
@@ -1462,7 +1459,7 @@ class RiemannSurface(object):
         with coordinates
         `\left(\operatorname{Re}(z), \operatorname{Im}(z), \operatorname{Im}(w)\right)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<x,y> = QQ[]
@@ -1539,7 +1536,7 @@ class RiemannSurface(object):
             r = b//4
         S = 2**b
         if H*S > 2**(self._prec-5):
-            raise ValueError("Insufficient precision for b=%s"%b)
+            raise ValueError("insufficient precision for b=%s"%b)
         g = M.ncols()
         CC = M.base_ring()
         V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g**2)]

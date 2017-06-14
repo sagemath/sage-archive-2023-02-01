@@ -1532,7 +1532,6 @@ class SBox(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
-            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([x**254 for x in sorted(GF(2**8))])
             sage: S.is_involution()
             True

@@ -80,6 +80,8 @@ from sage.matrix.constructor import Matrix
 from sage.modules.free_module import VectorSpace
 from sage.numerical.gauss_legendre import integrate_vector
 from sage.misc.misc_c import prod
+import operator
+from sage.structure.sage_object import SageObject
 
 def voronoi_ghost(cpoints):
     r"""
@@ -241,8 +243,15 @@ class RiemannSurface(object):
       in bits (default: 53)
 
     - ``certification`` -- a boolean (default: True) value indicating whether
-      homotopy continuation is certified or not. Certified results have a
-      higher chance of being accurate at the cost of computation time
+      homotopy continuation is certified or not. Uncertified homotopy continuation
+      can be faster.
+
+    - ``differentials`` -- (default: None). If specified, provides a list of
+      polynomials `h` such that `h/(df/dw) dz` is a regular differential on the
+      Riemann surface. This is taken as a basis of the regular differentials, so
+      the genus is assumed to be equal to the length of this list. The results from
+      the homology basis computation are checked against this value. Providing this
+      parameter makes the computation independent from Singular.
 
     EXAMPLES::
 
@@ -259,16 +268,32 @@ class RiemannSurface(object):
         sage: S.riemann_matrix() #abs tol 0.00000001
         [0.500000000000000000000000... + 0.866025403784438646763723...*I]
 
-    TODO: have an example where self.genus < 0 to raise error
+    We can also work with Riemann surfaces that are defined over fields with a
+    complex embedding, but since the current interface for computing genus and
+    regular differentials in Singular presently does not support extensions of QQ,
+    we need to specify a description of the differentials ourselves. We give an
+    example of a CM elliptic curve::
+
+        sage: Qt.<t> = QQ[]
+        sage: K.<a> = NumberField(t^2-t+3,embedding=CC(0.5+1.6*I))
+        sage: R.<x,y> = K[]
+        sage: f = y^2+y-(x^3+(1-a)*x^2-(2+a)*x-2)
+        sage: S = RiemannSurface(f,prec=100,differentials=[1])
+        sage: A = S.endomorphism_basis()
+        sage: len(A)
+        2
+        sage: all( len(T.minpoly().roots(K)) > 0 for T in A)
+        True
 
     """
-    def __init__(self, f, prec=53, certification=True):
+    def __init__(self, f, prec=53, certification=True, differentials=None):
         r"""
         TESTS::
 
             sage: R.<z,w> = QQ[]
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: S = RiemannSurface(w^2 - z^3 + 1)
-            sage: TestSuite(S).run()
+            sage: TestSuite(S).run() #not tested; Unclear what pickling strategy is best.
             
         """
         # Initializations.
@@ -283,16 +308,14 @@ class RiemannSurface(object):
         self._CCz = PolynomialRing(self._CC, [self._R.gen(0)])
         self._CCw = PolynomialRing(self._CC, [self._R.gen(1)])
         self.f = f
-        # Using singular to compute the genus quickly. Later, use rank/2 of
-        # gram matrix?
-        self.genus = self._R.ideal(self.f).genus()
-        # TODO: can we get rid of the comments below?
-        # I'm not sure if this check will work, but could be useful?
-        # I think singular's genus computation returns a negative genus
-        # if it's reducible. Either way, if the genus is negative we should
-        # terminate.
-        if self.genus < 0:
-            raise AttributeError('Error: polynomial is geometricially reducible')
+        if differentials is not None:
+            self._differentials = [self._R(a) for a in differentials]
+            self.genus = len(self._differentials)
+        else:
+            self._differentials = None
+            self.genus = self._R.ideal(self.f).genus()
+            if self.genus < 0:
+                raise ValueError("Singular reports negative genus. Specify differentials manually.")
         self.degree = self.f.degree(w)
         self._dfdw = self.f.derivative(w)
         self._dfdz = self.f.derivative(z)
@@ -314,8 +337,6 @@ class RiemannSurface(object):
         self._Sn = SymmetricGroup(srange(self.degree))
         self._L = dict()
         self._PM = None
-        self._RM = None
-        self._differentials = None
         self._fastcall_f = fast_callable(f,domain=self._CC)
         self._fastcall_dfdw = fast_callable(self._dfdw,domain=self._CC)
         self._fastcall_dfdz = fast_callable(self._dfdz,domain=self._CC)
@@ -411,14 +432,7 @@ class RiemannSurface(object):
         # MUCH easier.
         # We orient all the edges so that we go from lower to higher
         # numbered vertex for the continuation.
-
-        #TODO: Why not make a list in the first place with the edges?
-        edges = []
-        for e in edges1:
-            i0, i1 = e
-            if i0 > i1:
-                i1,i0 = i0,i1
-            edges += [(i0,i1)]
+        edges = [(i0,i1) if (i0 < i1) else (i1,i0) for (i0,i1) in edges1]
         edges.sort()
         return edges
 
@@ -553,8 +567,8 @@ class RiemannSurface(object):
 
         """
         i0, i1 = edge
-        ZERO=self._RR.zero()
-        ONE=self._RR.one()
+        ZERO = self._RR.zero()
+        ONE = self._RR.one()
         datastorage = []
         z_start = self._CC(self._vertices[i0])
         z_end = self._CC(self._vertices[i1])
@@ -660,6 +674,9 @@ class RiemannSurface(object):
             delta = F(z0,oldw[i])/dF(z0,oldw[i])
             Ndelta = delta.norm()
             wi = oldw[i]-delta
+            #it is possible in theory that Newton iteration fails to converge
+            #without escaping. We catch this by capping the number of iterations
+            #by 100
             for j in range(100):
                 # If we exceed the epsilon bound from homotopy continuation,
                 # terminate.
@@ -740,6 +757,9 @@ class RiemannSurface(object):
         Ndelta = delta.norm()
         neww = oldw-delta
         eps_squared = epsilon**2
+        #it is possible in theory that Newton iteration fails to converge
+        #without escaping. We catch this by capping the number of iterations
+        #by 100
         for j in range(100):
             if (neww-oldw).norm() > eps_squared:
                 raise ConvergenceError("Newton iteration escaped neighbourhood")
@@ -822,67 +842,76 @@ class RiemannSurface(object):
         the 2nd and 3rd layers of the Riemann surface are interchanging.
         """
         if edge in self.downstairs_edges():
-            # For every edge downstairs, We get self.degree = d many edges
-            # upstairs, i.e., we count in multiples of d.
-
-            # Find the position downstairs.
-            n = self.downstairs_edges().index(edge)
-            tempPerm = []
-            for i in range(self.degree):
-                # Count up to the n*d-th edge, and then take the resulting d
-                # edges. Because of how we computed these edges to begin with,
-                # the first vertex in the edge is always ordered 1..d. This
-                # means that the second vertex in the edge completely encodes
-                # the permutation.
-                tempPerm += [self.upstairs_edges()[(self.degree)*n+i][1][1]]
-            return self._Sn(tempPerm)
+            #find all upstairs edges that are lifts of the given downstairs edge
+            #and store the corresponding indices at start and end that label the
+            #branches upstairs.
+            L = [(j0,j1) for ((i0,j0),(i1,j1)) in self.upstairs_edges() if edge==(i0,i1)]
+            #we should be finding exactly "degree" of these
+            assert len(L) == self.degree
+            #and as a corollary of how we construct them, the indices at the start
+            #should be in order
+            assert all(a==b[0] for a,b in enumerate(L))
+            return self._Sn([j1 for j0,j1 in L])
         else:
             raise ValueError('edge not in Voronoi diagram')
 
     @cached_method
     def edge_permutations(self):
         r"""
-        Compute all of the edge permutations of the Voronoi diagram.
+        Compute the permutations of branches associated to each edge
+
+        Over the vertices of the Voronoi decomposition around the branch
+        locus, we label the fibres. By following along an edge, the lifts
+        of the edge induce a permutation of that labelling.
 
         OUTPUT:
 
-        A list indexed by the edges of the Voronoi diagram of the permutation
-        associated with moving along the corresponding edge.
+        A dictionary with as keys the edges of the Voronoi decomposition
+        and as values the corresponding permutations.
 
         EXAMPLES::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
-            sage: 2 + 2
-            4
-            sage: f = w^2 + z^3 - z^2
+            sage: f = w^2 + z^2+1
             sage: S = RiemannSurface(f)
             sage: S.edge_permutations()
-            [[(0, 1), (0,1)], [(0, 3), ()], [(1, 2), (0,1)], [(2, 6), ()], [(3, 4), ()], [(3, 6), ()], [(4, 5), (0,1)], [(5, 6), ()]]
-
-        We see that if we start at the branch labeled 0 above the vertex 0 and continue along
-        the edge (0, 1), we arrive at the branch labeled 1 above vertex 1.
-        On the other hand, if we do the same thing along the edge (0,3), we end up at the branch labeled 0
-        above 3.
+            {(0, 2): (),
+             (0, 6): (0,1),
+             (2, 0): (),
+             (2, 7): (),
+             (4, 5): (),
+             (4, 6): (),
+             (5, 4): (),
+             (5, 7): (0,1),
+             (6, 0): (0,1),
+             (6, 4): (),
+             (6, 7): (),
+             (7, 2): (),
+             (7, 5): (0,1),
+             (7, 6): ()}
         """
-        datastorage = []
-        for e in self.downstairs_edges():
-            tempPerm = self._edge_permutation(e)
-            datastorage += [[e, tempPerm]]
-        return datastorage
+        D=dict( (e,self._edge_permutation(e)) for e in self.downstairs_edges())
+        for e in list(D.keys()):
+            D[(e[1],e[0])]=D[e]**(-1)
+        return D
 
     @cached_method
     def monodromy_group(self):
         r"""
-        Compute the monodromy group of this Riemann surface.
+        Compute local monodromy generators of the riemann surface.
+
+        For each branch point, the local monodromy is encoded by a permutation.
+        The permutations returned correspond to positively oriented loops around
+        each branch point, with a fixed base point. This means the generators are
+        properly conjugated to ensure that together they generate the global monodromy
+        and that their product gives the local monodromy around infinity.
 
         OUTPUT:
 
-        A list of the local monodromy associated with each branch point,
-        encoded as a permutation. The path is positively oriented, but we presently
-        do not control the base point, so the permutation is only well-defined up to
-        conjugation. One can read off the ramification type from the length of the
-        disjoint cycles.
+        A list of permutations, encoding the local monodromy at each branch
+        point.
+
 
         EXAMPLES::
 
@@ -890,58 +919,62 @@ class RiemannSurface(object):
             sage: R.<z, w> = QQ[]
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
-            sage: S.monodromy_group()
-            [(0,2,1), (), (1,2), (0,2,1), (0,1,2), (0,2,1), (0,2), (1,2)]
-            sage: zip(S.branch_locus, S.monodromy_group()) #abs tol 0.0000001
+            sage: G = S.monodromy_group(); G
+            [(0,2,1), (0,1), (1,2), (0,2), (1,2), (1,2), (0,2), (0,1)]
+
+        The permutations give the local monodromy generators for the branch points::
+
+            sage: zip(S.branch_locus, G) #abs tol 0.0000001
             [(0.000000000000000, (0,2,1)),
-             (-1.31362670141929, ()),
+             (-1.31362670141929, (0,1)),
              (-0.819032851784253 - 1.02703471138023*I, (1,2)),
-             (-0.819032851784253 + 1.02703471138023*I, (0,2,1)),
-             (0.292309440469772 - 1.28069133740100*I, (0,1,2)),
-             (0.292309440469772 + 1.28069133740100*I, (0,2,1)),
+             (-0.819032851784253 + 1.02703471138023*I, (0,2)),
+             (0.292309440469772 - 1.28069133740100*I, (1,2)),
+             (0.292309440469772 + 1.28069133740100*I, (1,2)),
              (1.18353676202412 - 0.569961265016465*I, (0,2)),
-             (1.18353676202412 + 0.569961265016465*I, (1,2))]
-            sage: f = w^2 - z^4 + 1
-            sage: S = RiemannSurface(f)
-            sage: S.monodromy_group()
-            [(0,1), (), (), ()]
+             (1.18353676202412 + 0.569961265016465*I, (0,1))]
 
-        ..NOTE::
+        We can obtain the local monodromy at infinity by taking the product of all
+        the finite local monodromy generators::
 
-            The i-th generator corresponds to the i-th branch point.
-            Later, we can implement a call which asks what
-            the monodromy around a point is and return the corresponding
-            generator.
+            sage: prod(G)
+            (1,2)
+
+        We read off the ramification types from the cycle types of the local
+        monodromy, and we see that the total ramification (10=2+8*1) matches
+        what Riemann-Hurwitz predicts.
         """
-        # Computing the set of permutations associated with each edge.
-        edgesd = self.downstairs_edges()
-        edgesu = self.upstairs_edges()
-        PermSet = []
-        for e in self.edge_permutations():
-            PermSet += [e[1]]
         n = len(self.branch_locus)
-        cycbasisd = [self.voronoi_diagram.regions[self.voronoi_diagram.point_region[i]] for i in range(n)]
-        monodromygens = []
-        perm = self._Sn(())
-        for center_point, c in zip(self.branch_locus,cycbasisd):
-            for i in range(len(c)-1):
-                # The permutations are 'directed'- they depend on the direction
-                # which you're moving. Since PermSet was constructed so that
-                # the permutations only correspond to 'lower going to higher',
-                # we add this conditional checking which case we're in.
-                # If we have an edge like (5,3), it takes the inverse instead.
-                if (c[i] < c[i+1]):
-                    perm = perm*PermSet[c[i]]
-                else:
-                    perm = perm*(PermSet[c[i]])**(-1)
-            if (c[-1] < c[0]):
-                perm = perm*PermSet[c[-1]]
-            else:
-                perm = perm*(PermSet[c[-1]])**(-1)
-            if Matrix([list(self._vertices[c[0]]-center_point), list(self._vertices[c[1]]-center_point)]).determinant() < 0:
-                perm = perm**(-1)
-            monodromygens += [perm]
-        return monodromygens
+        G = Graph(self.downstairs_edges())
+        loops = [self.voronoi_diagram.regions[i][:]
+                    for i in self.voronoi_diagram.point_region[:n]]
+        P0 = loops[0][0]
+        monodromy_gens = []
+        edge_perms = self.edge_permutations()
+        for center, c in zip(self.branch_locus,loops):
+            to_loop = G.shortest_path(P0,c[0])
+            to_loop_perm = reduce(
+                operator.mul,
+                (edge_perms[(to_loop[i],to_loop[i+1])]
+                    for i in range(len(to_loop)-1)),
+                self._Sn(()))
+            c.append(c[0])
+            c_perm = reduce(
+                operator.mul,
+                (edge_perms[(c[i],c[i+1])]
+                    for i in range(len(c)-1)),
+                self._Sn(()))
+            # We compute the orientation of the loop.
+            # It's a voronoi cell, so it's convex.
+            # Therefore, we can see the orientation from the orientation
+            # of two vectors from the center to consecutive points on the
+            # loop.
+            v0 = self.voronoi_diagram.vertices[c[0]]
+            v1 = self.voronoi_diagram.vertices[c[1]]
+            if Matrix([list(v0-center),list(v1-center)]).det() < 0:
+                c_perm = c_perm**(-1)
+            monodromy_gens.append(to_loop_perm*c_perm*to_loop_perm**(-1))
+        return monodromy_gens
 
     @cached_method
     def homology_basis(self):
@@ -1005,16 +1038,16 @@ class RiemannSurface(object):
         # This loop will start at the entry (0,1), and proceed along the row up
         # til (0,cn-1).
         # Then it will go to entry (1,2), and proceed along the row, etc.
-        for i in range(cn-1):
-            for j in range(cn-1-i):
+        for i in range(1,cn):
+            for j in range(i):
                 # Initializing the intersection product value.
                 intsum = 0
                 # Intersection of the edges
-                intsec = set(cycles[i]).intersection(set(cycles[j+i+1]))
+                intsec = set(cycles[i]).intersection(set(cycles[j]))
                 for v in intsec:
                     # Get indices of the vertex in the cycles.
                     i0 = cycles[i].index(v)
-                    i1 = cycles[j+i+1].index(v)
+                    i1 = cycles[j].index(v)
                     # Get the complex value of the vertex v.
                     vd = self._vertices[cycles[i][i0][0]]
                     # Get the two adjacent vertices to v in each cycle. There is
@@ -1024,8 +1057,8 @@ class RiemannSurface(object):
                     # downstairs vertices since that's what we care about.
                     vds = [cycles[i][i0-1][0],
                            cycles[i][(i0+1)%len(cycles[i])][0],
-                           cycles[j+i+1][i1-1][0],
-                           cycles[j+i+1][(i1+1)%len(cycles[j+i+1])][0]]
+                           cycles[j][i1-1][0],
+                           cycles[j][(i1+1)%len(cycles[j])][0]]
                     # The angles of the vectors.
                     cds = [(self._vertices[vds[0]] - vd).argument(),
                            (self._vertices[vds[1]] - vd).argument(),
@@ -1054,11 +1087,13 @@ class RiemannSurface(object):
                             intsum -= 1
                 assert (intsum%2) == 0
                 intsum = intsum//2
-                intersectionprod[i][j+i+1] = intsum
+                intersectionprod[i][j] = intsum
                 # Skew Symmetry
-                intersectionprod[j+i+1][i] = -intsum
+                intersectionprod[j][i] = -intsum
         Gmatrix = Matrix(intersectionprod)
-        P = Gmatrix.symplectic_form()[1]
+        G_normalized,P = Gmatrix.symplectic_form()
+        if G_normalized.rank() != 2*self.genus:
+            raise RuntimeError("")
         # Define the cycle sets.
         acycles = [[] for i in range(self.genus)]
         bcycles = [[] for i in range(self.genus)]
@@ -1185,8 +1220,7 @@ class RiemannSurface(object):
 
         ..NOTE::
 
-            This integration makes use of data which was previously computed
-            during homotopy continuation.
+            Uses data that "homology_basis" initializes.
         """
         w_of_t,Delta_z = self.make_zw_interpolator(upstairs_edge)
         V = VectorSpace(self._CC,self.genus)
@@ -1226,47 +1260,42 @@ class RiemannSurface(object):
             [1, w, z]
         """
         if self.genus == 0:
-            self._differentials = [[],option]
+            self._differentials = []
             return self._differentials[0]
-        if (self._differentials == None) or (option != self._differentials[1]):
-            # Computes the adjoint ideal using singular.
-            k=QQ['z,w,u']
-            singular.lib("paraplanecurves.lib")
+        if (self._differentials == None):
+            # Computes differentials from the adjointIdeal using Singular
+            # First we homogenize
+            base = self.f.base_ring()
+            # It's important we use a degree ordering; see below.
+            R = self._R
+            k = PolynomialRing(base,names="Z,W,U",order="degrevlex")
+            dehom = k.Hom(R)([R.gen(0),R.gen(1),R.one()])
             fnew = self.f(k.gen(0)/k.gen(2),k.gen(1)/k.gen(2)).numerator()
-            L = singular(fnew).adjointIdeal(option).sage()
-            adjointideal = L.gens()
-            rightdeg = []
-            # We need to take those generators which are of degree f.degree() - 3.
-            # For those generators which are exactly of this degree, we do exactly that.
-            # Otherwise, we need to multiply by monomials of appropriate degree.
-            # This is what the below code does.
-            belowdeg = filter(lambda x: x.degree() < self.f.degree() - 3, adjointideal)
-            for x in belowdeg:
-                # This bit of code computes all of the monomials of degree
-                # less than or equal to tempdeg.
-                # tempdeg is just the gap between degrees + 1.
-                tempdeg = self.f.degree() - 2 - x.degree()
-                monomials = []
-                for i in range(tempdeg):
-                    for j in range(i+1):
-                        monomials += [self._R.gen(0)**(i-j)*self._R.gen(1)**j]
-                rightdeg += [x(self._R.gen(0),self._R.gen(1),1)*m for m in monomials]
-            # Then we add all of those generators which are precisely the right degree.
-            rightdeg += [self._R(g(self._R.gen(0),self._R.gen(1),1)) 
-                         for g in filter(lambda x: x.degree() == self.f.degree() - 3, adjointideal)]
-            # The only linear dependency condition we check. If two generators are equal, we only need one.
-            rightdegnew = set()
-            for m in rightdeg:
-                rightdegnew.add(m)
-            rightdeg = list(rightdegnew)
-            rightdeg.sort(key = lambda m: m.degree())
-            # A sanity check. It's possible that we may have some linear dependencies of generators
-            # leading to some phony results. Currently, this is a lot of effort to resolve.
-            if len(rightdeg) == self.genus:
-                self._differentials = [rightdeg, option]
-            else:
-                raise ValueError('Length of differentials list is not equal to genus.')
-        return self._differentials[0]
+
+            # We load the relevant functionality into singularlib
+            import sage.libs.singular.function_factory
+            sage.libs.singular.function_factory.lib("paraplanecurves.lib")
+            adjointIdeal = sage.libs.singular.function.singular_function("adjointIdeal")
+            libsing_options=sage.libs.singular.option.LibSingularVerboseOptions()
+
+            # We compute the adjoint ideal (note we need to silence "redefine")
+            redef_save = libsing_options['redefine']
+            try:
+                libsing_options['redefine'] = False
+                J = adjointIdeal(fnew,option)
+            finally:
+                libsing_options['redefine'] = redef_save
+
+            # We are interested in the (degree-3) subspace of the adjoint ideal.
+            # We compute this by intersecting with (Z,W,U)^(degree-3). Then the
+            # lowest degree generators are a basis of the relevant subspace.
+            d=fnew.total_degree()
+            J2 = k.ideal(J).intersection(k.ideal([k.gen(0),k.gen(1),k.gen(2)])**(d-3))
+            generators = [dehom(c) for c in J2.gens() if c.degree() == d-3]
+            if len(generators) != self.genus:
+                raise ValueError("computed regular differentials do not match stored genus")
+            self._differentials = generators
+        return self._differentials
 
     def matrix_of_integral_values(self, differentials):
         r"""
@@ -1329,16 +1358,10 @@ class RiemannSurface(object):
             rows.append(V)
         return Matrix(rows).transpose()
 
-    def period_matrix(self, option=1):
+    @cached_method
+    def period_matrix(self):
         r"""
-        Compute the period matrix of f given the homology basis and cohomology
-        basis.
-
-        INPUT:
-
-        - ``option`` -- 1, 2, 3, or 4 (default: 1), the computation options for
-          Singular's ``adjointIdeal`` computations. This can affect the
-          performance of the computation.
+        Compute the period matrix of the surface.
 
         OUTPUT:
 
@@ -1349,19 +1372,19 @@ class RiemannSurface(object):
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
             sage: f = z^3*w + w^3 + z
-            sage: S = RiemannSurface(f, prec=200)
+            sage: S = RiemannSurface(f, prec=60)
             sage: S.period_matrix() # abs tol 0.000001
             [-0.775197805903... - 0.61819962132...*I  0.96665585280... - 0.770882318822...*I    1.74185365871... - 1.38908194015...*I                  0.430202326362... + 0.893324335546...*I -0.238744279457... - 0.495757604603...*I    2.94725379097... + 1.11395722593...*I]
             [  2.17205598507... - 0.495757604603...*I  0.966655852808... + 0.220632890384...*I  -1.20540013226... - 0.275124714218...*I                1.74185365871... + 1.38908194015...*I    1.39685817917... + 1.11395722593...*I  -1.63560245862... - 0.618199621328...*I]
             [  0.536453526445... + 1.11395722593...*I   0.966655852808... - 2.00728156147...*I  0.430202326362... - 0.893324335546...*I               -1.20540013226... + 0.275124714218...*I   2.70850951152... - 0.618199621328...*I  -1.31165133234... - 0.495757604603...*I]
         """
-        if (self._PM == None) or (self._differentials[1] != option):
-            differentials = self.cohomology_basis(option=option)
-            differentials = [fast_callable(omega,domain=self._CC) for omega in differentials]
-            self._PM=self.matrix_of_integral_values(differentials)
-        return self._PM
+        differentials = self.cohomology_basis()
+        differentials = [fast_callable(omega,domain=self._CC)
+                for omega in self.cohomology_basis()]
+        PM=self.matrix_of_integral_values(differentials)
+        return PM
 
-    def riemann_matrix(self, option=2):
+    def riemann_matrix(self):
         r"""
         Compute the Riemann matrix.
 
@@ -1380,29 +1403,17 @@ class RiemannSurface(object):
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
             sage: f = z^3*w + w^3 + z
-            sage: S = RiemannSurface(f, prec=200)
+            sage: S = RiemannSurface(f, prec=60)
             sage: S.riemann_matrix() #abs tol 0.0000001
             [-0.125000000000... + 0.992156741649...*I  0.375000000000... - 0.330718913883...*I -0.750000000000... + 0.661437827766...*I]
             [ 0.375000000000... - 0.330718913883...*I  0.874999999999... + 0.992156741649...*I -0.249999999999... - 0.661437827766...*I]
             [-0.750000000000... + 0.661437827766...*I -0.250000000000... - 0.661437827766...*I   0.499999999999... + 1.32287565553...*I]
 
         """
-        # I won't cache this since the computations in it aren't so bad.
-        PeriodMatrix = self.period_matrix(option=option)
+        PeriodMatrix = self.period_matrix()
         Am = PeriodMatrix[0:self.genus,0:self.genus]
-        self._RM = (Am.inverse())*PeriodMatrix[0:self.genus,self.genus:2*self.genus]
-        # Below are checks to see if an error was made.
-        #posdef = matrix(self.genus,self.genus, [x.imag_part() for x in self._RM.list()]).eigenvalues()
-        #sym = (self._RM - self._RM.transpose()).list()
-        #for x in posdef:
-        #    if x < 0:
-        #        print 'Computation failed: resulting matrix is not positive definite.'
-        #        break
-        #for x in sym:
-        #    if abs(x) > 10**(-5):
-        #        print 'Computation failed: resulting matrix is not symmetric.'
-        #        break
-        return self._RM
+        RM = (Am.inverse())*PeriodMatrix[0:self.genus,self.genus:2*self.genus]
+        return RM
 
     def plot_paths(self):
         r"""
@@ -1544,9 +1555,6 @@ class RiemannSurface(object):
         # below.
         W = ((M*A+B) - (M*C+D)*M).list()
         vars = R.gens()
-        #mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g**2)] +
-        #  [((S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
-        #  [S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
         mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g**2)] +
           [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
           [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
@@ -1559,4 +1567,4 @@ class RiemannSurface(object):
             D = Matrix(g,g,v[3*g**2:4*g**2].list())
             return D.augment(B).stack(C.augment(A))
         c = 2**r
-        return [vectomat(v,g) for v in mtL if all(abs(a) <= c for a in v[4*g**2:])]
+        return [vectomat(v,g) for v in mtL if all(a.abs() <= c for a in v[4*g**2:])]

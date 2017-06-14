@@ -20,6 +20,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
 from sage.rings.ring import CommutativeRing
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
 from sage.structure.category_object import check_default_category
@@ -165,13 +166,128 @@ class LocalGeneric(CommutativeRing):
         """
         return self._repr_(do_latex = True)
 
-    def change_precision(self, prec):
-        (functor, ring) = self.construction()
+    def change(self, **kwds):
+        """
+        Return a new ring with changed attributes.
+
+        INPUT:
+
+        Keyword arguments are passed on to the :mod:`constructors <sage.rings.padics.factory>`
+        via the :meth:`construction` functor.
+
+        NOTES:
+
+        For extension rings, some keywords take effect only on the extension
+        (``names``, ``var_name``, ``res_name``, ``unram_name``, ``ram_name``)
+        and others on both the extension and, recursively, the base ring
+        (``print_mode``, ``halt``, ``print_pos``, ``print_sep``,
+         ``print_alphabet``, ``print_max_ram_terms``, ``check``).
+
+        If the precision is increased on an extension ring,
+        the precision on the base is increased as necessary.
+        If the precision is decreased, the precision of the base is unchanged.
+
+        EXAMPLES:
+
+        We can use this method to change the precision::
+
+            sage: Zp(5).change(prec=40)
+            5-adic Ring with capped relative precision 40
+
+        or the precision type::
+
+            sage: Zp(5).change(type="capped-abs")
+            5-adic Ring with capped absolute precision 20
+
+        or even the prime::
+
+            sage: ZpCA(3).change(p=17)
+            17-adic Ring with capped absolute precision 20
+
+        You can also change print modes::
+
+            sage: R = Zp(5).change(prec=5, print_mode='digits')
+            sage: ~R(17)
+            ...13403
+
+        You can change extensions::
+
+            sage: K.<a> = QqFP(125, prec=4)
+            sage: K.change(q=64)
+            Unramified Extension of 2-adic Field with floating precision 4 in a defined by x^6 + x^4 + x^3 + x + 1
+            sage: R.<x> = QQ[]
+            sage: K.change(modulus = x^2 - x + 2)
+            Unramified Extension of 5-adic Field with floating precision 4 in a defined by x^2 - x + 2
+
+        and variable names::
+
+            sage: K.change(names='b')
+            Unramified Extension of 5-adic Field with floating precision 4 in b defined by x^3 + 3*x + 3
+
+        and precision::
+
+            sage: Kup = K.change(prec=8); Kup
+            Unramified Extension of 5-adic Field with floating precision 8 in a defined by x^3 + 3*x + 3
+            sage: Kup.base_ring()
+            5-adic Field with floating precision 8
+
+        If you decrease the precision, the precision of the base stays the same::
+
+            sage: Kdown = K.change(prec=2); Kdown
+            Unramified Extension of 5-adic Field with floating precision 2 in a defined by x^3 + 3*x + 3
+            sage: Kdown.base_ring()
+            5-adic Field with floating precision 4
+        """
+        functor, ring = self.construction()
+        functor = copy(functor)
+        # There are two kinds of functors possible:
+        # CompletionFunctor and AlgebraicExtensionFunctor
+        # We distinguish them by the presence of ``prec``,
         if hasattr(functor, "prec"):
-            functor.prec = prec
+            functor.extras = copy(functor.extras)
+            if 'type' in kwds and kwds['type'] not in functor._dvr_types:
+                raise ValueError("completion type must be one of %s"%(", ".join(functor._dvr_types[1:])))
+            for atr in ('p', 'prec', 'type'):
+                if atr in kwds:
+                    setattr(functor, atr, kwds.pop(atr))
+            for atr in ('print_mode', 'halt', 'names', 'ram_name', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'check'):
+                if atr in kwds:
+                    functor.extras[atr] = kwds.pop(atr)
+            if kwds:
+                raise ValueError("Extra arguments received: %s"%(", ".join(kwds.keys())))
         else:
+            functor.kwds = copy(functor.kwds)
+            if 'prec' in kwds:
+                prec = kwds.pop('prec')
+                baseprec = (prec - 1) // self.e() + 1
+                if baseprec > self.base_ring().precision_cap():
+                    kwds['prec'] = baseprec
+                functor.kwds['prec'] = prec
+            from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
+            n = None
+            if 'q' in kwds and isinstance(ring, pAdicBaseGeneric):
+                q = kwds.pop('q')
+                if not isinstance(q, Integer):
+                    raise TypeError("q must be an integer")
+                p, n = q.is_prime_power(get_data=True)
+                if n == 0:
+                    raise ValueError("q must be a prime power")
+                if 'p' in kwds and kwds['p'] != p:
+                    raise ValueError("q does not match p")
+                kwds['p'] = p
+            if 'modulus' in kwds:
+                modulus = kwds.pop('modulus')
+                if n is not None and modulus.degree() != n:
+                    raise ValueError("modulus must have degree matching q")
+                functor.polys = [modulus]
+            elif n is not None:
+                functor.polys = [n]
+            for atr in ('names', 'var_name', 'res_name', 'unram_name', 'ram_name'):
+                functor.kwds[atr] = kwds.pop(atr)
+            for atr in ('print_mode', 'halt', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'check'):
+                functor.kwds[atr] = kwds[atr]
             try:
-                ring = ring.change_precision(prec)
+                ring = ring.change(**kwds)
             except AttributeError:
                 raise NotImplementedError
         return functor(ring)

@@ -610,7 +610,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.reverse(I)
             Traceback (most recent call last):
             ...
-            ValueError: can not convert complex algebraic number to real interval
+            ValueError: degree must be convertible to long
 
         We check that this specialized implementation is compatible with the
         generic one::
@@ -627,7 +627,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         if degree is None:
             len = fmpq_poly_length(self.__poly)
         else:
-            len = <unsigned long> (degree + 1)
+            try:
+                len = <unsigned long> (degree + 1)
+            except ValueError:
+                raise ValueError('degree must be convertible to long')
 
         res = self._new()
         do_sig = _do_sig(self.__poly)

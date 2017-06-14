@@ -115,7 +115,7 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     higher.
 
     """
-    long ret = prec
+    cdef long ret = prec
 
     for i,c in enumerate(a.__coeffs):
         if i >= prec:
@@ -261,12 +261,17 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ 
     mpz_set(zn.value, n)
 
     csetone(out, prime_pow)
-    for digit in zn.binary():
+    if zn == 0:
+        return 0
+
+    cmul(out, out, a, prec, prime_pow)
+
+    for digit in zn.binary()[1:]:
+        cmul(out, out, out, prec, prime_pow)
         if digit == '1':
             cmul(out, out, a, prec, prime_pow)
-        cmul(out, out, out, prec, prime_pow)
         # we should probably not creduce that frequently to increase the performance
-        creduce(out, out, a, prec, prime_pow)
+        creduce(out, out, prec, prime_pow)
 
 # The element is filled in for zero in the output of clist if necessary.
 # This WON'T work if the absolute inertia degree is 1.
@@ -309,10 +314,10 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     ans = []
     p = a.base_ring().prime()
     p2 = (p-1)//2
-    ccopy(prime_pow.poly_clist, a, prime_pow)
+    ccopy(prime_pow.tmp_clist, a, prime_pow)
     for j in range(prec):
         # the following is specific to the ramified over unramified case.
-        const_term = prime_pow.poly_clist[0]
+        const_term = prime_pow.tmp_clist[0]
         if const_term._is_exact_zero():
             term = []
         else:
@@ -324,8 +329,8 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
                 term = [c - p if c > p2 else c for c in term]
         ans.append(term)
         if j != prec-1:
-            cshift(prime_pow.poly_clist, prime_pow.poly_clist, -1, prec-j, prime_pow, False)
-        if not prime_pow.poly_clist:
+            cshift(prime_pow.tmp_clist, prime_pow.tmp_clist, -1, prec-j, prime_pow, False)
+        if not prime_pow.tmp_clist:
             break
     return ans
 

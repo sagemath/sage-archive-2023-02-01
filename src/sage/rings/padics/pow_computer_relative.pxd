@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 from sage.rings.padics.pow_computer cimport PowComputer_class
-from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense_inexact
+from sage.rings.polynomial.polynomial_element cimport Polynomial_generic_dense
 
 cdef class PowComputer_relative(PowComputer_class):
+    # p-adic elements are represented by polynomials in this ring
     cdef public object poly_ring
+    # the p-adic ring is an extension of this base ring
     cdef public object base_ring
-    cdef public Polynomial_generic_dense_inexact modulus
-    cdef Polynomial_generic_dense_inexact powhelper_oneunit
-    cdef Polynomial_generic_dense_inexact powhelper_teichdiff
-    cdef Polynomial_generic_dense_inexact powhelper_cconv_out
+    # the modulus of the extension
+    cdef public Polynomial_generic_dense modulus
+    # storage for temporary variables used in the linkage files
+    cdef Polynomial_generic_dense tmp_cconv_out
+    cdef Polynomial_generic_dense tmp_clist
+    # allow cached methods
+    cdef public dict __cached_methods
+
     cdef unsigned long capdiv(self, unsigned long n)
 
-cdef class PowComputer_relative_unram(PowComputer_relative):
-    pass
-
 cdef class PowComputer_relative_eis(PowComputer_relative):
-    cdef public Polynomial_generic_dense_inexact pxe
-    cdef Polynomial_generic_dense_inexact poly_clist
-    # p/(π^e)
-    cdef public object pxe
+    cdef Polynomial_generic_dense invert(self, Polynomial_generic_dense element, long prec)

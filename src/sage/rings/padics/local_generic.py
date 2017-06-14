@@ -212,8 +212,8 @@ class LocalGeneric(CommutativeRing):
         You can also change print modes::
 
             sage: R = Zp(5).change(prec=5, print_mode='digits')
-            sage: ~R(17)
-            ...13403
+            sage: repr(~R(17))
+            '...13403'
 
         You can change extensions::
 
@@ -256,6 +256,11 @@ class LocalGeneric(CommutativeRing):
                 field = kwds.pop('field')
                 if field:
                     ring = ring.fraction_field()
+                    if 'type' not in kwds:
+                        if self._prec_type() == 'capped-abs':
+                            kwds['type'] = 'capped-rel'
+                        elif self._prec_type() == 'fixed-mod':
+                            raise TypeError('You must specify the type explicitly')
                 else:
                     ring = ring.ring_of_integers()
             for atr in ('p', 'prec', 'type'):
@@ -294,9 +299,11 @@ class LocalGeneric(CommutativeRing):
             elif n is not None:
                 functor.polys = [n]
             for atr in ('names', 'var_name', 'res_name', 'unram_name', 'ram_name'):
-                functor.kwds[atr] = kwds.pop(atr)
+                if atr in kwds:
+                    functor.kwds[atr] = kwds.pop(atr)
             for atr in ('print_mode', 'halt', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'check'):
-                functor.kwds[atr] = kwds[atr]
+                if atr in kwds:
+                    functor.kwds[atr] = kwds[atr]
             try:
                 ring = ring.change(**kwds)
             except AttributeError:

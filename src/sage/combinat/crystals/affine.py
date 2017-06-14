@@ -19,7 +19,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 
 class AffineCrystalFromClassical(UniqueRepresentation, Parent):

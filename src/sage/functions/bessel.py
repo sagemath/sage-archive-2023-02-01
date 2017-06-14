@@ -341,11 +341,12 @@ class Function_Bessel_J(BuiltinFunction):
             sage: bessel_J(x, x)._sympy_()
             besselj(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_J", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_J', nargs=2,
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
                                                   sympy='besselj',
-                                                  fricas='besselJ'))
+                                                  fricas='besselJ',
+                                                  giac='BesselJ'))
 
     def _eval_(self, n, x):
         """
@@ -557,11 +558,12 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: bessel_Y(x, x)._sympy_()
             bessely(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_Y', nargs=2,
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely',
-                                                  fricas='besselY'))
+                                                  fricas='besselY',
+                                                  giac='BesselY'))
 
     def _eval_(self, n, x):
         """
@@ -762,7 +764,7 @@ class Function_Bessel_I(BuiltinFunction):
             sage: bessel_I(x, x)._sympy_()
             besseli(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_I", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_I', nargs=2,
                                  conversions=dict(mathematica='BesselI',
                                                   maxima='bessel_i',
                                                   sympy='besseli',
@@ -962,7 +964,7 @@ class Function_Bessel_K(BuiltinFunction):
             sage: bessel_K(x, x)._sympy_()
             besselk(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_K", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_K', nargs=2,
                                  conversions=dict(mathematica='BesselK',
                                                   maxima='bessel_k',
                                                   sympy='besselk',

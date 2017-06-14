@@ -17,9 +17,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from cypari2.paridecl cimport *
 from cypari2.paripriv cimport *
 from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t

@@ -9,7 +9,7 @@ from sage.misc.latex import latex_variable_name
 from sage.misc.misc_c import prod
 
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport rich_to_bool, richcmp
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from cpython.object cimport Py_NE
 
 from sage.categories.commutative_rings import CommutativeRings

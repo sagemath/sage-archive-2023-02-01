@@ -1007,34 +1007,45 @@ class Homset(Set_generic):
         """
         return self.__make_element_class__(morphism.SetMorphism)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         For two homsets, it is tested whether the domain, the codomain and
         the category coincide.
 
-        TESTS::
+        EXAMPLES::
+
+            sage: H1 = Hom(ZZ,QQ, CommutativeAdditiveGroups())
+            sage: H2 = Hom(ZZ,QQ)
+            sage: H1 == H2
+            False
+            sage: H1 == loads(dumps(H1))
+            True
+        """
+        if not isinstance(other, Homset):
+            return False
+        return (self._domain == other._domain
+                and self._codomain == other._codomain
+                and self.__category == other.__category)
+
+    def __ne__(self, other):
+        """
+        Check for not-equality of ``self`` and ``other``.
+
+        EXAMPLES::
 
             sage: H1 = Hom(ZZ,QQ, CommutativeAdditiveGroups())
             sage: H2 = Hom(ZZ,QQ)
             sage: H3 = Hom(ZZ['t'],QQ, CommutativeAdditiveGroups())
             sage: H4 = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
-            sage: H1 == H2
-            False
-            sage: H1 == loads(dumps(H1))
+            sage: H1 != H2
             True
+            sage: H1 != loads(dumps(H1))
+            False
             sage: H1 != H3 != H4 != H1
             True
         """
-        if not isinstance(other, Homset):
-            return cmp(type(self), type(other))
-        if self._domain == other._domain:
-            if self._codomain == other._codomain:
-                if self.__category == other.__category:
-                    return 0
-                else: return cmp(self.__category, other.__category)
-            else: return cmp(self._codomain, other._codomain)
-        else: return cmp(self._domain, other._domain)
-
+        return not (self == other)
+    
     def __contains__(self, x):
         """
         Test whether the parent of the argument is ``self``.

@@ -23,6 +23,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
+from sage.categories.morphism import SetMorphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.quotients    import QuotientsCategory
@@ -963,11 +964,12 @@ class Sets(Category_singleton):
                 sage: A._element_constructor
                 <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
-                sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
+                sage: B = SymmetricGroup(3).algebra(ZZ)
                 sage: B.element_class
-                <class 'sage.algebras.group_algebra.GroupAlgebra_with_category.element_class'>
+                <class 'sage.combinat.free_module.SymmetricGroupAlgebra_n_with_category.element_class'>
                 sage: B._element_constructor
-                <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
+                <bound method SymmetricGroupAlgebra_n_with_category._element_constructor_
+                of Symmetric group algebra of order 3 over Integer Ring>
             """
             if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
@@ -995,6 +997,25 @@ class Sets(Category_singleton):
                 <class 'sage.categories.examples.sets_cat.PrimeNumbers_Inherits_with_category.element_class'>
             """
             return self.element_class(self, *args, **keywords)
+
+        def _coerce_map_from_(self, S):
+            """
+            Override this method to specify coercions beyond those specified
+            in coerce_list.
+
+            If no such coercion exists, return ``None`` or ``False``. Otherwise, it may
+            return either an actual Map to use for the coercion, a callable
+            (in which case it will be wrapped in a Map), or ``True`` (in which case
+            a generic map will be provided).
+
+            This default implementation always return ``None``.
+
+            EXAMPLES::
+
+                sage: Parent()._coerce_map_from_(QQ)
+
+            """
+            return None
 
         def is_parent_of(self, element):
             """
@@ -1438,6 +1459,26 @@ class Sets(Category_singleton):
 
         # Functorial constructions
 
+        def construction(self):
+            """
+            Return a pair ``(functor, parent)`` such that
+            ``functor(parent)`` returns ``self``. If ``self`` does
+            not have a functorial construction, return ``None``.
+
+            EXAMPLES::
+
+                sage: QQ.construction()
+                (FractionField, Integer Ring)
+                sage: f, R = QQ['x'].construction()
+                sage: f
+                Poly[x]
+                sage: R
+                Rational Field
+                sage: f(R)
+                Univariate Polynomial Ring in x over Rational Field
+            """
+            return None
+
         CartesianProduct = CartesianProduct
         def cartesian_product(*parents, **kwargs):
             """
@@ -1510,7 +1551,7 @@ class Sets(Category_singleton):
                     category = category & extra_category
             return parents[0].CartesianProduct(parents, category=category, **kwargs)
 
-        def algebra(self, base_ring, category=None):
+        def algebra(self, base_ring, category=None, **kwds):
             """
             Return the algebra of ``self`` over ``base_ring``.
 
@@ -1521,115 +1562,68 @@ class Sets(Category_singleton):
             - ``category`` -- a super category of the category
               of `S`, or ``None``
 
-            This returns the `K`-free module with basis indexed by
-            `S`, endowed with whatever structure can be induced from
-            that of `S`. Note that the ``category`` keyword needs to
-            be fed with the structure on `S` to be used, not the
-            structure that one wants to obtain on the result; see the
-            examples below.
+            This returns the space of formal linear combinations of
+            elements of `G` with coefficients in `R`, endowed with
+            whatever structure can be induced from that of `S`.
+            See the documentation of
+            :mod:`sage.categories.algebra_functor` for details.
 
             EXAMPLES:
 
-            If `S` is a monoid, the result is the monoid algebra `KS`::
+            If `S` is a :class:`group <Groups>`, the result is its
+            group algebra `KS`::
+
+                sage: S = DihedralGroup(4); S
+                    Dihedral group of order 8 as a permutation group
+                sage: A = S.algebra(QQ); A
+                Algebra of Dihedral group of order 8 as a permutation group
+                        over Rational Field
+                sage: A.category()
+                Category of finite group algebras over Rational Field
+                sage: a = A.an_element(); a
+                () + 4*(1,2,3,4) + 2*(1,4)(2,3)
+
+            This space is endowed with an algebra structure, obtained
+            by extending by bilinearity the multiplication of `G` to a
+            multiplication on `RG`::
+
+                sage: a * a
+                5*() + 8*(2,4) + 8*(1,2,3,4) + 8*(1,3) + 16*(1,3)(2,4) + 4*(1,4)(2,3)
+
+            If `S` is a :class:`monoid <Monoids>`, the result is its
+            monoid algebra `KS`::
 
                 sage: S = Monoids().example(); S
                 An example of a monoid: the free monoid generated by ('a', 'b', 'c', 'd')
                 sage: A = S.algebra(QQ); A
-                Free module generated by An example of a monoid: the free monoid generated by ('a', 'b', 'c', 'd') over Rational Field
+                Algebra of An example of a monoid: the free monoid generated by ('a', 'b', 'c', 'd')
+                        over Rational Field
                 sage: A.category()
                 Category of monoid algebras over Rational Field
 
-            If `S` is a group, the result is the group algebra `KS`::
+            Similarly, we can construct algebras for additive magmas,
+            monoids, and groups.
 
-                sage: S = Groups().example(); S
-                General Linear Group of degree 4 over Rational Field
-                sage: A = S.algebra(QQ); A
-                Group algebra of General Linear Group of degree 4 over Rational Field over Rational Field
+            One may specify for which category one takes the algebra;
+            here we build the algebra of the additive group `GF_3`::
+
+                sage: from sage.categories.additive_groups import AdditiveGroups
+                sage: S = GF(7)
+                sage: A = S.algebra(QQ, category=AdditiveGroups()); A
+                Algebra of Finite Field of size 7 over Rational Field
                 sage: A.category()
-                Category of group algebras over Rational Field
+                Category of finite dimensional additive group algebras
+                         over Rational Field
 
-            which is actually a Hopf algebra::
+                sage: a = A(S(1))
+                sage: a
+                1
+                sage: 1 + a * a * a
+                0 + 3
 
-                sage: A in HopfAlgebras(QQ)
-                True
-
-            By Maschke's theorem, for a finite group whose cardinality
-            does not divide the characteristic of the base field, the
-            algebra is semisimple::
-
-                sage: SymmetricGroup(5).algebra(QQ) in Algebras(QQ).Semisimple()
-                True
-                sage: CyclicPermutationGroup(10).algebra(FiniteField(5)) in Algebras.Semisimple
-                False
-                sage: CyclicPermutationGroup(10).algebra(FiniteField(7)) in Algebras.Semisimple
-                True
-
-
-            One may specify for which category one takes the algebra::
-
-                sage: A = S.algebra(QQ, category=Sets()); A
-                Free module generated by General Linear Group of degree 4 over Rational Field over Rational Field
-                sage: A.category()
-                Category of set algebras over Rational Field
-
-            One may construct as well algebras of additive magmas,
-            semigroups, monoids, or groups::
-
-                sage: S = CommutativeAdditiveMonoids().example(); S
-                An example of a commutative monoid: the free commutative monoid generated by ('a', 'b', 'c', 'd')
-                sage: U = S.algebra(QQ); U
-                Free module generated by An example of a commutative monoid: the free commutative monoid generated by ('a', 'b', 'c', 'd') over Rational Field
-
-            Despite saying "free module", this is really an algebra
-            and its elements can be multiplied::
-
-                sage: U in Algebras(QQ)
-                True
-                sage: (a,b,c,d) = S.additive_semigroup_generators()
-                sage: U(a) * U(b)
-                B[a + b]
-
-            Constructing the algebra of a set endowed with both an
-            additive and a multiplicative structure is ambiguous::
-
-                sage: Z3 = IntegerModRing(3)
-                sage: A = Z3.algebra(QQ)
-                Traceback (most recent call last):
-                ...
-                TypeError:  `S = Ring of integers modulo 3` is both an additive and a multiplicative semigroup.
-                Constructing its algebra is ambiguous.
-                Please use, e.g., S.algebra(QQ, category=Semigroups())
-
-            The ambiguity can be resolved using the ``category`` argument::
-
-                sage: A = Z3.algebra(QQ, category=Monoids()); A
-                Free module generated by Ring of integers modulo 3 over Rational Field
-                sage: A.category()
-                Category of finite dimensional monoid algebras over Rational Field
-
-                sage: A = Z3.algebra(QQ, category=CommutativeAdditiveGroups()); A
-                Free module generated by Ring of integers modulo 3 over Rational Field
-                sage: A.category()
-                Category of finite dimensional commutative additive group algebras over Rational Field
-
-            Similarly, on , we obtain for additive magmas, monoids, groups.
-
-
-            .. WARNING::
-
-                As we have seen, in most practical use cases, the
-                result is actually an algebra, hence the name of this
-                method. In the other cases this name is misleading::
-
-                    sage: A = Sets().example().algebra(QQ); A
-                    Free module generated by Set of prime numbers (basic implementation) over Rational Field
-                    sage: A.category()
-                    Category of set algebras over Rational Field
-                    sage: A in Algebras(QQ)
-                    False
-
-                Suggestions for a uniform, meaningful, and non
-                misleading name are welcome!
+            Note that the ``category`` keyword needs to be fed with
+            the structure on `S` to be used, not the induced structure
+            on the result.
             """
             if category is None:
                 category = self.category()
@@ -1640,20 +1634,23 @@ class Sets(Category_singleton):
 """ `S = {}` is both an additive and a multiplicative semigroup.
 Constructing its algebra is ambiguous.
 Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
-            from sage.combinat.free_module import CombinatorialFreeModule
             from sage.categories.groups import Groups
-            from sage.categories.fields import Fields
+            from sage.categories.additive_groups import AdditiveGroups
+            from sage.combinat.free_module import CombinatorialFreeModule
             algebra_category = category.Algebras(base_ring)
-            # Maschke's theorem: under some conditions, the algebra is semisimple
-            # If base_ring is of characteristic 0, this is handled in the FiniteGroups.Algebras category
-            if category.is_subcategory(Groups().Finite()) and base_ring in Fields \
-                and base_ring.characteristic() > 0               \
-                and hasattr(self, "cardinality")                 \
-                and self.cardinality() % base_ring.characteristic() != 0:
-                algebra_category = algebra_category.Semisimple()
-            return CombinatorialFreeModule(base_ring, self,
-                                           category=algebra_category)
-
+            if (category.is_subcategory(Groups())
+                or category.is_subcategory(AdditiveGroups())):
+                # Somewhat dirty hack to wrap non-atomic objects
+                from sage.categories.modules_with_basis import ModulesWithBasis
+                if self not in ModulesWithBasis:
+                    if 'prefix' not in kwds:
+                        kwds['prefix'] = ''
+                    if 'bracket' not in kwds:
+                        kwds['bracket'] = False
+            result = CombinatorialFreeModule(base_ring, self,
+                                           category=algebra_category, **kwds)
+            result.__doc__ = Sets.ParentMethods.algebra.__doc__
+            return result
 
     class ElementMethods:
         ## Should eventually contain the basic operations which are no math
@@ -2476,6 +2473,138 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             """
             from sage.categories.modules_with_basis import ModulesWithBasis
             return [ModulesWithBasis(self.base_ring())]
+
+        class ParentMethods:
+            def construction(self):
+                r"""
+                Return the functorial construction of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = GroupAlgebra(KleinFourGroup(), QQ)
+                    sage: A.construction()
+                    (GroupAlgebraFunctor, Rational Field)
+                """
+                from sage.categories.algebra_functor import GroupAlgebraFunctor
+                return GroupAlgebraFunctor(self.group()), self.base_ring()
+
+            def _repr_(self):
+                r"""
+                Return the string representation of `self`.
+
+                EXAMPLES::
+
+                    sage: A = Groups().example().algebra(QQ); A
+                    Algebra of General Linear Group of degree 4 over Rational Field
+                     over Rational Field
+                    sage: A._name = "foo"
+                    sage: A
+                    foo over Rational Field
+                    sage: A = KleinFourGroup().algebra(ZZ)
+                    sage: A
+                    Algebra of The Klein 4 group of order 4, as a permutation group
+                     over Integer Ring
+                """
+                if hasattr(self, "_name"):
+                    return self._name + " over {}".format(self.base_ring())
+                else:
+                    return 'Algebra of {} over {}'.format(self.basis().keys(),
+                                                          self.base_ring())
+
+            def _coerce_map_from_(self, S):
+                r"""
+                Return a coercion from `S` or ``None``
+
+                INPUT:
+
+                - ``S`` - a parent
+
+                Let us write ``self`` as `R[G]`. This method handles
+                the case where `S` is another group/monoid/...-algebra
+                `R'[H]`, with R coercing into `R'` and `H` coercing
+                into `G`. In that case it returns the naturally
+                induced coercion between `R'[H]` and `R[G]`. Otherwise
+                it returns ``None``.
+
+                EXAMPLES::
+
+                    sage: A = GroupAlgebra(SymmetricGroup(4), QQ)
+                    sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
+                    sage: A.has_coerce_map_from(B)
+                    True
+                    sage: B.has_coerce_map_from(A)
+                    False
+                    sage: A.has_coerce_map_from(ZZ)
+                    True
+                    sage: A.has_coerce_map_from(CC)
+                    False
+                    sage: A.has_coerce_map_from(SymmetricGroup(5))
+                    False
+                    sage: A.has_coerce_map_from(SymmetricGroup(2))
+                    True
+
+
+                    sage: H = CyclicPermutationGroup(3)
+                    sage: G = DihedralGroup(3)
+
+                    sage: QH = H.algebra(QQ)
+                    sage: ZH = H.algebra(ZZ)
+                    sage: QG = G.algebra(QQ)
+                    sage: ZG = G.algebra(ZZ)
+                    sage: ZG.coerce_map_from(H)
+                    Composite map:
+                      From: Cyclic group of order 3 as a permutation group
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+                      Defn:   Call morphism:
+                              From: Cyclic group of order 3 as a permutation group
+                              To:   Dihedral group of order 6 as a permutation group
+                            then
+                              Conversion map:
+                              From: Dihedral group of order 6 as a permutation group
+                              To:   Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+                    sage: QG.coerce_map_from(ZG)
+                    Generic morphism:
+                      From: Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+                    sage: QG.coerce_map_from(QH)
+                    Generic morphism:
+                      From: Algebra of Cyclic group of order 3 as a permutation group over Rational Field
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+                    sage: QG.coerce_map_from(ZH)
+                    Generic morphism:
+                      From: Algebra of Cyclic group of order 3 as a permutation group over Integer Ring
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+
+                As expected, there is no coercion when restricting the
+                field::
+
+                    sage: ZG.coerce_map_from(QG)
+
+                This coercion when restricting the group is unexpected::
+
+                    sage: QH.coerce_map_from(QG)
+                    Generic morphism:
+                      From: Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+                      To:   Algebra of Cyclic group of order 3 as a permutation group over Rational Field
+
+                but is induced by the partial coercion at the level of
+                the groups::
+
+                    sage: H.coerce_map_from(G)
+                    Call morphism:
+                      From: Dihedral group of order 6 as a permutation group
+                      To:   Cyclic group of order 3 as a permutation group
+                """
+                K = self.base_ring()
+                G = self.basis().keys()
+                if S in Sets.Algebras:
+                    S_K = S.base_ring()
+                    S_G = S.basis().keys()
+                    hom_K = K.coerce_map_from(S_K)
+                    hom_G = G.coerce_map_from(S_G)
+                    if hom_K is not None and hom_G is not None:
+                        return SetMorphism(S.Hom(self, category= self.category() | S.category()),
+                                           lambda x: self.sum_of_terms( (hom_G(g), hom_K(c)) for g,c in x ))
 
     class WithRealizations(WithRealizationsCategory):
 

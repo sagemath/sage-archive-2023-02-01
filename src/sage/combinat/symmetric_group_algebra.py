@@ -245,6 +245,27 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [1, 2, 3, 4] + 2*[2, 1, 3, 4] + 4*[2, 3, 4, 1]
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
+
+        Checking the recovery of `n`:
+
+            sage: SymmetricGroup(4).algebra(QQ).n
+            4
+            sage: SymmetricGroup(1).algebra(QQ).n
+            1
+            sage: SymmetricGroup(0).algebra(QQ).n
+            0
+            sage: Permutations(4).algebra(QQ).n
+            4
+            sage: Permutations(1).algebra(QQ).n
+            1
+            sage: Permutations(0).algebra(QQ).n
+            0
+            sage: SymmetricGroupAlgebra(QQ, WeylGroup(["A",3])).n
+            4
+            sage: SymmetricGroupAlgebra(QQ, WeylGroup(["A",1])).n
+            2
+            sage: SymmetricGroupAlgebra(QQ, WeylGroup(["A",0])).n # todo: not implemented
+            1
         """
         if not W in WeylGroups or W.cartan_type().type() != 'A':
             raise ValueError("W (=%s) should be a symmetric group or a nonnegative integer")
@@ -253,7 +274,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             # The following trick works for both SymmetricGroup(n) and
             # Permutations(n) and it's currently not possible to
             # construct the WeylGroup for n=0
-            self.n = len(W.one().fixed_points())
+            self.n = W.degree()
         else:
             self.n = W.cartan_type().rank() + 1
         CombinatorialFreeModule.__init__(self, R, W, prefix='',

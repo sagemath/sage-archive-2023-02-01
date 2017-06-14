@@ -155,6 +155,25 @@ cdef class Module(sage.structure.parent.Parent):
         5. Coerce maps for quotient modules are already registered on
            construction.
 
+        EXAMPLES:
+
+            sage: (Zmod(8)^3)._coerce_map_from_(ZZ^3)
+            True
+
+        :trac:`18700`: enables cooperation with super classes, and in
+        particular categories: if no coercion map is found, the method
+        ``_coerce_map_from_`` from super classes is called::
+
+            sage: class Cs(Category):
+            ....:     def super_categories(self): return [Sets()]
+            ....:     class ParentMethods:
+            ....:         def _coerce_map_from_(self, S):
+            ....:             return lambda x: x
+            sage: from sage.modules.module import Module
+            sage: class P(Module): pass
+            sage: P(QQ, category=Cs())._coerce_map_from_(QQ)
+            <function <lambda> at ...>
+
         TESTS:
 
         Make sure :trac:`3638` is fixed::
@@ -176,7 +195,9 @@ cdef class Module(sage.structure.parent.Parent):
                 return M.hom([self._element_constructor_(x) for x in M.gens()], self)
         except (TypeError, NotImplementedError, AttributeError, ArithmeticError):
             pass
-        return None
+
+        # Optimization: Parent is a direct super class and implements _coerce_map_from_
+        return Parent._coerce_map_from_(self, M)
 
     def change_ring(self, R):
         """

@@ -439,7 +439,45 @@ class RiemannSurface(object):
         edges.sort()
         return edges
 
-    def _compute_delta(self, z1, epsilon):
+    def downstairs_graph(self):
+        r"""
+        Retun the Voronoi decomposition as a planar graph.
+
+        The result of this routine can be useful to interpret the labelling
+        of the vertices.
+
+        OUTPUT:
+
+        The Voronoi decomposition as a graph, with appropriate planar embedding.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<z,w> = QQ[]
+            sage: f = w^2 - z^4 + 1
+            sage: S = RiemannSurface(f)
+            sage: S.downstairs_graph()
+            Graph on 11 vertices
+
+        Similarly one can form the graph of the upstairs edges, which is visually
+        rather less attractive but can be instructive to verify that a homology
+        basis is likely correctly computed.::
+
+            sage: G=Graph(S.upstairs_edges()); G
+            Graph on 22 vertices
+            sage: G.is_planar()
+            False
+            sage: G.genus()
+            1
+            sage: G.is_connected()
+            True
+
+        """
+        G=Graph(self.downstairs_edges())
+        G.set_pos(dict(enumerate([list(v) for v in self._vertices])))
+        return G
+
+    def _compute_delta(self, z1, epsilon, wvalues=None):
         r"""
         Compute a delta for homotopy continuation when moving along a path.
 
@@ -449,6 +487,8 @@ class RiemannSurface(object):
 
         - ``epsilon`` -- a real number, which is the minimum distance between
           the w-values above ``z1``
+
+        - ``wvalues`` -- a list (default: None). If specified, saves recomputation.
 
         OUTPUT:
 
@@ -477,7 +517,7 @@ class RiemannSurface(object):
         then the delta will just be the minimum distance away from a branch
         point::
 
-            sage: T = RiemannSurface(f, certification=0)
+            sage: T = RiemannSurface(f, certification=False)
             sage: z1 = T._vertices[0]
             sage: currw = T.w_values(z1)
             sage: n = len(currw)
@@ -487,7 +527,8 @@ class RiemannSurface(object):
 
         """
         if self._certification:
-            wvalues = self.w_values(z1)
+            if wvalues is None:
+                wvalues = self.w_values(z1)
             # For computation of rho. Need the branch locus + roots of a0.
             badpoints = self.branch_locus + self._a0roots
             rho = min(abs(z1 - z) for z in badpoints)/2
@@ -506,7 +547,7 @@ class RiemannSurface(object):
         else:
             # Instead, we just compute the minimum distance between branch
             # points and the point in question.
-            return min([abs(z1 - self.branch_locus[i]) for i in range(len(self.branch_locus))])/2
+            return min([abs(b-z1) for b in self.branch_locus])/2
 
     def homotopy_continuation(self, edge):
         r"""
@@ -549,17 +590,17 @@ class RiemannSurface(object):
         datastorage = []
         z_start = self._CC(self._vertices[i0])
         z_end = self._CC(self._vertices[i1])
+        path_length = abs(z_end - z_start)
         def path(t):
             return z_start*(1-t) + z_end*t
         # Primary procedure.
         T = ZERO
         currw = self.w_values(path(T))
         n = len(currw)
-        epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
+        epsilon = min([abs(currw[i] - currw[j]) for i in range(1,n) for j in range(i)])/3
         datastorage += [(T,currw,epsilon)]
         while T < ONE:
-            epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            delta = self._compute_delta(path(T), epsilon)/abs(z_end - z_start)
+            delta = self._compute_delta(path(T), epsilon, wvalues=currw)/path_length
             # Move along the path by delta.
             T += delta
             # If T exceeds 1, just set it to 1 and compute.
@@ -575,6 +616,7 @@ class RiemannSurface(object):
                 else:
                     break
             currw = neww
+            epsilon = min([abs(currw[i] - currw[j]) for i in range(1,n) for j in range(i)])/3
             datastorage += [(T,currw,epsilon)]
         self._L[edge] = datastorage
         return currw
@@ -659,9 +701,9 @@ class RiemannSurface(object):
                     raise ConvergenceError("Newton iteration escaped neighbourhood")
                 new_delta = F(z0,wi)/dF(z0,wi)
                 Nnew_delta = new_delta.norm()
-                # If we found the root exactly, or our deltas stop getting
-                # smaller, terminate and change flag.
-                if (new_delta == 0) or (Nnew_delta>=Ndelta):
+                # If we found the root exactly, or if delta only affects half the digits and
+                # stops getting smaller, we decide that we have converged.
+                if (new_delta == 0) or (Nnew_delta>=Ndelta and Ndelta.log2() < wi.norm().log2()-wi.prec()):
                     neww.append(wi)
                     break
                 delta=new_delta
@@ -740,7 +782,9 @@ class RiemannSurface(object):
                 raise ConvergenceError("Newton iteration escaped neighbourhood")
             new_delta = F(z0,neww)/dF(z0,neww)
             Nnew_delta = new_delta.norm()
-            if (new_delta == 0) or (Nnew_delta>=Ndelta):
+            # If we found the root exactly, or if delta only affects half the digits and
+            # stops getting smaller, we decide that we have converged.
+            if (new_delta == 0) or (Nnew_delta>=Ndelta and Ndelta.log2() < neww.norm().log2()-neww.prec()):
                 return neww
             delta = new_delta
             Ndelta = Nnew_delta
@@ -961,9 +1005,10 @@ class RiemannSurface(object):
             # Therefore, we can see the orientation from the orientation
             # of two vectors from the center to consecutive points on the
             # loop.
-            v0 = self.voronoi_diagram.vertices[c[0]]
-            v1 = self.voronoi_diagram.vertices[c[1]]
-            if Matrix([list(v0-center),list(v1-center)]).det() < 0:
+            v0 = self._vertices[c[0]]
+            v1 = self._vertices[c[1]]
+            M = Matrix([list(v0-center),list(v1-center)])
+            if M.det() < 0:
                 c_perm = c_perm**(-1)
             monodromy_gens.append(to_loop_perm*c_perm*to_loop_perm**(-1))
         return monodromy_gens

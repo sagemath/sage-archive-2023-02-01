@@ -968,10 +968,16 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Return the (unique) conjugacy class in ``self`` containing all
                 Coxeter elements.
 
-                .. NOTE::
+                A Coxeter element is an element that has an eigenvalue
+                `e^{2\pi i/h}` where `h` is the Coxeter number.
 
-                    Beyond real reflection groups, the conjugacy class
-                    is not unique and we only obtain one such class.
+                In case of finite Coxeter groups, these are exactly the
+                elements that are conjugate to one (or, equivalently,
+                all) standard Coxeter element, this is, to an element
+                that is the product of the simple generators in some
+                order.
+
+                .. SEEALSO:: :meth:`sage.categories.coxeter_groups.standard_coxeter_elements`
 
                 EXAMPLES::
 

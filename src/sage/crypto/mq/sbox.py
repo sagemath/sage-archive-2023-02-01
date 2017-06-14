@@ -1,7 +1,6 @@
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.lazy_import import lazy_import
 
-import sage.crypto.sbox
-
-SBox = deprecated_function_alias(22986, sage.crypto.sbox.SBox)
-feistel_construction = deprecated_function_alias(22986, sage.crypto.sbox.feistel_construction)
-misty_construction = deprecated_function_alias(22986, sage.crypto.sbox.misty_construction)
+lazy_import('sage.crypto.sbox', ['SBox',
+                                 'feistel_construction',
+                                 'misty_construction'],
+            deprecation=22986)

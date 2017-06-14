@@ -15,8 +15,8 @@ geschrieben wurden in Sage lädt. Erstellen Sie eine Datei, welche Sie
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 Sie können ``beispiel.sage`` einlesen und ausführen, indem Sie den
 ``load``-Befehl verwenden.
@@ -60,8 +60,8 @@ enthält den folgenden Code:
 
 ::
 
-    print "Hello World"
-    print Integer(2)**Integer(3)
+    print("Hello World")
+    print(Integer(2)**Integer(3))
 
 Integer-Literale wurden mit Integer() versehen und das ``^`` wurde
 durch ein ``**`` ersetzt.
@@ -180,11 +180,11 @@ Polynome, usw.:
     from sage.all import *
 
     if len(sys.argv) != 2:
-        print "Usage: %s <n>"%sys.argv[0]
-        print "Outputs the prime factorization of n."
+        print("Usage: %s <n>" % sys.argv[0])
+        print("Outputs the prime factorization of n.")
         sys.exit(1)
 
-    print factor(sage_eval(sys.argv[1]))
+    print(factor(sage_eval(sys.argv[1])))
 
 Um dieses Skript benutzen zu können muss ``SAGE_ROOT`` in ihrer
 PATH-Umgebungsvariable enthalten sein. Falls das das obige Skript
@@ -209,17 +209,17 @@ Gleitkommazahlen, wie hier zu sehen ist:
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # Sie können einfache oder doppelte Anführungszeichen verwenden
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Hierzu fügt Sage noch viele weitere hinzu. Zum Beispiel Vektorräume:
 
@@ -303,7 +303,7 @@ Computer-Algebra-Systemen), die Elemente der Liste werden bei
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -339,7 +339,7 @@ konstruieren:
 ::
 
     sage: L = [factor(n) for n in range(1, 15)]
-    sage: print L
+    sage: L
     [1, 2, 3, 2^2, 5, 2 * 3, 7, 2^3, 3^2, 2 * 5, 11, 2^2 * 3, 13, 2 * 7]
     sage: L[12]
     13
@@ -361,7 +361,7 @@ wird wenn man mit dem :math:`m^{ten}` Element beginnt und bei dem
     sage: L = [factor(n) for n in range(1, 20)]
     sage: L[4:9]
     [5, 2 * 3, 7, 2^3, 3^2]
-    sage: print L[:4]
+    sage: L[:4]
     [1, 2, 3, 2^2]
     sage: L[14:4]
     []
@@ -377,7 +377,7 @@ können.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -420,7 +420,7 @@ Listen benutzt werden können.
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Ein weiteres Beispiel von unveränderbaren Folgen sind Basen von
 Vektorräumen. Es ist wichtig, dass sie nicht verändert werden können.
@@ -456,7 +456,7 @@ beliebigen Objekten.
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']
@@ -476,7 +476,7 @@ Daten umwandeln:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Eine häufig vorkommende Ausdrucksweise ist über einem Paar in einem
@@ -485,7 +485,7 @@ Dictionary zu iterieren:
 ::
 
     sage: d = {2:4, 4:16, 3:9}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Ein Dictionary ist ungeordnet, wie die letzte Ausgabe verdeutlicht.
@@ -530,7 +530,7 @@ verwenden. Zum Beispiel,
     {1, 2/3}
     sage: X.intersection(Y)
     {1}
-    sage: print latex(Y)
+    sage: print(latex(Y))
     \left\{1, \frac{2}{3}\right\}
     sage: Set(ZZ)
     Set of elements of Integer Ring
@@ -674,18 +674,6 @@ gleichen Typ konvertieren, falls dies möglich ist:
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Fast immer können zwei beliebige Objekte verglichen werden. Es gibt
-keine Voraussetzung die besagt, dass die Objekte mit einer totalen Ordnung
-versehen sein müssen.
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
     True
 
 Nutzen Sie bool für symbolische Ungleichungen:

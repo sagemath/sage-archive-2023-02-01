@@ -1,7 +1,10 @@
-import ConfigParser
+try:
+    from configparser import SafeConfigParser   # Python 3
+except ImportError:
+    from ConfigParser import SafeConfigParser   # Python 2
 import os
 
-config = ConfigParser.SafeConfigParser()
+config = SafeConfigParser()
 
 config.add_section('directories')
 config.set('directories', 'basedirlist', os.environ['SAGE_LOCAL'])
@@ -14,21 +17,21 @@ config.set('directories', 'basedirlist', os.environ['SAGE_LOCAL'])
 # will not even try, even if we could.  See trac #5301.
 #####################################################################
 
-print "NOTE: Set SAGE_MATPLOTLIB_GUI to anything but 'no' to try to build the Matplotlib GUI."
+print("NOTE: Set SAGE_MATPLOTLIB_GUI to anything but 'no' to try to build the Matplotlib GUI.")
 
 graphical_backend='False'
 if os.environ.get('SAGE_MATPLOTLIB_GUI', 'no').lower() != 'no':
     graphical_backend = 'auto'
 
-if graphical_backend=='auto':
-    print "Building graphical backends.  WARNING: This may causing some annoying and confusing behavior"
-    print "when using Sage + pylab, at least on OS X."
+if graphical_backend == 'auto':
+    print("Building graphical backends.  WARNING: This may causing some annoying and confusing behavior")
+    print("when using Sage + pylab, at least on OS X.")
 else:
-    print "Not building any matplotlib graphical backends."
+    print("Not building any matplotlib graphical backends.")
 
 config.add_section('gui_support')
 for backend in ('gtk', 'gtkagg', 'tkagg', 'wxagg', 'macosx', 'windowing'):
     config.set('gui_support', backend,  graphical_backend)
 
-with open('src/setup.cfg', 'wb') as configfile:
+with open('src/setup.cfg', 'w') as configfile:
     config.write(configfile)

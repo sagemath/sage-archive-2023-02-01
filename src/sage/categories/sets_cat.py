@@ -10,6 +10,8 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -135,6 +137,7 @@ class Sets(Category_singleton):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -143,6 +146,7 @@ class Sets(Category_singleton):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -753,6 +757,30 @@ class Sets(Category_singleton):
             """
             return self._with_axiom('Infinite')
 
+        @cached_method
+        def Enumerated(self):
+            """
+            Return the full subcategory of the enumerated objects of ``self``.
+
+            An enumerated object can be iterated to get its elements.
+
+            EXAMPLES::
+
+                sage: Sets().Enumerated()
+                Category of enumerated sets
+                sage: Rings().Finite().Enumerated()
+                Category of finite enumerated rings
+                sage: Rings().Infinite().Enumerated()
+                Category of infinite enumerated rings
+
+            TESTS::
+
+                sage: TestSuite(Sets().Enumerated()).run()
+                sage: Rings().Enumerated.__module__
+                'sage.categories.sets_cat'
+            """
+            return self._with_axiom('Enumerated')
+
         def Facade(self):
             r"""
             Return the full subcategory of the facade objects of ``self``.
@@ -937,7 +965,7 @@ class Sets(Category_singleton):
 
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class
-                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
+                <class 'sage.algebras.group_algebra.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
                 <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
@@ -1049,8 +1077,8 @@ class Sets(Category_singleton):
 
                 sage: from sage.categories.examples.sets_cat import PrimeNumbers
                 sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return 18
+                ....:     def an_element(self):
+                ....:         return 18
                 sage: CC = CCls()
                 sage: CC._test_an_element()
                 Traceback (most recent call last):
@@ -1095,6 +1123,7 @@ class Sets(Category_singleton):
                   Running the test suite of self.an_element()
                   running ._test_category() . . . pass
                   running ._test_eq() . . . pass
+                  running ._test_new() . . . pass
                   running ._test_nonzero_equal() . . . pass
                   running ._test_not_implemented_methods() . . . pass
                   running ._test_pickling() . . . pass
@@ -1109,8 +1138,8 @@ class Sets(Category_singleton):
                 sage: from sage.categories.examples.sets_cat import PrimeNumbers
                 sage: class Bla(SageObject): pass
                 sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return Bla()
+                ....:     def an_element(self):
+                ....:         return Bla()
                 sage: CC = CCls()
                 sage: CC._test_elements()
                   Failure in _test_pickling:
@@ -1155,7 +1184,7 @@ class Sets(Category_singleton):
                 sage: eq = P.element_class.__eq__
 
                 sage: P.element_class.__eq__ = (lambda x, y:
-                ...        False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
+                ....:      False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
                 sage: P._test_elements_eq_reflexive()
                 Traceback (most recent call last):
                 ...
@@ -1191,9 +1220,9 @@ class Sets(Category_singleton):
                 sage: eq = P.element_class.__eq__
 
                 sage: def non_sym_eq(x, y):
-                ...      if not y in P:                      return False
-                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
-                ...      else:                               return eq(x, y)
+                ....:    if not y in P:                      return False
+                ....:    elif eq(x, P(47)) and eq(y, P(53)): return True
+                ....:    else:                               return eq(x, y)
                 sage: P.element_class.__eq__ = non_sym_eq
                 sage: P._test_elements_eq_symmetric()
                 Traceback (most recent call last):
@@ -1346,8 +1375,8 @@ class Sets(Category_singleton):
 
                 sage: from sage.categories.examples.sets_cat import *
                 sage: class CCls(PrimeNumbers):
-                ...       def some_elements(self):
-                ...           return [self(17), 32]
+                ....:     def some_elements(self):
+                ....:         return [self(17), 32]
                 sage: CC = CCls()
                 sage: CC._test_some_elements()
                 Traceback (most recent call last):
@@ -1394,7 +1423,7 @@ class Sets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the output of the method cardinality must either
-                be a Sage integer or infinity. Not <type 'int'>.
+                be a Sage integer or infinity. Not <... 'int'>.
             """
             try:
                 cardinality = self.cardinality()
@@ -1705,7 +1734,36 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 raising ``NotImplementedError`` could be provided instead.
             """
 
+        def is_injective(self):
+            r"""
+            Return whether this map is injective.
 
+            EXAMPLES::
+
+                sage: f = ZZ.hom(GF(3)); f
+                Ring Coercion morphism:
+                    From: Integer Ring
+                    To:   Finite Field of size 3
+                sage: f.is_injective()
+                False
+
+            Note that many maps do not implement this method::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([x])
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if self.domain().cardinality() <= 1:
+                return True
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+            raise NotImplementedError
+
+    Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
     Topological = LazyImport('sage.categories.topological_spaces',
@@ -1731,7 +1789,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 TESTS::
 
-                    sage: C.is_finite.im_func is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite.im_func
+                    sage: from six import get_method_function as gmf
+                    sage: gmf(C.is_finite) is gmf(sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite)
                     True
                 """
                 return False
@@ -2033,9 +2092,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                  An example of an infinite enumerated set: the non negative integers,
                  An example of a finite enumerated set: {1,2,3})
             """
-            from finite_enumerated_sets import FiniteEnumeratedSets
-            from infinite_enumerated_sets import InfiniteEnumeratedSets
-            from cartesian_product import cartesian_product
+            from .finite_enumerated_sets import FiniteEnumeratedSets
+            from .infinite_enumerated_sets import InfiniteEnumeratedSets
+            from .cartesian_product import cartesian_product
             S1 = Sets().example()
             S2 = InfiniteEnumeratedSets().example()
             S3 = FiniteEnumeratedSets().example()
@@ -2050,11 +2109,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
-                    ....:     print x,y
-                    1 a
-                    1 b
-                    2 a
-                    2 b
+                    ....:     print((x, y))
+                    (1, 'a')
+                    (1, 'b')
+                    (2, 'a')
+                    (2, 'b')
 
                     sage: A = FiniteEnumeratedSets()(["a", "b"])
                     sage: B = FiniteEnumeratedSets().example(); B
@@ -2067,7 +2126,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
                      ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
                     sage: C.__iter__.__module__
-                    'sage.categories.enumerated_sets'
+                    'sage.categories.sets_cat'
 
                     sage: F22 = GF(2).cartesian_product(GF(2))
                     sage: list(F22)
@@ -2490,7 +2549,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 TESTS::
 
                     sage: class MyParent(Parent):
-                    ...      pass
+                    ....:    pass
                     sage: P = MyParent(category = Sets().WithRealizations())
                     sage: P._realizations
                     []
@@ -2522,29 +2581,33 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 INPUT:
 
-                - ``verbose`` -- boolean (default ``True``) if ``True``, prints the defined shorthands
+                - ``verbose`` -- boolean (default ``True``); if ``True``,
+                  prints the defined shorthands
 
                 EXAMPLES::
 
                     sage: Q = QuasiSymmetricFunctions(ZZ)
                     sage: Q.inject_shorthands()
                     Injecting M as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Monomial basis
+                     the Integer Ring in the Monomial basis
                     Injecting F as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Fundamental basis
+                     the Integer Ring in the Fundamental basis
+                    Injecting E as shorthand for Quasisymmetric functions over
+                     the Integer Ring in the Essential basis
+                    doctest:...: RuntimeWarning: redefining global value `E`
                     Injecting dI as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the dualImmaculate basis
+                     the Integer Ring in the dualImmaculate basis
                     Injecting QS as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Quasisymmetric Schur basis
+                     the Integer Ring in the Quasisymmetric Schur basis
                     sage: F[1,2,1] + 5*M[1,3] + F[2]^2
                     5*F[1, 1, 1, 1] - 5*F[1, 1, 2] - 3*F[1, 2, 1] + 6*F[1, 3] +
                     2*F[2, 2] + F[3, 1] + F[4]
                     sage: F
                     Quasisymmetric functions over the Integer Ring in the
-                    Fundamental basis
+                     Fundamental basis
                     sage: M
                     Quasisymmetric functions over the Integer Ring in the
-                    Monomial basis
+                     Monomial basis
                 """
                 from sage.misc.misc import inject_variable
                 if not hasattr(self, "_shorthands"):
@@ -2552,7 +2615,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 for shorthand in self._shorthands:
                     realization = getattr(self, shorthand)()
                     if verbose:
-                        print 'Injecting {} as shorthand for {}'.format(shorthand, realization)
+                        print('Injecting {} as shorthand for {}'.format(shorthand, realization))
                     inject_variable(shorthand, realization)
 
             @abstract_method(optional=True)
@@ -2637,8 +2700,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     The subset algebra of {1, 2, 3} over Rational Field
                     sage: A.an_element()        # indirect doctest
                     F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+
+                TESTS:
+
+                Check that we are consistent no matter which basis is
+                created first::
+
+                    sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+                    sage: I = M.I()
+                    sage: M._an_element_()
+                    2*E[0] + 2*E[1] + 3*E[2]
                 """
-                return self.realizations()[0].an_element()
+                return self.a_realization().an_element()
 
             # TODO: maybe this could be taken care of by Sets.Facade()?
             def __contains__(self, x):
@@ -2738,7 +2811,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                     sage: from sage.categories.realizations import Realizations
                     sage: class Blah(Parent):
-                    ...       pass
+                    ....:     pass
                     sage: P = Blah(category = Sets.WithRealizations.ParentMethods.Realizations(A))
                     sage: P     # indirect doctest
                     The subset algebra of {1, 2, 3} over Rational Field in the realization Blah

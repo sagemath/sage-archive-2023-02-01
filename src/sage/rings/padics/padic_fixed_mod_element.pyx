@@ -24,8 +24,7 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "FM_template.pxi"
 
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance P = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 
 cdef class PowComputer_(PowComputer_base):
@@ -172,7 +171,7 @@ cdef class pAdicFixedModElement(FMElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Conversion to PARI.
 
@@ -205,7 +204,7 @@ cdef class pAdicFixedModElement(FMElement):
         This checks that :trac:`15653` is fixed::
 
             sage: x = polygen(ZpFM(3,10))
-            sage: (x^3 + x + 1)._pari_().poldisc()
+            sage: (x^3 + x + 1).__pari__().poldisc()
             2 + 3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
         cdef long val
@@ -217,10 +216,10 @@ cdef class pAdicFixedModElement(FMElement):
             mpz_set_ui(holder.value, 0)
         else:
             val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
-        return P.new_gen_from_padic(val, self.prime_pow.prec_cap - val,
-                                    self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
-                                    holder.value)
+        return new_gen_from_padic(val, self.prime_pow.prec_cap - val,
+                                  self.prime_pow.prime.value,
+                                  self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
+                                  holder.value)
 
     def _integer_(self, Z=None):
         """
@@ -259,8 +258,18 @@ cdef class pAdicFixedModElement(FMElement):
             sage: a = R(8)
             sage: a.residue(1)
             1
-            sage: a.residue(2)
+
+        This is different from applying ``% p^n`` which returns an element in
+        the same ring::
+
+            sage: b = a.residue(2); b
             8
+            sage: b.parent()
+            Ring of integers modulo 49
+            sage: c = a % 7^2; c
+            1 + 7 + O(7^4)
+            sage: c.parent()
+            7-adic Ring of fixed modulus 7^4
 
         TESTS::
 
@@ -277,14 +286,18 @@ cdef class pAdicFixedModElement(FMElement):
             ...
             PrecisionError: Not enough precision known in order to compute residue.
 
+        .. SEEALSO::
+
+            :meth:`_mod_`
+
         """
         cdef Integer selfvalue, modulus
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("Not enough precision known in order to compute residue.")
         elif absprec < 0:
-            raise ValueError, "Cannot reduce modulo a negative power of p."
+            raise ValueError("Cannot reduce modulo a negative power of p.")
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))

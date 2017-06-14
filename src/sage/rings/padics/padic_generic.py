@@ -23,7 +23,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
@@ -31,12 +32,13 @@ from sage.misc.misc import some_tuples
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
-from local_generic import LocalGeneric
+from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
+from sage.structure.sage_object import richcmp_not_equal
 
 
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
@@ -143,9 +145,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return [self.gen()]
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return 0 if self == other, and 1 or -1 otherwise.
 
         We consider two p-adic rings or fields to be equal if they are
         equal mathematically, and also have the same precision cap and
@@ -163,25 +165,28 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        if self.prime() < other.prime():
-            return -1
-        elif self.prime() > other.prime():
-            return 1
+        if not isinstance(other, pAdicGeneric):
+            return NotImplemented
+
+        lx = self.prime()
+        rx = other.prime()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         try:
-            if self.halting_parameter() < other.halting_parameter():
-                return -1
-            elif self.halting_parameter() > other.halting_parameter():
-                return 1
+            lx = self.halting_parameter()
+            rx = other.halting_parameter()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
-        if self.precision_cap() < other.precision_cap():
-            return -1
-        elif self.precision_cap() > other.precision_cap():
-            return 1
-        return self._printer.cmp_modes(other._printer)
+
+        lx = self.precision_cap()
+        rx = other.precision_cap()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return self._printer.richcmp_modes(other._printer, op)
 
     #def ngens(self):
     #    return 1
@@ -433,11 +438,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R.teichmuller_system()
             [1 + O(3^5), 242 + O(3^5)]
 
+        Check that :trac:`20457` is fixed::
+
+            sage: F.<a> = Qq(5^2,6)
+            sage: F.teichmuller_system()[3]
+            (2*a + 2) + (4*a + 1)*5 + 4*5^2 + (2*a + 1)*5^3 + (4*a + 1)*5^4 + (2*a + 3)*5^5 + O(5^6)
+
         NOTES:
 
         Should this return 0 as well?
         """
-        return [self.teichmuller(i.lift()) for i in self.residue_class_field() if i != 0]
+        R = self.residue_class_field()
+        prec = self.precision_cap()
+        return [self.teichmuller(self(i).lift_to_precision(prec)) for i in R if i != 0]
 
 #     def different(self):
 #         raise NotImplementedError
@@ -709,7 +722,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         .. SEEALSO::
 
             :class:`TestSuite`
-
         """
         tester = self._tester(**options)
 
@@ -724,6 +736,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 except (NotImplementedError, AttributeError):
                     pass
                 tester.assertEqual(y**self.residue_field().order(), y)
+
+    def _test_convert_residue_field(self, **options):
+        r"""
+        Test that conversion of residue field elements back to this ring works.
+
+        INPUT:
+
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_convert_residue_field()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            if x.valuation() < 0:
+                continue
+            if x.precision_absolute() <= 0:
+                continue
+            y = x.residue()
+            z = self(y)
+            tester.assertEqual(z.residue(), y)
 
     @cached_method
     def _log_unit_part_p(self):
@@ -826,7 +865,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K.frobenius_endomorphism(6) == Frob
             True
         """
-        from morphism import FrobeniusEndomorphism_padics
+        from .morphism import FrobeniusEndomorphism_padics
         return FrobeniusEndomorphism_padics(self, n)
 
     def _test_elements_eq_transitive(self, **options):
@@ -859,8 +898,7 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         sage: R(45)
         4*5 + 5^2 + O(5^21)
         sage: with local_print_mode(R, 'val-unit'):
-        ...       print R(45)
-        ...
+        ....:     print(R(45))
         5 * 9 + O(5^21)
 
     NOTES::

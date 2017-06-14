@@ -131,9 +131,10 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = Algebras(QQ).WithBasis().Filtered().example()
                 sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
-                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                U['x']^2*U['y']^2*U['z']^3 + 3*U['x'] + 3*U['y'] + 3
                 sage: q = A.to_graded_conversion()(p); q
-                bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+                bar(U['x']^2*U['y']^2*U['z']^3) + 3*bar(U['x'])
+                 + 3*bar(U['y']) + 3*bar(1)
                 sage: q.parent() is A.graded_algebra()
                 True
             """
@@ -159,7 +160,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = Algebras(QQ).WithBasis().Filtered().example()
                 sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
-                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                U['x']^2*U['y']^2*U['z']^3 + 3*U['x'] + 3*U['y'] + 3
                 sage: q = A.to_graded_conversion()(p)
                 sage: A.from_graded_conversion()(q) == p
                 True
@@ -190,7 +191,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = Algebras(QQ).WithBasis().Filtered().example()
                 sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
-                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                U['x']^2*U['y']^2*U['z']^3 + 3*U['x'] + 3*U['y'] + 3
                 sage: q = A.projection(7)(p); q
                 bar(U['x']^2*U['y']^2*U['z']^3)
                 sage: q.parent() is A.graded_algebra()

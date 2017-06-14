@@ -82,7 +82,7 @@ However, you cannot "mix wrong lattices" in your expressions::
     sage: n + m
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+':
+    TypeError: unsupported operand parent(s) for +:
     '3-d lattice N' and '3-d lattice M'
     sage: n * n
     Traceback (most recent call last):
@@ -144,7 +144,7 @@ Or you can create a homomorphism from one lattice to any other::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
@@ -176,7 +176,7 @@ def is_ToricLattice(x):
     EXAMPLES::
 
         sage: from sage.geometry.toric_lattice import (
-        ...     is_ToricLattice)
+        ....:   is_ToricLattice)
         sage: is_ToricLattice(1)
         False
         sage: N = ToricLattice(3)
@@ -203,7 +203,7 @@ def is_ToricLatticeQuotient(x):
     EXAMPLES::
 
         sage: from sage.geometry.toric_lattice import (
-        ...     is_ToricLatticeQuotient)
+        ....:   is_ToricLatticeQuotient)
         sage: is_ToricLatticeQuotient(1)
         False
         sage: N = ToricLattice(3)
@@ -529,7 +529,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         TESTS::
 
-            sage: print ToricLattice(3).construction()
+            sage: print(ToricLattice(3).construction())
             None
         """
         return None
@@ -919,8 +919,6 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
             -1
             sage: cmp(N3, M3)
             1
-            sage: abs( cmp(N3, 3) )
-            1
             sage: cmp(N3, ToricLattice(3))
             0
         """
@@ -1116,7 +1114,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
             sage: L = ToricLattice(3, "L")
             sage: L.submodule_with_basis([(3,2,1),(1,2,3)])
             Sublattice <L(3, 2, 1), L(1, 2, 3)>
-            sage: print L.submodule([(3,2,1),(1,2,3)])._repr_()
+            sage: print(L.submodule([(3,2,1),(1,2,3)])._repr_())
             Sublattice <L(1, 2, 3), L(0, 4, 8)>
         """
         s = 'Sublattice '
@@ -1310,7 +1308,7 @@ class ToricLattice_quotient_element(FGP_Element):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q.gen(0)._latex_()
+            sage: print(Q.gen(0)._latex_())
             \left[0,\,1,\,0\right]_{N}
         """
         return latex(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
@@ -1328,7 +1326,7 @@ class ToricLattice_quotient_element(FGP_Element):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q.gen(0)._repr_()
+            sage: print(Q.gen(0)._repr_())
             N[0, 1, 0]
         """
         return str(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
@@ -1572,11 +1570,11 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q._latex_()
+            sage: print(Q._latex_())
             N / \left\langle\left(1,\,8,\,0\right)_{N}, \left(0,\,12,\,0\right)_{N}\right\rangle
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
-            sage: print Q._latex_()
+            sage: print(Q._latex_())
             N / \left\langle\left(1,\,4,\,0\right)_{N}\right\rangle
         """
         return "%s / %s" % (latex(self.V()), latex(self.W()))
@@ -1594,12 +1592,12 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: print Q._repr_()
+            sage: print(Q._repr_())
             Quotient with torsion of 3-d lattice N
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
-            sage: print Q._repr_()
+            sage: print(Q._repr_())
             2-d lattice, quotient of 3-d lattice N
             by Sublattice <N(1, 4, 0)>
         """

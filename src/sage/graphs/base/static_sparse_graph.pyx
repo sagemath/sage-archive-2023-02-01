@@ -66,7 +66,7 @@ This is *the one thing* to have in mind when working with this data structure::
         cdef int i, j
         for i in range(g.n):
             for j in range(g.neighbors[i+1]-g.neighbors[i]):
-                print "There is an edge from",str(i),"to",g.neighbors[i][j]
+                print("There is an edge from {} to {}".format(i, g.neighbors[i][j]))
 
 **Advantages**
 
@@ -179,14 +179,15 @@ with C arguments).
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "sage/data_structures/bitset.pxi"
 cimport cpython
 from libc.string cimport memset
 from libc.limits cimport INT_MAX
 from sage.graphs.base.c_graph cimport CGraph
-from static_sparse_backend cimport StaticSparseCGraph
-from static_sparse_backend cimport StaticSparseBackend
+from .static_sparse_backend cimport StaticSparseCGraph
+from .static_sparse_backend cimport StaticSparseBackend
 from sage.ext.memory_allocator cimport MemoryAllocator
 include "cysignals/memory.pxi"
 from libcpp.vector cimport vector
@@ -553,14 +554,11 @@ cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
 
 def tarjan_strongly_connected_components(G):
     r"""
-    The Tarjan algorithm to compute strongly connected components (SCCs).
+    Return the lists of vertices in each strongly connected components (SCCs).
 
-    This routine returns a pair ``[nscc, scc]``, where ``nscc`` is the number of
-    SCCs and ``scc`` is a dictionary associating to each vertex ``v`` an
-    integer between ``0`` and ``nscc-1``, corresponding to the SCC containing
-    ``v``. SCCs
-    are numbered in reverse topological order, that is, if ``(v,w)`` is an edge
-    in the graph, ``scc[v] <= scc[w]``.
+    This method implements the Tarjan algorithm to compute the strongly
+    connected components of the digraph. It returns a list of lists of vertices,
+    each list of vertices representing a strongly connected component.
 
     The basic idea of the algorithm is this: a depth-first search (DFS) begins
     from an arbitrary start node (and subsequent DFSes are
@@ -581,7 +579,7 @@ def tarjan_strongly_connected_components(G):
     For more information, see the
     :wikipedia:`Wikipedia article on Tarjan's algorithm <Tarjan's_strongly_connected_components_algorithm>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: tarjan_strongly_connected_components(digraphs.Path(3))
@@ -605,7 +603,7 @@ def tarjan_strongly_connected_components(G):
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: import random
-        sage: for i in range(10):                                     # long
+        sage: for i in range(10):                          # long time
         ....:     n = random.randint(2,20)
         ....:     m = random.randint(1, n*(n-1))
         ....:     g = digraphs.RandomDirectedGNM(n,m)
@@ -617,7 +615,7 @@ def tarjan_strongly_connected_components(G):
     Checking against NetworkX::
 
         sage: import networkx
-        sage: for i in range(10):                                     # long
+        sage: for i in range(10):                          # long time
         ....:      g = digraphs.RandomDirectedGNP(100,.05)
         ....:      h = g.networkx_graph()
         ....:      scc1 = g.strongly_connected_components()
@@ -625,7 +623,7 @@ def tarjan_strongly_connected_components(G):
         ....:      s1 = Set(map(Set,scc1))
         ....:      s2 = Set(map(Set,scc2))
         ....:      if s1 != s2:
-        ....:          print "Ooch !"
+        ....:          print("Ooch !")
     """
     from sage.graphs.digraph import DiGraph
 
@@ -721,7 +719,7 @@ def strongly_connected_components_digraph(G):
     to each vertex ``v`` the number of the SCC of ``v``, as it appears in
     ``g_scc``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
         sage: strongly_connected_components_digraph(digraphs.Path(3))
@@ -797,7 +795,7 @@ def triangles_count(G):
 
     - `G`-- a graph
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import triangles_count
         sage: triangles_count(graphs.PetersenGraph())
@@ -923,10 +921,10 @@ def spectral_radius(G, prec=1e-10):
     A much larger example::
 
         sage: G = DiGraph(100000)
-        sage: r = range(100000)
+        sage: r = list(range(100000))
         sage: while not G.is_strongly_connected():
         ....:     shuffle(r)
-        ....:     G.add_edges(enumerate(r))
+        ....:     G.add_edges(enumerate(r), loops=False)
         sage: spectral_radius(G, 1e-10)  # random
         (1.9997956006500042, 1.9998043797692782)
 
@@ -966,7 +964,7 @@ def spectral_radius(G, prec=1e-10):
 
     # make a copy of G if needed to obtain a static sparse graph
     # NOTE: the following potentially copies the labels of the graph which is
-    # comptely useless for the computation!
+    # completely useless for the computation!
     cdef short_digraph g
     G = G.copy(immutable=True)
     g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]

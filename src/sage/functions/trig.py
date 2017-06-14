@@ -20,6 +20,8 @@ class Function_sin(GinacFunction):
             0.90929742682568169539601986591
             sage: loads(dumps(sin))
             sin
+            sage: sin(x)._sympy_()
+            sin(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -30,6 +32,16 @@ class Function_sin(GinacFunction):
         :meth:`sage.symbolic.expression.Expression.simplify`::
 
             sage: a = sin(0,hold=True); a.simplify()
+            0
+
+        If possible, the argument is also reduced modulo the
+        period length `2\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: sin(1 + 2*k*pi)
+            sin(1)
+            sage: sin(k*pi)
             0
 
         TESTS::
@@ -47,28 +59,40 @@ class Function_sin(GinacFunction):
             1/4*sqrt(-2*sqrt(6) - 2*sqrt(2) + 8)
             sage: sin(pi/30)
             -1/8*sqrt(5) + 1/4*sqrt(-3/2*sqrt(5) + 15/2) - 1/8
+            sage: sin(104*pi/105)
+            sin(1/105*pi)
             sage: cos(pi/8)
             1/2*sqrt(sqrt(2) + 2)
             sage: cos(pi/10)
-            1/2*sqrt(1/2*sqrt(5) + 5/2)
+            1/4*sqrt(2*sqrt(5) + 10)
             sage: cos(pi/12)
-            1/12*sqrt(6)*(sqrt(3) + 3)
+            1/4*sqrt(6) + 1/4*sqrt(2)
             sage: cos(pi/15)
             1/8*sqrt(5) + 1/4*sqrt(3/2*sqrt(5) + 15/2) - 1/8
             sage: cos(pi/24)
             1/4*sqrt(2*sqrt(6) + 2*sqrt(2) + 8)
+            sage: cos(104*pi/105)
+            -cos(1/105*pi)
             sage: tan(pi/5)
             sqrt(-2*sqrt(5) + 5)
             sage: tan(pi/8)
             sqrt(2) - 1
             sage: tan(pi/10)
-            sqrt(-2/5*sqrt(5) + 1)
+            1/5*sqrt(-10*sqrt(5) + 25)
             sage: tan(pi/16)
             -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
             sage: tan(pi/20)
-            sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
+            sqrt(5) - sqrt(2*sqrt(5) + 5) + 1
             sage: tan(pi/24)
             sqrt(6) - sqrt(3) + sqrt(2) - 2
+            sage: tan(104*pi/105)
+            -tan(1/105*pi)
+            sage: cot(104*pi/105)
+            -cot(1/105*pi)
+            sage: sec(104*pi/105)
+            -sec(1/105*pi)
+            sage: csc(104*pi/105)
+            csc(1/105*pi)
 
             sage: all(sin(rat*pi).n(200)-sin(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/30,7/30,11/30,13/30,1/8,3/8,1/24,5/24,7/24,11/24])
             True
@@ -76,8 +100,24 @@ class Function_sin(GinacFunction):
             True
             sage: all(tan(rat*pi).n(200)-tan(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/10,3/10,1/20,3/20,7/20,9/20,1/8,3/8,1/16,3/16,5/16,7/16,1/24,5/24,7/24,11/24])
             True
+
+        Check that :trac:`20456` is fixed::
+
+            sage: assume(x>0)
+            sage: sin(pi*x)
+            sin(pi*x)
+            sage: forget()
+
+        Check that :trac:`20752` is fixed::
+
+            sage: sin(3*pi+41/42*pi)
+            -sin(1/42*pi)
+            sage: sin(-5*pi+1/42*pi)
+            -sin(1/42*pi)
+            sage: sin(pi-1/42*pi)
+            sin(1/42*pi)
         """
-        GinacFunction.__init__(self, "sin", latex_name=r"\sin",
+        GinacFunction.__init__(self, 'sin', latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
 
 sin = Function_sin()
@@ -97,6 +137,8 @@ class Function_cos(GinacFunction):
             -0.41614683654714238699756822950
             sage: loads(dumps(cos))
             cos
+            sage: cos(x)._sympy_()
+            cos(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -109,6 +151,18 @@ class Function_cos(GinacFunction):
             sage: a = cos(0,hold=True); a.simplify()
             1
 
+        If possible, the argument is also reduced modulo the
+        period length `2\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: cos(1 + 2*k*pi)
+            cos(1)
+            sage: cos(k*pi)
+            cos(pi*k)
+            sage: cos(pi/3 + 2*k*pi)
+            1/2
+
         TESTS::
 
             sage: conjugate(cos(x))
@@ -116,8 +170,16 @@ class Function_cos(GinacFunction):
             sage: cos(complex(1,1))     # rel tol 1e-15
             (0.8337300251311491-0.9888977057628651j)
 
+        Check that :trac:`20752` is fixed::
+
+            sage: cos(3*pi+41/42*pi)
+            cos(1/42*pi)
+            sage: cos(-5*pi+1/42*pi)
+            -cos(1/42*pi)
+            sage: cos(pi-1/42*pi)
+            -cos(1/42*pi)
         """
-        GinacFunction.__init__(self, "cos", latex_name=r"\cos",
+        GinacFunction.__init__(self, 'cos', latex_name=r"\cos",
                 conversions=dict(maxima='cos',mathematica='Cos'))
 
 cos = Function_cos()
@@ -153,8 +215,20 @@ class Function_tan(GinacFunction):
             sage: a = tan(pi/4,hold=True); a.simplify()
             1
 
+        If possible, the argument is also reduced modulo the
+        period length `\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: tan(1 + 2*k*pi)
+            tan(1)
+            sage: tan(k*pi)
+            0
+
         TESTS::
 
+            sage: tan(x)._sympy_()
+            tan(x)
             sage: conjugate(tan(x))
             tan(conjugate(x))
             sage: tan(complex(1,1))     # rel tol 1e-15
@@ -165,7 +239,7 @@ class Function_tan(GinacFunction):
             sage: tan(2+I).imag().n()
             1.16673625724092
         """
-        GinacFunction.__init__(self, "tan", latex_name=r"\tan")
+        GinacFunction.__init__(self, 'tan', latex_name=r"\tan")
 
 tan = Function_tan()
 
@@ -187,6 +261,8 @@ class Function_cot(GinacFunction):
 
             sage: latex(cot(x))
             \cot\left(x\right)
+            sage: cot(x)._sympy_()
+            cot(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -219,14 +295,34 @@ class Function_cot(GinacFunction):
             sage: diff(cot(x), x)
             -cot(x)^2 - 1
 
-        TESTS:
+        TESTS::
+
+            sage: cot(float(0))
+            Infinity
+            sage: cot(SR(0))
+            Infinity
+            sage: cot(float(0.1))
+            9.966644423259238
+            sage: type(_)
+            <... 'float'>
+
+            sage: cot(float(0))
+            Infinity
+            sage: cot(SR(0))
+            Infinity
+            sage: cot(float(0.1))
+            9.966644423259238
+            sage: type(_)
+            <... 'float'>
 
         Test complex input::
 
             sage: cot(complex(1,1))     # rel tol 1e-15
             (0.21762156185440273-0.8680141428959249j)
+            sage: cot(1.+I)
+            0.217621561854403 - 0.868014142895925*I
         """
-        GinacFunction.__init__(self, "cot", latex_name=r"\cot")
+        GinacFunction.__init__(self, 'cot', latex_name=r"\cot")
 
     def _eval_numpy_(self, x):
         """
@@ -237,7 +333,7 @@ class Function_cot(GinacFunction):
              sage: cot(a)
              array([-0.45765755, -7.01525255,  0.86369115])
         """
-        return 1 / tan(x)
+        return 1.0 / tan(x)
 
 cot = Function_cot()
 
@@ -274,6 +370,8 @@ class Function_sec(GinacFunction):
             sec(x)*tan(x)
             sage: latex(sec(x))
             \sec\left(x\right)
+            sage: sec(x)._sympy_()
+            sec(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -293,7 +391,7 @@ class Function_sec(GinacFunction):
             sage: sec(complex(1,1))     # rel tol 1e-15
             (0.49833703055518686+0.5910838417210451j)
         """
-        GinacFunction.__init__(self, "sec", latex_name=r"\sec")
+        GinacFunction.__init__(self, 'sec', latex_name=r"\sec")
 
     def _eval_numpy_(self, x):
         """
@@ -340,6 +438,8 @@ class Function_csc(GinacFunction):
             -cot(x)*csc(x)
             sage: latex(csc(x))
             \csc\left(x\right)
+            sage: csc(x)._sympy_()
+            csc(x)
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -359,7 +459,7 @@ class Function_csc(GinacFunction):
             sage: csc(complex(1,1))     # rel tol 1e-15
             (0.6215180171704284-0.30393100162842646j)
         """
-        GinacFunction.__init__(self, "csc", latex_name=r"\csc")
+        GinacFunction.__init__(self, 'csc', latex_name=r"\csc")
 
     def _eval_numpy_(self, x):
         """
@@ -423,11 +523,22 @@ class Function_arcsin(GinacFunction):
 
         TESTS::
 
+            sage: arcsin(x)._sympy_()
+            asin(x)
             sage: arcsin(x).operator()
             arcsin
+            sage: asin(complex(1,1))
+            (0.6662394324925152+1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(asin(SR(2.1)) == NaN)
+            True
+            sage: asin(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
-                conversions=dict(maxima='asin', sympy='asin'))
+                conversions=dict(maxima='asin', sympy='asin', fricas="asin"))
 
 arcsin = asin = Function_arcsin()
 
@@ -478,11 +589,22 @@ class Function_arccos(GinacFunction):
 
         TESTS::
 
+            sage: arccos(x)._sympy_()
+            acos(x)
             sage: arccos(x).operator()
             arccos
+            sage: acos(complex(1,1))
+            (0.9045568943023814-1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(acos(SR(2.1)) == NaN)
+            True
+            sage: acos(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
-                conversions=dict(maxima='acos', sympy='acos'))
+                conversions=dict(maxima='acos', sympy='acos', fricas='acos'))
 
 arccos = acos = Function_arccos()
 
@@ -535,8 +657,12 @@ class Function_arctan(GinacFunction):
 
         TESTS::
 
+            sage: arctan(x)._sympy_()
+            atan(x)
             sage: arctan(x).operator()
             arctan
+            sage: atan(complex(1,1))
+            (1.0172219678978514+0.4023594781085251j)
 
         Check that :trac:`19918` is fixed::
 
@@ -545,8 +671,8 @@ class Function_arctan(GinacFunction):
             sage: arctan(-x).subs(x=-oo)
             1/2*pi
         """
-        GinacFunction.__init__(self, "arctan", latex_name=r'\arctan',
-                conversions=dict(maxima='atan', sympy='atan'))
+        GinacFunction.__init__(self, 'arctan', latex_name=r"\arctan",
+                conversions=dict(maxima='atan', sympy='atan', fricas='atan'))
 
 arctan = atan = Function_arctan()
 
@@ -587,12 +713,16 @@ class Function_arccot(GinacFunction):
 
         Test complex input::
 
+            sage: arccot(x)._sympy_()
+            acot(x)
             sage: arccot(complex(1,1))  # rel tol 1e-15
             (0.5535743588970452-0.4023594781085251j)
+            sage: arccot(1.+I)
+            0.553574358897045 - 0.402359478108525*I
 
         """
-        GinacFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',
-                conversions=dict(maxima='acot', sympy='acot'))
+        GinacFunction.__init__(self, 'arccot', latex_name=r"\operatorname{arccot}",
+                conversions=dict(maxima='acot', sympy='acot', fricas='acot'))
 
     def _eval_numpy_(self, x):
         """
@@ -626,6 +756,8 @@ class Function_arccsc(GinacFunction):
             arccsc(I + 1)
             sage: diff(acsc(x), x)
             -1/(sqrt(x^2 - 1)*x)
+            sage: arccsc(x)._sympy_()
+            acsc(x)
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -645,8 +777,8 @@ class Function_arccsc(GinacFunction):
             sage: arccsc(complex(1,1))  # rel tol 1e-15
             (0.45227844715119064-0.5306375309525178j)
         """
-        GinacFunction.__init__(self, "arccsc", latex_name=r'{\rm arccsc}',
-                                   conversions=dict(maxima='acsc'))
+        GinacFunction.__init__(self, 'arccsc', latex_name=r"\operatorname{arccsc}",
+                               conversions=dict(maxima='acsc', sympy='acsc', fricas='acsc'))
 
     def _eval_numpy_(self, x):
         """
@@ -682,6 +814,8 @@ class Function_arcsec(GinacFunction):
             arcsec(I + 1)
             sage: diff(asec(x), x)
             1/(sqrt(x^2 - 1)*x)
+            sage: arcsec(x)._sympy_()
+            asec(x)
 
         We can delay evaluation using the ``hold`` parameter::
 
@@ -701,8 +835,8 @@ class Function_arcsec(GinacFunction):
             sage: arcsec(complex(1,1))  # rel tol 1e-15
             (1.118517879643706+0.5306375309525178j)
         """
-        GinacFunction.__init__(self, "arcsec", latex_name=r'{\rm arcsec}',
-                                   conversions=dict(maxima='asec'))
+        GinacFunction.__init__(self, 'arcsec', latex_name=r"\operatorname{arcsec}",
+                               conversions=dict(maxima='asec', sympy='asec', fricas='asec'))
 
     def _eval_numpy_(self, x):
         """
@@ -749,7 +883,7 @@ class Function_arctan2(GinacFunction):
         This is consistent with Python and Maxima::
 
             sage: maxima.atan2(1,-1)
-            3*%pi/4
+            (3*%pi)/4
             sage: math.atan2(1,-1)
             2.356194490192345
 
@@ -815,20 +949,16 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
 
-        Check if atan2(0,0) throws error of :trac:`11423`::
+        Check that atan2(0,0) returns NaN :trac:`21614`::
 
             sage: atan2(0,0)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: arctan2_eval(): arctan2(0,0) encountered
-
+            NaN
+            sage: atan2(0,0).n()
+            NaN
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
-
             sage: atan2(0,0,hold=True).n()
-            Traceback (most recent call last):
-            ...
-            ValueError: arctan2(0,0) undefined
+            NaN
 
         Check if :trac:`10062` is fixed, this was caused by
         ``(I*I).is_positive()`` returning ``True``::
@@ -836,7 +966,7 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(0, I*I)
             pi
         """
-        GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
+        GinacFunction.__init__(self, 'arctan2', nargs=2, latex_name=r"\arctan",
                 conversions=dict(maxima='atan2', sympy='atan2'))
 
 arctan2 = atan2 = Function_arctan2()

@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Family Games America's Quantumino solver
 
@@ -7,7 +7,7 @@ This module allows to solve the `Quantumino puzzle
 made by Family Games America (see also `this video
 <http://www.youtube.com/watch?v=jX_VKzakZi8>`_ on Youtube). This puzzle was
 left at the dinner room of the Laboratoire de Combinatoire Informatique
-Mathematique in Montreal by Franco Saliola during winter 2011.
+Mathématique in Montreal by Franco Saliola during winter 2011.
 
 The solution uses the dancing links code which is in Sage and is based on
 the more general code available in the module :mod:`sage.combinat.tiling`.
@@ -27,7 +27,7 @@ This module defines two classes :
 
 AUTHOR:
 
-    - Sebastien Labbe, April 28th, 2011
+- Sébastien Labbé, April 28th, 2011
 
 DESCRIPTION (from [1]):
 
@@ -141,7 +141,7 @@ solver to play with it::
     sage: q = QuantuminoSolver(0)
     sage: T = q.tiling_solver()
     sage: T
-    Tiling solver of 16 pieces into the box (5, 8, 2)
+    Tiling solver of 16 pieces into a box of size 80
     Rotation allowed: True
     Reflection allowed: False
     Reusing pieces allowed: False
@@ -231,8 +231,8 @@ def show_pentaminos(box=(5,8,2)):
     """
     G = Graphics()
     for i,p in enumerate(pentaminos):
-        x = 3.5 * (i%4)
-        y = 3.5 * (i/4)
+        x = 4 * (i%4)
+        y = 4 * (i/4)
         q = p + (x, y, 0)
         G += q.show3d()
         G += text3d(str(i), (x,y,2))
@@ -372,7 +372,7 @@ class QuantuminoState(SageObject):
         G = Graphics()
         for p in self:
             G += p.show3d(size=size)
-        aside_pento = self._aside.canonical() + (2.5*size/0.75,-4*size/0.75,0)
+        aside_pento = self._aside.canonical() + (2,-4,0)
         G += aside_pento.show3d(size=size)
 
         # the box to fill
@@ -452,17 +452,17 @@ class QuantuminoSolver(SageObject):
 
             sage: from sage.games.quantumino import QuantuminoSolver
             sage: QuantuminoSolver(0).tiling_solver()
-            Tiling solver of 16 pieces into the box (5, 8, 2)
+            Tiling solver of 16 pieces into a box of size 80
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False
             sage: QuantuminoSolver(14).tiling_solver()
-            Tiling solver of 16 pieces into the box (5, 8, 2)
+            Tiling solver of 16 pieces into a box of size 80
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False
             sage: QuantuminoSolver(14, box=(5,4,4)).tiling_solver()
-            Tiling solver of 16 pieces into the box (5, 4, 4)
+            Tiling solver of 16 pieces into a box of size 80
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False

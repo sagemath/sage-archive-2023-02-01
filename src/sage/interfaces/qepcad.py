@@ -531,7 +531,7 @@ TESTS:
 Check the qepcad configuration file::
 
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
-    'SINGULAR .../local/bin\n'
+    'SINGULAR .../bin\n'
 
 Tests related to the not tested examples (nondeterministic order of atoms)::
 
@@ -603,6 +603,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six import string_types
 
 from sage.env import SAGE_LOCAL
 import pexpect
@@ -613,8 +616,9 @@ from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
+from .expect import Expect, ExpectFunction, AsciiArtString
 
-from expect import Expect, ExpectFunction, AsciiArtString
 
 def _qepcad_atoms(formula):
     r"""
@@ -833,12 +837,12 @@ class Qepcad:
 
         varlist = None
         if vars is not None:
-            if isinstance(vars, str):
+            if isinstance(vars, string_types):
                 varlist = vars.strip('()').split(',')
             else:
                 varlist = [str(v) for v in vars]
 
-        if isinstance(formula, str):
+        if isinstance(formula, string_types):
             if varlist is None:
                 raise ValueError("vars must be specified if formula is a string")
 
@@ -914,7 +918,7 @@ class Qepcad:
             sage: qe.finish() # optional - qepcad
             4 a c - b^2 <= 0
         """
-        if not isinstance(assume, str):
+        if not isinstance(assume, string_types):
             assume = qepcad_formula.formula(assume)
             if len(assume.qvars):
                 raise ValueError("assumptions cannot be quantified")
@@ -1357,11 +1361,12 @@ def _format_cell_index(a):
         return str(tuple(a))
 
 
+@instancedoc
 class QepcadFunction(ExpectFunction):
     r"""
     A wrapper for a QEPCAD command.
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         r"""
         Return the documentation for a QEPCAD command, from
         ``qepcad.help``.
@@ -1370,7 +1375,7 @@ class QepcadFunction(ExpectFunction):
 
             sage: qe = qepcad(x == 17, interact=True) # optional - qepcad
             sage: cmd = qe.approx_precision # optional - qepcad
-            sage: cmd._sage_doc_() # optional - qepcad
+            sage: cmd.__doc__  # optional - qepcad
             'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n'
         """
         _update_command_info()
@@ -1625,7 +1630,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         qe.assume(assume)
     if interact:
         if solution is not None:
-            print "WARNING: 'solution=' is ignored for interactive use"
+            print("WARNING: 'solution=' is ignored for interactive use")
         return qe
     else:
         qe.go()
@@ -2090,7 +2095,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2117,7 +2122,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2145,7 +2150,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2171,7 +2176,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2198,7 +2203,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2228,7 +2233,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)

@@ -35,6 +35,8 @@ AUTHORS:
 import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
+from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.ext.stdsage cimport PY_NEW
 include "cysignals/signals.pxi"
@@ -93,9 +95,9 @@ cdef class PowComputer_class(SageObject):
         self.prec_cap = prec_cap
         self.ram_prec_cap = ram_prec_cap
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
-        Compares self to other
+        Compares ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -111,30 +113,30 @@ cdef class PowComputer_class(SageObject):
             sage: P is Q
             True
         """
-        a = cmp(type(self), type(other))
-        cdef PowComputer_class o
-        if a == 0:
-            o = <PowComputer_class>other
-            if self.prime < o.prime:
-                return -1
-            elif self.prime > o.prime:
-                return 1
-            elif self.prec_cap < o.prec_cap:
-                return -1
-            elif self.prec_cap > o.prec_cap:
-                return 1
-            elif self.cache_limit < o.cache_limit:
-                return -1
-            elif self.cache_limit > o.cache_limit:
-                return 1
-            elif self.in_field < o.in_field:
-                return -1
-            elif self.in_field > o.in_field:
-                return 1
-            else:
-                return 0
-        else:
-            return cmp(type(self), type(other))
+        if not isinstance(other, PowComputer_class):
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        cdef PowComputer_class s = self
+        cdef PowComputer_class o = other
+
+        lx = s.prime
+        rx = o.prime
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = s.prec_cap
+        rx = o.prec_cap
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = s.cache_limit
+        rx = o.cache_limit
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(s.in_field, o.in_field, op)
 
     cdef Integer pow_Integer(self, long n):
         """
@@ -179,11 +181,11 @@ cdef class PowComputer_class(SageObject):
         cdef Integer ans
         if _n < 0:
             if mpz_fits_ulong_p((<Integer>-_n).value) == 0:
-                raise ValueError, "result too big"
+                raise ValueError("result too big")
             return ~self.pow_Integer(mpz_get_ui((<Integer>-_n).value))
         else:
             if mpz_fits_ulong_p(_n.value) == 0:
-                raise ValueError, "result too big"
+                raise ValueError("result too big")
             return self.pow_Integer(mpz_get_ui(_n.value))
 
     cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
@@ -558,11 +560,11 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         81
     """
     if cache_limit < 0:
-        raise ValueError, "cache_limit must be non-negative."
+        raise ValueError("cache_limit must be non-negative.")
     if prec_cap < 0:
-        raise ValueError, "prec_cap must be non-negative."
+        raise ValueError("prec_cap must be non-negative.")
     if mpz_cmp_si((<Integer>prec_cap).value, maxpreccap) >= 0:
-        raise ValueError, "cannot create p-adic parents with precision cap larger than (1 << (sizeof(long)*8 - 2))"
+        raise ValueError("cannot create p-adic parents with precision cap larger than (1 << (sizeof(long)*8 - 2))")
 
     key = (m, cache_limit, prec_cap, in_field, prec_type)
     if key in pow_comp_cache:

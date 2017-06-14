@@ -13,9 +13,9 @@ multiplication algorithms.
 #
 #                  http://www.gnu.org/licenses/
 ################################################################################
+from __future__ import print_function, absolute_import
 
-
-from matrix_window cimport MatrixWindow
+from .matrix_window cimport MatrixWindow
 
 include "cysignals/signals.pxi"
 
@@ -262,7 +262,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
 
     OUTPUT: The list of pivot columns
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: A = matrix(QQ, 7, [5, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 3, 1, 0, -1, 0, 0, -1, 0, 1, 2, -1, 1, 0, -1, 0, 1, 3, -1, 1, 0, 0, -2, 0, 2, 0, 1, 0, 0, -1, 0, 1, 0, 1])
         sage: B = A.__copy__(); B._echelon_strassen(1); B
@@ -307,7 +307,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
     - Robert Bradshaw
     """
     if cutoff < 1:
-        raise ValueError, "cutoff must be at least 1"
+        raise ValueError("cutoff must be at least 1")
     sig_on()
     strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
     sig_off()
@@ -603,7 +603,7 @@ class int_range:
             sage: I.intervals()
             [(4, 3), (20, 4)]
             sage: type(I.intervals())
-            <type 'list'>
+            <... 'list'>
         """
         return self._intervals
 
@@ -793,7 +793,8 @@ def test(n, m, R, c=2):
     EXAMPLES::
 
         sage: from sage.matrix.strassen import test
-        sage: for n in range(5): print n, test(2*n,n,Frac(QQ['x']),2)
+        sage: for n in range(5):
+        ....:     print("{} {}".format(n, test(2*n,n,Frac(QQ['x']),2)))
         0 True
         1 True
         2 True

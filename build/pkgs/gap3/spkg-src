@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+# Script to prepare a GAP3 tarball for Sage from the semi-official
+# version on Jean Michel's website.
+#
+# This script is only for the package maintainer,
+# not for building GAP3 during a Sage install.
+#
+# WARNING: This script will delete/overwrite files in this directory
+# and its subdirectories!
+#
+# HOW TO MAKE THE TARBALL:
+# 1) sage --sh build/pkgs/gap3/spkg-src
+#
+# needs sage in your PATH.
+#
+# AUTHOR: Christian Stump (March 2016)
+
+if [ -z "$SAGE_ROOT" ] ; then
+    echo >&2 "Error - SAGE_ROOT undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+PACKAGENAME="gap3"
+DOWNLOADVERSION="$PACKAGENAME-jm5"
+TARSOURCE="$DOWNLOADVERSION.tar.gz"
+
+cd build/pkgs/$PACKAGENAME
+
+UPLOADVERSION=`cat package-version.txt`
+TARTARGET="$SAGE_DISTFILES/$PACKAGENAME-$UPLOADVERSION.tar.gz"
+
+echo "### Remove old gap3 folder and tarball    ###"
+rm -f $TARSOURCE
+rm -rf $DOWNLOADVERSION
+
+echo "### Download and extract upstream tarball ###"
+wget --no-check-certificate https://webusers.imj-prg.fr/~jean.michel/$PACKAGENAME/$TARSOURCE
+echo "### Untar'ing the upstream tarball        ###"
+tar -zxvf $TARSOURCE
+echo "### Remove downloaded tarball             ###"
+rm -f $TARSOURCE
+
+echo "### Moving the files to its place $PACKAGENAME    ###"
+mv $DOWNLOADVERSION $PACKAGENAME
+cd $PACKAGENAME
+
+echo "### Removing the packages                 ###"
+echo "### anusq, arep, meataxe, nq, sisyphos, ve###"
+rm -r pkg/anusq
+# The function MovedPointsPerm? defined in arep/lib/tools.g is used in chevie, so it cannot be deleted completely
+rm -r pkg/arep/bin pkg/arep/src
+rm -r pkg/meataxe
+rm -r pkg/nq
+rm -r pkg/sisyphos
+rm -r pkg/ve
+echo "### Removing all remaining binaries       ###"
+grep -r -m 1 "^"  . | grep "^Binary file" | xargs rm -f
+cd ..
+
+echo "### Tar'ing the archive to $TARTARGET     ###"
+tar -cvzf $TARTARGET $PACKAGENAME
+echo "### Fixing the checksum                   ###"
+sage-fix-pkg-checksums "$TARTARGET"
+echo "### Removing untar'ed archive             ###"
+rm -rf $PACKAGENAME

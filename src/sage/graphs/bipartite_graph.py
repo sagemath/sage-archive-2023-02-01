@@ -31,8 +31,13 @@ TESTS::
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six import iteritems
+from six.moves import range
 
-from graph import Graph
+from .graph import Graph
+from sage.rings.integer import Integer
 
 class BipartiteGraph(Graph):
     r"""
@@ -110,7 +115,7 @@ class BipartiteGraph(Graph):
     one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
-        sage: partition = [range(5), range(5,10)]
+        sage: partition = [list(range(5)), list(range(5,10))]
         sage: B = BipartiteGraph(P, partition)
         Traceback (most recent call last):
         ...
@@ -128,7 +133,7 @@ class BipartiteGraph(Graph):
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
         True
-        sage: B3 = BipartiteGraph(G, [range(4), range(4,7)])
+        sage: B3 = BipartiteGraph(G, [list(range(4)), list(range(4,7))])
         sage: B3
         Bipartite graph on 7 vertices
         sage: B3 == B2
@@ -137,7 +142,7 @@ class BipartiteGraph(Graph):
       ::
 
         sage: G = Graph({0:[], 1:[], 2:[]})
-        sage: part = (range(2), [2])
+        sage: part = (list(range(2)), [2])
         sage: B = BipartiteGraph(G, part)
         sage: B2 = BipartiteGraph(B)
         sage: B == B2
@@ -146,7 +151,7 @@ class BipartiteGraph(Graph):
     4. From a reduced adjacency matrix::
 
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-        ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+        ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
         sage: M
         [1 1 1 0 0 0 0]
         [1 0 0 1 1 0 0]
@@ -204,10 +209,10 @@ class BipartiteGraph(Graph):
 
          sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
          sage: fi = open(file_name, 'w')
-         sage: fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
-                         1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
-                         2 0 0 \n 3 0 0 \n 4 0 0 \n\
-                         1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
+         sage: _ = fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
+                             1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
+                             2 0 0 \n 3 0 0 \n 4 0 0 \n\
+                             1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
          sage: fi.close();
          sage: B = BipartiteGraph(file_name)
          sage: B == H
@@ -223,7 +228,7 @@ class BipartiteGraph(Graph):
     TESTS:
 
     Make sure we can create a ``BipartiteGraph`` with keywords but no
-    positional arguments (trac #10958).
+    positional arguments (:trac:`10958`).
 
     ::
 
@@ -232,7 +237,7 @@ class BipartiteGraph(Graph):
         True
 
     Ensure that we can construct a ``BipartiteGraph`` with isolated vertices
-    via the reduced adjacency matrix (trac #10356)::
+    via the reduced adjacency matrix (:trac:`10356`)::
 
         sage: a=BipartiteGraph(matrix(2,2,[1,0,1,0]))
         sage: a
@@ -253,10 +258,10 @@ class BipartiteGraph(Graph):
         Create a bipartite graph. See documentation ``BipartiteGraph?`` for
         detailed information.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: partition = [range(5), range(5,10)]
+            sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
         if data is None:
@@ -300,8 +305,8 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, *args, **kwds)
             ncols = data.ncols()
             nrows = data.nrows()
-            self.left = set(xrange(ncols))
-            self.right = set(xrange(ncols, nrows + ncols))
+            self.left = set(range(ncols))
+            self.right = set(range(ncols, nrows + ncols))
 
             # ensure that the vertices exist even if there
             # are no associated edges (trac #10356)
@@ -408,7 +413,7 @@ class BipartiteGraph(Graph):
         r"""
         Returns a short string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(16))
             sage: B
@@ -546,7 +551,7 @@ class BipartiteGraph(Graph):
             sage: bg.right
             {4, 6, 8, 9, 10, 11}
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=True)
@@ -751,7 +756,7 @@ class BipartiteGraph(Graph):
         one will be added to the left partition, the second to the right
         partition.
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=[True,False,True])
@@ -793,6 +798,23 @@ class BipartiteGraph(Graph):
         Graph.add_edge(self, u, v, label)
         return
 
+    def complement(self):
+        """
+        Return a complement of this graph.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph({1: [2, 4], 3: [4, 5]})
+            sage: G = B.complement(); G
+            Graph on 5 vertices
+            sage: G.edges(labels=False)
+            [(1, 3), (1, 5), (2, 3), (2, 4), (2, 5), (4, 5)]
+        """
+        # This is needed because complement() of generic graph
+        # would return a graph of class BipartiteGraph that is
+        # not bipartite. See ticket #12376.
+        return Graph(self).complement()
+
     def to_undirected(self):
         """
         Return an undirected Graph (without bipartite constraint) of the given
@@ -809,7 +831,7 @@ class BipartiteGraph(Graph):
         r"""
         Returns the underlying bipartition of the bipartite graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(4))
             sage: B.bipartition()
@@ -822,7 +844,7 @@ class BipartiteGraph(Graph):
         Projects ``self`` onto left vertices. Edges are 2-paths in the
         original.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: G = B.project_left()
@@ -833,7 +855,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def project_right(self):
@@ -841,7 +863,7 @@ class BipartiteGraph(Graph):
         Projects ``self`` onto right vertices. Edges are 2-paths in the
         original.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: G = B.project_right()
@@ -852,14 +874,14 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def plot(self, *args, **kwds):
         r"""
         Overrides Graph's plot function, to illustrate the bipartite nature.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: B.plot()
@@ -912,7 +934,7 @@ class BipartiteGraph(Graph):
 
         - ``name`` - optional string for the variable name in the polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BipartiteGraph(graphs.CubeGraph(3)).matching_polynomial()
             x^8 - 12*x^6 + 42*x^4 - 44*x^2 + 9
@@ -974,14 +996,14 @@ class BipartiteGraph(Graph):
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html
         for examples and definition of the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
             sage: fi = open(file_name, 'w')
-            sage: fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
-                            1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
-                            2 0 0 \n 3 0 0 \n 4 0 0 \n\
-                            1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
+            sage: _ = fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
+                                1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
+                                2 0 0 \n 3 0 0 \n 4 0 0 \n\
+                                1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
             sage: fi.close();
             sage: B = BipartiteGraph()
             sage: B.load_afile(file_name)
@@ -1048,8 +1070,8 @@ class BipartiteGraph(Graph):
 
         # now we have all the edges in our graph, just fill in the
         # bipartite partitioning
-        self.left = set(xrange(num_cols))
-        self.right = set(xrange(num_cols, num_cols + num_rows))
+        self.left = set(range(num_cols))
+        self.right = set(range(num_cols, num_cols + num_rows))
 
         # return self for chaining calls if desired
         return self
@@ -1062,10 +1084,10 @@ class BipartiteGraph(Graph):
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html
         for examples and definition of the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: M
             [1 1 1 0 0 0 0]
             [1 0 0 1 1 0 0]
@@ -1084,7 +1106,7 @@ class BipartiteGraph(Graph):
             sage: for order in range(3, 13, 3):
             ....:     num_chks = int(order / 3)
             ....:     num_vars = order - num_chks
-            ....:     partition = (range(num_vars), range(num_vars, num_vars+num_chks))
+            ....:     partition = (list(range(num_vars)), list(range(num_vars, num_vars+num_chks)))
             ....:     for idx in range(100):
             ....:         g = graphs.RandomGNP(order, 0.5)
             ....:         try:
@@ -1092,12 +1114,12 @@ class BipartiteGraph(Graph):
             ....:             b.save_afile(file_name)
             ....:             b2 = BipartiteGraph(file_name)
             ....:             if b != b2:
-            ....:                 print "Load/save failed for code with edges:"
-            ....:                 print b.edges()
+            ....:                 print("Load/save failed for code with edges:")
+            ....:                 print(b.edges())
             ....:                 break
             ....:         except Exception:
-            ....:             print "Exception encountered for graph of order "+ str(order)
-            ....:             print "with edges: "
+            ....:             print("Exception encountered for graph of order "+ str(order))
+            ....:             print("with edges: ")
             ....:             g.edges()
             ....:             raise
         """
@@ -1145,12 +1167,12 @@ class BipartiteGraph(Graph):
 
         Returns (row index, column index) for the given pair of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
-            sage: partition = [range(5), range(5,10)]
+            sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
-            sage: B._BipartiteGraph__edge2idx(2,7,range(5),range(5,10))
+            sage: B._BipartiteGraph__edge2idx(2,7,list(range(5)),list(range(5,10)))
             (2, 2)
         """
         try:
@@ -1180,7 +1202,7 @@ class BipartiteGraph(Graph):
         Bipartite graphs that are not weighted will return a matrix over ZZ::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
-            ...               (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
+            ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
             sage: B = BipartiteGraph(M)
             sage: N = B.reduced_adjacency_matrix()
             sage: N
@@ -1261,3 +1283,135 @@ class BipartiteGraph(Graph):
         # now construct and return the matrix from the dictionary we created
         from sage.matrix.constructor import matrix
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
+
+    def matching(self, value_only=False, algorithm=None,
+                 use_edge_labels=False, solver=None, verbose=0):
+        r"""
+        Return a maximum matching of the graph represented by the list of its
+        edges.
+
+        Given a graph `G` such that each edge `e` has a weight `w_e`, a maximum
+        matching is a subset `S` of the edges of `G` of maximum weight such that
+        no two edges of `S` are incident with each other.
+
+        INPUT:
+
+        - ``value_only`` -- boolean (default: ``False``); when set to ``True``,
+          only the cardinal (or the weight) of the matching is returned
+
+        - ``algorithm`` -- string (default: ``"Hopcroft-Karp"`` if
+          ``use_edge_labels==False``, otherwise ``"Edmonds"``)
+
+          - ``"Hopcroft-Karp"`` selects the default bipartite graph algorithm as
+            implemented in NetworkX
+
+          - ``"Eppstein"`` selects Eppstein's algorithm as implemented in
+            NetworkX
+
+          - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
+
+          - ``"LP"`` uses a Linear Program formulation of the matching problem
+
+        - ``use_edge_labels`` -- boolean (default: ``False``)
+
+          - when set to ``True``, computes a weighted matching where each edge
+            is weighted by its label (if an edge has no label, `1` is assumed);
+            only if ``algorithm`` is ``"Edmonds"``, ``"LP"``
+
+          - when set to ``False``, each edge has weight `1`
+
+        - ``solver`` -- (default: ``None``) a specific Linear Program (LP)
+          solver to be used
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
+          set to 0 by default, which means quiet
+
+        .. SEEALSO::
+
+            - :wikipedia:`Matching_(graph_theory)`
+            - :meth:`~Graph.matching`
+
+        EXAMPLES:
+
+        Maximum matching in a cycle graph::
+
+            sage: G = BipartiteGraph(graphs.CycleGraph(10))
+            sage: G.matching()
+            [(0, 1, None), (2, 3, None), (4, 5, None), (6, 7, None), (8, 9, None)]
+
+        The size of a maximum matching in a complete bipartite graph using
+        Eppstein::
+
+            sage: G = BipartiteGraph(graphs.CompleteBipartiteGraph(4,5))
+            sage: G.matching(algorithm="Eppstein", value_only=True)
+            4
+
+        TESTS:
+
+        If ``algorithm`` is not set to one of the supported algorithms, an
+        exception is raised::
+
+            sage: G = BipartiteGraph(graphs.CompleteBipartiteGraph(4,5))
+            sage: G.matching(algorithm="somethingdifferent")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be "Hopcroft-Karp", "Eppstein", "Edmonds" or "LP"
+
+        Maximum matching in a weighted bipartite graph::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: B = BipartiteGraph([(u,v,2) for u,v in G.edges(labels=0)])
+            sage: B.matching(use_edge_labels=True)
+            [(0, 3, 2), (1, 2, 2)]
+            sage: B.matching(use_edge_labels=True, value_only=True)
+            4
+            sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Edmonds')
+            4
+            sage: B.matching(use_edge_labels=True, value_only=True, algorithm='LP')
+            4.0
+            sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Eppstein')
+            Traceback (most recent call last):
+            ...
+            ValueError: use_edge_labels can not be used with "Hopcroft-Karp" or "Eppstein"
+            sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Hopcroft-Karp')
+            Traceback (most recent call last):
+            ...
+            ValueError: use_edge_labels can not be used with "Hopcroft-Karp" or "Eppstein"
+            sage: B.matching(use_edge_labels=False, value_only=True, algorithm='Hopcroft-Karp')
+            2
+            sage: B.matching(use_edge_labels=False, value_only=True, algorithm='Eppstein')
+            2
+            sage: B.matching(use_edge_labels=False, value_only=True, algorithm='Edmonds')
+            2
+            sage: B.matching(use_edge_labels=False, value_only=True, algorithm='LP')
+            2
+        """
+        self._scream_if_not_simple()
+
+        if algorithm is None:
+            algorithm = "Edmonds" if use_edge_labels else "Hopcroft-Karp"
+
+        if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
+            if use_edge_labels:
+                raise ValueError('use_edge_labels can not be used with ' +
+                                 '"Hopcroft-Karp" or "Eppstein"')
+            import networkx
+            #this is necessary to call the methods for bipartite matchings
+            g = self.networkx_graph()
+            if algorithm == "Hopcroft-Karp":
+                d = networkx.bipartite.hopcroft_karp_matching(g)
+            else:
+                d = networkx.bipartite.eppstein_matching(g)
+            if value_only:
+                return Integer(len(d) // 2)
+            else:
+                return [(u, v, self.edge_label(u, v))
+                        for u, v in iteritems(d) if u < v]
+        elif algorithm == "Edmonds" or algorithm == "LP":
+            return Graph.matching(self, value_only=value_only,
+                                  algorithm=algorithm,
+                                  use_edge_labels=use_edge_labels,
+                                  solver=solver, verbose=verbose)
+        else:
+            raise ValueError('algorithm must be "Hopcroft-Karp", ' +
+                             '"Eppstein", "Edmonds" or "LP"')

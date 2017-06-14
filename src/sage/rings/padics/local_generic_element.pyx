@@ -20,26 +20,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#*****************************************************************************
-#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
-#                               William Stein <wstein@gmail.com>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 from sage.structure.element import coerce_binop
 
 cdef class LocalGenericElement(CommutativeRingElement):
-    #cpdef ModuleElement _add_(self, ModuleElement right):
+    #cpdef _add_(self, right):
     #    raise NotImplementedError
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         r"""
         Returns the quotient of ``self`` by ``right``.
 
@@ -369,7 +358,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def __mod__(self, right):
     #    raise NotImplementedError
 
-    #cpdef RingElement _mul_(self, RingElement right):
+    #cpdef _mul_(self, right):
     #    raise NotImplementedError
 
     #cdef _neg_(self):
@@ -378,7 +367,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def __pow__(self, right):
     #    raise NotImplementedError
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Returns the difference between ``self`` and ``right``.
 
@@ -680,7 +669,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def euclidean_degree(self):
         r"""
-        Return the degree of this element as an element of a euclidean domain.
+        Return the degree of this element as an element of an Euclidean domain.
 
         EXAMPLES:
 
@@ -752,3 +741,23 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
                  self.parent().zero() )
 
+    def _test_trivial_powers(self, **options):
+        r"""
+        Check that taking trivial powers of elements works as expected.
+
+        EXAMPLES::
+
+            sage: x = Zp(3, 5).zero()
+            sage: x._test_trivial_powers()
+
+        """
+        tester = self._tester(**options)
+
+        x = self**1
+        tester.assertEqual(x, self)
+        tester.assertEqual(x.precision_absolute(), self.precision_absolute())
+
+        z = self**0
+        one = self.parent().one()
+        tester.assertEqual(z, one)
+        tester.assertEqual(z.precision_absolute(), one.precision_absolute())

@@ -51,6 +51,8 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+from six.moves import range, zip
 
 from sage.structure.sage_object import SageObject
 
@@ -59,12 +61,12 @@ from copy import copy
 from sage.combinat.words.alphabet import Alphabet
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI   # permutations
-from template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
+from .template import PermutationIET, PermutationLI   # permutations
+from .template import FlippedPermutationIET, FlippedPermutationLI   # flipped permutations
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
 
-from template import interval_conversion, side_conversion
+from .template import interval_conversion, side_conversion
 
 class ReducedPermutation(SageObject) :
     r"""
@@ -209,14 +211,14 @@ class ReducedPermutation(SageObject) :
         TESTS::
 
             sage: p = iet.Permutation('a b', 'b a', reduced=True)
-            sage: print p[0]
+            sage: p[0]
             ['a', 'b']
-            sage: print p[1]
+            sage: p[1]
             ['b', 'a']
             sage: p.alphabet([0,1])
-            sage: print p[0]
+            sage: p[0]
             [0, 1]
-            sage: print p[1]
+            sage: p[1]
             [1, 0]
         """
         return self.list()[i]
@@ -403,7 +405,7 @@ def ReducedPermutationsIET_iterator(
     TESTS::
 
         sage: for p in iet.Permutations_iterator(3,reduced=True,alphabet="abc"):
-        ....:     print p  #indirect doctest
+        ....:     print(p)  #indirect doctest
         a b c
         b c a
         a b c
@@ -411,7 +413,8 @@ def ReducedPermutationsIET_iterator(
         a b c
         c b a
     """
-    from itertools import imap,ifilter
+    from builtins import map
+    from six.moves import filter
     from sage.combinat.permutation import Permutations
 
     if irreducible is False:
@@ -426,9 +429,9 @@ def ReducedPermutationsIET_iterator(
         a0 = range(1,nintervals+1)
         f = lambda x: ReducedPermutationIET([a0,list(x)],
             alphabet=alphabet)
-        return imap(f, Permutations(nintervals))
+        return map(f, Permutations(nintervals))
     else:
-        return ifilter(lambda x: x.is_irreducible(),
+        return filter(lambda x: x.is_irreducible(),
         ReducedPermutationsIET_iterator(nintervals,False,alphabet))
 
 class ReducedPermutationIET(ReducedPermutation, PermutationIET):
@@ -466,7 +469,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         sage: p = iet.Permutation('a b c', 'c b a', reduced = True)
         sage: p.has_rauzy_move(1)
         True
-        sage: print p.rauzy_move(1)
+        sage: p.rauzy_move(1)
         a b c
         b c a
 
@@ -478,8 +481,8 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         sage: d_red = p_red.rauzy_diagram()
         sage: p.rauzy_move(0) in d
         True
-        sage: print d.cardinality(), d_red.cardinality()
-        12 6
+        sage: d.cardinality(), d_red.cardinality()
+        (12, 6)
     """
     def _init_twin(self, a):
         r"""
@@ -708,7 +711,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         r"""
         Returns the relabelization obtained from this move.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: q = p.reduced()
@@ -717,18 +720,18 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: s_t = q.rauzy_move_relabel('t')
             sage: s_t
             WordMorphism: a->a, b->b, c->c, d->d
-            sage: map(s_t, p_t[0]) == map(Word, q_t[0])
+            sage: list(map(s_t, p_t[0])) == list(map(Word, q_t[0]))
             True
-            sage: map(s_t, p_t[1]) == map(Word, q_t[1])
+            sage: list(map(s_t, p_t[1])) == list(map(Word, q_t[1]))
             True
             sage: p_b = p.rauzy_move('b')
             sage: q_b = q.rauzy_move('b')
             sage: s_b = q.rauzy_move_relabel('b')
             sage: s_b
             WordMorphism: a->a, b->d, c->b, d->c
-            sage: map(s_b, q_b[0]) == map(Word, p_b[0])
+            sage: list(map(s_b, q_b[0])) == list(map(Word, p_b[0]))
             True
-            sage: map(s_b, q_b[1]) == map(Word, p_b[1])
+            sage: list(map(s_b, q_b[1])) == list(map(Word, p_b[1]))
             True
         """
         from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
@@ -840,7 +843,7 @@ def alphabetized_qtwin(twin, alphabet):
 
         sage: twin = [[(1,0),(1,1)],[(0,0),(0,1)]]
         sage: alphabet = Alphabet("ab")
-        sage: print alphabetized_qtwin(twin,alphabet)
+        sage: alphabetized_qtwin(twin,alphabet)
         [['a', 'b'], ['a', 'b']]
 
     ::
@@ -857,14 +860,14 @@ def alphabetized_qtwin(twin, alphabet):
 
         sage: twin = [[(0,1),(0,0)],[(1,1),(1,0)]]
         sage: alphabet=Alphabet("ab")
-        sage: print alphabetized_qtwin(twin,alphabet)
+        sage: alphabetized_qtwin(twin,alphabet)
         [['a', 'a'], ['b', 'b']]
 
     ::
 
         sage: twin = [[(0,2),(1,1),(0,0)],[(1,2),(0,1),(1,0)]]
         sage: alphabet=Alphabet("abc")
-        sage: print alphabetized_qtwin(twin,alphabet)
+        sage: alphabetized_qtwin(twin,alphabet)
         [['a', 'b', 'a'], ['c', 'b', 'c']]
     """
     i_a = 0
@@ -901,7 +904,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
-    Rauzy movavability and Rauzy move::
+    Rauzy movability and Rauzy move::
 
         sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
         sage: p.has_rauzy_move(0)
@@ -1111,7 +1114,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         self._twin = [self._twin[1], self._twin[0]]
 
         for interval in (0,1):
-            for j in xrange(self.length(interval)):
+            for j in range(self.length(interval)):
                 self._twin[interval][j] = (1-self._twin[interval][j][0],
                     self._twin[interval][j][1])
 
@@ -1234,7 +1237,7 @@ class FlippedReducedPermutation(ReducedPermutation):
         r"""
         Performs a Rauzy move on the right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a',reduced=True,flips='c')
             sage: p.right_rauzy_move('top')
@@ -1459,14 +1462,14 @@ class FlippedReducedPermutationIET(
             True
         """
         if flips:
-            a0 = zip([self.alphabet().unrank(_) for _ in range(0,len(self))], self._flips[0])
-            a1 = zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1])
+            a0 = list(zip([self.alphabet().unrank(_) for _ in range(len(self))], self._flips[0]))
+            a1 = list(zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1]))
 
         else:
-            a0 = [self.alphabet().unrank(_) for _ in range(0,len(self))]
+            a0 = [self.alphabet().unrank(_) for _ in range(len(self))]
             a1 = [self.alphabet().unrank(_) for _ in self._twin[1]]
 
-        return [a0,a1]
+        return [a0, a1]
 
     def _get_loser_to(self, winner) :
         r"""

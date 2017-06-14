@@ -56,7 +56,7 @@ cpdef modular_decomposition(g):
 
     .. NOTE::
 
-        As this fuction could be used by efficient C routines, the
+        As this function could be used by efficient C routines, the
         vertices returned are not labels but identifiants from ``[0,
         ..., g.order()-1]``
 
@@ -102,7 +102,7 @@ cpdef modular_decomposition(g):
       International Journal of Foundations of Computer Science
       vol. 10 n2 pp.147--170, 1999
 
-    .. [CapHabMont02b] C. Capelle, M. Habib et F. de Montgolfier
+    .. [CapHabMont02b] \C. Capelle, M. Habib et F. de Montgolfier
       Graph decomposition and Factorising Permutations
       Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
     """

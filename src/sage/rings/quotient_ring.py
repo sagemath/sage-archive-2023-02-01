@@ -98,7 +98,6 @@ easily::
     True
 
 """
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -108,7 +107,8 @@ easily::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 
 import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
@@ -569,11 +569,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         from sage.all import Infinity
         if self.ngens() == Infinity:
             raise NotImplementedError("This quotient ring has an infinite number of generators.")
-        for i in xrange(self.ngens()):
+        for i in range(self.ngens()):
             gi = self.gen(i)
-            for j in xrange(i+1,self.ngens()):
+            for j in range(i + 1, self.ngens()):
                 gj = self.gen(j)
-                if gi*gj!=gj*gi:
+                if gi * gj != gj * gi:
                     return False
         return True
 
@@ -617,7 +617,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         try:
             return self.__cover
         except AttributeError:
-            import morphism
+            from . import morphism
             pi = morphism.RingHomomorphism_cover(self.__R.Hom(self))
             lift = self.lifting_map()
             pi._set_lift(lift)
@@ -683,7 +683,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             return self.__lift
         except AttributeError:
             pass
-        from morphism import RingMap_lift
+        from .morphism import RingMap_lift
         m = RingMap_lift(self, self.__R)
         self.__lift = m
         return m
@@ -730,7 +730,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         The image of the given element in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S = R.quotient(x^2 + y^2)
@@ -935,7 +935,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         if not isinstance(self.__R, MPolynomialRing_libsingular) and \
                (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
-            return ring.CommutativeRing.ideal(self, gens, **kwds)
+            return super(QuotientRing_nc, self).ideal(gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -1173,7 +1173,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S._singular_()
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1256,7 +1257,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
     r"""
     Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = PolynomialRing(ZZ)
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])

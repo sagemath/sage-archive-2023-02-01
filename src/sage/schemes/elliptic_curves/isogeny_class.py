@@ -24,10 +24,13 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-
+from __future__ import print_function
+from __future__ import absolute_import
 import six
+from six.moves import range
+
 from sage.structure.sage_object import SageObject
-import constructor
+from . import constructor
 import sage.databases.cremona
 from sage.rings.all import ZZ, QQ
 from sage.rings.number_field.all import QuadraticField
@@ -61,7 +64,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: cls = EllipticCurve('1011b1').isogeny_class()
-            sage: print "\n".join([repr(E) for E in cls.curves])
+            sage: print("\n".join([repr(E) for E in cls.curves]))
             Elliptic Curve defined by y^2 + x*y = x^3 - 8*x - 9 over Rational Field
             Elliptic Curve defined by y^2 + x*y = x^3 - 23*x + 30 over Rational Field
         """
@@ -380,7 +383,7 @@ class IsogenyClass_EC(SageObject):
         Returns a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
-        .. note:
+        .. note::
 
             There are only finitely many possible isogeny graphs for
             curves over `\QQ` [M78].  This function tries to lay out
@@ -388,7 +391,7 @@ class IsogenyClass_EC(SageObject):
             This could also be done over other number fields, such as
             quadratic fields.
 
-        .. note:
+        .. note::
 
             The vertices are labeled 1 to n rather than 0 to n-1 to
             match LMFDB and Cremona labels for curves over `\QQ`.
@@ -402,7 +405,7 @@ class IsogenyClass_EC(SageObject):
 
         REFERENCES:
 
-        .. [M78] B. Mazur.  Rational Isogenies of Prime Degree.
+        .. [M78] \B. Mazur.  Rational Isogenies of Prime Degree.
           *Inventiones mathematicae* 44,129-162 (1978).
         """
         from sage.graphs.graph import Graph
@@ -418,7 +421,7 @@ class IsogenyClass_EC(SageObject):
                     for j in range(n):
                         if M[i,j]:
                             G.set_edge_label(i,j,str(self._qfmat[i][j]))
-            G.relabel(range(1,n+1))
+            G.relabel(list(range(1, n + 1)))
             return G
 
 
@@ -493,7 +496,7 @@ class IsogenyClass_EC(SageObject):
                     right.append([j for j in range(8) if N[centers[1],j] == 2 and N[left[i],j] == 3][0])
                 G.set_pos(pos={centers[0]:[-0.75,0],centers[1]:[0.75,0],left[0]:[-0.75,1],right[0]:[0.75,1],left[1]:[-1.25,-0.75],right[1]:[0.25,-0.75],left[2]:[-0.25,-0.25],right[2]:[1.25,-0.25]})
         G.set_vertices(D)
-        G.relabel(range(1,n+1))
+        G.relabel(list(range(1, n + 1)))
         return G
 
     @cached_method
@@ -516,7 +519,7 @@ class IsogenyClass_EC(SageObject):
         EXAMPLES::
 
             sage: isocls = EllipticCurve('15a1').isogeny_class()
-            sage: print "\n".join([repr(C) for C in isocls.curves])
+            sage: print("\n".join([repr(C) for C in isocls.curves]))
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 5*x + 2 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + 35*x - 28 over Rational Field
@@ -526,7 +529,7 @@ class IsogenyClass_EC(SageObject):
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 110*x - 880 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 2160*x - 39540 over Rational Field
             sage: isocls2 = isocls.reorder('lmfdb')
-            sage: print "\n".join([repr(C) for C in isocls2.curves])
+            sage: print("\n".join([repr(C) for C in isocls2.curves]))
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 2160*x - 39540 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 135*x - 660 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 110*x - 880 over Rational Field
@@ -843,7 +846,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         self.curves = sorted(curves,key=key_function)
         perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
         if verbose:
-            print "Sorting permutation = %s" % perm
+            print("Sorting permutation = %s" % perm)
 
         mat = MatrixSpace(ZZ,ncurves)(0)
         self._maps = [[0]*ncurves for i in range(ncurves)]
@@ -853,7 +856,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 self._maps[perm[i]][perm[j]] = phi
         self._mat = fill_isogeny_matrix(mat)
         if verbose:
-            print "Matrix = %s" % self._mat
+            print("Matrix = %s" % self._mat)
 
         if not E.has_rational_cm():
             self._qfmat = None
@@ -1070,7 +1073,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                     ijl_triples.append((i,j,l,phi))
                 if l_list is None:
                     l_list = [l for l in set([ZZ(f.degree()) for f in isogs])]
-                i = i+1
+                i += 1
             self.curves = tuple(curves)
             ncurves = len(curves)
             self._mat = MatrixSpace(ZZ,ncurves)(0)
@@ -1079,10 +1082,12 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                 self._mat[i,j] = l
                 self._maps[i][j]=phi
         else:
-            raise ValueError("unknown algorithm '%s'"%algorithm)
+            raise ValueError("unknown algorithm '%s'" % algorithm)
+
 
 def possible_isogeny_degrees(E, verbose=False):
-    r""" Return a list of primes `\ell` sufficient to generate the
+    r"""
+    Return a list of primes `\ell` sufficient to generate the
     isogeny class of `E`.
 
     INPUT:
@@ -1211,7 +1216,7 @@ def possible_isogeny_degrees(E, verbose=False):
 
         L = Set([ZZ(2), ZZ(3)]) if d==-3 else  Set([ZZ(2)])
         if verbose:
-            print ("initial primes: %s" % L)
+            print("initial primes: %s" % L)
 
         # Step 1: "vertical" primes l such that the isogenous curve
         # has CM by an order whose index is l or 1/l times the index
@@ -1229,7 +1234,7 @@ def possible_isogeny_degrees(E, verbose=False):
             L1 = Set(ram_l)
             L += L1
             if verbose:
-                print ("ramified primes: %s" % L1)
+                print("ramified primes: %s" % L1)
 
         else:
 
@@ -1238,7 +1243,7 @@ def possible_isogeny_degrees(E, verbose=False):
             L1 = Set([l for l in ram_l if d.valuation(l)>1])
             L += L1
             if verbose:
-                print ("upward primes: %s" % L1)
+                print("upward primes: %s" % L1)
 
             # Find the "downward" primes (index multiplied by l, class
             # number multiplied by l-kronecker_symbol(d,l)):
@@ -1249,7 +1254,7 @@ def possible_isogeny_degrees(E, verbose=False):
             L1 = Set([l for l in ram_l if l.divides(n_over_2h)])
             L += L1
             if verbose:
-                print ("downward ramified primes: %s" % L1)
+                print("downward ramified primes: %s" % L1)
 
         # (b) split primes; the suborder has class number (l-1)*h, so
         # l-1 must divide n/2h:
@@ -1258,7 +1263,7 @@ def possible_isogeny_degrees(E, verbose=False):
                   if (lm1+1).is_prime() and kronecker_symbol(d,lm1+1)==+1])
         L += L1
         if verbose:
-            print ("downward split primes: %s" % L1)
+            print("downward split primes: %s" % L1)
 
         # (c) inert primes; the suborder has class number (l+1)*h, so
         # l+1 must divide n/2h:
@@ -1267,7 +1272,7 @@ def possible_isogeny_degrees(E, verbose=False):
                   if (lp1-1).is_prime() and kronecker_symbol(d,lp1-1)==-1])
         L += L1
         if verbose:
-            print ("downward inert primes: %s" % L1)
+            print("downward inert primes: %s" % L1)
 
         # Now find primes represented by each form of discriminant d.
         # In the rational CM case, we use all forms associated to

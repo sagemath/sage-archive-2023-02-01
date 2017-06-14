@@ -16,6 +16,7 @@ Heilbronn matrix computation
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage.arith.all
 
@@ -26,17 +27,19 @@ include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.flint.fmpz cimport fmpz_add
 from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num
 
 cdef extern from "<math.h>":
     float roundf(float x)
 
-cimport p1list
-import  p1list
+cimport sage.modular.modsym.p1list as p1list
+from . import  p1list
 cdef p1list.export export
 export = p1list.export()
 
-from apply cimport Apply
+from .apply cimport Apply
 cdef Apply PolyApply= Apply()
 
 from sage.rings.integer cimport Integer
@@ -105,7 +108,7 @@ cdef class Heilbronn:
         Initialize the list of matrices corresponding to self. (This
         function is automatically called during initialization.)
 
-        .. note:
+        .. note::
 
            This function must be overridden by all derived classes!
 
@@ -313,7 +316,7 @@ cdef class HeilbronnCremona(Heilbronn):
             [-1, 0, 1, -3]]
         """
         if p <= 1 or not sage.arith.all.is_prime(p):
-            raise ValueError, "p must be >= 2 and prime"
+            raise ValueError("p must be >= 2 and prime")
         self.p = p
         self._initialize_list()
 
@@ -414,7 +417,7 @@ cdef class HeilbronnMerel(Heilbronn):
             [3, 2, 0, 1]]
         """
         if n <= 0:
-            raise ValueError, "n (=%s) must be >= 1"%n
+            raise ValueError("n (=%s) must be >= 1" % n)
         self.n = n
         self._initialize_list()
 
@@ -666,7 +669,7 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
     K = chi.base_ring()
 
     if K == QQ:
-        raise TypeError, "character must not be trivial or quadratic"
+        raise TypeError("character must not be trivial or quadratic")
 
     if R.base_ring() != K:
         R = R.change_ring(K)
@@ -762,7 +765,7 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     cdef p1list.P1List P1 = p1list.P1List(N)
     from sage.rings.all import QQ
     if chi.base_ring() != QQ:
-        raise TypeError, "character must takes values in QQ"
+        raise TypeError("character must takes values in QQ")
 
     # Create a zero dense matrix over QQ with len(indices) rows
     # and #P^1(N) columns.
@@ -876,8 +879,6 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     cdef Heilbronn H
     cdef fmpz_poly_t* poly
     cdef Integer coeff = Integer()
-    cdef mpz_t tmp
-    mpz_init(tmp)
 
     for z, m in enumerate(indices):
         H = HeilbronnCremona(m) if sage.arith.all.is_prime(m) else HeilbronnMerel(m)
@@ -906,12 +907,13 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
             p = P1.index(a[j], b[j])
             # Now fill in row z of the matrix T.
             if p != -1:
-                for w in range(k-1):
+                for w in range(min(fmpz_poly_length(poly[j]), k-1)):
                     # The following two lines are just a vastly faster version of:
                     #           T[z, n*w + p] += poly[j][w]
                     # They use that we know that T has only integer entries.
-                    fmpz_poly_get_coeff_mpz(tmp, poly[j], w)
-                    mpz_add(mpq_numref(T._matrix[z][n*w+p]), mpq_numref(T._matrix[z][n*w+p]), tmp)
+                    fmpz_add(fmpq_mat_entry_num(T._matrix, z, n*w+p),
+                             fmpq_mat_entry_num(T._matrix, z, n*w+p),
+                             fmpz_poly_get_coeff_ptr(poly[j], w))
 
         # Free a and b
         sig_free(a)
@@ -921,8 +923,6 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
         for j in range(H.length):
             fmpz_poly_clear(poly[j])
         sig_free(poly)
-
-    mpz_clear(tmp)
 
     # Return the product T * R, whose rows are the image of (u,v) under
     # the Hecke operators T_n for n in indices.

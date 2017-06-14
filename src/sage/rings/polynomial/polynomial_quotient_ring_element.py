@@ -83,6 +83,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.element import CommutativeRingElement
 import sage.rings.number_field.number_field_rel as number_field_rel
@@ -194,7 +195,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self._polynomial._latex_(self.parent().variable_name())
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Pari representation of this quotient element.
 
@@ -206,7 +207,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: pari(xb)^10
             Mod(0, x^10)
         """
-        return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
+        return self._polynomial.__pari__().Mod(self.parent().modulus())
 
     ##################################################
     # Arithmetic
@@ -370,7 +371,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         TESTS:
 
-        An element is not invertable if the base ring is not a field
+        An element is not invertible if the base ring is not a field
         (see :trac:`13303`)::
 
             sage: Z16x.<x> = Integers(16)[]
@@ -590,9 +591,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __iter__(self):
         return iter(self.list())
 
-    def list(self):
+    def list(self, copy=True):
         """
-        Return list of the elements of self, of length the same as the
+        Return list of the elements of ``self``, of length the same as the
         degree of the quotient polynomial ring.
 
         EXAMPLES::
@@ -604,7 +605,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: (a^10).list()
             [300, -35, -134]
         """
-        v = self._polynomial.list()
+        v = self._polynomial.list(copy=False)
         R = self.parent()
         n = R.degree()
         return v + [R.base_ring()(0)]*(n - len(v))
@@ -634,7 +635,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             x = R.gen()
             a = R(1)
             d = R.degree()
-            for _ in xrange(d):
+            for _ in range(d):
                 v += (a*self).list()
                 a *= x
             S = R.base_ring()

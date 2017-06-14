@@ -33,7 +33,7 @@ cdef class Matroid(SageObject):
     cpdef _is_coclosed(self, X)
 
     cpdef _minor(self, contractions, deletions)
-    cpdef _has_minor(self, N)
+    cpdef _has_minor(self, N, bint certificate=*)
     cpdef _line_length(self, F)
     cpdef _extension(self, element, hyperplanes)
 
@@ -103,22 +103,22 @@ cdef class Matroid(SageObject):
     cpdef no_broken_circuits_sets(self, ordering=*)
 
     # isomorphism
-    cpdef is_isomorphic(self, other)
-    cpdef _is_isomorphic(self, other)
+    cpdef is_isomorphic(self, other, certificate=*)
+    cpdef _is_isomorphic(self, other, certificate=*)
     cpdef isomorphism(self, other)
     cpdef _isomorphism(self, other)
     cpdef equals(self, other)
     cpdef is_isomorphism(self, other, morphism)
     cpdef _is_isomorphism(self, other, morphism)
 
-    # minors, dual, trucation
+    # minors, dual, truncation
     cpdef minor(self, contractions=*, deletions=*)
     cpdef contract(self, X)
     cpdef delete(self, X)
     cpdef _backslash_(self, X)
     cpdef dual(self)
     cpdef truncation(self)
-    cpdef has_minor(self, N)
+    cpdef has_minor(self, N, bint certificate=*)
     cpdef has_line_minor(self, k, hyperlines=*)
     cpdef _has_line_minor(self, k, hyperlines)
 
@@ -163,14 +163,16 @@ cdef class Matroid(SageObject):
     cpdef is_k_closed(self, int k)
 
     # matroid chordality
-    cpdef _is_circuit_chordal(self, frozenset C)
-    cpdef is_circuit_chordal(self, C)
-    cpdef is_chordal(self, k1=*, k2=*)
+    cpdef _is_circuit_chordal(self, frozenset C, bint certificate=*)
+    cpdef is_circuit_chordal(self, C, bint certificate=*)
+    cpdef is_chordal(self, k1=*, k2=*, bint certificate=*)
     cpdef chordality(self)
 
     # optimization
     cpdef max_weight_independent(self, X=*, weights=*)
     cpdef max_weight_coindependent(self, X=*, weights=*)
+    cpdef is_max_weight_independent_generic(self, X=*, weights=*)
+    cpdef is_max_weight_coindependent_generic(self, X=*, weights=*)
     cpdef intersection(self, other, weights=*)
     cpdef _intersection(self, other, weights)
     cpdef _intersection_augmentation(self, other, weights, Y)

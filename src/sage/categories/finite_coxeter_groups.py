@@ -20,20 +20,19 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
     EXAMPLES::
 
-        sage: FiniteCoxeterGroups()
+        sage: CoxeterGroups.Finite()
         Category of finite coxeter groups
         sage: FiniteCoxeterGroups().super_categories()
-        [Category of coxeter groups,
-         Category of finite groups,
-         Category of finite finitely generated semigroups]
+        [Category of finite generalized coxeter groups,
+         Category of coxeter groups]
 
-        sage: G = FiniteCoxeterGroups().example()
+        sage: G = CoxeterGroups().Finite().example()
         sage: G.cayley_graph(side = "right").plot()
         Graphics object consisting of 40 graphics primitives
 
     Here are some further examples::
 
-        sage: FiniteWeylGroups().example()
+        sage: WeylGroups().Finite().example()
         The symmetric group on {0, ..., 3}
 
         sage: WeylGroup(["B", 3])
@@ -46,9 +45,18 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
     """
+    def extra_super_categories(self):
+        r"""
+        EXAMPLES::
+
+            sage: CoxeterGroups().Finite().super_categories()
+            [Category of finite generalized coxeter groups,
+             Category of coxeter groups]
+        """
+        from sage.categories.complex_reflection_groups import ComplexReflectionGroups
+        return [ComplexReflectionGroups().Finite().WellGenerated()]
 
     class ParentMethods:
-
         """
         Ambiguity resolution: the implementation of ``some_elements``
         is preferable to that of :class:`FiniteGroups`. The same holds
@@ -61,7 +69,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: W = FiniteCoxeterGroups().example(3)
 
             sage: W.some_elements.__module__
-            'sage.categories.coxeter_groups'
+            'sage.categories.complex_reflection_or_generalized_coxeter_groups'
             sage: W.__iter__.__module__
             'sage.categories.coxeter_groups'
 
@@ -70,15 +78,14 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             sage: list(W)
             [(), (1,), (2,), (1, 2), (2, 1), (1, 2, 1)]
         """
-        some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
-        __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
+        __iter__ = CoxeterGroups.ParentMethods.__dict__["__iter__"]
 
         @lazy_attribute
         def w0(self):
             r"""
             Return the longest element of ``self``.
 
-            This attribute is deprecated.
+            This attribute is deprecated, use :meth:`long_element` instead.
 
             EXAMPLES::
 
@@ -146,9 +153,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                     w = w.apply_simple_reflection(i)
 
         @cached_method
-        def bruhat_poset(self, facade = False):
+        def bruhat_poset(self, facade=False):
             """
-            Returns the Bruhat poset of ``self``.
+            Return the Bruhat poset of ``self``.
+
+            .. SEEALSO::
+
+                :meth:`bhz_poset`, :meth:`shard_poset`, :meth:`weak_poset`
 
             EXAMPLES::
 
@@ -184,7 +195,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: P.an_element().parent()
                 Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
 
-            .. see also:: :func:`Poset` for more on posets and facade posets.
+            .. SEEALSO:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
@@ -200,10 +211,198 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             from sage.combinat.posets.posets import Poset
             covers = tuple([u, v] for v in self for u in v.bruhat_lower_covers() )
-            return Poset((self, covers), cover_relations = True, facade=facade)
+            return Poset((self, covers), cover_relations=True, facade=facade)
+
+        def shard_poset(self, side='right'):
+            """
+            Return the shard intersection order attached to `W`.
+
+            This is a lattice structure on `W`, introduced in [Reading]_. It
+            contains the noncrossing partition lattice, as the induced lattice
+            on the subset of `c`-sortable elements.
+
+            The partial order is given by simultaneous inclusion of inversion sets
+            and subgroups attached to every element.
+
+            The precise description used here can be found in [StThWi]_.
+
+            Another implementation for the symmetric groups is
+            available as :func:`~sage.combinat.shard_order.shard_poset`.
+
+            .. SEEALSO::
+
+                :meth:`bhz_poset`, :meth:`bruhat_poset`, :meth:`weak_poset`
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
+                sage: SH = W.shard_poset(); SH
+                Finite lattice containing 24 elements
+                sage: SH.is_graded()
+                True
+                sage: SH.characteristic_polynomial()
+                q^3 - 11*q^2 + 23*q - 13
+                sage: SH.f_polynomial()
+                34*q^3 + 22*q^2 + q
+
+            REFERENCES:
+
+            .. [Reading] Nathan Reading, *Noncrossing partitions and the shard
+               intersection order*, DMTCS Proceedings of FPSAC 2009, 745--756
+
+            .. [StThWi] Christian Stump, Hugh Thomas and Nathan Williams,
+               *Cataland: why the fuss?*, :arxiv:`1503.00710`
+            """
+            from sage.combinat.posets.lattices import LatticePoset
+            data = {w: (frozenset(u.lift()
+                                  for u in w.covered_reflections_subgroup()),
+                        frozenset((~w).inversions_as_reflections()))
+                    for w in self}
+
+            def shard_comparison(u, v):
+                Gu, Nu = data[u]
+                Gv, Nv = data[v]
+                return Gu.issubset(Gv) and Nu.issubset(Nv)
+
+            return LatticePoset([self, shard_comparison])
+
+        def bhz_poset(self):
+            r"""
+            Return the Bergeron-Hohlweg-Zabrocki partial order on the Coxeter
+            group.
+
+            This is a partial order on the elements of a finite
+            Coxeter group `W`, which is distinct from the Bruhat
+            order, the weak order and the shard intersection order. It
+            was defined in [BHZ05]_.
+
+            This partial order is not a lattice, as there is no unique
+            maximal element. It can be succintly defined as follows.
+
+            Let `u` and `v` be two elements of the Coxeter group `W`. Let
+            `S(u)` be the support of `u`. Then `u \leq v` if and only
+            if `v_{S(u)} = u` (here `v = v^I v_I` denotes the usual
+            parabolic decomposition with respect to the standard parabolic
+            subgroup `W_I`).
+
+            .. SEEALSO::
+
+                :meth:`bruhat_poset`, :meth:`shard_poset`, :meth:`weak_poset`
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
+                sage: P = W.bhz_poset(); P
+                Finite poset containing 24 elements
+                sage: P.relations_number()
+                103
+                sage: P.chain_polynomial()
+                34*q^4 + 90*q^3 + 79*q^2 + 24*q + 1
+                sage: len(P.maximal_elements())
+                13
+
+            REFERENCE:
+
+            .. [BHZ05] \N. Bergeron, C. Hohlweg, and M. Zabrocki, *Posets
+               related to the Connectivity Set of Coxeter Groups*.
+               :arxiv:`math/0509271v3`
+            """
+            from sage.graphs.digraph import DiGraph
+            from sage.combinat.posets.posets import Poset
+
+            def covered_by(ux, vy):
+                u, iu, Su = ux
+                v, iv, Sv = vy
+                if len(Sv) != len(Su) + 1:
+                    return False
+                if not all(u in Sv for u in Su):
+                    return False
+                return all((v * iu).has_descent(x, positive=True) for x in Su)
+
+            vertices = [(u, u.inverse(),
+                         tuple(set(u.reduced_word_reverse_iterator())))
+                        for u in self]
+            dg = DiGraph([vertices, covered_by])
+            dg.relabel(lambda x: x[0])
+            return Poset(dg, cover_relations=True)
+
+        def degrees(self):
+            """
+            Return the degrees of the Coxeter group.
+
+            The output is an increasing list of integers.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).degrees()
+                (2, 3, 4, 5)
+                sage: CoxeterGroup(['B', 4]).degrees()
+                (2, 4, 6, 8)
+                sage: CoxeterGroup(['D', 4]).degrees()
+                (2, 4, 4, 6)
+                sage: CoxeterGroup(['F', 4]).degrees()
+                (2, 6, 8, 12)
+                sage: CoxeterGroup(['E', 8]).degrees()
+                (2, 8, 12, 14, 18, 20, 24, 30)
+                sage: CoxeterGroup(['H', 3]).degrees()
+                (2, 6, 10)
+
+                sage: WeylGroup([["A",3], ["A",3], ["B",2]]).degrees()
+                (2, 3, 4, 2, 3, 4, 2, 4)
+
+            TESTS::
+
+                sage: CoxeterGroup(['A', 4]).degrees()
+                (2, 3, 4, 5)
+                sage: SymmetricGroup(3).degrees()
+                (2, 3)
+            """
+            from sage.rings.qqbar import QQbar
+            from sage.rings.integer_ring import ZZ
+            def degrees_of_irreducible_component(I):
+                """Return the degrees for the irreducible component indexed by I"""
+                # A Coxeter element
+                s = self.simple_reflections()
+                c = self.prod(s[i] for i in I)
+                roots = c.matrix().change_ring(QQbar).charpoly().roots()
+                args = [(z.rational_argument(), m) for z, m in roots]
+                args = [(z if z >=0 else 1 + z, m) for z, m in args]
+                h = max(z.denominator() for z, m in args)
+                return tuple(sorted(ZZ(z * h + 1)
+                                    for z, m in args if z
+                                    for i in range(m)))
+
+            return sum((degrees_of_irreducible_component(I)
+                        for I in self.irreducible_component_index_sets()), ())
+
+        def codegrees(self):
+            """
+            Return the codegrees of the Coxeter group.
+
+            These are just the degrees minus 2.
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(['A', 4]).codegrees()
+                (0, 1, 2, 3)
+                sage: CoxeterGroup(['B', 4]).codegrees()
+                (0, 2, 4, 6)
+                sage: CoxeterGroup(['D', 4]).codegrees()
+                (0, 2, 2, 4)
+                sage: CoxeterGroup(['F', 4]).codegrees()
+                (0, 4, 6, 10)
+                sage: CoxeterGroup(['E', 8]).codegrees()
+                (0, 6, 10, 12, 16, 18, 22, 28)
+                sage: CoxeterGroup(['H', 3]).codegrees()
+                (0, 4, 8)
+
+                sage: WeylGroup([["A",3], ["A",3], ["B",2]]).codegrees()
+                (0, 1, 2, 0, 1, 2, 0, 2)
+            """
+            return tuple(d - 2 for d in self.degrees())
 
         @cached_method
-        def weak_poset(self, side = "right", facade = False):
+        def weak_poset(self, side="right", facade=False):
             """
             INPUT:
 
@@ -214,6 +413,10 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             this poset, `u` is smaller than `v` if some reduced word
             of `u` is a right (resp. left) factor of some reduced word
             of `v`.
+
+            .. SEEALSO::
+
+                :meth:`bhz_poset`, :meth:`bruhat_poset`, :meth:`shard_poset`
 
             EXAMPLES::
 
@@ -265,7 +468,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: P.an_element().parent()
                 Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
 
-            .. see also:: :func:`Poset` for more on posets and facade posets.
+            .. SEEALSO:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
@@ -467,6 +670,93 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             return self.m_cambrian_lattice(c=c, m=1, on_roots=on_roots)
 
+        def is_real(self):
+            """
+            Return ``True`` since ``self`` is a real reflection group.
+
+            EXMAPLES::
+
+                sage: CoxeterGroup(['F',4]).is_real()
+                True
+                sage: CoxeterGroup(['H',4]).is_real()
+                True
+            """
+            return True
+
+        def permutahedron(self, point=None, base_ring=None):
+            r"""
+            Return the permutahedron of ``self``,
+
+            This is the convex hull of the point ``point`` in the weight
+            basis under the action of ``self`` on the underlying vector
+            space `V`.
+
+            .. SEEALSO::
+
+                :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
+
+            INPUT:
+
+            - ``point`` -- optional, a point given by its coordinates in
+              the weight basis (default is `(1, 1, 1, \ldots)`)
+            - ``base_ring`` -- optional, the base ring of the polytope
+
+            .. NOTE::
+
+                The result is expressed in the root basis coordinates.
+
+            .. NOTE::
+
+                If function is too slow, switching the base ring to
+                :class:`RDF` will almost certainly speed things up.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['H',3], base_ring=RDF)
+                sage: W.permutahedron()
+                A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
+
+                sage: W = CoxeterGroup(['I',7])
+                sage: W.permutahedron()
+                A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
+                sage: W.permutahedron(base_ring=RDF)
+                A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 14 vertices
+
+                sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+                sage: W.permutahedron()                                     # optional - gap3
+                A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+                of 24 vertices
+
+                sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
+                sage: W.permutahedron()                                     # optional - gap3
+                A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 192 vertices
+
+            TESTS::
+
+                sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+                sage: W.permutahedron([3,5,8])                              # optional - gap3
+                A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+                of 24 vertices
+
+
+            .. PLOT::
+                :width: 300 px
+
+                W = CoxeterGroup(['I',7])
+                p = W.permutahedron()
+                sphinx_plot(p)
+
+            """
+            n = self.one().canonical_matrix().rank()
+            weights = self.fundamental_weights()
+            if point is None:
+                from sage.rings.integer_ring import ZZ
+                point = [ZZ.one()] * n
+            v = sum(point[i-1] * weights[i] for i in weights.keys())
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            vertices = [v*w for w in self]
+            return Polyhedron(vertices=vertices, base_ring=base_ring)
+
     class ElementMethods:
 
         @cached_in_parent_method
@@ -612,3 +902,30 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             G.add_vertices(R)
             G.add_edges([v,vp] for v in R for vp in self.coxeter_knuth_neighbor(v))
             return G
+
+        def covered_reflections_subgroup(self):
+            """
+            Return the subgroup of `W` generated by the conjugates by `w`
+            of the simple reflections indexed by right descents of `w`.
+
+            This is used to compute the shard intersection order on `W`.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
+                sage: len(W.long_element().covered_reflections_subgroup())
+                24
+                sage: s = W.simple_reflection(1)
+                sage: Gs = s.covered_reflections_subgroup()
+                sage: len(Gs)
+                2
+                sage: s in [u.lift() for u in Gs]
+                True
+                sage: len(W.one().covered_reflections_subgroup())
+                1
+            """
+            W = self.parent()
+            winv = ~self
+            cov_down = [self * W.simple_reflection(i) * winv
+                        for i in self.descents(side='right')]
+            return W.submonoid(cov_down)

@@ -7,6 +7,8 @@ for use in doc-strings.
 {INDEX_OF_FUNCTIONS}
 
 """
+from __future__ import print_function
+
 from sage.misc.sageinspect import _extract_embedded_position
 
 def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_functions=True):
@@ -44,20 +46,20 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
         cells. This can cause trouble if the first sentence in the documentation
         of a function contains the '@' character.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.rest_index_of_methods import gen_rest_table_index
-        sage: print gen_rest_table_index([graphs.PetersenGraph])
+        sage: print(gen_rest_table_index([graphs.PetersenGraph]))
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
            :delim: @
         <BLANKLINE>
-           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ The Petersen Graph is a named graph that consists of 10 vertices...
+           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ Returns the Petersen Graph.
 
     The table of a module::
 
-        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods)
+        sage: print(gen_rest_table_index(sage.misc.rest_index_of_methods))
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
@@ -72,7 +74,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
 
     The table of a class::
 
-        sage: print gen_rest_table_index(Graph)
+        sage: print(gen_rest_table_index(Graph))
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
@@ -92,13 +94,13 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
         ....:
         ....:     EXAMP...
         ....:     '''
-        ....:     print "hey"
+        ....:     print("hey")
         sage: 'Here is a very very very long sentence that spans on several lines' in gen_rest_table_index([a])
         True
 
     The inherited methods do not show up::
 
-        sage: gen_rest_table_index(sage.combinat.posets.lattices.FiniteLatticePoset).count('\n') < 50
+        sage: gen_rest_table_index(sage.combinat.posets.lattices.FiniteLatticePoset).count('\n') < 65
         True
         sage: from sage.graphs.generic_graph import GenericGraph
         sage: A = gen_rest_table_index(Graph).count('\n')
@@ -109,7 +111,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
     When ``only_local_functions`` is ``False``, we do not include
     ``gen_rest_table_index`` itself::
 
-        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=True)
+        sage: print(gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=True))
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
@@ -121,7 +123,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
            :func:`~sage.misc.rest_index_of_methods.list_of_subfunctions` @ Returns the functions (resp. methods) of a given module (resp. class) with their names.
         <BLANKLINE>
         <BLANKLINE>
-        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=False)
+        sage: print(gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=False))
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
@@ -209,7 +211,7 @@ def list_of_subfunctions(root, only_local_functions=True):
     ``dict`` associates to every function/method the name under which it appears
     in ``root``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.rest_index_of_methods import list_of_subfunctions
         sage: l = list_of_subfunctions(Graph)[0]
@@ -271,7 +273,7 @@ def gen_thematic_rest_table_index(root,additional_categories=None,only_local_fun
       filtered out. This can be useful to disable for making indexes of
       e.g. catalog modules such as :mod:`sage.coding.codes_catalog`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.rest_index_of_methods import gen_thematic_rest_table_index, list_of_subfunctions
         sage: l = list_of_subfunctions(Graph)[0]
@@ -303,12 +305,12 @@ def doc_index(name):
     - ``name`` -- a string, which will become the title of the index in which
       this function/method will appear.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.rest_index_of_methods import doc_index
         sage: @doc_index("Wouhouuuuu")
         ....: def a():
-        ....:     print "Hey"
+        ....:     print("Hey")
         sage: a.doc_index
         'Wouhouuuuu'
     """

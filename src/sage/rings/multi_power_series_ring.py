@@ -165,7 +165,7 @@ Coercion from symbolic ring::
     sage: type(x)
     <type 'sage.symbolic.expression.Expression'>
     sage: type(S(x))
-    <class 'sage.rings.multi_power_series_ring_element.MPowerSeriesRing_generic_with_category.element_class'>
+    <class 'sage.rings.multi_power_series_ring.MPowerSeriesRing_generic_with_category.element_class'>
 
     sage: f = S(2/7 -100*x^2 + 1/3*x*y + y^2).O(3); f
     5 - x^2 + 4*x*y + y^2 + O(x, y)^3
@@ -206,7 +206,6 @@ AUTHORS:
 
 from sage.rings.ring import CommutativeRing
 from sage.rings.polynomial.all import PolynomialRing
-from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
@@ -829,10 +828,9 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         if c: return c
         return 0
 
-
     def laurent_series_ring(self):
         """
-        Laruent series not yet implemented for multivariate power series rings
+        Laurent series not yet implemented for multivariate power series rings
 
         TESTS::
 

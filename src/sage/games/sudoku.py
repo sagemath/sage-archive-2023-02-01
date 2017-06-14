@@ -9,8 +9,8 @@ puzzle or its solution(s).  Primarily this is accomplished with the
 
 AUTHORS:
 
-    - Tom Boothby (2008/05/02): Exact Cover, Dancing Links algorithm
-    - Robert Beezer (2009/05/29): Backtracking algorithm, Sudoku class
+- Tom Boothby (2008/05/02): Exact Cover, Dancing Links algorithm
+- Robert Beezer (2009/05/29): Backtracking algorithm, Sudoku class
 """
 ######################################################################
 #       Copyright (C) 2009, Robert A. Beezer <beezer@ups.edu>
@@ -20,9 +20,13 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ######################################################################
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 import six
 from sage.structure.sage_object import SageObject
+
 
 def sudoku(m):
     r"""
@@ -41,7 +45,7 @@ def sudoku(m):
     and is included only to replicate that behavior.  It could be
     safely deprecated, since all of its functionality is included in the :class:`~sage.games.sudoku.Sudoku` class.
 
-    EXAMPLE:
+    EXAMPLES:
 
     An example that was used in previous doctests. ::
 
@@ -100,10 +104,10 @@ class Sudoku(SageObject):
     - verify_input - default = ``True``, use ``False`` if you know the input is valid
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: a = Sudoku('5...8..49...5...3..673....115..........2.8..........187....415..3...2...49..5...3')
-        sage: print a
+        sage: print(a)
         +-----+-----+-----+
         |5    |  8  |  4 9|
         |     |5    |  3  |
@@ -117,7 +121,7 @@ class Sudoku(SageObject):
         |  3  |    2|     |
         |4 9  |  5  |    3|
         +-----+-----+-----+
-        sage: print next(a.solve())
+        sage: print(next(a.solve()))
         +-----+-----+-----+
         |5 1 3|6 8 7|2 4 9|
         |8 4 9|5 2 1|6 3 7|
@@ -247,7 +251,7 @@ class Sudoku(SageObject):
 
         See the docstring for :func:`to_ascii` for more information on the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s._repr_()
@@ -260,7 +264,7 @@ class Sudoku(SageObject):
         r"""nodetex
         Returns a `\LaTeX` representation of a Sudoku puzzle as an array environment.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s._latex_()
@@ -276,7 +280,7 @@ class Sudoku(SageObject):
         The base ring will be `\ZZ` if ``None`` is provided,
         and it is an error to specify any other base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k = Sudoku('.4..32....14..3.')
             sage: matrix(k) # indirect doctest
@@ -309,7 +313,7 @@ class Sudoku(SageObject):
         ``11 = b``, etc.  This scheme limits puzzles to
         at most 36 symbols.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: b = matrix(ZZ, 9, 9, [ [0,0,0,0,1,0,9,0,0], [8,0,0,4,0,0,0,0,0], [2,0,0,0,0,0,0,0,0], [0,7,0,0,3,0,0,0,0], [0,0,0,0,0,0,2,0,4], [0,0,0,0,0,0,0,5,8], [0,6,0,0,0,0,1,3,0], [7,0,0,2,0,0,0,0,0], [0,0,0,8,0,0,0,0,0] ])
             sage: Sudoku(b).to_string()
@@ -353,10 +357,10 @@ class Sudoku(SageObject):
         r"""
         Constructs a list representing a Sudoku puzzle, in row-major order.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('1.......2.9.4...5...6...7...5.9.3.......7.......85..4.7.....6...3...9.8...2.....1')
-            sage: print s.to_list()
+            sage: s.to_list()
             [1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 9, 0, 4, 0, 0, 0, 5, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 5, 0, 9, 0, 3, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 5, 0, 0, 4, 0, 7, 0, 0, 0, 0, 0, 6, 0, 0, 0, 3, 0, 0, 0, 9, 0, 8, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1]
 
         TEST:
@@ -401,10 +405,10 @@ class Sudoku(SageObject):
         Constructs an ASCII-art version of a Sudoku puzzle.
         This is a modified version of the ASCII version of a subdivided matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
-            sage: print s.to_ascii()
+            sage: print(s.to_ascii())
             +---+---+
             |  4|   |
             |3 2|   |
@@ -419,7 +423,7 @@ class Sudoku(SageObject):
         n = self.n
         nsquare = n*n
         m = self.to_matrix()
-        m.subdivide(range(0,nsquare+1,n), range(0,nsquare+1,n))
+        m.subdivide(list(range(0,nsquare+1,n)), list(range(0,nsquare+1,n)))
         naked_zero = compile('([\|, ]+)0')
         blanked = naked_zero.sub(lambda x: x.group(1)+' ', m.str())
         brackets = compile('[\[,\]]')
@@ -430,10 +434,10 @@ class Sudoku(SageObject):
         r"""
         Creates a string of `\LaTeX` code representing a Sudoku puzzle or solution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
-            sage: print s.to_latex()
+            sage: print(s.to_latex())
             \begin{array}{|*{2}{*{2}{r}|}}\hline
             &4& & \\
             3&2& & \\\hline
@@ -441,7 +445,7 @@ class Sudoku(SageObject):
             & &3& \\\hline
             \end{array}
 
-        TEST::
+        TESTS::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s.to_latex()
@@ -589,13 +593,6 @@ class Sudoku(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: bogus is not an algorithm for Sudoku puzzles
-
-        .. rubric:: Citations
-
-        .. [sudoku:top95]  "95 Hard Puzzles",
-           http://magictour.free.fr/top95, or http://norvig.com/top95.txt
-        .. [sudoku:royle]  Gordon Royle, "Minimum Sudoku",
-           http://people.csse.uwa.edu.au/gordon/sudokumin.php
         """
         if algorithm == 'backtrack':
             if self.n > 4:
@@ -649,7 +646,7 @@ class Sudoku(SageObject):
         of the DLX solver. [sudoku:escargot]_ ::
 
             sage: g = Sudoku('1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..')
-            sage: print g
+            sage: print(g)
             +-----+-----+-----+
             |1    |    7|  9  |
             |  3  |  2  |    8|
@@ -663,7 +660,7 @@ class Sudoku(SageObject):
             |  4  |     |    7|
             |    7|     |3    |
             +-----+-----+-----+
-            sage: print next(g.solve(algorithm='backtrack'))
+            sage: print(next(g.solve(algorithm='backtrack')))
             +-----+-----+-----+
             |1 6 2|8 5 7|4 9 3|
             |5 3 4|1 2 9|6 7 8|
@@ -684,7 +681,7 @@ class Sudoku(SageObject):
         750 times as long as the DLX solver. [sudoku:wikipedia]_ ::
 
             sage: c = Sudoku('..............3.85..1.2.......5.7.....4...1...9.......5......73..2.1........4...9')
-            sage: print c
+            sage: print(c)
             +-----+-----+-----+
             |     |     |     |
             |     |    3|  8 5|
@@ -698,7 +695,7 @@ class Sudoku(SageObject):
             |    2|  1  |     |
             |     |  4  |    9|
             +-----+-----+-----+
-            sage: print next(c.solve(algorithm='backtrack'))
+            sage: print(next(c.solve(algorithm='backtrack')))
             +-----+-----+-----+
             |9 8 7|6 5 4|3 2 1|
             |2 4 6|1 7 3|9 8 5|
@@ -712,13 +709,8 @@ class Sudoku(SageObject):
             |4 7 2|3 1 9|5 6 8|
             |8 6 3|7 4 5|2 1 9|
             +-----+-----+-----+
-
-        .. rubric:: Citations
-
-        .. [sudoku:escargot]  "Al Escargot", due to Arto Inkala, http://timemaker.blogspot.com/2006/12/ai-escargot-vwv.html
-        .. [sudoku:wikipedia]  "Near worst case", Wikipedia: "Algorithmics of sudoku", http://en.wikipedia.org/wiki/Algorithmics_of_sudoku
         """
-        from sudoku_backtrack import backtrack_all
+        from .sudoku_backtrack import backtrack_all
         solutions = backtrack_all(self.n, self.puzzle)
         for soln in solutions:
             yield soln
@@ -767,7 +759,7 @@ class Sudoku(SageObject):
         solution and then check to see if there are more or not. ::
 
             sage: e = Sudoku('4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......')
-            sage: print next(e.dlx())
+            sage: print(next(e.dlx()))
             [4, 1, 7, 3, 6, 9, 8, 2, 5, 6, 3, 2, 1, 5, 8, 9, 4, 7, 9, 5, 8, 7, 2, 4, 3, 1, 6, 8, 2, 5, 4, 3, 7, 1, 6, 9, 7, 9, 1, 5, 8, 6, 4, 3, 2, 3, 4, 6, 9, 1, 2, 7, 5, 8, 2, 8, 9, 6, 4, 3, 5, 7, 1, 5, 7, 3, 2, 9, 1, 6, 8, 4, 1, 6, 4, 8, 7, 5, 2, 9, 3]
             sage: len(list(e.dlx()))
             1
@@ -784,7 +776,7 @@ class Sudoku(SageObject):
         A larger puzzle, with multiple solutions, but we just get one. ::
 
             sage: j = Sudoku('....a..69.3....1d.2...8....e.4....b....5..c.......7.......g...f....1.e..2.b.8..3.......4.d.....6.........f..7.g..9.a..c...5.....8..f.....1..e.79.c....b.....2...6.....g.7......84....3.d..a.5....5...7..e...ca.....3.1.......b......f....4...d..e..g.92.6..8....')
-            sage: print next(j.dlx())
+            sage: print(next(j.dlx()))
             [5, 15, 16, 14, 10, 13, 7, 6, 9, 2, 3, 4, 11, 8, 12, 1, 13, 3, 2, 12, 11, 16, 8, 15, 1, 6, 7, 14, 10, 4, 9, 5, 1, 10, 11, 6, 9, 4, 3, 5, 15, 8, 12, 13, 16, 7, 14, 2, 9, 8, 7, 4, 12, 2, 1, 14, 10, 5, 16, 11, 6, 3, 15, 13, 12, 16, 4, 1, 13, 14, 9, 10, 2, 7, 11, 6, 8, 15, 5, 3, 3, 14, 5, 7, 16, 11, 15, 4, 12, 13, 8, 9, 1, 2, 10, 6, 2, 6, 13, 11, 1, 8, 5, 3, 4, 15, 14, 10, 7, 9, 16, 12, 15, 9, 8, 10, 2, 6, 12, 7, 3, 16, 5, 1, 4, 14, 13, 11, 8, 11, 3, 15, 5, 10, 4, 2, 13, 1, 6, 12, 14, 16, 7, 9, 16, 12, 14, 13, 7, 15, 11, 1, 8, 9, 4, 5, 2, 6, 3, 10, 6, 2, 10, 5, 14, 12, 16, 9, 7, 11, 15, 3, 13, 1, 4, 8, 4, 7, 1, 9, 8, 3, 6, 13, 16, 14, 10, 2, 5, 12, 11, 15, 11, 5, 9, 8, 6, 7, 13, 16, 14, 3, 1, 15, 12, 10, 2, 4, 7, 13, 15, 3, 4, 1, 10, 8, 5, 12, 2, 16, 9, 11, 6, 14, 10, 1, 6, 2, 15, 5, 14, 12, 11, 4, 9, 7, 3, 13, 8, 16, 14, 4, 12, 16, 3, 9, 2, 11, 6, 10, 13, 8, 15, 5, 1, 7]
 
         The puzzle ``h`` from above, but purposely made unsolvable with addition in second entry. ::
@@ -800,7 +792,7 @@ class Sudoku(SageObject):
         A stupidly small puzzle to test the lower limits of arbitrary sized input. ::
 
             sage: s = Sudoku('.')
-            sage: print next(s.solve(algorithm='dlx'))
+            sage: print(next(s.solve(algorithm='dlx')))
             +-+
             |1|
             +-+
@@ -853,7 +845,7 @@ class Sudoku(SageObject):
             This method looks up the constraint IDs for each of
             these four constraints, and returns a list of these four IDs.
 
-            TEST::
+            TESTS::
 
                 sage: h = Sudoku('8..6..9.5.............2.31...7318.6.24.....73...........279.1..5...8..36..3......')
                 sage: len(list(h.solve(algorithm='dlx')))  # indirect doctest

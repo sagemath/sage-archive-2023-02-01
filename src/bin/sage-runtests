@@ -29,15 +29,17 @@ if __name__ == "__main__":
         metavar="SECONDS", help="warn if tests take more time than SECONDS")
     parser.add_option("--optional", metavar="PKGS", default="sage,optional",
         help='only run tests including one of the "# optional" tags listed in PKGS; '
-             'if "sage" is listed will also test the standard doctests; '
-             'if "optional" is listed will also test all available optional (new-style) packages; '
-             'if set to "all", then all tests will be run; ')
+             'if "sage" is listed, will also run the standard doctests; '
+             'if "optional" is listed, will also run tests for installed optional (new-style) packages; '
+             'if "external" is listed, will also run tests for available external software; '
+             'if set to "all", then all tests will be run')
     parser.add_option("--randorder", type=int, metavar="SEED", help="randomize order of tests")
     parser.add_option("--global-iterations", "--global_iterations", type=int, default=0, help="repeat the whole testing process this many times")
     parser.add_option("--file-iterations", "--file_iterations", type=int, default=0, help="repeat each file this many times, stopping on the first failure")
 
     parser.add_option("-i", "--initial", action="store_true", default=False, help="only show the first failure in each file")
-    parser.add_option("--force_lib", "--force-lib", action="store_true", default=False, help="assume all files are Sage library files, regardless of location, ie don't import anything from the file tested")
+    parser.add_option("--exitfirst", action="store_true", default=False, help="end the test run immediately after the first failure or unexpected exception")
+    parser.add_option("--force_lib", "--force-lib", action="store_true", default=False, help="do not import anything from the tested file(s)")
     parser.add_option("--abspath", action="store_true", default=False, help="print absolute paths rather than relative paths")
     parser.add_option("--verbose", action="store_true", default=False, help="print debugging output during the test")
     parser.add_option("-d", "--debug", action="store_true", default=False, help="drop into a python debugger when an unexpected error is raised")

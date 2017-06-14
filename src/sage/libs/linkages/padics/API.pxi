@@ -110,7 +110,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``reduce_b`` -- a bint, whether ``b`` needs to be reduced.
     - ``prime_pow`` -- the PowComputer for the ring.
 
-    OUPUT:
+    OUTPUT:
 
     - If neither ``a`` nor ``b`` needs to be reduced, returns
       -1 (if `a < b`), 0 (if `a == b`) or 1 (if `a > b`)
@@ -329,7 +329,7 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:

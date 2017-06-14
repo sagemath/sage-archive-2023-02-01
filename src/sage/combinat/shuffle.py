@@ -19,7 +19,7 @@ then the product is equals to the other.
 The shuffle product has been introduced by S. Eilenberg and S. Mac Lane in
 1953 [EilLan53]_.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: from sage.combinat.shuffle import ShuffleProduct
     sage: list(ShuffleProduct([1,2], ["a", "b", "c"]))
@@ -71,7 +71,7 @@ class SetShuffleProduct(SageObject):
         sage: from sage.combinat.shuffle import SetShuffleProduct
         sage: TestSuite(SetShuffleProduct).run()
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.shuffle import SetShuffleProduct
         sage: sorted(SetShuffleProduct({(1,), (2,3)}, {(4,5), (6,)}))
@@ -187,11 +187,10 @@ class SetShuffleProduct(SageObject):
              {1, 3, 4},
              {1, 3, 4}]
         """
-        def shuffle_elements(pair):
-            return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
-
         return itertools.chain.from_iterable(
-                itertools.imap(shuffle_elements, itertools.product(self._l1, self._l2)))
+                ShuffleProduct(*pair,
+                               element_constructor=self._element_constructor_)
+                for pair in itertools.product(self._l1, self._l2))
 
     def cardinality(self):
         """

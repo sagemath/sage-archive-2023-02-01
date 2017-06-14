@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -19,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric
 from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.padics.padic_capped_relative_element import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR
 from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
@@ -332,9 +333,11 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def plot(self, max_points=2500, **args):
         r"""
-        Creates a visualization of this `p`-adic ring as a fractal
-        similar as a generalization of the the Sierpi\'nski
-        triangle. The resulting image attempts to capture the
+        Create a visualization of this `p`-adic ring as a fractal
+        similar to a generalization of the Sierpi\'nski
+        triangle.
+
+        The resulting image attempts to capture the
         algebraic and topological characteristics of `\mathbb{Z}_p`.
 
         INPUT:

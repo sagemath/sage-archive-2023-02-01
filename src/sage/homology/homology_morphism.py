@@ -20,6 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 # To do: implement morphisms of cubical complexes, with methods
 #   - domain
@@ -32,6 +33,7 @@ from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.rings.rational_field import QQ
+from sage.homology.simplicial_complex import SimplicialComplex
 
 class InducedHomologyMorphism(Morphism):
     r"""
@@ -76,20 +78,20 @@ class InducedHomologyMorphism(Morphism):
         sage: T = simplicial_complexes.Torus()
         sage: y = T.homology_with_basis(QQ).basis()[(1,1)]
         sage: y.to_cycle()
-        (0, 3) - (0, 6) + (3, 6)
+        (0, 2) - (0, 5) + (2, 5)
 
-    Since `(0,3) - (0,6) + (3,6)` is a cycle representing a homology
+    Since `(0,2) - (0,5) + (2,5)` is a cycle representing a homology
     class in the torus, we can define a map `S^1 \to T` inducing an
     inclusion on `H_1`::
 
-        sage: Hom(S1, T)({0:0, 1:3, 2:6})
+        sage: Hom(S1, T)({0:0, 1:2, 2:5})
         Simplicial complex morphism:
           From: Minimal triangulation of the 1-sphere
           To: Minimal triangulation of the torus
           Defn: 0 |--> 0
-                1 |--> 3
-                2 |--> 6
-        sage: g = Hom(S1, T)({0:0, 1:3, 2: 6})
+                1 |--> 2
+                2 |--> 5
+        sage: g = Hom(S1, T)({0:0, 1:2, 2: 5})
         sage: g_star = g.induced_homology_morphism(QQ)
         sage: g_star.to_matrix(0)
         [1]
@@ -118,7 +120,7 @@ class InducedHomologyMorphism(Morphism):
         sage: diag_c(b)
         h^{1,0}
         sage: diag_c(c)
-        h^{1,0}
+        0
     """
     def __init__(self, map, base_ring=None, cohomology=False):
         """
@@ -155,8 +157,9 @@ class InducedHomologyMorphism(Morphism):
             sage: g = Hom(S1, S1).identity()
             sage: h = g.induced_homology_morphism(QQ)
         """
-        if map.domain().is_mutable() or map.codomain().is_mutable():
-            raise ValueError('the domain and codomain complexes must be immutable')
+        if (isinstance(map.domain(), SimplicialComplex)
+            and (map.domain().is_mutable() or map.codomain().is_mutable())):
+                raise ValueError('the domain and codomain complexes must be immutable')
         if base_ring is None:
             base_ring = QQ
         if not base_ring.is_field():
@@ -395,7 +398,7 @@ class InducedHomologyMorphism(Morphism):
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: K = simplicial_complexes.Simplex(2)
             sage: f = Hom(S1, K)({0: 0, 1:1, 2:2})
-            sage: print f.induced_homology_morphism()._repr_defn()
+            sage: print(f.induced_homology_morphism()._repr_defn())
             induced by:
               Simplicial complex morphism:
                 From: Minimal triangulation of the 1-sphere

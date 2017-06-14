@@ -27,9 +27,9 @@ from cpython.int cimport *
 
 from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
-from sage.libs.pari.types cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport INT_to_mpz
+from cypari2.types cimport *
+from cypari2.gen cimport Gen as pari_gen
+from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
@@ -76,7 +76,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         Initialization.
 
-        .. NOTE:
+        .. NOTE::
 
             This initialization function is not called for Integers
             and Rationals since a conversion morphism has been
@@ -270,7 +270,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
-                raise ValueError, "valuation overflow"
+                raise ValueError("valuation overflow")
             s = mpz_get_si((<Integer>shift).value)
         check_ordp(s)
         return self._rshift_c(s)

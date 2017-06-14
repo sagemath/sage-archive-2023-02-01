@@ -4,7 +4,7 @@ A class to keep information about faces of a polyhedron
 This module gives you a tool to work with the faces of a polyhedron
 and their relative position. First, you need to find the faces. To get
 the faces in a particular dimension, use the
-:meth:`~sage.geometry.poylhedron.base.face` method::
+:meth:`~sage.geometry.polyhedron.base.face` method::
 
     sage: P = polytopes.cross_polytope(3)
     sage: P.faces(3)
@@ -14,7 +14,7 @@ the faces in a particular dimension, use the
     sage: P.faces(1)
     (<0,1>, <0,2>, <1,2>, <0,3>, <1,3>, <0,4>, <2,4>, <3,4>, <2,5>, <3,5>, <4,5>, <1,5>)
 
-or :meth:`~sage.geometry.poylhedron.base.face_lattice` to get the
+or :meth:`~sage.geometry.polyhedron.base.face_lattice` to get the
 whole face lattice as a poset::
 
     sage: P.face_lattice()
@@ -52,7 +52,7 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.misc.all import cached_method
@@ -136,7 +136,7 @@ class PolyhedronFace(SageObject):
         TESTS::
 
             sage: P = Polyhedron([[0,0],[0,1],[23,3],[9,12]])
-            sage: map(hash, P.faces(1))  # random
+            sage: list(map(hash, P.faces(1)))  # random
             [2377119663630407734,
              2377136578164722109,
              5966674064902575359,
@@ -156,7 +156,7 @@ class PolyhedronFace(SageObject):
             A vertex at (0, 1)
             A vertex at (1, 0)
             sage: type(face.vertex_generator())
-            <type 'generator'>
+            <... 'generator'>
         """
         for V in self.ambient_Vrepresentation():
             if V.is_vertex():
@@ -299,7 +299,7 @@ class PolyhedronFace(SageObject):
 
             sage: square = polytopes.hypercube(2)
             sage: for face in square.face_lattice():
-            ...       print face.ambient_Hrepresentation()
+            ....:     print(face.ambient_Hrepresentation())
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
              An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0)
@@ -340,8 +340,7 @@ class PolyhedronFace(SageObject):
 
             sage: square = polytopes.hypercube(2)
             sage: for fl in square.face_lattice():
-            ...       print fl.ambient_Vrepresentation()
-            ...
+            ....:     print(fl.ambient_Vrepresentation())
             ()
             (A vertex at (-1, -1),)
             (A vertex at (-1, 1),)

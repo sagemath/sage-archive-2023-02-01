@@ -19,21 +19,19 @@ This example initializes a sparse graph with room for twenty vertices, the first
 ten of which are in the graph. In general, the first ``nverts`` are "active."
 For example, see that 9 is already in the graph::
 
-    sage: S._num_verts()
-    10
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     sage: S.add_vertex(9)
     9
-    sage: S._num_verts()
-    10
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 But 10 is not, until we add it::
 
-    sage: S._num_verts()
-    10
     sage: S.add_vertex(10)
     10
-    sage: S._num_verts()
-    11
+    sage: S.verts()
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can begin working with unlabeled arcs right away as follows::
 
@@ -58,10 +56,6 @@ You can begin working with unlabeled arcs right away as follows::
     Traceback (most recent call last):
     ...
     LookupError: Vertex (7) is not a vertex of the graph.
-    sage: S._num_verts()
-    10
-    sage: S._num_arcs()
-    2
 
 Sparse graphs support multiple edges and labeled edges, but requires that the
 labels be positive integers (the case label = 0 is treated as no label).
@@ -197,6 +191,8 @@ for both of these uses.
 
 
 from libc.string cimport memset
+from cysignals.memory cimport check_malloc, check_allocarray, sig_free
+
 include 'sage/data_structures/bitset.pxi'
 
 cdef enum:
@@ -255,7 +251,7 @@ cdef class SparseGraph(CGraph):
 
         O(  (nverts + extra_vertices)*expected_degree + num_arcs  ).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: S = SparseGraph(nverts = 10, expected_degree = 3, extra_vertices = 10)
@@ -280,29 +276,11 @@ cdef class SparseGraph(CGraph):
         self.hash_length = i
         self.hash_mask = i - 1
 
-        # Allocating memory
-        self.vertices = <SparseGraphBTNode **> \
-          sig_malloc(nverts * self.hash_length * sizeof(SparseGraphBTNode *))
-        self.in_degrees = <int *> sig_malloc(nverts * sizeof(int))
-        self.out_degrees = <int *> sig_malloc(nverts * sizeof(int))
-
-        # Checking the memory was actually allocated
-        if not self.vertices or not self.in_degrees or not self.out_degrees:
-            if self.vertices: sig_free(self.vertices)
-            if self.in_degrees: sig_free(self.in_degrees)
-            if self.out_degrees: sig_free(self.out_degrees)
-            raise RuntimeError("Failure allocating memory.")
-
-        # Initializing variables:
-        #
-        # self.vertices[i] = 0
-        memset(self.vertices, <int> NULL, nverts * self.hash_length * sizeof(SparseGraphBTNode *))
-
-        # self.in_degrees[i] = 0
-        memset(self.in_degrees, 0, nverts * sizeof(int))
-
-        # self.out_degrees[i] = 0
-        memset(self.out_degrees, 0, nverts * sizeof(int))
+        # Allocating memory (initialized to zero)
+        self.vertices = <SparseGraphBTNode **>check_calloc(
+                nverts * self.hash_length, sizeof(SparseGraphBTNode *))
+        self.in_degrees = <int *>check_calloc(nverts, sizeof(int))
+        self.out_degrees = <int *>check_calloc(nverts, sizeof(int))
 
         bitset_init(self.active_vertices, self.num_verts + extra_vertices)
         bitset_set_first_n(self.active_vertices, self.num_verts)
@@ -403,25 +381,27 @@ cdef class SparseGraph(CGraph):
                 return -1
             bitset_free(bits)
 
-        self.vertices = <SparseGraphBTNode **> sig_realloc(self.vertices, total * self.hash_length * sizeof(SparseGraphBTNode *))
-        self.in_degrees = <int *> sig_realloc(self.in_degrees, total * sizeof(int))
-        self.out_degrees = <int *> sig_realloc(self.out_degrees, total * sizeof(int))
+        self.vertices = <SparseGraphBTNode **>check_reallocarray(
+                self.vertices, total * self.hash_length, sizeof(SparseGraphBTNode *))
+        self.in_degrees = <int *>check_reallocarray(self.in_degrees, total, sizeof(int))
+        self.out_degrees = <int *>check_reallocarray(self.out_degrees, total, sizeof(int))
 
         cdef int new_vertices = total - self.active_vertices.size
 
         # Initializing the entries corresponding to new vertices if any
-        if new_vertices>0:
+        if new_vertices > 0:
 
             # self.vertices
-            memset(self.vertices+self.active_vertices.size *  self.hash_length,
-                   <int> NULL,
+            memset(self.vertices + self.active_vertices.size * self.hash_length, 0,
                    new_vertices * self.hash_length * sizeof(SparseGraphBTNode *))
 
-            # self.int_degrees
-            memset(self.in_degrees+self.active_vertices.size, 0, new_vertices * sizeof(int))
+            # self.in_degrees
+            memset(self.in_degrees + self.active_vertices.size, 0,
+                    new_vertices * sizeof(int))
 
             # self.out_degrees
-            memset(self.out_degrees+self.active_vertices.size, 0, new_vertices * sizeof(int))
+            memset(self.out_degrees + self.active_vertices.size, 0,
+                    new_vertices * sizeof(int))
 
         # self.active_vertices
         bitset_realloc(self.active_vertices, total)
@@ -450,9 +430,7 @@ cdef class SparseGraph(CGraph):
                 ins_pt[0].number += 1
                 break
         if ins_pt[0] == NULL:
-            ins_pt[0] = <SparseGraphBTNode *> sig_malloc(sizeof(SparseGraphBTNode))
-            if not ins_pt[0]:
-                raise RuntimeError("Failure allocating memory.")
+            ins_pt[0] = <SparseGraphBTNode *>check_malloc(sizeof(SparseGraphBTNode))
             ins_pt[0].vertex = v
             ins_pt[0].number = 1
             ins_pt[0].left = NULL
@@ -470,7 +448,7 @@ cdef class SparseGraph(CGraph):
 
          - ``u, v`` -- non-negative integers, must be in self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -519,7 +497,7 @@ cdef class SparseGraph(CGraph):
         INPUT:
          - ``u, v`` - integers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -650,7 +628,7 @@ cdef class SparseGraph(CGraph):
         INPUT:
          - ``u, v`` - integers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -735,10 +713,8 @@ cdef class SparseGraph(CGraph):
         if degree == 0:
             p_pointers[0] = NULL
             return 0
-        cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **> sig_malloc(degree * sizeof(SparseGraphBTNode *))
+        cdef SparseGraphBTNode **pointers = <SparseGraphBTNode **>check_allocarray(degree, sizeof(SparseGraphBTNode *))
         p_pointers[0] = pointers
-        if pointers == NULL:
-            raise RuntimeError("Failure allocating memory.")
         for i from u * self.hash_length <= i < (u+1) * self.hash_length:
             if self.vertices[i] == NULL:
                 continue
@@ -783,9 +759,7 @@ cdef class SparseGraph(CGraph):
         if self.out_degrees[u] == 0:
             return []
         cdef int size = self.out_degrees[u]
-        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
-        if not neighbors:
-            raise RuntimeError("Failure allocating memory.")
+        cdef int *neighbors = <int *>check_allocarray(size, sizeof(int))
         num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
         sig_free(neighbors)
@@ -918,9 +892,7 @@ cdef class SparseGraph(CGraph):
         if self.in_degrees[v] == 0:
             return []
         cdef int size = self.in_degrees[v]
-        cdef int *neighbors = <int *> sig_malloc(size * sizeof(int))
-        if not neighbors:
-            raise RuntimeError("Failure allocating memory.")
+        cdef int *neighbors = <int *>check_allocarray(size, sizeof(int))
         num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
         sig_free(neighbors)
@@ -977,9 +949,7 @@ cdef class SparseGraph(CGraph):
             else:
                 break
         if ins_pt[0] == NULL:
-            ins_pt[0] = <SparseGraphBTNode *> sig_malloc(sizeof(SparseGraphBTNode))
-            if not ins_pt[0]:
-                raise RuntimeError("Failure allocating memory.")
+            ins_pt[0] = <SparseGraphBTNode *>check_malloc(sizeof(SparseGraphBTNode))
             ins_pt[0].number = 0
             ins_pt[0].vertex = v
             ins_pt[0].left = NULL
@@ -990,10 +960,7 @@ cdef class SparseGraph(CGraph):
             while label_ptr != NULL and label_ptr.label != l:
                 label_ptr = label_ptr.next
             if label_ptr == NULL:
-                label_ptr = <SparseGraphLLNode *> sig_malloc(sizeof(SparseGraphLLNode))
-                if not label_ptr:
-                    sig_free(ins_pt[0])
-                    raise RuntimeError("Failure allocating memory.")
+                label_ptr = <SparseGraphLLNode *>check_malloc(sizeof(SparseGraphLLNode))
                 label_ptr.label = l
                 label_ptr.number = 1
                 label_ptr.next = ins_pt[0].labels
@@ -1014,7 +981,7 @@ cdef class SparseGraph(CGraph):
          - ``u, v`` - non-negative integers, must be in self
          - ``l`` - a positive integer label, or zero for no label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1077,7 +1044,7 @@ cdef class SparseGraph(CGraph):
          - positive integer - indicates that there is a label on ``(u, v)``.
          - 0 - either the arc ``(u, v)`` is unlabeled, or there is no arc at all.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1157,7 +1124,7 @@ cdef class SparseGraph(CGraph):
         Gives the labels of all arcs ``(u, v)``. An unlabeled arc is interpreted as
         having label 0.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1181,9 +1148,7 @@ cdef class SparseGraph(CGraph):
             size = self.in_degrees[v]
         else:
             size = self.out_degrees[u]
-        arc_labels = <int *> sig_malloc(size * sizeof(int))
-        if not arc_labels:
-            raise RuntimeError("Failure allocating memory.")
+        arc_labels = <int *>check_allocarray(size, sizeof(int))
         num_arcs = self.all_arcs_unsafe(u, v, arc_labels, size)
         if num_arcs == -1:
             sig_free(arc_labels)
@@ -1255,7 +1220,7 @@ cdef class SparseGraph(CGraph):
          - ``u, v`` - non-negative integers, must be in self
          - ``l`` - a positive integer label, or zero for no label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1322,7 +1287,7 @@ cdef class SparseGraph(CGraph):
          - ``u, v`` -- non-negative integers, must be in self
          - ``l`` -- a positive integer label, or zero for no label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1370,17 +1335,17 @@ def _test_adjacency_sequence_out():
     cdef SparseGraph g = SparseGraph(n,
                                      verts=randg.vertices(),
                                      arcs=E)
-    assert g._num_verts() == randg.order(), (
-        "Graph order mismatch: %s vs. %s" % (g._num_verts(), randg.order()))
-    assert g._num_arcs() == randg.size(), (
-        "Graph size mismatch: %s vs. %s" % (g._num_arcs(), randg.size()))
+    assert g.num_verts == randg.order(), (
+        "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))
+    assert g.num_arcs == randg.size(), (
+        "Graph size mismatch: %s vs. %s" % (g.num_arcs, randg.size()))
     M = randg.adjacency_matrix()
-    cdef int *V = <int *>sig_malloc(n * sizeof(int))
+    cdef int *V = <int *>check_allocarray(n, sizeof(int))
     cdef int i = 0
     for v in randg.vertex_iterator():
         V[i] = v
         i += 1
-    cdef int *seq = <int *> sig_malloc(n * sizeof(int))
+    cdef int *seq = <int *>check_allocarray(n, sizeof(int))
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
         g.adjacency_sequence_out(n, V, u, seq)
@@ -1439,7 +1404,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         """
         Initialize a sparse graph with n vertices.
 
-        EXAMPLE:
+        EXAMPLES:
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -1483,7 +1448,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also add ``(v,u)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -1498,6 +1463,16 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: D.edges()
             [(0, 1, 3)]
 
+        Check :trac:`22991`::
+
+            sage: G = Graph(3, sparse=True)
+            sage: G.add_edge(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: G = Graph(3, sparse=True, loops=True)
+            sage: G.add_edge(0,0); G.edges()
+            [(0, 0, None)]
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
@@ -1511,8 +1486,9 @@ cdef class SparseGraphBackend(CGraphBackend):
         else:
             l_int = self.new_edge_label(l)
 
-        if (not self.loops(None)) and u_int == v_int:
-            return
+        if u_int == v_int and not self._loops:
+            raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
+
         if not self.multiple_edges(None):
             if self._cg.has_arc_label(u_int, v_int, l_int):
                 return
@@ -1539,7 +1515,7 @@ cdef class SparseGraphBackend(CGraphBackend):
            ``(u,v)`` or ``(u,v,l)``
          - ``directed`` - if False, add ``(v,u)`` as well as ``(u,v)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -1569,7 +1545,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also delete ``(v,u,l)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -1649,7 +1625,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
          - ``u,v`` - the vertices of the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1,1), (2,3,2), (4,5,3), (5,6,2)], False)
@@ -1685,7 +1661,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``u,v`` - the vertices of the edge
          - ``l`` - the edge label, or ``None``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -1714,7 +1690,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         - ``vertices`` - a list of vertex labels
         - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,False)
@@ -1723,7 +1699,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: list(G.iterator_edges(range(9), True))
             [(1, 2, 3)]
 
-        TEST::
+        TESTS::
 
             sage: g = graphs.PetersenGraph()
             sage: g.edges_incident([0,1,2])
@@ -1802,7 +1778,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         - ``vertices`` - a list of vertex labels
         - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,True)
@@ -1855,7 +1831,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``vertices`` - a list of vertex labels
          - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,True)
@@ -1937,7 +1913,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also set ``(v,u)`` with label ``l``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,None,True)

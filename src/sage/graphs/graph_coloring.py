@@ -51,11 +51,14 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
-from graph_generators import GraphGenerators
+from .graph_generators import GraphGenerators
 
 
 def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dict=False):
@@ -133,32 +136,32 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         ....:                 if G.has_edge(P[i],P[j]):
         ....:                     raise RuntimeError("Coloring Failed.")
         ....:     n+=1
-        sage: print "G has %s 3-colorings."%n
+        sage: print("G has %s 3-colorings." % n)
         G has 12 3-colorings.
 
 
     TESTS::
 
         sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: for C in all_graph_colorings(G,0): print C
-        sage: for C in all_graph_colorings(G,-1): print C
+        sage: for C in all_graph_colorings(G,0): print(C)
+        sage: for C in all_graph_colorings(G,-1): print(C)
         Traceback (most recent call last):
         ...
         ValueError: n must be non-negative.
         sage: G = Graph({0:[1],1:[2]})
-        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G,2,hex_colors = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors = True): print(c)
         {'#00ffff': [1], '#ff0000': [0, 2]}
         {'#ff0000': [1], '#00ffff': [0, 2]}
-        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print(c)
         {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
         {0: '#00ffff', 1: '#ff0000', 2: '#00ffff'}
-        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print(c)
         1
         1
     """
@@ -174,7 +177,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
     nE=len(E)
 
     ones = []
-    N = xrange(n)
+    N = range(n)
     Vd= {}
     colormap = {}
     k = 0
@@ -258,7 +261,7 @@ def first_coloring(G, n=0, hex_colors=False):
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
     o = G.order()
-    for m in xrange(n, o + 1):
+    for m in range(n, o + 1):
         for C in all_graph_colorings(G, m, hex_colors=True):
             if hex_colors:
                 return C
@@ -391,7 +394,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     - If ``k`` is set and ``value_only=True``, test whether the graph is
       `k`-colorable, and return ``True`` or ``False`` accordingly.
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import vertex_coloring
        sage: g = graphs.PetersenGraph()
@@ -451,7 +454,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
             elif hex_colors:
                 return dict([(color, []) for color in rainbow(k)])
             else:
-                return [[] for i in xrange(k)]
+                return [[] for i in range(k)]
         # Is the graph connected?
         # This is not so stupid, as the graph could be disconnected
         # by the test of degeneracy (as previously).
@@ -473,8 +476,8 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
                 if tmp is False:
                     return False
                 colorings.append(tmp)
-            value = [[] for color in xrange(k)]
-            for color in xrange(k):
+            value = [[] for color in range(k)]
+            for color in range(k):
                 for component in colorings:
                     value[color].extend(component[color])
             if hex_colors:
@@ -527,7 +530,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
 
         # adjacent vertices have different colors
         for (u, v) in g.edge_iterator(labels=None):
-            for i in xrange(k):
+            for i in range(k):
                 p.add_constraint(color[u,i] + color[v,i], max=1)
 
         # The first vertex is colored with 1. It costs nothing to say
@@ -545,10 +548,10 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
 
         color = p.get_values(color)
         # builds the color classes
-        classes = [[] for i in xrange(k)]
+        classes = [[] for i in range(k)]
 
         for v in g.vertices():
-            for i in xrange(k):
+            for i in range(k):
                 if color[v,i] == 1:
                     classes[i].append(v)
                     break
@@ -583,7 +586,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     colored with `j`. This can define a Linear Program, which is used
     here to compute the Grundy number of a graph.
 
-    .. NOTE:
+    .. NOTE::
 
        This method computes a grundy coloring using at *MOST* `k`
        colors. If this method returns a value equal to `k`, it can not
@@ -812,7 +815,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     deg = g.degree()
     deg.sort(reverse = True)
-    for i in xrange(g.order()):
+    for i in range(g.order()):
         if deg[i] < i:
             break
     if i != (g.order() - 1):
@@ -841,7 +844,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     # Each vertex is in exactly one class
     for v in g.vertices():
-        p.add_constraint(p.sum(color[v,i] for i in xrange(k)), min=1, max=1)
+        p.add_constraint(p.sum(color[v,i] for i in range(k)), min=1, max=1)
 
     # Adjacent vertices have distinct colors
     for (u, v) in g.edge_iterator(labels=None):
@@ -978,7 +981,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
        can sometimes be much faster, and it is a bad idea to compute
        the whole coloring if you do not need it !
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
@@ -1028,9 +1031,9 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
     [p.add_constraint(
             p.sum([color[R(e),i] for e in g.edges_incident(v, labels=False)]), max=1)
                 for v in g.vertex_iterator()
-                    for i in xrange(k)]
+                    for i in range(k)]
     # an edge must have a color
-    [p.add_constraint(p.sum([color[R(e),i] for i in xrange(k)]), max=1, min=1)
+    [p.add_constraint(p.sum([color[R(e),i] for i in range(k)]), max=1, min=1)
          for e in g.edge_iterator(labels=False)]
     # anything is good as an objective value as long as it is satisfiable
     e = next(g.edge_iterator(labels=False))
@@ -1054,10 +1057,10 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
         return k
     # Builds the color classes
     color = p.get_values(color)
-    classes = [[] for i in xrange(k)]
+    classes = [[] for i in range(k)]
     [classes[i].append(e)
          for e in g.edge_iterator(labels=False)
-             for i in xrange(k)
+             for i in range(k)
                  if color[R(e),i] == 1]
     # if needed, builds a dictionary from the color classes adding colors
     if hex_colors:
@@ -1122,9 +1125,9 @@ def round_robin(n):
     mod = lambda x, y: x - y*(x // y)
     if n % 2 == 0:
         g = GraphGenerators().CompleteGraph(n)
-        for i in xrange(n - 1):
+        for i in range(n - 1):
             g.set_edge_label(n - 1, i, i)
-            for j in xrange(1, (n - 1) // 2 + 1):
+            for j in range(1, (n - 1) // 2 + 1):
                 g.set_edge_label(mod(i - j, n - 1), mod(i + j, n - 1), i)
         return g
     else:
@@ -1196,7 +1199,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     NP-Hard
 
-    EXAMPLE:
+    EXAMPLES:
 
     Obviously, a square grid has a linear arboricity of 2, as
     the set of horizontal lines and the set of vertical lines
@@ -1304,12 +1307,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):
@@ -1390,7 +1395,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     Linear Programming
 
-    EXAMPLE:
+    EXAMPLES:
 
     The complete graph on 8 vertices can not be acyclically
     edge-colored with less `\Delta+1` colors, but it can be
@@ -1509,12 +1514,14 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):

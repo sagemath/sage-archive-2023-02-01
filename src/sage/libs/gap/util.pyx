@@ -2,18 +2,25 @@
 Utility functions for libGAP
 """
 
-###############################################################################
-#       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#   Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-###############################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-from sage.env import SAGE_LOCAL
-from libc.stdint cimport uintptr_t
-from element cimport *
+from __future__ import print_function, absolute_import
+
+from cpython.exc cimport PyErr_SetObject
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cysignals.signals cimport sig_on, sig_off, sig_error
+
+from sage.interfaces.gap_workspace import prepare_workspace_dir
+from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
+from .element cimport *
 
 
 ############################################################################
@@ -58,17 +65,17 @@ cdef class ObjWrapper(object):
         cdef result
         cdef libGAP_Obj self_value = self.value
         cdef libGAP_Obj other_value = other.value
-        if op==0:      # <   0
+        if op == Py_LT:
             return self_value < other_value
-        elif op==1:    # <=  1
+        elif op == Py_LE:
             return self_value <= other_value
-        elif op==2:    # ==  2
+        elif op == Py_EQ:
             return self_value == other_value
-        elif op==4:    # >   4
+        elif op == Py_GT:
             return self_value > other_value
-        elif op==5:    # >=  5
+        elif op == Py_GE:
             return self_value >= other_value
-        elif op==3:    # !=  3
+        elif op == Py_NE:
             return self_value != other_value
         else:
             assert False  # unreachable
@@ -133,7 +140,7 @@ cdef void gasman_callback():
     Callback before each GAP garbage collection
     """
     global owned_objects_refcount
-    for obj in owned_objects_refcount.iterkeys():
+    for obj in owned_objects_refcount:
         libGAP_MARK_BAG((<ObjWrapper>obj).value)
 
 
@@ -156,10 +163,9 @@ def gap_root():
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
     import os.path
-    gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
-    if os.path.exists(gapdir):
-        return gapdir
-    print 'The gap-4.5.5.spkg (or later) seems to be not installed!'
+    if os.path.exists(GAP_ROOT_DIR):
+        return GAP_ROOT_DIR
+    print('The gap-4.5.5.spkg (or later) seems to be not installed!')
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]
@@ -235,7 +241,11 @@ cdef initialize():
 
     # Save a new workspace if necessary
     if not workspace_is_up_to_date:
-        gap_eval('SaveWorkspace("{0}")'.format(workspace))
+        prepare_workspace_dir()
+        from sage.misc.temporary_file import atomic_write
+        with atomic_write(workspace) as f:
+            f.close()
+            gap_eval('SaveWorkspace("{0}")'.format(f.name))
 
 
 ############################################################################
@@ -258,7 +268,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 
         sage: libgap.eval('if 4>3 then\nPrint("hi");\nfi')
         NULL
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
 
         sage: libgap.eval('if 4>3 thenPrint("hi");\nfi')
@@ -268,7 +278,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         if 4>3 thenPrint("hi");
         fi;
                        ^
-        sage: libgap.eval('1+1')   # testing that we have sucessfully recovered
+        sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
     """
     initialize()
@@ -280,7 +290,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -330,9 +340,6 @@ cdef void hold_reference(libGAP_Obj obj):
 ### Error handler ##########################################################
 ############################################################################
 
-include "cysignals/signals.pxi"
-from cpython.exc cimport PyErr_SetObject
-
 cdef void error_handler(char* msg):
     """
     The libgap error handler
@@ -362,7 +369,7 @@ cdef inline void DEBUG_CHECK(libGAP_Obj obj):
     libGAP_CheckMasterPointers()
     libgap_exit()
     if obj == NULL:
-        print 'DEBUG_CHECK: Null pointer!'
+        print('DEBUG_CHECK: Null pointer!')
 
 
 
@@ -464,7 +471,7 @@ def command(command_string):
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars)
+            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
@@ -479,10 +486,10 @@ def command(command_string):
         if libGAP_ReadEvalResult:
             libGAP_ViewObjHandler(libGAP_ReadEvalResult)
             s = libgap_get_output()
-            print 'Output follows...'
-            print s.strip()
+            print('Output follows...')
+            print(s.strip())
         else:
-            print 'No output.'
+            print('No output.')
 
     finally:
         libgap_exit()

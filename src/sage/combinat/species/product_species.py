@@ -1,6 +1,7 @@
 """
 Sum species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,9 +16,9 @@ Sum species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from structure import GenericSpeciesStructure
-from subset_species import SubsetSpecies
+from .species import GenericCombinatorialSpecies
+from .structure import GenericSpeciesStructure
+from .subset_species import SubsetSpecies
 from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -197,8 +198,9 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
 
         gens = l_aut.gens() + r_aut.gens()
         gens = [g for g in gens if g != identity]
-        gens = uniq(gens) if len(gens) > 0 else [[]]
+        gens = uniq(gens) if gens else [[]]
         return PermutationGroup(gens)
+
 
 class ProductSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, F, G, min=None, max=None, weight=None):

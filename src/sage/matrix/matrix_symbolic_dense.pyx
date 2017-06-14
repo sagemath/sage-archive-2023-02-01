@@ -83,9 +83,9 @@ Test pickling::
 Comparison::
 
     sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
-    sage: cmp(m,m)
-    0
-    sage: cmp(m,3) != 0
+    sage: m == m
+    True
+    sage: m != 3
     True
     sage: m = matrix(SR,2,[1..4]); n = m^2
     sage: (exp(m+n) - exp(m)*exp(n)).simplify_rational() == 0       # indirect test
@@ -147,13 +147,14 @@ Conversion to Maxima::
     matrix([sqrt(2),3],[%pi,%e])
 
 """
+from __future__ import absolute_import
 
 from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
-from matrix_generic_dense cimport Matrix_generic_dense
-cimport matrix
+from .matrix_generic_dense cimport Matrix_generic_dense
+cimport sage.matrix.matrix as matrix
 
 cdef maxima
 
@@ -193,11 +194,13 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [3 4 5]
             [6 7 8]
             sage: es = A.eigenvectors_left(); es
-            [(-3*sqrt(6) + 6, [(1, -1/5*sqrt(6) + 4/5, -2/5*sqrt(3)*sqrt(2) + 3/5)], 1), (3*sqrt(6) + 6, [(1, 1/5*sqrt(6) + 4/5, 2/5*sqrt(3)*sqrt(2) + 3/5)], 1), (0, [(1, -2, 1)], 1)]
+            [(-3*sqrt(6) + 6, [(1, -1/5*sqrt(6) + 4/5, -2/5*sqrt(6) + 3/5)], 1),
+             (3*sqrt(6) + 6, [(1, 1/5*sqrt(6) + 4/5, 2/5*sqrt(6) + 3/5)], 1),
+             (0, [(1, -2, 1)], 1)]
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - evec*A
             sage: abs(abs(delta)) < 1e-10
-            sqrt(abs(1/25*(3*(2*sqrt(3)*sqrt(2) - 3)*(sqrt(6) - 2) + 16*sqrt(3)*sqrt(2) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 2)*(sqrt(6) - 4) + 14*sqrt(3)*sqrt(2) + 4*sqrt(6) - 42)^2 + 144/25*(sqrt(3)*sqrt(2) - sqrt(6))^2)) < (1.00000000000000e-10)
+            sqrt(9/25*((2*sqrt(6) - 3)*(sqrt(6) - 2) + 7*sqrt(6) - 18)^2 + 9/25*((sqrt(6) - 2)*(sqrt(6) - 4) + 6*sqrt(6) - 14)^2) < (1.00000000000000e-10)
             sage: abs(abs(delta)).n() < 1e-10
             True
 
@@ -239,7 +242,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: symbolic_evalue
             1/2*sqrt(5) - 1/2
 
-            sage: qqbar_evalue == symbolic_evalue
+            sage: bool(qqbar_evalue == symbolic_evalue)
             True
 
         A slightly larger matrix with a "nice" spectrum. ::
@@ -290,7 +293,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         r"""
         Return the matrix exponential of this matrix $X$, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 
@@ -364,7 +367,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
 
         """
         if not self.is_square():
-            raise ValueError, "exp only defined on square matrices"
+            raise ValueError("exp only defined on square matrices")
         if self.nrows() == 0:
             return self
         # Maxima's matrixexp function chokes on floating point numbers
@@ -700,6 +703,28 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         M = self.parent()
         return M([expr.simplify_full() for expr in self])
 
+    def canonicalize_radical(self):
+        r"""
+        Choose a canonical branch of each entrie of ``self`` by calling
+        :meth:`Expression.canonicalize_radical()` componentwise.
+
+        EXAMPLES::
+
+            sage: var('x','y')
+            (x, y)
+            sage: l1 = [sqrt(2)*sqrt(3)*sqrt(6) , log(x*y)]
+            sage: l2 = [sin(x/(x^2 + x)) , 1]
+            sage: m = matrix([l1, l2])
+            sage: m
+            [sqrt(6)*sqrt(3)*sqrt(2)                log(x*y)]
+            [       sin(x/(x^2 + x))                       1]
+            sage: m.canonicalize_radical()
+            [              6 log(x) + log(y)]
+            [ sin(1/(x + 1))               1]
+        """
+        M = self.parent()
+        return M([expr.canonicalize_radical() for expr in self])
+        
     def factor(self):
         """
         Operates point-wise on each element.
@@ -860,7 +885,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ValueError: the number of arguments must be less than or equal to 3
         """
         if kwargs and args:
-            raise ValueError, "args and kwargs cannot both be specified"
+            raise ValueError("args and kwargs cannot both be specified")
 
         if len(args) == 1 and isinstance(args[0], dict):
             kwargs = dict([(repr(x[0]), x[1]) for x in args[0].iteritems()])
@@ -883,7 +908,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             variables = list( self.arguments() )
 
             if len(args) > self.number_of_arguments():
-                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
+                raise ValueError("the number of arguments must be less than or equal to %s" % self.number_of_arguments())
 
             new_entries = []
             for entry in self.list():

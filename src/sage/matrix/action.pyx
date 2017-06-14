@@ -41,7 +41,7 @@ doesn't work (see :trac:`17859`)::
     sage: vector(QQ, [1]) * matrix(Zmod(2), [[1]])
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Vector space of
+    TypeError: unsupported operand parent(s) for *: 'Vector space of
     dimension 1 over Rational Field' and 'Full MatrixSpace of 1 by 1
     dense matrices over Ring of integers modulo 2'
 
@@ -59,11 +59,11 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 import operator
 
-from matrix_space import MatrixSpace, is_MatrixSpace
+from .matrix_space import MatrixSpace, is_MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
 from sage.structure.element cimport coercion_model
 
@@ -71,7 +71,7 @@ from sage.structure.element cimport coercion_model
 cdef class MatrixMulAction(Action):
     def __init__(self, G, S, is_left):
         if not is_MatrixSpace(G):
-            raise TypeError, "Not a matrix space: %s" % G
+            raise TypeError("Not a matrix space: %s" % G)
         if G.base_ring() is not S.base_ring():
             base = coercion_model.common_parent(G.base_ring(), S.base_ring())
         else:
@@ -150,7 +150,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
 
         """
         if not is_MatrixSpace(S):
-            raise TypeError, "Not a matrix space: %s" % S
+            raise TypeError("Not a matrix space: %s" % S)
         MatrixMulAction.__init__(self, G, S, True)
 
     def _create_codomain(self, base):
@@ -273,7 +273,7 @@ cdef class MatrixVectorAction(MatrixMulAction):
             TypeError: incompatible dimensions 3, 4
             """
         if not is_FreeModule(S):
-            raise TypeError, "Not a free module: %s" % S
+            raise TypeError("Not a free module: %s" % S)
         MatrixMulAction.__init__(self, G, S, True)
 
     def _create_codomain(self, base):
@@ -289,8 +289,8 @@ cdef class MatrixVectorAction(MatrixMulAction):
             Vector space of dimension 5 over Complex Double Field
         """
         if self.G.ncols() != self.underlying_set().degree():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.ncols(),
-                                                                 self.underlying_set().degree())
+            raise TypeError("incompatible dimensions %s, %s" % (self.G.ncols(),
+                                                                 self.underlying_set().degree()))
         return FreeModule(base, self.G.nrows(), sparse = self.G.is_sparse())
 
     cpdef _call_(self, g, s):
@@ -320,7 +320,7 @@ cdef class VectorMatrixAction(MatrixMulAction):
             TypeError: incompatible dimensions 5, 3
         """
         if not is_FreeModule(S):
-            raise TypeError, "Not a free module: %s" % S
+            raise TypeError("Not a free module: %s" % S)
         MatrixMulAction.__init__(self, G, S, False)
 
     def _create_codomain(self, base):
@@ -328,14 +328,17 @@ cdef class VectorMatrixAction(MatrixMulAction):
         EXAMPLES::
 
             sage: from sage.matrix.action import VectorMatrixAction
-            sage: A = VectorMatrixAction(MatrixSpace(QQ, 3, 5), VectorSpace(CDF, 3)); A
+            sage: M = MatrixSpace(QQ, 3, 5)
+            sage: V = VectorSpace(CDF, 3)
+            sage: A = VectorMatrixAction(M, V)
+            sage: A
             Right action by Full MatrixSpace of 3 by 5 dense matrices over Rational Field on Vector space of dimension 3 over Complex Double Field
             sage: A.codomain()
             Vector space of dimension 5 over Complex Double Field
         """
         if self.G.nrows() != self.underlying_set().degree():
-            raise TypeError, "incompatible dimensions %s, %s" % (self.G.nrows(),
-                                                                 self.underlying_set().degree())
+            raise TypeError("incompatible dimensions %s, %s" % (self.G.nrows(),
+                                                                 self.underlying_set().degree()))
         return FreeModule(base, self.G.ncols(), sparse = self.G.is_sparse())
 
     cpdef _call_(self, s, g):

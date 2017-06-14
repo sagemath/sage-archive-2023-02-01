@@ -178,7 +178,7 @@ class GenericDeclaration(SageObject):
         """
         Make this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'even')
@@ -218,7 +218,7 @@ class GenericDeclaration(SageObject):
         """
         Forget this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'odd')
@@ -537,7 +537,7 @@ def forget(*args):
         sage: var('x,y,z')
         (x, y, z)
         sage: assume(x>0, y>0, z == 1, y>0)
-        sage: list(sorted(assumptions(), lambda x,y:cmp(str(x),str(y))))
+        sage: sorted(assumptions(), key=lambda x:str(x))
         [x > 0, y > 0, z == 1]
         sage: forget(x>0, z==1)
         sage: assumptions()
@@ -595,7 +595,7 @@ def assumptions(*args):
         []
         sage: assume(x > y)
         sage: assume(z > w)
-        sage: list(sorted(assumptions(), lambda x,y:cmp(str(x),str(y))))
+        sage: sorted(assumptions(), key=lambda x: str(x))
         [x > y, z > w]
         sage: forget()
         sage: assumptions()

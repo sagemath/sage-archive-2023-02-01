@@ -23,7 +23,8 @@ AUTHORS:
 
 from __future__ import division
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -71,7 +72,7 @@ cdef class ntl_ZZ_pEX(object):
             [5]
         """
         if modulus is None and v is None:
-            raise ValueError, "You must specify a modulus when creating a ZZ_pEX."
+            raise ValueError("You must specify a modulus when creating a ZZ_pEX.")
 
         # self.c.restore_c()  ## Restoring the context is taken care of in __new__
 
@@ -87,7 +88,7 @@ cdef class ntl_ZZ_pEX(object):
                     cc = ntl_ZZ_pE(x,self.c)
                 else:
                     if self.c is not (<ntl_ZZ_pE>x).c:
-                        raise ValueError, "inconsistent moduli"
+                        raise ValueError("inconsistent moduli")
                     cc = x
                 ZZ_pEX_SetCoeff(self.x, i, cc.x)
         else:
@@ -125,7 +126,7 @@ cdef class ntl_ZZ_pEX(object):
         elif modulus is not None:
             self.c = <ntl_ZZ_pEContext_class>ntl_ZZ_pEContext(modulus)
         else:
-            raise ValueError, "modulus must not be None"
+            raise ValueError("modulus must not be None")
         self.c.restore_c()
 
     cdef ntl_ZZ_pEX _new(self):
@@ -214,7 +215,7 @@ cdef class ntl_ZZ_pEX(object):
         [[3 2] [4] [1 2]]
         """
         if i < 0:
-            raise IndexError, "index (i=%s) must be >= 0"%i
+            raise IndexError("index (i=%s) must be >= 0" % i)
         cdef ntl_ZZ_pE _a
         if isinstance(a, ntl_ZZ_pE):
             _a = <ntl_ZZ_pE> a
@@ -238,7 +239,7 @@ cdef class ntl_ZZ_pEX(object):
         []
         """
         if i < 0:
-            raise IndexError, "index (=%s) must be >= 0"%i
+            raise IndexError("index (=%s) must be >= 0" % i)
         cdef ntl_ZZ_pE r
         sig_on()
         self.c.restore_c()
@@ -280,7 +281,7 @@ cdef class ntl_ZZ_pEX(object):
         [[2] [4 4] [1 2]]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new restores the context
@@ -302,7 +303,7 @@ cdef class ntl_ZZ_pEX(object):
         [[4 4] [5] [1 2]]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new restores the context
@@ -330,7 +331,7 @@ cdef class ntl_ZZ_pEX(object):
         [[1 3] [1 1] [2 4] [6 4]]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new() restores the context
@@ -357,7 +358,7 @@ cdef class ntl_ZZ_pEX(object):
         ArithmeticError: self (=[[4 5] [1 2]]) is not divisible by other (=[[5 1] [2 6] [4]])
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef int divisible
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
@@ -365,7 +366,7 @@ cdef class ntl_ZZ_pEX(object):
         divisible = ZZ_pEX_divide(r.x, self.x, other.x)
         sig_off()
         if not divisible:
-            raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
+            raise ArithmeticError("self (=%s) is not divisible by other (=%s)" % (self, other))
         return r
 
     def __div__(self, other):
@@ -392,7 +393,7 @@ cdef class ntl_ZZ_pEX(object):
         [[5 1] [4 99]]
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         sig_on()
         # self.c.restore_c() # _new() restores the context
@@ -421,7 +422,7 @@ cdef class ntl_ZZ_pEX(object):
         ([], [[5 1] [4 99]])
         """
         if self.c is not other.c:
-            raise ValueError, "You can not perform arithmetic with elements of different moduli."
+            raise ValueError("You can not perform arithmetic with elements of different moduli.")
         cdef ntl_ZZ_pEX r = self._new()
         cdef ntl_ZZ_pEX q = self._new()
         sig_on()
@@ -963,7 +964,7 @@ cdef class ntl_ZZ_pEX(object):
         [[1] [] [] [] [] [2 8] [9 10]]
         """
         if m < 0:
-            raise ArithmeticError, "m (=%s) must be positive"%m
+            raise ArithmeticError("m (=%s) must be positive" % m)
         #Need to check here if constant term is invertible
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
@@ -1038,7 +1039,7 @@ cdef class ntl_ZZ_pEX(object):
     #    """
     #    self.c.restore_c()
     #    if not self.is_monic():
-    #        raise ValueError, "polynomial must be monic."
+    #        raise ValueError("polynomial must be monic.")
     #    cdef long N = self.degree()
     #    cdef vec_ZZ_pE_c
     #    sig_on()
@@ -1074,7 +1075,7 @@ cdef class ntl_ZZ_pEX(object):
         modulus must be monic, and of positive degree strictly greater
         than the degree of self.
 
-        EXAMPLE:
+        EXAMPLES:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)

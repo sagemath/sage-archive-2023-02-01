@@ -21,10 +21,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
-
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 
 import sys
 
@@ -86,13 +87,13 @@ class pAdicPrinterDefaults(SageObject):
         self._mode = mode
         self._pos = bool(pos)
         if not -1 <= max_ram_terms <= sys.maxsize:
-            raise ValueError, "max_ram_terms must be positive and fit in a long"
+            raise ValueError("max_ram_terms must be positive and fit in a long")
         self._max_ram_terms = int(max_ram_terms)
         if not -1 <= max_unram_terms <= sys.maxsize:
-            raise ValueError, "max_unram_terms must be positive and fit in a long"
+            raise ValueError("max_unram_terms must be positive and fit in a long")
         self._max_unram_terms = int(max_unram_terms)
         if not -1 <= max_terse_terms <= sys.maxsize:
-            raise ValueError, "max_terse_terms must be positive and fit in a long"
+            raise ValueError("max_terse_terms must be positive and fit in a long")
         self._max_terse_terms = int(max_terse_terms)
         self._sep = sep
         if alphabet is None:
@@ -139,7 +140,7 @@ class pAdicPrinterDefaults(SageObject):
             if mode in ['val-unit','series','terse','digits','bars']:
                 self._mode = mode
             else:
-                raise ValueError, "invalid printing mode"
+                raise ValueError("invalid printing mode")
 
     def allow_negatives(self, neg = None):
         """
@@ -393,14 +394,14 @@ cdef class pAdicPrinter_class(SageObject):
             self.mode = terse
         elif mode == 'digits':
             if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.inertia_degree() != 1):
-                raise ValueError, "digits printing mode only usable for totally ramified extensions with p at most the length of the alphabet (default 62).  Try using print_mode = 'bars' instead."
+                raise ValueError("digits printing mode only usable for totally ramified extensions with p at most the length of the alphabet (default 62).  Try using print_mode = 'bars' instead.")
             else:
                 self.mode = digits
                 self.pos = True
         elif mode == 'bars':
             self.mode = bars
         else:
-            raise ValueError, "printing mode must be one of 'val-unit', 'series', 'terse', 'digits' or 'bars'"
+            raise ValueError("printing mode must be one of 'val-unit', 'series', 'terse', 'digits' or 'bars'")
         if ram_name is None:
             self.ram_name = ring._uniformizer_print()
         else:
@@ -420,19 +421,19 @@ cdef class pAdicPrinter_class(SageObject):
         if max_ram_terms is not None:
             self.max_ram_terms = max_ram_terms
             if self.max_ram_terms < -1:
-                raise ValueError, "max_ram_terms must be positive and fit in a long"
+                raise ValueError("max_ram_terms must be positive and fit in a long")
         else:
             self.max_ram_terms = _printer_defaults._max_ram_terms
         if max_unram_terms is not None:
             self.max_unram_terms = max_unram_terms
             if self.max_unram_terms < -1:
-                raise ValueError, "max_unram_terms must be positive and fit in a long"
+                raise ValueError("max_unram_terms must be positive and fit in a long")
         else:
             self.max_unram_terms = _printer_defaults._max_unram_terms
         if max_terse_terms is not None:
             self.max_terse_terms = max_terse_terms
             if self.max_terse_terms < -1:
-                raise ValueError, "max_terse_terms must be positive and fit in a long"
+                raise ValueError("max_terse_terms must be positive and fit in a long")
         else:
             self.max_terse_terms = _printer_defaults._max_terse_terms
 
@@ -461,26 +462,29 @@ cdef class pAdicPrinter_class(SageObject):
                               'sep':self.sep, \
                               'alphabet': self.alphabet})
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Comparison.
 
         TESTS::
 
-            sage: R = Zp(5); S = Zp(5,print_mode='bars'); R._printer == S._printer
+            sage: R = Zp(5)
+            sage: S = Zp(5,print_mode='bars')
+            sage: R._printer == S._printer
             False
         """
         if not isinstance(other, pAdicPrinter_class):
-            return 1
-        return self.cmp_modes(other)
+            return NotImplemented
+        return self.richcmp_modes(other, op)
 
-    def cmp_modes(pAdicPrinter_class self, pAdicPrinter_class other):
+    def richcmp_modes(pAdicPrinter_class self,
+                      pAdicPrinter_class other, int op):
         """
-        Returns a comparison of the printing modes of self and other.
+        Return a comparison of the printing modes of self and other.
 
-        Returns 0 if and only if all relevant modes are equal
+        Return 0 if and only if all relevant modes are equal
         (max_unram_terms is irrelevant if the ring is totally ramified
-        over the base for example).  Does not check if the rings are
+        over the base for example). This does not check if the rings are
         equal (to prevent infinite recursion in the comparison
         functions of p-adic rings), but it does check if the primes
         are the same (since the prime affects whether pos is
@@ -490,65 +494,81 @@ cdef class pAdicPrinter_class(SageObject):
 
             sage: R = Qp(7, print_mode='digits', print_pos=True)
             sage: S = Qp(7, print_mode='digits', print_pos=False)
-            sage: R._printer.cmp_modes(S._printer)
-            0
+            sage: R._printer == S._printer
+            True
             sage: R = Qp(7)
             sage: S = Qp(7,print_mode='val-unit')
             sage: R == S
             False
-            sage: R._printer.cmp_modes(S._printer)
-            -1
+            sage: R._printer < S._printer
+            True
         """
-        c = cmp(self.mode, other.mode)
-        if c != 0:
-            return c
+        lx = self.mode
+        rx = other.mode
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         p = self.ring.prime()
         q = other.ring.prime()
-        c = cmp(p, q)
-        if c != 0:
-            return c
+        if p != q:
+            return richcmp_not_equal(p, q, op)
+
         if p != 2 and (self.mode == terse or self.mode == series or self.mode == val_unit or self.mode == bars):
-            c = cmp(self.pos, other.pos)
-            if c != 0:
-                return c
+            lx = self.pos
+            rx = other.pos
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
         if self.mode != digits:
-            c = cmp(self.ram_name, other.ram_name)
-            if c != 0:
-                return c
+            lx = self.ram_name
+            rx = other.ram_name
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
         if self.mode == bars:
-            c = cmp(self.sep, other.sep)
-            if c != 0:
-                return c
+            lx = self.sep
+            rx = other.sep
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
         if self.mode == digits:
-            c = cmp(self.alphabet[:p], other.alphabet[:q])
-            if c != 0:
-                return c
+            lx = self.alphabet[:p]
+            rx = other.alphabet[:q]
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
         if self.mode == series or self.mode == digits or self.mode == bars:
-            c = cmp(self.max_ram_terms, other.max_ram_terms)
-            if c != 0:
-                return c
-        f = self.ring.f()
-        if other.ring.f() > f:
-            f = other.ring.f()
-        if f > 1:
-            if self.mode == series or self.mode == bars:
-                c = cmp(self.unram_name, other.unram_name)
-                if c != 0:
-                    return c
-                c = cmp(self.max_unram_terms, other.max_unram_terms)
-                if c != 0:
-                    return c
-        f = self.ring.degree()
-        if other.ring.degree() > f:
-            f = other.ring.degree()
+            lx = self.max_ram_terms
+            rx = other.max_ram_terms
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
+        f = max(self.ring.f(), other.ring.f())
+
+        if f > 1 and (self.mode == series or self.mode == bars):
+            lx = self.unram_name
+            rx = other.unram_name
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
+            lx = self.max_unram_terms
+            rx = other.max_unram_terms
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
+        f = max(self.ring.degree(), other.ring.degree())
+
         if f > 1 and self.mode == terse:
-            c = cmp(self.var_name, other.var_name)
-            if c != 0:
-                return c
-            c = cmp(self.max_terse_terms, other.max_terse_terms)
-            if c != 0:
-                return c
-        return 0
+            lx = self.var_name
+            rx = other.var_name
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+            lx = self.max_terse_terms
+            rx = other.max_terse_terms
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+
+        return rich_to_bool(op, 0)
 
     def _repr_(self):
         """
@@ -809,7 +829,7 @@ cdef class pAdicPrinter_class(SageObject):
         elif mode == 'bars':
             _mode = bars
         else:
-            raise ValueError, "printing mode must be one of 'val-unit', 'series', 'terse', 'bars', or 'digits'"
+            raise ValueError("printing mode must be one of 'val-unit', 'series', 'terse', 'bars', or 'digits'")
         if pos is None:
             _pos = self.pos
         else:
@@ -828,13 +848,13 @@ cdef class pAdicPrinter_class(SageObject):
 
             sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a #indirect doctest
             7 * 52 + O(7^5)
-            sage: print a.str('terse')
+            sage: print(a.str('terse'))
             364 + O(7^5)
-            sage: print a.str('series')
+            sage: print(a.str('series'))
             3*7 + 7^3 + O(7^5)
             sage: K = Qp(7,4,'capped-rel','val-unit'); a = K(364); a
             7 * 52 + O(7^5)
-            sage: print a.str('series')
+            sage: print(a.str('series'))
             3*7 + 7^3 + O(7^5)
             sage: padic_printing.sep('')
             sage: K = Qp(7, print_mode='digits')
@@ -1067,10 +1087,10 @@ cdef class pAdicPrinter_class(SageObject):
                 val = elt.valuation_c()
                 # since elt was not supposed to be zero, this should give a non-empty list.
                 if len(L) == 0:
-                    raise RuntimeError, "repr_spec called on zero"
+                    raise RuntimeError("repr_spec called on zero")
                 if isinstance(L[0], list): # unramified part to the extension
                     if self.unram_name is None:
-                        raise RuntimeError, "need to have specified a name for the unramified variable"
+                        raise RuntimeError("need to have specified a name for the unramified variable")
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, [])
                     for i from 0 <= i < len(L):
                         term = self._print_unram_term(L[i], do_latex, self.unram_name, self.max_unram_terms, 0, 0)

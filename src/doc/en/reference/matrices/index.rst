@@ -54,6 +54,8 @@ objects like operation tables (e.g. the multiplication table of a group).
 
    sage/matrix/matrix_misc
 
+   sage/matrix/special
+
    sage/matrix/matrix
 
    sage/matrix/matrix0
@@ -85,7 +87,9 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/matrix_real_double_dense
 
    sage/matrix/matrix_complex_double_dense
+   sage/matrix/matrix_complex_ball_dense
 
+   sage/matrix/matrix_polynomial_dense
    sage/matrix/matrix_mpolynomial_dense
 
    sage/matrix/operation_table
@@ -94,7 +98,6 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/change_ring
    sage/matrix/echelon_matrix
    sage/matrix/matrix_cyclo_dense
-   sage/matrix/matrix_integer_2x2
    sage/matrix/matrix_integer_dense_hnf
    sage/matrix/matrix_integer_dense_saturation
    sage/matrix/matrix_integer_sparse
@@ -106,6 +109,7 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/matrix_window
    sage/matrix/misc
    sage/matrix/symplectic_basis
+   sage/matrix/compute_J_ideal
 
    sage/matrix/benchmark
 

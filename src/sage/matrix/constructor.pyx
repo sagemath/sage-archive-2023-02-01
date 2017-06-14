@@ -12,7 +12,6 @@ General matrix Constructor
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 import types
 from .matrix_space import MatrixSpace
 from sage.rings.ring import is_Ring
@@ -452,7 +451,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Real Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float64')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'float64')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -464,7 +463,7 @@ class MatrixFactory(object):
         [4.0 5.0 6.0]
         [7.0 8.0 9.0]
         Full MatrixSpace of 3 by 3 dense matrices over Complex Double Field
-        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'complex128')
+        sage: n = numpy.matrix([[1,2,3],[4,5,6],[7,8,9]],'complex128')
         sage: m = matrix(n); m; m.parent()
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
@@ -481,6 +480,23 @@ class MatrixFactory(object):
         [3.0 4.0]
         sage: matrix(numpy.array([[5]]))
         [5]
+        sage: matrix(numpy.matrix([[5]]))
+        [5]
+
+    A ring and a numpy array::
+
+        sage: n = numpy.array([[1,2,3],[4,5,6],[7,8,9]],'float32')
+        sage: m = matrix(ZZ, n); m; m.parent()
+        [1 2 3]
+        [4 5 6]
+        [7 8 9]
+        Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+        sage: n = matrix(QQ, 2, 2, [1, 1/2, 1/3, 1/4]).numpy(); n
+        array([[ 1.        ,  0.5       ],
+               [ 0.33333333,  0.25      ]])
+        sage: matrix(QQ, n)
+        [  1 1/2]
+        [1/3 1/4]
 
     The dimensions of a matrix may be given as numpy types::
 
@@ -553,6 +569,22 @@ class MatrixFactory(object):
         Traceback (most recent call last):
         ...
         TypeError: invalid matrix constructor: type matrix? for help
+
+    TESTS:
+
+    Some calls using an iterator (note that xrange is no longer available
+    in Python 3)::
+
+        sage: from six.moves import range
+        sage: matrix(QQ, 3, 6, range(18), sparse=true)
+        [ 0  1  2  3  4  5]
+        [ 6  7  8  9 10 11]
+        [12 13 14 15 16 17]
+        sage: matrix(4, 4, range(16))
+        [ 0  1  2  3]
+        [ 4  5  6  7]
+        [ 8  9 10 11]
+        [12 13 14 15]
 
     AUTHORS:
 
@@ -644,6 +676,8 @@ class MatrixFactory(object):
                 jrange = srange(ncols)
                 arg = [[arg(i, j) for j in jrange] for i in irange]
 
+            if isinstance(arg, xrange):
+                arg = list(arg)
             if isinstance(arg, (list, tuple)):
                 if not arg:
                     # no entries are specified, pass back the zero matrix
@@ -705,6 +739,10 @@ class MatrixFactory(object):
                 if is_numpy_type(type(arg)):
                     import numpy
                     if isinstance(arg, numpy.ndarray):
+                        # Convert to a numpy array if it was a matrix.
+                        if type(arg) is not numpy.ndarray:
+                            arg = numpy.array(arg)
+
                         str_dtype = str(arg.dtype)
 
                         if not (arg.flags.c_contiguous is True or arg.flags.f_contiguous is True):
@@ -730,6 +768,9 @@ class MatrixFactory(object):
                             m = matrix([list(row) for row in list(arg)])
                         else:
                             raise TypeError("cannot convert NumPy matrix to Sage matrix")
+
+                        if ring is not None and m.base_ring() is not ring:
+                            m = m.change_ring(ring)
 
                         return m
                 elif nrows is not None and ncols is not None:
@@ -828,6 +869,7 @@ def prepare_dict(w):
     X = [x for _, x in Z]
     entries, ring = prepare(X)
     return dict([(Z[i][0],entries[i]) for i in range(len(entries))]), ring
+
 
 def nrows_from_dict(d):
     """

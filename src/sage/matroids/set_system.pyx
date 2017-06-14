@@ -25,6 +25,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
@@ -113,7 +114,7 @@ cdef class SetSystem:
             Iterator over a system of subsets
             sage: sorted(S[1])
             [3, 4]
-            sage: for s in S: print sorted(s)
+            sage: for s in S: print(sorted(s))
             [1, 2]
             [3, 4]
             [1, 2, 4]
@@ -153,7 +154,7 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for s in S: print sorted(s)
+            sage: for s in S: print(sorted(s))
             [1, 2]
             [3, 4]
             [1, 2, 4]
@@ -245,7 +246,7 @@ cdef class SetSystem:
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
             sage: T = S._complements()
-            sage: for t in T: print sorted(t)
+            sage: for t in T: print(sorted(t))
             [3, 4]
             [1, 2]
             [3]
@@ -544,12 +545,12 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for p in S._equitable_partition()[0]: print sorted(p)
+            sage: for p in S._equitable_partition()[0]: print(sorted(p))
             [3]
             [4]
             [1, 2]
             sage: T = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 3, 4]])
-            sage: for p in T._equitable_partition()[0]: print sorted(p)
+            sage: for p in T._equitable_partition()[0]: print(sorted(p))
             [2]
             [1]
             [3, 4]
@@ -620,13 +621,13 @@ cdef class SetSystem:
 
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
-            sage: for p in S._heuristic_partition()[0]: print sorted(p)
+            sage: for p in S._heuristic_partition()[0]: print(sorted(p))
             [3]
             [4]
             [2]
             [1]
             sage: T = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 3, 4]])
-            sage: for p in T._heuristic_partition()[0]: print sorted(p)
+            sage: for p in T._heuristic_partition()[0]: print(sorted(p))
             [2]
             [1]
             [4]

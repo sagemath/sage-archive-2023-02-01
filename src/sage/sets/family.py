@@ -33,7 +33,7 @@ Check :trac:`12482` (shall be run in a fresh session)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
@@ -235,8 +235,8 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
     called::
 
         sage: def compute_value(i):
-        ...       print('computing 2*'+str(i))
-        ...       return 2*i
+        ....:     print('computing 2*'+str(i))
+        ....:     return 2*i
         sage: f = Family([3,4,7], compute_value, hidden_keys=[2])
         computing 2*3
         computing 2*4
@@ -326,7 +326,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
 
     ::
 
-        sage: f = Family(range(1,27), lambda i: chr(i+96))
+        sage: f = Family(list(range(1,27)), lambda i: chr(i+96))
         sage: f
             Finite family {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f', 7: 'g', 8: 'h', 9: 'i', 10: 'j', 11: 'k', 12: 'l', 13: 'm', 14: 'n', 15: 'o', 16: 'p', 17: 'q', 18: 'r', 19: 's', 20: 't', 21: 'u', 22: 'v', 23: 'w', 24: 'x', 25: 'y', 26: 'z'}
         sage: f[2]
@@ -532,7 +532,7 @@ class FiniteFamily(AbstractFamily):
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: TestSuite(f).run()
 
-        Check for bug #5538::
+        Check for bug :trac:`5538`::
 
             sage: d = {1:"a", 3:"b", 4:"c"}
             sage: f = Family(d)
@@ -541,12 +541,12 @@ class FiniteFamily(AbstractFamily):
             Finite family {1: 'a', 3: 'b', 4: 'c'}
             """
         # TODO: use keys to specify the order of the elements
-        Parent.__init__(self, category = FiniteEnumeratedSets())
+        Parent.__init__(self, category=FiniteEnumeratedSets())
         self._dictionary = dict(dictionary)
         self._keys = keys
         if keys is None:
             # Note: this overrides the two methods keys and values!
-            self.keys   = dictionary.keys
+            self.keys = dictionary.keys
             self.values = dictionary.values
 
     @cached_method
@@ -1069,7 +1069,7 @@ class LazyFamily(AbstractFamily):
         """
         f = self.function
         # This should be done once for all by registering
-        # sage.misc.fpickle.pickle_function to copy_reg
+        # sage.misc.fpickle.pickle_function to copyreg
         if isinstance(f, type(Family)): # TODO: where is the python `function` type?
             from sage.misc.fpickle import pickle_function
             f = pickle_function(f)
@@ -1168,7 +1168,7 @@ class TrivialFamily(AbstractFamily):
             sage: f.keys()
             [0, 1, 2]
         """
-        return range(len(self._enumeration))
+        return list(range(len(self._enumeration)))
 
     def cardinality(self):
         """
@@ -1267,9 +1267,9 @@ class EnumeratedFamily(LazyFamily):
             sage: TestSuite(f).run()
         """
         if enumset.cardinality() == Infinity:
-            baseset=NonNegativeIntegers()
+            baseset = NonNegativeIntegers()
         else:
-            baseset=xrange(enumset.cardinality())
+            baseset = range(enumset.cardinality())
         LazyFamily.__init__(self, baseset, enumset.unrank)
         self.enumset = enumset
 

@@ -21,10 +21,13 @@ We construct products projective spaces of various dimensions over the same ring
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 from copy import copy
-
+from sage.categories.integral_domains import IntegralDomains
+from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
+from sage.structure.sequence import Sequence
+from sage.structure.sage_object import richcmp
 
 
 class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
@@ -75,6 +78,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: X([1, 1, 2, 1])
             (1 : 1 , 2 : 1)
         """
+        polys = copy(polys)
         SchemeMorphism.__init__(self, parent)
         if all(isinstance(P, SchemeMorphism_point) for P in polys):
             if check:
@@ -88,6 +92,8 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
                 parent.codomain()._check_satisfies_equations(Q)
             self._points = polys
         else:
+            R = parent.codomain().ambient_space().base_ring()
+            polys = Sequence(polys, R)
             N = parent.codomain().ambient_space().dimension_relative_components()
             if check:
                 parent.codomain()._check_satisfies_equations(polys)
@@ -134,18 +140,17 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         """
         return('(%s)'%(" , ".join((" : ".join([repr(f) for f in Q])) for Q in self._points)))
 
-    def __eq__(self, other):
+    def _richcmp_(self, right, op):
         r"""
-        Tests the projective equality of two points.
+        Compare two points in products of projective spaces.
 
         INPUT:
 
-        - ``right`` - a point on a product of projective spaces.
+        - ``other`` -- another point
 
         OUTPUT:
 
-        - Boolean - ``True`` if the two points define the same point.
-          ``False`` otherwise.
+        boolean
 
         EXAMPLES::
 
@@ -154,24 +159,6 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: Q = T([2, 4, 6, 4, 5, 6])
             sage: P == Q
             True
-        """
-        for i in range(self.codomain().ambient_space().num_components()):
-           if self[i] != other[i]:
-               return False
-        return True
-
-    def __ne__(self, other):
-        r"""
-        Tests the projective inequality of two points.
-
-        INPUT:
-
-        - ``right`` -- a point on a product of projective spaces.
-
-        OUTPUT:
-
-        - Boolean - ``False`` if the two points define the same point.
-          ``True`` otherwise.
 
         EXAMPLES::
 
@@ -180,53 +167,36 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: Q = T([2, 4, 6, 4, 1, 0])
             sage: P != Q
             True
-        """
-        for i in range(self.codomain().ambient_space().num_components()):
-           if self[i] != other[i]:
-               return True
-        return False
-
-    def __cmp__(self, right):
-        r"""
-        Compare two points in products of projective spaces.
-
-        INPUT:
-
-        - ``other`` -- anything. To compare against this point.
-
-        OUTPUT:
-
-        ``+1``, ``0``, or ``-1``.
 
         EXAMPLES::
 
             sage: T = ProductProjectiveSpaces([1, 1, 1], GF(5), 'x')
             sage: P = T([3, 2, 3, 4, 1, 0])
             sage: Q = T([1, 2, 3, 4, 3, 1])
-            sage: P.__cmp__(Q)
-            1
+            sage: P > Q
+            True
 
         ::
 
             sage: T = ProductProjectiveSpaces([1, 1, 1], GF(5), 'x')
             sage: P = T([1, 2, 3, 4, 1, 0])
             sage: Q = T([1, 2, 3, 4, 3, 0])
-            sage: P.__cmp__(Q)
-            0
+            sage: P == Q
+            True
 
         ::
 
             sage: T = ProductProjectiveSpaces([1, 1, 1], GF(5), 'x')
             sage: P = T([1, 2, 3, 4, 1, 0])
             sage: Q = T([1, 2, 3, 4, 3, 1])
-            sage: P.__cmp__(Q)
-            -1
+            sage: P < Q
+            True
         """
         #needed for Digraph
         if not isinstance(right, (ProductProjectiveSpaces_point_ring)):
-            return -1
+            return NotImplemented
         else:
-            return(cmp(self._points, right._points))
+            return richcmp(self._points, right._points, op)
 
     def __copy__(self):
         r"""
@@ -271,6 +241,54 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         for P in self._points:
             L += P._coords
         return iter(L)
+
+    def __hash__(self):
+        """
+        Computes the hash value of this point.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces(Zmod(6), [1, 1])
+            sage: hash(PP([5, 1, 2, 4]))
+            1266382469                            # 32-bit
+            -855399699883264379                   # 64-bit
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces(ZZ, [1, 2])
+            sage: hash(PP([1, 1, 2, 2, 2]))
+            805439612                            # 32-bit
+            7267864846446758012                  # 64-bit
+            sage: hash(PP([1, 1, 1, 1, 1]))
+            805439612                            # 32-bit
+            7267864846446758012                  # 64-bit
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces(QQ, [1, 1])
+            sage: hash(PP([1/7, 1, 2, 1]))
+            1139616004                          # 32-bit
+            -7585172175017137916                # 64-bit
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces(GF(7), [1, 1, 1])
+            sage: hash(PP([4, 1, 5, 4, 6, 1]))
+            1796924635                          # 32-bit
+            -4539377540667874085                # 64-bit
+        """
+        R = self.codomain().base_ring()
+        # if there is a fraction field normalize the point so that
+        # equal points have equal hash values
+        if R in IntegralDomains():
+            P = self.change_ring(FractionField(R))
+            P.normalize_coordinates()
+            return hash(tuple(P))
+        # if there is no good way to normalize return
+        # a constant value
+        return hash(self.codomain())
 
     def normalize_coordinates(self):
         r"""
@@ -489,3 +507,63 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
                 Q.normalize_coordinates()
             Orb.append(Q)
         return(Orb)
+
+class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
+
+    def intersection_multiplicity(self, X):
+        r"""
+        Return the intersection multiplicity of the codomain of this point and subscheme ``X`` at this point.
+
+        This uses the subscheme implementation of intersection_multiplicity. This point must be a point
+        on a subscheme of a product of projective spaces.
+
+        INPUT:
+
+        - ``X`` -- a subscheme in the same ambient space as the codomain of this point.
+
+        OUTPUT: An integer.
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,u,v> = ProductProjectiveSpaces(QQ, [2,1])
+            sage: X = PP.subscheme([y^2*z^3*u - x^5*v])
+            sage: Y = PP.subscheme([u^3 - v^3, x - y])
+            sage: Q = X([0,0,1,1,1])
+            sage: Q.intersection_multiplicity(Y)
+            2
+        """
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.codomain()):
+            raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
+        return self.codomain().intersection_multiplicity(X, self)
+
+    def multiplicity(self):
+        r"""
+        Return the multiplicity of this point on its codomain.
+
+        This uses the subscheme implementation of multiplicity. This point must be a point
+        on a subscheme of a product of projective spaces.
+
+        OUTPUT: an integer.
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,w,u,v,t> = ProductProjectiveSpaces(QQ, [3,2])
+            sage: X = PP.subscheme([x^8*t - y^8*t + z^5*w^3*v])
+            sage: Q1 = X([1,1,0,0,-1,-1,1])
+            sage: Q1.multiplicity()
+            1
+            sage: Q2 = X([0,0,0,1,0,1,1])
+            sage: Q2.multiplicity()
+            5
+            sage: Q3 = X([0,0,0,1,1,0,0])
+            sage: Q3.multiplicity()
+            6
+        """
+        from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+        if is_ProductProjectiveSpaces(self.codomain()):
+            raise TypeError("this point must be a point on a subscheme of a product of projective spaces")
+        return self.codomain().multiplicity(self)
+
+class ProductProjectiveSpaces_point_finite_field(ProductProjectiveSpaces_point_field):
+    pass

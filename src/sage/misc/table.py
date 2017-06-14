@@ -9,10 +9,13 @@ AUTHORS:
 
 - John H. Palmieri (2012-11)
 """
+from __future__ import absolute_import
+from six.moves import cStringIO as StringIO
+from six.moves import range, zip
 
-from cStringIO import StringIO
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+
 
 class table(SageObject):
     r"""
@@ -166,11 +169,10 @@ class table(SageObject):
         |   4 | 5 | 60 |
         +-----+---+----+
 
-    To generate HTML you should use ``html(table(...))`` but that
-    doesn't work :trac:`18292`; A workaround is ::
+    To generate HTML you should use ``html(table(...))``::
 
-        sage: output = table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], 
-        ....:                     header_row=True, frame=True)._html_()
+        sage: data = [["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]]
+        sage: output = html(table(data, header_row=True, frame=True))
         sage: type(output)
         <class 'sage.misc.html.HtmlFragment'>
         sage: print(output)
@@ -253,7 +255,7 @@ class table(SageObject):
             raise ValueError("Don't set both 'rows' and 'columns' when defining a table.")
         # If columns is set, use its transpose for rows.
         if columns:
-            rows = zip(*columns)
+            rows = list(zip(*columns))
         # Set the rest of the options.
         self._options = {}
         if header_row is True:
@@ -396,7 +398,7 @@ class table(SageObject):
             | z || 3 | 6 |
             +---++---+---+
         """
-        return table(zip(*self._rows),
+        return table(list(zip(*self._rows)),
                      header_row=self._options['header_column'],
                      header_column=self._options['header_row'],
                      frame=self._options['frame'],
@@ -470,7 +472,7 @@ class table(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: t = table([1, 2, 3])
-            sage: t._rich_repr_(dm)    # the doctest backend does not suppot html
+            sage: t._rich_repr_(dm)    # the doctest backend does not support html
         """
         OutputHtml = display_manager.types.OutputHtml
         if OutputHtml in display_manager.supported_output():
@@ -580,7 +582,7 @@ class table(SageObject):
             \end{array}\right)$ & $5$ & $6$ \\ \hline
             \end{tabular}
         """
-        from latex import latex, LatexExpr
+        from .latex import latex, LatexExpr
         import types
 
         rows = self._rows
@@ -669,9 +671,8 @@ class table(SageObject):
             </table>
             </div>
 
-        Note that calling ``html(table(...))`` will have the same
-        effect as ``table(...)._html_()` after the deprecation period
-        in :trac:`18292`::
+        Note that calling ``html(table(...))`` has the same effect as
+        calling ``table(...)._html_()``::
 
             sage: T = table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], header_row=True, frame=True)
             sage: T
@@ -723,7 +724,7 @@ class table(SageObject):
         else:
             frame = ''
         s = StringIO()
-        if len(rows) > 0:
+        if rows:
             s.writelines([
                 # If the table has < 100 rows, don't truncate the output in the notebook
                 '<div class="notruncate">\n' if len(rows) <= 100 else '<div class="truncate">' ,
@@ -775,8 +776,8 @@ class table(SageObject):
         EXAMPLES::
 
             sage: T = table([['a', 'bb', 'ccccc'], [10, -12, 0], [1, 2, 3]])
-            sage: import StringIO
-            sage: s = StringIO.StringIO()
+            sage: from six import StringIO
+            sage: s = StringIO()
             sage: T._html_table_row(s, ['a', 2, '$x$'])
             sage: print(s.getvalue())
             <td>a</td>
@@ -784,8 +785,8 @@ class table(SageObject):
             <td><script type="math/tex">x</script></td>
         """
         from sage.plot.all import Graphics
-        from latex import latex
-        from html import math_parse
+        from .latex import latex
+        from .html import math_parse
         import types
 
         if isinstance(row, types.GeneratorType):
@@ -810,7 +811,7 @@ class table(SageObject):
             file.write(first_column_tag % ('<script type="math/tex">%s</script>' % latex(entry)))
 
         # Other entries:
-        for column in xrange(1,len(row)):
+        for column in range(1, len(row)):
             if isinstance(row[column], Graphics):
                 file.write(column_tag % row[column].show(linkmode = True))
             elif isinstance(row[column], str):

@@ -1,6 +1,7 @@
 """
 Path Algebras
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
@@ -21,8 +22,8 @@ Path Algebras
 
 import six
 from sage.misc.cachefunc import cached_method
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from algebra_elements import PathAlgebraElement
+from sage.combinat.free_module import CombinatorialFreeModule
+from .algebra_elements import PathAlgebraElement
 
 class PathAlgebra(CombinatorialFreeModule):
     r"""

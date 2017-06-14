@@ -197,6 +197,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
         Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
         Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
+        Defining w as shorthand for Symmetric Functions over Rational Field in the Witt basis
 
     We can then do conversions from one basis to another::
 
@@ -1370,7 +1371,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         else:
             morphism.codomain().register_coercion(morphism)
 
-    _shorthands = set(['e', 'h', 'm', 'p', 's', 'f'])
+    _shorthands = set(['e', 'h', 'm', 'p', 's', 'f', 'w'])
 
     def __init_extra__(self):
         """

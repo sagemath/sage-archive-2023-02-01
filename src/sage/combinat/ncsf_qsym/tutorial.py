@@ -148,6 +148,7 @@ means the partition obtained by sorting the composition `c`::
     Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
     Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
     Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
+    Defining w as shorthand for Symmetric Functions over Rational Field in the Witt basis
     sage: m[2,1]
     m[2, 1]
     sage: M(m[2,1])

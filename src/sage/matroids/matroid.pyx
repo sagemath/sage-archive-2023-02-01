@@ -7725,7 +7725,7 @@ cdef class Matroid(SageObject):
         r"""
         Return the matroid union with another matroid or a list of matroids.
 
-        Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_1`
+        Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_i`
         has ground set `E_i`. The *matroid
         union* `M` of `(M_1, M_2, \ldots, M_k)` has ground set `E = \cup E_i`.
         Moreover, a set `I \subseteq E` is independent in `M` if and only if the

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
@@ -217,6 +218,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         self.f = 1
         K = poly.base_ring().fraction_field()
         Qpmodulus = poly.change_ring(K)
+        # xep = ((π^e)%mod) / p
         xep = (self.poly_ring.gen()**self.e - Qpmodulus) / K.uniformizer()
         _, _, self.pxe = Qpmodulus.xgcd(xep)
         self.pxe = self.pxe.change_ring(poly.base_ring())

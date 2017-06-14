@@ -907,6 +907,11 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return whether this is a Coxeter element.
 
+            This is, whether ``self`` has an eigenvalue `e^{2\pi i/h}`
+            where `h` is the Coxeter number.
+
+            .. SEEALSO:: :meth:`sage.categories.finite_complex_reflection_groups.coxeter_elements`
+
             EXAMPLES::
 
                 sage: W = CoxeterGroup(['A',2])

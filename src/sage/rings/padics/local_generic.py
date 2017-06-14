@@ -204,6 +204,11 @@ class LocalGeneric(CommutativeRing):
             sage: ZpCA(3).change(p=17)
             17-adic Ring with capped absolute precision 20
 
+        You can switch between the ring of integers and its fraction field::
+
+            sage: ZpCA(3).change(field=True)
+            3-adic Field with capped relative precision 20
+
         You can also change print modes::
 
             sage: R = Zp(5).change(prec=5, print_mode='digits')
@@ -247,6 +252,12 @@ class LocalGeneric(CommutativeRing):
             functor.extras = copy(functor.extras)
             if 'type' in kwds and kwds['type'] not in functor._dvr_types:
                 raise ValueError("completion type must be one of %s"%(", ".join(functor._dvr_types[1:])))
+            if 'field' in kwds:
+                field = kwds.pop('field')
+                if field:
+                    ring = ring.fraction_field()
+                else:
+                    ring = ring.ring_of_integers()
             for atr in ('p', 'prec', 'type'):
                 if atr in kwds:
                     setattr(functor, atr, kwds.pop(atr))

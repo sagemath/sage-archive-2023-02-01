@@ -243,6 +243,32 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #        xnew = x - x*delta*(1-q*delta)
     #    return x
 
+    def construction(self):
+        """
+        Returns the functorial construction of this ring, namely,
+        the algebraic extension of the base ring defined by the given
+        polynomial.
+
+        Also preserves other information that makes this ring unique
+        (e.g. precision, rounding, print mode).
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(25, 8, print_mode='val-unit')
+            sage: c, R0 = R.construction(); R0
+            5-adic Ring with capped relative precision 8
+            sage: c(R0)
+            Unramified Extension of 5-adic Ring with capped relative precision 8 in a defined by (1 + O(5^8))*x^2 + (4 + O(5^8))*x + (2 + O(5^8))
+            sage: c(R0) == R
+            True
+        """
+        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
+        print_mode = self._printer.dict()
+        return (AEF([self._given_poly], [self.variable_name()],
+                    prec=self.precision_cap(), print_mode=self._printer.dict(),
+                    implementation=self._implementation),
+                self.base_ring())
+
     def fraction_field(self, print_mode=None):
         r"""
         Returns the fraction field of this extension, which is just
@@ -268,6 +294,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         if self.is_field() and print_mode is None:
             return self
+        if print_mode is None:
+            return self.change(field=True)
+        else:
+            return self.change(field=True, print_mode=print_mode)
         print_mode = self._modified_print_mode(print_mode)
         ground_mode = print_mode.copy()
         # We don't want to confuse the ground ring with different names.
@@ -307,6 +337,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
         if not self.is_field() and print_mode is None:
             return self
+        if print_mode is None:
+            return self.change(field=False)
+        else:
+            return self.change(field=False, print_mode=print_mode)
         print_mode = self._modified_print_mode(print_mode)
         ground_mode = print_mode.copy()
         # We don't want to confuse the ground ring with different names.

@@ -7748,8 +7748,6 @@ cdef class Matroid(SageObject):
             Ternary matroid of rank 3 on 7 elements, type 0-
         """
         from . import union_matroid
-        if not matroids:
-            return self
         if isinstance(matroids, Matroid):
             matroids = [matroids]
         else:
@@ -7757,9 +7755,9 @@ cdef class Matroid(SageObject):
                 if not isinstance(M, Matroid):
                     raise TypeError("Can only take the union with a "
                                      + "matroid or list of matroids.")
-            matroids = [M for M in matroids if M]
-            if not matroids:
-                return self
+        matroids = [M for M in matroids if M]
+        if not matroids:
+            return self
         # place this matroid at the beginning of the list
         matroids.insert(0,self)
         return union_matroid.MatroidUnion(iter(matroids))

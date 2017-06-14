@@ -1181,8 +1181,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 q2 = new_hecke._q2
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()
 
-                # is there an easier way that this to covert the coefficients to
-                # the correct base ring for new_hecke?
+                # is there an easier way that this to convert the
+                # coefficients to the correct base ring for new_hecke?
                 if num_vars == 2:
                     args = (q1, q2)
                 elif num_vars == 1:
@@ -2471,8 +2471,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 hecke = self.parent().realization_of()
                 q1 = new_hecke._q1
                 root = new_hecke._root
-                # is there an easier way that this to covert the coefficients to
-                # the correct base ring for new_hecke?
+                # is there an easier way that this to convert the
+                # coefficients to the correct base ring for new_hecke?
                 new_coeff = lambda c: new_hecke._base(normalized_laurent_polynomial(hecke._base, c)(q1,root))
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()
                 return new_basis._from_dict(dict( (w, new_coeff(c)) for (w,c) in self ))

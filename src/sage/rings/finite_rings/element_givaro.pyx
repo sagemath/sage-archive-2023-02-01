@@ -132,7 +132,7 @@ cdef class Cache_givaro(SageObject):
         Finite Field.
 
         These are implemented using Zech logs and the
-        cardinality must be less than `2^{16}`. By default conway polynomials
+        cardinality must be less than `2^{16}`. By default Conway polynomials
         are used as minimal polynomial.
 
         INPUT:

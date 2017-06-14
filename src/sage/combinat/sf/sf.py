@@ -179,16 +179,16 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The classical bases
 
-    In addition to the power sum basis, the other classical bases of the
-    symmetric function algebra are the elementary, complete homogeneous,
-    monomial, and Schur bases.  These can be defined as follows::
+    In addition to the power sum basis, other classical bases of the
+    symmetric function algebra include the elementary, complete
+    homogeneous, monomial, and Schur bases::
 
         sage: e = Sym.elementary()
         sage: h = Sym.homogeneous()
         sage: m = Sym.monomial()
         sage: s = Sym.schur()
 
-    These can be defined all at once with the single command::
+    These and others can be defined all at once with the single command::
 
         sage: Sym.inject_shorthands()
         Defining e as shorthand for Symmetric Functions over Rational Field in the elementary basis
@@ -197,7 +197,6 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
         Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
         Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
-        Defining w as shorthand for Symmetric Functions over Rational Field in the Witt basis
 
     We can then do conversions from one basis to another::
 
@@ -1371,7 +1370,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         else:
             morphism.codomain().register_coercion(morphism)
 
-    _shorthands = set(['e', 'h', 'm', 'p', 's', 'f', 'w'])
+    _shorthands = ['e', 'f', 'h', 'm', 'p', 's']
+    _shorthands_all = sorted(_shorthands + ['ht', 'o', 'sp', 'st', 'w'])
 
     def __init_extra__(self):
         """

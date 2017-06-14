@@ -2582,6 +2582,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 INPUT:
 
                 - ``shorthands`` -- a list (or iterable) of strings (default: ``self._shorthands``)
+                  or ``"all"`` (for ``self.shorthands_all``)
                 - ``verbose`` -- boolean (default ``True``);
                    whether to print the defined shorthands
 
@@ -2620,6 +2621,23 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: s
                     Symmetric Functions over Integer Ring in the Schur basis
 
+                Sometimes, like for symmetric functions, one can
+                request for all shorthands to be defined, including
+                less common ones::
+
+                    sage: S.inject_shorthands("all")
+                    Defining e as shorthand for Symmetric Functions over Integer Ring in the elementary basis
+                    Defining f as shorthand for Symmetric Functions over Integer Ring in the forgotten basis
+                    Defining h as shorthand for Symmetric Functions over Integer Ring in the homogeneous basis
+                    Defining ht as shorthand for Symmetric Functions over Integer Ring in the induced trivial character basis
+                    Defining m as shorthand for Symmetric Functions over Integer Ring in the monomial basis
+                    Defining o as shorthand for Symmetric Functions over Integer Ring in the orthogonal basis
+                    Defining p as shorthand for Symmetric Functions over Integer Ring in the powersum basis
+                    Defining s as shorthand for Symmetric Functions over Integer Ring in the Schur basis
+                    Defining sp as shorthand for Symmetric Functions over Integer Ring in the symplectic basis
+                    Defining st as shorthand for Symmetric Functions over Integer Ring in the irreducible symmetric group character basis
+                    Defining w as shorthand for Symmetric Functions over Integer Ring in the Witt basis
+
                 The messages can be silenced by setting ``verbose=False``::
 
                     sage: Q = QuasiSymmetricFunctions(ZZ)
@@ -2656,10 +2674,12 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     (True, True, True, True, True)
                 """
                 from sage.misc.misc import inject_variable
+                if shorthands == 'all':
+                    shorthands = getattr(self, '_shorthands_all', None)
                 if shorthands is None:
-                    if not hasattr(self, "_shorthands"):
+                    shorthands = getattr(self, '_shorthands', None)
+                    if shorthands is None:
                         raise NotImplementedError("no shorthands defined for {}".format(self))
-                    shorthands = self._shorthands
                 for shorthand in shorthands:
                     realization = getattr(self, shorthand)()
                     if verbose:

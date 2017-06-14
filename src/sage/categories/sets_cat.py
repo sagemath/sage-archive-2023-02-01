@@ -2582,7 +2582,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 INPUT:
 
                 - ``shorthands`` -- a list (or iterable) of strings (default: ``self._shorthands``)
-                  or ``"all"`` (for ``self.shorthands_all``)
+                  or ``"all"`` (for ``self._shorthands_all``)
                 - ``verbose`` -- boolean (default ``True``);
                    whether to print the defined shorthands
 

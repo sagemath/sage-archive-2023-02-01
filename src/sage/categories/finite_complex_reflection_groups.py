@@ -977,7 +977,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 that is the product of the simple generators in some
                 order.
 
-                .. SEEALSO:: :meth:`sage.categories.coxeter_groups.standard_coxeter_elements`
+                .. SEEALSO:: :meth:`~sage.categories.coxeter_groups.standard_coxeter_elements`
 
                 EXAMPLES::
 

@@ -904,13 +904,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             return G
 
         def is_coxeter_element(self):
-            """
+            r"""
             Return whether this is a Coxeter element.
 
             This is, whether ``self`` has an eigenvalue `e^{2\pi i/h}`
             where `h` is the Coxeter number.
 
-            .. SEEALSO:: :meth:`sage.categories.finite_complex_reflection_groups.coxeter_elements`
+            .. SEEALSO:: :meth:`~sage.categories.finite_complex_reflection_groups.coxeter_elements`
 
             EXAMPLES::
 

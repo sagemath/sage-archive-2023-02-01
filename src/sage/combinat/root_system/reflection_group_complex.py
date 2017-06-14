@@ -1750,7 +1750,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             .. SEEALSO::
 
                 :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
-                :meth:`sage.categories.finite_complex_reflection_groups.coxeter_elements`
+                :meth:`~sage.categories.finite_complex_reflection_groups.coxeter_elements`
 
             EXAMPLES::
 

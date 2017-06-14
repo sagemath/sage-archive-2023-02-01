@@ -292,7 +292,13 @@ class InterpreterGenerator(object):
              * (indirectly through interp_X.c) has no effect. But we really want
              * that header file to be included, so we #undef those include guards.
              * This way, the functions will be declared twice (once in wrapper_X.h
-             * and once in wrapper_X.c) but that is legal in C. */
+             * and once in wrapper_X.c) but that is legal in C.
+             *
+             * See https://trac.sagemath.org/ticket/21459 for why this hack is
+             * needed. If Cython merges https://github.com/cython/cython/pull/1650
+             * this hack could be replaced by using a late include for
+             * cdef extern from "sage/ext/interpreters/interp_{{ s.name }}.c"
+             */
             #undef __PYX_HAVE__sage__ext__interpreters__wrapper_{{ s.name }}
             #undef __PYX_HAVE_API__sage__ext__interpreters__wrapper_{{ s.name }}
 

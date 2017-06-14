@@ -157,7 +157,7 @@ AUTHORS:
 #*****************************************************************************
 from six import iteritems, integer_types
 
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.infinity import infinity, is_Infinite

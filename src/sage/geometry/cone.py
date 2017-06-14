@@ -4574,7 +4574,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(0,0)])
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
+            sage: list(M.basis()) == K.lyapunov_like_basis()
             True
 
         And by duality, every transformation is Lyapunov-like on the
@@ -4584,7 +4584,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_full_space()
             True
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
+            sage: list(M.basis()) == K.lyapunov_like_basis()
             True
 
         However, in a trivial space, there are no non-trivial linear maps,

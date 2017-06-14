@@ -121,13 +121,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of infinite enumerated modules over
+        Category of infinite enumerated modules with basis over
          (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of infinite enumerated algebras over
+        Category of infinite enumerated algebras with basis over
          (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
-        Category of infinite algebras over (quotient fields and metric spaces)
+        Category of infinite algebras with basis over
+         (quotient fields and metric spaces)
 
     TESTS::
 
@@ -177,21 +178,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS.dims()
             (2, 2)
             sage: B = MS.basis()
-            sage: B
+            sage: list(B)
             [
             [1 0]  [0 1]  [0 0]  [0 0]
             [0 0], [0 0], [1 0], [0 1]
             ]
-            sage: B[0]
+            sage: B[0,0]
             [1 0]
             [0 0]
-            sage: B[1]
+            sage: B[0,1]
             [0 1]
             [0 0]
-            sage: B[2]
+            sage: B[1,0]
             [0 0]
             [1 0]
-            sage: B[3]
+            sage: B[1,1]
             [0 0]
             [0 1]
             sage: A = MS.matrix([1,2,3,4])
@@ -308,9 +309,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 #            from sage.categories.morphism import CallMorphism
 #            from sage.categories.homset import Hom
 #            self.register_coercion(CallMorphism(Hom(base_ring,self)))
-            category = Algebras(base_ring.category())
+            category = Algebras(base_ring.category()).WithBasis()
         else:
-            category = Modules(base_ring.category())
+            category = Modules(base_ring.category()).WithBasis()
 
         if not self.__nrows or not self.__ncols:
             is_finite = True
@@ -1127,33 +1128,51 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
     def basis(self):
         """
-        Returns a basis for this matrix space.
+        Return a basis for this matrix space.
 
-        .. warning::
+        .. WARNING::
 
            This will of course compute every generator of this matrix
-           space. So for large matrices, this could take a long time,
+           space. So for large dimensions, this could take a long time,
            waste a massive amount of memory (for dense matrices), and
            is likely not very useful. Don't use this on large matrix
            spaces.
 
         EXAMPLES::
 
-            sage: Mat(ZZ,2,2).basis()
+            sage: list(Mat(ZZ,2,2).basis())
             [
             [1 0]  [0 1]  [0 0]  [0 0]
             [0 0], [0 0], [1 0], [0 1]
             ]
+
+        TESTS::
+
+            sage: B = Mat(ZZ,2,2).basis()
+            sage: B[0]
+            doctest:warning...:
+            DeprecationWarning: integer indices are deprecated. Use B[r,c] instead of B[i].
+            See http://trac.sagemath.org/22955 for details.
+            [1 0]
+            [0 0]
         """
-        v = [self.zero_matrix().__copy__() for _ in range(self.dimension())]
-        one = self.base_ring()(1)
-        i = 0
+        v = {(r,c): self.zero_matrix().__copy__() for r in range(self.__nrows)
+             for c in range(self.__ncols)}
+        one = self.base_ring().one()
+        keys = []
         for r in range(self.__nrows):
             for c in range(self.__ncols):
-                v[i][r,c] = one
-                v[i].set_immutable()
-                i += 1
-        return Sequence(v, universe=self, check=False, immutable=True, cr=True)
+                keys.append((r,c))
+                v[r,c][r,c] = one
+                v[r,c].set_immutable()
+        from sage.sets.family import Family
+        def old_index(i):
+            from sage.misc.superseded import deprecation
+            deprecation(22955, "integer indices are deprecated. Use B[r,c] instead of B[i].")
+            return v[keys[i]]
+        return Family(keys, v.__getitem__,
+                      hidden_keys=list(range(self.dimension())),
+                      hidden_function=old_index)
 
     def dimension(self):
         """

@@ -291,7 +291,7 @@ class LocalGeneric(CommutativeRing):
             for atr in ('p', 'prec', 'type'):
                 if atr in kwds:
                     setattr(functor, atr, kwds.pop(atr))
-            for atr in ('print_mode', 'halt', 'names', 'ram_name', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'check'):
+            for atr in ('print_mode', 'halt', 'names', 'ram_name', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'show_prec', 'check'):
                 if atr in kwds:
                     functor.extras[atr] = kwds.pop(atr)
             if kwds:
@@ -326,7 +326,7 @@ class LocalGeneric(CommutativeRing):
             for atr in ('names', 'var_name', 'res_name', 'unram_name', 'ram_name'):
                 if atr in kwds:
                     functor.kwds[atr] = kwds.pop(atr)
-            for atr in ('print_mode', 'halt', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'check'):
+            for atr in ('print_mode', 'halt', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'show_prec', 'check'):
                 if atr in kwds:
                     functor.kwds[atr] = kwds[atr]
             try:

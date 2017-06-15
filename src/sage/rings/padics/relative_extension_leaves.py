@@ -1,5 +1,5 @@
 """
-Relative extensions of p-adic fields.
+Relative extensions of `p`-adic rings
 """
 
 #*****************************************************************************

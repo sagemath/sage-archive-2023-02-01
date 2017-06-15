@@ -173,7 +173,7 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     if reduce_afterward:
         creduce(out, a, prec, prime_pow)
     else:
-        out._coeffs = a.__coeffs
+        out.__coeffs = a.__coeffs
 
 cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow) except -1:
     r"""

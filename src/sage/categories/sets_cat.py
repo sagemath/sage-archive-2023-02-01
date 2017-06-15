@@ -2610,7 +2610,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     Defining m as shorthand for Symmetric Functions over Integer Ring in the monomial basis
                     Defining p as shorthand for Symmetric Functions over Integer Ring in the powersum basis
                     Defining s as shorthand for Symmetric Functions over Integer Ring in the Schur basis
-                    Defining w as shorthand for Symmetric Functions over Integer Ring in the Witt basis
                     sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
                     s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
 

@@ -298,18 +298,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
             return self.change(field=True)
         else:
             return self.change(field=True, **print_mode)
-        print_mode = self._modified_print_mode(print_mode)
-        ground_mode = print_mode.copy()
-        # We don't want to confuse the ground ring with different names.
-        ground_mode['ram_name'] = None
-        ground_mode['unram_name'] = None
-        K = self.ground_ring().fraction_field(ground_mode)
-        #we don't want to set the print options due to the ground ring since
-        #different extension fields (with different options) can share the same ground ring.
-        if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
-        else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -340,19 +328,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if print_mode is None:
             return self.change(field=False)
         else:
-            return self.change(field=False, print_mode=print_mode)
-        print_mode = self._modified_print_mode(print_mode)
-        ground_mode = print_mode.copy()
-        # We don't want to confuse the ground ring with different names.
-        ground_mode['ram_name'] = None
-        ground_mode['unram_name'] = None
-        K = self.ground_ring().integer_ring(ground_mode)
-        #we don't want to set the print options due to the ground ring since
-        #different extension fields (with different options) can share the same ground ring.
-        if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
-        else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return self.change(field=False, **print_mode)
 
     #def hasGNB(self):
     #    raise NotImplementedError

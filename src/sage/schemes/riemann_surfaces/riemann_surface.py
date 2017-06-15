@@ -686,6 +686,7 @@ class RiemannSurface(object):
         F = self._fastcall_f
         dF = self._fastcall_dfdw
         neww = []
+        prec = self._CC.prec()
         # Iterate over all roots.
         for i in range(len(oldw)):
             delta = F(z0,oldw[i])/dF(z0,oldw[i])
@@ -703,7 +704,8 @@ class RiemannSurface(object):
                 Nnew_delta = new_delta.norm()
                 # If we found the root exactly, or if delta only affects half the digits and
                 # stops getting smaller, we decide that we have converged.
-                if (new_delta == 0) or (Nnew_delta>=Ndelta and Ndelta.log2() < wi.norm().log2()-wi.prec()):
+                if (new_delta == 0) or (Nnew_delta>=Ndelta and
+                            Ndelta.sign_mantissa_exponent()[2]+prec < wi.norm().sign_mantissa_exponent()[2]):
                     neww.append(wi)
                     break
                 delta=new_delta
@@ -770,6 +772,7 @@ class RiemannSurface(object):
         """
         F = self._fastcall_f
         dF = self._fastcall_dfdw
+        prec = self._CC.prec()
         delta = F(z0,oldw)/dF(z0,oldw)
         Ndelta = delta.norm()
         neww = oldw-delta
@@ -784,7 +787,8 @@ class RiemannSurface(object):
             Nnew_delta = new_delta.norm()
             # If we found the root exactly, or if delta only affects half the digits and
             # stops getting smaller, we decide that we have converged.
-            if (new_delta == 0) or (Nnew_delta>=Ndelta and Ndelta.log2() < neww.norm().log2()-neww.prec()):
+            if (new_delta == 0) or (Nnew_delta>=Ndelta and
+                    Ndelta.sign_mantissa_exponent()[2]+prec < neww.norm().sign_mantissa_exponent()[2]):
                 return neww
             delta = new_delta
             Ndelta = Nnew_delta

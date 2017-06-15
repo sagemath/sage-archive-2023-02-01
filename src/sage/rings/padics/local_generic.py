@@ -246,7 +246,7 @@ class LocalGeneric(CommutativeRing):
             sage: K.change(q=64)
             Unramified Extension of 2-adic Field with floating precision 4 in a defined by x^6 + x^4 + x^3 + x + 1
             sage: R.<x> = QQ[]
-            sage: K.change(modulus = x^2 - x + 2)
+            sage: K.change(modulus = x^2 - x + 2, print_pos=False)
             Unramified Extension of 5-adic Field with floating precision 4 in a defined by x^2 - x + 2
 
         and variable names::
@@ -264,7 +264,9 @@ class LocalGeneric(CommutativeRing):
         If you decrease the precision, the precision of the base stays the same::
 
             sage: Kdown = K.change(prec=2); Kdown
-            Unramified Extension of 5-adic Field with floating precision 2 in a defined by x^3 + 3*x + 3
+            Unramified Extension of 5-adic Field with floating precision 4 in a defined by x^3 + 3*x + 3
+            sage: Kdown.precision_cap()
+            2
             sage: Kdown.base_ring()
             5-adic Field with floating precision 4
         """
@@ -316,14 +318,16 @@ class LocalGeneric(CommutativeRing):
                 if 'p' in kwds and kwds['p'] != p:
                     raise ValueError("q does not match p")
                 kwds['p'] = p
+            modulus = None
             if 'modulus' in kwds:
                 modulus = kwds.pop('modulus')
                 if n is not None and modulus.degree() != n:
                     raise ValueError("modulus must have degree matching q")
-                functor.polys = [modulus]
+            if 'names' in kwds:
+                functor.names = [kwds.pop('names')]
             elif n is not None:
                 functor.polys = [n]
-            for atr in ('names', 'var_name', 'res_name', 'unram_name', 'ram_name'):
+            for atr in ('var_name', 'res_name', 'unram_name', 'ram_name'):
                 if atr in kwds:
                     functor.kwds[atr] = kwds.pop(atr)
             for atr in ('print_mode', 'halt', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'show_prec', 'check'):
@@ -333,6 +337,9 @@ class LocalGeneric(CommutativeRing):
                 ring = ring.change(**kwds)
             except AttributeError:
                 raise NotImplementedError
+            if modulus is not None:
+                # the following should change after we switch to exact defining polynomials
+                functor.polys = [modulus.change_ring(ring)]
         return functor(ring)
 
     def precision_cap(self):

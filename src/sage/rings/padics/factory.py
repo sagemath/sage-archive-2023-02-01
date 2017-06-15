@@ -1071,7 +1071,7 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
     if not isinstance(halt, Integer): halt = Integer(halt)
 
     base = Qp(p=p, prec=prec, type=type, print_mode=print_mode, halt=halt, names=ram_name, print_pos=print_pos,
-              print_sep=print_sep, print_max_terms=print_max_ram_terms, check=check)
+              print_sep=print_sep, print_max_terms=print_max_ram_terms, show_prec=show_prec, check=check)
 
     if k == 1:
         return base
@@ -1095,7 +1095,7 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
                             names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos,
                             print_sep=print_sep, print_max_ram_terms=print_max_ram_terms,
                             print_max_unram_terms=print_max_unram_terms,
-                            print_max_terse_terms=print_max_terse_terms, check=check,
+                            print_max_terse_terms=print_max_terse_terms, show_prec=show_prec, check=check,
                             unram=True, implementation=implementation)
 
 ######################################################
@@ -1498,7 +1498,7 @@ class Zp_class(UniqueFactory):
     *show_prec* determines whether the precision is printed (default ``False``)::
 
         sage: repr(Zp(5, 2, print_mode='bars', show_prec=True)(6))
-        '...11 + O(5^2)'
+        '1|1 + O(5^2)'
 
     *name* and *print_alphabet* have no effect.
 
@@ -1980,7 +1980,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
 
     *show_prec* determines whether the precision is printed (default ``True``)::
 
-        sage: U.<e> = Zq(9, 2, show_prec=False); repr(-3*(1+2*e)^4)
+        sage: U.<e> = Zq(9, 2, print_mode='val-unit', show_prec=False); repr(-3*(1+2*e)^4)
         '3 * (1 + 3*e)'
 
     *print_sep*, *print_max_ram_terms* and *print_max_unram_terms* have no effect.
@@ -2112,7 +2112,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
     *show_prec* determines whether the precision is printed (default ``False``)::
 
         sage: U.<e> = Zq(9, 2, print_mode='bars', show_prec=True); repr(-3*(1+2*e)^4)
-        '...[0, 1]|[1]|[] + O(3^2)'
+        '[0, 1]|[1]|[] + O(3^3)'
 
     *ram_name* and *print_max_terse_terms* have no effect.
 
@@ -2192,7 +2192,8 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
         F = q
         q = F[0][0]**F[0][1]
     base = Zp(p=F[0][0], prec=prec, type=type, print_mode=print_mode, halt=halt, names=ram_name,
-              print_pos=print_pos, print_sep=print_sep, print_max_terms=print_max_ram_terms, check=False)
+              print_pos=print_pos, print_sep=print_sep, print_max_terms=print_max_ram_terms,
+              show_prec=show_prec, check=False)
     if F[0][1] == 1:
         return base
     elif names is None:
@@ -2208,7 +2209,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
                             names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos,
                             print_sep=print_sep, print_max_ram_terms=print_max_ram_terms,
                             print_max_unram_terms=print_max_unram_terms,
-                            print_max_terse_terms=print_max_terse_terms, check=check,
+                            print_max_terse_terms=print_max_terse_terms, show_prec=show_prec, check=check,
                             unram=True, implementation=implementation)
 
 ######################################################
@@ -2581,7 +2582,7 @@ class pAdicExtension_class(UniqueFactory):
             T = ext_table['p', type(base.ground_ring_of_tower()).__base__]
             return T(premodulus, upoly, epoly, prec*precmult, halt,
                      {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
-                      'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms},
+                      'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms, 'show_prec': show_prec},
                      names, implementation)
 
 ExtensionFactory = pAdicExtension = pAdicExtension_class("pAdicExtension")

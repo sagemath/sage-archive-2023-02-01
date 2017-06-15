@@ -335,7 +335,7 @@ class LocalGeneric(CommutativeRing):
                             kwds['type'] = 'capped-rel'
                         elif self._prec_type() == 'fixed-mod':
                             raise TypeError('You must specify the type explicitly')
-                else:
+                elif ring.is_field():
                     ring = ring.ring_of_integers()
             # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
             if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or

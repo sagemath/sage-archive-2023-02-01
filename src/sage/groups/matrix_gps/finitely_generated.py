@@ -846,7 +846,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         - ``variable`` -- string (default: ``'t'``); Variable name for the Molien series
 
-        OUTPUT: single variable rational function or power series with integer cofficients
+        OUTPUT: single variable rational function or power series with integer coefficients
 
         EXAMPLES::
 

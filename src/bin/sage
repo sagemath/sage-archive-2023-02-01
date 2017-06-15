@@ -395,7 +395,7 @@ sage_setup() {
         exit 1
     fi
 
-    # Display the startup banner (unless SAGE_BANNER is explictly "no")
+    # Display the startup banner (unless SAGE_BANNER is explicitly "no")
     sage_banner
 
     maybe_sage_location

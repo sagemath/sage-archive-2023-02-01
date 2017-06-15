@@ -45,7 +45,7 @@ The following classes for basic shapes are supported:
 -  :class:`~sage.plot.plot3d.shapes2.Point` - a position in 3d, represented by a sphere of fixed size
 
 
-The following plotting funtions for basic shapes are supported
+The following plotting functions for basic shapes are supported
 
 
 -  :func:`~sage.plot.plot3d.shapes.ColorCube` - a cube with given size and sides with given colors

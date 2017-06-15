@@ -297,7 +297,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if print_mode is None:
             return self.change(field=True)
         else:
-            return self.change(field=True, print_mode=print_mode)
+            return self.change(field=True, **print_mode)
         print_mode = self._modified_print_mode(print_mode)
         ground_mode = print_mode.copy()
         # We don't want to confuse the ground ring with different names.

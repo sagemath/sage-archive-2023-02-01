@@ -26,6 +26,7 @@ from sage.categories.complete_discrete_valuation import CompleteDiscreteValuatio
 from sage.structure.category_object import check_default_category
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 class LocalGeneric(CommutativeRing):
     def __init__(self, base, prec, names, element_class, category=None):
@@ -197,20 +198,45 @@ class LocalGeneric(CommutativeRing):
 
         INPUT:
 
-        Keyword arguments are passed on to the :mod:`constructors <sage.rings.padics.factory>`
-        via the :meth:`construction` functor.
+        The following arguments are applied to every ring in the tower:
 
-        NOTES:
+        - ``type`` -- string, the precision type
+        - ``p`` -- the prime of the ground ring.  Defining polynomials
+                   will be converted to the new base rings.
+        - ``print_mode`` -- string
+        - ``print_pos`` -- bool
+        - ``print_sep`` -- string
+        - ``print_alphabet`` -- dict
+        - ``show_prec`` -- bool
+        - ``check`` -- bool
 
-        For extension rings, some keywords take effect only on the extension
-        (``names``, ``var_name``, ``res_name``, ``unram_name``, ``ram_name``)
-        and others on both the extension and, recursively, the base ring
-        (``print_mode``, ``halt``, ``print_pos``, ``print_sep``,
-         ``print_alphabet``, ``print_max_ram_terms``, ``check``).
+        The following arguments are only applied to the top ring in the tower:
 
-        If the precision is increased on an extension ring,
-        the precision on the base is increased as necessary.
-        If the precision is decreased, the precision of the base is unchanged.
+        - ``var_name`` -- string
+        - ``res_name`` -- string
+        - ``unram_name`` -- string
+        - ``ram_name`` -- string
+        -- ``names`` -- string
+        -- ``modulus`` -- polynomial
+
+        The following arguments have special behavior:
+
+        -- ``prec`` -- integer.  If the precision is increased on an extension ring,
+                       the precision on the base is increased as necessary (respecting ramification).
+                       If the precision is decreased, the precision of the base is unchanged.
+
+        -- ``field`` -- bool.  If True, switch to a tower of fields via the fraction field.
+                        If False, switch to a tower of rings of integers.
+
+        -- ``q`` -- prime power.  Replace the initial unramified extension of `\Qp` or `\Zp`
+                    with an unramified extension of residue cardinality `q`.
+                    If the initial extension is ramified, add in an unramified extension.
+
+        -- ``base`` -- ring or field. Use a specific base ring instead of recursively
+                       calling :meth:`change` down the tower.
+
+        See the :mod:`constructors <sage.rings.padics.factory>` for more details on the
+        meaning of these arguments.
 
         EXAMPLES:
 
@@ -270,6 +296,26 @@ class LocalGeneric(CommutativeRing):
             sage: Kdown.base_ring()
             5-adic Field with floating precision 4
         """
+        # We support both print_* and * for *=mode, pos, sep, alphabet
+        for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):
+            if atr in kwds:
+                kwds[atr[6:]] = kwds.pop(atr)
+        def get_unramified_modulus(q, res_name):
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+            return GF(q, res_name).modulus().change_ring(ZZ)
+        n = None
+        q = None
+        from .padic_base_generic import pAdicBaseGeneric
+        if 'q' in kwds and isinstance(self.base_ring(), pAdicBaseGeneric):
+            q = kwds.pop('q')
+            if not isinstance(q, Integer):
+                raise TypeError("q must be an integer")
+            p, n = q.is_prime_power(get_data=True)
+            if n == 0:
+                raise ValueError("q must be a prime power")
+            if 'p' in kwds and kwds['p'] != p:
+                raise ValueError("q does not match p")
+            kwds['p'] = p
         functor, ring = self.construction()
         functor = copy(functor)
         # There are two kinds of functors possible:
@@ -277,6 +323,7 @@ class LocalGeneric(CommutativeRing):
         # We distinguish them by the presence of ``prec``,
         if hasattr(functor, "prec"):
             functor.extras = copy(functor.extras)
+            functor.extras['print_mode'] = copy(functor.extras['print_mode'])
             if 'type' in kwds and kwds['type'] not in functor._dvr_types:
                 raise ValueError("completion type must be one of %s"%(", ".join(functor._dvr_types[1:])))
             if 'field' in kwds:
@@ -290,16 +337,41 @@ class LocalGeneric(CommutativeRing):
                             raise TypeError('You must specify the type explicitly')
                 else:
                     ring = ring.ring_of_integers()
+            # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
+            if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
+                (functor.extras['print_mode'].get('mode') == 'digits' and
+                 kwds.get('p', functor.p) > functor.p)):
+                p = kwds.get('p', functor.p)
+                from .padic_printing import _printer_defaults
+                kwds['alphabet'] = _printer_defaults.alphabet()[:p]
             for atr in ('p', 'prec', 'type'):
                 if atr in kwds:
                     setattr(functor, atr, kwds.pop(atr))
-            for atr in ('print_mode', 'halt', 'names', 'ram_name', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'show_prec', 'check'):
+            if q is not None:
+                if 'names' in kwds:
+                    names = kwds.pop('names')
+                else:
+                    raise TypeError("You must specify the name of the generator")
+                res_name = kwds.pop('res_name', names + '0')
+                modulus = kwds.pop('modulus', get_unramified_modulus(q, res_name))
+                implementation = kwds.pop('implementation', 'FLINT')
+            for atr in ('names', 'check'):
                 if atr in kwds:
                     functor.extras[atr] = kwds.pop(atr)
+            for atr in ('mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec'):
+                if atr in kwds:
+                    functor.extras['print_mode'][atr] = kwds.pop(atr)
             if kwds:
                 raise ValueError("Extra arguments received: %s"%(", ".join(kwds.keys())))
+            if q is not None:
+                # Create an unramified extension
+                base = functor(ring)
+                from .factory import ExtensionFactory
+                modulus = modulus.change_ring(base)
+                return ExtensionFactory(base=base, premodulus=modulus, names=names, res_name=res_name, unram=True, implementation=implementation)
         else:
             functor.kwds = copy(functor.kwds)
+            functor.kwds['print_mode'] = copy(functor.kwds['print_mode'])
             if 'prec' in kwds:
                 prec = kwds.pop('prec')
                 baseprec = (prec - 1) // self.e() + 1
@@ -307,36 +379,30 @@ class LocalGeneric(CommutativeRing):
                     kwds['prec'] = baseprec
                 functor.kwds['prec'] = prec
             from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
-            n = None
-            if 'q' in kwds and isinstance(ring, pAdicBaseGeneric):
-                q = kwds.pop('q')
-                if not isinstance(q, Integer):
-                    raise TypeError("q must be an integer")
-                p, n = q.is_prime_power(get_data=True)
-                if n == 0:
-                    raise ValueError("q must be a prime power")
-                if 'p' in kwds and kwds['p'] != p:
-                    raise ValueError("q does not match p")
-                kwds['p'] = p
+            if 'names' in kwds:
+                functor.names = [kwds.pop('names')]
             modulus = None
             if 'modulus' in kwds:
                 modulus = kwds.pop('modulus')
                 if n is not None and modulus.degree() != n:
                     raise ValueError("modulus must have degree matching q")
-            if 'names' in kwds:
-                functor.names = [kwds.pop('names')]
-            elif n is not None:
-                functor.polys = [n]
+            elif q is not None and self.f() != 1:
+                # If q is specified, replace the modulus with one from q.
+                modulus = get_unramified_modulus(q, functor.kwds.get('res_name', functor.names[0] + '0'))
             for atr in ('var_name', 'res_name', 'unram_name', 'ram_name'):
                 if atr in kwds:
                     functor.kwds[atr] = kwds.pop(atr)
-            for atr in ('print_mode', 'halt', 'print_pos', 'print_sep', 'print_alphabet', 'print_max_terms', 'show_prec', 'check'):
+            if 'check' in kwds:
+                functor.kwds['check'] = kwds['check']
+            for atr in ('mode', 'pos', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec'):
                 if atr in kwds:
-                    functor.kwds[atr] = kwds[atr]
-            try:
+                    functor.kwds['print_mode'][atr] = kwds[atr]
+            if 'base' in kwds:
+                ring = kwds['base']
+            else:
+                if q is not None and self.f() == 1:
+                    kwds['q'] = q
                 ring = ring.change(**kwds)
-            except AttributeError:
-                raise NotImplementedError
             if modulus is not None:
                 # the following should change after we switch to exact defining polynomials
                 functor.polys = [modulus.change_ring(ring)]

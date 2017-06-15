@@ -108,6 +108,8 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
             print_max_terms = print_mode['max_ram_terms']
         if 'max_terms' in print_mode:
             print_max_terms = print_mode['max_terms']
+        if 'show_prec' in print_mode:
+            show_prec = print_mode['show_prec']
         if 'mode' in print_mode:
             print_mode = print_mode['mode']
         else:

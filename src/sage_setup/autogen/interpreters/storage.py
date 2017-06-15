@@ -849,3 +849,106 @@ class StorageTypeMPFR(StorageTypeAutoReference):
             myself=self, c=c, py=py)
 
 ty_mpfr = StorageTypeMPFR()
+
+class StorageTypeMPC(StorageTypeAutoReference):
+    r"""
+    StorageTypeMPC is a subtype of StorageTypeAutoReference that deals
+    the MPC's mpc_t type.
+
+    For any given program that we're interpreting, ty_mpc can only
+    refer to a single precision.  An interpreter that needs to use
+    two precisions of mpc_t in the same program should instantiate two
+    separate instances of StorageTypeMPC.  (Interpreters that need
+    to handle arbitrarily many precisions in the same program are not
+    handled at all.)
+    """
+
+    def __init__(self, id=''):
+        r"""
+        Initializes the id property, as well as the properties described
+        in the documentation for StorageTypeAutoReference.__init__.
+
+        The id property is used if you want to have an interpreter
+        that handles two instances of StorageTypeMPC (that is,
+        handles mpC_t variables at two different precisions
+        simultaneously).  It's a string that's used to generate
+        variable names that don't conflict.  (The id system has
+        never actually been used, so bugs probably remain.)
+
+        EXAMPLES::
+
+            sage: from sage_setup.autogen.interpreters import *
+            sage: ty_mpc.class_member_declarations
+            'cdef object domain\ncdef ComplexNumber domain_element\n'
+            sage: ty_mpc.class_member_initializations
+            "self.domain = args['domain']\nself.domain_element = self.domain.zero()\n"
+            sage: ty_mpc.local_declarations
+            'cdef ComplexNumber cn\n'
+            sage: ty_mpc.decl_type
+            'mpc_t'
+            sage: ty_mpc.ref_type
+            'mpc_ptr'
+
+        TESTS::
+
+            sage: ty_mpfr2 = StorageTypeMPC(id='_the_second')
+            sage: ty_mpfr2.class_member_declarations
+            'cdef object domain_the_second\ncdef ComplexNumber domain_element_the_second\n'
+            sage: ty_mpfr2.class_member_initializations
+            "self.domain_the_second = args['domain_the_second']\nself.domain_element_the_second = self.domain.zero()\n"
+            sage: ty_mpfr2.local_declarations
+            'cdef ComplexNumber cn_the_second\n'
+
+        """
+        StorageTypeAutoReference.__init__(self, 'mpc_t', 'mpc_ptr')
+        self.id = id
+        self.class_member_declarations = "cdef object domain%s\ncdef ComplexNumber domain_element%s\n" % (self.id, self.id)
+        self.class_member_initializations = \
+            "self.domain%s = args['domain%s']\nself.domain_element%s = self.domain.zero()\n" % (self.id, self.id, self.id)
+        self.local_declarations = "cdef ComplexNumber cn%s\n" % self.id
+
+    def cython_init(self, loc):
+        r"""
+        Generates code to initialize an mpc_t reference (a variable, an
+        array reference, etc.)
+
+        EXAMPLES::
+
+            sage: from sage_setup.autogen.interpreters import *
+            sage: ty_mpc.cython_init('foo[i]')
+            u'mpc_init2(foo[i], self.domain_element._prec)'
+        """
+        return je("mpc_init2({{ loc }}, self.domain_element{{ myself.id }}._prec)",
+                  myself=self, loc=loc)
+
+    def cython_clear(self, loc):
+        r"""
+        Generates code to clear an mpfr_t reference (a variable, an
+        array reference, etc.)
+
+        EXAMPLES::
+
+            sage: from sage_setup.autogen.interpreters import *
+            sage: ty_mpc.cython_clear('foo[i]')
+            'mpc_clear(foo[i])'
+        """
+        return 'mpc_clear(%s)' % loc
+
+    def assign_c_from_py(self, c, py):
+        r"""
+        Given a Cython variable/array reference/etc. of this storage type,
+        and a Python expression, generate code to assign to the Cython
+        variable from the Python expression.
+
+        EXAMPLES::
+
+            sage: from sage_setup.autogen.interpreters import *
+            sage: ty_mpc.assign_c_from_py('foo[i]', 'bar[j]')
+            u'cn = self.domain(bar[j])\nmpc_set_fr_fr(foo[i], cn.__re, cn.__im, MPC_RNDNN)'
+        """
+        return je("""
+cn{{ myself.id }} = self.domain({{ py }})
+mpc_set_fr_fr({{ c }}, cn.__re, cn.__im, MPC_RNDNN)""", myself=self, c=c, py=py)
+
+ty_mpc = StorageTypeMPC()
+

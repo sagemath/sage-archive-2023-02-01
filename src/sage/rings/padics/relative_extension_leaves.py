@@ -23,3 +23,6 @@ class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFix
         self.prime_pow = PowComputer_relative_maker(poly.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, poly, 'fixed-mod')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, RelativeRamifiedFixedModElement)
+        from .relative_ramified_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
+        self.register_coercion(pAdicCoercion_ZZ_FM(self))
+        self.register_conversion(pAdicConvert_QQ_FM(self))

@@ -1515,6 +1515,37 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
         self._section = _slots['_section']
         RingHomomorphism_coercion._update_slots(self, _slots)
 
+    def is_injective(self):
+        r"""
+        Return whether this map is injective.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCA(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f.is_injective()
+            True
+
+        """
+        return True
+
+    def is_surjective(self):
+        r"""
+        Return whether this map is surjective.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCA(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f.is_surjective()
+            False
+
+        """
+        return False
+
+
 cdef class pAdicConvert_CA_frac_field(Morphism):
     """
     The section of the inclusion from `\ZZ_q`` to its fraction field.

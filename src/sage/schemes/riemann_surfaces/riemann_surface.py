@@ -89,7 +89,7 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
     The effect is that, with n >= 3, a Voronoi decomposition will have only
     finite cells around the original points. Furthermore, because
     the extra points are placed on a circle centered on the average of the given
-    points, with a radius 3 times the largest distance between the center and
+    points, with a radius 2 times the largest distance between the center and
     the given points, these finite cells form a simply connected region.
 
     INPUT:
@@ -110,30 +110,21 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
          (1.0, -1.0),
          (-1.0, 1.0),
          (-1.0, -1.0),
-         (3.0, 0.0),
-         (1.5000000000000004, 2.598076211353316),
-         (-1.4999999999999993, 2.598076211353316),
-         (-3.0, 0.0),
-         (-1.5000000000000013, -2.598076211353315),
-         (1.499999999999998, -2.598076211353317)]
-
-    .. NOTE::
-
-        Mainly for internal use.
-
-        Box formation is somewhat naive. The box is not necessarily centered at
-        the average of the points, but is just constructed so that it contains
-        all of the points.
-
-    .. TODO::
-
-        It may be useful to add an option to compute a circle instead of a box.
+         (2.121320343559643, 0.0),
+         (1.0606601717798216, 1.8371173070873836),
+         (-1.060660171779821, 1.8371173070873839),
+         (-2.121320343559643, 2.59786816870648e-16),
+         (-1.0606601717798223, -1.8371173070873832),
+         (1.06066017177982, -1.8371173070873845)]
     """
     cpoints = [CC(c) for c in cpoints]
     average = sum(cpoints)/len(cpoints)
-    radius = min(1,max(abs(c-average) for c in cpoints))
+    if len(cpoints) == 1:
+        radius = 1
+    else:
+        radius = 3*max(abs(c-average) for c in cpoints)/2
     z = CC.zeta(n)
-    extra_points = [average+3*radius*z**i for i in range(n)]
+    extra_points = [average+radius*z**i for i in range(n)]
     return [(c.real_part(),c.imag_part()) for c in cpoints+extra_points]
 
 def bisect(L,t):
@@ -409,7 +400,7 @@ class RiemannSurface(object):
         Compute the edges::
 
             sage: S.downstairs_edges()
-            [(0, 3), (0, 4), (1, 2), (1, 3), (2, 5), (3, 5), (4, 5)]
+            [(0, 1), (0, 5), (1, 4), (2, 3), (2, 4), (3, 5), (4, 5)]
 
         This now gives an edgeset which one could use to form a graph.
 
@@ -511,7 +502,7 @@ class RiemannSurface(object):
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
             sage: S._compute_delta(z1, epsilon) # abs tol 1e-8
-            0.373789002731208
+            0.152628501142363
 
         If the Riemann surface doesn't have certified homotopy continuation,
         then the delta will just be the minimum distance away from a branch
@@ -523,7 +514,7 @@ class RiemannSurface(object):
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
             sage: T._compute_delta(z1, epsilon) # abs tol 1e-8
-            0.763762615825974
+            0.381881307912987
 
         """
         if self._certification:
@@ -658,7 +649,8 @@ class RiemannSurface(object):
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)
             sage: neww = S._determine_new_w(z0,oldw,epsilon); neww #abs tol 0.00000001
-            [-2.62060824791250 + 4.69997976711063*I, 2.62060824791250 - 4.69997976711063*I]
+                [-0.934613146929672 + 2.01088055918363*I,
+                 0.934613146929672 - 2.01088055918363*I]
 
         Which should be exactly the same as the w-values we started with.::
 
@@ -677,9 +669,9 @@ class RiemannSurface(object):
             sage: epsilon = 0.5
             sage: oldw = T.w_values(T._vertices[2])
             sage: T._determine_new_w(z0,oldw,epsilon)
-            Traceback (most recent call last):
-            ...
-            ConvergenceError: Newton iteration escaped neighbourhood
+            [-0.562337685361648 + 0.151166007149998*I,
+             0.640201585779414 - 1.48567225836436*I,
+             -0.0778639004177661 + 1.33450625121437*I]
 
         """
         # Tools of newton iteration.
@@ -748,7 +740,7 @@ class RiemannSurface(object):
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)[0]
             sage: neww = S._newton_iteration(z0,oldw,epsilon); neww #abs tol 0.00000001
-                -2.62060824791250 + 4.69997976711063*I
+            -0.934613146929672 + 2.01088055918363*I
 
         Which should be exactly the same as the w-value we started with::
 
@@ -765,9 +757,7 @@ class RiemannSurface(object):
             sage: epsilon = 0.5
             sage: oldw = T.w_values(T._vertices[2])[0]
             sage: T._newton_iteration(z0, oldw, epsilon)
-            Traceback (most recent call last):
-            ...
-            ConvergenceError: Newton iteration escaped neighbourhood
+            -0.562337685361648 + 0.151166007149998*I
 
         """
         F = self._fastcall_f
@@ -814,20 +804,20 @@ class RiemannSurface(object):
             sage: f = w^2 + z^3 - z^2
             sage: S = RiemannSurface(f)
             sage: edgeset = S.upstairs_edges(); edgeset
-            [[(0, 0), (3, 1)],
-             [(0, 1), (3, 0)],
-             [(0, 0), (4, 0)],
-             [(0, 1), (4, 1)],
-             [(1, 0), (2, 1)],
-             [(1, 1), (2, 0)],
-             [(1, 0), (3, 0)],
-             [(1, 1), (3, 1)],
-             [(2, 0), (5, 0)],
-             [(2, 1), (5, 1)],
+            [[(0, 0), (1, 0)],
+             [(0, 1), (1, 1)],
+             [(0, 0), (5, 1)],
+             [(0, 1), (5, 0)],
+             [(1, 0), (4, 1)],
+             [(1, 1), (4, 0)],
+             [(2, 0), (3, 1)],
+             [(2, 1), (3, 0)],
+             [(2, 0), (4, 0)],
+             [(2, 1), (4, 1)],
              [(3, 0), (5, 0)],
              [(3, 1), (5, 1)],
-             [(4, 0), (5, 1)],
-             [(4, 1), (5, 0)]]
+             [(4, 0), (5, 0)],
+             [(4, 1), (5, 1)]]
 
         """
         edgeset = []
@@ -869,10 +859,10 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
 
-        Compute the edge permutation of (5,16) on the Voronoi diagram::
+        Compute the edge permutation of (1,2) on the Voronoi diagram::
 
-            sage: S._edge_permutation((5,16))
-            (0,2)
+            sage: S._edge_permutation((1,2))
+            (0,2,1)
 
         This indicates that while traversing along the direction of `(5,16)`,
         the 2nd and 3rd layers of the Riemann surface are interchanging.
@@ -915,20 +905,20 @@ class RiemannSurface(object):
             {(0, 2): (),
              (0, 4): (),
              (1, 2): (),
-             (1, 7): (0,1),
+             (1, 3): (0,1),
+             (1, 6): (),
              (2, 0): (),
              (2, 1): (),
-             (3, 4): (0,1),
-             (3, 5): (),
+             (2, 5): (0,1),
+             (3, 1): (0,1),
+             (3, 4): (),
              (4, 0): (),
-             (4, 3): (0,1),
-             (4, 7): (),
-             (5, 3): (),
-             (5, 6): (),
-             (6, 5): (),
+             (4, 3): (),
+             (5, 2): (0,1),
+             (5, 7): (),
+             (6, 1): (),
              (6, 7): (),
-             (7, 1): (0,1),
-             (7, 4): (),
+             (7, 5): (),
              (7, 6): ()}
         """
         D=dict( (e,self._edge_permutation(e)) for e in self.downstairs_edges())
@@ -960,25 +950,25 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
             sage: G = S.monodromy_group(); G
-            [(0,2,1), (0,1), (1,2), (0,2), (0,2), (1,2), (0,2), (0,1)]
+            [(0,1,2), (0,1), (0,2), (1,2), (1,2), (1,2), (0,1), (0,2)]
 
         The permutations give the local monodromy generators for the branch points::
 
             sage: zip(S.branch_locus, G) #abs tol 0.0000001
-                [(0.000000000000000, (0,2,1)),
-                 (-1.31362670141929, (0,1)),
-                 (-0.819032851784253 - 1.02703471138023*I, (1,2)),
-                 (-0.819032851784253 + 1.02703471138023*I, (0,2)),
-                 (0.292309440469772 - 1.28069133740100*I, (0,2)),
-                 (0.292309440469772 + 1.28069133740100*I, (1,2)),
-                 (1.18353676202412 - 0.569961265016465*I, (0,2)),
-                 (1.18353676202412 + 0.569961265016465*I, (0,1))]
+                    [(0.000000000000000, (0,1,2)),
+                     (-1.31362670141929, (0,1)),
+                     (-0.819032851784253 - 1.02703471138023*I, (0,2)),
+                     (-0.819032851784253 + 1.02703471138023*I, (1,2)),
+                     (0.292309440469772 - 1.28069133740100*I, (1,2)),
+                     (0.292309440469772 + 1.28069133740100*I, (1,2)),
+                     (1.18353676202412 - 0.569961265016465*I, (0,1)),
+                     (1.18353676202412 + 0.569961265016465*I, (0,2))]
 
         We can obtain the local monodromy at infinity by taking the product of all
         the finite local monodromy generators::
 
             sage: prod(G)
-            (0,1)
+            (0,2)
 
         We read off the ramification types from the cycle types of the local
         monodromy, and we see that the total ramification (10=2+8*1) matches
@@ -1041,16 +1031,26 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(g)
             sage: S.homology_basis()
             [[(1,
-               [(10, 1),
-                (6, 1),
-                (4, 0),
+               [(3, 1),
                 (5, 0),
+                (9, 0),
                 (10, 0),
-                (8, 0),
+                (2, 0),
+                (4, 0),
                 (7, 1),
+                (10, 1),
+                (3, 1)])],
+             [(1,
+               [(8, 0),
+                (6, 0),
+                (7, 0),
+                (10, 0),
+                (2, 0),
+                (4, 0),
+                (7, 1),
+                (10, 1),
                 (9, 1),
-                (10, 1)])],
-             [(1, [(10, 1), (5, 1), (0, 0), (1, 0), (8, 0), (7, 1), (9, 1), (10, 1)])]]
+                (8, 0)])]]
 
         """
         if self.genus == 0:
@@ -1263,7 +1263,7 @@ class RiemannSurface(object):
             sage: M = S.riemann_matrix()
             sage: differentials = S.cohomology_basis()
             sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) #abs tol 0.00000001
-                (1.05412407678057e-16 - 0.217245437814098*I)
+            (1.14590610929717e-16 - 0.352971844594760*I)
 
         ..NOTE::
 
@@ -1368,7 +1368,7 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(x^3 + y^3 + 1)
             sage: B = S.cohomology_basis()
             sage: S.matrix_of_integral_values(B) #abs tol 1e-12
-                [-1.76663875028545 + 8.32667268468867e-17*I    -0.883319375142725 - 1.52995403705719*I]
+            [   0.883319375142725 - 1.52995403705719*I 1.76663875028545 + 5.55111512312578e-17*I]
 
         """
         cycles = self.homology_basis()
@@ -1421,9 +1421,9 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f, prec=60)
             sage: S.period_matrix() # abs tol 0.000001
-                [     1.7418536587120737 - 0.83883251171276598*I     -0.96665585280840573 - 1.4570321330409680*I     0.43020232636252808 + 0.89332433554698493*I    -0.96665585280840572 + 0.77088231882212970*I       1.7418536587120736 - 1.3890819401503318*I  -4.7379634937616544e-17 + 1.2363992426564041*I]
-                [     -1.2054001322661960 + 1.5115239568751870*I     -0.96665585280840575 + 1.0157663522718402*I       1.7418536587120737 + 1.3890819401503317*I    -0.96665585280840575 - 0.22063289038456399*I     -1.2054001322661960 - 0.27512471421878278*I -3.1875543871073830e-17 + 0.99151520920669361*I]
-                [     0.43020232636252808 + 1.8848395447536785*I     -0.96665585280840567 + 2.9987967706852274*I     -1.2054001322661960 + 0.27512471421878286*I     -0.96665585280840567 + 2.0072815614785338*I     0.43020232636252798 - 0.89332433554698499*I  -1.0148132334464322e-16 - 2.2279144518630977*I]
+            [-0.77519780590366792 + 0.61819962132820207*I  -0.19145804690473785 - 1.3890819401503317*I  -2.1720559850746018 + 0.49575760460334677*I -0.23874427945779023 - 0.49575760460334677*I -0.43020232636252808 - 0.89332433554698493*I  -0.96665585280840577 - 2.0072815614785338*I]
+            [  2.1720559850746018 + 0.49575760460334677*I  -3.1387118378830076 - 0.27512471421878286*I  -0.53645352644587770 - 1.1139572259315488*I    1.3968581791709339 + 1.1139572259315488*I   -1.7418536587120737 - 1.3890819401503317*I -0.96665585280840577 - 0.77088231882212961*I]
+            [  0.53645352644587769 - 1.1139572259315488*I  -1.5031093792542835 - 0.89332433554698493*I  0.77519780590366793 + 0.61819962132820208*I   2.7085095115204795 - 0.61819962132820208*I   1.2054001322661960 - 0.27512471421878285*I -0.96665585280840577 + 0.22063289038456391*I]
         """
         differentials = self.cohomology_basis()
         differentials = [fast_callable(omega,domain=self._CC)
@@ -1452,9 +1452,9 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f, prec=60)
             sage: S.riemann_matrix() #abs tol 0.0000001
-                [      -0.25000000000000000 + 0.66143782776614767*I        0.62500000000000001 - 0.33071891388307385*I -7.8062556418956319e-18 - 1.3444106938820255e-17*I]
-                [       0.62500000000000001 - 0.33071891388307384*I       -0.43750000000000001 + 0.49607837082461076*I    -0.49999999999999999 + 1.7780915628762273e-17*I]
-                [ 1.0191500421363742e-17 - 1.7347234759768071e-17*I    -0.50000000000000001 + 2.7321894746634712e-17*I        0.25000000000000001 + 0.66143782776614767*I]
+            [        0.50000000000000000 + 1.3228756555322953*I       -0.25000000000000000 + 0.66143782776614765*I  6.7220534694101275e-18 - 2.1684043449710089e-18*I]
+            [      -0.25000000000000000 + 0.66143782776614764*I        0.25000000000000000 + 0.66143782776614765*I     0.50000000000000000 - 1.7347234759768071e-18*I]
+            [-6.5052130349130266e-19 + 3.4694469519536142e-18*I     0.50000000000000000 + 3.4694469519536142e-18*I        0.25000000000000000 + 0.66143782776614765*I]
         """
         PeriodMatrix = self.period_matrix()
         Am = PeriodMatrix[0:self.genus,0:self.genus]

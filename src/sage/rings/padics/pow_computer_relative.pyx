@@ -81,7 +81,12 @@ cdef class PowComputer_relative(PowComputer_class):
         self.f = 1
 
         self.modulus = poly
+
         self.tmp_cconv_out = poly.parent()()
+        self.tmp_clist = poly.parent()()
+        self.tmp_ccmp_a = poly.parent()()
+        self.tmp_ccmp_b = poly.parent()()
+
         self.base_ring = poly.base_ring()
         self.poly_ring = poly.parent()
 

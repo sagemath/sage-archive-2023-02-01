@@ -12,6 +12,8 @@ cdef class PowComputer_relative(PowComputer_class):
     # storage for temporary variables used in the linkage files
     cdef Polynomial_generic_dense tmp_cconv_out
     cdef Polynomial_generic_dense tmp_clist
+    cdef Polynomial_generic_dense tmp_ccmp_a
+    cdef Polynomial_generic_dense tmp_ccmp_b
     # allow cached methods
     cdef public dict __cached_methods
 

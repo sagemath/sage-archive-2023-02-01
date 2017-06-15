@@ -100,15 +100,15 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    prime_pow.powhelper_ccmp_a = a
-    prime_pow.powhelper_ccmp_b = b
+    ccopy(prime_pow.tmp_ccmp_a, a, prime_pow)
+    ccopy(prime_pow.tmp_ccmp_b, a, prime_pow)
 
     if reduce_a:
-        creduce(prime_pow.pow_helper_ccmp_a, prime_pow.pow_helper_ccmp_a, prec, prime_pow)
+        creduce(prime_pow.tmp_ccmp_a, prime_pow.tmp_ccmp_a, prec, prime_pow)
     if reduce_b:
-        creduce(prime_pow.pow_helper_ccmp_b, prime_pow.pow_helper_ccmp_b, prec, prime_pow)
+        creduce(prime_pow.tmp_ccmp_b, prime_pow.tmp_ccmp_b, prec, prime_pow)
 
-    return prime_pow.pow_helper_ccmp_a._cmp_(prime_pow.pow_helper_ccmp_b)
+    return prime_pow.tmp_ccmp_a._cmp_(prime_pow.tmp_ccmp_b)
 
 cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     r"""

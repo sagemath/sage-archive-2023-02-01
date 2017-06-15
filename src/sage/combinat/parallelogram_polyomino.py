@@ -1324,7 +1324,7 @@ class ParallelogramPolyomino(ClonableList):
             ....:         [1, 1, 0, 1, 1, 0, 0, 0, 1, 0]
             ....:     ]
             ....: )
-            sage: pp.to_ordered_tree()
+            sage: pp._to_ordered_tree_Bou_Socci()
             [[[[[]], [[[]]]]], [[]]]
             sage: pp.to_ordered_tree(bijection='Boussicault-Socci')
             [[[[[]], [[[]]]]], [[]]]
@@ -1332,13 +1332,13 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 1], [1, 0]]
             ....: )
-            sage: pp.to_ordered_tree()
+            sage: pp._to_ordered_tree_Bou_Socci()
             [[]]
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[1], [1]]
             ....: )
-            sage: pp.to_ordered_tree()
+            sage: pp._to_ordered_tree_Bou_Socci()
             []
         """
         from sage.combinat.ordered_tree import OrderedTree
@@ -2008,6 +2008,8 @@ class ParallelogramPolyomino(ClonableList):
             ....:     ]
             ....: )
             sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+            sage: row
+            [0, 1, 1]
         """
         def __init__(self, polyomino, row):
             r"""
@@ -2113,11 +2115,29 @@ class ParallelogramPolyomino(ClonableList):
         def __repr__(self):
             r"""
             Return a string representation of ``self``.
+
+            EXAMPLES::
+
+            sage: PP=ParallelogramPolyomino
+            sage: pp = PP(
+            ....:     [
+            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+            ....:     ]
+            ....: )
+            sage: pp[-1]
+            The (outside) row -1 of the parallelogram
+            sage: pp[0]
+            [1, 0, 0]
+            sage: pp[5]
+            [0, 0, 1]
+            sage: pp[6]
+            The (outside) row 6 of the parallelogram
             """
             if self.is_outside():
                 return "The (outside) row %s of the parallelogram" % (self.row)
             else:
-                return "The row %s of the parallelogram polyomino" % (self.row)
+                return str(self.polyomino.get_array()[self.row])
 
     def __getitem__(self, row):
         r"""
@@ -2836,18 +2856,76 @@ class ParallelogramPolyomino(ClonableList):
         """
         return box[0] == 0 and box[1] == 0
 
-    def _get_path_in_pair_of_tree_from_box(self, box, direction):
+    def _get_number_of_nodes_in_the_bounding_path(self, box, direction):
         r"""
         When we draw the bounding path from ``box`` to the top-left cell of 
-        ``self``, the path is bounding in some cells that are nodes in the 
-        ordered tree of the Boussicault-Socci bijection. This function returns
-        the path of the bounding path inside the ordered tree.
+        ``self``, the path is corssing some cells containing some nodes
+        defined by the Boussicault-Socci bijection
+        (see :meth:`_to_ordered_tree_Bou_Socci`).
+
+        This function return a list of number that represent the number of 
+        nodes minus 1 that the path is crossing between each bounding.
+        The starting box is excluded from the count of nodes.
+
+        This function is a specialized tool for 
+        :meth:`_get_path_in_pair_of_tree_from_row()` and 
+        :meth:`_get_path_in_pair_of_tree_from_column()`
+        each number is reduced by one to compute the path in the ordered tree
+        of those functions.
 
         INPUT:
 
         - ``box`` -- the x,y coordinate of the starting point of the bounding 
                      path.
-        - ``direction`` -- the initial direction of the bounding path (1 or 0).
+        - ``direction`` -- the initial direction of the bounding path (1 or 0, 
+                           1 for left and 0 for top). 
+
+        EXAMPLES::
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp._get_number_of_nodes_in_the_bounding_path([4, 2], 1)
+            [0, 0, 2, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([3, 2], 1)
+            [0, 0, 1, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([2, 2], 1)
+            [0, 0, 0, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([1, 2], 1)
+            [0, 1]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([4, 2], 0)
+            [0, 1, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([3, 2], 0)
+            [0, 1, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([2, 2], 0)
+            [0, 1, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([1, 2], 0)
+            [0, 1, -1]
+
+            sage: pp._get_number_of_nodes_in_the_bounding_path([4, 1], 1)
+            [0, 0, 2, -1]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([3, 1], 1)
+            [0, 0, 1, -1]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([2, 1], 1)
+            [0, 0, 0, -1]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([1, 1], 1)
+            [0, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([4, 1], 0)
+            [0, 0, 2]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([3, 1], 0)
+            [0, 0, 1]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([2, 1], 0)
+            [0, 0, 0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([1, 1], 0)
+            [0, 0, -1]
+
+            sage: pp._get_number_of_nodes_in_the_bounding_path([1, 0], 1)
+            [0, -1]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([0, 0], 1)
+            []
+            sage: pp._get_number_of_nodes_in_the_bounding_path([1, 0], 0)
+            [0]
+            sage: pp._get_number_of_nodes_in_the_bounding_path([0, 0], 0)
+            []
         """
         path = []
         while not self.box_is_root(box):
@@ -2860,33 +2938,104 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_path_in_pair_of_tree_from_row(self, line):
         r"""
-        When we draw the bounding path from the right-most cell of line to the 
-        top-left cell of ``self``, the path is bounding in some cells that are 
-        nodes in the ordered tree of the Boussicault-Socci bijection. 
+        When we draw the bounding path from the left-most cell of ``line`` to 
+        the top-left cell of ``self``, the path is bounding in some cells that 
+        are nodes in the ordered tree of the Boussicault-Socci bijection. 
         This function returns the path of the bounding path inside the ordered 
         tree.
+
+        The bijection is described in the paper 
+            Ref. A. Boussicault, S. Rinaldi et S. Socci.
+            "The number of directed k-convex polyominoes"
+            27th Annual International Conference on Formal Power Series and
+            Algebraic Combinatorics (FPSAC 2015), 2015.
+            :arxiv:`1501.00872`
+        at page 7, the first (resp. second) ordered tree is obtained by 
+        gluing all roots of the ordered forest F_e (resp. F_s) to a virtual 
+        root. An example can be read, page 8, Figure 6.
 
         INPUT:
 
         - ``line`` -- the x coordinate of the line.
+
+        EXAMPLES::
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp._get_path_in_pair_of_tree_from_row(4)
+            [0, 0, 2]
+            sage: pp._get_path_in_pair_of_tree_from_row(3)
+            [0, 0, 1]
+            sage: pp._get_path_in_pair_of_tree_from_row(2)
+            [0, 0, 0]
+            sage: pp._get_path_in_pair_of_tree_from_row(1)
+            [0]
+            sage: pp._get_path_in_pair_of_tree_from_row(0)
+            []
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp._get_path_in_pair_of_tree_from_row(4)
+            [0, 2]
+            sage: pp._get_path_in_pair_of_tree_from_row(3)
+            [0, 1]
+            sage: pp._get_path_in_pair_of_tree_from_row(2)
+            [0, 0]
+            sage: pp._get_path_in_pair_of_tree_from_row(1)
+            [0]
+            sage: pp._get_path_in_pair_of_tree_from_row(0)
+            []
+
         """
         pos = self._get_node_position_at_row(line)
-        return self._get_path_in_pair_of_tree_from_box(pos, 0)
+        return self._get_number_of_nodes_in_the_bounding_path(pos, 0)
 
     def _get_path_in_pair_of_tree_from_column(self, column):
         r"""
-        When we draw the bounding path from the right-most cell of column to the 
-        top-left cell of ``self``, the path is bounding in some cells that are 
-        nodes in the ordered tree of the Boussicault-Socci bijection. 
+        When we draw the bounding path from the top-most cell of ``column`` 
+        to the top-left cell of ``self``, the path is bounding in some cells 
+        that are nodes in the ordered tree of the Boussicault-Socci bijection. 
         This function returns the path of the bounding path inside the ordered 
         tree.
+
+        The bijection is described in the paper 
+            Ref. A. Boussicault, S. Rinaldi et S. Socci.
+            "The number of directed k-convex polyominoes"
+            27th Annual International Conference on Formal Power Series and
+            Algebraic Combinatorics (FPSAC 2015), 2015.
+            :arxiv:`1501.00872`
+        at page 7, the first (resp. second) ordered tree is obtained by 
+        gluing all roots of the ordered forest F_e (resp. F_s) to a virtual 
+        root. An example can be read, page 8, Figure 6.
 
         INPUT:
 
         - ``column`` -- the y coordinate of the column.
+
+        EXAMPLES::
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp._get_path_in_pair_of_tree_from_column(2)
+            [0, 1]
+            sage: pp._get_path_in_pair_of_tree_from_column(1)
+            [0, 0]
+            sage: pp._get_path_in_pair_of_tree_from_column(0)
+            []
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp._get_path_in_pair_of_tree_from_column(2)
+            [0, 0]
+            sage: pp._get_path_in_pair_of_tree_from_row(1)
+            [0]
+            sage: pp._get_path_in_pair_of_tree_from_row(0)
+            []
         """
         pos = self._get_node_position_at_column(column)
-        return self._get_path_in_pair_of_tree_from_box(pos, 1)
+        return self._get_number_of_nodes_in_the_bounding_path(pos, 1)
 
     def get_BS_nodes(self):
         r"""
@@ -3250,20 +3399,23 @@ class ParallelogramPolyominoesFactory(SetFactory):
         raise ValueError("Invalid argument for Parallelogram Polyominoes "
                          "Factory.")
 
-    def add_constraints(self, cons, args_opts):
-        r"""
-        This function permit to add some enumeration constraint to the
-        factory. The factory make a family using the given constraints.
-
-        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
-        """
-        args, opts = args_opts
-        return cons + args
+#    def add_constraints(self, cons, args_opts):
+#        r"""
+#        This function permit to add some enumeration constraint to the
+#        factory. The factory make a family using the given constraints.
+#
+#        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
+#        """
+#        args, opts = args_opts
+#        return cons + args
 
     @lazy_attribute
     def _default_policy(self):
         r"""
         Return a default policy.
+
+        sage: ParallelogramPolyominoes._default_policy
+        Set factory policy for <class 'sage.combinat.parallelogram_polyomino.ParallelogramPolyomino'> with parent Parallelogram polyominoes[=Factory for parallelogram polyominoes(())]
         """
         return TopMostParentPolicy(self, (), ParallelogramPolyomino)
 
@@ -3348,7 +3500,7 @@ class ParallelogramPolyominoes_size(
         EXAMPLES::
 
             sage: PPS = ParallelogramPolyominoes(3)
-            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]])  in PPS
+            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]]) in PPS # indirect doctest
             True
         """
         if el.size() != self.size():
@@ -3525,7 +3677,7 @@ class ParallelogramPolyominoes_all(
         EXAMPLES::
 
             sage: PPS = ParallelogramPolyominoes()
-            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]])  in PPS
+            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]]) in PPS # indirect doctest
             True
         """
         pass

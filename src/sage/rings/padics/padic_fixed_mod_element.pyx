@@ -29,6 +29,8 @@ from sage.rings.finite_rings.integer_mod import Mod
 
 cdef extern from "sage/rings/padics/transcendantal.c":
     cdef void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)
+    cdef void padicexp(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)
+    cdef void padicexp_Newton(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, unsigned long precinit, const mpz_t modulo)
 
 cdef class PowComputer_(PowComputer_base):
     """
@@ -432,6 +434,43 @@ cdef class pAdicFixedModElement(FMElement):
         padiclog(ans.value, self.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
         sig_off()
         return ans
+
+    def _exp_binary_splitting(self, aprec):
+        cdef unsigned long p
+        cdef unsigned long prec = aprec
+        cdef pAdicFixedModElement ans
+
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime
+
+        ans = self._new_c()
+        sig_on()
+        padicexp(ans.value, self.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
+
+        return ans
+
+    def _exp_newton(self, aprec, log_algorithm=None):
+        cdef unsigned long p
+        cdef unsigned long prec = aprec
+        cdef pAdicFixedModElement ans
+
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime
+
+        ans = self._new_c()
+        mpz_set_ui(ans.value, 1)
+        sig_on()
+        if p == 2:
+            padicexp_Newton(ans.value, self.value, p, prec, 2, self.prime_pow.pow_mpz_t_tmp(prec))
+        else:
+            padicexp_Newton(ans.value, self.value, p, prec, 1, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
+
+        return ans
+
 
 
 def make_pAdicFixedModElement(parent, value):

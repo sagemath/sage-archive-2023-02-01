@@ -295,7 +295,7 @@ void padicexp(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
 }
 
 
-void padicexp_Newton(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, unsigned long precinit, mpz_t modulo) {
+void padicexp_Newton(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, unsigned long precinit, const mpz_t modulo) {
     /*  Compute the p-adic exponential of a,
         which is supposed to be congruent to 0 mod p
 

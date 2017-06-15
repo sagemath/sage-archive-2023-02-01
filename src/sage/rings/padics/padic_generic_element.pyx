@@ -2238,7 +2238,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
 
     def _exp_binary_splitting(self, aprec):
-        raise NotImplementedError
+        raise NotImplementedError("The binary splitting algorithm is not implemented for the parent: %s" % self.parent())
 
     def _exp_newton(self, aprec, log_algorithm=None):
         R = self.parent()
@@ -2439,19 +2439,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if (p-1)*self.valuation() <= self.parent().ramification_index():
             raise ValueError('Exponential does not converge for that input.')
 
-        if aprec is None or aprec > self.parent().precision_cap():
-            aprec = self.parent().precision_cap()
+        # The optimal absolute precision on exp(self)
+        # is the absolution precision on self
+        maxprec = min(self.precision_absolute(), self.parent().precision_cap())
+        if aprec is None or aprec > maxprec:
+            aprec = maxprec
 
         if algorithm is None:
             try:
                 ans = self._exp_binary_splitting(aprec)
             except NotImplementedError:
-                pass
-            try:
-                ans = self._exp_newton(aprec, log_algorithm='binary_splitting')
-            except NotImplementedError:
-                pass
-            ans = self._exp_generic(aprec)
+                try:
+                    ans = self._exp_newton(aprec, log_algorithm='binary_splitting')
+                except NotImplementedError:
+                    ans = self._exp_generic(aprec)
         elif algorithm == 'generic':
             ans = self._exp_generic(aprec)
         elif algorithm == 'binary_splitting':

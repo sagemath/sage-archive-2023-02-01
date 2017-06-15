@@ -31,6 +31,9 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef extern from "sage/rings/padics/transcendantal.c":
     cdef void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)
+    cdef void padicexp(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)  
+    cdef void padicexp_Newton(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, unsigned long precinit, const mpz_t modulo)
+
 
 cdef class PowComputer_(PowComputer_base):
     """
@@ -412,6 +415,48 @@ cdef class pAdicCappedRelativeElement(CRElement):
         padiclog(ans.unit, self.unit, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
         sig_off()
         ans._normalize()
+
+        return ans
+
+    def _exp_binary_splitting(self, aprec):
+        cdef unsigned long p
+        cdef unsigned long prec = aprec
+        cdef pAdicCappedRelativeElement ans
+        cdef Integer selfint = self.lift_c()
+
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime      
+
+        ans = self._new_c()
+        ans.ordp = 0
+        ans.relprec = prec
+        sig_on()
+        padicexp(ans.unit, selfint.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
+
+        return ans
+
+    def _exp_newton(self, aprec, log_algorithm=None):
+        cdef unsigned long p
+        cdef unsigned long prec = aprec
+        cdef pAdicCappedRelativeElement ans
+        cdef Integer selfint = self.lift_c()
+
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime      
+
+        ans = self._new_c()
+        ans.ordp = 0
+        ans.relprec = prec
+        mpz_set_ui(ans.unit, 1)
+        sig_on()
+        if p == 2:
+            padicexp_Newton(ans.unit, selfint.value, p, prec, 2, self.prime_pow.pow_mpz_t_tmp(prec))
+        else:
+            padicexp_Newton(ans.unit, selfint.value, p, prec, 1, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
 
         return ans
 

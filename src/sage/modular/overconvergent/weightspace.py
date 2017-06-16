@@ -67,7 +67,7 @@ from six.moves import range
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
-from sage.structure.richcmp cimport richcmp
+from sage.structure.richcmp import richcmp
 from sage.modular.dirichlet import DirichletGroup, trivial_character
 from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
 from sage.arith.all import divisors

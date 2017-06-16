@@ -186,7 +186,7 @@ from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
 from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
-from sage.structure.richcmp cimport richcmp
+from sage.structure.richcmp import richcmp
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
 import weakref

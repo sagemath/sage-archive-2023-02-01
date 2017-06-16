@@ -1074,7 +1074,7 @@ class ContinuousMap(Morphism):
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+        - a :class:`~sage.manifolds.chart_func.MultiCoordFunction`
           representing the continuous map in the above two charts
 
         EXAMPLES:
@@ -1096,7 +1096,7 @@ class ContinuousMap(Morphism):
             sage: Phi.coord_functions() # equivalent to above since 'uv' and 'xyz' are default charts
             Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
             sage: type(Phi.coord_functions())
-            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
 
         Coordinate representation in other charts::
 
@@ -1145,6 +1145,27 @@ class ContinuousMap(Morphism):
 
             sage: Phi1.coord_functions(c_uv.restrict(A), c_xyz)
             Coordinate functions (u*v, u/v, u + v) on the Chart (A, (u, v))
+
+        The same test with ``sympy``::
+
+            # sage: X.set_calculus_method('sympy')
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: N = Manifold(3, 'N', structure='topological')
+            sage: c_uv.<u,v> = M.chart(calc_method='sympy')
+            sage: c_xyz.<x,y,z> = N.chart(calc_method='sympy')
+            sage: Phi = M.continuous_map(N, (u*v, u/v, u+v), name='Phi',
+            ....:                        latex_name=r'\Phi')
+            sage: Phi.display()
+            Phi: M --> N
+               (u, v) |--> (x, y, z) = (u*v, u/v, u + v)
+            sage: Phi.coord_functions(c_uv, c_xyz)
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
+            sage: Phi.coord_functions() # equivalent to above since 'uv' and 'xyz' are default charts
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
+            sage: type(Phi.coord_functions())
+            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
+
+
 
         """
         dom1 = self._domain; dom2 = self._codomain
@@ -1788,6 +1809,7 @@ class ContinuousMap(Morphism):
         if not self._is_isomorphism:
             raise ValueError("the {} is not an isomorphism".format(self))
         coord_functions = {} # coordinate expressions of the result
+
         for (chart1, chart2) in self._coord_expression:
             coord_map = self._coord_expression[(chart1, chart2)]
             n1 = len(chart1._xx)
@@ -1795,7 +1817,7 @@ class ContinuousMap(Morphism):
             # New symbolic variables (different from chart2._xx to allow for a
             #  correct solution even when chart2 = chart1):
             x2 = [SR.var('xxxx' + str(i)) for i in range(n2)]
-            equations = [x2[i] == coord_map._functions[i]._express
+            equations = [x2[i] == coord_map._functions[i].expr()
                          for i in range(n2)]
             solutions = solve(equations, chart1._xx, solution_dict=True)
             if not solutions:
@@ -1809,7 +1831,8 @@ class ContinuousMap(Morphism):
             for i in range(n1):
                 x = inv_functions[i]
                 try:
-                    inv_functions[i] = chart2._simplify(x)
+                    curr = chart2._calc_method.current
+                    inv_functions[i] = chart2._simplify[curr](x)
                 except AttributeError:
                     pass
             coord_functions[(chart2, chart1)] = inv_functions
@@ -1828,4 +1851,3 @@ class ContinuousMap(Morphism):
         return self._inverse
 
     inverse = __invert__
-

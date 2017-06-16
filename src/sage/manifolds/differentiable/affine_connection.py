@@ -165,7 +165,7 @@ class AffineConnection(SageObject):
         sage: nab[1,1,2].display()
         (x, y, z) |--> x^2
         sage: type(nab[1,1,2])
-        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+        <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
         sage: nab[[1,1,2]]
         Scalar field on the 3-dimensional differentiable manifold M
         sage: nab[[1,1,2]].display()
@@ -893,7 +893,7 @@ class AffineConnection(SageObject):
             sage: nab[1,2,1]  # equivalent to above
             x*y
             sage: type(nab.__getitem__((1,2,1)))
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: nab.__getitem__((X.frame(),1,2,1))
             x*y
             sage: nab[X.frame(),1,2,1]  # equivalent to above

@@ -38,7 +38,7 @@ from six import itervalues
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.symbolic.expression import Expression
-from sage.manifolds.coord_func import CoordFunction
+from sage.manifolds.chart_func import ChartFunction
 
 class ScalarField(CommutativeAlgebraElement):
     r"""
@@ -209,12 +209,12 @@ class ScalarField(CommutativeAlgebraElement):
 
     The method :meth:`coord_function` returns instead a function of the
     chart coordinates, i.e. an instance of
-    :class:`~sage.manifolds.coord_func.CoordFunction`::
+    :class:`~sage.manifolds.chart_func.CoordFunction`::
 
         sage: f.coord_function(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)
         sage: type(f.coord_function(c_uv))
-        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+        <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
         sage: f.coord_function(c_uv).display()
         (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -471,7 +471,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         M --> R
         on U: (x, y) |--> a/(x^2 + y^2 + 1)
-        on V: (u, v) |--> (u^2 + v^2)*a/(u^2 + v^2 + 1)
+        on V: (u, v) |--> (a*u^2 + a*v^2)/(u^2 + v^2 + 1)
 
     However, if the symbolic variable is a chart coordinate, the
     multiplication is performed only in the corresponding chart::
@@ -485,7 +485,7 @@ class ScalarField(CommutativeAlgebraElement):
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
-        on V: (u, v) |--> (u^2 + v^2)*u/(u^2 + v^2 + 1)
+        on V: (u, v) |--> (u^3 + u*v^2)/(u^2 + v^2 + 1)
 
     Some tests::
 
@@ -634,16 +634,17 @@ class ScalarField(CommutativeAlgebraElement):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._express = {} # dict of coordinate expressions (CoordFunction
+        self._express = {} # dict of coordinate expressions (ChartFunction
                            # instances) with charts as keys
         if coord_expression is not None:
             if isinstance(coord_expression, dict):
                 for chart, expression in coord_expression.items():
-                    if isinstance(expression, CoordFunction):
+                    if isinstance(expression, ChartFunction):
                         self._express[chart] = expression
                     else:
+                        a = chart.function(expression)
                         self._express[chart] = chart.function(expression)
-            elif isinstance(coord_expression, CoordFunction):
+            elif isinstance(coord_expression, ChartFunction):
                 self._express[coord_expression.chart()] = coord_expression
             else:
                 if chart is None:
@@ -978,7 +979,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.coord_func.CoordFunction`
+        - instance of :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the coordinate function of the scalar field in the
           given chart
 
@@ -994,7 +995,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f.coord_function(c_xy)  # equivalent form (since c_xy is the default chart)
             x*y^2
             sage: type(f.coord_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         Expression via a change of coordinates::
 
@@ -1041,6 +1042,7 @@ class ScalarField(CommutativeAlgebraElement):
                     new_expr = self._express[known_chart].expr()
                     self._express[chart] = chart.function(new_expr)
                     return self._express[chart]
+
             # If this point is reached, the expression must be computed
             # from that in the chart from_chart, by means of a
             # change-of-coordinates formula:
@@ -1063,12 +1065,15 @@ class ScalarField(CommutativeAlgebraElement):
                 if not found:
                     raise ValueError("no starting chart could be found to " +
                                      "compute the expression in the {}".format(chart))
+
             change = self._domain._coord_changes[(chart, from_chart)]
+
             # old coordinates expressed in terms of the new ones:
-            coords = [ change._transf._functions[i]._express
+            coords = [ change._transf._functions[i].expr()
                        for i in range(self._manifold.dim()) ]
             new_expr = self._express[from_chart](*coords)
             self._express[chart] = chart.function(new_expr)
+
             self._del_derived()
         return self._express[chart]
 
@@ -1142,7 +1147,7 @@ class ScalarField(CommutativeAlgebraElement):
             {Chart (M, (x, y)): x*y^2, Chart (M, (u, v)): u^3 - u^2*v - u*v^2 + v^3}
 
         """
-        return self.coord_function(chart, from_chart)._express
+        return self.coord_function(chart, from_chart).expr()
 
     def set_expr(self, coord_expression, chart=None):
         r"""
@@ -1395,6 +1400,7 @@ class ScalarField(CommutativeAlgebraElement):
         result._latex = r"\begin{array}{llcl} " + symbol + r"&" + \
                         latex(self._domain) + r"& \longrightarrow & " + \
                         field_latex_name + r" \\"
+
         if chart is None:
             for ch in self._domain._top_charts:
                 _display_expression(self, ch, result)
@@ -1802,7 +1808,7 @@ class ScalarField(CommutativeAlgebraElement):
             raise ValueError("no common chart for the addition")
         result = type(self)(self.parent())
         for chart in com_charts:
-            # CoordFunction addition:
+            # ChartFunction addition:
             result._express[chart] = self._express[chart] + other._express[chart]
         if self._name is not None and other._name is not None:
             result._name = self._name + '+' + other._name
@@ -1851,7 +1857,7 @@ class ScalarField(CommutativeAlgebraElement):
             raise ValueError("no common chart for the subtraction")
         result = type(self)(self.parent())
         for chart in com_charts:
-            # CoordFunction subtraction:
+            # ChartFunction subtraction:
             result._express[chart] = self._express[chart] - other._express[chart]
         if self._name is not None and other._name is not None:
             result._name = self._name + '-' + other._name
@@ -1903,7 +1909,7 @@ class ScalarField(CommutativeAlgebraElement):
             raise ValueError("no common chart for the multiplication")
         result = type(self)(self.parent())
         for chart in com_charts:
-            # CoordFunction multiplication:
+            # ChartFunction multiplication:
             result._express[chart] = self._express[chart] * other._express[chart]
         result._name = format_mul_txt(self._name, '*', other._name)
         result._latex_name = format_mul_latex(self._latex_name, ' ',
@@ -1955,7 +1961,7 @@ class ScalarField(CommutativeAlgebraElement):
             raise ValueError("no common chart for the division")
         result = type(self)(self.parent())
         for chart in com_charts:
-            # CoordFunction division:
+            # ChartFunction division:
             result._express[chart] = self._express[chart] / other._express[chart]
         result._name = format_mul_txt(self._name, '/', other._name)
         result._latex_name = format_mul_latex(self._latex_name, '/',
@@ -2000,7 +2006,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
             sage: f._lmul_(pi).display()
             M --> R
-            (x, y) |--> pi*(x + y)
+            (x, y) |--> pi*x + pi*y
             sage: f._lmul_(pi) == pi*f
             True
             sage: f._lmul_(0) == M.zero_scalar_field()
@@ -2733,4 +2739,3 @@ class ScalarField(CommutativeAlgebraElement):
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()
         return resu
-

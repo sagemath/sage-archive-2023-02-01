@@ -1427,7 +1427,6 @@ class PseudoRiemannianMetric(TensorField):
 
         """
         from sage.matrix.constructor import matrix
-        from sage.manifolds.utilities import simplify_chain_real
         dom = self._domain
         if frame is None:
             frame = dom._def_frame
@@ -1442,9 +1441,9 @@ class PseudoRiemannianMetric(TensorField):
             gg = self.comp(frame)
             i1 = manif.start_index()
             for chart in gg[[i1, i1]]._express:
-                gm = matrix( [[ gg[i, j, chart]._express
+                gm = matrix( [[ gg[i, j, chart].expr()
                             for j in manif.irange()] for i in manif.irange()] )
-                detgm = simplify_chain_real(gm.det())
+                detgm = chart._simplify[chart._calc_method._current](gm.det())
                 resu.add_expr(detgm, chart=chart)
             self._determinants[frame] = resu
         return self._determinants[frame]
@@ -1521,7 +1520,6 @@ class PseudoRiemannianMetric(TensorField):
 
         """
         from sage.functions.other import sqrt
-        from sage.manifolds.utilities import simplify_chain_real
         dom = self._domain
         if frame is None:
             frame = dom._def_frame
@@ -1534,8 +1532,8 @@ class PseudoRiemannianMetric(TensorField):
             detg = self.determinant(frame)
             resu = frame._domain.scalar_field()
             for chart in detg._express:
-                x = self._indic_signat * detg._express[chart]._express # |g|
-                x = simplify_chain_real(sqrt(x))
+                x = self._indic_signat * detg._express[chart].expr() # |g|
+                x = chart._simplify[chart._calc_method._current](sqrt(x))
                 resu.add_expr(x, chart=chart)
             self._sqrt_abs_dets[frame] = resu
         return self._sqrt_abs_dets[frame]
@@ -2212,7 +2210,6 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        from sage.manifolds.utilities import simplify_chain_real
         # Is the inverse metric up to date ?
         for frame in self._components:
             if frame not in self._inverse._components:
@@ -2230,16 +2227,15 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 for chart in dom.top_charts():
                     try:
                         gmat = matrix(
-                                  [[self.comp(frame)[i, j, chart]._express
+                                  [[self.comp(frame)[i, j, chart].expr()
                                   for j in range(si, nsi)] for i in range(si, nsi)])
                         gmat_inv = gmat.inverse()
                     except (KeyError, ValueError):
                         continue
                     for i in range(si, nsi):
                         for j in range(i, nsi):
-                            cinv_scal[(i,j)].add_expr(simplify_chain_real(
-                                                       gmat_inv[i-si,j-si]),
-                                                      chart=chart)
+                            val = chart._simplify[chart._calc_method._current](gmat_inv[i-si,j-si])
+                            cinv_scal[(i,j)].add_expr(val,chart=chart)
                 for i in range(si, nsi):
                     for j in range(i, nsi):
                         cinv[i,j] = cinv_scal[(i,j)]

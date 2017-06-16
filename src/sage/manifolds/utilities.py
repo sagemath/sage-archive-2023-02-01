@@ -143,6 +143,7 @@ def simplify_sqrt_real(expr):
             ssimpl = str(abs(simpl).simplify())
         # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
         pstart = ssimpl.find('abs(1/sqrt(')
+        if pstart != -1: pstart = ssimpl.find('abs(1/sqrt(')
         if pstart != -1:
             ssimpl = ssimpl[:pstart] + ssimpl[pstart+3:] # getting rid of 'abs'
         new_expr += sexpr[pos0:pos] + '(' + ssimpl + ')'
@@ -201,7 +202,7 @@ def simplify_abs_trig(expr):
     from sage.symbolic.ring import SR
     from sage.symbolic.constants import pi
     sexpr = str(expr)
-    if 'abs(sin(' not in sexpr:  # nothing to simplify
+    if 'abs(sin(' not in sexpr and 'Abs(sin(' not in sexpr:  # nothing to simplify
         return expr
     if ('D[' in sexpr) or ('diff(' in sexpr):
         return expr    #!# the code below is not capable of simplifying
@@ -210,7 +211,7 @@ def simplify_abs_trig(expr):
     tp = []
     val = []
     for pos in range(len(sexpr)):
-        if sexpr[pos:pos+8] == 'abs(sin(':
+        if sexpr[pos:pos+8] == 'abs(sin(' or sexpr[pos:pos+8] == 'Abs(sin(':
             # finding the end of abs argument:
             scan = pos+4 # start of abs
             parenth = 1
@@ -258,7 +259,7 @@ def simplify_chain_real(expr):
 
     This is the simplification chain used in calculus involving coordinate
     functions on real manifolds, as implemented in
-    :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`.
+    :class:`~sage.manifolds.chart_func.ChartFunction`.
 
     The chain is formed by the following functions, called
     successively:
@@ -359,7 +360,7 @@ def simplify_chain_generic(expr):
 
     This is the simplification chain used in calculus involving coordinate
     functions on manifolds over fields different from `\RR`, as implemented in
-    :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`.
+    :class:`~sage.manifolds.chart_func.ChartFunction`.
 
     The chain is formed by the following functions, called
     successively:
@@ -420,10 +421,131 @@ def simplify_chain_generic(expr):
 
 
 def simplify_chain_generic_sympy(expr):
+    r"""
+    Apply a chain of simplifications to a sympy expression.
+
+    This is the simplification chain used in calculus involving coordinate
+    functions on manifolds over fields different from `\RR`, as implemented in
+    :class:`~sage.manifolds.chart_func.ChartFunction`.
+
+    The chain is formed by the following functions, called
+    successively:
+
+    #. :meth:`~sympy.simplify.combsimp`
+    #. :meth:`~sympy.simplify.trigsimp`
+    #. :meth:`~sympy.core.expand`
+    #. :meth:`~sympy.simplify.simplify`
+
+    EXAMPLES:
+
+    We consider variables that are coordinates of a chart on a complex
+    manifold::
+
+        sage: forget()  # for doctest only
+        sage: M = Manifold(2, 'M', structure='topological', field='complex', calc_method='sympy')
+        sage: X.<x,y> = M.chart()
+
+    Then neither ``x`` nor ``y`` is assumed to be real::
+
+        sage: assumptions()
+        []
+
+    Accordingly, ``simplify_chain_generic_sympy`` does not simplify
+    ``sqrt(x^2)`` to ``abs(x)``::
+
+        sage: from sage.manifolds.utilities import simplify_chain_generic_sympy
+        sage: s = (sqrt(x^2))._sympy_()
+        sage: simplify_chain_generic_sympy(s)
+        sqrt(x**2)
+
+    This contrasts with the behavior of
+    :func:`~sage.manifolds.utilities.simplify_chain_real_sympy`.
+
+    Other simplifications::
+
+        sage: s = ((x+y)^2 - x^2 -2*x*y - y^2)._sympy_()
+        sage: simplify_chain_generic_sympy(s)
+        0
+        sage: s = ((x^2 - 2*x + 1) / (x^2 -1))._sympy_()
+        sage: simplify_chain_generic_sympy(s)
+        (x - 1)/(x + 1)
+        sage: s = (cos(2*x) - 2*cos(x)^2 + 1)._sympy_()
+        sage: simplify_chain_generic_sympy(s)
+        0
+
+    """
 
     expr = expr.combsimp()
     expr = expr.trigsimp()
     expr = expr.expand()
+    expr = expr.simplify()
+    return expr
+
+
+def simplify_chain_real_sympy(expr):
+    r"""
+    Apply a chain of simplifications to a sympy expression, assuming the
+    real domain.
+
+    This is the simplification chain used in calculus involving coordinate
+    functions on real manifolds, as implemented in
+    :class:`~sage.manifolds.chart_func.ChartFunction`.
+
+    The chain is formed by the following functions, called
+    successively:
+
+    #. :meth:`~sympy.simplify.combsimp`
+    #. :meth:`~sympy.simplify.trigsimp`
+    #. :func:`simplify_sqrt_real`
+    #. :func:`simplify_abs_trig`
+    #. :meth:`~sympy.core.expand`
+    #. :meth:`~sympy.simplify.simplify`
+
+    EXAMPLES:
+
+    We consider variables that are coordinates of a chart on a real manifold::
+
+        sage: forget()  # for doctest only
+        sage: M = Manifold(2, 'M', structure='topological',calc_method='sympy')
+        sage: X.<x,y> = M.chart('x:(0,1) y')
+
+    The following assumptions then hold::
+
+        sage: assumptions()
+        [x is real, x > 0, x < 1, y is real]
+
+    and we have::
+
+        sage: from sage.manifolds.utilities import simplify_chain_real_sympy
+        sage: s = (sqrt(y^2))._sympy_()
+        sage: simplify_chain_real_sympy(s)
+        abs(y)
+
+    Furthermore, we have::
+
+        sage: s = (sqrt(x^2-2*x+1))._sympy_()
+        sage: simplify_chain_real_sympy(s)
+        -x + 1
+
+    Other simplifications::
+
+        sage: s = (abs(sin(pi*x)))._sympy_()
+        sage: simplify_chain_real_sympy(s)  # correct output since x in (0,1)
+        sin(pi*x)
+
+    ::
+
+        sage: s = (cos(y)^2 + sin(y)^2)._sympy_()
+        sage: simplify_chain_real_sympy(s)
+        1
+
+    """
+    expr = expr.combsimp()
+    expr = expr.trigsimp()
+    expr = simplify_sqrt_real(expr)
+    expr = simplify_abs_trig(expr)
+    expr = expr.expand()
+    expr = expr.simplify()
     return expr
 
 

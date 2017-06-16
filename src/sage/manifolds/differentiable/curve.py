@@ -37,7 +37,6 @@ from sage.misc.latex import latex
 from sage.misc.decorators import options
 from sage.manifolds.point import ManifoldPoint
 from sage.manifolds.differentiable.diff_map import DiffMap
-from sage.manifolds.utilities import simplify_chain_real
 
 class DifferentiableCurve(DiffMap):
     r"""
@@ -442,7 +441,7 @@ class DifferentiableCurve(DiffMap):
         coords = [coord_functions[i].expr().substitute(dict_subs)
                   for i in range(n)]
         if simplify:
-            coords = [simplify_chain_real(coords[i]) for i in range(n)]
+            coords = [chart_pair[0]._simplify[chart_pair[0]._calc_method._current](coords[i]) for i in range(n)]
         if self._name is not None:
             name = "{}({})".format(self._name, t)
         else:
@@ -880,4 +879,3 @@ class DifferentiableCurve(DiffMap):
                 labels = [str(pc) for pc in ambient_coords]
                 resu = set_axes_labels(resu, *labels)
         return resu
-

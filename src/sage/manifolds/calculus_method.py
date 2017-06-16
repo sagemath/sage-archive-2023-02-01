@@ -23,6 +23,7 @@ from sage.structure.sage_object import SageObject
 from sage.symbolic.ring import SR
 from sage.manifolds.utilities import (simplify_chain_real,
                                       simplify_chain_generic,
+                                      simplify_chain_real_sympy,
                                       simplify_chain_generic_sympy,)
 
 import sympy
@@ -53,8 +54,11 @@ class CalculusMethod(SageObject):
         Construct the single instance of class .
 
         TEST::
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: from sage.manifolds.calculus_method import CalculusMethod
-            sage: calc_mth = CalculusMethod()
+            sage: calc_mth = CalculusMethod(chart=X)
             sage: calc_mth._repr_()
             'Possible symbolic methods:\n - SR (*) (default)\n - sympy'
 
@@ -74,11 +78,13 @@ class CalculusMethod(SageObject):
         self._current = self._default if current is None else current
 
 
-        self._simplify = {'sympy': simplify_chain_generic_sympy }
+        self._simplify = {}
 
         if chart.manifold().base_field_type() == 'real':
+            self._simplify['sympy'] = simplify_chain_real_sympy
             self._simplify['SR'] = simplify_chain_real
         else:
+            self._simplify['sympy'] = simplify_chain_generic_sympy
             self._simplify['SR'] = simplify_chain_generic
 
 
@@ -87,8 +93,11 @@ class CalculusMethod(SageObject):
         Set the current calculus method.
 
         TEST::
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: from sage.manifolds.calculus_method import CalculusMethod
-            sage: calc_mth = CalculusMethod()
+            sage: calc_mth = CalculusMethod(chart=X)
             sage: calc_mth.set('sympy')
             sage: calc_mth._repr_()
             'Possible symbolic methods:\n - SR (default)\n - sympy (*)'
@@ -103,8 +112,11 @@ class CalculusMethod(SageObject):
         Test if a calculus method is defined.
 
         TEST::
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: from sage.manifolds.calculus_method import CalculusMethod
-            sage: calc_mth = CalculusMethod()
+            sage: calc_mth = CalculusMethod(chart=X)
             sage: calc_mth._test('lala')
             Traceback (most recent call last):
             ...
@@ -122,8 +134,11 @@ class CalculusMethod(SageObject):
 
 
         TEST::
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: from sage.manifolds.calculus_method import CalculusMethod
-            sage: calc_mth = CalculusMethod()
+            sage: calc_mth = CalculusMethod(chart=X)
             sage: calc_mth.set('sympy')
             sage: calc_mth._repr_()
             'Possible symbolic methods:\n - SR (default)\n - sympy (*)'
@@ -140,8 +155,11 @@ class CalculusMethod(SageObject):
         String representation of the object.
 
         TEST::
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X = M.chart('x y'); X
+            Chart (M, (x, y))
             sage: from sage.manifolds.calculus_method import CalculusMethod
-            sage: calc_mth = CalculusMethod()
+            sage: calc_mth = CalculusMethod(chart=X)
             sage: calc_mth._repr_()
             'Possible symbolic methods:\n - SR (*) (default)\n - sympy'
 

@@ -268,7 +268,7 @@ class Chart(UniqueRepresentation, SageObject):
         self._domain = domain
 
         self._calc_method = CalculusMethod(current=calc_method,chart=self)
-
+        self._simplify = self._calc_method._simplify
 
         # Treatment of the coordinates:
         if ' ' in coordinates:
@@ -1043,7 +1043,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.chart_func.CoordFunction`
+        - a :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the one coordinate function `f`
 
         EXAMPLES::
@@ -2792,6 +2792,7 @@ class CoordChange(SageObject):
         from sage.symbolic.relation import solve
         from sage.manifolds.utilities import simplify_chain_real, \
                                              simplify_chain_generic
+
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:

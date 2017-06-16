@@ -68,8 +68,6 @@ class ChartFunction(AlgebraElement):
             sage: f
             x**3 + y
 
-
-
         """
         AlgebraElement.__init__(self, parent)
 
@@ -91,6 +89,67 @@ class ChartFunction(AlgebraElement):
         # Derived quantities:
         self._der = None  # list of partial derivatives (to be set by diff()
                           # and unset by del_derived())
+
+
+    def chart(self):
+        r"""
+        Return the chart with respect to which ``self`` is defined.
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.chart.Chart`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(1+x+y^2)
+            sage: f.chart()
+            Chart (M, (x, y))
+            sage: f.chart() is X
+            True
+
+        """
+        return self.parent()._chart
+
+
+    def scalar_field(self, name=None, latex_name=None):
+        r"""
+        Construct the scalar field that has ``self`` as
+        coordinate expression.
+
+        The domain of the scalar field is the open subset covered by the
+        chart on which ``self`` is defined.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the scalar field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          scalar field; if ``None``, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - a :class:`~sage.manifolds.scalarfield.ScalarField`
+
+        EXAMPLES:
+
+        Construction of a scalar field on a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: fc = c_xy.function(x+2*y^3)
+            sage: f = fc.scalar_field() ; f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f.display()
+            M --> R
+            (x, y) |--> 2*y^3 + x
+            sage: f.coord_function(c_xy) is fc
+            True
+
+        """
+        alg = self.parent()._chart.domain().scalar_field_algebra()
+        return alg.element_class(alg, coord_expression={self.parent()._chart: self},
+                                 name=name, latex_name=latex_name)
 
 
     def expr(self,method=None):
@@ -255,6 +314,7 @@ class ChartFunction(AlgebraElement):
             method = self._calc_method._default
         else:
             method = self._express.keys()[0]
+
         resu_txt = str(self.parent()._chart[:]) + ' |--> ' + \
                    str(ExpressionNice(self._express[method]))
         resu_latex = latex(self.parent()._chart[:]) + r' \mapsto' + \
@@ -626,9 +686,10 @@ class ChartFunction(AlgebraElement):
             True
 
         """
+        curr = self._calc_method._current
         resu = type(self)(self.parent())
         for kk,vv in self._express.items():
-            resu._express[kk] = -vv
+            resu._express[kk] = - self._simplify[curr](vv)
         return resu
 
     def __invert__(self):
@@ -721,10 +782,31 @@ class ChartFunction(AlgebraElement):
             sage: (f + -f).display()
             (x, y) |--> 0
 
+        The same test with ``sympy``::
+            sage: X.set_calculus_method('sympy')
+            sage: f = X.function(x+y^2)
+            sage: g = X.function(x+1)
+            sage: s = f + g; s.expr()
+            2*x + y**2 + 1
+            sage: (f + 0).expr()
+            x + y**2
+            sage: (f + X.zero_function()).expr()
+            x + y**2
+            sage: (f + 1).expr()
+            x + y**2 + 1
+            sage: (f + pi).expr()
+            x + y**2 + pi
+            sage: (f + x).expr()
+             2*x + y**2
+            sage: (f + -f).expr()
+            0
+
+
+
         """
         curr = self._calc_method._current
         res = self._simplify[curr](self.expr() + other.expr())
-        if res == 0:
+        if curr =='SR' and res.is_trivial_zero():
             return self.parent().zero()
         else:
             return type(self)(self.parent(), res)
@@ -768,9 +850,14 @@ class ChartFunction(AlgebraElement):
             sage: (f - g) == -(g - f)
             True
 
-            sage: h = X.function(2*(x+y^2),calc_method='sympy')
-            sage: (h - f).display()
+        Tests with ``sympy``::
+            sage: X.set_calculus_method('sympy')
+            sage: h = X.function(2*(x+y^2))
+            sage: s = h - f
+            sage: s.display()
             (x, y) |--> y^2 + x
+            sage: s.expr()
+            x + y**2
         """
         curr = self._calc_method._current
         res = self._simplify[curr](self.expr() - other.expr())
@@ -810,6 +897,19 @@ class ChartFunction(AlgebraElement):
             sage: (f * (1/f)).display()
             (x, y) |--> 1
 
+        The same test with ``sympy``::
+            sage: X.set_calculus_method('sympy')
+            sage: f = X.function(x+y)
+            sage: g = X.function(x-y)
+            sage: s = f._mul_(g); s.expr()
+            x**2 - y**2
+            sage: (f * 0).expr()
+            0
+            sage: (f * X.zero_function()).expr()
+            0
+            sage: (f * (1/f)).expr()
+            1
+
         """
         curr = self._calc_method._current
         res = self._simplify[curr](self.expr() * other.expr())
@@ -836,6 +936,16 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> pi*x + pi*y
             sage: (x * f).display()
             (x, y) |--> x^2 + x*y
+
+        The same test with ``sympy``::
+
+            sage: X.set_calculus_method('sympy')
+            sage: f = X.function(x+y)
+            sage: (f * pi).expr()
+            pi*(x + y)
+            sage: (x * f).expr()
+            x*(x + y)
+
         """
         try:
             other = self._calc_method._tranf(other)
@@ -859,7 +969,18 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> 2*x + 2*y
             sage: (f * pi).display()
             (x, y) |--> pi*x + pi*y
+
+        The same test with ``sympy``::
+
+            sage: X.set_calculus_method('sympy')
+            sage: f = X.function(x+y)
+            sage: (f * 2).expr()
+            2*x + 2*y
+            sage: (f * pi).expr()
+            pi*(x + y)
+
         """
+        curr = self._calc_method._current
         try:
             other = self._calc_method._tranf(other)
         except (TypeError, ValueError):
@@ -906,6 +1027,17 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> (x + y)/(x^2 + 1)
             sage: (f / g) == ~(g / f)
             True
+
+        The same test with ``sympy``::
+
+            sage: X.set_calculus_method('sympy')
+            sage: f = X.function(x+y)
+            sage: g = X.function(1+x**2+y**2)
+            sage: s = f._div_(g); s.display()
+            (x, y) |--> (x + y)/(x^2 + y^2 + 1)
+            sage: (f / g) == ~(g / f)
+            True
+
 
         """
         if other.is_zero():
@@ -1182,10 +1314,16 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> sin(x*y)
             sage: sin(X.zero_function()) == X.zero_function()
             True
+            sage: f = X.function(2-cos(x)^2+y)
+            sage: g = X.function(-sin(x)^2+y)
+            sage: (f+g).simplify()
+            2*y + 1
+
 
         The same tests with ``sympy`` ::
 
             sage: X.set_calculus_method('sympy')
+            sage: f = X.function(x*y)
             sage: f.sin()
             sin(x*y)
             sage: sin(f)  # equivalent to f.sin()
@@ -1725,22 +1863,6 @@ class ChartFunction(AlgebraElement):
             sage: f.simplify()
             x - 1
 
-
-        The same tests with ``sympy`` ::
-
-            sage: X.set_calculus_method('sympy')
-            sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
-            sage: f.display()
-            (x, y) |--> cos(x)^2 + sin(x)^2 + sqrt(x^2)
-            sage: f.simplify()
-            abs(x) + 1
-
-            sage: f = X.function((x^2-1)/(x+1))
-            sage: f
-            (x**2 - 1)/(x + 1)
-            sage: f.simplify()
-            x - 1
-
         Examples taking into account the declared range of a coordinate::
 
             sage: M =  Manifold(2, 'M_1', structure='topological')
@@ -1748,6 +1870,7 @@ class ChartFunction(AlgebraElement):
             sage: f = X.function(sqrt(x^2))
             sage: f
             x
+
             sage: f.simplify()
             x
 
@@ -1759,6 +1882,36 @@ class ChartFunction(AlgebraElement):
             sage: f = X.function(sqrt(x^2))
             sage: f
             sqrt(x^2)
+            sage: f.simplify()
+            -x
+
+        The same tests with ``sympy`` ::
+
+            sage: forget()  # to clear the previous assumption on x
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart(calc_method='sympy')
+            sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
+            sage: f.simplify()
+            abs(x) + 1
+
+            sage: f = X.function((x^2-1)/(x+1))
+            sage: f
+            (x**2 - 1)/(x + 1)
+            sage: f.simplify()
+            x - 1
+
+            sage: M =  Manifold(2, 'M_1', structure='topological')
+            sage: X.<x,y> = M.chart('x:(0,+oo) y',calc_method='sympy')
+            sage: f = X.function(sqrt(x^2))
+            sage: f
+            x
+
+            sage: forget()  # to clear the previous assumption on x
+            sage: M =  Manifold(2, 'M_2', structure='topological')
+            sage: X.<x,y> = M.chart('x:(-oo,0) y',calc_method='sympy')
+            sage: f = X.function(sqrt(x^2))
+            sage: f
+            sqrt(x**2)
             sage: f.simplify()
             -x
 

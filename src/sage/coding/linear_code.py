@@ -5168,15 +5168,13 @@ class LinearCodeInformationSetDecoder(Decoder):
                 raise ValueError("The provided number of errors should be at most the code's length")
         else:
             raise ValueError("number_errors must be an integer or a pair of integers")
-        if search_size == None:
-            #TODO: Compute a sensible value
-            search_size = min(3, number_errors[1])
-        elif not isinstance(search_size, (Integer, int)) or search_size < 0:
-            raise ValueError("The search size parameter has to be a positive integer")
-        if search_size > number_errors[1]:
-            raise ValueError("The search size parameter has to be at most the maximal number of allowed errors")
-
+        if not search_size is None:
+            if not isinstance(search_size, (Integer, int)) or search_size < 0:
+                raise ValueError("The search size parameter has to be a positive integer")
+            if search_size > number_errors[1]:
+                raise ValueError("The search size parameter has to be at most the maximal number of allowed errors")
         self._search_size = search_size
+
         self._number_errors = number_errors
         super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
                 code._default_encoder_name)
@@ -5384,6 +5382,9 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         The values `T` and `P` are here estimated by running a few test
         computations similar to those done by the decoding algorithm.
+
+        OUTPUT: A list of floats represeting the estimated decoding times for
+        each possible value of `p`.
         """
         import time
         C = self.code()
@@ -5414,20 +5415,16 @@ class LinearCodeInformationSetDecoder(Decoder):
                 errs = e.hamming_weight()
             return (time.clock() - before)/100.
         T = median([ time_information_set_steps() for s in range(5) ])
-        P = [ time_search_loop(p) for p in range(tau) ]
+        P = [ time_search_loop(p) for p in range(tau+1) ]
 
-        best_p = -1
-        best_t = Infinity
-        for p in range(tau):
+        estimates = []
+        for p in range(tau+1):
             iters = 1.* binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) )) 
             # Each iteration, also the last, uses T time
             # Only every rho iteration costs P[p]
             estimate = ceil(iters)*T + iters * rho * sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) )
-            #DEBUG:
-            #print(p, estimate , iters , P[p])
-            if estimate < best_t:
-                    best_p, best_t = p, estimate
-        return best_p
+            estimates.append(estimate)
+        return estimates
 
 
     def search_size(self):
@@ -5442,7 +5439,11 @@ class LinearCodeInformationSetDecoder(Decoder):
             2
         """
         if not hasattr(self, "_search_size"):
-            self._search_size = self._calibrate_search_size()
+            estimates = self._calibrate_search_size()
+            self._search_size = 0
+            for p in range(1, len(estimates)):
+                if estimates[p] < estimates[self._search_size]:
+                    self._search_size = p
         return self._search_size
 
     def decoding_radius(self):

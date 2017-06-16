@@ -440,7 +440,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space `Q = V/W`, return `V`.
 
-        This is the same as self.V().
+        This is the same as :meth:`V`.
 
         EXAMPLES::
 
@@ -454,7 +454,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space `Q = V/W`, return `W`.
 
-        This is the same as self.W().
+        This is the same as :meth:`W`.
 
         EXAMPLES::
 

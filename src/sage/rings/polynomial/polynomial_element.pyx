@@ -8161,6 +8161,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef _inplace_truncate(self, long prec):
         return self.truncate(prec)
 
+    @cached_method
     def is_squarefree(self):
         """
         Return False if this polynomial is not square-free, i.e., if there is a
@@ -8249,6 +8250,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             TypeError: is_squarefree() is not defined for polynomials over Ring of integers modulo 9
 
         TESTS:
+
+        Check that the results are cached::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x^2
+            sage: f.is_squarefree()
+            False
+            sage: f.is_squarefree.cache
+            False
 
         If the base ring implements `_is_squarefree_univariate_polynomial`,
         then this method gets used instead of the generic algorithm in

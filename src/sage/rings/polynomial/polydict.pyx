@@ -38,11 +38,11 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
 from libc.string cimport memcpy
 from cpython.dict cimport *
 from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
                              Py_LT, Py_LE, Py_GT, Py_GE)
+from cysignals.memory cimport sig_malloc, sig_free
 
 import copy
 from functools import reduce

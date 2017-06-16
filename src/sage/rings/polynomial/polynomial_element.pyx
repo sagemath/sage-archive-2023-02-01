@@ -8014,6 +8014,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_irreducible()
             True
 
+        If the base ring implements `_is_irreducible_univariate_polynomial`,
+        then this method gets used instead of the generic algorithm which just
+        factors the input::
+
+            sage: R.<x> = QQbar[]
+            sage: hasattr(QQbar, "_is_irreducible_univariate_polynomial")
+            True
+            sage: (x^2 + 1).is_irreducible()
+            False
+
         Constants can be irreducible if they are not units::
 
             sage: R.<x> = ZZ[]
@@ -8040,6 +8050,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return False
         if self.degree() == 0:
             return self.base_ring()(self).is_irreducible()
+
+        B = self.parent().base_ring()
+        if hasattr(B, '_is_irreducible_univariate_polynomial'):
+            return B._is_irreducible_univariate_polynomial(self)
 
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:

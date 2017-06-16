@@ -21,6 +21,9 @@ from sage.rings.all import IntegerRing
 from sage.categories.all import Rings
 from sage.categories.magmas import Magmas
 from sage.categories.additive_magmas import AdditiveMagmas
+from sage.categories.sets_cat import Sets
+from sage.categories.morphism import SetMorphism
+from sage.combinat.free_module import CombinatorialFreeModule
 
 def GroupAlgebra(G, R=IntegerRing()):
     """
@@ -90,3 +93,111 @@ def GroupAlgebra(G, R=IntegerRing()):
     if not R in Rings():
         raise ValueError("%s is not a ring"%R)
     return G.algebra(R)
+
+class GroupAlgebra_class(CombinatorialFreeModule):
+    def _coerce_map_from_(self, S):
+        r"""
+        Return a coercion from `S` or ``None``.
+
+        INPUT:
+
+        - ``S`` -- a parent
+
+        Let us write ``self`` as `R[G]`. This method handles
+        the case where `S` is another group/monoid/...-algebra
+        `R'[H]`, with R coercing into `R'` and `H` coercing
+        into `G`. In that case it returns the naturally
+        induced coercion between `R'[H]` and `R[G]`. Otherwise
+        it returns ``None``.
+
+        EXAMPLES::
+
+            sage: A = GroupAlgebra(SymmetricGroup(4), QQ)
+            sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
+            sage: A.has_coerce_map_from(B)
+            True
+            sage: B.has_coerce_map_from(A)
+            False
+            sage: A.has_coerce_map_from(ZZ)
+            True
+            sage: A.has_coerce_map_from(CC)
+            False
+            sage: A.has_coerce_map_from(SymmetricGroup(5))
+            False
+            sage: A.has_coerce_map_from(SymmetricGroup(2))
+            True
+
+
+            sage: H = CyclicPermutationGroup(3)
+            sage: G = DihedralGroup(3)
+
+            sage: QH = H.algebra(QQ)
+            sage: ZH = H.algebra(ZZ)
+            sage: QG = G.algebra(QQ)
+            sage: ZG = G.algebra(ZZ)
+            sage: ZG.coerce_map_from(H)
+            Conversion map:
+              From: Cyclic group of order 3 as a permutation group
+              To:   Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+            sage: QG.coerce_map_from(ZG)
+            Generic morphism:
+              From: Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+              To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+            sage: QG.coerce_map_from(QH)
+            Generic morphism:
+              From: Algebra of Cyclic group of order 3 as a permutation group over Rational Field
+              To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+            sage: QG.coerce_map_from(ZH)
+            Generic morphism:
+              From: Algebra of Cyclic group of order 3 as a permutation group over Integer Ring
+              To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+
+        As expected, there is no coercion when restricting the
+        field::
+
+            sage: ZG.coerce_map_from(QG)
+
+        This coercion when restricting the group is unexpected::
+
+            sage: QH.coerce_map_from(QG)
+            Generic morphism:
+              From: Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+              To:   Algebra of Cyclic group of order 3 as a permutation group over Rational Field
+
+        but is induced by the partial coercion at the level of
+        the groups::
+
+            sage: H.coerce_map_from(G)
+            Call morphism:
+              From: Dihedral group of order 6 as a permutation group
+              To:   Cyclic group of order 3 as a permutation group
+
+        There is no coercion for additive groups since ``+`` could mean
+        both the action (i.e., the group operation) or adding a term::
+
+            sage: G = groups.misc.AdditiveCyclic(3)
+            sage: ZG = G.algebra(ZZ, category=AdditiveMagmas())
+            sage: ZG.has_coerce_map_from(G)
+            False
+        """
+        G = self.basis().keys()
+        K = self.base_ring()
+
+        if G.has_coerce_map_from(S):
+            from sage.categories.groups import Groups
+            # No coercion for additive groups because of ambiguity of +
+            #   being the group action or addition of a new term.
+            return self.category().is_subcategory(Groups().Algebras(K))
+
+        if S in Sets.Algebras:
+            S_K = S.base_ring()
+            S_G = S.basis().keys()
+            hom_K = K.coerce_map_from(S_K)
+            hom_G = G.coerce_map_from(S_G)
+            if hom_K is not None and hom_G is not None:
+                return SetMorphism(S.Hom(self, category=self.category() | S.category()),
+                                   lambda x: self.sum_of_terms( (hom_G(g), hom_K(c)) for g,c in x ))
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.algerbas.group_algebras', 'GroupAlgebra',  GroupAlgebra_class)
+

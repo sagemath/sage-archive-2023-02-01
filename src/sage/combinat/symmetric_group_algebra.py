@@ -13,6 +13,7 @@ from six.moves import range
 from sage.misc.cachefunc import cached_method
 from .combinatorial_algebra import CombinatorialAlgebra
 from .free_module import CombinatorialFreeModule
+from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
 from sage.combinat.permutation import Permutation, Permutations, from_permutation_group_element
 from . import partition
@@ -217,7 +218,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         category = W.category()
     return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
 
-class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
+class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
     def __init__(self, R, W, category):
         """
@@ -277,8 +278,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             self.n = W.degree()
         else:
             self.n = W.cartan_type().rank() + 1
-        CombinatorialFreeModule.__init__(self, R, W, prefix='',
-                                         latex_prefix='', category=category)
+        GroupAlgebra_class.__init__(self, R, W, prefix='',
+                                    latex_prefix='', category=category)
 
     def _repr_(self):
         """

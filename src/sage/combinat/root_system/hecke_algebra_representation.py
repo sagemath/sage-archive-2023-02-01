@@ -1127,7 +1127,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
             sage: E = KW.demazure_lusztig_eigenvectors(q1, q2)
             sage: w0 = W.long_element()
             sage: E[w0]
-            123121  
+            123121
         """
         L0 = self.keys()
         assert L0.is_parent_of(mu)

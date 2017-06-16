@@ -81,7 +81,7 @@ semigroups, monoids, or groups::
             over Rational Field
 
 Despite saying "free module", this is really an algebra, whose
-multiplication is induced by the addition of elements of `S`:: 
+multiplication is induced by the addition of elements of `S`::
 
     sage: U in Algebras(QQ)
     True

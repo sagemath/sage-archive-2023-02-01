@@ -556,7 +556,8 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 ##                  with symbols allowed which are represented by strings
 ##                  (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
 
-##     EXAMPLES:
+##     EXAMPLES::
+
 ##         sage: from sage.calculus.desolvers import desolve_laplace
 ##         sage: x = var('x')
 ##         sage: f = function('f')(x)

@@ -352,7 +352,8 @@ class ModularForm_abstract(ModuleElement):
         """
         Return the LaTeX expression of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ModularForms(25,4).0._latex_()
             'q + O(q^{6})'
 

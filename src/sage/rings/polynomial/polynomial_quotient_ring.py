@@ -964,9 +964,10 @@ class PolynomialQuotientRing_generic(CommutativeRing):
     @cached_method
     def _S_decomposition(self, S):
         """
-        Compute the decomposition of self into a product of number
-        fields.  This is an internal function used by
-        :meth:.S_class_group, :meth:.S_units and :meth:.selmer_group.
+        Compute the decomposition of self into a product of number fields.
+
+        This is an internal function used by
+        :meth:`S_class_group`, :meth:`S_units` and :meth:`selmer_group`.
 
         EXAMPLES::
 

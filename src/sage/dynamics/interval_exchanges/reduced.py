@@ -423,16 +423,17 @@ def ReducedPermutationsIET_iterator(
 
         nintervals = Integer(nintervals)
 
-        if not(nintervals > 0):
+        if nintervals <= 0:
             raise ValueError('number of intervals must be positive')
 
-        a0 = range(1,nintervals+1)
-        f = lambda x: ReducedPermutationIET([a0,list(x)],
-            alphabet=alphabet)
+        a0 = range(1, nintervals + 1)
+        f = lambda x: ReducedPermutationIET([a0, list(x)],
+                                            alphabet=alphabet)
         return map(f, Permutations(nintervals))
     else:
         return filter(lambda x: x.is_irreducible(),
-        ReducedPermutationsIET_iterator(nintervals,False,alphabet))
+        ReducedPermutationsIET_iterator(nintervals, False, alphabet))
+
 
 class ReducedPermutationIET(ReducedPermutation, PermutationIET):
     """

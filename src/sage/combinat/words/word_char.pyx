@@ -22,7 +22,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 
 from cpython.number cimport PyIndex_Check, PyNumber_Check
 from cpython.sequence cimport PySequence_Check

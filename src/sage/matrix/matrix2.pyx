@@ -70,7 +70,7 @@ from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
 
 
-cdef class Matrix(matrix1.Matrix):
+cdef class Matrix(Matrix1):
     def _backslash_(self, B):
         r"""
         Used to compute `A \backslash B`, i.e., the backslash solver

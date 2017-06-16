@@ -26,7 +26,7 @@ import sage.modules.free_module
 from sage.structure.element cimport coercion_model
 
 
-cdef class Matrix(matrix0.Matrix):
+cdef class Matrix(Matrix0):
     ###################################################
     # Coercion to Various Systems
     ###################################################

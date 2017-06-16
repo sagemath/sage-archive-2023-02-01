@@ -5091,8 +5091,10 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     - ``window-size`` -- (optional) the size of subsets to use on step 3 of the
       algorithm as described above. Usually a small number. It has to be at most
-      the largest allowed number of errors. A sensible default will be computed
-      if not set.
+      the largest allowed number of errors. A good choice will be approximated
+      if this option is not set; see
+      :meth:`sage.coding.LinearCodeInformationSetDecoder._calibrate_window_size`
+      for details.
 
     EXAMPLES::
 
@@ -5300,7 +5302,7 @@ class LinearCodeInformationSetDecoder(Decoder):
             y = r - vector([r[i] for i in I]) * Gt
             g = Gt.rows()
             #step 3.
-            for w in range(win):
+            for w in range(win+1):
                 for A in itertools.combinations(range(k), w):
                     for m in itertools.product(Fstar, repeat=w):
                         e = y - sum(m[i]*g[A[i]] for i in range(w))
@@ -5355,6 +5357,76 @@ class LinearCodeInformationSetDecoder(Decoder):
         if r in C:
             return r
         return self._lee_brickell_algorithm(r, self.decoding_interval(), self.window_size())
+
+    def _calibrate_window_size(self):
+        r"""
+        Run some test computations to estimate the optimal window size.
+
+        We should simply choose `w` such that the average expected time is
+        minimal. The algorithm succeeds when it chooses an information set with
+        at least `k - w` correct positions, where `k` is the dimension of the
+        code and `w` the window size. The expected number of trials we need
+        before this occurs is::
+
+            binom{n}{k}/(\rho \sum_{i=0}^w \binom{n-\tau}{k-i}\binom{\tau}{i})
+
+        Here `\rho` is the fraction of `k` subsets of indices which are
+        information sets. If `T` is the time for steps 1 and 2, while `P` is the
+        time for adding two vectors (the most expensive part of each iteration
+        in Step 3), then each information set trial takes roughly time `T + w
+        \binom{k}{w} q^w P`, where `\GF{q}` is the base field.
+
+        `rho` is expensive to estimate for a given code. Here we simply assume
+        that it is close to the probability that a random `k \times k` matrix
+        over `\GF{q}` has full rank. It is a classical result that this
+        probability is `\geq 1 - 1/(q-1)` for `q > 2` and `\geq 0.288` if `q
+        = 2`.
+
+        The values `T` and `P` are here estimated by running a few test
+        computations similar to those done by the decoding algorithm.
+        """
+        import time
+        C = self.code()
+        G = C.generator_matrix()
+        n, k = C.length(), C.dimension()
+        tau = D.decoding_radius()
+        F = C.base_ring()
+        q = F.cardinality()
+        V = F^n
+        m = [ F.random_element() for i in range(win) ]
+        rho = 1 - 1/(q-1) if q > 2 else 0.288
+        def time_information_set_steps():
+            before = time.time()
+            while True:
+                I = sample(range(n), k)
+                Gi = G.matrix_from_columns(I)
+                try:
+                    Gi_inv = Gi.inverse()
+                except ZeroDivisionError:
+                    continue
+                Gt = Gi_inv * G
+                g = Gt.rows()
+                return time.time() - before
+        def time_sum_100_vectors():
+            vectors = [ (F.random_element(), V.random_element()) for i in range(100) ]
+            before = time.time()
+            e = sum( a*v for a,v in vectors )
+            return time.time() - before
+        T = median([ time_information_set_steps() for s in range(5) ])
+        P = median([ time_sum_100_vectors()/100. for s in range(5) ])
+
+        best_w = -1
+        best_t = Infinity
+        for w in range(0, tau):
+            iters = binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(w+1) )) 
+            time_per_iter = T + P * sum((i+1) * binomial(k, i) * (q-1)^i for i in range(w+1) )
+            # We ceil the estimated number of iterations to slightly prefer 
+            estimate = ceil(iters) * time_per_iter
+            print w, estimate , iters , time_per_iter
+            if estimate < best_t:
+                    best_w, best_t = w, estimate
+        return best_w
+
 
     def window_size(self):
         r"""

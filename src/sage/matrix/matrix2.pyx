@@ -42,7 +42,7 @@ bug, see :trac:`17527`)::
 from __future__ import print_function, absolute_import
 
 from cpython cimport *
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_check
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
@@ -3692,7 +3692,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: matrix(Integers(6), 2, 2).right_kernel_matrix(algorithm='generic')
             Traceback (most recent call last):
             ...
-            ValueError: 'generic' matrix kernel algorithm only available over a field, not over Ring of integers modulo 6
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 6'.
             sage: matrix(QQ, 2, 2).right_kernel_matrix(algorithm='pluq')
             Traceback (most recent call last):
             ...
@@ -8071,10 +8071,36 @@ cdef class Matrix(matrix1.Matrix):
             Traceback (most recent call last):
             ...
             TypeError: tensor product requires a second matrix, not junk
+
+        TESTS:
+
+        Check that `m \times 0` and `0 \times m` matrices work
+        (:trac:`22769`)::
+
+            sage: m1 = matrix(QQ, 1, 0, [])
+            sage: m2 = matrix(QQ, 2, 2, [1, 2, 3, 4])
+            sage: m1.tensor_product(m2).dimensions()
+            (2, 0)
+            sage: m2.tensor_product(m1).dimensions()
+            (2, 0)
+            sage: m3 = matrix(QQ, 0, 3, [])
+            sage: m3.tensor_product(m2).dimensions()
+            (0, 6)
+            sage: m2.tensor_product(m3).dimensions()
+            (0, 6)
+
+            sage: m1 = MatrixSpace(GF(5), 3, 2).an_element()
+            sage: m2 = MatrixSpace(GF(5), 0, 4).an_element()
+            sage: m1.tensor_product(m2).parent()
+            Full MatrixSpace of 0 by 8 dense matrices over Finite Field of size 5
         """
-        from sage.matrix.constructor import block_matrix
         if not isinstance(A, Matrix):
             raise TypeError('tensor product requires a second matrix, not {0}'.format(A))
+        from sage.matrix.constructor import block_matrix
+        # Special case when one of the matrices is 0 \times m or m \times 0
+        if self.nrows() == 0 or self.ncols() == 0 or A.nrows() == 0 or A.ncols() == 0:
+            return self.matrix_space(self.nrows()*A.nrows(),
+                                     self.ncols()*A.ncols()).zero_matrix().__copy__()
         return block_matrix(self.nrows(), self.ncols(),
                             [x * A for x in self.list()], subdivide=subdivide)
 
@@ -14959,6 +14985,13 @@ def _matrix_power_symbolic(A, n):
         sage: A^(2*n+1)
         [ 1/2*2^(2*n + 1) -1/2*2^(2*n + 1)]
         [-1/2*2^(2*n + 1)  1/2*2^(2*n + 1)]
+
+    Check if :trac:`23215` is fixed::
+
+        sage: a, b, k = var('a, b, k')
+        sage: matrix(2, [a, b, -b, a])^k
+        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
+        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
@@ -14971,7 +15004,7 @@ def _matrix_power_symbolic(A, n):
     # transform to QQbar if possible
     try:
         A = A.change_ring(QQbar)
-    except TypeError:
+    except (TypeError, NotImplementedError):
         pass
 
     # returns jordan matrix J and invertible matrix P such that A = P*J*~P

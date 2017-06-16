@@ -28,6 +28,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.memory cimport check_realloc
+from cysignals.signals cimport sig_on, sig_off
+
 ## Define an environment variable that enables MeatAxe to find
 ## its multiplication tables.
 
@@ -57,8 +60,6 @@ from libc.stdlib cimport free
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
-
-include "cysignals/memory.pxi"
 
 ####################
 #

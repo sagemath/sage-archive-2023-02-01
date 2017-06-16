@@ -118,7 +118,7 @@ from sage.misc.derivative import multi_derivative
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 
 def is_PowerSeries(x):

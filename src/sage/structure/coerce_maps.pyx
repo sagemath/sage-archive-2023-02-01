@@ -28,7 +28,7 @@ cdef class DefaultConvertMap(Map):
           From: Rational Field
           To:   Power Series Ring in x over Rational Field
     """
-    def __init__(self, domain, codomain, force_use=False):
+    def __init__(self, domain, codomain, category=None, force_use=False):
         """
         TESTS:
 
@@ -51,8 +51,10 @@ cdef class DefaultConvertMap(Map):
         """
         if not isinstance(domain, Parent):
             domain = Set_PythonType(domain)
-        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-        parent = domain.Hom(codomain, category=SetsWithPartialMaps())
+        if category is None:
+            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+            category = SetsWithPartialMaps()
+        parent = domain.Hom(codomain, category=category)
         Map.__init__(self, parent)
         self._coerce_cost = 100
         self._force_use = force_use

@@ -1618,6 +1618,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: L(gap(tau)^3)     # indirect doctest
             2
 
+        Check that :trac:`22202` is fixed::
+
+            sage: y = QQ['y'].gen()
+            sage: R = QQ.extension(y^2-2,'a')['x']
+            sage: R("a*x").factor()
+            (a) * x
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1644,7 +1650,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if x.type() in ["t_INT", "t_FRAC"]:
                 pass
             elif x.type() == "t_POL":
-                if check and self.pari_polynomial() != self.absolute_polynomial().monic():
+                var = self.absolute_polynomial().variable_name()
+                if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
                     from warnings import warn
                     warn("interpreting PARI polynomial %s relative to the defining polynomial %s of the PARI number field"
                          % (x, self.pari_polynomial()))
@@ -6899,11 +6906,13 @@ class NumberField_absolute(NumberField_generic):
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
 
         """
-        if R in integer_types + (ZZ, QQ, self.base()):
-            return self._generic_convert_map(R)
+        if R in integer_types:
+            return self._generic_coerce_map(R)
+        elif R in (ZZ, QQ, self.base()):
+            return self._generic_coerce_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
-            return self._generic_convert_map(R)
+            return self._generic_coerce_map(R)
         # R is not QQ by the above tests
         if is_NumberField(R) and R.coerce_embedding() is not None:
             if self.coerce_embedding() is not None:

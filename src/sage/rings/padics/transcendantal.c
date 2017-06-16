@@ -160,8 +160,16 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
 
 /* p-adic exponential */
 void padicexp(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo) {
-    /*  Compute the p-adic exponential of a,
-        which is supposed to be congruent to 0 mod p  */
+    /*  Compute the p-adic exponential of a, which is supposed
+         - to be congruent to 0 mod p if p > 2
+         - to be congruent to 0 mod 4 if p = 2
+
+        Algorithm:
+         1. we write a as a sum
+              a = a_0*p + a_1*p^2 + a_2*p^4 + ...
+            with 0 <= a_i < p^(2^i).
+         2. we compute each exp(a_i*p^(2^i)) using Taylor expansion
+            and a binary spliting strategy.                           */
 
     unsigned long i, N, saveN, Np, tmp, trunc, step;
     mpz_t f, arg, trunc_mod, h, hpow, mpz_tmp, d, inv;

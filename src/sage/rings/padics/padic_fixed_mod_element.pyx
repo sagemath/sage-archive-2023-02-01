@@ -436,6 +436,49 @@ cdef class pAdicFixedModElement(FMElement):
         return ans
 
     def _exp_binary_splitting(self, aprec):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is
+            the disk of convergence of ``exp``. If this assumption is not
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Write
+
+        .. MATH::
+
+            self = \sum_{i=1}^\infty a_i p^{2^i}
+
+        with `0 \leq a_i < p^{2^i}` and compute
+        `\exp(a_i p^{2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+        together with a binary splitting method.
+
+        The binary complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: x = R(7)
+            sage: x.exp(algorithm="binary_splitting")   # indirect doctest
+            1 + 7 + 4*7^2 + 2*7^3 + O(7^5)
+
+        """
         cdef unsigned long p
         cdef unsigned long prec = aprec
         cdef pAdicFixedModElement ans
@@ -452,6 +495,40 @@ cdef class pAdicFixedModElement(FMElement):
         return ans
 
     def _exp_newton(self, aprec, log_algorithm=None):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is
+            the disk of convergence of ``exp``. If this assumption is not
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Solve the equation `\log(x) = self` using the Newton scheme::
+
+        .. MATH::
+
+            x_{i+1} = x_i \cdot (1 + self - \log(x_i))
+
+        The binary complexity of this algorithm is roughly the same
+        than that of the computation of the logarithm.
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="newton")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+        """
         cdef unsigned long p
         cdef unsigned long prec = aprec
         cdef pAdicFixedModElement ans

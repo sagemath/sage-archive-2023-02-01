@@ -2171,7 +2171,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R.<w> = Zq(7^2,5)
             sage: x = R(7*w)
-            sage: x._exp(5)
+            sage: x.exp(algorithm="generic")   # indirect doctest
             1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
 
         AUTHORS:
@@ -2238,9 +2238,86 @@ cdef class pAdicGenericElement(LocalGenericElement):
         return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
 
     def _exp_binary_splitting(self, aprec):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Write
+
+        .. MATH::
+
+            self = \sum_{i=1}^\infty a_i p^{2^i}
+
+        with `0 \leq a_i < p^{2^i}` and compute 
+        `\exp(a_i p^{2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+        together with a binary splitting method.
+
+        The binary complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: x = R(7)
+            sage: x.exp(algorithm="binary_splitting")   # indirect doctest
+            1 + 7 + 4*7^2 + 2*7^3 + O(7^5)
+
+        """
         raise NotImplementedError("The binary splitting algorithm is not implemented for the parent: %s" % self.parent())
 
     def _exp_newton(self, aprec, log_algorithm=None):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Solve the equation `\log(x) = self` using the Newton scheme::
+
+        .. MATH::
+
+            x_{i+1} = x_i \cdot (1 + self - \log(x_i))
+
+        The binary complexity of this algorithm is roughly the same
+        than that of the computation of the logarithm.
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="newton")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+        """
         R = self.parent()
         e = R.e()
         a = R(1,aprec)
@@ -2286,12 +2363,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
           The binary splitting algorithm is faster, it has a quasi-linear
           complexity.
 
-          The ``Newton`` algorithms solve the equation `log(x) = self` using
+          The ``Newton`` algorithms solve the equation `\log(x) = self` using
           a Newton scheme. It runs roughly as fast as the computation of the
           logarithm.
 
-          By default, we use the binary splitting if it is available. Otherwise
-          we switch to the generic algorithm.
+          By default, we use the binary splitting if it is available. 
+          If it is not, we use the Newton algorithm if a fast algorithm for
+          computing the logarithm is available.
+          Otherwise we switch to the generic algorithm.
 
         EXAMPLES:
 
@@ -2425,6 +2504,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (w^4).exp()
             1 + w^4 + w^5 + w^7 + w^9 + w^10 + w^14 + O(w^15)
 
+        Check that all algorithms output the same result::
+
+            sage: R = Zp(5,50)
+            sage: a = 5 * R.random_element()
+            sage: bg = a.exp(algorithm="generic")
+            sage: bbs = a.exp(algorithm="binary_splitting")
+            sage: bn = a.exp(algorithm="newton")
+            sage: bg == bbs
+            True
+            sage: bg == bn
+            True
+
+        Performances::
+
+            sage: R = Zp(17,10^6)
+            sage: a = 17 * R.random_element()
+            sage: b = a.exp()    # should be rather fast
+
         AUTHORS:
 
         - Genya Zaytman (2007-02-15)
@@ -2432,6 +2529,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
 
         - Julian Rueth (2013-02-14): Added doctests, fixed some corner cases
+
+        - Xavier Caruso (2017-06): Added binary splitting and Newton algorithms
 
         """
         p = self.parent().prime()

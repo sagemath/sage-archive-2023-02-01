@@ -5173,7 +5173,7 @@ class LinearCodeInformationSetDecoder(Decoder):
                 raise ValueError("The search size parameter has to be a positive integer")
             if search_size > number_errors[1]:
                 raise ValueError("The search size parameter has to be at most the maximal number of allowed errors")
-        self._search_size = search_size
+            self._search_size = search_size
 
         self._number_errors = number_errors
         super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \

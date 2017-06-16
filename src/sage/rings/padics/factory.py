@@ -157,6 +157,13 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
             name = names
         else:
             name = str(names)
+    if show_prec is None:
+        if type == 'floating-point':
+            show_prec = False
+        elif print_mode ('series', 'terse', 'val-unit'):
+            show_prec = True
+        else:
+            show_prec = False
     if type in valid_non_lazy_types:
         key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms, show_prec)
     elif type == 'lazy':
@@ -557,8 +564,6 @@ class Qp_class(UniqueFactory):
                 return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                           'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
         elif type == 'floating-point':
-            if show_prec is None:
-                show_prec = False
             if print_mode == 'terse':
                 return pAdicFieldFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                           'ram_name': name, 'max_terse_terms': print_max_terms, 'show_prec': show_prec}, name)
@@ -1650,8 +1655,6 @@ class Zp_class(UniqueFactory):
             return pAdicRingCappedAbsolute(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                      'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
         elif type == 'floating-point':
-            if show_prec is None:
-                show_prec = False
             return pAdicRingFloatingPoint(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet,
                                                      'ram_name': name, 'max_ram_terms': print_max_terms, 'show_prec': show_prec}, name)
         else:
@@ -2409,6 +2412,13 @@ class pAdicExtension_class(UniqueFactory):
             print_max_unram_terms = base._printer._max_unram_terms()
         if print_max_terse_terms is None:
             print_max_terse_terms = base._printer._max_terse_terms()
+        if show_prec is None:
+            if base._prec_type() == 'floating-point':
+                show_prec = False
+            elif print_mode in ('series', 'terse', 'val-unit'):
+                show_prec = True
+            else:
+                show_prec = False
         from sage.symbolic.expression import is_Expression
         if check:
             if is_Expression(premodulus):

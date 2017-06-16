@@ -148,12 +148,43 @@ def richcmp_method(cls):
         sage: B.__ne__(x, y)
         left != right
 
+    We can override ``__richcmp__`` with standard Python rich
+    comparison methods and conversely::
+
+        sage: class C(A):
+        ....:     def __ne__(self, other):
+        ....:         return False
+        sage: C("left") != C("right")
+        False
+        sage: C("left") == C("right")  # Calls __eq__ from class A
+        left == right
+
+        sage: class Base(object):
+        ....:     def __eq__(self, other):
+        ....:         return False
+        sage: @richcmp_method
+        ....: class Derived(Base):
+        ....:     def __richcmp__(self, other, op):
+        ....:         return True
+        sage: Derived() == Derived()
+        True
+
     TESTS::
 
         sage: richcmp_method(None)
         Traceback (most recent call last):
         ...
         TypeError: None is not a class
+
+        sage: @richcmp_method
+        ....: class X(object):
+        ....:     def __eq__(self, other):
+        ....:         pass
+        ....:     def __richcmp__(self, other, op):
+        ....:         pass
+        Traceback (most recent call last):
+        ...
+        TypeError: class <class '__main__.X'> defines __eq__ which cannot be combined with @richcmp_method
     """
     if not isinstance(cls, type):
         raise TypeError(f"{cls!r} is not a class")
@@ -162,12 +193,12 @@ def richcmp_method(cls):
 
     # Install slot wrappers in the class dict
     cdef dict D = <dict>(tp.tp_dict)
-    D["__eq__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_EQ], <void*>slot_tp_richcompare)
-    D["__ne__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_NE], <void*>slot_tp_richcompare)
-    D["__lt__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_LT], <void*>slot_tp_richcompare)
-    D["__gt__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_GT], <void*>slot_tp_richcompare)
-    D["__le__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_LE], <void*>slot_tp_richcompare)
-    D["__ge__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_GE], <void*>slot_tp_richcompare)
+    cdef wrapperbase* slotdef
+    for slotdef in richcmp_slotdef:
+        name = <object>slotdef.name_strobj
+        if name in D:
+            raise TypeError("class %r defines %s which cannot be combined with @richcmp_method" % (cls, name))
+        D[name] = PyDescr_NewWrapper(tp, slotdef, <void*>slot_tp_richcompare)
 
     PyType_Modified(tp)
 

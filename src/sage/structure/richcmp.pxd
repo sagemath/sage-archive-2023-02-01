@@ -150,14 +150,16 @@ cpdef inline bint rich_to_bool_sgn(int op, Py_ssize_t c):
 # Technical Python stuff
 ########################################################################
 
-from cpython.object cimport PyTypeObject
+from cpython.object cimport PyObject, PyTypeObject, Py_TYPE
 
 cdef extern from *:
     struct wrapperbase:
-        pass
+        PyObject* name_strobj
 
     ctypedef struct PyWrapperDescrObject:
         wrapperbase* d_base
+
+    PyTypeObject* wrapper_descriptor "(&PyWrapperDescr_Type)"
 
     PyDescr_NewWrapper(PyTypeObject* cls, wrapperbase* wrapper, void* wrapped)
 
@@ -202,7 +204,7 @@ cdef inline wrapperbase* get_slotdef(slotwrapper) except NULL:
         ...
         TypeError: expected a slot wrapper descriptor, got <...>
     """
-    if type(slotwrapper).__name__ != 'wrapper_descriptor':
+    if Py_TYPE(slotwrapper) is not wrapper_descriptor:
         raise TypeError(f"expected a slot wrapper descriptor, got {type(slotwrapper)}")
 
     return (<PyWrapperDescrObject*>slotwrapper).d_base

@@ -318,6 +318,16 @@ class LocalGeneric(CommutativeRing):
             kwds['p'] = p
         functor, ring = self.construction()
         functor = copy(functor)
+        if 'mode' in kwds and 'show_prec' not in kwds:
+            new_type = kwds.get('type', self._prec_type())
+            cur_type = self._prec_type()
+            cur_mode = self._printer._print_mode()
+            cur_show_prec = self._printer._show_prec()
+            from .factory import _default_show_prec
+            if cur_show_prec == _default_show_prec(cur_type, cur_mode):
+                kwds['show_prec'] = _default_show_prec(new_type, kwds['mode'])
+            else:
+                raise RuntimeError
         # There are two kinds of functors possible:
         # CompletionFunctor and AlgebraicExtensionFunctor
         # We distinguish them by the presence of ``prec``,

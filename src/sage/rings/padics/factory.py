@@ -69,6 +69,32 @@ ext_table['u', pAdicRingFloatingPoint] = UnramifiedExtensionRingFloatingPoint
 ext_table['u', pAdicFieldFloatingPoint] = UnramifiedExtensionFieldFloatingPoint
 #ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
 
+def _default_show_prec(type, print_mode):
+    """
+    Returns the default show_prec value for a given type and printing mode.
+
+    INPUT:
+
+    - ``type`` -- a string: ``'capped-rel'``, ``'capped-abs'``, ``'fixed-mod'`` or ``'floating-point'``
+    - ``print_mode`` -- a string: ``'series'``, ``'terse'``, ``'val-unit'``, ``'digits'``, ``'bars'``
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.factory import _default_show_prec
+        sage: _default_show_prec('floating-point', 'series')
+        False
+        sage: _default_show_prec('capped-rel', 'series')
+        True
+        sage: _default_show_prec('capped-abs', 'digits')
+        False
+    """
+    if type == 'floating-point':
+        return False
+    elif print_mode in ('series', 'terse', 'val-unit'):
+        return True
+    else:
+        return False
+
 def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, valid_non_lazy_types):
     """
     This implements create_key for Zp and Qp: moving it here prevents code duplication.
@@ -158,12 +184,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
         else:
             name = str(names)
     if show_prec is None:
-        if type == 'floating-point':
-            show_prec = False
-        elif print_mode ('series', 'terse', 'val-unit'):
-            show_prec = True
-        else:
-            show_prec = False
+        show_prec = _default_show_prec(type, print_mode)
     if type in valid_non_lazy_types:
         key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms, show_prec)
     elif type == 'lazy':
@@ -516,7 +537,7 @@ class Qp_class(UniqueFactory):
         TESTS::
 
             sage: Qp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, None)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True)
         """
         return get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point'])
 
@@ -1602,9 +1623,9 @@ class Zp_class(UniqueFactory):
         TESTS::
 
             sage: Zp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, None)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True)
             sage: Zp.create_key(5,40,print_mode='digits')
-            (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1, None)
+            (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1, False)
         """
         return get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet,
                             print_max_terms, show_prec, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point'])
@@ -2396,7 +2417,7 @@ class pAdicExtension_class(UniqueFactory):
             sage: R = Zp(5,3)
             sage: S.<x> = ZZ[]
             sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w')
-            (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1, None, 'NTL'), {'shift_seed': (3 + O(5^3))})
+            (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1, True, 'NTL'), {'shift_seed': (3 + O(5^3))})
         """
         if print_mode is None:
             print_mode = base.print_mode()
@@ -2413,12 +2434,7 @@ class pAdicExtension_class(UniqueFactory):
         if print_max_terse_terms is None:
             print_max_terse_terms = base._printer._max_terse_terms()
         if show_prec is None:
-            if base._prec_type() == 'floating-point':
-                show_prec = False
-            elif print_mode in ('series', 'terse', 'val-unit'):
-                show_prec = True
-            else:
-                show_prec = False
+            show_prec = _default_show_prec(base._prec_type(), print_mode)
         from sage.symbolic.expression import is_Expression
         if check:
             if is_Expression(premodulus):

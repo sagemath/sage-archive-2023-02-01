@@ -41,7 +41,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef inline bint exactzero(long ordp):
     """
@@ -1176,7 +1176,7 @@ cdef class CRElement(pAdicTemplateElement):
             :meth:`sage.misc.cachefunc._cache_key`
         """
         tuple_recursive = lambda l: tuple(tuple_recursive(x) for x in l) if isinstance(l, list) else l
-        return (self.parent(), tuple_recursive(self.list()), self.valuation(), self.precision_relative())
+        return (self.parent(), tuple_recursive(self.expansion()), self.valuation(), self.precision_relative())
 
     def expansion(self, n = None, lift_mode = 'simple', start_val = None):
         """
@@ -1246,11 +1246,11 @@ cdef class CRElement(pAdicTemplateElement):
             [3, 4, 4, 0, 4]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('smallest'); L
+            sage: L = a.expansion(lift_mode='smallest'); L
             [3, -3, -2, 1, -3, 1]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('teichmuller'); L
+            sage: L = a.expansion(lift_mode='teichmuller'); L
             [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
             0,
             5 + 2*7 + 3*7^3 + O(7^4),
@@ -1265,9 +1265,9 @@ cdef class CRElement(pAdicTemplateElement):
 
             sage: R = Qp(7,4); a = R(6*7+7**2); a.expansion()
             [6, 1]
-            sage: a.expansion('smallest')
+            sage: a.expansion(lift_mode='smallest')
             [-1, 2]
-            sage: a.expansion('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [6 + 6*7 + 6*7^2 + 6*7^3 + O(7^4),
             2 + 4*7 + 6*7^2 + O(7^3),
             3 + 4*7 + O(7^2),
@@ -1348,7 +1348,7 @@ cdef class CRElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = Qp(5,5); R(70).expansion('teichmuller') #indirect doctest
+            sage: R = Qp(5,5); R(70).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
             2 + 5 + 2*5^2 + O(5^3),
@@ -1370,7 +1370,8 @@ cdef class CRElement(pAdicTemplateElement):
             # We only need one list_elt
             list_elt = self._new_c()
         cdef long curpower = self.relprec
-        cdef long goal = self.relprec - n + self.ordp
+        cdef long goal
+        if n is not None: goal = self.relprec - n + self.ordp
         cdef CRElement tmp = self._new_c()
         ccopy(tmp.unit, self.unit, self.prime_pow)
         while not ciszero(tmp.unit, tmp.prime_pow) and curpower > 0:
@@ -1386,10 +1387,10 @@ cdef class CRElement(pAdicTemplateElement):
                 cshift_notrunc(tmp.unit, tmp.unit, -1, curpower-1, self.prime_pow)
                 creduce(tmp.unit, tmp.unit, curpower-1, self.prime_pow)
             if n is None:
-                curpower -= 1
                 PyList_Append(ans, list_elt)
             elif curpower == goal:
                 return list_elt
+            curpower -= 1
         return ans
 
     teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
@@ -1411,7 +1412,7 @@ cdef class CRElement(pAdicTemplateElement):
             11 + O(17^5)
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
 
         Note that if you set an element which is congruent to 0 you

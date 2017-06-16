@@ -810,9 +810,9 @@ cdef class pAdicPrinter_class(SageObject):
             from sage.rings.padics.padic_capped_relative_element import base_p_list
             return base_p_list(value, pos, self.prime_pow)
         elif pos:
-            return value.unit_part().series_coefficients()
+            return value.unit_part().expansion()
         else:
-            return value.unit_part().series_coefficients('smallest')
+            return value.unit_part().expansion(lift_mode='smallest')
 
     def repr_gen(self, elt, do_latex, pos = None, mode = None, ram_name = None):
         """

@@ -41,7 +41,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef class CAElement(pAdicTemplateElement):
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
@@ -735,9 +735,9 @@ cdef class CAElement(pAdicTemplateElement):
             :meth:`sage.misc.cachefunc._cache_key`
         """
         tuple_recursive = lambda l: tuple(tuple_recursive(x) for x in l) if isinstance(l, list) else l
-        return (self.parent(), tuple_recursive(self.list()), self.precision_absolute())
+        return (self.parent(), tuple_recursive(self.expansion()), self.precision_absolute())
 
-    def expansion(self, lift_mode = 'simple', start_val = None):
+    def expansion(self, n = None, lift_mode = 'simple', start_val = None):
         """
         Returns a list of coefficients of `p` starting with `p^0`.
 
@@ -796,11 +796,11 @@ cdef class CAElement(pAdicTemplateElement):
             [3, 4, 4, 0, 4]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('smallest'); L
+            sage: L = a.expansion(lift_mode='smallest'); L
             [3, -3, -2, 1, -3, 1]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('teichmuller'); L
+            sage: L = a.expansion(lift_mode='teichmuller'); L
             [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
             O(7^5),
             5 + 2*7 + 3*7^3 + O(7^4),
@@ -879,7 +879,7 @@ cdef class CAElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpCA(5,5); R(14).expansion('teichmuller') #indirect doctest
+            sage: R = ZpCA(5,5); R(14).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
             2 + 5 + 2*5^2 + O(5^3),
@@ -900,7 +900,8 @@ cdef class CAElement(pAdicTemplateElement):
             # We only need one list_elt
             list_elt = self._new_c()
         cdef long curpower = self.absprec
-        cdef long goal = self.absprec - n
+        cdef long goal
+        if n is not None: goal = self.absprec - n
         cdef CAElement tmp = self._new_c()
         ccopy(tmp.value, self.value, self.prime_pow)
         while not ciszero(tmp.value, tmp.prime_pow) and curpower > 0:
@@ -914,10 +915,10 @@ cdef class CAElement(pAdicTemplateElement):
                 creduce(tmp.value, tmp.value, curpower-1, self.prime_pow)
             list_elt.absprec = curpower
             if n is None:
-                curpower -= 1
                 PyList_Append(ans, list_elt)
             elif curpower == goal:
                 return list_elt
+            curpower -= 1
         return ans
 
     teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
@@ -939,7 +940,7 @@ cdef class CAElement(pAdicTemplateElement):
             11 + O(17^5)
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
 
         Note that if you set an element which is congruent to 0 you

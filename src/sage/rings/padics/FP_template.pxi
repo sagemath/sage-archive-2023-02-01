@@ -964,11 +964,11 @@ cdef class FPElement(pAdicTemplateElement):
             [3, 4, 4, 0, 4]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('smallest'); L
+            sage: L = a.expansion(lift_mode='smallest'); L
             [3, -3, -2, 1, -3, 1]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('teichmuller'); L
+            sage: L = a.expansion(lift_mode='teichmuller'); L
             [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5,
             0,
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5,
@@ -983,9 +983,9 @@ cdef class FPElement(pAdicTemplateElement):
 
             sage: R = QpFP(7,4); a = R(6*7+7**2); a.expansion()
             [6, 1]
-            sage: a.expansion('smallest')
+            sage: a.expansion(lift_mode='smallest')
             [-1, 2]
-            sage: a.expansion('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [6 + 6*7 + 6*7^2 + 6*7^3,
             2 + 4*7 + 6*7^2 + 3*7^3,
             3 + 4*7 + 6*7^2 + 3*7^3,
@@ -1003,7 +1003,7 @@ cdef class FPElement(pAdicTemplateElement):
                 start_val = lift_mode
             lift_mode = n
             n = None
-        elif isinstance n, slice):
+        elif isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
         elif n is not None and (huge_val(self.ordp) or n < self.ordp or n >= self.ordp + self.prime_pow.prec_cap):
             return zero
@@ -1052,7 +1052,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpFP(5,5); R(14).expansion('teichmuller') #indirect doctest
+            sage: R = ZpFP(5,5); R(14).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4,
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4,
             2 + 5 + 2*5^2 + 5^3 + 3*5^4,
@@ -1074,7 +1074,8 @@ cdef class FPElement(pAdicTemplateElement):
             # We only need one list_elt
             list_elt = self._new_c()
         cdef long prec_cap = self.prime_pow.prec_cap
-        cdef long goal = prec_cap - n
+        cdef long goal
+        if n is not None: goal = prec_cap - n
         cdef long curpower = prec_cap
         cdef FPElement tmp = self._new_c()
         ccopy(tmp.unit, self.unit, self.prime_pow)
@@ -1090,10 +1091,10 @@ cdef class FPElement(pAdicTemplateElement):
                 cshift_notrunc(tmp.unit, tmp.unit, -1, prec_cap, self.prime_pow)
                 creduce(tmp.unit, tmp.unit, prec_cap, self.prime_pow)
             if n is None:
-                curpower -= 1
                 PyList_Append(ans, list_elt)
             elif curpower == goal:
                 return list_elt
+            curpower -= 1
         return ans
 
     teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
@@ -1115,7 +1116,7 @@ cdef class FPElement(pAdicTemplateElement):
             11
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4]
 
         Note that if you set an element which is congruent to 0 you

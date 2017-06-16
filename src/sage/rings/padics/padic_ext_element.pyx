@@ -370,7 +370,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if R.e() != 1:
             raise NotImplementedError("Frobenius automorphism only implemented for unramified extensions")
         if self.is_zero(): return self
-        L = self.teichmuller_list()
+        L = self.teichmuller_expansion()
         ppow = R.uniformizer_pow(self.valuation())
         if arithmetic:
             exp = R.prime()
@@ -487,6 +487,6 @@ cdef class pAdicExtElement(pAdicGenericElement):
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(0,1)
         elif absprec == 1:
-            return self.parent().residue_field()(self[0])
+            return self.parent().residue_field()(self.expansion(0))
         else:
             raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")

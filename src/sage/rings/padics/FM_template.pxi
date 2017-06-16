@@ -43,7 +43,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef class FMElement(pAdicTemplateElement):
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
@@ -616,11 +616,11 @@ cdef class FMElement(pAdicTemplateElement):
             [3, 4, 4, 0, 4]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('smallest'); L
+            sage: L = a.expansion(lift_mode='smallest'); L
             [3, -3, -2, 1, -3, 1]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.expansion('teichmuller'); L
+            sage: L = a.expansion(lift_mode='teichmuller'); L
             [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
             O(7^6),
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6),
@@ -654,7 +654,7 @@ cdef class FMElement(pAdicTemplateElement):
             try:
                 return vlist[n]
             except IndexError:
-                return zero
+                return _list_zero
 
     list = deprecated_function_alias(14825, expansion)
 
@@ -673,7 +673,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpFM(5,5); R(14).expansion('teichmuller') #indirect doctest
+            sage: R = ZpFM(5,5); R(14).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5),
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5),
@@ -694,7 +694,8 @@ cdef class FMElement(pAdicTemplateElement):
             list_elt = self._new_c()
         cdef long curpower = self.prime_pow.prec_cap
         cdef long prec_cap = self.prime_pow.prec_cap
-        cdef long goal = prec_cap - n
+        cdef long goal
+        if n is not None: goal = prec_cap - n
         cdef FMElement tmp = self._new_c()
         ccopy(tmp.value, self.value, self.prime_pow)
         while not ciszero(tmp.value, tmp.prime_pow) and curpower > 0:
@@ -707,10 +708,10 @@ cdef class FMElement(pAdicTemplateElement):
                 cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
                 creduce(tmp.value, tmp.value, prec_cap, self.prime_pow)
             if n is None:
-                curpower -= 1
                 PyList_Append(ans, list_elt)
             elif curpower == goal:
                 return list_elt
+            curpower -= 1
         return ans
 
     teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
@@ -732,7 +733,7 @@ cdef class FMElement(pAdicTemplateElement):
             11 + O(17^5)
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
 
         Note that if you set an element which is congruent to 0 you

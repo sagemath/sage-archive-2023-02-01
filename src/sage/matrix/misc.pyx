@@ -11,7 +11,7 @@ relevant classes and this file deleted.
 """
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.mod_int cimport *
 from sage.libs.gmp.mpz cimport *

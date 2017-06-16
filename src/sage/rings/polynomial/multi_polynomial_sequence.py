@@ -1034,7 +1034,7 @@ class PolynomialSequence_generic(Sequence_generic):
         ALGORITHM:
 
         Uses Singular's interred command or
-        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
+        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular

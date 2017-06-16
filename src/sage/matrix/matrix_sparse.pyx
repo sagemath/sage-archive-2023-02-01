@@ -9,10 +9,13 @@ Base class for sparse matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 cimport cython
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix0 as matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
@@ -20,8 +23,6 @@ from sage.structure.richcmp cimport richcmp
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from cpython cimport *
 
 import sage.matrix.matrix_space

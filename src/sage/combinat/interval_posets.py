@@ -153,7 +153,7 @@ class TamariIntervalPoset(Element):
     its roots on top. This forest is usually given the structure of a
     planar forest by ordering brother nodes by their labels; it then has
     the property that if its nodes are traversed in post-order
-    (see :meth:~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
+    (see :meth:`~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
     and traverse the trees of the forest from left to right as well),
     then the labels encountered are `1, 2, \ldots, n` in this order.
 

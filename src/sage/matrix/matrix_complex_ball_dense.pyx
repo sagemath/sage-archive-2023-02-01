@@ -18,17 +18,18 @@ TESTS::
     [8.000000000000000 11.00000000000000]
     [22.00000000000000 41.00000000000000]
 """
+
 #*****************************************************************************
-# Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'cysignals/signals.pxi'
-
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *

@@ -3960,7 +3960,7 @@ cdef class Matroid(SageObject):
             raise ValueError("N must be a matroid.")
         return self._has_minor(N, certificate)
 
-    cpdef has_line_minor(self, k, hyperlines=None):
+    cpdef has_line_minor(self, k, hyperlines=None, certificate=False):
         """
         Test if the matroid has a `U_{2, k}`-minor.
 
@@ -3969,18 +3969,21 @@ cdef class Matroid(SageObject):
         than two elements is dependent.
 
         The optional argument ``hyperlines`` restricts the search space: this
-        method returns ``False`` if `si(M/F)` is isomorphic to `U_{2, l}` with
-        `l \geq k` for some `F` in ``hyperlines``, and ``True`` otherwise.
+        method returns ``True`` if `si(M/F)` is isomorphic to `U_{2, l}` with
+        `l \geq k` for some `F` in ``hyperlines``, and ``False`` otherwise.
 
         INPUT:
 
         - ``k`` -- the length of the line minor
         - ``hyperlines`` -- (default: ``None``) a set of flats of codimension
           2. Defaults to the set of all flats of codimension 2.
+        - ``certificate`` -- (default: ``False``) if ``True`` returns ``(True, F)``,
+          where ``F`` is a flat and ``self.minor(contractions=F)`` has a
+          `U_{2,k}` restriction or ``(False, None)``.
 
         OUTPUT:
 
-        Boolean.
+        Boolean or tuple.
 
         .. SEEALSO::
 
@@ -3998,11 +4001,22 @@ cdef class Matroid(SageObject):
             sage: M.has_line_minor(k=4, hyperlines=[['a', 'b', 'c'],
             ....:                                   ['a', 'b', 'd' ]])
             True
+            sage: M.has_line_minor(4, certificate=True)
+            (True, frozenset({'a', 'b', 'd'}))
+            sage: M.has_line_minor(5, certificate=True)
+            (False, None)
+            sage: M.has_line_minor(k=4, hyperlines=[['a', 'b', 'c'],
+            ....:                                   ['a', 'b', 'd' ]], certificate=True)
+            (True, frozenset({'a', 'b', 'd'}))
 
         """
         if self.full_rank() < 2:
+            if certificate:
+                return False, None
             return False
         if self.full_corank() < k - 2:
+            if certificate:
+                return False, None
             return False
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)
@@ -4016,13 +4030,17 @@ cdef class Matroid(SageObject):
                     raise ValueError("input sets need to have rank 2 less than the rank of the matroid.")
             # Note that we don't check if the sets are flats, because loops
             # get simplified away anyway.
-        return self._has_line_minor(k, hyperlines)
+        return self._has_line_minor(k, hyperlines, certificate)
 
-    cpdef _has_line_minor(self, k, hyperlines):
+    cpdef _has_line_minor(self, k, hyperlines, certificate=False):
         """
         Test if the matroid has a `U_{2, k}`-minor.
 
         Internal version that does no input checking.
+
+        The optional argument ``hyperlines`` restricts the search space: this
+        method returns ``True`` if `si(M/F)` is isomorphic to `U_{2, l}` with
+        `l \geq k` for some `F` in ``hyperlines``, and ``False`` otherwise.
 
         INPUT:
 
@@ -4032,22 +4050,31 @@ cdef class Matroid(SageObject):
 
         OUTPUT:
 
-        Boolean. ``False`` if `si(M/F)` is isomorphic to `U_{2, l}` with
-        `l \geq k` for some `F` in ``hyperlines``. ``True``, otherwise.
+        Boolean or tuple.
 
         EXAMPLES::
 
             sage: M = matroids.named_matroids.NonPappus()
             sage: M._has_line_minor(5, M.flats(1))
             True
+            sage: M._has_line_minor(5, M.flats(1), certificate=True)
+            (True, frozenset({'a'}))
         """
         if self.full_rank() < 2:
+            if certificate:
+                return False, None
             return False
         if self.full_corank() < k - 2:
+            if certificate:
+                return False, None
             return False
         for F in hyperlines:
             if self._line_length(F) >= k:
+                if certificate:
+                    return True, F
                 return True
+        if certificate:
+            return False, None
         return False
 
     # extensions

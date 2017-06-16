@@ -1562,7 +1562,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         - ``mu`` -- a weight `\mu` that lifts to a level 0 element of the affine weight lattice
 
         This methods simply checks the weight and calls
-        :meth:`.hecke_algebra_representation.CherednikOperatorsEigenvectors.__getitem__``.
+        :meth:`.hecke_algebra_representation.CherednikOperatorsEigenvectors.__getitem__`.
 
         .. NOTE::
 

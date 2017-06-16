@@ -5392,11 +5392,10 @@ class LinearCodeInformationSetDecoder(Decoder):
         tau = D.decoding_radius()
         F = C.base_ring()
         q = F.cardinality()
-        V = F^n
-        m = [ F.random_element() for i in range(win) ]
+        Fstar = F.list()[1:]
         rho = 1 - 1/(q-1) if q > 2 else 0.288
         def time_information_set_steps():
-            before = time.time()
+            before = time.clock()
             while True:
                 I = sample(range(n), k)
                 Gi = G.matrix_from_columns(I)
@@ -5404,28 +5403,30 @@ class LinearCodeInformationSetDecoder(Decoder):
                     Gi_inv = Gi.inverse()
                 except ZeroDivisionError:
                     continue
-                Gt = Gi_inv * G
-                g = Gt.rows()
-                return time.time() - before
-        def time_sum_100_vectors():
-            vectors = [ (F.random_element(), V.random_element()) for i in range(100) ]
-            before = time.time()
-            e = sum( a*v for a,v in vectors )
-            return time.time() - before
+                return time.clock() - before
+        def time_window_loop(win):
+            y = random_vector(F, n)
+            g = random_matrix(F, win, n).rows()
+            scalars = [  [ Fstar[randint(0,q-2)] for i in range(win) ] for s in range(100) ]
+            before = time.clock()
+            for m in scalars:
+                e = y - sum(m[i]*g[i] for i in range(win))
+                errs = e.hamming_weight()
+            return (time.clock() - before)/100.
         T = median([ time_information_set_steps() for s in range(5) ])
-        P = median([ time_sum_100_vectors()/100. for s in range(5) ])
+        W = [ time_window_loop(win) for win in range(tau) ]
 
-        best_w = -1
+        best_win = -1
         best_t = Infinity
-        for w in range(0, tau):
-            iters = binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(w+1) )) 
-            time_per_iter = T + P * sum((i+1) * binomial(k, i) * (q-1)^i for i in range(w+1) )
-            # We ceil the estimated number of iterations to slightly prefer 
-            estimate = ceil(iters) * time_per_iter
-            print w, estimate , iters , time_per_iter
+        for win in range(tau):
+            iters = 1.* binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(win+1) )) 
+            # Each iteration, also the last, uses T time
+            # Only every rho iteration costs W[win]
+            estimate = ceil(iters)*T + iters * rho * sum(W[w] * (q-1)**w * binomial(k, w) for w in range(win+1) )
+            print win, estimate , iters , W[win]
             if estimate < best_t:
-                    best_w, best_t = w, estimate
-        return best_w
+                    best_win, best_t = win, estimate
+        return best_win
 
 
     def window_size(self):
@@ -5439,6 +5440,8 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: D.window_size()
             2
         """
+        if not hasattr(self, "_window_size"):
+            self._window_size = self._calibrate_window_size()
         return self._window_size
 
     def decoding_radius(self):

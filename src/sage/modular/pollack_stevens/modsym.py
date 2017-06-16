@@ -40,7 +40,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import operator
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method

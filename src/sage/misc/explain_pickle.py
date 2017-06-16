@@ -718,7 +718,7 @@ class PickleExplainer(object):
 
     def _APPENDS_helper(self, lst, slice):
         r"""
-        TESTS::
+        TESTS:
 
         See the doctests for APPEND and APPENDS for some simple indirect
         tests of this method.  Here we test some subtle behavior.
@@ -2388,7 +2388,8 @@ def unpickle_newobj(klass, args):
     Create a new object; this corresponds to the C code
     klass->tp_new(klass, args, NULL).  Used by ``explain_pickle``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: unpickle_newobj(tuple, ([1, 2, 3],))
         (1, 2, 3)
     """
@@ -2644,7 +2645,8 @@ class EmptyOldstyleClass:
         r"""
         Print an EmptyOldstyleClass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.misc.explain_pickle import *
             sage: v = EmptyOldstyleClass()
             sage: v
@@ -2660,7 +2662,8 @@ class EmptyOldstyleClass:
         r"""
         Produce a predictable hash value for EmptyOldstyleClass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.misc.explain_pickle import *
             sage: v = EmptyOldstyleClass()
             sage: hash(v)
@@ -2986,7 +2989,8 @@ class TestGlobalNewName(object):
     of TestGlobalOldName, it is redirected to create an instance of this
     class instead.  Used for testing explain_pickle.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.explain_pickle import *
         sage: loads(dumps(TestGlobalOldName()))
         TestGlobalNewName

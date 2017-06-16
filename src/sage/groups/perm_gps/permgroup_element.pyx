@@ -75,7 +75,7 @@ from sage.interfaces.all import gap
 from sage.interfaces.gap import is_GapElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 import operator
 

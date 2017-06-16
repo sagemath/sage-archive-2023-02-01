@@ -33,14 +33,15 @@ AUTHORS:
 #*****************************************************************************
 
 import weakref
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 from cpython.object cimport Py_EQ, Py_NE
 
 from sage.ext.stdsage cimport PY_NEW
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 
 cdef long maxpreccap = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -577,6 +578,8 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         from padic_capped_absolute_element import PowComputer_ as PC_class
     elif prec_type == 'fixed-mod':
         from padic_fixed_mod_element import PowComputer_ as PC_class
+    elif prec_type == 'floating-point':
+        from padic_floating_point_element import PowComputer_ as PC_class
     else:
         PC_class = PowComputer_base
     PC = PC_class(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), mpz_get_ui(prec_cap.value), in_field)

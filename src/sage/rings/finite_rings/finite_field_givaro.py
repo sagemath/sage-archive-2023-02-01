@@ -130,8 +130,6 @@ class FiniteField_givaro(FiniteField):
             True
             sage: TestSuite(GF(2^3, 'a')).run()
         """
-        self._kwargs = {}
-
         if repr not in ['int', 'log', 'poly']:
             raise ValueError("Unknown representation %s"%repr)
 
@@ -149,9 +147,6 @@ class FiniteField_givaro(FiniteField):
 
         from .finite_field_constructor import GF
         FiniteField.__init__(self, GF(p), name, normalize=False)
-
-        self._kwargs['repr'] = repr
-        self._kwargs['cache'] = cache
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if not is_Polynomial(modulus):
@@ -276,7 +271,7 @@ class FiniteField_givaro(FiniteField):
             0
 
         Rational are interpreted as ``self(numerator)/self(denominator)``.
-        Both may not be greater than :meth:characteristic()`.
+        Both may not be greater than :meth:`characteristic`.
         ::
 
             sage: k = GF(3**8, 'a')

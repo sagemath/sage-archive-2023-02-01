@@ -315,7 +315,7 @@ def _explain_constructor(cl):
     sage: C = codes.GolayCode(GF(2))
     sage: cl = LinearCodeInformationSetDecoder
     sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['window_size'].\nSee the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details."
+    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['search_size'].\nSee the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
     argspec = inspect.getargspec(cl.__init__)
@@ -1457,7 +1457,7 @@ class AbstractLinearCode(Module):
             ...
             ValueError: Constructing the InformationSet decoder failed, possibly due to missing or incorrect parameters.
             The constructor requires the arguments ['number_errors'].
-            It takes the optional arguments ['window_size'].
+            It takes the optional arguments ['search_size'].
             See the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details.
 
         """
@@ -5089,11 +5089,11 @@ class LinearCodeInformationSetDecoder(Decoder):
       correct decoding. An interval can also be specified by giving a pair of
       integers, where both end values are taken to be in the interval.
 
-    - ``window-size`` -- (optional) the size of subsets to use on step 3 of the
+    - ``search_size`` -- (optional) the size of subsets to use on step 3 of the
       algorithm as described above. Usually a small number. It has to be at most
       the largest allowed number of errors. A good choice will be approximated
       if this option is not set; see
-      :meth:`sage.coding.LinearCodeInformationSetDecoder._calibrate_window_size`
+      :meth:`sage.coding.LinearCodeInformationSetDecoder._calibrate_search_size`
       for details.
 
     EXAMPLES::
@@ -5124,7 +5124,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     """
 
-    def __init__(self, code, number_errors, window_size = None):
+    def __init__(self, code, number_errors, search_size = None):
         r"""
         TESTS:
 
@@ -5132,10 +5132,10 @@ class LinearCodeInformationSetDecoder(Decoder):
         or an Integer/int::
 
             sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", 2, window_size="aa")
+            sage: D = C.decoder("InformationSet", 2, search_size="aa")
             Traceback (most recent call last):
             ...
-            ValueError: The window size parameter has to be a positive integer
+            ValueError: The search size parameter has to be a positive integer
 
         If ``number_errors`` is passed as a list/tuple, it has to contain only two values,
         the first one being at most the second one::
@@ -5146,14 +5146,14 @@ class LinearCodeInformationSetDecoder(Decoder):
             ...
             ValueError: number_errors should be a positive integer or a valid interval within the positive integers
 
-        If ``window_size`` is bigger than a possible value for ``number_errors``, an error
+        If ``search_size`` is bigger than a possible value for ``number_errors``, an error
         will be raised::
 
             sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", (1, 3), window_size=5)
+            sage: D = C.decoder("InformationSet", (1, 3), search_size=5)
             Traceback (most recent call last):
             ...
-            ValueError: The window size parameter has to be at most the maximal number of allowed errors
+            ValueError: The search size parameter has to be at most the maximal number of allowed errors
         """
         if isinstance(number_errors, (Integer, int)):
             number_errors = (0, number_errors)
@@ -5168,15 +5168,15 @@ class LinearCodeInformationSetDecoder(Decoder):
                 raise ValueError("The provided number of errors should be at most the code's length")
         else:
             raise ValueError("number_errors must be an integer or a pair of integers")
-        if window_size == None:
+        if search_size == None:
             #TODO: Compute a sensible value
-            window_size = min(3, number_errors[1])
-        elif not isinstance(window_size, (Integer, int)) or window_size < 0:
-            raise ValueError("The window size parameter has to be a positive integer")
-        if window_size > number_errors[1]:
-            raise ValueError("The window size parameter has to be at most the maximal number of allowed errors")
+            search_size = min(3, number_errors[1])
+        elif not isinstance(search_size, (Integer, int)) or search_size < 0:
+            raise ValueError("The search size parameter has to be a positive integer")
+        if search_size > number_errors[1]:
+            raise ValueError("The search size parameter has to be at most the maximal number of allowed errors")
 
-        self._window_size = window_size
+        self._search_size = search_size
         self._number_errors = number_errors
         super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
                 code._default_encoder_name)
@@ -5199,7 +5199,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         return isinstance(other, LinearCodeInformationSetDecoder)\
                 and self.code() == other.code()\
                 and self.decoding_interval() == other.decoding_interval()\
-                and self.window_size() == other.window_size()
+                and self.search_size() == other.search_size()
 
     def _format_number_errors(self):
         r"""
@@ -5250,7 +5250,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         """
         return "\\textnormal{{Information set decoder for }}{0} \\textnormal{{decoding {1} errors}}".format(self.code()._latex_(), self._format_number_errors())
 
-    def _lee_brickell_algorithm(self, r, tau, win):
+    def _lee_brickell_algorithm(self, r, tau, p):
         r"""
         The Lee-Brickell algorithm as described in the class doc.
 
@@ -5261,7 +5261,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         - `tau` -- an integer interval of acceptable Hamming weights for the error.
 
-        - `win` -- an integer, the window size.
+        - `p` -- an integer, the search size.
 
         OUTPUT: A codeword whose distance to `r` satisfies `tau`.
 
@@ -5302,10 +5302,10 @@ class LinearCodeInformationSetDecoder(Decoder):
             y = r - vector([r[i] for i in I]) * Gt
             g = Gt.rows()
             #step 3.
-            for w in range(win+1):
-                for A in itertools.combinations(range(k), w):
-                    for m in itertools.product(Fstar, repeat=w):
-                        e = y - sum(m[i]*g[A[i]] for i in range(w))
+            for pi in range(p+1):
+                for A in itertools.combinations(range(k), pi):
+                    for m in itertools.product(Fstar, repeat=pi):
+                        e = y - sum(m[i]*g[A[i]] for i in range(pi))
                         errs = e.hamming_weight()
                         if  errs >= tau[0] and errs <= tau[1]:
                             return r - e
@@ -5356,25 +5356,25 @@ class LinearCodeInformationSetDecoder(Decoder):
         C = self.code()
         if r in C:
             return r
-        return self._lee_brickell_algorithm(r, self.decoding_interval(), self.window_size())
+        return self._lee_brickell_algorithm(r, self.decoding_interval(), self.search_size())
 
-    def _calibrate_window_size(self):
+    def _calibrate_search_size(self):
         r"""
-        Run some test computations to estimate the optimal window size.
+        Run some test computations to estimate the optimal search size.
 
-        We should simply choose `w` such that the average expected time is
+        We should simply choose `p` such that the average expected time is
         minimal. The algorithm succeeds when it chooses an information set with
-        at least `k - w` correct positions, where `k` is the dimension of the
-        code and `w` the window size. The expected number of trials we need
+        at least `k - p` correct positions, where `k` is the dimension of the
+        code and `p` the search size. The expected number of trials we need
         before this occurs is::
 
-            binom{n}{k}/(\rho \sum_{i=0}^w \binom{n-\tau}{k-i}\binom{\tau}{i})
+            binom{n}{k}/(\rho \sum_{i=0}^p \binom{n-\tau}{k-i}\binom{\tau}{i})
 
         Here `\rho` is the fraction of `k` subsets of indices which are
         information sets. If `T` is the time for steps 1 and 2, while `P` is the
         time for adding two vectors (the most expensive part of each iteration
-        in Step 3), then each information set trial takes roughly time `T + w
-        \binom{k}{w} q^w P`, where `\GF{q}` is the base field.
+        in Step 3), then each information set trial takes roughly time `T + p
+        \binom{k}{p} q^p P`, where `\GF{q}` is the base field.
 
         `rho` is expensive to estimate for a given code. Here we simply assume
         that it is close to the probability that a random `k \times k` matrix
@@ -5404,45 +5404,46 @@ class LinearCodeInformationSetDecoder(Decoder):
                 except ZeroDivisionError:
                     continue
                 return time.clock() - before
-        def time_window_loop(win):
+        def time_search_loop(p):
             y = random_vector(F, n)
-            g = random_matrix(F, win, n).rows()
-            scalars = [  [ Fstar[randint(0,q-2)] for i in range(win) ] for s in range(100) ]
+            g = random_matrix(F, p, n).rows()
+            scalars = [  [ Fstar[randint(0,q-2)] for i in range(p) ] for s in range(100) ]
             before = time.clock()
             for m in scalars:
-                e = y - sum(m[i]*g[i] for i in range(win))
+                e = y - sum(m[i]*g[i] for i in range(p))
                 errs = e.hamming_weight()
             return (time.clock() - before)/100.
         T = median([ time_information_set_steps() for s in range(5) ])
-        W = [ time_window_loop(win) for win in range(tau) ]
+        P = [ time_search_loop(p) for p in range(tau) ]
 
-        best_win = -1
+        best_p = -1
         best_t = Infinity
-        for win in range(tau):
-            iters = 1.* binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(win+1) )) 
+        for p in range(tau):
+            iters = 1.* binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) )) 
             # Each iteration, also the last, uses T time
-            # Only every rho iteration costs W[win]
-            estimate = ceil(iters)*T + iters * rho * sum(W[w] * (q-1)**w * binomial(k, w) for w in range(win+1) )
-            print win, estimate , iters , W[win]
+            # Only every rho iteration costs P[p]
+            estimate = ceil(iters)*T + iters * rho * sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) )
+            #DEBUG:
+            #print(p, estimate , iters , P[p])
             if estimate < best_t:
-                    best_win, best_t = win, estimate
-        return best_win
+                    best_p, best_t = p, estimate
+        return best_p
 
 
-    def window_size(self):
+    def search_size(self):
         r"""
-        The window-size parameter for this information-set decoder.
+        The search-size parameter for this information-set decoder.
 
         EXAMPLES::
 
             sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", 2, window_size=2)
-            sage: D.window_size()
+            sage: D = C.decoder("InformationSet", 2, search_size=2)
+            sage: D.search_size()
             2
         """
-        if not hasattr(self, "_window_size"):
-            self._window_size = self._calibrate_window_size()
-        return self._window_size
+        if not hasattr(self, "_search_size"):
+            self._search_size = self._calibrate_search_size()
+        return self._search_size
 
     def decoding_radius(self):
         r"""

@@ -7753,8 +7753,8 @@ cdef class Matroid(SageObject):
         else:
             for M in matroids:
                 if not isinstance(M, Matroid):
-                    raise TypeError("Can only take the union with a "
-                                     + "matroid or list of matroids.")
+                    raise TypeError("can only take the union with a "
+                                     + "matroid or list of matroids")
         matroids = [M for M in matroids if M]
         if not matroids:
             return self

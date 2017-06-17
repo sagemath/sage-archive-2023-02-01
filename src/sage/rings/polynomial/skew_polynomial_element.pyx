@@ -3160,6 +3160,7 @@ cdef class ConstantSkewPolynomialSection(Map):
         else:
             raise TypeError("not a constant polynomial")
 
+
 cdef class SkewPolynomialBaseringInjection(Morphism):
     r"""
     Representation of the canonical homomorphism from a ring `R` into a skew
@@ -3170,7 +3171,7 @@ cdef class SkewPolynomialBaseringInjection(Morphism):
 
     .. SEEALSO::
 
-        :class:~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
+        :class:`~sage.rings.polynomial.polynomial_element.PolynomialBaseringInjection`
 
     EXAMPLES::
 

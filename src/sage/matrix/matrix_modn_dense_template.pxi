@@ -87,11 +87,12 @@ We test corner cases for multiplication::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
 from libc.stdint cimport uint64_t
 from cpython.bytes cimport *
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_malloc, check_allocarray, sig_malloc, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
@@ -172,8 +173,8 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
 
     cdef Py_ssize_t i, j
     cdef ModField *F = new ModField(<long>modulus)
-    cdef size_t* P = <size_t*>sig_malloc(sizeof(size_t)*nrows)
-    cdef size_t* Q = <size_t*>sig_malloc(sizeof(size_t)*ncols)
+    cdef size_t* P = <size_t*>check_allocarray(nrows, sizeof(size_t))
+    cdef size_t* Q = <size_t*>check_allocarray(ncols, sizeof(size_t))
 
     if nrows*ncols > 1000: sig_on()
     cdef Py_ssize_t r = Mod_echelon(F[0], nrows, ncols, <ModFieldElement*>entries, ncols, P, Q)
@@ -230,11 +231,11 @@ cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_
     del F, A, E, EF
     return r, pivots
 
-cdef inline celement *linbox_copy(celement modulus, celement *entries,  Py_ssize_t nrows, Py_ssize_t ncols) except NULL:
+cdef inline celement *linbox_copy(celement modulus, celement *entries,  Py_ssize_t nrows, Py_ssize_t ncols) except? NULL:
     """
     Create a copy of the entries array.
     """
-    cdef celement *entries_copy = <celement*>sig_malloc(sizeof(celement)*nrows*ncols)
+    cdef celement *entries_copy = <celement*>check_allocarray(nrows * ncols, sizeof(celement))
     memcpy(entries_copy, entries, sizeof(celement)*nrows*ncols)
     return entries_copy
 
@@ -303,8 +304,8 @@ cdef inline linbox_minpoly(celement modulus, Py_ssize_t nrows, celement* entries
     cdef Py_ssize_t i
     cdef ModField *F = new ModField(<long>modulus)
     cdef vector[ModFieldElement] *minP = new vector[ModFieldElement]()
-    cdef ModFieldElement *X = <ModFieldElement*>sig_malloc(nrows*(nrows+1)*sizeof(ModFieldElement))
-    cdef size_t *P = <size_t*>sig_malloc(nrows*sizeof(size_t))
+    cdef ModFieldElement *X = <ModFieldElement*>check_allocarray(nrows * (nrows+1), sizeof(ModFieldElement))
+    cdef size_t *P = <size_t*>check_allocarray(nrows, sizeof(size_t))
 
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, nrows)
 
@@ -455,19 +456,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         if p >= MAX_MODULUS:
             raise OverflowError("p (=%s) must be < %s."%(p, MAX_MODULUS))
 
-        sig_on()
-        self._entries = <celement *> sig_malloc(sizeof(celement)*self._nrows*self._ncols)
-        sig_off()
-        if self._entries == NULL:
-           raise MemoryError("Error allocating matrix.")
-
-        sig_on()
-        self._matrix = <celement **> sig_malloc(sizeof(celement*)*self._nrows)
-        sig_off()
-        if self._matrix == NULL:
-            sig_free(self._entries)
-            self._entries = NULL
-            raise MemoryError("Error allocating memory.")
+        self._entries = <celement *>check_allocarray(self._nrows * self._ncols, sizeof(celement))
+        self._matrix = <celement **>check_allocarray(self._nrows, sizeof(celement*))
 
         cdef unsigned int k
         cdef Py_ssize_t i
@@ -691,9 +681,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         else:
             word_size = sizeof(mod_int)
 
-        cdef void *buf = sig_malloc(word_size * self._nrows * self._ncols)
-        if not buf:
-            raise MemoryError
+        cdef void *buf = check_allocarray(self._nrows * self._ncols, word_size)
 
         sig_on()
         try:
@@ -1294,8 +1282,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef Py_ssize_t i
         cdef Vector_modn_dense b = v
 
-        cdef celement *_b = <celement*>sig_malloc(sizeof(celement)*self._nrows)
-        cdef celement *_c = <celement*>sig_malloc(sizeof(celement)*self._ncols)
+        cdef celement *_b = <celement*>check_allocarray(self._nrows, sizeof(celement))
+        cdef celement *_c = <celement*>check_allocarray(self._ncols, sizeof(celement))
 
         for i in range(self._nrows):
             _b[i] = <celement>b._entries[i]
@@ -1348,8 +1336,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef Py_ssize_t i
         cdef Vector_modn_dense b = v
 
-        cdef celement *_b = <celement*>sig_malloc(sizeof(celement)*self._ncols)
-        cdef celement *_c = <celement*>sig_malloc(sizeof(celement)*self._nrows)
+        cdef celement *_b = <celement*>check_allocarray(self._ncols, sizeof(celement))
+        cdef celement *_c = <celement*>check_allocarray(self._nrows, sizeof(celement))
 
         for i in range(self._ncols):
             _b[i] = <celement>b._entries[i]
@@ -2998,7 +2986,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             data = ''
         else:
             n = self._nrows*self._ncols*(ndigits + 1) + 2  # spaces between each number plus trailing null
-            s = <char*> sig_malloc(n * sizeof(char))
+            s = <char*>check_malloc(n * sizeof(char))
             t = s
             sig_on()
             for i in range(self._nrows * self._ncols):

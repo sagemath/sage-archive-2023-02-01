@@ -1193,12 +1193,13 @@ class Gap(Gap_generic):
             sage: g.quit()
         """
         if self.__use_workspace_cache:
+            from sage.libs.gap.saved_workspace import timestamp
             try:
                 # Check to see if we need to auto-regenerate the gap
                 # workspace, i.e., if the gap script is more recent
                 # than the saved workspace, which signals that gap has
                 # been upgraded.
-                if os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_BINARY):
+                if os.path.getmtime(WORKSPACE) < timestamp():
                     raise OSError("GAP workspace too old")
                 # Set the modification time of the workspace to the
                 # current time.  This ensures the workspace doesn't

@@ -557,6 +557,11 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: H(x) == H(y)
             False
+
+        TESTS::
+
+            sage: H(x) == 0
+            False
         """
         return richcmp(self._hyperplanes, other._hyperplanes, op)
 

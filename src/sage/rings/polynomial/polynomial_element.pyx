@@ -6133,7 +6133,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
           as this polynomial
 
         - ``op`` -- ``operator.OP`` where ``OP=add`` or ``sub`` or ``mul`` or
-          ``div``.
+          ``truediv``.
 
         - ``algorithm`` -- can be "resultant" or "BFSS";
           by default the former is used when the polynomials have few nonzero
@@ -6237,7 +6237,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef long prec
 
         if op not in (operator.add, operator.sub, operator.mul, operator.truediv):
-            raise ValueError("op must be operator.OP where OP=add, sub, mul or div")
+            raise ValueError("op must be operator.OP where OP=add, sub, mul or truediv")
 
         if not isinstance(p2, Polynomial):
             raise TypeError("p2 must be a polynomial")

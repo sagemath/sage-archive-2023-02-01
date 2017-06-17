@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Group algebras and beyond: the Algebra functorial construction
 
 Introduction: group algebras
@@ -10,7 +10,7 @@ Let `G` be a group and `R` be a ring.  For example::
     sage: G = DihedralGroup(3)
     sage: R = QQ
 
-The *group algebra* `A=RG` of `G` over `R` is the space of formal
+The *group algebra* `A = RG` of `G` over `R` is the space of formal
 linear combinations of elements of `group` with coefficients in `R`::
 
     sage: A = G.algebra(R); A
@@ -145,12 +145,12 @@ additive and a multiplicative structure is ambiguous::
     Traceback (most recent call last):
     ...
     TypeError:  `S = Ring of integers modulo 3` is both
-    an additive and a multiplicative semigroup.
-    Constructing its algebra is ambiguous.
-    Please use, e.g., S.algebra(QQ, category=Semigroups())
+     an additive and a multiplicative semigroup.
+     Constructing its algebra is ambiguous.
+     Please use, e.g., S.algebra(QQ, category=Semigroups())
 
-This ambiguity can be resolved using the ``category`` argument of the
-construction::
+This ambiguity can be resolved using the ``category`` argument
+of the construction::
 
     sage: A = Z3.algebra(QQ, category=Monoids()); A
     Algebra of Ring of integers modulo 3 over Rational Field
@@ -161,7 +161,7 @@ construction::
     Algebra of Ring of integers modulo 3 over Rational Field
     sage: A.category()
     Category of finite dimensional commutative additive group algebras
-    over Rational Field
+     over Rational Field
 
 In general, the ``category`` argument can be used to specify which
 structure of `S` shall be extended to `KS`.
@@ -200,7 +200,6 @@ The antipode is given on basis elements by `\chi(g) = g^{-1}`::
     (1,2,3)
     sage: s.antipode()
     (1,3,2)
-
 
 By Maschke's theorem, for a finite group whose cardinality does not
 divide the characteristic of the base field, the algebra is
@@ -245,13 +244,13 @@ There is no obvious map in the other direction, though::
     Traceback (most recent call last):
     ...
     TypeError: do not know how to make x (= () + 2*(1,2) + 4*(1,2,3,4))
-    an element of self
-    (=Algebra of Dihedral group of order 4 as a permutation group
-              over Integer Ring)
+     an element of self
+     (=Algebra of Dihedral group of order 4 as a permutation group
+               over Integer Ring)
 
 If `S` is a unital (additive) magma, then `RS` is a unital algebra,
 and thus admits a coercion from its base ring `R` and any ring that
-coerces into `R`.
+coerces into `R`. ::
 
     sage: G = DihedralGroup(2)
     sage: A = G.algebra(ZZ)
@@ -270,7 +269,7 @@ and from any group which coerce into `S`::
 
 Note that there is an ambiguity if `S'` is a group which coerces into
 both `R` and `S`. For example) if `S` is the additive group `(\ZZ,+)`,
-and `A=RS` is its group algebra, then the integer `2` can be coerced
+and `A = RS` is its group algebra, then the integer `2` can be coerced
 into `A` in two ways -- via `S`, or via the base ring `R` -- and *the
 answers are different*. It that case the coercion to `R` takes
 precedence. In particular, if `\ZZ` is the ring (or group) of
@@ -465,9 +464,11 @@ from sage.categories.category_types import Category_over_base_ring
 # TODO: merge the two univariate functors below into a bivariate one
 
 class AlgebraFunctor(CovariantFunctorialConstruction):
-    """
+    r"""
     For a fixed ring, a functor sending a group/...  to the
     corresponding group/...  algebra.
+
+    EXAMPLES::
 
         sage: from sage.categories.algebra_functor import AlgebraFunctor
         sage: F = AlgebraFunctor(QQ); F
@@ -513,7 +514,7 @@ class AlgebraFunctor(CovariantFunctorialConstruction):
         INPUT:
 
         - ``G`` -- a group
-        - ``category`` -- a category, or None
+        - ``category`` -- a category, or ``None``
 
         EXAMPLES::
 
@@ -585,7 +586,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
         INPUT :
 
-        - ``base_ring`` - the base ring of the group algebra.
+        - ``base_ring`` -- the base ring of the group algebra
 
         OUTPUT:
 
@@ -651,7 +652,7 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
 
     INPUT:
 
-     - ``base_ring`` -- a ring
+    - ``base_ring`` -- a ring
 
     EXAMPLES::
 
@@ -712,3 +713,4 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
         else:
             # category should now be the base ring ...
             return cls.category_of(base_category_class(), category)
+

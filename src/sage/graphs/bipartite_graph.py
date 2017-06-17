@@ -1400,16 +1400,6 @@ class BipartiteGraph(Graph):
             else:
                 return 1
 
-        W = dict()
-        L = dict()
-        for u,v,l in self.edge_iterator():
-            if u is v:
-                continue
-            if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
-                L[u, v] = l
-                if use_edge_labels:
-                    W[u, v] = weight(l)
-
         if algorithm is None:
             algorithm = "Edmonds" if use_edge_labels else "Hopcroft-Karp"
 
@@ -1417,6 +1407,15 @@ class BipartiteGraph(Graph):
             if use_edge_labels:
                 raise ValueError('use_edge_labels can not be used with ' +
                                  '"Hopcroft-Karp" or "Eppstein"')
+            W = dict()
+            L = dict()
+            for u,v,l in self.edge_iterator():
+                if u is v:
+                    continue
+                if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
+                    L[u, v] = l
+                    if use_edge_labels:
+                        W[u, v] = weight(l)
             import networkx
             g = networkx.Graph()
             if use_edge_labels:

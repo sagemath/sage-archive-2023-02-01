@@ -5369,21 +5369,18 @@ class LinearCodeInformationSetDecoder(Decoder):
             binom{n}{k}/(\rho \sum_{i=0}^p \binom{n-\tau}{k-i}\binom{\tau}{i})
 
         Here `\rho` is the fraction of `k` subsets of indices which are
-        information sets. If `T` is the time for steps 1 and 2, while `P` is the
-        time for adding two vectors (the most expensive part of each iteration
-        in Step 3), then each information set trial takes roughly time `T + p
-        \binom{k}{p} q^p P`, where `\GF{q}` is the base field.
-
-        `rho` is expensive to estimate for a given code. Here we simply assume
-        that it is close to the probability that a random `k \times k` matrix
-        over `\GF{q}` has full rank. It is a classical result that this
-        probability is `\geq 1 - 1/(q-1)` for `q > 2` and `\geq 0.288` if `q
-        = 2`.
+        information sets. If `T` is the average time for steps 1 and 2
+        (including selecting `I` until an information set is found), while `P(i)`
+        is the time for the body of the ``for``-loop in step 3 for `m` of weight
+        `i`, then each information set trial takes roughly time `T +
+        \sum_{i=0}^{p} P(i) \binom{k}{i} (q-1)^i`, where `\GF{q}` is the base
+        field.
 
         The values `T` and `P` are here estimated by running a few test
         computations similar to those done by the decoding algorithm.
+        We don't explicitly estimate `rho`.
 
-        OUTPUT: A list of floats represeting the estimated decoding times for
+        OUTPUT: A list of floats representing the estimated decoding times for
         each possible value of `p`.
         """
         import time
@@ -5394,7 +5391,6 @@ class LinearCodeInformationSetDecoder(Decoder):
         F = C.base_ring()
         q = F.cardinality()
         Fstar = F.list()[1:]
-        rho = 1 - 1/(q-1) if q > 2 else 0.288
         def time_information_set_steps():
             before = time.clock()
             while True:
@@ -5414,15 +5410,13 @@ class LinearCodeInformationSetDecoder(Decoder):
                 e = y - sum(m[i]*g[i] for i in range(p))
                 errs = e.hamming_weight()
             return (time.clock() - before)/100.
-        T = median([ time_information_set_steps() for s in range(5) ])
+        T = mean([ time_information_set_steps() for s in range(5) ])
         P = [ time_search_loop(p) for p in range(tau+1) ]
 
         estimates = []
         for p in range(tau+1):
-            iters = 1.* binomial(n, k)/rho/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) )) 
-            # Each iteration, also the last, uses T time
-            # Only every rho iteration costs P[p]
-            estimate = ceil(iters)*T + iters * rho * sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) )
+            iters = 1.* binomial(n, k)/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) ))
+            estimate = ceil(iters)*T + iters * sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) )
             estimates.append(estimate)
         return estimates
 

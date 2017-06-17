@@ -3387,7 +3387,7 @@ const numeric numeric::irem(const numeric &b) const {
 }
 
 const numeric numeric::iquo(const numeric &b) const {
-        if (t == MPZ) {
+        if (t == MPZ and b.t == MPZ) {
                 mpz_t bigint;
                 mpz_init(bigint);
                 mpz_fdiv_q(bigint, v._bigint, b.v._bigint);

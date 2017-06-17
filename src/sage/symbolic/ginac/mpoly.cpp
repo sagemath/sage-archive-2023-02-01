@@ -111,7 +111,7 @@ ex multiply_lcm(const ex &e, const numeric &lcm)
 			return e * lcm;
 		else {
                         if (not is_exactly_a<numeric>(e.op(1)))
-                                throw std::runtime_error("can't happen in multiply_lcm");
+				return e * lcm;
 			ex t = lcm.power(ex_to<numeric>(e.op(1)).inverse());
                         if (not is_exactly_a<numeric>(t))
 				return e * lcm;

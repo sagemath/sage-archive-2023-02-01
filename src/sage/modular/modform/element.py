@@ -944,9 +944,11 @@ class ModularForm_abstract(ModuleElement):
             N = chi.conductor()**3
 
         if (chi is None) or chi.is_even():
-            L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1, eps, prec=prec)
+            L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1,
+                           eps, prec=prec)
         else:
-            L = Dokchitser(N, [0, 1, -weight + 1], 2 * weight - 1, eps*C('I'), prec=prec)
+            L = Dokchitser(N, [0, 1, -weight + 1], 2 * weight - 1,
+                           eps * C((0, 1)), prec=prec)
         lcoeffs_prec = L.num_coeffs()
 
         t = verbose("Computing %s coefficients of F" % lcoeffs_prec, level=1)

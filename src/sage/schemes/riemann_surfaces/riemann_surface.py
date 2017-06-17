@@ -66,14 +66,14 @@ In fact it is an order in a number field::
 
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from sage.misc.cachefunc import cached_method
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.complex_field import ComplexField, CDF
 from sage.rings.real_mpfr import RealField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.arith.srange import srange
 from sage.ext.fast_callable import fast_callable
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
 from sage.graphs.graph import Graph
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module import VectorSpace
@@ -89,7 +89,7 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
     The effect is that, with n >= 3, a Voronoi decomposition will have only
     finite cells around the original points. Furthermore, because
     the extra points are placed on a circle centered on the average of the given
-    points, with a radius 2 times the largest distance between the center and
+    points, with a radius 3/2 times the largest distance between the center and
     the given points, these finite cells form a simply connected region.
 
     INPUT:
@@ -226,7 +226,9 @@ class RiemannSurface(object):
       Riemann surface. This is taken as a basis of the regular differentials, so
       the genus is assumed to be equal to the length of this list. The results from
       the homology basis computation are checked against this value. Providing this
-      parameter makes the computation independent from Singular.
+      parameter makes the computation independent from Singular. For a nonsingular
+      plane curve of degree `d`, an appropriate set is given by the monomials of degree
+      up to `d-3`.
 
     EXAMPLES::
 
@@ -803,21 +805,11 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: f = w^2 + z^3 - z^2
             sage: S = RiemannSurface(f)
-            sage: edgeset = S.upstairs_edges(); edgeset
-            [[(0, 0), (1, 0)],
-             [(0, 1), (1, 1)],
-             [(0, 0), (5, 1)],
-             [(0, 1), (5, 0)],
-             [(1, 0), (4, 1)],
-             [(1, 1), (4, 0)],
-             [(2, 0), (3, 1)],
-             [(2, 1), (3, 0)],
-             [(2, 0), (4, 0)],
-             [(2, 1), (4, 1)],
-             [(3, 0), (5, 0)],
-             [(3, 1), (5, 1)],
-             [(4, 0), (5, 0)],
-             [(4, 1), (5, 1)]]
+            sage: edgeset = S.upstairs_edges()
+            sage: len(edgeset) == S.degree*len(S.downstairs_edges())
+            True
+            sage: {(v[0],w[0]) for v,w in edgeset} == set(S.downstairs_edges())
+            True
 
         """
         edgeset = []
@@ -934,14 +926,14 @@ class RiemannSurface(object):
         For each branch point, the local monodromy is encoded by a permutation.
         The permutations returned correspond to positively oriented loops around
         each branch point, with a fixed base point. This means the generators are
-        properly conjugated to ensure that together they generate the global monodromy
-        and that their product gives the local monodromy around infinity.
+        properly conjugated to ensure that together they generate the global monodromy.
+        The list has an entry for every finite point stored in `self.branch_locus`, plus an entry
+        for the ramification above infinity.
 
         OUTPUT:
 
         A list of permutations, encoding the local monodromy at each branch
         point.
-
 
         EXAMPLES::
 
@@ -950,60 +942,75 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
             sage: G = S.monodromy_group(); G
-            [(0,1,2), (0,1), (0,2), (1,2), (1,2), (1,2), (0,1), (0,2)]
+            [(0,1,2), (0,1), (0,2), (1,2), (1,2), (1,2), (0,1), (0,2), (0,2)]
 
         The permutations give the local monodromy generators for the branch points::
 
-            sage: zip(S.branch_locus, G) #abs tol 0.0000001
-                    [(0.000000000000000, (0,1,2)),
-                     (-1.31362670141929, (0,1)),
-                     (-0.819032851784253 - 1.02703471138023*I, (0,2)),
-                     (-0.819032851784253 + 1.02703471138023*I, (1,2)),
-                     (0.292309440469772 - 1.28069133740100*I, (1,2)),
-                     (0.292309440469772 + 1.28069133740100*I, (1,2)),
-                     (1.18353676202412 - 0.569961265016465*I, (0,1)),
-                     (1.18353676202412 + 0.569961265016465*I, (0,2))]
+            sage: zip(S.branch_locus + [unsigned_infinity], G) #abs tol 0.0000001
+            [(0.000000000000000, (0,1,2)),
+             (-1.31362670141929, (0,1)),
+             (-0.819032851784253 - 1.02703471138023*I, (0,2)),
+             (-0.819032851784253 + 1.02703471138023*I, (1,2)),
+             (0.292309440469772 - 1.28069133740100*I, (1,2)),
+             (0.292309440469772 + 1.28069133740100*I, (1,2)),
+             (1.18353676202412 - 0.569961265016465*I, (0,1)),
+             (1.18353676202412 + 0.569961265016465*I, (0,2)),
+             (Infinity, (0,2))]
 
-        We can obtain the local monodromy at infinity by taking the product of all
-        the finite local monodromy generators::
+        We can check the ramification by looking at the cycle lengths and verify
+        it agrees with the Riemann-Hurwitz formula::
 
-            sage: prod(G)
-            (0,2)
+            sage: 2*S.genus-2 == -2*S.degree + sum(e-1 for g in G for e in g.cycle_type())
+            True
 
-        We read off the ramification types from the cycle types of the local
-        monodromy, and we see that the total ramification (10=2+8*1) matches
-        what Riemann-Hurwitz predicts.
         """
         n = len(self.branch_locus)
         G = Graph(self.downstairs_edges())
-        loops = [self.voronoi_diagram.regions[i][:]
-                    for i in self.voronoi_diagram.point_region[:n]]
+        #we get all the regions
+        loops = [self.voronoi_diagram.regions[i][:] for i in self.voronoi_diagram.point_region]
+        #and construct their Voronoi centers as complex numbers
+        centers = self.branch_locus + [self._CC(x,y) for x,y in self.voronoi_diagram.points[n:]]
+        for center, loop in zip(centers,loops):
+            if -1 in loop:
+                #for loops involving infinity we take the finite part of the path
+                i = loop.index(-1)
+                loop[:] = loop[i+1:]+loop[:i]
+            else:
+                #and for finite ones we close the paths
+                loop.append(loop[0])
+            #we make sure the loops are positively oriented wrt. their center
+            v0 = self._vertices[loop[0]]
+            v1 = self._vertices[loop[1]]
+            M = Matrix([list(v0-center),list(v1-center)])
+            if M.det() < 0:
+                loop.reverse()
+
+        #we stitch together the paths that are part of loops through
+        #infinity. There should be a unique way of doing so.
+        inf_loops = loops[n:]
+        inf_path = inf_loops.pop()
+        while (inf_loops):
+            inf_path += (inf_loops.pop())[1:]
+        assert inf_path[0] == inf_path[-1]
+
+        loops = loops[:n]
+        loops.append(inf_path)
+
         P0 = loops[0][0]
         monodromy_gens = []
         edge_perms = self.edge_permutations()
-        for center, c in zip(self.branch_locus,loops):
+        for c in loops:
             to_loop = G.shortest_path(P0,c[0])
             to_loop_perm = reduce(
                 operator.mul,
                 (edge_perms[(to_loop[i],to_loop[i+1])]
                     for i in range(len(to_loop)-1)),
                 self._Sn(()))
-            c.append(c[0])
             c_perm = reduce(
                 operator.mul,
                 (edge_perms[(c[i],c[i+1])]
                     for i in range(len(c)-1)),
                 self._Sn(()))
-            # We compute the orientation of the loop.
-            # It's a voronoi cell, so it's convex.
-            # Therefore, we can see the orientation from the orientation
-            # of two vectors from the center to consecutive points on the
-            # loop.
-            v0 = self._vertices[c[0]]
-            v1 = self._vertices[c[1]]
-            M = Matrix([list(v0-center),list(v1-center)])
-            if M.det() < 0:
-                c_perm = c_perm**(-1)
             monodromy_gens.append(to_loop_perm*c_perm*to_loop_perm**(-1))
         return monodromy_gens
 
@@ -1419,11 +1426,17 @@ class RiemannSurface(object):
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
             sage: f = z^3*w + w^3 + z
-            sage: S = RiemannSurface(f, prec=60)
-            sage: S.period_matrix() # abs tol 0.000001
-            [-0.77519780590366792 + 0.61819962132820207*I  -0.19145804690473785 - 1.3890819401503317*I  -2.1720559850746018 + 0.49575760460334677*I -0.23874427945779023 - 0.49575760460334677*I -0.43020232636252808 - 0.89332433554698493*I  -0.96665585280840577 - 2.0072815614785338*I]
-            [  2.1720559850746018 + 0.49575760460334677*I  -3.1387118378830076 - 0.27512471421878286*I  -0.53645352644587770 - 1.1139572259315488*I    1.3968581791709339 + 1.1139572259315488*I   -1.7418536587120737 - 1.3890819401503317*I -0.96665585280840577 - 0.77088231882212961*I]
-            [  0.53645352644587769 - 1.1139572259315488*I  -1.5031093792542835 - 0.89332433554698493*I  0.77519780590366793 + 0.61819962132820208*I   2.7085095115204795 - 0.61819962132820208*I   1.2054001322661960 - 0.27512471421878285*I -0.96665585280840577 + 0.22063289038456391*I]
+            sage: S = RiemannSurface(f, prec=30)
+            sage: M = S.period_matrix()
+
+        The results are highly arbitrary, so it is hard to check if the result produced is
+        correct. The closely related `riemann matrix` is somewhat easier to test.
+
+            sage: parent(M)
+            Full MatrixSpace of 3 by 6 dense matrices over Complex Field with 30 bits of precision
+            sage: M.rank()
+            3
+
         """
         differentials = self.cohomology_basis()
         differentials = [fast_callable(omega,domain=self._CC)
@@ -1435,12 +1448,6 @@ class RiemannSurface(object):
         r"""
         Compute the Riemann matrix.
 
-        INPUT:
-
-        - ``option`` -- 1, 2, 3, or 4 (default: 1); the computation options for
-          Singular's ``adjointIdeal`` computations. Changing this may make the
-          computation faster.
-
         OUTPUT:
 
         A matrix of complex values
@@ -1451,10 +1458,16 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f, prec=60)
-            sage: S.riemann_matrix() #abs tol 0.0000001
-            [        0.50000000000000000 + 1.3228756555322953*I       -0.25000000000000000 + 0.66143782776614765*I  6.7220534694101275e-18 - 2.1684043449710089e-18*I]
-            [      -0.25000000000000000 + 0.66143782776614764*I        0.25000000000000000 + 0.66143782776614765*I     0.50000000000000000 - 1.7347234759768071e-18*I]
-            [-6.5052130349130266e-19 + 3.4694469519536142e-18*I     0.50000000000000000 + 3.4694469519536142e-18*I        0.25000000000000000 + 0.66143782776614765*I]
+            sage: M = S.riemann_matrix()
+
+        The Klein quartic has a Riemann matrix with values is a quadratic
+        field::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2-x+2)
+            sage: all(len(m.algdep(6).roots(K)) > 0 for m in M.list())
+            True
+
         """
         PeriodMatrix = self.period_matrix()
         Am = PeriodMatrix[0:self.genus,0:self.genus]

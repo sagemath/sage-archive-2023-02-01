@@ -30,10 +30,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
 from cpython.object cimport Py_EQ, Py_NE
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF

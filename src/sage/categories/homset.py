@@ -707,13 +707,15 @@ class Homset(Set_generic):
 
     __nonzero__ = __bool__
 
-    def _generic_convert_map(self, S):
+    def _generic_convert_map(self, S, category=None):
         """
         Return a generic map from a given homset to ``self``.
 
         INPUT:
 
         - ``S`` -- a homset
+
+        - ``category`` -- a category
 
         OUTPUT:
 
@@ -771,7 +773,7 @@ class Homset(Set_generic):
             from sage.categories.homset import Hom
             return CallMorphism(Hom(S, self))
         else:
-            return Parent._generic_convert_map(self, S)
+            return Parent._generic_convert_map(self, S, category)
 
     def homset_category(self):
         """

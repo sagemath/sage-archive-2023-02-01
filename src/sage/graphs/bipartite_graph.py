@@ -1386,12 +1386,15 @@ class BipartiteGraph(Graph):
             sage: B.matching(use_edge_labels=False, value_only=True, algorithm='LP')
             2
 
-        With loops and multiedges enabled:
+        With multiedges enabled:
 
             sage: G = BipartiteGraph(graphs.CubeGraph(3))
-            sage: G.allow_loops(True); G.allow_multiple_edges(True)
-            sage: G.matching(value_only=True)
-            4
+            sage: for e in G.edges():
+            ....:     G. set_edge_label(e[0], e[1], int(e[0]) + int(e[1]))
+            ....:
+            sage: G.allow_multiple_edges(True)
+            sage: G.matching(use_edge_labels=True, value_only=True)
+            444
         """
         from sage.rings.real_mpfr import RR
         def weight(x):

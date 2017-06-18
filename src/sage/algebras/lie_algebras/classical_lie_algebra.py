@@ -121,12 +121,9 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
         Check that :trac:`23266` is fixed::
 
-            sage: sl2 = lie_algebras.sl(QQ, 2)
-            sage: isinstance(sl2.basis().keys(), FiniteEnumeratedSet)
+            sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+            sage: isinstance(sl2.indices(), FiniteEnumeratedSet)
             True
-            sage: Usl2 = sl2.pbw_basis()
-            sage: prod(Usl2.gens())
-            PBW[alpha[1]]*PBW[-alpha[1]]*PBW[alphacheck[1]]
         """
         n = len(e)
         names = ['e%s'%i for i in range(1, n+1)]

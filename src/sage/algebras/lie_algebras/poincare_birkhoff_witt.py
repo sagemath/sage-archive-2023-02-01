@@ -157,8 +157,25 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: prod(PBW.gens())  # indirect doctest
             PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
+
+        Check that :trac:`23266` is fixed::
+
+            sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+            sage: sl2.indices()
+            {'e1', 'f1', 'h1'}
+            sage: type(sl2.basis().keys())
+            <type 'list'>
+            sage: Usl2 = sl2.pbw_basis()
+            sage: Usl2._basis_key(2)
+            2
+            sage: Usl2._basis_key(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not in list
         """
         K = self._g.basis().keys()
+        if isinstance(K, (list, tuple)):
+            return K.index(x)
         if K.cardinality() == float('inf'):
             return x
         lst = list(K)

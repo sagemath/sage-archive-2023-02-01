@@ -121,13 +121,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of infinite enumerated modules with basis over
+        Category of infinite enumerated finite dimensional modules with basis over
          (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of infinite enumerated algebras with basis over
+        Category of infinite enumerated finite dimensional algebras with basis over
          (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
-        Category of infinite algebras with basis over
+        Category of infinite finite dimensional algebras with basis over
          (quotient fields and metric spaces)
 
     TESTS::
@@ -309,9 +309,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 #            from sage.categories.morphism import CallMorphism
 #            from sage.categories.homset import Hom
 #            self.register_coercion(CallMorphism(Hom(base_ring,self)))
-            category = Algebras(base_ring.category()).WithBasis()
+            category = Algebras(base_ring.category()).WithBasis().FiniteDimensional()
         else:
-            category = Modules(base_ring.category()).WithBasis()
+            category = Modules(base_ring.category()).WithBasis().FiniteDimensional()
 
         if not self.__nrows or not self.__ncols:
             is_finite = True

@@ -116,16 +116,29 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.sl(QQ, 3, representation='matrix')
             sage: TestSuite(g).run()
+
+        TESTS:
+
+        Check that :trac:`23266` is fixed::
+
+            sage: sl2 = lie_algebras.sl(QQ, 2)
+            sage: isinstance(sl2.basis().keys(), FiniteEnumeratedSet)
+            True
+            sage: Usl2 = sl2.pbw_basis()
+            sage: prod(Usl2.gens())
+            PBW[alpha[1]]*PBW[-alpha[1]]*PBW[alphacheck[1]]
         """
         n = len(e)
         names = ['e%s'%i for i in range(1, n+1)]
         names += ['f%s'%i for i in range(1, n+1)]
         names += ['h%s'%i for i in range(1, n+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(names)
         LieAlgebraFromAssociative.__init__(self, e[0].parent(),
                                            gens=tuple(e + f + h),
                                            names=tuple(names),
-                                           index_set=tuple(names),
+                                           index_set=index_set,
                                            category=category)
         self._cartan_type = ct
 
@@ -343,6 +356,17 @@ class gl(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.gl(QQ, 4)
             sage: TestSuite(g).run()
+
+        TESTS:
+
+        Check that :trac:`23266` is fixed::
+
+            sage: gl2 = lie_algebras.gl(QQ, 2)
+            sage: isinstance(gl2.basis().keys(), FiniteEnumeratedSet)
+            True
+            sage: Ugl2 = gl2.pbw_basis()
+            sage: prod(Ugl2.gens())
+            PBW['E_0_0']*PBW['E_0_1']*PBW['E_1_0']*PBW['E_1_1']
         """
         MS = MatrixSpace(R, n, sparse=True)
         one = R.one()
@@ -356,9 +380,11 @@ class gl(LieAlgebraFromAssociative):
                 gens.append(mat)
         self._n = n
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(names)
         LieAlgebraFromAssociative.__init__(self, MS, tuple(gens),
                                            names=tuple(names),
-                                           index_set=tuple(names),
+                                           index_set=index_set,
                                            category=category)
 
     def _repr_(self):

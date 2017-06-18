@@ -10,7 +10,7 @@ All graphs have an associated Sage graphics object, which you can display::
     sage: P = G.plot()
     sage: P.show() # long time
 
-.. PLOT:
+.. PLOT::
     
     sphinx_plot(graphs.WheelGraph(15))
 
@@ -1053,7 +1053,7 @@ class GraphPlot(SageObject):
             sage: g.graphplot(pos=pos, layout='spring', iterations=0).plot()
             Graphics object consisting of 11 graphics primitives
 
-        .. PLOT:
+        .. PLOT::
 
             pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8],
                 3:[0.6, -0.8], 4:[0.8, 0.3]}
@@ -1079,7 +1079,7 @@ class GraphPlot(SageObject):
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
             Graphics object consisting of 14 graphics primitives
 
-        .. PLOT:
+        .. PLOT::
 
             T = list(graphs.trees(7))
             t = T[3]
@@ -1129,7 +1129,7 @@ class GraphPlot(SageObject):
             sage: t = T[3]
             sage: t.graphplot(layout='tree').show()
 
-        .. PLOT:
+        .. PLOT::
 
             T = list(graphs.trees(7))
             t = T[3]

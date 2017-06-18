@@ -178,16 +178,18 @@ TESTS::
 Classes and Methods
 ===================
 """
+
 #*****************************************************************************
-# Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
@@ -1550,6 +1552,28 @@ cdef class RealBall(RingElement):
                     return field(0)
         raise ValueError("unknown rounding mode")
 
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(RBF(1))
+            1.0
+        """
+        return float(self.n(prec(self)))
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(RBF(1))
+            (1+0j)
+        """
+        return complex(self.n(prec(self)))
+
     # Center and radius, absolute value, endpoints
 
     def mid(self):
@@ -2577,6 +2601,23 @@ cdef class RealBall(RingElement):
             False
         """
         return not self.is_finite()
+
+    def is_NaN(self):
+        """
+        Return ``True`` if this ball is not-a-number.
+
+        EXAMPLES::
+
+            sage: RBF(NaN).is_NaN()
+            True
+            sage: RBF(-5).gamma().is_NaN()
+            True
+            sage: RBF(infinity).is_NaN()
+            False
+            sage: RBF(42, rad=1.r).is_NaN()
+            False
+        """
+        return arf_is_nan(arb_midref(self.value))
 
     # Arithmetic
 

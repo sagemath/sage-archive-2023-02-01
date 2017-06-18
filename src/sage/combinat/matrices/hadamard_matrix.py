@@ -984,29 +984,32 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
     """
     from sage.combinat.matrices.hadamard_matrix import\
          williamson_goethals_seidel_skew_hadamard_matrix as WGS
+
     def pmtoZ(s):
-       return map(lambda x: 1 if x=='+' else -1, s)
+       return [1 if x == '+' else -1 for x in s]
 
     if existence:
         return n in [36, 52, 92]
 
-    if n==36:
-        a=[ 1,  1, 1, -1,  1, -1,  1, -1, -1]
-        b=[ 1, -1, 1,  1, -1, -1,  1,  1, -1]
-        c=[-1, -1]+[1]*6+[-1]
-        d=[ 1,  1, 1, -1,  1,  1, -1,  1,  1]
-        return WGS(a,b,c,d, check=check)
-    if n==52:
-        a=pmtoZ('++++-++--+---')
-        b=pmtoZ('-+-++----++-+')
-        c=pmtoZ('--+-+++++-+++')
-        return WGS(a,b,c,c, check=check)
-    if n==92:
+    if n == 36:
+        a = [ 1,  1, 1, -1,  1, -1,  1, -1, -1]
+        b = [ 1, -1, 1,  1, -1, -1,  1,  1, -1]
+        c = [-1, -1]+[1]*6+[-1]
+        d = [ 1,  1, 1, -1,  1,  1, -1,  1,  1]
+        return WGS(a, b, c, d, check=check)
+
+    if n == 52:
+        a = pmtoZ('++++-++--+---')
+        b = pmtoZ('-+-++----++-+')
+        c = pmtoZ('--+-+++++-+++')
+        return WGS(a, b, c, c, check=check)
+
+    if n == 92:
         a = [1,-1,-1,-1,-1,-1,-1,-1, 1, 1,-1, 1,-1, 1,-1,-1, 1, 1, 1, 1, 1, 1, 1]
         b = [1, 1,-1,-1, 1,-1,-1, 1, 1, 1, 1,-1,-1, 1, 1, 1, 1,-1,-1, 1,-1,-1, 1]
         c = [1, 1,-1,-1,-1, 1,-1, 1,-1, 1,-1, 1, 1,-1, 1,-1, 1,-1, 1,-1,-1,-1, 1]
         d = [1,-1,-1,-1,-1, 1,-1,-1, 1,-1,-1, 1, 1,-1,-1, 1,-1,-1, 1,-1,-1,-1,-1]
-        return WGS(a,b,c,d, check=check)
+        return WGS(a, b, c, d, check=check)
     return None
 
 _skew_had_cache={}

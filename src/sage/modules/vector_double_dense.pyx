@@ -40,10 +40,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 cimport numpy
 import numpy
-import free_module_element
+from .free_module_element import FreeModuleElement
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -394,9 +395,9 @@ cdef class Vector_double_dense(FreeModuleElement):
 
     def inv_fft(self,algorithm="radix2", inplace=False):
         """
-        This performs the inverse fast fourier transform on the vector.
+        This performs the inverse fast Fourier transform on the vector.
 
-        The fourier transform can be done in place using the keyword
+        The Fourier transform can be done in place using the keyword
         inplace=True
 
         This will be fastest if the vector's length is a power of 2.
@@ -412,12 +413,13 @@ cdef class Vector_double_dense(FreeModuleElement):
 
     def fft(self, direction = "forward", algorithm = "radix2", inplace=False):
         """
-        This performs a fast fourier transform on the vector.
+        This performs a fast Fourier transform on the vector.
 
         INPUT:
-           direction -- 'forward' (default) or 'backward'
 
-           The algorithm and inplace arguments are ignored.
+        - direction -- 'forward' (default) or 'backward'
+
+        The algorithm and inplace arguments are ignored.
 
         This function is fastest if the vector's length is a power of 2.
 
@@ -467,8 +469,8 @@ cdef class Vector_double_dense(FreeModuleElement):
             else:
                 self._vector_numpy = scipy.fftpack.ifft(self._vector_numpy, overwrite_x = True)
         else:
-            V = CDF**self._degree
-            from vector_complex_double_dense import Vector_complex_double_dense
+            V = CDF ** self._degree
+            from .vector_complex_double_dense import Vector_complex_double_dense
             if direction == 'forward':
                 return Vector_complex_double_dense(V, scipy.fft(self._vector_numpy))
             else:

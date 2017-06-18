@@ -45,12 +45,11 @@ other types will also coerce to the integers, when it makes sense.
 
 from __future__ import absolute_import, print_function
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
-
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.object cimport Py_NE
+
+from cysignals.signals cimport sig_check, sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 import sage.rings.infinity
@@ -65,7 +64,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sequence import Sequence
 
 from sage.misc.misc_c import prod
@@ -474,7 +473,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if end is None:
             end = start
-            start = PY_NEW(Integer) # 0
+            start = Integer.__new__(Integer)
         if step is None:
             step = 1
         if type(step) is not int:
@@ -504,7 +503,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sig_on()
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
-            a = PY_NEW(Integer)
+            a = Integer.__new__(Integer)
             if type(step) is int: # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
@@ -540,8 +539,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             n += 1
 
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
-        cdef integer.Integer i
-        i = PY_NEW(integer.Integer)
+        cdef Integer i = Integer.__new__(Integer)
         sig_on()
         ZZ_to_mpz(i.value, z)
         sig_off()
@@ -737,8 +735,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
              5
 
         """
-        cdef integer.Integer z
-        z = <integer.Integer>PY_NEW(integer.Integer)
+        cdef Integer z = Integer.__new__(Integer)
         if x is not None and y is None and x <= 0:
             raise TypeError("x must be > 0")
         if x is not None and y is not None and x >= y:

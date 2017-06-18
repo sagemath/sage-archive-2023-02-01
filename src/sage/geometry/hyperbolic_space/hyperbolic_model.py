@@ -234,7 +234,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
     def point_in_model(self, p):
         r"""
-        Return ``True`` if the point ``p`` is in the interiror of the
+        Return ``True`` if the point ``p`` is in the interior of the
         given model and ``False`` otherwise.
 
         INPUT:
@@ -674,7 +674,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
                     return self._dist_points(coords(p), coords(q))
 
                 raise NotImplementedError("can only compute distance between"
-                                          " ultra-parallel and interecting geodesics")
+                                          " ultra-parallel and intersecting geodesics")
 
             # If only one is a geodesic, make sure it's b to make things easier
             a,b = b,a

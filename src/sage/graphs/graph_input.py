@@ -369,6 +369,15 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
         sage: from_oriented_incidence_matrix(g, digraphs.Circuit(10).incidence_matrix())
         sage: g.is_isomorphic(digraphs.Circuit(10))
         True
+
+    TESTS:
+
+    Fix bug reported in :trac:`22985`::
+
+        sage: DiGraph(matrix ([[1,0,0,1],[0,0,1,1],[0,0,1,1]]).transpose())
+        Traceback (most recent call last):
+        ...
+        ValueError: each column represents an edge: -1 goes to 1
     """
     from sage.matrix.matrix import is_Matrix
     assert is_Matrix(M)
@@ -380,8 +389,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
             raise ValueError("There must be two nonzero entries (-1 & 1) per column.")
         L = sorted(set(c.list()))
         if L != [-1,0,1]:
-            msg += "Each column represents an edge: -1 goes to 1."
-            raise ValueError(msg)
+            raise ValueError("each column represents an edge: -1 goes to 1")
         if c[NZ[0]] == -1:
             positions.append(tuple(NZ))
         else:

@@ -382,6 +382,24 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                            " systematically fully initialized")
 
     @lazy_attribute
+    def transposed(self):
+        """
+        The transposed matrix space, having the same base ring and sparseness,
+        but number of columns and rows is swapped.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(3), 7, 10)
+            sage: MS.transposed
+            Full MatrixSpace of 10 by 7 dense matrices over Finite Field of size 3
+            sage: MS = MatrixSpace(GF(3), 7, 7)
+            sage: MS.transposed is MS
+            True
+
+        """
+        return MatrixSpace(self._base, self.__ncols, self.__nrows, self.__is_sparse)
+
+    @lazy_attribute
     def _copy_zero(self):
         """
         Is it faster to copy a zero matrix or is it faster to create a
@@ -1655,16 +1673,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [ -8   2   0   0   1]
             [ -1   2   1 -95  -1]
             sage: Mat(QQ,2,5).random_element(density=0.5)
-            [ 2  0  0  0  1]
-            [ 0  0  0 -1  0]
+            [  2   0   0   0   1]
+            [  0   0   0 1/2   0]
             sage: Mat(QQ,3,sparse=True).random_element()
-            [  -1   -1   -1]
-            [  -3 -1/3   -1]
-            [   0   -1    1]
+            [  -1  1/3    1]
+            [   0   -1    0]
+            [  -1    1 -1/4]
             sage: Mat(GF(9,'a'),3,sparse=True).random_element()
-            [    a   2*a     1]
-            [    2     1 a + 2]
-            [  2*a     2     2]
+            [      1       2       1]
+            [  a + 2     2*a       2]
+            [      2 2*a + 2       1]
         """
         Z = self.zero_matrix().__copy__()
         if density is None:

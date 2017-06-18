@@ -125,7 +125,7 @@ class Sets(Category_singleton):
         <class 'sage.categories.sets_cat.Sets.parent_class'>
         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.parent_class'>
         <class 'sage.categories.objects.Objects.parent_class'>
-        <type 'object'>
+        <... 'object'>
 
     We run some generic checks on P::
 
@@ -183,7 +183,7 @@ class Sets(Category_singleton):
         <class 'sage.categories.sets_cat.Sets.element_class'>
         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.element_class'>
         <class 'sage.categories.objects.Objects.element_class'>
-        <type 'object'>
+        <... 'object'>
 
     FIXME: Objects.element_class is not very meaningful ...
 
@@ -965,7 +965,7 @@ class Sets(Category_singleton):
 
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class
-                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
+                <class 'sage.algebras.group_algebra.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
                 <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
@@ -2581,29 +2581,33 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 INPUT:
 
-                - ``verbose`` -- boolean (default ``True``) if ``True``, prints the defined shorthands
+                - ``verbose`` -- boolean (default ``True``); if ``True``,
+                  prints the defined shorthands
 
                 EXAMPLES::
 
                     sage: Q = QuasiSymmetricFunctions(ZZ)
                     sage: Q.inject_shorthands()
                     Injecting M as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Monomial basis
+                     the Integer Ring in the Monomial basis
                     Injecting F as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Fundamental basis
+                     the Integer Ring in the Fundamental basis
+                    Injecting E as shorthand for Quasisymmetric functions over
+                     the Integer Ring in the Essential basis
+                    doctest:...: RuntimeWarning: redefining global value `E`
                     Injecting dI as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the dualImmaculate basis
+                     the Integer Ring in the dualImmaculate basis
                     Injecting QS as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Quasisymmetric Schur basis
+                     the Integer Ring in the Quasisymmetric Schur basis
                     sage: F[1,2,1] + 5*M[1,3] + F[2]^2
                     5*F[1, 1, 1, 1] - 5*F[1, 1, 2] - 3*F[1, 2, 1] + 6*F[1, 3] +
                     2*F[2, 2] + F[3, 1] + F[4]
                     sage: F
                     Quasisymmetric functions over the Integer Ring in the
-                    Fundamental basis
+                     Fundamental basis
                     sage: M
                     Quasisymmetric functions over the Integer Ring in the
-                    Monomial basis
+                     Monomial basis
                 """
                 from sage.misc.misc import inject_variable
                 if not hasattr(self, "_shorthands"):

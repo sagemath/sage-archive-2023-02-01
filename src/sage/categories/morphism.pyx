@@ -29,7 +29,7 @@ import operator
 import homset
 
 from sage.structure.element cimport Element
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -469,7 +469,7 @@ cdef class SetMorphism(Morphism):
         """
         Extra arguments are passed to the defining function.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]

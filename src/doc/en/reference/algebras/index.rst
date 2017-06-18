@@ -80,6 +80,7 @@ Non-associative algebras
 
    lie_algebras
    sage/algebras/jordan_algebra
+   sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
    sage/algebras/free_zinbiel_algebra

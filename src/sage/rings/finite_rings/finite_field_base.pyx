@@ -32,6 +32,7 @@ AUTHORS:
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
@@ -1346,7 +1347,7 @@ cdef class FiniteField(Field):
         .. [CP] Wikipedia entry on Conway polynomials,
            :wikipedia:`Conway_polynomial_(finite_fields)`
 
-        TEST::
+        TESTS::
 
             sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
             True
@@ -1559,6 +1560,9 @@ def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     but kept around for backward compatibility.
     """
     return _type(order, variable_name, **kwargs)
+
+register_unpickle_override(
+    'sage.rings.ring', 'unpickle_FiniteField_prm', unpickle_FiniteField_prm)
 
 
 def is_FiniteField(x):

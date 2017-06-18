@@ -32,8 +32,32 @@ echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
 
 $MAKE libs netlib shared $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
-    echo >&2 "Error building OpenBLAS"
-    exit 1
+    # See https://github.com/xianyi/OpenBLAS/issues/1204
+    # In essence: If failing, HASWELL works for high-end hardware
+    #                         ATOM/NEHALEM works for low-end hardware
+
+    # First make sure we already didn't set a target
+    if [[ $OPENBLAS_CONFIGURE == *"TARGET"* ]]; then
+        echo >&2 "Error building OpenBLAS"
+        exit 1
+    fi
+
+    # If we are told what target to use then use it
+    if [ -z "$SAGE_OPENBLAS_TARGET" ]; then
+        target="ATOM"
+    else
+        target=$SAGE_OPENBLAS_TARGET
+    fi
+
+    # Do we have a low-end or high-end machine?
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=$target"
+    echo "Error building OpenBLAS"
+    echo "Retrying building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
+    $MAKE libs netlib shared $OPENBLAS_CONFIGURE
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error building OpenBLAS"
+        exit 1
+    fi
 fi
 
 $MAKE install PREFIX="$SAGE_LOCAL" NO_STATIC=1 $OPENBLAS_CONFIGURE

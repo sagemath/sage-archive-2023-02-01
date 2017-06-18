@@ -460,8 +460,8 @@ class gl(LieAlgebraFromAssociative):
         return self.basis()[i]
 
     class Element(LieAlgebraFromAssociative.Element):
-        def monomial_coefficients(self, copy=False):
-            """
+        def monomial_coefficients(self, copy=True):
+            r"""
             Return the monomial coefficients of ``self``.
 
             EXAMPLES::

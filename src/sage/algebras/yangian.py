@@ -331,7 +331,7 @@ class Yangian(CombinatorialFreeModule):
         ....:         ret = x * y
         ....:         rhs = convert(x) * convert(y)
         ....:         assert rhs == convert(ret)
-        ....:         assert ret.degree() == rhs.degree()
+        ....:         assert ret.maximal_degree() == rhs.maximal_degree()
 
     REFERENCES:
 
@@ -757,7 +757,7 @@ class Yangian(CombinatorialFreeModule):
 
     def counit_on_basis(self, m):
         """
-        Return the antipode on the basis element indexed by ``m``.
+        Return the counit on the basis element indexed by ``m``.
 
         EXAMPLES::
 

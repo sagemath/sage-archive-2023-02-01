@@ -411,6 +411,31 @@ class gl(LieAlgebraFromAssociative):
         G = self.gens()
         return Family(self._indices, lambda i: G[self._indices.index(i)])
 
+    def monomial(self, i):
+        r"""
+        Return the basis element indexed by ``i``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: gl4.monomial('E_2_1')
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+            sage: gl4.monomial((2,1))
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+        """
+        if isinstance(i, tuple):
+            return self.basis()['E_{}_{}'.format(*i)]
+        return self.basis()[i]
+
 class sl(ClassicalMatrixLieAlgebra):
     r"""
     The matrix Lie algebra `\mathfrak{sl}_n`.

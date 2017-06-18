@@ -988,6 +988,37 @@ cdef class ComplexBall(RingElement):
         else:
             raise ValueError("nonzero imaginary part")
 
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(CBF(1))
+            1.0
+            sage: float(CBF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex ball to float
+        """
+        if self.imag() == 0:
+            return float(self.n(prec(self)))
+        else:
+            raise TypeError("can't convert complex ball to float")
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(CBF(1))
+            (1+0j)
+            sage: complex(CBF(1,1))
+            (1+1j)
+        """
+        return complex(self.n(prec(self)))
+
     # Real and imaginary part, midpoint, radius
 
     cpdef RealBall real(self):

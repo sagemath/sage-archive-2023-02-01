@@ -21,7 +21,7 @@ cdef class DefaultConvertMap(Map):
     This morphism simply calls the codomain's element_constructor method,
     passing in the codomain as the first argument.
     """
-    def __init__(self, domain, codomain, force_use=False):
+    def __init__(self, domain, codomain, category=None, force_use=False):
         """
         TESTS:
 
@@ -37,8 +37,10 @@ cdef class DefaultConvertMap(Map):
         """
         if not isinstance(domain, Parent):
             domain = Set_PythonType(domain)
-        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-        parent = domain.Hom(codomain, category=SetsWithPartialMaps())
+        if category is None:
+            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+            category = SetsWithPartialMaps()
+        parent = domain.Hom(codomain, category=category)
         Map.__init__(self, parent)
         self._coerce_cost = 100
         self._force_use = force_use

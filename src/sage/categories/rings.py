@@ -94,11 +94,7 @@ class Rings(CategoryWithAxiom):
             Unless the codomain is the zero ring::
 
                 sage: codomain = Integers(1)
-                sage: f = K.hom([codomain(1)]); f
-                Function Field morphism:
-                  From: Rational function field in x over Rational Field
-                  To:   Ring of integers modulo 1
-                  Defn: x |--> 0
+                sage: f = QQ.hom([Zmod(1)(0)], check=False)
                 sage: f.is_injective()
                 False
 

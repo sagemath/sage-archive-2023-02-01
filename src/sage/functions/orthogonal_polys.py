@@ -1946,7 +1946,7 @@ class Func_jacobi_P(OrthogonalFunction):
         prec = the_parent.precision()
         BF = CBF(prec+5)
         ret = BF(x).jacobi_P(BF(n), BF(a), BF(b))
-        return the_parent(ret)
+        return SR(ret)._eval_self(the_parent)
 
 jacobi_P = Func_jacobi_P()
 

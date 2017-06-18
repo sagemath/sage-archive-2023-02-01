@@ -2101,7 +2101,7 @@ class CategoryWithAxiom(Category):
 
         This check that an axiom category of a
         :class:`Category_singleton` is a singleton category, and
-        similarwise for :class`Category_over_base_ring`.
+        similarwise for :class:`Category_over_base_ring`.
 
         EXAMPLES::
 

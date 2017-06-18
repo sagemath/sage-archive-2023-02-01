@@ -1260,8 +1260,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         The formal derivative of this Laurent polynomial, with respect
         to variables supplied in args.
 
-        Multiple variables and iteration counts may be supplied; see
-        documentation for the global :func`derivative()` function for more
+        Multiple variables and iteration counts may be supplied. See
+        documentation for the global :func:`derivative` function for more
         details.
 
         .. SEEALSO::

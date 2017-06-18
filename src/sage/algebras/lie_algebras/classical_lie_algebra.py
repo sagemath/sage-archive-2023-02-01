@@ -436,6 +436,22 @@ class gl(LieAlgebraFromAssociative):
             return self.basis()['E_{}_{}'.format(*i)]
         return self.basis()[i]
 
+    class Element(LieAlgebraFromAssociative.Element):
+        def monomial_coefficients(self, copy=False):
+            """
+            Return the monomial coefficients of ``self``.
+
+            EXAMPLES::
+
+                sage: x = gl4.monomial('E_2_1') + 3*gl4.monomial('E_0_3')
+                sage: x.monomial_coefficients()
+                {'E_0_3': 3, 'E_2_1': 1}
+            """
+            d = {}
+            for k in self.value.nonzero_positions():
+                d['E_{}_{}'.format(*k)] = self.value[k]
+            return d
+
 class sl(ClassicalMatrixLieAlgebra):
     r"""
     The matrix Lie algebra `\mathfrak{sl}_n`.

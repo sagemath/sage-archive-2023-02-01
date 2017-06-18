@@ -363,7 +363,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         terms = self._g.monomial(trail).bracket(self._g.monomial(lead))
         lead = I.gen(lead)
         trail = I.gen(trail)
-        terms = self.sum_of_terms((I.gen(t), c) for t,c in terms)
+        mc = terms.monomial_coefficients(copy=False)
+        terms = self.sum_of_terms((I.gen(t), c) for t,c in mc.items())
         terms += self.monomial(lead * trail)
         return self.monomial(lhs // trail) * terms * self.monomial(rhs // lead)
 

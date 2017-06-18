@@ -2395,16 +2395,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return True in self.__gens
 
-    def ngens(self, proof = None):
+    def ngens(self, proof=None):
         """
         Return the number of generators of this elliptic curve.
 
-        .. note::
+        .. NOTE::
 
-           See :meth:'.gens' for further documentation. The function
-           :meth:`.ngens` calls :meth:`.gens` if not already done, but
+           See :meth:`gens` for further documentation. The function
+           :meth:`ngens` calls :meth:`gens` if not already done, but
            only with default parameters.  Better results may be
-           obtained by calling ``mwrank()`` with carefully chosen
+           obtained by calling :meth:`mwrank` with carefully chosen
            parameters.
 
         EXAMPLES::

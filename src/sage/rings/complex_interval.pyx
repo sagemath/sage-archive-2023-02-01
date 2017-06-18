@@ -1371,12 +1371,17 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
+            sage: float(CIF(1))
+            1.0
             sage: float(CIF(1,1))
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex interval to float
         """
-        raise TypeError("can't convert complex interval to float")
+        if self.imag() == 0:
+            return float(self.real().n(self._prec))
+        else:
+            raise TypeError("can't convert complex interval to float")
 
     def __complex__(self):
         """
@@ -1385,11 +1390,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: complex(CIF(1,1))
-            Traceback (most recent call last):
-            ...
-            TypeError: can't convert complex interval to complex
+            (1+1j)
         """
-        raise TypeError("can't convert complex interval to complex")
+        return complex(self.real().n(self._prec),
+                       self.imag().n(self._prec))
 
     def __nonzero__(self):
         """

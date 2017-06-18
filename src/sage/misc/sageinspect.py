@@ -1998,11 +1998,11 @@ def sage_getsourcelines(obj):
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
 
-        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
-        sage: sage_getsourcelines(obj)
-        (['def create_set_partition_function(letter, k):\n',
+        sage: from sage.tests.functools_partial_src import test_func
+        sage: sage_getsourcelines(test_func)
+        (['def base(x):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 36)
+        '    return x\n'], 7)
 
     Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do

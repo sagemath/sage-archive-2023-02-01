@@ -1102,7 +1102,7 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
     """
     Morphism from a rational function field to a function field.
     """
-    def __init__(self, parent, im_gen):
+    def __init__(self, parent, im_gen, base_morphism):
         """
         Initialize.
 
@@ -1113,7 +1113,7 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
             Function Field endomorphism of Rational function field in x over Finite Field of size 7
               Defn: x |--> 1/x
         """
-        FunctionFieldMorphism.__init__(self, parent, im_gen, None)
+        FunctionFieldMorphism.__init__(self, parent, im_gen, base_morphism)
 
     def _call_(self, x):
         """
@@ -1127,9 +1127,32 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
             (x + 1)/x
             sage: 1/x + 1
             (x + 1)/x
+
+        You can specify a morphism on the base ring::
+
+            sage: Qi = GaussianIntegers().fraction_field()
+            sage: i = Qi.gen()
+            sage: K.<x> = FunctionField(Qi)
+            sage: phi1 = Qi.hom([CC.gen()])
+            sage: phi2 = Qi.hom([-CC.gen()])
+            sage: f = K.hom(CC.pi(),phi1)
+            sage: f(1+i+x)
+            4.14159265358979 + 1.00000000000000*I
+            sage: g = K.hom(CC.pi(),phi2)
+            sage: g(1+i+x)
+            4.14159265358979 - 1.00000000000000*I
         """
         a = x.element()
-        return a.subs({a.parent().gen():self._im_gen})
+        if self._base_morphism is None:
+            return a.subs({a.parent().gen():self._im_gen})
+        else:
+            f = self._base_morphism
+            num = a.numerator()
+            den = a.denominator()
+            R = self._im_gen.parent()['X']
+            num = R([f(c) for c in num.list()])
+            den = R([f(c) for c in den.list()])
+            return num.subs(self._im_gen) / den.subs(self._im_gen)
 
 class FunctionFieldConversionToConstantBaseField(Map):
     r"""

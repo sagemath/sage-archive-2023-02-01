@@ -13320,10 +13320,18 @@ cdef class Matrix(matrix1.Matrix):
             sage: U * B == C
             True
 
-            sage: P.<x> = PolynomialRing(GF(5))
-            sage: A = matrix(P,3,[P.random_element(3) for i in range(9)])
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: A = matrix(P,3,[-(x-1)^((i-j) % 3) for i in range(3) for j in range(3)])
+            sage: A
+            [            -1 -x^2 + 2*x - 1         -x + 1]
+            [        -x + 1             -1 -x^2 + 2*x - 1]
+            [-x^2 + 2*x - 1         -x + 1             -1]
             sage: H = A.__copy__()
-            sage: U = H._hermite_form_euclidean(transformation=True)
+            sage: U = H._hermite_form_euclidean(transformation=True, normalization=lambda p: ~p.lc())
+            sage: H
+            [                    1         x^2 - 2*x + 1                 x - 1]
+            [                    0 x^3 - 3*x^2 + 3*x - 2                     0]
+            [                    0                     0 x^3 - 3*x^2 + 3*x - 2]
             sage: U * A == H
             True
         """
@@ -13384,7 +13392,7 @@ cdef class Matrix(matrix1.Matrix):
             j = pivot_cols[i]
             pivot = A.get_unsafe(i,j)
 
-            # possibly normlize the pivot
+            # possibly normalize the pivot
             if normalization:
                 coeff = normalization(pivot)
                 for c in range(j,n):

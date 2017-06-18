@@ -152,7 +152,7 @@ from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 cimport sage.symbolic.comparison
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
@@ -3464,11 +3464,11 @@ cdef class Expression(CommutativeRingElement):
         Compare self and right, returning -1, 0, or 1, depending on if
         self < right, self == right, or self > right, respectively.
 
-        Use this instead of the operators <=, <, etc. to compare symbolic
-        expressions when you do not want to get a formal inequality back.
+        This is deprecated by :trac:`23273`
 
-        IMPORTANT: Both self and right *must* have the same parent, or
-        this function will not be called.
+        Use :func:`sage.symbolic.comparison.mixed_order`` instead of
+        the operators <=, <, etc. to compare symbolic expressions when
+        you do not want to get a formal inequality back.
 
         INPUT:
 
@@ -3478,25 +3478,27 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
+            sage: from sage.symbolic.comparison import mixed_order
+
             sage: a = sqrt(3)
             sage: b = x^2+1
-            sage: a.__cmp__(b)   # indirect doctest
+            sage: mixed_order(a, b)   # indirect doctest
             -1
 
             sage: x,y = var('x,y')
-            sage: x.__cmp__(y)
-            1
             sage: x < y
             x < y
-            sage: cmp(x,y)
+            sage: mixed_order(x, y)
             1
-            sage: cmp(SR(0.5), SR(0.7))
+ 
+            sage: mixed_order(SR(0.5), SR(0.7))
             -1
             sage: SR(0.5) < SR(0.7)
             0.500000000000000 < 0.700000000000000
-            sage: cmp(SR(0.5), 0.7)
+            sage: mixed_order(SR(0.5), 0.7)
             -1
-            sage: cmp(sin(SR(2)), sin(SR(1)))
+
+            sage: mixed_order(sin(SR(2)), sin(SR(1)))
             1
             sage: float(sin(SR(2)))
             0.9092974268256817
@@ -3597,11 +3599,11 @@ cdef class Expression(CommutativeRingElement):
 
         Check if :trac:`16397` is fixed:
 
-            sage: cmp(1, sqrt(2))
+            sage: mixed_order(1, sqrt(2))
             -1
-            sage: cmp(SR(1), sqrt(2))
+            sage: mixed_order(SR(1), sqrt(2))
             -1
-            sage: cmp(log(8), 3*log(2))
+            sage: mixed_order(log(8), 3*log(2))
             0
             sage: bool(RLF(1) < RLF(sqrt(2)))
             True
@@ -3623,6 +3625,8 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(pi < SR.zero())
             False
         """
+        deprecation(23273, 'to compare symbolic expressions, '
+                    'use mixed_order(a, b) or bool(a <= b)')
         return mixed_order(left, right)
 
     cpdef int _cmp_add(Expression left, Expression right) except -2:

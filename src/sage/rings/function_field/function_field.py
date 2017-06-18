@@ -2260,6 +2260,7 @@ class FunctionField_global(FunctionField_polymod):
                        From: Function field in s defined by s^3 + x^16 + x^14 + x^12
                        To:   Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
                        Defn: s |--> x^6*T
+                             x |--> x
                      then
                        Function Field morphism:
                        From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
@@ -2277,7 +2278,8 @@ class FunctionField_global(FunctionField_polymod):
                        Function Field morphism:
                        From: Function field in T defined by T^3 + (x^4 + x^2 + 1)/x^6
                        To:   Function field in s defined by s^3 + x^16 + x^14 + x^12
-                       Defn: T |--> 1/x^6*s)
+                       Defn: T |--> 1/x^6*s
+                             x |--> x)
         """
         K = self.base_field()
         R = PolynomialRing(K,'T')

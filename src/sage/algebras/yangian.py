@@ -297,13 +297,41 @@ class Yangian(CombinatorialFreeModule):
     EXAMPLES::
 
         sage: Y = Yangian(QQ, 4)
+        sage: t = Y.algebra_generators()
+        sage: t[6,2,1] * t[2,3,2]
+        -t(1)[2,2]*t(6)[3,1] + t(1)[3,1]*t(6)[2,2]
+         + t(2)[3,2]*t(6)[2,1] - t(7)[3,1]
+        sage: t[6,2,1] * t[3,1,4]
+        t(1)[1,1]*t(7)[2,4] + t(1)[1,4]*t(6)[2,1] - t(1)[2,1]*t(6)[1,4]
+         - t(1)[2,4]*t(7)[1,1] + t(2)[1,1]*t(6)[2,4] - t(2)[2,4]*t(6)[1,1]
+         + t(3)[1,4]*t(6)[2,1] + t(6)[2,4] + t(8)[2,4]
 
-    We check that the natural filtration is isomorphic to
-    `U(\mathfrak{gl}_n)` as filtered algebras::
+    We check that the natural filtration has a homomorphism
+    to `U(\mathfrak{gl}_n)` as algebras::
 
+        sage: Y = Yangian(QQ, 4, filtration='natural')
+        sage: t = Y.algebra_generators()
         sage: gl4 = lie_algebras.gl(QQ, 4)
         sage: Ugl4 = gl4.pbw_basis()
         sage: E = matrix(Ugl4, 4, 4, Ugl4.gens())
+        sage: Esq = E^2
+        sage: t[2,1,3] * t[1,2,1]
+        t(1)[2,1]*t(2)[1,3] - t(2)[2,3]
+        sage: Esq[0,2] * E[1,0] == E[1,0] * Esq[0,2] - Esq[1,2]
+        True
+
+        sage: Em = [E^k for k in range(1,5)]
+        sage: S = list(t.some_elements())[:30:3]
+        sage: def convert(x):
+        ....:     return sum(c * prod(Em[t[0]-1][t[1]-1,t[2]-1] ** e
+        ....:                         for t,e in m._sorted_items())
+        ....:                for m,c in x)
+        sage: for x in S:
+        ....:     for y in S:
+        ....:         ret = x * y
+        ....:         rhs = convert(x) * convert(y)
+        ....:         assert rhs == convert(ret)
+        ....:         assert ret.degree() == rhs.degree()
 
     REFERENCES:
 

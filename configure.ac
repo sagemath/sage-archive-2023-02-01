@@ -374,14 +374,18 @@ AC_PROG_CPP()
 AC_PROG_CXX()
 AC_PROG_FC()
 
+AC_SUBST(CC)
+AC_SUBST(CXX)
+AC_SUBST(FC)
+
 # On darwin, also set the objective C/C++ compilers
 AS_CASE("$host",
     [*-*-darwin*],[
         AC_PROG_OBJC([clang])
         AC_PROG_OBJCXX([clang++])],
+        AC_SUBST(OBJC)
+        AC_SUBST(OBJCXX)
         [])
-
-AC_SUBST(CC,CXX,FC,OBJC,OBJCXX)
 
 if test "x$CXX" = x
 then

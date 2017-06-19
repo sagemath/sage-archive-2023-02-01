@@ -62,13 +62,18 @@ class HyperbolicArc(BezierPath):
             if B.imag()<0:
                 raise ValueError("%s is not a valid point in the UHP model"%(B))
             self._UHP_hyperbolic_arc(A, B, True);
+        elif model == "PD":
+            if A.abs()>1:
+                raise ValueError("%s is not a valid point in the PD model"%(A))
+            if B.abs()>1:
+                raise ValueError("%s is not a valid point in the PD model"%(B))
+            self._PD_hyperbolic_arc(A, B)
+        elif model == "KM":
+            raise AttributeError("Klein disc model is not yet implemented")
+        elif model == "HM":
+            raise AttributeError("Hyperboloid model is not yet implemented")
         else:
-            if model == "PD":
-                if A.abs()>1:
-                    raise ValueError("%s is not a valid point in the PD model"%(A))
-                if B.abs()>1:
-                    raise ValueError("%s is not a valid point in the PD model"%(B))
-                self._PD_hyperbolic_arc(A, B)
+            raise AttributeError("%s is not a valid model for Hyperbolic Plane")
 
         BezierPath.__init__(self, self.path, options)
         self.A, self.B = (A, B)
@@ -84,9 +89,10 @@ class HyperbolicArc(BezierPath):
         """
 
         return "Hyperbolic arc (%s, %s)" % (self.A, self.B)
+
     def _UHP_hyperbolic_arc(self, z0, z3, first=False):
         """
-        Function to construct Bezier path as an approximation to
+        Construct Bezier path as an approximation to
         the hyperbolic arc between the complex numbers z0 and z3 in the
         hyperbolic plane.
         """
@@ -119,9 +125,16 @@ class HyperbolicArc(BezierPath):
             self.path.append([(z1.real(), z1.imag()),
                               (z2.real(), z2.imag()),
                               (z3.real(), z3.imag())]);
+    
     def _bezier_path(self, arc0, z0, z3):
         """
-        Returns the corresponding bezier path
+        Construct a bezier path from a given arc object and store it in the ``path`` attribute
+
+        INPUT:
+
+            - ``arc0`` - an arc object representing a hyperbolic arc
+ 	    - ```z0,z3`` - hyperbolic arc end points 
+ 
         """
         ma = arc0._matplotlib_arc()
         transform = ma.get_transform().get_matrix()
@@ -141,11 +154,22 @@ class HyperbolicArc(BezierPath):
             self.path.append(points[N: N + 3])
             N += 3
         return
+
     def _CenterAndRadiusOrthogonalcirclegiven2points(self,z1,z2):
         """
         Calculate center and radius of an orthogonal circle to the
         unit disc through z1, z2 if they are ideal points or
         through z1, z2 and their inverses.
+
+	INPUT:
+
+            - ``z1,z2`` - points in the Poincare disc model
+
+	OUTPUT:
+
+            - ``c`` - center of the circle as a complex point
+            - ``r`` - radius of the circle
+
         """
         z1,z2 = (CC(z1),CC(z2))
         if abs(z1.abs()-1)<0.000001 and abs(z2.abs()-1)<0.000001:
@@ -172,6 +196,7 @@ class HyperbolicArc(BezierPath):
             c=(z1+z2)/2+CC(0,1)*s*(z1-z2)/2
             r=(z1-c).abs()
         return c,r
+
     def _PD_hyperbolic_arc(self, z0, z3):
         """
         Function to construct an hyperbolic arc between the complez numbers z0

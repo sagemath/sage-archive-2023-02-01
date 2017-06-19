@@ -370,3 +370,59 @@ class GraphicMatroid(Matroid):
                 cocircuit.add(e[2])
             g.delete_edge(e)
         return frozenset(cocircuit)
+
+    def _is_cocircuit(self, X):
+        """
+        Tests if the input is a cocircuit.
+        """
+        edges = self._groundset_to_edges(X)
+        g = self.graph()
+        components = g.connected_components_number()
+        g.delete_edges(edges)
+        # This should have made exactly 1 more component
+        if not g.connected_components_number() == (components + 1):
+            return False
+        for e in edges:
+            g.add_edge(e)
+            # Every time an edge is added, it should repair the components
+            if not g.connected_components_number() == components:
+                return False
+            g.delete_edge(e)
+        return True
+
+    def _is_isomorphic(self, other, certificate = False):
+        """
+        Test if ``self`` is isomorphic to ``other``.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+        - ``certificate`` -- Boolean
+
+        OUTPUT:
+
+        - If ``certificate`` is ``False``, Boolean.
+        - If ``certificate`` is ``True``, a tuple containing a boolean and a dictionary
+          giving the isomorphism or None.
+        """
+        if isinstance(other,GraphicMatroid) and other.is_3connected():
+            # Graph.is_isomorphic() supports multigraphs
+            # This could be made faster by using self._G instead of self.graph()
+            G = self.graph()
+            H = other.graph()
+            return G.is_isomorphic(H, certificate=certificate)
+        else:
+            return Matroid._is_isomorphic(self, other, certificate=certificate)
+
+    def _isomorphism(self, other):
+        """
+        Return isomorphism from ``self`` to ``other``, if such an isomorphism exists.
+        """
+        if isinstance(other,GraphicMatroid) and other.is_3connected():
+            # Graph.is_isomorphic() supports multigraphs
+            # This could be made faster by using self._G instead of self.graph()
+            G = self.graph()
+            H = other.graph()
+            return G.is_isomorphic(H, certificate=True)
+        else:
+            return Matroid._isomorphism(self, other)

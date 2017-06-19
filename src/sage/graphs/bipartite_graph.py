@@ -1413,8 +1413,6 @@ class BipartiteGraph(Graph):
             W = dict()
             L = dict()
             for u,v,l in self.edge_iterator():
-                if u is v:
-                    continue
                 if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
                     L[u, v] = l
                     if use_edge_labels:

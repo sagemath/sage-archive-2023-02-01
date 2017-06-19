@@ -88,7 +88,7 @@ class p_iter_fork:
 
         TESTS:
 
-        The output of functions decorated with :func:parallel is read
+        The output of functions decorated with :func:`parallel` is read
         as a pickle by the parent process. We intentionally break the
         unpickling and demonstrate that this failure is handled
         gracefully (an exception is displayed and an empty list is

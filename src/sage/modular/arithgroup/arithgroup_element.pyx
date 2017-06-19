@@ -16,7 +16,7 @@ Elements of Arithmetic Subgroups
 from __future__ import absolute_import
 
 from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.rings.all import ZZ
 from sage.modular.cusps import Cusp
 

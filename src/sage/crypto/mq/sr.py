@@ -326,7 +326,7 @@ from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 from .mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
-from sage.structure.sage_object import richcmp_not_equal, rich_to_bool, op_LT
+from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, op_LT
 
 
 def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):

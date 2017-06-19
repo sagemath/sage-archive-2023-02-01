@@ -20,6 +20,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
 from sage.libs.glpk.error import GLPKError
@@ -28,8 +31,6 @@ from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 

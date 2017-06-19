@@ -418,9 +418,10 @@ class GraphicMatroid(Matroid):
         """
         Return isomorphism from ``self`` to ``other``, if such an isomorphism exists.
         """
+        # TODO: If M is M(K_4) and N is M(W_3), then M._isomorphism(N) = True
+        # but N._isomorphism(M) gives ImportError: No module named basis_matroid
+        # from basis_exchange_matroid.pyx
         if isinstance(other,GraphicMatroid) and other.is_3connected():
-            # Graph.is_isomorphic() supports multigraphs
-            # This could be made faster by using self._G instead of self.graph()
             G = self.graph()
             H = other.graph()
             return G.is_isomorphic(H, certificate=True)

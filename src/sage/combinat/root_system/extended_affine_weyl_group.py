@@ -195,7 +195,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     call `F` the *fundamental group*.
 
     In the future we may want to build an element of the group from an appropriate linear map f
-    on some of the root lattice realizations for this cartan type: W.from_endomorphism(f).
+    on some of the root lattice realizations for this Cartan type: W.from_endomorphism(f).
 
     EXAMPLES::
 
@@ -341,7 +341,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
         - Implement a "slow" action of `E` on any affine root or weight lattice realization.
         - Implement the level `m` actions of `E` and `W` on the lattices of finite type.
-        - Implement the relevant methods from the usual affine weyl group
+        - Implement the relevant methods from the usual affine Weyl group
         - Implementation by matrices: style "M".
         - Use case: implement the Hecke algebra on top of this
 

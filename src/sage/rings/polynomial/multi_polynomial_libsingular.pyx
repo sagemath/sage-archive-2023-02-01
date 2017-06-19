@@ -174,10 +174,9 @@ from __future__ import absolute_import, print_function
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-
 from cpython.object cimport Py_NE
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
@@ -247,7 +246,7 @@ from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeRingElement
 from sage.structure.element cimport coercion_model
 
-from sage.structure.sage_object cimport rich_to_bool, richcmp
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 
@@ -463,7 +462,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         Return True if and only if there exists a coercion map from
         ``other`` to ``self``.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: type(R)
@@ -1493,7 +1492,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P == R
             False
 
-        TEST::
+        TESTS::
 
             sage: R = QQ['x', 'y']; R
             Multivariate Polynomial Ring in x, y over Rational Field

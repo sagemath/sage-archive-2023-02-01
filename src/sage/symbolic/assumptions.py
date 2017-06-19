@@ -43,6 +43,18 @@ Set positive domain using a relation::
     sage: assumptions()
     [x > 0]
 
+Assumptions also affect operations that do not use Maxima::
+
+    sage: forget()
+    sage: assume(x, 'even')
+    sage: assume(x, 'real')
+    sage: (-1)^x
+    1
+    sage: (-gamma(pi))^x
+    gamma(pi)^x
+    sage: binomial(2*x, x).is_integer()
+    True
+
 Assumptions are added and in some cases checked for consistency::
 
     sage: assume(x>0)
@@ -178,7 +190,7 @@ class GenericDeclaration(SageObject):
         """
         Make this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'even')
@@ -218,7 +230,7 @@ class GenericDeclaration(SageObject):
         """
         Forget this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'odd')

@@ -83,7 +83,7 @@ def GU(n, R, var='a'):
     Return the general unitary group.
 
     The general unitary group `GU( d, R )` consists of all `d \times
-    d` matrices that preserve a nondegenerate sequilinear form over
+    d` matrices that preserve a nondegenerate sesquilinear form over
     the ring `R`.
 
     .. note::
@@ -160,7 +160,7 @@ def GU(n, R, var='a'):
 def SU(n, R, var='a'):
     """
     The special unitary group `SU( d, R )` consists of all `d \times d`
-    matrices that preserve a nondegenerate sequilinear form over the
+    matrices that preserve a nondegenerate sesquilinear form over the
     ring `R` and have determinant one.
 
     .. note::

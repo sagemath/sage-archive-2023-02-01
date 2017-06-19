@@ -67,10 +67,8 @@ This example illustrates generators for a free module over `\ZZ`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
+from __future__ import absolute_import, print_function
 
 import sage.misc.defaults
 from sage.misc.latex import latex_variable_name
@@ -104,22 +102,6 @@ cdef class ParentWithGens(ParentWithBase):
         self._assign_names(names=names, normalize=normalize)
 
         ParentWithBase.__init__(self, base, category=category)
-        #if category is not None:
-        #    self._init_category_(category)
-
-##     def x__reduce__(self):
-##         if self._base is self:
-##             base = None
-##         else:
-##             base = self._base
-##         if HAS_DICTIONARY(self):
-##             _dict = self.__dict__
-##         else:
-##             _dict = None
-##         return (make_parent_gens_v0, (self.__class__,
-##                                       _dict, base,
-##                                       self._has_coerce_map_from,
-##                                       self._names))
 
     # Derived class *must* define ngens method.
     def ngens(self):

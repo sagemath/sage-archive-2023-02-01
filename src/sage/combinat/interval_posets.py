@@ -84,7 +84,7 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.sage_object import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
+from sage.structure.richcmp import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
@@ -153,7 +153,7 @@ class TamariIntervalPoset(Element):
     its roots on top. This forest is usually given the structure of a
     planar forest by ordering brother nodes by their labels; it then has
     the property that if its nodes are traversed in post-order
-    (see :meth:~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
+    (see :meth:`~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
     and traverse the trees of the forest from left to right as well),
     then the labels encountered are `1, 2, \ldots, n` in this order.
 
@@ -2921,7 +2921,7 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
 
     def _repr_(self):
         r"""
-        TEST::
+        TESTS::
 
             sage: TamariIntervalPosets()
             Interval-posets

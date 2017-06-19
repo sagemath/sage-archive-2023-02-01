@@ -104,6 +104,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
     :meth:`~FinitePoset.star_product` | Return the star product of the poset with other poset.
     :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
+    :meth:`~FinitePoset.without_bounds` | Return the poset with bottom and top element removed.
     :meth:`~FinitePoset.dual` | Return the dual of the poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.intervals_poset` | Return the poset of intervals of the poset.
@@ -167,6 +168,7 @@ List of Poset methods
     :meth:`~FinitePoset.zeta_polynomial` | Return the zeta polynomial of the poset.
     :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial of the poset.
     :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
+    :meth:`~FinitePoset.degree_polynomial` | Return the generating polynomial of degrees of vertices in the Hasse diagram.
 
 **Polytopes**
 
@@ -223,7 +225,7 @@ List of Poset methods
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
     :meth:`~FinitePoset.greene_shape` | Computes the Greene-Kleitman partition aka Greene shape of the poset ``self``.
-    :meth:`~FinitePoset.incidence_algebra` | Return the indicence algebra of ``self``.
+    :meth:`~FinitePoset.incidence_algebra` | Return the incidence algebra of ``self``.
     :meth:`~FinitePoset.is_EL_labelling` | Return whether ``f`` is an EL labelling of the poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
@@ -672,7 +674,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                         raise TypeError("not a list of relations")
             D = DiGraph()
             D.add_vertices(elements)
-            D.add_edges(relations)
+            D.add_edges(relations, loops=False)
         elif len(data) > 2:
             # type 3, list/tuple of upper covers
             D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]),
@@ -1015,7 +1017,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: L = P._list; L
             (a, b, c, d)
             sage: type(L[0])
-            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
+            <class 'sage.combinat.posets.posets.FinitePoset_with_category.element_class'>
             sage: L[0].parent() is P
             True
 
@@ -1651,7 +1653,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D.list()
             [0, 1, 2, 3, 4]
             sage: type(D.list()[0])
-            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
+            <class 'sage.combinat.posets.posets.FinitePoset_with_category.element_class'>
         """
         return list(self._list)
 
@@ -3416,6 +3418,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return the number of elements in the poset.
 
+        .. SEEALSO::
+
+            :meth:`degree_polynomial` for a more refined invariant
+
         EXAMPLES::
 
             sage: Poset([[1,2,3],[4],[4],[4],[]]).cardinality()
@@ -4726,6 +4732,10 @@ class FinitePoset(UniqueRepresentation, Parent):
           ``'top'``. Either of them can be ``None``, and then a new
           bottom or top element will not be added.
 
+        .. SEEALSO::
+
+            :meth:`without_bounds` for the reverse operation
+
         EXAMPLES::
 
             sage: V = Poset({0: [1, 2]})
@@ -4849,6 +4859,57 @@ class FinitePoset(UniqueRepresentation, Parent):
             D.add_edges([(e, new_max) for e in D.sinks()])
 
         return constructor(D)
+
+    def without_bounds(self):
+        """
+        Return the poset without its top and bottom elements.
+
+        This is useful as an input for the method :meth:`order_complex`.
+
+        If there is either no top or no bottom element, this
+        raises a ``TypeError``.
+
+        .. SEEALSO::
+
+            :meth:`with_bounds` for the reverse operation
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: Q = P.without_bounds(); Q
+            Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            [[2, 3]]
+
+            sage: P = posets.DiamondPoset(5)
+            sage: Q = P.without_bounds(); Q
+            Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            []
+
+        TESTS::
+
+            sage: P = Poset({1:[2],3:[2,4]})
+            sage: P.without_bounds()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is missing either top or bottom
+
+            sage: P = Poset({1:[]})
+            sage: P.without_bounds()
+            Finite poset containing 0 elements
+
+            sage: P = Poset({})
+            sage: P.without_bounds()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is missing either top or bottom
+        """
+        if self.is_bounded():
+            top = self.top()
+            bottom = self.bottom()
+            return self.subposet(u for u in self if not u in (top, bottom))
+        raise TypeError('the poset is missing either top or bottom')
 
     def relabel(self, relabeling=None):
         r"""
@@ -6247,6 +6308,39 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 4, 10]
         """
         return self.order_ideals_lattice(as_ideals=False).zeta_polynomial()
+
+    def degree_polynomial(self):
+        r"""
+        Return the generating polynomial of degrees of vertices in ``self``.
+
+        This is the sum
+
+        .. MATH::
+
+            \sum_{v \in P} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
+
+        where ``in(v)`` and ``out(v)`` are the number of incoming and
+        outgoing edges at vertex `v` in the Hasse diagram of `P`.
+
+        Because this polynomial is multiplicative for Cartesian
+        product of posets, it is useful to help see if the poset can
+        be isomorphic to a Cartesian product.
+
+        .. SEEALSO::
+
+            :meth:`cardinality` for the value at `(x, y) = (1, 1)`
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.degree_polynomial()
+            x^2 + 3*x*y + y^2
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.degree_polynomial().factor()
+            (x + y)^4
+        """
+        return self._hasse_diagram.degree_polynomial()
 
     def promotion(self, i=1):
         r"""

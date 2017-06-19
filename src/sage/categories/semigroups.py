@@ -337,7 +337,8 @@ class Semigroups(CategoryWithAxiom):
                     target not in elements):
                     return
                 if simple:
-                    result.add_edge([source, target])
+                    if source != target:
+                        result.add_edge([source, target])
                 elif side == "twosided":
                     result.add_edge([source, target, (label, side_label)])
                 else:

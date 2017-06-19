@@ -452,7 +452,7 @@ When a worker finishes working on a task, it calls
 nodes: the work is done. The worker executes :meth:`master._shutdown` which
 sends ``AbortError`` on all :meth:`worker._request` and
 :meth:`worker._write_task` Queues. Each worker or thief thread receiving such
-a message raise the corresponding exception, stoping therefore its work. A
+a message raise the corresponding exception, stopping therefore its work. A
 lock called ``master._done`` ensures that shutdown is only done once.
 
 Finally, it is also possible to interrupt the computation before its ends
@@ -1574,11 +1574,11 @@ class RESetMapReduceWorker(Process):
 
     def steal(self):
         r"""
-        Steal some node from another worker
+        Steal some node from another worker.
 
         OUTPUT:
 
-        a node stolen from another worker choosed at random
+        a node stolen from another worker chosen at random
 
         EXAMPLES::
 

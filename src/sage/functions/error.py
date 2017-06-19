@@ -182,7 +182,8 @@ class Function_erf(BuiltinFunction):
         BuiltinFunction.__init__(self, "erf", latex_name=r"\operatorname{erf}",
                                  conversions=dict(maxima='erf',
                                                   sympy='erf',
-                                                  fricas='erf'))
+                                                  fricas='erf',
+                                                  giac='erf'))
 
     def _eval_(self, x):
         """
@@ -400,7 +401,8 @@ class Function_erfc(BuiltinFunction):
                                  latex_name=r"\operatorname{erfc}",
                                  conversions=dict(maxima='erfc',
                                                   sympy='erfc',
-                                                  fricas='erfc'))
+                                                  fricas='erfc',
+                                                  giac='erfc'))
 
     def _eval_(self, x):
         """
@@ -477,6 +479,19 @@ class Function_erfinv(BuiltinFunction):
             erfinv(2)
             sage: maxima(erfinv(2))
             inverse_erf(2)
+
+        TESTS:
+
+        Check that :trac:`11349` is fixed::
+
+            sage: _ = var('z,t')
+            sage: PDF = exp(-x^2 /2)/sqrt(2*pi)
+            sage: integralExpr = integrate(PDF,x,z,oo).subs(z==log(t))
+            sage: y = solve(integralExpr==z,t)[0].rhs().subs(z==1/4)    
+            sage: y
+            e^(sqrt(2)*erfinv(1/2))
+            sage: y.n()
+            1.96303108415826
         """
         BuiltinFunction.__init__(self, "erfinv",
                                  latex_name=r"\operatorname{erfinv}",

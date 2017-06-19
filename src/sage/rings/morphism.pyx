@@ -357,8 +357,8 @@ from __future__ import print_function
 import ideal
 import homset
 from cpython.object cimport Py_EQ, Py_NE
-from sage.structure.sage_object cimport (richcmp, rich_to_bool,
-                                         richcmp_not_equal)
+from sage.structure.richcmp cimport (richcmp, rich_to_bool,
+        richcmp_not_equal)
 
 
 def is_RingHomomorphism(phi):
@@ -1177,7 +1177,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f2(x^3 + x + y^2)
             a - b
 
-        TEST::
+        TESTS::
 
             sage: loads(dumps(f2)) == f2
             True
@@ -1318,7 +1318,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.morphism import RingHomomorphism_from_base
             sage: R.<x> = ZZ[]

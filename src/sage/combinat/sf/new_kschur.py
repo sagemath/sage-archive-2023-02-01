@@ -401,16 +401,16 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 TypeError: do not know how to make [4, 1] an element of 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis
             """
             if isinstance(c, Partition):
-                if len(rest) != 0:
+                if rest:
                     raise ValueError("Can only accept a partition")
             else:
-                if len(rest) > 0 or isinstance(c,(int,Integer)):
-                    c = Partition([c]+list(rest))
+                if rest or isinstance(c, (int, Integer)):
+                    c = Partition([c] + list(rest))
                 else:
                     c = Partition(list(c))
 
             if c not in self._indices:
-                raise TypeError("do not know how to make %s an element of %s"%(c,self))
+                raise TypeError("do not know how to make %s an element of %s" % (c, self))
             return self.monomial(c)
 
         def _repr_term(self, c):

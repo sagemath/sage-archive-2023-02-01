@@ -531,7 +531,7 @@ class ECM(SageObject):
 
             ECM is not a good primality test. Not finding a
             factorization is only weak evidence for `n` being
-            prime. You shoud run a **good** primality test before
+            prime. You should run a **good** primality test before
             calling this function.
 
         EXAMPLES::
@@ -543,7 +543,7 @@ class ECM(SageObject):
 
         Note that the input number cannot have more than 4095 digits::
 
-            sage: f=2^2^14+1
+            sage: f = 2^2^14+1
             sage: ecm.find_factor(f)
             Traceback (most recent call last):
             ...

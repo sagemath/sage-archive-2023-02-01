@@ -1923,7 +1923,7 @@ def supersingular_j_polynomial(p):
 
     First compute H(X) whose roots are the Legendre
     `\lambda`-invariants of supersingular curves (Silverman V.4.1(b))
-    in charactersitic `p`.  Then, using a resultant computation with
+    in characteristic `p`.  Then, using a resultant computation with
     the polynomial relating `\lambda` and `j` (Silverman III.1.7(b)),
     we recover the polynomial (in variable ``j``) whose roots are the
     `j`-invariants.  Factors of `j` and `j-1728` are removed if

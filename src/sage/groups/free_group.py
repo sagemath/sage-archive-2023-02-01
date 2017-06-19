@@ -571,7 +571,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
 
     INPUT:
 
-    - ``n`` -- integer or ``None`` (default). The nnumber of
+    - ``n`` -- integer or ``None`` (default). The number of
       generators. If not specified the ``names`` are counted.
 
     - ``names`` -- string or list/tuple/iterable of strings (default:

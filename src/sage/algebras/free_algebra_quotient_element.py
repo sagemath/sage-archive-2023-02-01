@@ -26,7 +26,7 @@ from six import integer_types
 from sage.misc.misc import repr_lincomb
 from sage.structure.element import RingElement, AlgebraElement
 from sage.structure.parent_gens import localvars
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.rings.integer import Integer
 from sage.modules.free_module_element import FreeModuleElement
 from sage.monoids.free_monoid_element import FreeMonoidElement

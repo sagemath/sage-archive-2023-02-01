@@ -80,6 +80,7 @@ from sage.arith.all import gcd
 from sage.rings.fraction_field import FractionField
 from sage.misc.functional import cyclotomic_polynomial
 from sage.rings.number_field.number_field import CyclotomicField
+from sage.combinat.integer_vector import IntegerVectors
 
 from sage.groups.matrix_gps.matrix_group import (
     is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
@@ -1205,3 +1206,64 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         except (TypeError, ValueError):
             pass
         return F
+
+    def invariants_of_degree(self, deg, chi=None, R=None):
+        r"""
+        Compute the (relative) invariants of given degree for this group.
+
+        For this group, compute the invariants of degree ``deg``
+        with respect to the group character ``chi``. The method
+        is to project each possible monomial of degree ``deg`` via
+        the Reynolds operator. Note that if the polynomial ring ``R``
+        is specified it's base ring may be extended if the resultaing
+        invariant is defined over a bigger field.
+
+        INPUT:
+
+        - ``degree`` -- a positive integer
+
+        - ``chi`` -- (default: trivial character) a linear group character of this group
+
+        - ``R`` -- (optional) a polynomial ring
+
+        OUTPUT: list of polynomials
+
+        EXAMPLES::
+
+            sage: Gr = MatrixGroup(SymmetricGroup(2))
+            sage: Gr.invariants_of_degree(3)
+            [x0^3 + x1^3, x0^2*x1 + x0*x1^2]
+            sage: R.<x,y> = QQ[]
+            sage: Gr.invariants_of_degree(4, R=R)
+            [x^3*y + x*y^3, x^2*y^2, x^4 + y^4]
+
+        ::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: Gr = MatrixGroup(DihedralGroup(3))
+            sage: ct = Gr.character_table()
+            sage: chi = Gr.character(ct[0])
+            sage: [f(*(g.matrix()*vector(R.gens()))) == chi(g)*f \
+                  for f in Gr.invariants_of_degree(3, R=R, chi=chi) for g in Gr]
+            [True, True, True, True, True, True]
+        """
+        D = self.degree()
+        deg = int(deg)
+        if deg <= 0:
+            raise ValueError("degree must be a positive integer")
+        if R is None:
+            R = PolynomialRing(self.base_ring(), 'x', D)
+
+        ms = self.molien_series(chi=chi)
+        inv = set()
+        count = 0
+        for e in IntegerVectors(deg, D):
+            mon = R.monomial(*e)
+            F = self.reynolds_operator(R.monomial(*e), chi=chi)
+            if F != 0:
+                F = F/F.lc()
+                inv.add(F)
+                count += 1
+                if count == ms[deg]:
+                    break
+        return(list(inv))

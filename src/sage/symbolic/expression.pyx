@@ -3478,9 +3478,9 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES:
 
-        Using ``cmp`` should be avoided::
+        Using ``cmp`` to compare symbolic expressions should be avoided::
 
-            sage: cmp(SR(0), SR(1))
+            sage: SR(0)._cmp_(SR(1))
             doctest:...: DeprecationWarning: to compare symbolic expressions,
             use mixed_order(a, b) or bool(a <= b)
             See http://trac.sagemath.org/23273 for details.

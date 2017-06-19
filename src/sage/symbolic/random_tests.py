@@ -21,7 +21,7 @@ from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
-
+from sage.symbolic.comparison import mixed_order
 
 ###################################################################
 ### Generate random expressions for doctests ######################
@@ -417,10 +417,10 @@ def test_symbolic_expression_order(repetitions=100):
             except (ZeroDivisionError, ValueError):
                 pass
 
-    for rep in range(0, repetitions):
+    for rep in range(repetitions):
         a = make_random_expr()
         b = make_random_expr()
         c = make_random_expr()
-        assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_(y))
+        assert_strict_weak_order(a, b, c, mixed_order)
         assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_add(y))
         assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_mul(y))

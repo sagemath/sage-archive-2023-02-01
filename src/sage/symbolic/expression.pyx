@@ -3476,7 +3476,17 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT: -1, 0 or 1
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Using ``cmp`` should be avoided::
+
+            sage: cmp(SR(0), SR(1))
+            doctest:...: DeprecationWarning: to compare symbolic expressions,
+            use mixed_order(a, b) or bool(a <= b)
+            See http://trac.sagemath.org/23273 for details.
+            -1
+
+        Instead, you can do the following::
 
             sage: from sage.symbolic.comparison import mixed_order
 

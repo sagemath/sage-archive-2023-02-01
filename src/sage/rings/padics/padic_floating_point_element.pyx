@@ -380,6 +380,11 @@ cdef class pAdicFloatingPointElement(FPElement):
         - ``aprec`` -- an integer, the precision to which to compute the
           exponential
 
+        - ``log_algorithm`` (default: None) -- the algorithm used for
+          computing the logarithm. This attribute is passed to the log
+          method. See :meth:`log` for more details about the possible
+          algorithms.
+
         NOTE::
 
             The function does not check that its argument ``self`` is

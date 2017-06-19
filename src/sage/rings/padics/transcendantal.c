@@ -181,16 +181,6 @@ void padicexp(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     mpz_set_ui(ans, 1);
     mpz_init(denominator);
     mpz_set_ui(denominator, 1);
-
-    if (p == 2) {
-        mpz_fdiv_r_ui(mpz_tmp, a, 4);
-    } else {
-        mpz_fdiv_r_ui(mpz_tmp, a, p);
-    }
-    if (mpz_cmp_ui(mpz_tmp, 0) != 0) {
-       puts("Argh...");
-       return;
-    }
     mpz_set(arg,a);
 
     /* Where do we need to truncate the Taylor expansion */

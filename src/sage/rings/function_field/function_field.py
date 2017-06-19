@@ -10,46 +10,46 @@ EXAMPLES:
 
 We create a rational function field::
 
-    sage: K.<x> = FunctionField(QQ); K
-    Rational function field in x over Rational Field
+    sage: K.<x> = FunctionField(GF(5^2,'a')); K
+    Rational function field in x over Finite Field in a of size 5^2
     sage: K.genus()
     0
     sage: f = (x^2 + x + 1) / (x^3 + 1)
     sage: f
     (x^2 + x + 1)/(x^3 + 1)
     sage: f^3
-    (x^6 + 3*x^5 + 6*x^4 + 7*x^3 + 6*x^2 + 3*x + 1)/(x^9 + 3*x^6 + 3*x^3 + 1)
+    (x^6 + 3*x^5 + x^4 + 2*x^3 + x^2 + 3*x + 1)/(x^9 + 3*x^6 + 3*x^3 + 1)
 
-Then we create an extension of the rational function field, and do some simple
-arithmetic in it::
+Then we create an extension of the rational function field, and do some
+simple arithmetic in it::
 
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^3 - (x^3 + 2*x*y + 1/x)); L
-    Function field in y defined by y^3 - 2*x*y + (-x^4 - 1)/x
+    Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
     sage: y^2
     y^2
     sage: y^3
     2*x*y + (x^4 + 1)/x
     sage: a = 1/y; a
-    (-x/(-x^4 - 1))*y^2 + 2*x^2/(-x^4 - 1)
+    (4*x/(4*x^4 + 4))*y^2 + 2*x^2/(4*x^4 + 4)
     sage: a * y
     1
 
 We next make an extension of the above function field, illustrating
-that arithmetic with a tower of 3 fields is fully supported::
+that arithmetic with a tower of three fields is fully supported::
 
     sage: S.<t> = L[]
     sage: M.<t> = L.extension(t^2 - x*y)
     sage: M
-    Function field in t defined by t^2 - x*y
+    Function field in t defined by t^2 + 4*x*y
     sage: t^2
     x*y
     sage: 1/t
-    ((1/(x^4 + 1))*y^2 + 2*x/(-x^4 - 1))*t
+    ((1/(x^4 + 1))*y^2 + 2*x/(4*x^4 + 4))*t
     sage: M.base_field()
-    Function field in y defined by y^3 - 2*x*y + (-x^4 - 1)/x
+    Function field in y defined by y^3 + 3*x*y + (4*x^4 + 4)/x
     sage: M.base_field().base_field()
-    Rational function field in x over Rational Field
+    Rational function field in x over Finite Field in a of size 5^2
 
 It is also possible to construct function fields over an imperfect base field::
 

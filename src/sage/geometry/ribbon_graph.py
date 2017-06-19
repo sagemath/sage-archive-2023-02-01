@@ -3,7 +3,7 @@ Ribbon Graphs
 
 This file implements objects called *ribbon graphs*. These are graphs 
 together with a cyclic ordering of the darts adjacent to each 
-vertex. This data allows us to unambiguosly "thicken" the ribbon 
+vertex. This data allows us to unambiguously "thicken" the ribbon 
 graph to an orientable surface with boundary. Also, every orientable
 surface with non-empty boundary is the thickening of a ribbon graph.
 
@@ -1140,14 +1140,14 @@ def make_ribbon(g, r):
 
     #We first generate the surface of genus g and 1 boundary component.
     #This is done by considering the usual planar representation of
-    #a surface as a poligon of 4*g+2 edges with identifications. (see
+    #a surface as a polygon of 4*g+2 edges with identifications. (see
     #any topology  book on the classification of surfaces)
     for i in range(2*g):
         repr_sigma[0].append(i+2)
         repr_sigma[1].append(i+(2*g+2)+1)
         repr_rho += [[i+2,i+(2*g+2)+1]]
 
-    #finally we add an edge for each aditional boundary component. 
+    #finally we add an edge for each additional boundary component. 
     max_dart = 4*g+2
     for j in range(r-1):
         repr_sigma[0].insert(0, max_dart+2*(j+1)-1)

@@ -29,7 +29,7 @@ from operator import add, sub, mul, div, pow, neg, inv
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
 from sage.structure.all import parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 import sage.categories.map
 from sage.categories.morphism cimport Morphism
@@ -1632,7 +1632,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
 #                 self._prec = R.prec()
 #                 return R(self._root_approx)
             if self._root is None:
-                # This could be done much more efficiently with newton iteration,
+                # This could be done much more efficiently with Newton iteration,
                 # but will require some care to make sure we get the right root, and
                 # to the correct precision.
                 from sage.rings.qqbar import AA, QQbar

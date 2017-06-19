@@ -2401,10 +2401,12 @@ class Link(object):
         G = Graph()
         for c in self.pd_code():
             G.add_vertex(tuple(c))
-        for i in range(G.num_verts()-1):
-            for j in range(i, G.num_verts()):
-                if len(set(G.vertices()[i]).intersection(G.vertices()[j])) > 0:
-                    G.add_edge(G.vertices()[i], G.vertices()[j])
+        V = G.vertices()
+        setV = [set(c) for c in V]
+        for i in range(len(V) - 1):
+            for j in range(i+1, len(V)):
+                if setV[i].intersection(setV[j]):
+                    G.add_edge(V[i], V[j])
         return [[list(i) for i in j] for j in G.connected_components()]
 
     def homfly_polynomial(self, var1='L', var2='M', normalization = 'lm'):

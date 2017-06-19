@@ -1724,8 +1724,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``dcols`` - list of indices of columns to be deleted from self.
         * ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_rows` and :meth:`matrix_from_columns` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_rows` and :meth:`matrix_from_columns`
+            are related.
 
         EXAMPLES::
 
@@ -1824,8 +1826,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``drows`` - list of indices of rows to be deleted from self.
         * ``check`` - checks whether any index in ``drows`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_columns` and :meth:`matrix_from_rows` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_columns` and :meth:`matrix_from_rows`
+            are related.
 
         EXAMPLES::
 
@@ -1968,12 +1972,12 @@ cdef class Matrix(matrix0.Matrix):
           take. If not provided, take all rows below and all columns to
           the right of the starting entry.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        The functions :func:`matrix_from_rows`,
-        :func:`matrix_from_columns`, and
-        :func:`matrix_from_rows_and_columns` allow one to select
-        arbitrary subsets of rows and/or columns.
+            The functions :func:`matrix_from_rows`,
+            :func:`matrix_from_columns`, and
+            :func:`matrix_from_rows_and_columns` allow one to select
+            arbitrary subsets of rows and/or columns.
 
         EXAMPLES:
 
@@ -2360,8 +2364,11 @@ cdef class Matrix(matrix0.Matrix):
             Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision
 
         """
-        if self._nrows == nrows and self._ncols == ncols and (sparse is None or self.is_sparse() == sparse):
-            return self._parent(entries=entries, coerce=coerce, copy=copy)
+        if (sparse is None or self.is_sparse() == sparse):
+            if self._nrows == nrows and self._ncols == ncols:
+                return self._parent(entries=entries, coerce=coerce, copy=copy)
+            elif self._nrows == ncols and self._ncols == nrows:
+                return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
         return self.matrix_space(nrows, ncols, sparse=sparse)(entries=entries,
                                              coerce=coerce, copy=copy)
     def block_sum(self, Matrix other):

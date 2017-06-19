@@ -195,7 +195,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: P.an_element().parent()
                 Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
 
-            .. see also:: :func:`Poset` for more on posets and facade posets.
+            .. SEEALSO:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
@@ -468,7 +468,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: P.an_element().parent()
                 Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
 
-            .. see also:: :func:`Poset` for more on posets and facade posets.
+            .. SEEALSO:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
@@ -682,6 +682,80 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 True
             """
             return True
+
+        def permutahedron(self, point=None, base_ring=None):
+            r"""
+            Return the permutahedron of ``self``,
+
+            This is the convex hull of the point ``point`` in the weight
+            basis under the action of ``self`` on the underlying vector
+            space `V`.
+
+            .. SEEALSO::
+
+                :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
+
+            INPUT:
+
+            - ``point`` -- optional, a point given by its coordinates in
+              the weight basis (default is `(1, 1, 1, \ldots)`)
+            - ``base_ring`` -- optional, the base ring of the polytope
+
+            .. NOTE::
+
+                The result is expressed in the root basis coordinates.
+
+            .. NOTE::
+
+                If function is too slow, switching the base ring to
+                :class:`RDF` will almost certainly speed things up.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['H',3], base_ring=RDF)
+                sage: W.permutahedron()
+                A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
+
+                sage: W = CoxeterGroup(['I',7])
+                sage: W.permutahedron()
+                A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
+                sage: W.permutahedron(base_ring=RDF)
+                A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 14 vertices
+
+                sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+                sage: W.permutahedron()                                     # optional - gap3
+                A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+                of 24 vertices
+
+                sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
+                sage: W.permutahedron()                                     # optional - gap3
+                A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 192 vertices
+
+            TESTS::
+
+                sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+                sage: W.permutahedron([3,5,8])                              # optional - gap3
+                A 3-dimensional polyhedron in QQ^3 defined as the convex hull
+                of 24 vertices
+
+
+            .. PLOT::
+                :width: 300 px
+
+                W = CoxeterGroup(['I',7])
+                p = W.permutahedron()
+                sphinx_plot(p)
+
+            """
+            n = self.one().canonical_matrix().rank()
+            weights = self.fundamental_weights()
+            if point is None:
+                from sage.rings.integer_ring import ZZ
+                point = [ZZ.one()] * n
+            v = sum(point[i-1] * weights[i] for i in weights.keys())
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            vertices = [v*w for w in self]
+            return Polyhedron(vertices=vertices, base_ring=base_ring)
 
     class ElementMethods:
 

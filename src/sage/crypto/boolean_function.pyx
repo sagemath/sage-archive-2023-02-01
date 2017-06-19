@@ -22,6 +22,7 @@ EXAMPLES::
 
 AUTHOR:
 
+- Rusydi H. Makarim (2016-10-13): add functions related to linear structures
 - Rusydi H. Makarim (2016-07-09): add is_plateaued()
 - Yann Laigle-Chapuy (2010-02-26): add basic arithmetic
 - Yann Laigle-Chapuy (2009-08-28): first implementation
@@ -846,7 +847,7 @@ cdef class BooleanFunction(SageObject):
 
     def autocorrelation(self):
         r"""
-        Return the autocorrelation fo the function, defined by
+        Return the autocorrelation of the function, defined by
 
         .. MATH:: \Delta_f(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus f(i\oplus j)}.
 
@@ -1045,6 +1046,138 @@ cdef class BooleanFunction(SageObject):
         """
         W = self.absolute_walsh_spectrum()
         return (len(W) == 1) or (len(W) == 2 and 0 in W)
+
+    def is_linear_structure(self, val):
+        """
+        Return ``True`` if ``val`` is a linear structure of this Boolean
+        function.
+
+        INPUT:
+
+        - ``val`` -- either an integer or a tuple/list of `\GF{2}` elements
+          of length equal to the number of variables
+
+        .. SEEALSO::
+
+            :meth:`has_linear_structure`,
+            :meth:`linear_structures`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: f.is_linear_structure(1)
+            True
+            sage: l = [1, 0, 0, 1]
+            sage: f.is_linear_structure(l)
+            True
+            sage: v = vector(GF(2), l)
+            sage: f.is_linear_structure(v)
+            True
+            sage: f.is_linear_structure(7)
+            False
+            sage: f.is_linear_structure(20) #parameter is out of range
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: v = vector(GF(3), [1, 0, 1, 1])
+            sage: f.is_linear_structure(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: base ring of input vector must be GF(2)
+            sage: v = vector(GF(2), [1, 0, 1, 1, 1])
+            sage: f.is_linear_structure(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: input vector must be an element of a vector space with dimension 4
+            sage: f.is_linear_structure('X') #failure case
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot compute is_linear_structure() using parameter X
+        """
+        from sage.structure.element import is_Vector
+        nvars = self._nvariables
+
+        if isinstance(val, (tuple, list)):
+            i = ZZ(val, base=2)
+        elif is_Vector(val):
+            if val.base_ring() != GF(2):
+                raise TypeError("base ring of input vector must be GF(2)")
+            elif val.parent().dimension() != nvars:
+                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+            i = ZZ(val.list(), base=2)
+        else:
+            i = val
+
+        a = self.autocorrelation()
+        try:
+            return abs(a[i]) == 1<<nvars
+        except IndexError:
+            raise IndexError("index out of range")
+        except TypeError:
+            raise TypeError("cannot compute is_linear_structure() using parameter %s" % (val,))
+
+    def has_linear_structure(self):
+        """
+        Return ``True`` if this function has a linear structure.
+
+        An `n`-variable Boolean function `f` has a linear structure if
+        there exists a nonzero `a \in \GF{2}^n` such that
+        `f(x \oplus a) \oplus f(x)` is a constant function.
+
+        .. SEEALSO::
+
+            :meth:`is_linear_structure`,
+            :meth:`linear_structures`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: f.has_linear_structure()
+            True
+            sage: f.autocorrelation()
+            (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
+            sage: g = BooleanFunction([0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1])
+            sage: g.has_linear_structure()
+            False
+            sage: g.autocorrelation()
+            (16, 4, 4, 4, 4, -4, -4, -4, -4, 4, -4, -4, -4, 4, -4, -4)
+        """
+        a = self.autocorrelation()
+        nvars = self._nvariables
+        return any(abs(a[i]) == 1<<nvars for i in range(1, 1<<nvars))
+
+    def linear_structures(self):
+        """
+        Return all linear structures of this Boolean function as a vector subspace
+        of `\GF{2}^n`.
+
+        .. SEEALSO::
+
+            :meth:`is_linear_structure`,
+            :meth:`has_linear_structure`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: f = BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0])
+            sage: LS = f.linear_structures()
+            sage: LS.dimension()
+            2
+            sage: LS.basis_matrix()
+            [1 0 0 0]
+            [0 0 0 1]
+            sage: LS.list()
+            [(0, 0, 0, 0), (1, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
+        """
+        from sage.modules.free_module import VectorSpace
+
+        nvars = self.nvariables()
+        a = self.autocorrelation()
+        l = [ZZ(i).digits(base=2, padto=nvars) for i in range(1<<nvars) if abs(a[i]) == 1<<nvars]
+        V = VectorSpace(GF(2), nvars)
+        return V.subspace(l)
 
     def __setitem__(self, i, y):
         """

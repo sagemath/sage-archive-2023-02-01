@@ -11,8 +11,7 @@ Modular symbols using eclib newforms
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from ..eclib cimport *
 from sage.libs.gmp.mpq cimport mpq_numref

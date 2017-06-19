@@ -41,7 +41,8 @@ heavily modified:
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
 from cypari2.gen cimport Gen as pari_gen
@@ -1478,7 +1479,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             elif op == Py_GE:
                 return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
 
-    cpdef int _cmp_(left, right) except -2:
+    def lexico_cmp(left, right):
         """
         Intervals are compared lexicographically on the 4-tuple:
         ``(x.real().lower(), x.real().upper(),
@@ -1489,15 +1490,15 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: a = CIF(RIF(0,1), RIF(0,1))
             sage: b = CIF(RIF(0,1), RIF(0,2))
             sage: c = CIF(RIF(0,2), RIF(0,2))
-            sage: cmp(a, b)
+            sage: a.lexico_cmp(b)
             -1
-            sage: cmp(b, c)
+            sage: b.lexico_cmp(c)
             -1
-            sage: cmp(a, c)
+            sage: a.lexico_cmp(c)
             -1
-            sage: cmp(a, a)
+            sage: a.lexico_cmp(a)
             0
-            sage: cmp(b, a)
+            sage: b.lexico_cmp(a)
             1
 
         TESTS::
@@ -1510,7 +1511,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ....:                 tests.append((CIF(RIF(rl, ru), RIF(il, iu)), (rl, ru, il, iu)))
             sage: for (i1, t1) in tests:
             ....:     for (i2, t2) in tests:
-            ....:         assert(cmp(i1, i2) == cmp(t1, t2))
+            ....:         if t1 == t2:
+            ....:             assert(i1.lexico_cmp(i2) == 0)
+            ....:         elif t1 < t2:
+            ....:             assert(i1.lexico_cmp(i2) == -1)
+            ....:         elif t1 > t2:
+            ....:             assert(i1.lexico_cmp(i2) == 1)
         """
         cdef int a, b
         a = mpfi_nan_p(left.__re)
@@ -1540,6 +1546,22 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         elif i > 0:
             return 1
         return 0
+
+    cpdef int _cmp_(self, other) except -2:
+        """
+        Deprecated method (:trac:`23133`)
+
+        EXAMPLES::
+
+            sage: a = CIF(RIF(0,1), RIF(0,1))
+            sage: a._cmp_(a)
+            doctest:...: DeprecationWarning: for CIF elements, do not use cmp
+            See http://trac.sagemath.org/23133 for details.
+            0
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(23133, 'for CIF elements, do not use cmp')
+        return self.lexico_cmp(other)
 
     ########################################################################
     # Transcendental (and other) functions
@@ -1838,6 +1860,21 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         return True
+
+    def is_NaN(self):
+        r"""
+        Return ``True`` if this is not-a-number.
+
+        EXAMPLES::
+
+            sage: CIF(2, 1).is_NaN()
+            False
+            sage: CIF(NaN).is_NaN()
+            True
+            sage: (1 / CIF(0, 0)).is_NaN()
+            True
+        """
+        return mpfi_nan_p(self.__re) or mpfi_nan_p(self.__im)
 
     def cos(self):
         r"""

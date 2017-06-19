@@ -537,7 +537,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        ..SEEALSO:: :meth:`smith_form`
+        .. SEEALSO::
+
+            :meth:`smith_form`
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
 

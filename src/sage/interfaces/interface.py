@@ -38,9 +38,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
-from six import integer_types
-import six
+from six import iteritems, integer_types, string_types
 
 import operator
 
@@ -49,6 +47,7 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
+from sage.misc.fast_methods import WithEqualityById
 from sage.docs.instancedoc import instancedoc
 
 
@@ -57,11 +56,33 @@ class AsciiArtString(str):
         return str(self)
 
 
-class Interface(ParentWithBase):
+class Interface(WithEqualityById, ParentWithBase):
     """
     Interface interface object.
+
+    .. NOTE::
+
+        Two interfaces compare equal if and only if they are identical
+        objects (this is a critical constraint so that caching of
+        representations of objects in interfaces works
+        correctly). Otherwise they are never equal.
     """
     def __init__(self, name):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Maxima() == maxima
+            False
+            sage: maxima == maxima
+            True
+
+            sage: Maxima() != maxima
+            True
+            sage: maxima != maxima
+            False
+        """
         self.__name = name
         self.__coerce_name = '_' + name.lower() + '_'
         self.__seq = -1
@@ -257,7 +278,7 @@ class Interface(ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, six.string_types):
+        if isinstance(x, string_types):
             return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
@@ -586,28 +607,6 @@ class Interface(ParentWithBase):
             if attrname[:1] == "_":
                 raise
             return self._function_class()(self, attrname)
-
-    def __cmp__(self, other):
-        """
-        Compare two pseudo-tty interfaces. Two interfaces compare
-        equal if and only if they are identical objects (this is a
-        critical constraint so that caching of representations of
-        objects in interfaces works correctly). Otherwise they are
-        never equal.
-
-        EXAMPLES::
-
-            sage: Maxima() == maxima
-            False
-            sage: maxima == maxima
-            True
-        """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return -1  # sucky, but I can't think of anything better; it is important that different interfaces to the same system still compare differently; unfortunately there is nothing to distinguish them.
 
     def console(self):
         raise NotImplementedError
@@ -1098,7 +1097,7 @@ class InterfaceElement(Element):
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)
-        if isinstance(cr, six.string_types):
+        if isinstance(cr, string_types):
             s = cr
         else:
             s = self._repr_()
@@ -1354,7 +1353,7 @@ class InterfaceElement(Element):
             's5'
         """
         if new_name is not None:
-            if not isinstance(new_name, str):
+            if not isinstance(new_name, string_types):
                 raise TypeError("new_name must be a string")
             p = self.parent()
             p.set(new_name, self._name)

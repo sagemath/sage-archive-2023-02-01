@@ -1,19 +1,34 @@
 r"""
 Plotting Functions
 
+
 EXAMPLES::
 
+    sage: x, y = var('x y')
+    sage: W = plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sage: show(W + S, figsize=8)
+
+.. PLOT::
+
+    x, y = var('x y')
+    W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sphinx_plot(W + S)
+
+::
+
     sage: def f(x,y):
-    ....:     return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
+    ....:     return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
     sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
 .. PLOT::
-    
-    def f(x,y): return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
+
+    def f(x,y): return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+0.0001)
     P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sphinx_plot(P)
-    
+
 ::
 
     sage: def f(x,y):
@@ -742,6 +757,8 @@ class TrivialTriangleFactory:
 from . import parametric_plot3d
 def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     """
+    Plots a function in 3d.
+
     INPUT:
 
 
@@ -756,7 +773,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     -  ``adaptive`` - (default: False) whether to use
        adaptive refinement to draw the plot (slower, but may look better).
-       This option does NOT work in conjuction with a transformation
+       This option does NOT work in conjunction with a transformation
        (see below).
 
     -  ``mesh`` - bool (default: False) whether to display

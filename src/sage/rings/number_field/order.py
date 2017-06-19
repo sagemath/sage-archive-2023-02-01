@@ -1011,7 +1011,7 @@ class Order(IntegralDomain):
             sage: G = GaussianIntegers(); G
             Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
             sage: G.some_elements()
-            [1, I, 0, I + 1, -1, -I + 1, -I - 5]
+            [1, I, 2*I, -1, 0, -I, 2, 4*I, -2, -2*I, -4]
 
             sage: R.<t> = QQ[]
             sage: K.<a> = QQ.extension(t^3 - 2); K
@@ -1019,7 +1019,7 @@ class Order(IntegralDomain):
             sage: Z = K.ring_of_integers(); Z
             Maximal Order in Number Field in a with defining polynomial t^3 - 2
             sage: Z.some_elements()
-            [1, a, a^2, 0, a + 1, 2, -a + 1, -3]
+            [1, a, a^2, 2*a, 0, 2, a^2 + 2*a + 1, ..., a^2 + 1, 2*a^2 + 2, a^2 + 2*a, 4*a^2 + 4]
 
         TESTS:
 
@@ -1031,16 +1031,13 @@ class Order(IntegralDomain):
             sage: Z = K.ring_of_integers(); Z
             Maximal Order in Number Field in a with defining polynomial t
             sage: Z.some_elements()
-            [1, 0, -1]
+            [1, 0, 2, -1, -2, 4]
+
         """
-        gens = self.basis()
-        elements = gens
-        length = len(gens)
-        if length > 1:
-            gen = gens[1]
-            elements += [self.zero(), 1 + gen, gen**length, 1 - gen, -5 + gen**3] 
-        else:
-            elements += [self.zero(), -self.one()]
+        elements = list(self.basis())
+        for a in self.fraction_field().some_elements():
+            if a in self and a not in elements:
+                elements.append(self(a))
         return elements
 
 ##     def absolute_polynomial(self):

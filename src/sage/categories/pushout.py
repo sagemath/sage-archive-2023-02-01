@@ -629,8 +629,8 @@ class IdentityConstructionFunctor(ConstructionFunctor):
             sage: I == QQ.construction()[0]
             False
         """
-        c = (type(self) != type(other))
-        if c:
+        c = (type(self) == type(other))
+        if not c:
             from sage.categories.functor import IdentityFunctor_generic
             if isinstance(other, IdentityFunctor_generic):
                 return True
@@ -1589,7 +1589,7 @@ class MatrixFunctor(ConstructionFunctor):
             False
         """
         if isinstance(other, MatrixFunctor):
-            return (self.nrows == self.ncols and other.nrows == other.ncols)
+            return (self.nrows == other.nrows and self.ncols == other.ncols)
         return False
 
     def __ne__(self, other):

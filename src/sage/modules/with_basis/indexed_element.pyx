@@ -22,7 +22,7 @@ from __future__ import print_function
 from six import iteritems
 
 from sage.structure.element cimport parent
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal, rich_to_bool
 from cpython.object cimport Py_NE, Py_EQ
 
 from sage.misc.misc import repr_lincomb

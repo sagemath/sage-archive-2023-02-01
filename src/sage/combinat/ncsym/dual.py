@@ -376,7 +376,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             Return the shape of ``A`` if ``A`` is the canonical standard
             set partition `A_1 | A_2 | \cdots | A_k` where `|` is the pipe
             operation (see
-            :meth:~sage.combinat.set_partition.SetPartition.pipe()` )
+            :meth:`~sage.combinat.set_partition.SetPartition.pipe()` )
             and `A_i = [\lambda_i]` where `\lambda_1 \leq \lambda_2 \leq
             \cdots \leq \lambda_k`. Otherwise, return ``None``.
 

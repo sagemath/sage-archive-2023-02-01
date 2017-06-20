@@ -326,7 +326,7 @@ from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 from .mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
-from sage.structure.sage_object import richcmp_not_equal, rich_to_bool, op_LT
+from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, op_LT
 
 
 def SR(n=1, r=1, c=1, e=4, star=False, **kwargs):
@@ -861,7 +861,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: S(sr.k.gen())
             a^3 + 1
         """
-        from sage.crypto.mq.sbox import SBox
+        from sage.crypto.sbox import SBox
 
         k = self.base_ring()
         if not inversion_only:

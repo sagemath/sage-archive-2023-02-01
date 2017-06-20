@@ -18,12 +18,12 @@ Heilbronn matrix computation
 #*****************************************************************************
 from __future__ import absolute_import
 
+from cysignals.memory cimport check_allocarray, sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 import sage.arith.all
 
 import sage.misc.misc
-
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -63,9 +63,7 @@ cdef struct list:
 cdef int* expand(int *v, int n, int new_length) except NULL:
     cdef int *w
     cdef int i
-    w = <int*>  sig_malloc(new_length*sizeof(int))
-    if w == <int*> 0:
-        return NULL
+    w = <int*>check_allocarray(new_length, sizeof(int))
     if v:
         for i in range(n):
             w[i] = v[i]

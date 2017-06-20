@@ -502,7 +502,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         sage: TestSuite(G).run()
     """
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         Equality test.
 
@@ -525,17 +525,40 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             True
         """
         if isinstance(other, ArithmeticSubgroup_Permutation_class):
-
-            return (cmp(self.is_odd(), other.is_odd()) or
-                    cmp(self.index(), other.index()) or
-                    cmp(self.relabel(inplace=False)._S2, other.relabel(inplace=False)._S2) or
-                    cmp(self.relabel(inplace=False)._S3, other.relabel(inplace=False)._S3))
+            return (self.is_odd() == other.is_odd() and
+                    self.index() == other.index() and
+                    self.relabel(inplace=False)._S2 == other.relabel(inplace=False)._S2 and
+                    self.relabel(inplace=False)._S3 == other.relabel(inplace=False)._S3)
 
         elif isinstance(other, ArithmeticSubgroup):
-            return cmp(self, other.as_permutation_group())
+            return self == other.as_permutation_group()
 
         else:
-            return cmp(type(self), type(other))
+            return False
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        TESTS::
+
+            sage: G2 = Gamma(2)
+            sage: G3 = Gamma(3)
+            sage: H = ArithmeticSubgroup_Permutation(S2="(1,4)(2,6)(3,5)",S3="(1,2,3)(4,5,6)")
+            sage: (G2 != H) or (H != G2)
+            False
+            sage: (G3 != H) and (H != G3)
+            True
+
+            sage: G2 = Gamma1(2)
+            sage: G3 = Gamma1(3)
+            sage: H = ArithmeticSubgroup_Permutation(S2="(1,6,4,3)(2,7,5,8)",S3="(1,2,3,4,5,6)(7,8)")
+            sage: (G2 != H) and (H != G2)
+            True
+            sage: (G3 != H) or (H != G3)
+            False
+        """
+        return not (self == other)
 
     def __hash__(self):
         r"""

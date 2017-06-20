@@ -104,7 +104,7 @@ TESTS::
 """
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.categories.algebras import Algebras
 

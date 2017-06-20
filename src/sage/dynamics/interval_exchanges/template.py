@@ -29,10 +29,9 @@ from __future__ import print_function
 from six.moves import range
 from six import iteritems, add_metaclass
 
-from sage.structure.sage_object import SageObject
-
 from copy import copy
 
+from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.combinat.words.alphabet import Alphabet
 from sage.graphs.graph import DiGraph
@@ -302,7 +301,7 @@ class Permutation(SageObject):
             return ''
 
         elif self._repr_type == 'reduced':
-            return ''.join(map(str,self[1]))
+            return ''.join(map(str, self[1]))
 
         else:
             f = getattr(self, self._repr_type)
@@ -354,8 +353,8 @@ class Permutation(SageObject):
 
         """
         l = self.list()
-        s0 = ' '.join(map(str,l[0]))
-        s1 = ' '.join(map(str,l[1]))
+        s0 = ' '.join(map(str, l[0]))
+        s1 = ' '.join(map(str, l[1]))
         return s0 + sep + s1
 
     _repr_type = 'str'
@@ -2797,10 +2796,8 @@ class RauzyDiagram(SageObject):
             a b c d
             d c b a
         """
-        from builtins import map
-        return map(
-            lambda x: self._vertex_to_permutation(x),
-            self._succ.keys())
+        for x in self._succ.keys():
+            yield self._vertex_to_permutation(x)
 
     def edges(self,labels=True):
         r"""

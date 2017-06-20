@@ -574,7 +574,7 @@ class Polyhedron_base(Element):
 
         - ``projection_direction`` -- coordinate list/tuple/iterable
           or ``None`` (default). The direction to use for the
-          :meth:`schlegel_projection`` of the polytope. If not
+          :meth:`schlegel_projection` of the polytope. If not
           specified, no projection is used in dimensions `< 4` and
           parallel projection is used in dimension `4`.
 
@@ -1333,7 +1333,7 @@ class Polyhedron_base(Element):
         OUTPUT:
 
         The optional argument is an index running from ``0`` to
-        `self.n_Vrepresentation()-1``. If present, the
+        ``self.n_Vrepresentation()-1``. If present, the
         V-representation object at the given index will be
         returned. Without an argument, returns the list of all
         V-representation objects.
@@ -2225,7 +2225,7 @@ class Polyhedron_base(Element):
         ALGORITHM:
 
         The function first computes the circumsphere of a full-dimensional
-        simplex with vertices of `self`. It is found by lifting the points on a
+        simplex with vertices of ``self``. It is found by lifting the points on a
         paraboloid to find the hyperplane on which the circumsphere is lifted.
         Then, it checks if all other vertices are equidistant to the
         circumcenter of that simplex.
@@ -2420,7 +2420,7 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`~sage.geometric.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
+        :meth:`Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -2430,7 +2430,7 @@ class Polyhedron_base(Element):
             sage: p.hyperplane_arrangement()
             Arrangement <-t0 + 1 | -t1 + 1 | t1 + 1 | t0 + 1>
         """
-        names = tuple('t'+str(i) for i in range(self.ambient_dim()))
+        names = tuple('t' + str(i) for i in range(self.ambient_dim()))
         from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
         field = self.base_ring().fraction_field()
         H = HyperplaneArrangements(field, names)
@@ -3216,8 +3216,8 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``cut_frac`` -- integer. how deeply to cut into the edge.
-            Default is `\frac{1}{3}`.
+        - ``cut_frac`` -- integer, how deeply to cut into the edge.
+          Default is `\frac{1}{3}`.
 
         OUTPUT:
 

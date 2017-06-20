@@ -2075,9 +2075,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         self.vertex_ints = new_vx_ints
         self.vertex_labels = new_vx_labels
 
-    def shortest_path(self, x, y):
+    def shortest_path(self, x, y, distance_flag=False):
         r"""
-        Returns the shortest path between ``x`` and ``y``.
+        Returns the shortest path or distance from ``x`` to ``y``.
 
         INPUT:
 
@@ -2086,15 +2086,24 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``.
 
+        - ``distance_flag`` -- boolean (default: ``False``). When set to 
+          ``True``, the shortest path distance from ``x`` to ``y`` is 
+          returned instead of the path.
+
         OUTPUT:
 
-        - A list of vertices in the shortest path from ``x`` to ``y``.
+        - A list of vertices in the shortest path from ``x`` to ``y`` or 
+          distance from ``x`` to ``y`` is returned depending upon the value
+          of parameter ``distance_flag``
 
         EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G.shortest_path(0, 1)
             [0, 1]
+            sage: G.shortest_path_length(0, 1)
+            1
+
         """
         if x == y:
             return 0
@@ -2166,13 +2175,16 @@ cdef class CGraphBackend(GenericGraphBackend):
                     # to the list.
                     if v not in dist_current:
                         dist_current[v] = dist_current[u] + 1
-                        pred_current[v] = u
+                        if not distance_flag:
+                            pred_current[v] = u
                         next_current.append(v)
 
                         # If the new neighbor is already known by the other
                         # side ...
                         if v in dist_other:
                             # build the shortest path and returns in.
+                            if distance_flag:
+                                return dist_other[v] + dist_current[v]
                             w = v
 
                             while w != x_int:
@@ -2199,11 +2211,15 @@ cdef class CGraphBackend(GenericGraphBackend):
             next_current, next_other = next_other, next_current
             out = -out
 
+        if distance_flag:
+            from sage.rings.infinity import Infinity
+            return Infinity
         return []
 
-    def bidirectional_dijkstra(self, x, y, weight_function=None):
+    def bidirectional_dijkstra(self, x, y, weight_function=None, 
+                               distance_flag=False):
         r"""
-        Returns the shortest path between ``x`` and ``y`` using a
+        Returns the shortest path or distance from ``x`` to ``y`` using a
         bidirectional version of Dijkstra's algorithm.
 
         INPUT:
@@ -2217,9 +2233,14 @@ cdef class CGraphBackend(GenericGraphBackend):
           ``(u, v, l)`` and outputs its weight. If ``None``, we use
           the edge label ``l`` as a weight.
 
+        - ``distance_flag`` -- boolean (default: ``False``). When set to ``True``, 
+          the shortest path distance from ``x`` to ``y`` is returned instead of the path.
+
         OUTPUT:
 
-        - A list of vertices in the shortest path from ``x`` to ``y``.
+        - A list of vertices in the shortest path from ``x`` to ``y`` or 
+          distance from ``x`` to ``y`` is returned depending upon the value
+          of parameter ``distance_flag``
 
         EXAMPLES::
 
@@ -2228,9 +2249,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             ....:    G.set_edge_label(u,v,1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
+            sage: G.shortest_path_length(0, 1, by_weight=True)
+            1
             sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
+            sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
+            2
 
         TEST:
 
@@ -2259,10 +2284,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int v = 0
         cdef int w = 0
         cdef int pred
-        cdef float distance
-        cdef float edge_label
         cdef int side
-        cdef float f_tmp
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2289,7 +2311,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         # which defines the shortest path found
         # (of length shortest_path_length).
         cdef int meeting_vertex = -1
-        cdef float shortest_path_length
 
         if weight_function is None:
             weight_function = lambda e:e[2]
@@ -2308,7 +2329,8 @@ cdef class CGraphBackend(GenericGraphBackend):
                 pred_current, pred_other = pred_y, pred_x
 
             if v not in dist_current:
-                pred_current[v] = pred
+                if not distance_flag:
+                    pred_current[v] = pred
                 dist_current[v] = distance
 
                 if v in dist_other:
@@ -2336,9 +2358,14 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         # No meeting point has been found
         if meeting_vertex == -1:
+            if distance_flag:
+                from sage.rings.infinity import Infinity
+                return Infinity
             return []
         else:
             # build the shortest path and returns it.
+            if distance_flag:
+                return shortest_path_length
             w = meeting_vertex
 
             while w != x_int:
@@ -2359,9 +2386,11 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
-    def shortest_path_all_vertices(self, v, cutoff=None):
+    def shortest_path_all_vertices(self, v, cutoff=None, 
+                                   distance_flag=False):
         r"""
-        Returns for each vertex ``u`` a shortest  ``v-u`` path.
+        Returns for each vertex ``u`` a shortest  ``v-u`` path or distance from
+        ``v`` to ``u``.
 
         INPUT:
 
@@ -2369,10 +2398,16 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``cutoff`` -- maximal distance. Longer paths will not be returned.
 
+        - ``distance_flag`` -- boolean (default: ``False``). When set to 
+          ``True``, each vertex ``u`` connected to ``v`` is mapped to shortest path 
+          distance from ``v`` to ``u`` instead of the shortest path in the output
+          dictionary.
+
         OUTPUT:
 
-        - A list which associates to each vertex ``u`` the shortest path
-          between ``u`` and ``v`` if there is one.
+        - A dictionary which maps each vertex ``u`` connected to ``v`` to the 
+          shortest path list or distance from ``v`` to ``u`` depending upon the value
+          of parameter ``distance_flag``
 
         .. NOTE::
 
@@ -2390,6 +2425,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: paths = g._backend.shortest_path_all_vertices(0)
             sage: all([ len(paths[v]) == 0 or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
+            sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
+            {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
 
         On a disconnected graph ::
 
@@ -2410,8 +2447,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef bitset_t seen
         cdef int v_int
         cdef int u_int
-        cdef dict distances_int
-        cdef dict distance
+        cdef dict distances
         cdef int d
 
         distances = {}
@@ -2428,23 +2464,27 @@ cdef class CGraphBackend(GenericGraphBackend):
         current_layer = [(u_int, v_int)
                          for u_int in self._cg.out_neighbors(v_int)]
         next_layer = []
-        distances[v] = [v]
+        
+        distances[v] = 0 if distance_flag else [v]
 
         while current_layer:
             if cutoff is not None and d >= cutoff:
                 break
 
+            d += 1
             while current_layer:
                 v_int, u_int = current_layer.pop()
 
                 if bitset_not_in(seen, v_int):
                     bitset_add(seen, v_int)
-                    distances[self.vertex_label(v_int)] = distances[self.vertex_label(u_int)] + [self.vertex_label(v_int)]
+                    if distance_flag:
+                        distances[self.vertex_label(v_int)] = d
+                    else:
+                        distances[self.vertex_label(v_int)] = distances[self.vertex_label(u_int)] + [self.vertex_label(v_int)]
                     next_layer.extend([(u_int, v_int) for u_int in self._cg.out_neighbors(v_int)])
 
             current_layer = next_layer
             next_layer = []
-            d += 1
 
         # If the graph is not connected, vertices which have not been
         # seen should be associated to the empty path

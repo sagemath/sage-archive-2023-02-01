@@ -2841,12 +2841,20 @@ cdef class Rational(sage.structure.element.FieldElement):
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
-    # TODO -- this should be deprecated
-    def numer(self):
+    def numerator(self):
         """
         Return the numerator of this rational number.
+        numer is an alias of numerator.
 
         EXAMPLES::
+
+            sage: x = 5/11
+            sage: x.numerator()
+            5
+
+            sage: x = 9/3
+            sage: x.numerator()
+            3
 
             sage: x = -5/11
             sage: x.numer()
@@ -2856,25 +2864,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
-    def numerator(self):
-        """
-        Return the numerator of this rational number.
-
-        EXAMPLES::
-
-            sage: x = 5/11
-            sage: x.numerator()
-            5
-
-        ::
-
-            sage: x = 9/3
-            sage: x.numerator()
-            3
-        """
-        cdef Integer n = Integer.__new__(Integer)
-        n.set_from_mpz(mpq_numref(self.value))
-        return n
+    #Define an alias for numerator
+    numer = numerator
 
     def __int__(self):
         """
@@ -2916,39 +2907,31 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             return mpz_get_pylong(mpq_numref(self.value))
 
-    def denom(self):
-        """
-        Returns the denominator of this rational number.
-
-        EXAMPLES::
-
-            sage: x = 5/13
-            sage: x.denom()
-            13
-            sage: x = -9/3
-            sage: x.denom()
-            1
-        """
-        cdef Integer n = Integer.__new__(Integer)
-        n.set_from_mpz(mpq_denref(self.value))
-        return n
-
     def denominator(self):
         """
         Returns the denominator of this rational number.
+        denom is an alias of denominator.
 
         EXAMPLES::
 
             sage: x = -5/11
             sage: x.denominator()
             11
+
             sage: x = 9/3
             sage: x.denominator()
             1
+
+            sage: x = 5/13
+            sage: x.denom()
+            13
         """
         cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_denref(self.value))
         return n
+
+    #Define an alias for denominator
+    denom = denominator
 
     def factor(self):
         """

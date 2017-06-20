@@ -444,6 +444,7 @@ class gl(LieAlgebraFromAssociative):
 
         EXAMPLES::
 
+            sage: gl4 = lie_algebras.gl(QQ, 4)
             sage: gl4.monomial('E_2_1')
             [0 0 0 0]
             [0 0 0 0]
@@ -466,6 +467,7 @@ class gl(LieAlgebraFromAssociative):
 
             EXAMPLES::
 
+                sage: gl4 = lie_algebras.gl(QQ, 4)
                 sage: x = gl4.monomial('E_2_1') + 3*gl4.monomial('E_0_3')
                 sage: x.monomial_coefficients()
                 {'E_0_3': 3, 'E_2_1': 1}

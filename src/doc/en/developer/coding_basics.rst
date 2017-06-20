@@ -150,12 +150,12 @@ Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
 
     from sage.measure_theory.all import *
 
-Non-Python Sage source code and supporting files should be placed in appropriate
-subdirectories of ``SAGE_ROOT/src/ext/``. They will then be automatically
-copied to the corresponding subdirectories of ``SAGE_ROOT/local/share/sage/ext/``
-during the build process and can be accessed at runtime using ``SAGE_EXTCODE``.
-For example, if ``file`` is placed in ``SAGE_ROOT/src/ext/directory/`` it can
-be accessed with ::
+Non-Python Sage source code and supporting files should be placed in
+appropriate subdirectories of ``SAGE_ROOT/src/ext/``. They will then be
+automatically copied to the corresponding subdirectories of
+``SAGE_ROOT/local/share/sage/ext/`` during the build process and can be
+accessed at runtime using ``SAGE_EXTCODE``.  For example, if ``file`` is placed
+in ``SAGE_ROOT/src/ext/directory/`` it can be accessed with ::
 
     from sage.env import SAGE_EXTCODE
     file = os.path.join(SAGE_EXTCODE, 'directory', 'file')
@@ -246,7 +246,7 @@ information. You can use the existing functions of Sage as templates.
    ``self`` is an integer, then ``this integer`` or ``the integer`` is more
    descriptive, and it is preferable to write
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        Return whether this integer is prime.
 
@@ -257,7 +257,7 @@ information. You can use the existing functions of Sage as templates.
 
    Start with assumptions of the object, if there are any. For example,
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        The poset is expected to be ranked.
 
@@ -265,13 +265,13 @@ information. You can use the existing functions of Sage as templates.
 
    Define your terms
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        The lexicographic product of `G` and `H` is the graph with vertex set ...
 
    and mention possible aliases
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        The tensor product is also known as the categorical product and ...
 
@@ -286,7 +286,7 @@ information. You can use the existing functions of Sage as templates.
 
    2. Mention the default values of the input arguments when applicable.
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        INPUT:
 
@@ -297,13 +297,13 @@ information. You can use the existing functions of Sage as templates.
    The OUTPUT block describes the expected output. This is required if the
    one-sentence description of the function needs more explanation.
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        OUTPUT: the plaintext decrypted from the ciphertext ``C``
 
    It is often the case that the output consists of several items.
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        OUTPUT: a tuple of
 
@@ -313,14 +313,15 @@ information. You can use the existing functions of Sage as templates.
 
    You are recommended to be verbose enough for complicated outputs.
 
-   .. code-block:: none
+   .. CODE-BLOCK:: rest
 
        OUTPUT:
 
-       The decomposition of the free module on which this matrix `A` acts from the
-       right (i.e., the action is `x` goes to `xA`), along with whether this matrix
-       acts irreducibly on each factor. The factors are guaranteed to be sorted in
-       the same way as the corresponding factors of the characteristic polynomial.
+       The decomposition of the free module on which this matrix `A` acts from
+       the right (i.e., the action is `x` goes to `xA`), along with whether
+       this matrix acts irreducibly on each factor. The factors are guaranteed
+       to be sorted in the same way as the corresponding factors of the
+       characteristic polynomial.
 
 -  An **EXAMPLES** block for examples. This is not optional.
 
@@ -418,15 +419,16 @@ information. You can use the existing functions of Sage as templates.
 - A **REFERENCES** block to list related books or papers (optional).
 
   Almost all bibliographic information should be put in the master bibliography
-  file, see below. Citations will then link to the master bibliography where the
-  reader can find the bibliographic details (see below for citation syntax).
-  REFERENCE blocks in individual docstrings are therefore usually not necessary.
+  file, see below. Citations will then link to the master bibliography where
+  the reader can find the bibliographic details (see below for citation
+  syntax).  REFERENCE blocks in individual docstrings are therefore usually not
+  necessary.
 
   Nevertheless, a REFERENCE block can be useful if there are relevant sources
   which are not explicitly mentioned in the docstring or if the docstring is
   particularly long. In that case, add the bibliographic information to the
-  master bibliography file, if not already present, and add a reference block to
-  your docstring as follows::
+  master bibliography file, if not already present, and add a reference block
+  to your docstring as follows::
 
       REFERENCES:
 
@@ -439,8 +441,8 @@ information. You can use the existing functions of Sage as templates.
   Note the trailing underscores which makes the citations into hyperlinks. See
   below for more about the master bibliography file. For more about citations,
   see the `Sphinx/reST markup for citations
-  <http://www.sphinx-doc.org/rest.html#citations>`_. For links to trac tickets or
-  wikipedia, see :ref:`chapter-sage_manuals_links`.
+  <http://www.sphinx-doc.org/rest.html#citations>`_. For links to trac tickets
+  or wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (highly recommended).
 
@@ -560,7 +562,9 @@ indentation:
         INPUT:
 
         - ``x`` -- integer (default: `1`); the description of the
-          argument ``x``
+          argument ``x`` goes here. If it contains multiple lines, all
+          the lines after the first need to begin at the same indentation
+          as the backtick.
 
         - ``y`` -- integer (default: `2`); the description of the
           argument ``y``
@@ -696,8 +700,8 @@ the following are valid::
         Return $\sin(x)$.
         """
 
-**MATH block:** This is similar to the LaTeX syntax ``\[<math expression>\]`` (or
-``$$<math expression>$$``). For instance::
+**MATH block:** This is similar to the LaTeX syntax ``\[<math expression>\]``
+(or ``$$<math expression>$$``). For instance::
 
     .. MATH::
 
@@ -752,15 +756,15 @@ documentation for math blocks
    &= O(n^2)\\
    \end{align}
 
-**Readability balance:** in the interactive console, LaTeX formulas contained in
-the documentation are represented by their LaTeX code (with
-backslashes stripped). In this situation ``\\frac{a}{b}`` is less readable than ``a/b``
-or ``a b^{-1}`` (some users may not even know LaTeX code). Make it pleasant for
+**Readability balance:** in the interactive console, LaTeX formulas contained
+in the documentation are represented by their LaTeX code (with backslashes
+stripped). In this situation ``\\frac{a}{b}`` is less readable than ``a/b`` or
+``a b^{-1}`` (some users may not even know LaTeX code). Make it pleasant for
 everybody as much as you can manage.
 
 **Commons rings** `(\Bold{Z},\Bold{N},...)`: The Sage LaTeX style is to typeset
-standard rings and fields using the locally-defined macro ``\\Bold``
-(e.g. ``\\Bold{Z}`` gives `\Bold{Z}`).
+standard rings and fields using the locally-defined macro ``\\Bold`` (e.g.
+``\\Bold{Z}`` gives `\Bold{Z}`).
 
 **Shortcuts** are available which preserve readability, e.g. ``\\ZZ`` (`\ZZ`),
 ``\\RR`` (`\RR`), ``\\CC`` (`\CC`), and ``\\QQ`` (`\QQ`). They appear as
@@ -799,8 +803,8 @@ written.
     sage: 2 * 3 # and here is a proof
     6
 
-- All **meaningful combinations** of input arguments. For example a function may
-  accept an ``algorithm="B"`` argument, and doctests should involve both
+- All **meaningful combinations** of input arguments. For example a function
+  may accept an ``algorithm="B"`` argument, and doctests should involve both
   ``algorithm="A"`` and ``algorithm="B"``.
 
 - **Corner cases:** the code should be able to handle a 0 input, or an empty
@@ -832,11 +836,11 @@ written.
   imported before it is tested. Hence the first line in the example.
 
 - **Preparsing:** As in Sage's console, `4/3` returns `4/3` and not `1` as in
-  Python 2.7. Testing occurs with full Sage preparsing of input within the standard
-  Sage shell environment, as described in :ref:`section-preparsing`.
+  Python 2.7. Testing occurs with full Sage preparsing of input within the
+  standard Sage shell environment, as described in :ref:`section-preparsing`.
 
-- **Writing files:** If a test outputs to a file, the file should be a temporary
-  file.  Use :func:`tmp_filename` to get a temporary filename, or
+- **Writing files:** If a test outputs to a file, the file should be a
+  temporary file.  Use :func:`tmp_filename` to get a temporary filename, or
   :func:`tmp_dir` to get a temporary directory. An example from
   ``SAGE_ROOT/src/sage/plot/graphics.py``)::
 
@@ -907,8 +911,8 @@ framework. Here is a comprehensive list:
       This doctest passes too, as the output is not checked
 
   However, most functions generating pseudorandom output do not need this tag
-  since the doctesting framework guarantees the state of the pseudorandom number
-  generators (PRNGs) used in Sage for a given doctest.
+  since the doctesting framework guarantees the state of the pseudorandom
+  number generators (PRNGs) used in Sage for a given doctest.
 
   When possible, avoid the problem, e.g.: rather than checking the value of the
   hash in a doctest, one could illustrate successfully using it as a key in a

@@ -1386,7 +1386,7 @@ class BipartiteGraph(Graph):
             sage: B.matching(use_edge_labels=False, value_only=True, algorithm='LP')
             2
 
-        With multiedges enabled:
+        With multiedges enabled::
 
             sage: G = BipartiteGraph(graphs.CubeGraph(3))
             sage: for e in G.edges():

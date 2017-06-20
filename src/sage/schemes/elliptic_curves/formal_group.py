@@ -113,8 +113,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         to precision `O(t^{prec})` of Proposition IV.1.1 of
         [SilBook]_. This is the formal expansion of
-        `w = -1/y` about the formal parameter `t = -x/y` at
-        `\\infty`.
+        `w = -1/y` about the formal parameter `t = -x/y` at `\infty`.
 
         The result is cached, and a cached version is returned if
         possible.

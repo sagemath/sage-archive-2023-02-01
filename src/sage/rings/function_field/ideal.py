@@ -738,7 +738,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x^3 - 1)
-            sage: O = L.maximal_order()
+            sage: O = L.equation_order()
             sage: I = O.ideal(y*(y+1)); J = O.ideal((y^2-2)*(y+1))
             sage: I+J == J+I            # indirect test
             True
@@ -903,7 +903,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
         This is the set of generators provided during the creation of the ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: I = Ideal([x,y+1]); I
@@ -922,7 +922,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         Return the ``i``-th generator in the current basis of the ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: I = Ideal([x,y+1]); I
@@ -939,7 +939,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         Return the number of generators in the basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: I = Ideal([x,y+1]); I
@@ -960,7 +960,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         :class:`Ideal_generic` please overwrite :meth:`_add_` and not
         :meth:`__add__`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: I = Ideal([x,y+1])
@@ -1009,7 +1009,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         :class:`Ideal_generic` please overwrite :meth:`_mul_` and not
         :meth:`__mul__`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = QQ[]
             sage: I = [x*y + y*z, x^2 + x*y - y*x - y^2] * P
@@ -1049,7 +1049,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         Multiply the ideal on the right with ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = QQ[]
             sage: I = [x*y+y*z,x^2+x*y-y*x-y^2]*P
@@ -2556,7 +2556,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
         """
         Represent the list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c> = QQ[]
             sage: P*[a^2,a*b+c,c^3]
@@ -3263,7 +3263,7 @@ class IdealMonoid(Parent):
         """
         Return the ring of which this is the ideal monoid.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2))
             sage: O = K.maximal_order()
@@ -3296,7 +3296,7 @@ class IdealMonoid(Parent):
         """
         Used by coercion framework.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2))
             sage: O = K.maximal_order()
@@ -3315,7 +3315,7 @@ class IdealMonoid(Parent):
         """
         Return an element of the ideal monoid.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2))
             sage: O = K.maximal_order()

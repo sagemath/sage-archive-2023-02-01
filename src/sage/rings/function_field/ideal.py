@@ -801,39 +801,6 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         return "Ideal (%s) of %s"%(', '.join([repr(g) for g in self.gens()]), self.ring())
 
-    def __nonzero__(self):
-        r"""
-        Return True if the ideal is not a zero ideal.
-
-        TESTS::
-
-            sage: I = ZZ.ideal(5)
-            sage: bool(I)
-            True
-
-        ::
-
-            sage: I = ZZ['x'].ideal(0)
-            sage: bool(I)
-            False
-
-        ::
-
-            sage: I = ZZ['x'].ideal(ZZ['x'].gen()^2)
-            sage: bool(I)
-            True
-
-        ::
-
-            sage: I = QQ['x', 'y'].ideal(0)
-            sage: bool(I)
-            False
-        """
-        for g in self.gens():
-            if not g.is_zero():
-                return True
-        return False
-
     def base_ring(self):
         r"""
         Returns the base ring of the ideal.
@@ -1152,7 +1119,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         # for fast multiplication with other ideal.
         self._kummer_form = None
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Test if the ideal is zero.
 
@@ -1184,6 +1151,8 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
             True
         """
         return self._hnf.nrows() != 0
+
+    __nonzero__ = __bool__
 
     def __hash__(self):
         """

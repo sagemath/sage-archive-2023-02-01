@@ -445,6 +445,9 @@ class GraphicMatroid(Matroid):
         """
         Returns a graphic matroid with a specified element added.
         """
+        # TODO: Coloops should be handled in a more logical way
+        # Perhaps make a new method to connect/disconnect matroid components
+        # in the graph
         if element is None:
             element = newlabel(self.groundset())
         elif element in self.groundset():
@@ -497,7 +500,7 @@ class GraphicMatroid(Matroid):
         matroid_list.append(GraphicMatroid(deepcopy(G)))
         G.delete_vertex(v)
 
-        pairs = combinations(range(len(vertices)),2)
+        pairs = combinations(vertices, 2)
         for p in pairs:
             G.add_edge(p[0], p[1], element)
             matroid_list.append(GraphicMatroid(deepcopy(G)))
@@ -546,10 +549,10 @@ class GraphicMatroid(Matroid):
             v = G.add_vertex()
         for e in edgelist:
             if e not in edges_on_u:
-                # if e is a loop, put it on u
+                # if e is a loop, put it on u and v
                 # otherwise raise an error
                 if e[0] == e[1]:
-                    G.add_edge(u, u, e[2])
+                    G.add_edge(u, v, e[2])
                     G.delete_edge(e)
                 else:
                     raise ValueError("the edges are not all incident with u")

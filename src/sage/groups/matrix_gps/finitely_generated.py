@@ -1253,6 +1253,15 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
             sage: G.invariants_of_degree(25)
             []
+
+        ::
+
+            sage: G = MatrixGroup(SymmetricGroup(5))
+            sage: R = QQ['x,y']
+            sage: G.invariants_of_degree(3, R=R)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of variables in polynomial ring must match size of matrices
         """
         D = self.degree()
         deg = int(deg)
@@ -1260,6 +1269,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             raise ValueError("degree must be a positive integer")
         if R is None:
             R = PolynomialRing(self.base_ring(), 'x', D)
+        elif R.ngens() != D:
+            raise TypeError("number of variables in polynomial ring must match size of matrices")
 
         ms = self.molien_series(prec=deg+1,chi=chi)
         if ms[deg].is_zero():

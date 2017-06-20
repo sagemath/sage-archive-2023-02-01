@@ -1209,13 +1209,13 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
     def invariants_of_degree(self, deg, chi=None, R=None):
         r"""
-        Compute the (relative) invariants of given degree for this group.
+        Return the (relative) invariants of given degree for this group.
 
         For this group, compute the invariants of degree ``deg``
         with respect to the group character ``chi``. The method
         is to project each possible monomial of degree ``deg`` via
         the Reynolds operator. Note that if the polynomial ring ``R``
-        is specified it's base ring may be extended if the resultaing
+        is specified it's base ring may be extended if the resulting
         invariant is defined over a bigger field.
 
         INPUT:
@@ -1262,6 +1262,18 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             Traceback (most recent call last):
             ...
             TypeError: number of variables in polynomial ring must match size of matrices
+
+        ::
+
+            sage: K.<i> = CyclotomicField(4)
+            sage: G =  MatrixGroup(CyclicPermutationGroup(3))
+            sage: chi = G.character(G.character_table()[1])
+            sage: R.<x,y,z> = K[]
+            sage: G.invariants_of_degree(2, R=R, chi=chi)
+            [x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 +
+            3*izeta3^2 + 8*izeta3 + 3)*z^2,
+             x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 -
+            3*izeta3^2 - 8*izeta3 - 4)*y*z]
         """
         D = self.degree()
         deg = int(deg)

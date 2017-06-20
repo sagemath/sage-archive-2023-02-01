@@ -379,13 +379,12 @@ AC_SUBST(CXX)
 AC_SUBST(FC)
 
 # On darwin, also set the objective C/C++ compilers
-AS_CASE("$host",
-    [*-*-darwin*],[
-        AC_PROG_OBJC([clang])
-        AC_PROG_OBJCXX([clang++])],
-        AC_SUBST(OBJC)
-        AC_SUBST(OBJCXX)
-        [])
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC([clang])
+AC_PROG_OBJCXX([clang++])],
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
 if test "x$CXX" = x
 then

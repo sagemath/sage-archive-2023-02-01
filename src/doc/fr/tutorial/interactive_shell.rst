@@ -980,7 +980,7 @@ Pour démarrer le *notebook* Sage, tapez
 
 sur la ligne de commande Sage. Cela démarre le serveur du *notebook* et
 ouvre votre navigateur web par défaut sur la page correspondante. Les
-fichiers d'état du serveur sont placés dans ``$HOME/.sage/sage\_notebook``.
+fichiers d'état du serveur sont placés dans ``$HOME/.sage/sage\_notebook.sagenb``.
 
 La variante
 
@@ -991,19 +991,24 @@ La variante
     sage: notebook("repertoire")
 
 lance un nouveau serveur *notebook* en utilisant les fichiers du
-répertoire donné à la place de ``$HOME/.sage/sage_notebook``. Cela peut
+``repertoire.sagenb`` donné à la place de ``$HOME/.sage/sage_notebook``. Cela peut
 être utile si vous voulez gérer une collection de feuilles de travail
 attachées à un projet spécifique, ou encore lancer plusieurs instances
 du serveur en même temps.
 
 Au démarrage, le *notebook* commence par créer les fichiers suivants
-dans ``$HOME/.sage/sage_notebook`` :
+dans ``$HOME/.sage/sage_notebook.sagenb`` :
 
 ::
 
-    nb.sobj       (fichier objet Sage du notebook)
-    objects/      (sous-répertoire contenant les objets Sage)
-    worksheets/   (sous-répertoire contenant les feuilles de travail).
+    conf.pickle
+    openid.pickle
+    twistedconf.tac
+    sagenb.pid
+    users.pickle
+    home/admin/ (sous-répertoire de l'utilisateur principal)
+    home/guest/
+    home/pub/
 
 Une fois ces fichiers créés, le *notebook* démarre un serveur web.
 
@@ -1011,8 +1016,8 @@ Un « *notebook* » est une collection de comptes utilisateur, qui peuvent
 chacun posséder un nombre quelconque de feuilles de travail. Quand vous
 créez une nouvelle feuille de travail, les données correspondantes sont
 stockées dans un répertoire de la forme
-``worksheets/utilisateur/numéro``. Dans chacun de ces répertoires se trouve un
-fichier texte brut ``worksheet.txt`` qui contient tout ce qu'il faut
+``home/utilisateur/numéro``. Dans chacun de ces répertoires se trouve un
+fichier texte brut ``worksheet.html`` qui contient tout ce qu'il faut
 pour reconstituer la feuille de travail s'il lui arrive quelque
 chose, si Sage rencontre un problème, ou quoi que ce soit de ce genre.
 
@@ -1046,6 +1051,6 @@ Le schéma suivant présente l'architecture du *Notebook* Sage :
     ----------------------                    .
 
 Dans le *notebook*, pour consulter l'aide d'une commande Sage ``cmd``,
-tapez ``cmd?`` dans le champ d'entrée des commandes puis tapez ``<échap>``
+tapez ``cmd?`` dans le champ d'entrée des commandes puis tapez ``<tab>``
 (et non ``<maj-entrée>``).
 

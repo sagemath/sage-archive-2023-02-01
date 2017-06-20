@@ -934,7 +934,7 @@ Nach dem Anlegen dieser Dateien, startet das notebook als Webserver.
 Ein "Notebook" ist eine Sammlung von Benutzerkonten, von dem jedes
 verschiedene Worksheets enthalten kann. Wenn Sie ein neues Worksheet
 erstellen, werden alle zugehörigen Daten unter
-``home/username/number`` gespeichert. In jedem solchen
+``home/benutzer/nummer`` gespeichert. In jedem solchen
 Verzeichnis ist eine Klartextdatei namens ``worksheet.html`` - sollte
 mit Ihren Worksheets oder Sage irgendetwas Unvorhergesehenes
 passieren, enthält diese Datei alles was Sie benötigen um Ihre

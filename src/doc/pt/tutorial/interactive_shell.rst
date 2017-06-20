@@ -953,7 +953,7 @@ O Sage Notebook é iniciado digitando
 
 na linha de comando do Sage. Isso inicia o Notebook e abre o seu
 navegador padrão para visualizá-lo. Os arquivos de estado do servidor
-são armazenados em ``$HOME/.sage/sage\_notebook``.
+são armazenados em ``$HOME/.sage/sage\_notebook.sagenb``.
 
 Outras opções incluem:
 
@@ -964,28 +964,33 @@ Outras opções incluem:
     sage: notebook("directory")
 
 a qual inicia um novo servidor para o Notebook usando arquivos em um
-dado diretório, em vez do diretório padrão
-``$HOME/.sage/sage_notebook``. Isso pode ser útil se você quiser ter
+dado diretório ``directory.sagenb``, em vez do diretório padrão
+``$HOME/.sage/sage_notebook.sagenb``. Isso pode ser útil se você quiser ter
 uma coleção de folhas de trabalho (worksheets) associadas com um
 projeto específico, ou executar vários Notebooks separadamente ao
 mesmo tempo.
 
 Quando você inicia o Notebook, ele primeiro cria os seguintes arquivos
-em ``$HOME/.sage/sage_notebook``:
+em ``$HOME/.sage/sage_notebook.sagenb``:
 
 ::
 
-    nb.sobj       (the notebook SAGE object file)
-    objects/      (a directory containing SAGE objects)
-    worksheets/   (a directory containing SAGE worksheets).
+    conf.pickle
+    openid.pickle
+    twistedconf.tac
+    sagenb.pid
+    users.pickle
+    home/admin/
+    home/guest/
+    home/pub/
 
 Após criar os arquivos acima, o Notebook inicia o servidor web.
 
 Um "Notebook" é uma coleção de contas de usuário, cada qual pode ter
 várias folhas de trabalho (worksheets). Quando você cria uma nova
 folha de trabalho, os dados dela são armazenados no diretórios
-``worksheets/username/number``. Em cada diretório desse há um arquivo
-texto ``worksheet.txt`` - se algum problema ocorrer com as suas
+``home/username/number``. Em cada diretório desse há um arquivo
+texto ``worksheet.html`` - se algum problema ocorrer com as suas
 folhas de trabalho, ou com o Sage, esse arquivo texto contém toda
 informação necessária para reconstruir a folha de trabalho.
 

@@ -311,20 +311,40 @@ def _explain_constructor(cl):
     Internal function for use error messages when constructing encoders and decoders.
 
     EXAMPLES:
-    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeInformationSetDecoder
-    sage: C = codes.GolayCode(GF(2))
+    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder, LinearCodeInformationSetDecoder
+    sage: cl = LinearCodeSyndromeDecoder
+    sage: _explain_constructor(cl)
+    "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+
     sage: cl = LinearCodeInformationSetDecoder
     sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['search_size'].\nSee the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details."
+    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
-    argspec = inspect.getargspec(cl.__init__)
-    args = argspec.args[2:-len(argspec.defaults)] # skip the self and code arguments
-    kwargs = argspec.args[-len(argspec.defaults):]
-    return("The constructor requires the arguments {}.\n"
-           "It takes the optional arguments {}.\n"
-           "See the documentation of {}.{} for more details."\
-            .format(args, kwargs, cl.__module__, cl.__name__))
+    if inspect.isclass(cl):
+        argspec = inspect.getargspec(cl.__init__)
+        skip = 2 # skip the self and code arguments
+    else:
+        # Not a class, assume it's a factory function posing as a class
+        argspec = inspect.getargspec(cl)
+        skip = 1 # skip code argument
+    if argspec.defaults:
+        args = argspec.args[skip:-len(argspec.defaults)]
+        kwargs = argspec.args[-len(argspec.defaults):]
+        opts = "It takes the optional arguments {}.".format(kwargs)
+    else:
+        args = argspec.args[skip:]
+        opts = "It takes no optional arguments."
+    if args:
+        reqs = "The constructor requires the arguments {}.".format(args)
+    else:
+        reqs = "The constructor requires no arguments."
+    if argspec.varargs or argspec.keywords:
+        var = "It accepts unspecified arguments as well.\n"
+    else:
+        var = ""
+    return("{}\n{}\n{}See the documentation of {}.{} for more details."\
+            .format(reqs, opts, var, cl.__module__, cl.__name__))
 
 
 class AbstractLinearCode(Module):
@@ -1457,7 +1477,8 @@ class AbstractLinearCode(Module):
             ...
             ValueError: Constructing the InformationSet decoder failed, possibly due to missing or incorrect parameters.
             The constructor requires the arguments ['number_errors'].
-            It takes the optional arguments ['search_size'].
+            It takes the optional arguments ['algorithm'].
+            It accepts unspecified arguments as well.
             See the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details.
 
         """
@@ -1493,10 +1514,10 @@ class AbstractLinearCode(Module):
             ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
             sage: dictionary = C.decoders_available(True)
-            sage: sorted(dictionary.items())
-            [('InformationSet', <class 'sage.coding.linear_code.LinearCodeInformationSetDecoder'>),
-             ('NearestNeighbor', <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>),
-             ('Syndrome', <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>)]
+            sage: sorted(dictionary.keys())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
+            sage: dictionary['NearestNeighbor']
+            <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>
         """
         if classes == True:
             return copy(self._registered_decoders)
@@ -1867,7 +1888,7 @@ class AbstractLinearCode(Module):
             Traceback (most recent call last):
             ...
             ValueError: Constructing the Systematic encoder failed, possibly due to missing or incorrect parameters.
-            The constructor requires the arguments [].
+            The constructor requires no arguments.
             It takes the optional arguments ['systematic_positions'].
             See the documentation of sage.coding.linear_code.LinearCodeSystematicEncoder for more details.
         """
@@ -5033,53 +5054,19 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
 
 
+###
 
-
-
-
-class LinearCodeInformationSetDecoder(Decoder):
+class AbstractInformationSetDecoder(Decoder):
     r"""
-    Information-set decoder for any linear code.
+    Abstract base class for Information-set decoder for linear codes.
 
-    Information-set decoding is a probabilistic decoding strategy that
-    essentially tries to guess `k` correct positions in the received word,
-    where `k` is the dimension of the code. A codeword agreeing with the
-    received word on the guessed position can easily be computed, and their
-    difference is one possible error vector. A "correct" guess is assumed when
-    this error vector has low Hamming weight.
+    For a description of the information-set decoding paradigm (ISD), see
+    :func:`sage.coding.LinearCodeInformationSetDecoder`. There are many
+    variants of information-set decoding, and this class serves as a base
+    class for all such implementations.
 
-    This strategy requires choosing how many errors is deemed acceptable. One
-    choice could be `d/2`, where `d` is the minimum distance of the code, but
-    sometimes `d` is not known, or sometimes more errors are expected. If one
-    chooses anything above `d/2`, the algorithm does not guarantee to return a
-    nearest codeword.
-
-    WARNING::
-
-        If there is no codeword within the specified decoding distance, then the
-        decoding algorithm is not promised to terminate.
-
-    ALGORITHM:
-
-    This implements the Lee--Brickell refinement of the above simple strategy,
-    see [LB1988] for the original binary variant, and [Pet10] for the `q`-ary
-    extension.
-
-    Let `p` and `w` be integers, such that `0\leq p\leq w`, let
-    `y` be a vector over some vector space `GF(q)^{n}` and let `C` be
-    a `[n, k]`-linear code over `GF(q)`.
-    Let `G` be a generator matrix of `C`, and `G_{I}` a matrix formed by
-    the columns of `G` indexed by `I`.
-    To correct exactly `w` errors in `y`, proceed as follows:
-
-        1. Choose an information set `I` of `C`.
-        2. Compute `yc = y - y_{I}\times G^{-1} \times G`
-        3. Consider every size-`p` subset of `I`, `\{a_1, \dots, a_p\}`.
-           For each `m = (m_1, \dots, m_p) \in GF(q)^{p}`, compute
-           the error vector `e = yc - \sum_{i=1}^{p} m_i\times g_{a_i}`,
-        4. If `e` has a Hamming weight of `w`, it is accepted and we return
-           `y-e`.
-           Else, go back to 1.
+    To sub-class this class, override ``decode_to_code`` and call the super
+    constructor from ``__init__``.
 
     INPUT:
 
@@ -5089,42 +5076,31 @@ class LinearCodeInformationSetDecoder(Decoder):
       correct decoding. An interval can also be specified by giving a pair of
       integers, where both end values are taken to be in the interval.
 
-    - ``search_size`` -- (optional) the size of subsets to use on step 3 of the
-      algorithm as described above. Usually a small number. It has to be at most
-      the largest allowed number of errors. A good choice will be approximated
-      if this option is not set; see
-      :meth:`sage.coding.LinearCodeInformationSetDecoder._calibrate_search_size`
-      for details.
+    - ``algorithm_name`` -- A name for the specific ISD algorithm used.
 
     EXAMPLES::
 
+    Sage ships with some information set decoders available::
+
         sage: C = codes.GolayCode(GF(2))
         sage: D = C.decoder("InformationSet", 2)
         sage: D
-        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
+        Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
 
-        sage: C = codes.GolayCode(GF(2))
-        sage: D = C.decoder("InformationSet", (2,3))
-        sage: D
-        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding between 2 and 3 errors
+    It is straightforward to define your own::
 
-    We can also information set decode non-binary codes::
-
-        sage: C = codes.GolayCode(GF(3))
-        sage: D = C.decoder("InformationSet", 2)
-        sage: D
-        Information set decoder for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
-
-    The decoder class can be directly invoked as well::
-
-        sage: C = codes.GolayCode(GF(2))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 3)
-        sage: D
-        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
-
+        sage: from sage.coding.linear_code import AbstractInformationSetDecoder
+        sage: class MinimalISD(AbstractInformationSetDecoder):
+        ....:   def __init__(self, code, number_errors):
+        ....:       super(MinimalISD, self).__init__(code, number_errors, "MyISD")
+        ....:   def decode_to_code(self, r):
+        ....:       # Here goes your ISD algorithm
+        ....:       raise NotImplementedError
+        sage: D = MinimalISD(C, 3); D
+        Information set decoder (MyISD) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
     """
 
-    def __init__(self, code, number_errors, search_size = None):
+    def __init__(self, code, number_errors, algorithm_name):
         r"""
         TESTS:
 
@@ -5132,10 +5108,10 @@ class LinearCodeInformationSetDecoder(Decoder):
         or an Integer/int::
 
             sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", 2, search_size="aa")
+            sage: D = C.decoder("InformationSet", "aa")
             Traceback (most recent call last):
             ...
-            ValueError: The search size parameter has to be a positive integer
+            ValueError: number_errors must be an integer or a pair of integers
 
         If ``number_errors`` is passed as a list/tuple, it has to contain only two values,
         the first one being at most the second one::
@@ -5145,59 +5121,30 @@ class LinearCodeInformationSetDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: number_errors should be a positive integer or a valid interval within the positive integers
-
-        If ``search_size`` is bigger than a possible value for ``number_errors``, an error
-        will be raised::
-
-            sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", (1, 3), search_size=5)
-            Traceback (most recent call last):
-            ...
-            ValueError: The search size parameter has to be at most the maximal number of allowed errors
         """
         if isinstance(number_errors, (Integer, int)):
             number_errors = (0, number_errors)
         if isinstance(number_errors, (tuple, list)):
             if not len(number_errors) == 2:
-                raise ValueError("number_errors should be either an integer or a pair of integers")
+                raise ValueError("number_errors should be either an integer"
+                                 " or a pair of integers")
             if not (number_errors[0] in ZZ and number_errors[1] in ZZ):
-                raise ValueError("All elements of number_errors have to be positive integers")
+                raise ValueError("All elements of number_errors have to be"
+                                 " positive integers")
             if 0 > number_errors[0] or number_errors[0] > number_errors[1]:
-                raise ValueError("number_errors should be a positive integer or a valid interval within the positive integers")
+                raise ValueError(
+                        "number_errors should be a positive integer or"
+                        " a valid interval within the positive integers")
             if number_errors[1] > code.length():
-                raise ValueError("The provided number of errors should be at most the code's length")
+                raise ValueError("The provided number of errors should be at"
+                                 " most the code's length")
         else:
             raise ValueError("number_errors must be an integer or a pair of integers")
-        if not search_size is None:
-            if not isinstance(search_size, (Integer, int)) or search_size < 0:
-                raise ValueError("The search size parameter has to be a positive integer")
-            if search_size > number_errors[1]:
-                raise ValueError("The search size parameter has to be at most the maximal number of allowed errors")
-            self._search_size = search_size
 
         self._number_errors = number_errors
-        super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
-                code._default_encoder_name)
-
-    def __eq__(self, other):
-        r"""
-        Tests equality between information set decoder objects.
-
-        EXAMPLES::
-
-            sage: C = codes.GolayCode(GF(2))
-            sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
-            sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
-            sage: D1 == D2
-            True
-            sage: D3 = codes.decoders.LinearCodeInformationSetDecoder(C, 3)
-            sage: D1 == D3
-            False
-        """
-        return isinstance(other, LinearCodeInformationSetDecoder)\
-                and self.code() == other.code()\
-                and self.decoding_interval() == other.decoding_interval()\
-                and self.search_size() == other.search_size()
+        self._algorithm_name = algorithm_name
+        super(AbstractInformationSetDecoder, self).__init__(
+            code, code.ambient_space(), code._default_encoder_name)
 
     def _format_number_errors(self):
         r"""
@@ -5231,9 +5178,9 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: C = codes.GolayCode(GF(2))
             sage: D = C.decoder("InformationSet", 2)
             sage: D
-            Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
+            Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
         """
-        return "Information set decoder for {0} decoding {1} errors ".format(self.code(), self._format_number_errors())
+        return "Information set decoder ({}) for {} decoding {} errors ".format(self._algorithm_name, self.code(), self._format_number_errors())
 
     def _latex_(self):
         r"""
@@ -5244,9 +5191,157 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: C = codes.GolayCode(GF(2))
             sage: D = C.decoder("InformationSet", 2)
             sage: latex(D)
-            \textnormal{Information set decoder for }[24, 12, 8] \textnormal{ Extended Golay Code over } \Bold{F}_{2} \textnormal{decoding up to 2 errors}
+            \textnormal{Information set decoder (LeeBrickell) for }[24, 12, 8] \textnormal{ Extended Golay Code over } \Bold{F}_{2} \textnormal{decoding up to 2 errors}
         """
-        return "\\textnormal{{Information set decoder for }}{0} \\textnormal{{decoding {1} errors}}".format(self.code()._latex_(), self._format_number_errors())
+        return "\\textnormal{{Information set decoder ({}) for }}{} \\textnormal{{decoding {} errors}}".format(self._algorithm_name, self.code()._latex_(), self._format_number_errors())
+
+    def decoding_radius(self):
+        r"""
+        Return the maximal number of errors this decoder can decode.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2)
+            sage: D.decoding_radius()
+            2
+        """
+        return self._number_errors[1]
+
+    def decoding_interval(self):
+        r"""
+         A pair of integers specifying the interval of number of errors this
+         decoder will attempt to correct.
+
+         The interval includes both end values.
+
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2)
+            sage: D.decoding_interval()
+            (0, 2)
+        """
+        return self._number_errors
+
+
+
+
+class LinearCodeISD_LeeBrickell(AbstractInformationSetDecoder):
+    r"""
+    Information-set decoder for any linear code using the Lee--Brickell
+    algorithm.
+
+    For a description of the information-set decoding paradigm (ISD), see
+    :func:`sage.coding.LinearCodeInformationSetDecoder`.
+
+    This implements the Lee--Brickell variant of ISD, see [LB1988] for the
+    original binary case, and [Pet10] for the `q`-ary extension.
+
+    Let `C` be a `[n, k]`-linear code over `GF(q)`, and let `r \in GF(q)^{n}` be
+    a received word in a transmission. We seek the codeword whose Hamming
+    distance from `r` is minimal. Let `p` and `w` be integers, such that `0\leq
+    p\leq w`, Let `G` be a generator matrix of `C`, and for any set of indices
+    `I`, we write `G_{I}` for the matrix formed by the columns of `G` indexed by
+    `I`. The Lee--Brickell ISD loops the following until it is successful:
+
+        1. Choose an information set `I` of `C`.
+        2. Compute `r' = r - r_{I}\times G_I^{-1} \times G`
+        3. Consider every size-`p` subset of `I`, `\{a_1, \dots, a_p\}`.
+           For each `m = (m_1, \dots, m_p) \in GF(q)^{p}`, compute
+           the error vector `e = r' - \sum_{i=1}^{p} m_i\times g_{a_i}`,
+        4. If `e` has a Hamming weight at most `w`, return `y-e`.
+
+    INPUT:
+
+    - ``code`` -- A linear code for which to decode.
+
+    - ``number_errors`` -- an integer, the maximal number of errors to accept as
+      correct decoding. An interval can also be specified by giving a pair of
+      integers, where both end values are taken to be in the interval.
+
+    - ``search_size`` -- (optional) the size of subsets to use on step 3 of the
+      algorithm as described above. Usually a small number. It has to be at most
+      the largest allowed number of errors. A good choice will be approximated
+      if this option is not set; see
+      :meth:`sage.coding.LinearCodeISD_LeeBrickell._calibrate_search_size`
+      for details.
+
+    EXAMPLES::
+
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = C.decoder("InformationSet", 2, algorithm="LeeBrickell")
+        sage: D
+        Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
+
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = C.decoder("InformationSet", (2,3), algorithm="LeeBrickell")
+        sage: D
+        Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding between 2 and 3 errors
+
+    We can also information set decode non-binary codes::
+
+        sage: C = codes.GolayCode(GF(3))
+        sage: D = C.decoder("InformationSet", 2, algorithm="LeeBrickell")
+        sage: D
+        Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+
+    The decoder class can be invoked in two other ways as well::
+
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 3, algorithm="LeeBrickell")
+        sage: D
+        Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
+
+        sage: from sage.coding.linear_code import LinearCodeISD_LeeBrickell
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = LinearCodeISD_LeeBrickell(C, 3)
+        sage: D
+        Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
+
+    """
+    def __init__(self, code, number_errors, search_size = None):
+        r"""
+        TESTS:
+
+        If ``search_size`` is bigger than a possible value for ``number_errors``, an error
+        will be raised::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", (1, 3), algorithm="LeeBrickell", search_size=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The search size parameter has to be at most the maximal number of allowed errors
+        """
+        super(LinearCodeISD_LeeBrickell, self).__init__(code, number_errors, "LeeBrickell")
+        if not search_size is None:
+            if not isinstance(search_size, (Integer, int)) or search_size < 0:
+                raise ValueError("The search size parameter has to be a positive integer")
+            if search_size > self.decoding_interval()[1]:
+                raise ValueError("The search size parameter has to be at most"
+                                 " the maximal number of allowed errors")
+            self._search_size = search_size
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between information set decoder objects.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+            sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+            sage: D1 == D2
+            True
+            sage: D3 = codes.decoders.LinearCodeInformationSetDecoder(C, 3)
+            sage: D1 == D3
+            False
+        """
+        return isinstance(other, LinearCodeISD_LeeBrickell)\
+                and self.code() == other.code()\
+                and self.decoding_interval() == other.decoding_interval()\
+                and self.search_size() == other.search_size()
 
     def _lee_brickell_algorithm(self, r, tau, p):
         r"""
@@ -5312,8 +5407,6 @@ class LinearCodeInformationSetDecoder(Decoder):
         r"""
         Decodes a received word with respect to the associated code of this decoder.
 
-        If decoding fails, a :exc:`sage.coding.decoder.DecodingError` is thrown.
-
         WARNING:
 
         If there is no codeword within the decoding radius of this decoder, this
@@ -5333,7 +5426,7 @@ class LinearCodeInformationSetDecoder(Decoder):
                                      [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
                                      [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
             sage: C = codes.LinearCode(M)
-            sage: D = C.decoder('InformationSet', 2)
+            sage: D = C.decoder('InformationSet', 2, algorithm="LeeBrickell")
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: y = Chan(c)
@@ -5344,7 +5437,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
             sage: C = codes.GolayCode(GF(3)); C
             [12, 6, 6] Extended Golay code over GF(3)
-            sage: D = C.decoder('InformationSet', 2)
+            sage: D = C.decoder('InformationSet', 2, algorithm="LeeBrickell")
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: y = Chan(c)
@@ -5354,7 +5447,8 @@ class LinearCodeInformationSetDecoder(Decoder):
         C = self.code()
         if r in C:
             return r
-        return self._lee_brickell_algorithm(r, self.decoding_interval(), self.search_size())
+        return self._lee_brickell_algorithm(r, self.decoding_interval(),
+                                                self.search_size())
 
     def _calibrate_search_size(self):
         r"""
@@ -5383,11 +5477,16 @@ class LinearCodeInformationSetDecoder(Decoder):
         OUTPUT: A list of floats representing the estimated decoding times for
         each possible value of `p`.
         """
+        from sage.misc.prandom import sample
+        from sage.stats.basic_stats import mean
+        from sage.modules.free_module_element import random_vector
+        from sage.matrix.special import random_matrix
+        from sage.misc.prandom import randint
         import time
         C = self.code()
         G = C.generator_matrix()
         n, k = C.length(), C.dimension()
-        tau = D.decoding_radius()
+        tau = self.decoding_radius()
         F = C.base_ring()
         q = F.cardinality()
         Fstar = F.list()[1:]
@@ -5404,7 +5503,8 @@ class LinearCodeInformationSetDecoder(Decoder):
         def time_search_loop(p):
             y = random_vector(F, n)
             g = random_matrix(F, p, n).rows()
-            scalars = [  [ Fstar[randint(0,q-2)] for i in range(p) ] for s in range(100) ]
+            scalars = [  [ Fstar[randint(0,q-2)] for i in range(p) ]
+                             for s in range(100) ]
             before = time.clock()
             for m in scalars:
                 e = y - sum(m[i]*g[i] for i in range(p))
@@ -5415,22 +5515,30 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         estimates = []
         for p in range(tau+1):
-            iters = 1.* binomial(n, k)/(sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) ))
-            estimate = ceil(iters)*T + iters * sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) )
+            iters = 1.* binomial(n, k)/ \
+                sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) )
+            estimate = iters*(T + \
+                sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) ))
             estimates.append(estimate)
         return estimates
 
-
     def search_size(self):
         r"""
-        The search-size parameter for this information-set decoder.
+        The search-size parameter for this Lee--Brickel information-set decoder.
 
         EXAMPLES::
 
             sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", 2, search_size=2)
+            sage: D = C.decoder("InformationSet", 2, algorithm="LeeBrickell", search_size=2)
             sage: D.search_size()
             2
+
+        If not set, calibration will determine a sensible value::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2, algorithm="LeeBrickell")
+            sage: D.search_size() #random
+            1
         """
         if not hasattr(self, "_search_size"):
             estimates = self._calibrate_search_size()
@@ -5440,35 +5548,79 @@ class LinearCodeInformationSetDecoder(Decoder):
                     self._search_size = p
         return self._search_size
 
-    def decoding_radius(self):
-        r"""
-        Return the maximal number of errors this decoder can decode.
 
-        EXAMPLES::
+def LinearCodeInformationSetDecoder(code, number_errors, algorithm=None, **kwargs):
+    r"""
+    TODO
 
-            sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", 2)
-            sage: D.decoding_radius()
-            2
-        """
-        return self._number_errors[1]
+    Information-set decoding is a probabilistic decoding strategy that
+    essentially tries to guess `k` correct positions in the received word,
+    where `k` is the dimension of the code. A codeword agreeing with the
+    received word on the guessed position can easily be computed, and their
+    difference is one possible error vector. A "correct" guess is assumed when
+    this error vector has low Hamming weight.
 
-    def decoding_interval(self):
-        r"""
-         A pair of integers specifying the interval of number of errors this
-         decoder will attempt to correct.
+    This strategy requires choosing how many errors is deemed acceptable. One
+    choice could be `d/2`, where `d` is the minimum distance of the code, but
+    sometimes `d` is not known, or sometimes more errors are expected. If one
+    chooses anything above `d/2`, the algorithm does not guarantee to return a
+    nearest codeword.
 
-         The interval includes both end values.
+    WARNING::
 
+        If there is no codeword within the specified decoding distance, then the
+        decoding algorithm is not promised to terminate.
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: C = codes.GolayCode(GF(2))
-            sage: D = C.decoder("InformationSet", 2)
-            sage: D.decoding_interval()
-            (0, 2)
-        """
-        return self._number_errors
+    The principal way to access this function is through the
+    :meth:`sage.code.linear_code.AbstractLinearCode.decoder` method:
+
+        sage: C = codes.GolayCode(GF(3))
+        sage: D = C.decoder("InformationSet", 2); D
+        Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+
+    You can specify which algorithm you wish to use, and you should do so to
+    pass special parameters to it::
+
+        sage: C = codes.GolayCode(GF(3))
+        sage: D2 = C.decoder("InformationSet", 2, algorithm="LeeBrickell", search_size=2); D2
+        Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+
+    If you specify an algorithm which is not known, you get a friendly error message::
+
+        sage: from sage.coding.linear_code import LinearCodeInformationSetDecoder
+        sage: D = LinearCodeInformationSetDecoder(C, 2, algorithm="NoSuchThing"); D
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown ISD algorithm 'NoSuchThing'. The known algorithms are ['LeeBrickell'].
+
+    There are two other ways to access this function::
+
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2); D
+        Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+
+        sage: from sage.coding.linear_code import LinearCodeInformationSetDecoder
+        sage: D = LinearCodeInformationSetDecoder(C, 2); D
+        Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+    """
+    if algorithm is None:
+        if kwargs:
+            raise ValueError("Additional arguments to an information-set decoder"
+                            " algorithm are only allowed if a specific"
+                            " algorithm is selected by setting the algorithm"
+                            " keyword")
+        algorithm = "LeeBrickell"
+    knowns = {
+        "LeeBrickell": LinearCodeISD_LeeBrickell
+        }
+    if algorithm in knowns:
+        return knowns[algorithm](code, number_errors, **kwargs)
+    else:
+        raise ValueError("Unknown ISD algorithm '{}'."
+                         " The known algorithms are {}."\
+                         .format(algorithm, knowns.keys()))
+
 
 ####################### registration ###############################
 

@@ -256,6 +256,13 @@ class BipartiteGraph(Graph):
         Traceback (most recent call last):
         ...
         ValueError: loops are not allowed in bipartite graphs
+        sage: B = BipartiteGraph(loops=None)
+        sage: B.allows_loops()
+        False
+        sage: B.add_edge(0,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot add edge from 0 to 0 in graph without loops
         
     """
 

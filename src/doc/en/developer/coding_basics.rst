@@ -507,8 +507,13 @@ introduction. Sage imposes these styles:
 - All reST and Sphinx directives (like ``.. WARNING::``, ``.. NOTE::``,
   ``.. MATH::``, etc.) are written in uppercase.
 
-- Code fragments are quoted with ``````. This includes function arguments
-  and the Python literals like ````True````, ````False```` and ````None````.
+- Code fragments are quoted with double backticks. This includes function
+  arguments and the Python literals like ````True````, ````False```` and
+  ````None````. For example:
+
+  .. CODE-BLOCK:: rest
+
+      If ``check`` is ``True``, then ...
 
 Sage's master **BIBLIOGRAPHY** file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

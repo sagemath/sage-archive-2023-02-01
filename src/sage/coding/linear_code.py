@@ -5476,6 +5476,15 @@ class LinearCodeISD_LeeBrickell(AbstractInformationSetDecoder):
 
         OUTPUT: A list of floats representing the estimated decoding times for
         each possible value of `p`.
+
+        EXAMPLES::
+
+            sage: from sage.coding.linear_code import LinearCodeISD_LeeBrickell
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = LinearCodeISD_LeeBrickell(C, 3); D
+            Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
+            sage: D._calibrate_search_size() # random
+            1
         """
         from sage.misc.prandom import sample
         from sage.stats.basic_stats import mean
@@ -5551,7 +5560,10 @@ class LinearCodeISD_LeeBrickell(AbstractInformationSetDecoder):
 
 def LinearCodeInformationSetDecoder(code, number_errors, algorithm=None, **kwargs):
     r"""
-    TODO
+    Information-set decoder for any linear code.
+
+    This is a factory function that selects an appropriate information set
+    decoding (ISD) algorithm.
 
     Information-set decoding is a probabilistic decoding strategy that
     essentially tries to guess `k` correct positions in the received word,
@@ -5560,7 +5572,12 @@ def LinearCodeInformationSetDecoder(code, number_errors, algorithm=None, **kwarg
     difference is one possible error vector. A "correct" guess is assumed when
     this error vector has low Hamming weight.
 
-    This strategy requires choosing how many errors is deemed acceptable. One
+    This simple algorithm is not very efficient in itself, but there are numerous
+    refinements to the strategy. This factory function allows access to the ones
+    implemented in Sage, and selects an appropriate one if the user does not
+    specify a preference.
+
+    The ISD strategy requires choosing how many errors is deemed acceptable. One
     choice could be `d/2`, where `d` is the minimum distance of the code, but
     sometimes `d` is not known, or sometimes more errors are expected. If one
     chooses anything above `d/2`, the algorithm does not guarantee to return a
@@ -5570,6 +5587,23 @@ def LinearCodeInformationSetDecoder(code, number_errors, algorithm=None, **kwarg
 
         If there is no codeword within the specified decoding distance, then the
         decoding algorithm is not promised to terminate.
+
+    INPUT:
+
+    - ``code`` -- A linear code for which to decode.
+
+    - ``number_errors`` -- an integer, the maximal number of errors to accept as
+      correct decoding. An interval can also be specified by giving a pair of
+      integers, where both end values are taken to be in the interval.
+
+    - ``algorithm`` -- (optional) the ISD algorithm to employ. If this is not
+      set, an appropriate one will be chosen.
+
+    - ``**kwargs`` -- (optional) any number of named arguments passed on to the
+      ISD algorithm. Such are usually not required, and they can only be set if
+      ``algorithm`` is set to a specific algorithm. See the documentation for
+      each individual ISD algorithm class for information on any named arguments
+      they may accept.
 
     EXAMPLES::
 

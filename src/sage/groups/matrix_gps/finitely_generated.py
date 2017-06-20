@@ -1246,6 +1246,13 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: [f(*(g.matrix()*vector(R.gens()))) == chi(g)*f \
                   for f in Gr.invariants_of_degree(3, R=R, chi=chi) for g in Gr]
             [True, True, True, True, True, True]
+
+        ::
+
+            sage: i = GF(7)(3)
+            sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
+            sage: G.invariants_of_degree(25)
+            []
         """
         D = self.degree()
         deg = int(deg)
@@ -1254,16 +1261,17 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         if R is None:
             R = PolynomialRing(self.base_ring(), 'x', D)
 
-        ms = self.molien_series(chi=chi)
+        ms = self.molien_series(prec=deg+1,chi=chi)
+        if ms[deg].is_zero():
+            return []
         inv = set()
         count = 0
         for e in IntegerVectors(deg, D):
-            mon = R.monomial(*e)
             F = self.reynolds_operator(R.monomial(*e), chi=chi)
-            if F != 0:
+            if not F.is_zero():
                 F = F/F.lc()
                 inv.add(F)
                 count += 1
                 if count == ms[deg]:
                     break
-        return(list(inv))
+        return list(inv)

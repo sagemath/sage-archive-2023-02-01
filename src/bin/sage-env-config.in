@@ -51,6 +51,7 @@ else
         OBJC="@OBJC@"
         OBJCXX="@OBJCXX@"
         export OBJC OBJCXX
+    fi
 fi
 export CC CPP CXX FC
 

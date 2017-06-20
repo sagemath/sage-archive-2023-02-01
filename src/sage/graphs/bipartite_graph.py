@@ -818,6 +818,31 @@ class BipartiteGraph(Graph):
         Graph.add_edge(self, u, v, label)
         return
 
+    def allow_loops(self, new, check=True):
+        """
+        Change whether loops are permitted in the (di)graph
+
+        .. NOTE::
+
+            This method overwrite the
+            :meth:`~sage.graphs.generic_graph.GenericGraph.allow_loops` method
+            to ensure that loops are forbidden in :class:`~BipartiteGraph`.
+
+        INPUT:
+
+        - ``new`` - boolean.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph()
+            sage: B.allow_loops(True)
+            Traceback (most recent call last):
+            ...
+            ValueError: loops are not allowed in bipartite graphs
+        """
+        if new is True:
+            raise ValueError("loops are not allowed in bipartite graphs")
+
     def complement(self):
         """
         Return a complement of this graph.

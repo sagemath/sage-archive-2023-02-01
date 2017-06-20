@@ -23,7 +23,7 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
-from utilities import newlabel
+from .utilities import newlabel
 from itertools import combinations
 
 #I'll put this here for now but I suspect it belongs in another file.
@@ -86,6 +86,17 @@ class GraphicMatroid(Matroid):
         for i, e in enumerate(G.edges()):
             edge_list.append((e[0],e[1],groundset[i]))
         self._G = Graph(edge_list, loops=True, multiedges=True)
+
+    #COPYING, LOADING, SAVING
+
+    def __copy__(self):
+        """
+        Create a shallow copy.
+        """
+        return GraphicMatroid(self._G)
+        # something about name wrangling?
+
+
 
     def _rank(self, X):
         """
@@ -533,8 +544,15 @@ class GraphicMatroid(Matroid):
             raise ValueError("v must be a distinct vertex")
         elif v is None:
             v = G.add_vertex()
-        if not set(edgelist).issubset(set(edges_on_u)):
-            raise ValueError("the edges are not all incident with u")
+        for e in edgelist:
+            if e not in edges_on_u:
+                # if e is a loop, put it on u
+                # otherwise raise an error
+                if e[0] == e[1]:
+                    G.add_edge(u, u, e[2])
+                    G.delete_edge(e)
+                else:
+                    raise ValueError("the edges are not all incident with u")
 
         for e in edgelist:
             if e[0] == u:
@@ -542,5 +560,6 @@ class GraphicMatroid(Matroid):
             elif e[1] == u:
                 G.add_edge(e[0], v, e[2])
             G.delete_edge(e)
+        G.add_edge(u, v, element)
 
         return GraphicMatroid(deepcopy(G))

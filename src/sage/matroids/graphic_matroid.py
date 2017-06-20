@@ -23,6 +23,8 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
+from utilities import newlabel
+from itertools import combinations
 
 #I'll put this here for now but I suspect it belongs in another file.
 def contract_edge(G, e):
@@ -424,6 +426,121 @@ class GraphicMatroid(Matroid):
         if isinstance(other,GraphicMatroid) and other.is_3connected():
             G = self.graph()
             H = other.graph()
-            return G.is_isomorphic(H, certificate=True)
+            return G.is_isomorphic(H, certificate=True)[1]
         else:
             return Matroid._isomorphism(self, other)
+
+    def graphic_extension(self, u, v=None, element=None):
+        """
+        Returns a graphic matroid with a specified element added.
+        """
+        if element is None:
+            element = newlabel(self.groundset())
+        elif element in self.groundset():
+            raise ValueError("cannot extend by element already in groundset")
+        # If u or v are not already vertices, the graph package will
+        # make them into vertices
+        # If v is None, make a loop at u, not a coloop
+        # Since this is extension, not coextension.
+        if v is None:
+            v = u
+        G = self.graph()
+        G.add_edge(u,v,element)
+        return GraphicMatroid(deepcopy(G))
+
+    def graphic_extensions(self, element=None, vertices=None):
+        """
+        Returns an iterable containing the graphic extensions of self
+        by an element.
+
+        INPUT:
+
+        - ``element`` -- (optional) The name of the newly added element in
+          each extension.
+        - ``vertices`` -- (optional) A set of vertices over which the extension
+          may be taken. If not given, will use all vertices.
+
+        OUTPUT:
+
+        An iterable containing matroids.
+
+        .. NOTE::
+
+            The extension by a loop will always occur.
+            The extension by a coloop will never occur.
+        """
+        matroid_list = []
+        G = self.graph()
+        if element is None:
+            element = newlabel(self.groundset())
+        else:
+            if element in self.groundset():
+                raise ValueError("cannot extend by element already in groundset")
+        if vertices is None:
+            vertices = self._G.vertices()
+
+        # First extend by a loop, then consider every pair of vertices.
+        # We'll make the loop a new component.
+        v = G.add_vertex()
+        G.add_edge(v,v,element)
+        matroid_list.append(GraphicMatroid(deepcopy(G)))
+        G.delete_vertex(v)
+
+        pairs = combinations(range(len(vertices)),2)
+        for p in pairs:
+            G.add_edge(p[0], p[1], element)
+            matroid_list.append(GraphicMatroid(deepcopy(G)))
+            G.delete_edge(p[0], p[1], element)
+        return iter(matroid_list)
+
+    def graphic_coextension(self, u, v=None, X=None, element=None):
+        """
+        Returns a matroid coextended by a new element.
+
+        INPUT:
+
+        - ``u`` -- The vertex to be split. If u is not a vertex of the
+          matroid's graph, then the new element will be a coloop.
+        - ``v`` -- (optional) The name of the new vertex resulting
+          from the splitting.
+        - ``X`` -- (optional) A list of the matroid elements
+          corresponding to
+          edges of ``u`` that move to ``v`` after splitting.
+        - ``element`` -- (optional) The name of the newly added element.
+
+        OUTPUT:
+
+        An instance of GraphicMatroid extended by the new element.
+
+        .. NOTE::
+
+            A loop on ``u`` will stay a loop unless it is in ``X``.
+        """
+        if element is None:
+            element = newlabel(self.groundset())
+        else:
+            if element in self.groundset():
+                raise ValueError("cannot extend by element already in groundset")
+
+        G = self.graph()
+        vertices = G.vertices()
+        if u not in vertices:
+            vertices.append(u)
+            G.add_vertex(u)
+        edgelist = self._groundset_to_edges(X)
+        edges_on_u = G.edges_incident(u)
+        if u == v or v in vertices:
+            raise ValueError("v must be a distinct vertex")
+        elif v is None:
+            v = G.add_vertex()
+        if not set(edgelist).issubset(set(edges_on_u)):
+            raise ValueError("the edges are not all incident with u")
+
+        for e in edgelist:
+            if e[0] == u:
+                G.add_edge(v, e[1], e[2])
+            elif e[1] == u:
+                G.add_edge(e[0], v, e[2])
+            G.delete_edge(e)
+
+        return GraphicMatroid(deepcopy(G))

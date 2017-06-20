@@ -203,8 +203,8 @@ class Yangian(CombinatorialFreeModule):
     .. MATH::
 
         [t_{ij}^{(r)}, t_{k\ell}^{(s)}] =
-        \sum_{p=0}^{\min\{r,s\}-1} (t_{kj}^{(p)} t_{i\ell}^{(r+s-1-p)}
-        - t_{kj}^{(r+s-1-p)} t_{i\ell}^{(p)},
+        \sum_{p=0}^{\min\{r,s\}-1} \bigl(t_{kj}^{(p)} t_{i\ell}^{(r+s-1-p)}
+        - t_{kj}^{(r+s-1-p)} t_{i\ell}^{(p)} \bigr),
 
     where `1 \leq i,j,k,\ell \leq n` and `r,s \geq 1`.
 
@@ -223,6 +223,7 @@ class Yangian(CombinatorialFreeModule):
         \begin{aligned}
         (u - v)[t_{ij}(u), t_{k\ell}(v)] & = t_{kj}(u) t_{i\ell}(v)
         - t_{kj}(v) t_{i\ell}(u).
+        \end{aligned}
 
     These series can be combined into a single matrix:
 
@@ -241,7 +242,7 @@ class Yangian(CombinatorialFreeModule):
 
         T_k(u_k) := \sum_{i,j=1}^n t_{ij}(u_k) \otimes (E_{ij})_k \in
         Y(\mathfrak{gl}_n)[\![u_1^{-1},\dots,u_m^{-1}]\!] \otimes
-        \operatorname{End}\bigl( (\CC^n)^{\otimes m} \bigr),
+        \operatorname{End}(\CC^n)^{\otimes m},
 
     where `(E_{ij})_k = 1^{\otimes (k-1)} \otimes E_{ij} \otimes
     1^{\otimes (m-k)}`. If we consider `m = 2`, we can then also write
@@ -276,7 +277,9 @@ class Yangian(CombinatorialFreeModule):
     unique linear combinations of ordered monomials using `t_{ij}^{(r)}`.
     For the loop filtration, the associated graded algebra is isomorphic
     (as Hopf algebras) to `U(\mathfrak{gl}_n[z])` given by
-    `\overline{t}_{ij}^{(r)} \mapsto E_{ij} x^{r-1}`.
+    `\overline{t}_{ij}^{(r)} \mapsto E_{ij} x^{r-1}`, where
+    `\overline{t}_{ij}^{(r)}` is the image of `t_{ij}^{(r)}` in the
+    `(r - 1)`-th component of `\operatorname{gr}Y(\mathfrak{gl}_n)`.
 
     INPUT:
 

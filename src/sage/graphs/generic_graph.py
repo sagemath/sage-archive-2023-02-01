@@ -1661,7 +1661,7 @@ class GenericGraph(GenericGraph_pyx):
         return d
 
     def adjacency_matrix(self, sparse=None, vertices=None):
-        r""" 
+        r"""
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring
@@ -10168,6 +10168,11 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertices`` -- the set of vertices to be merged
 
+        .. NOTE::
+
+            If ``u`` and ``v`` are distinct vertices in ``vertices``,
+            any edges between ``u`` and ``v`` will be lost.
+
         EXAMPLES::
 
             sage: g=graphs.CycleGraph(3)
@@ -10194,10 +10199,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.edges(labels=False)
             [(0, 4), (0, 5), (2, 5), (4, 5)]
 
+        TESTS::
+
+        Check that :trac:`23290` was fixed::
+
+            sage: edgelist = [(0,0,'a'),(0,1,'b'),(1,1,'c')]
+            sage: G = Graph(edgelist, loops=True, multiedges=True)
+            sage: G.merge_vertices([0,1]); G.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+            sage: D = DiGraph(edgelist, loops=True, multiedges=True)
+            sage: D.merge_vertices([0,1]); D.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+
         """
 
         if len(vertices) > 0 and vertices[0] is None:
             vertices[0] = self.add_vertex()
+
+        # rather than trying to detect existing loops with edge_boundary(),
+        # just find them from the list of loops and put them on the first vertex
+        for (u,v,l) in self.loop_edges():
+            if u in vertices[1:]:
+                self.add_edge((vertices[0], vertices[0], l))
 
         if self.is_directed():
             out_edges=self.edge_boundary(vertices)
@@ -21372,7 +21395,7 @@ class GenericGraph(GenericGraph_pyx):
             (True, None)
 
         Deprecation from :trac:`21111`::
- 
+
             sage: G = DiGraph({'a':['b']})
             sage: H = DiGraph({0:[1]})
             sage: G.is_isomorphic(H, certify=True)

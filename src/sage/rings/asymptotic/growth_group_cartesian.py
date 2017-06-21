@@ -630,11 +630,11 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^ZZ * log(x)^ZZ
             sage: cm.discover_coercion(A, B)
             ((map internal to coercion system -- copy before use)
-             Conversion map:
+             Coercion map:
                From: Growth Group QQ^x * x^ZZ
                To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ,
              (map internal to coercion system -- copy before use)
-             Conversion map:
+             Coercion map:
                From: Growth Group x^ZZ * log(x)^ZZ
                To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ)
             sage: cm.common_parent(A, B)

@@ -3102,15 +3102,13 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
 
             sage: L.coerce_map_from(ZZ)
-            Conversion map:
+            Coercion map:
               From: Integer Ring
               To:   Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
             sage: M.coerce_map_from(L)
-            Conversion map:
-              From: Hyperplane arrangements in 1-dimensional linear space over
-                    Rational Field with coordinate x
-              To:   Hyperplane arrangements in 1-dimensional linear space over
-                    Real Field with 53 bits of precision with coordinate y
+            Coercion map:
+              From: Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
+              To:   Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
             sage: L.coerce_map_from(M)
         """
         if self.ambient_space().has_coerce_map_from(P):

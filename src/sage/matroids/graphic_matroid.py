@@ -25,6 +25,7 @@ from sage.graphs.graph import Graph
 from copy import copy, deepcopy
 from .utilities import newlabel, contract_edge
 from itertools import combinations
+import random
 
 class GraphicMatroid(Matroid):
     """
@@ -59,6 +60,17 @@ class GraphicMatroid(Matroid):
         for i, e in enumerate(G.edges()):
             edge_list.append((e[0],e[1],groundset[i]))
         self._G = Graph(edge_list, loops=True, multiedges=True)
+
+        # The graph should be connected to make computations easier
+        while self._G.connected_components_number() > 1:
+            # This will give a list containing lists of vertices
+            comps = self._G.connected_components()
+            # Choose random vertices to avoid the graphs being plotted
+            # as bouquets
+            v1 = random.choice(comps[0])
+            v2 = random.choice(comps[1])
+            self._G.add_edge((v1, v2, None))
+            contract_edge(self._G, (v1, v2, None))
 
     #COPYING, LOADING, SAVING
 
@@ -152,6 +164,7 @@ class GraphicMatroid(Matroid):
         After a contraction, updates a list of edges to exclude the vertex
         that was removed.
         """
+        #Move this to utilities?
         v0 = edge[0]
         v1 = edge[1]
         new_edges = []

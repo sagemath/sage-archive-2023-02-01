@@ -756,7 +756,7 @@ def contract_edge(G, e):
     G.allow_multiple_edges(True)
     G.allow_loops(True)
 
-    if e not in G.edges():
+    if e not in G.edges() and (e[1], e[0], e[2]) not in G.edges():
         raise ValueError("specified edge is not in the graph")
 
     G.delete_edge(e)
@@ -768,6 +768,10 @@ def contract_edge(G, e):
         for edge in G.edges():
             if ((edge[0] == e[0] and edge[1] == e[1]) or
                 (edge[0] == e[1] and edge[1] == e[0])):
+                edge_label_list.append(edge[2])
+            # WARNING: We need to check for loops on the second vertex
+            # Until trac ticket 23290 is resolved
+            elif (edge[0] == e[1] and edge[1] == e[1]):
                 edge_label_list.append(edge[2])
 
         G.merge_vertices([e[0], e[1]])

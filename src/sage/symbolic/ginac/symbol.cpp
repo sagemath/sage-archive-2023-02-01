@@ -66,24 +66,28 @@ symbol::symbol()
 symbol::symbol(std::string  initname, unsigned a_domain)
  : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(a_domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
+        set_domain(a_domain);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 symbol::symbol(std::string  initname, unsigned rt, tinfo_t rtt, unsigned a_domain)
  : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(a_domain), ret_type(rt), ret_type_tinfo(rtt)
 {
+        set_domain(a_domain);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 symbol::symbol(std::string  initname, std::string  texname, unsigned a_domain)
  : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(a_domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
+        set_domain(a_domain);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 symbol::symbol(std::string  initname, std::string  texname, unsigned rt, tinfo_t rtt, unsigned a_domain)
  : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(a_domain), ret_type(rt), ret_type_tinfo(rtt)
 {
+        set_domain(a_domain);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -103,6 +107,7 @@ symbol::symbol(const archive_node &n, lst &sym_lst)
 		domain = domain::complex;
 	if (!n.find_unsigned("return_type", ret_type))
 		ret_type = return_types::commutative;
+        set_domain(domain);
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 

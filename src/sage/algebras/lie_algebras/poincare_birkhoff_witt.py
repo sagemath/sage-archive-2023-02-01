@@ -135,7 +135,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, R, monomials,
                                          prefix='', bracket=False, latex_bracket=False,
                                          sorting_key=self._monomial_key,
-                                         category=Algebras(R).WithBasis())
+                                         category=Algebras(R).WithBasis().Filtered())
 
     def _basis_key(self, x):
         """
@@ -397,4 +397,22 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         terms = self.sum_of_terms((I.gen(t), c) for t,c in mc.items())
         terms += self.monomial(lead * trail)
         return self.monomial(lhs // trail) * terms * self.monomial(rhs // lead)
+
+    def degree_on_basis(self, m):
+        """
+        Return the degree of the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.sl(QQ, 2)
+            sage: PBW = L.pbw_basis()
+            sage: E,F,H = PBW.algebra_generators()
+            sage: PBW.degree_on_basis(E.leading_support())
+            1
+            sage: PBW.degree_on_basis(((H*F)^10).leading_support())
+            20
+            sage: ((H*F*E)^4).maximal_degree()
+            12
+        """
+        return m.length()
 

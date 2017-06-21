@@ -824,7 +824,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Conversion map:
+    Coercion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 

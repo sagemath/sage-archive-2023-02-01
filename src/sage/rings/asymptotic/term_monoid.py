@@ -2903,7 +2903,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         sage: TC_ZZ == TC_QQ or TC_ZZ is TC_QQ
         False
         sage: TC_QQ.coerce_map_from(TC_ZZ)
-        Conversion map:
+        Coercion map:
           From: Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
           To:   Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
     """
@@ -3691,7 +3691,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         sage: ET_QQ = ExactTermMonoid(G_QQ, QQ); ET_QQ
         Exact Term Monoid x^QQ with coefficients in Rational Field
         sage: ET_QQ.coerce_map_from(ET_ZZ)
-        Conversion map:
+        Coercion map:
           From: Exact Term Monoid x^ZZ with coefficients in Integer Ring
           To:   Exact Term Monoid x^QQ with coefficients in Rational Field
 

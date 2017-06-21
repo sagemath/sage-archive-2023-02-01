@@ -1209,7 +1209,7 @@ class InfinityRing_class(Singleton, Ring):
             sage: cm = get_coercion_model()
             sage: cm.explain(AA(3), oo, operator.lt)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Algebraic Real Field
                   To:   The Infinity Ring
             Arithmetic performed after coercions.

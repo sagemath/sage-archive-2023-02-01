@@ -23,7 +23,7 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
-from .utilities import newlabel, contract_edge
+from .utilities import newlabel, contract_edge, update_edges
 from itertools import combinations
 import random
 
@@ -69,6 +69,7 @@ class GraphicMatroid(Matroid):
             # as bouquets
             v1 = random.choice(comps[0])
             v2 = random.choice(comps[1])
+            self._G.add_edge((v1, v2, None))
             self._G.add_edge((v1, v2, None))
             contract_edge(self._G, (v1, v2, None))
 
@@ -148,8 +149,8 @@ class GraphicMatroid(Matroid):
         while cont_edges != []:
             e = cont_edges.pop()
             contract_edge(g, e)
-            del_edges = self._update_edges(e, del_edges)
-            cont_edges = self._update_edges(e, cont_edges)
+            del_edges = self.update_edges(e, del_edges)
+            cont_edges = self.update_edges(e, cont_edges)
 
         g.delete_edges(del_edges)
         #for x in deletions:
@@ -158,29 +159,6 @@ class GraphicMatroid(Matroid):
             #self._new_G.delete_edge(self._edge)
 
         return GraphicMatroid(deepcopy(g))
-
-    def _update_edges(self, edge, edges):
-        """
-        After a contraction, updates a list of edges to exclude the vertex
-        that was removed.
-        """
-        #Move this to utilities?
-        v0 = edge[0]
-        v1 = edge[1]
-        new_edges = []
-        for e in edges:
-            if e[0] == v1:
-                if v0 <= e[1]:
-                    e = (v0, e[1], e[2])
-                else:
-                    e = (e[1], v0, e[2])
-            if e[1] == v1:
-                if v0 >= e[0]:
-                    e = (e[0], v0, e[2])
-                else:
-                    e = (v0, e[0], e[2])
-            new_edges.append(e)
-        return new_edges
 
     def _has_minor(self, N, certificate = False):
         """
@@ -287,7 +265,7 @@ class GraphicMatroid(Matroid):
             e = edgelist.pop()
             if e not in g.loops():
                 contract_edge(g,e)
-                edgelist = self._update_edges(e, edgelist)
+                edgelist = self.update_edges(e, edgelist)
                 res.add(e[2])
         return frozenset(res)
 

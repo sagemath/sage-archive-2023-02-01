@@ -743,6 +743,7 @@ def contract_edge(G, e):
 
     EXAMPLES::
 
+        sage: from sage.matroids.utilities import contract_edge
         sage: G = graphs.CompleteGraph(4)
         sage: contract_edge(G,(0,1,None)); G
         Complete graph: Looped multi-graph on 3 vertices
@@ -750,7 +751,7 @@ def contract_edge(G, e):
         sage: contract_edge(G,(0,1))
         Traceback (most recent call last):
         ...
-        ValueError: specified edge is not in the graph
+        ValueError: tuple index out of range
 
     """
     G.allow_multiple_edges(True)
@@ -778,3 +779,25 @@ def contract_edge(G, e):
 
         for edge_label in edge_label_list:
             G.add_edge(e[0], e[0], edge_label)
+
+def update_edges(self, edge, edges):
+    """
+    After a contraction, updates a list of edges to exclude the vertex
+    that was removed.
+    """
+    v0 = edge[0]
+    v1 = edge[1]
+    new_edges = []
+    for e in edges:
+        if e[0] == v1:
+            if v0 <= e[1]:
+                e = (v0, e[1], e[2])
+            else:
+                e = (e[1], v0, e[2])
+        if e[1] == v1:
+            if v0 >= e[0]:
+                e = (e[0], v0, e[2])
+            else:
+                e = (v0, e[0], e[2])
+        new_edges.append(e)
+    return new_edges

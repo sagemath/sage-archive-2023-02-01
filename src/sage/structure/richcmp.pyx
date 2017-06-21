@@ -32,7 +32,7 @@ AUTHORS:
 - Jeroen Demeyer
 """
 
-from cpython.object cimport PyObject_RichCompare
+from cpython.object cimport PyObject_RichCompare, Py_TYPE, PyTypeObject
 
 op_LT = Py_LT   # operator <
 op_LE = Py_LE   # operator <=
@@ -40,6 +40,17 @@ op_EQ = Py_EQ   # operator ==
 op_NE = Py_NE   # operator !=
 op_GT = Py_GT   # operator >
 op_GE = Py_GE   # operator >=
+
+
+# Slotdefs for richcmp methods (the "bytes" below is arbitrary,
+# any type which implements these methods would work)
+cdef wrapperbase* richcmp_slotdef[6]
+richcmp_slotdef[Py_EQ] = get_slotdef(bytes.__eq__)
+richcmp_slotdef[Py_NE] = get_slotdef(bytes.__ne__)
+richcmp_slotdef[Py_LT] = get_slotdef(bytes.__lt__)
+richcmp_slotdef[Py_GT] = get_slotdef(bytes.__gt__)
+richcmp_slotdef[Py_LE] = get_slotdef(bytes.__le__)
+richcmp_slotdef[Py_GE] = get_slotdef(bytes.__ge__)
 
 
 def richcmp(x, y, int op):
@@ -87,3 +98,108 @@ def richcmp(x, y, int op):
         False
     """
     return PyObject_RichCompare(x, y, op)
+
+
+cdef slot_tp_richcompare(self, other, int op):
+    """
+    Function to put in the ``tp_richcompare`` slot.
+    """
+    return self.__richcmp__(other, op)
+
+
+def richcmp_method(cls):
+    """
+    Class decorator to implement rich comparions using the special
+    method ``__richcmp__`` (analogous to Cython) instead of the 6
+    methods ``__eq__`` and friends.
+
+    This changes the class in-place and returns the given class.
+
+    EXAMPLES::
+
+        sage: from sage.structure.richcmp import *
+        sage: sym = {op_EQ: "==", op_NE: "!=", op_LT: "<", op_GT: ">", op_LE: "<=", op_GE: ">="}
+        sage: @richcmp_method
+        ....: class A(str):
+        ....:     def __richcmp__(self, other, op):
+        ....:         print("%s %s %s" % (self, sym[op], other))
+        sage: A("left") < A("right")
+        left < right
+        sage: object() <= A("right")
+        right >= <object object at ...>
+
+    We can call this comparison with the usual Python special methods::
+
+        sage: x = A("left"); y = A("right")
+        sage: x.__eq__(y)
+        left == right
+        sage: A.__eq__(x, y)
+        left == right
+
+    Everything still works in subclasses::
+
+        sage: class B(A):
+        ....:     pass
+        sage: x = B("left"); y = B("right")
+        sage: x != y
+        left != right
+        sage: x.__ne__(y)
+        left != right
+        sage: B.__ne__(x, y)
+        left != right
+
+    We can override ``__richcmp__`` with standard Python rich
+    comparison methods and conversely::
+
+        sage: class C(A):
+        ....:     def __ne__(self, other):
+        ....:         return False
+        sage: C("left") != C("right")
+        False
+        sage: C("left") == C("right")  # Calls __eq__ from class A
+        left == right
+
+        sage: class Base(object):
+        ....:     def __eq__(self, other):
+        ....:         return False
+        sage: @richcmp_method
+        ....: class Derived(Base):
+        ....:     def __richcmp__(self, other, op):
+        ....:         return True
+        sage: Derived() == Derived()
+        True
+
+    TESTS::
+
+        sage: richcmp_method(None)
+        Traceback (most recent call last):
+        ...
+        TypeError: None is not a class
+
+        sage: @richcmp_method
+        ....: class X(object):
+        ....:     def __eq__(self, other):
+        ....:         pass
+        ....:     def __richcmp__(self, other, op):
+        ....:         pass
+        Traceback (most recent call last):
+        ...
+        TypeError: class <class '__main__.X'> defines __eq__ which cannot be combined with @richcmp_method
+    """
+    if not isinstance(cls, type):
+        raise TypeError(f"{cls!r} is not a class")
+    cdef PyTypeObject* tp = <PyTypeObject*>cls
+    tp.tp_richcompare = slot_tp_richcompare
+
+    # Install slot wrappers in the class dict
+    cdef dict D = <dict>(tp.tp_dict)
+    cdef wrapperbase* slotdef
+    for slotdef in richcmp_slotdef:
+        name = <object>slotdef.name_strobj
+        if name in D:
+            raise TypeError("class %r defines %s which cannot be combined with @richcmp_method" % (cls, name))
+        D[name] = PyDescr_NewWrapper(tp, slotdef, <void*>slot_tp_richcompare)
+
+    PyType_Modified(tp)
+
+    return cls

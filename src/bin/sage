@@ -823,10 +823,6 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
         build_sage
     fi
-    if [ ! -f  "$DOT_SAGE"/init.sage ]; then
-        echo >&2 "init.sage does not exist ... creating"
-        touch "$DOT_SAGE"/init.sage
-    fi
     SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then

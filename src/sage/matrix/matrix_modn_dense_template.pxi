@@ -3075,10 +3075,10 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: M = MatrixSpace(GF(41),  2)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
-            sage: print B
+            sage: B
             [1 3]
             [2 4]
-            sage: print A
+            sage: A
             [1 2]
             [3 4]
 

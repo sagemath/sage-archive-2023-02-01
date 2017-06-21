@@ -136,7 +136,7 @@ class GroupAlgebra_class(CombinatorialFreeModule):
             sage: QG = G.algebra(QQ)
             sage: ZG = G.algebra(ZZ)
             sage: ZG.coerce_map_from(H)
-            Conversion map:
+            Coercion map:
               From: Cyclic group of order 3 as a permutation group
               To:   Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
             sage: QG.coerce_map_from(ZG)
@@ -199,5 +199,5 @@ class GroupAlgebra_class(CombinatorialFreeModule):
                                    lambda x: self.sum_of_terms( (hom_G(g), hom_K(c)) for g,c in x ))
 
 from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.algerbas.group_algebras', 'GroupAlgebra',  GroupAlgebra_class)
+register_unpickle_override('sage.algebras.group_algebras', 'GroupAlgebra',  GroupAlgebra_class)
 

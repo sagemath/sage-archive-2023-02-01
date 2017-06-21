@@ -19,42 +19,46 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-def _fast_mandel_plot(float x_center, float y_center, float image_width,
- int max_iteration, int pixel_count, base_color):
+def fast_mandel_plot(float x_center, float y_center, float image_width,
+ int max_iteration, int pixel_count, int level_sep, int color_num, base_color):
 
     r"""
-    Function plots Mandelbrot set in the complex plane for the map $f(z) = z^2 + c$
-    by assigning a color value to each pixel $z$ in the image based on the number
-    of iterations it takes $z$ to escape to infinity under $f(z)$.
+    Plots the Mandelbrot set in the complex plane for the map `Q_c(z) = z^2 + c`.
 
     INPUT:
 
-    - x_center --  real part of the center point in the complex plane.
+    - ``x_center`` -- float, real part of the center point in the complex plane.
 
-    - y_center -- imaginary part of the center point in the complex plane.
+    - ``y_center`` -- float, imaginary part of the center point in the complex plane.
 
-    - image_width -- width of the image in the complex plane.
+    - ``image_width`` -- float, width of the image in the complex plane.
 
-    - max_iteration -- maximum number of iterations the map $f(z)$ considered.
+    - ``max_iteration`` -- int, maximum number of iterations the map `f(z)` considered.
 
-    - pixel_count -- side length of image in number of pixels.
+    - ``pixel_count`` -- int, side length of image in number of pixels.
 
-    - base_color -- color used to determine the coloring of set.
+    - ``level_sep`` -- int, number of iterations between each color level
+
+    - ``color_num`` -- int, number of colors used to plot image
+
+    - ``base_color`` -- list, RGB color used to determine the coloring of set.
 
     OUTPUT:
 
-    - A (static) plot of the Mandelbrot set in the complex plane.
+    - A 24-bit RGB image of the Mandelbrot set in the complex plane
 
     EXAMPLES:
 
-    Plot the Mandelbrot set with the center point $-1 + 0i$::
+    Plot the Mandelbrot set with the center point `-1 + 0i`::
 
-        sage: _fast_mandel_plot(-1, 0, 4, 500, 600, [70,40,240])
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
+        sage: fast_mandel_plot(-1, 0, 4, 500, 600, 1, 20, [40, 40, 40])
         Launched png viewer for 500x500px 24-bit RGB image
 
     We can focus on smaller parts of the set by adjusting image_width::
 
-        sage: _fast_mandel_plot(-0.75, 0.10, 1/4, 500, 600, [70,40,240])
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
+        sage: fast_mandel_plot(-0.75, 0.10, 1/4, 500, 600, 10, 25, [40, 40, 40])
         Launched png viewer for 500x500px 24-bit RGB image
     """
 
@@ -62,9 +66,9 @@ def _fast_mandel_plot(float x_center, float y_center, float image_width,
     from sage.repl.image import Image
     from copy import copy
 
-    cdef int color_value, row, col, iteration, color_num, i, j
+    cdef int color_value, row, col, iteration, i, j
     cdef float new_x, new_y, x_coor, y_coor
-    cdef color_list
+    cdef color_list, M, pixel
 
     # reflect image about x-axis
     y_center *= -1
@@ -72,7 +76,8 @@ def _fast_mandel_plot(float x_center, float y_center, float image_width,
     M = Image("RGB", (pixel_count,pixel_count), 'black') # create image
     pixel = M.pixels() # get pixels
 
-    color_num = 20 # number of colors
+    image_width = abs(image_width)
+
     color_list = []
     for i in range(color_num):
         color_list.append(copy(base_color))
@@ -93,44 +98,14 @@ def _fast_mandel_plot(float x_center, float y_center, float image_width,
                 new_x,new_y = new_x**2 - new_y**2 + x_coor, 2*new_x*new_y + y_coor
                 iteration += 1
 
-            if iteration < max_iteration/color_num:
-                pixel[row,col] = color_list[0]
-            elif iteration < 2*max_iteration/color_num:
-                pixel[row,col] = color_list[1]
-            elif iteration < 3*max_iteration/color_num:
-                pixel[row,col] = color_list[2]
-            elif iteration < 4*max_iteration/color_num:
-                pixel[row,col] = color_list[3]
-            elif iteration < 5*max_iteration/color_num:
-                pixel[row,col] = color_list[4]
-            elif iteration < 6*max_iteration/color_num:
-                pixel[row,col] = color_list[5]
-            elif iteration < 7*max_iteration/color_num:
-                pixel[row,col] = color_list[6]
-            elif iteration < 8*max_iteration/color_num:
-                pixel[row,col] = color_list[7]
-            elif iteration < 9*max_iteration/color_num:
-                pixel[row,col] = color_list[8]
-            elif iteration < 10*max_iteration/color_num:
-                pixel[row,col] = color_list[9]
-            elif iteration < 11*max_iteration/color_num:
-                pixel[row,col] = color_list[10]
-            elif iteration < 12*max_iteration/color_num:
-                pixel[row,col] = color_list[11]
-            elif iteration < 13*max_iteration/color_num:
-                pixel[row,col] = color_list[12]
-            elif iteration < 14*max_iteration/color_num:
-                pixel[row,col] = color_list[13]
-            elif iteration < 15*max_iteration/color_num:
-                pixel[row,col] = color_list[14]
-            elif iteration < 16*max_iteration/color_num:
-                pixel[row,col] = color_list[15]
-            elif iteration < 17*max_iteration/color_num:
-                pixel[row,col] = color_list[16]
-            elif iteration < 18*max_iteration/color_num:
-                pixel[row,col] = color_list[17]
-            elif iteration < 19*max_iteration/color_num:
-                pixel[row,col] = color_list[18]
-            elif iteration < max_iteration:
-                pixel[row,col] = color_list[19]
+            if iteration != max_iteration:
+                level = iteration/level_sep
+
+            if level < color_num:
+                pixel[row,col] = color_list[level]
+            else:
+                pixel[row,col] = color_list[-1]
+
+            if iteration == max_iteration:
+                pixel[row,col] = (0,0,0)
     return M

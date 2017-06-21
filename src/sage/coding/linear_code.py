@@ -311,14 +311,15 @@ def _explain_constructor(cl):
     Internal function for use error messages when constructing encoders and decoders.
 
     EXAMPLES:
-    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder, LinearCodeInformationSetDecoder
+    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
     sage: cl = LinearCodeSyndromeDecoder
     sage: _explain_constructor(cl)
     "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
 
+    sage: from sage.coding.isd_decoding import LinearCodeInformationSetDecoder
     sage: cl = LinearCodeInformationSetDecoder
     sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details."
+    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.isd_decoding.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
     if inspect.isclass(cl):
@@ -538,6 +539,7 @@ class AbstractLinearCode(Module):
         self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+        from sage.coding.isd_decoding import LinearCodeInformationSetDecoder
         self._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 
         if not isinstance(length, (int, Integer)):
@@ -1479,7 +1481,7 @@ class AbstractLinearCode(Module):
             The constructor requires the arguments ['number_errors'].
             It takes the optional arguments ['algorithm'].
             It accepts unspecified arguments as well.
-            See the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details.
+            See the documentation of sage.coding.isd_decoding.LinearCodeInformationSetDecoder for more details.
 
         """
         if decoder_name is None:
@@ -5060,5 +5062,3 @@ LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEn
 
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "dynamic"}
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "always-succeed", "complete"}
-LinearCodeInformationSetDecoder._decoder_type = {"hard-decision",
-    "probabilistic", "not-always-closest", "bounded-distance", "might-fail"}

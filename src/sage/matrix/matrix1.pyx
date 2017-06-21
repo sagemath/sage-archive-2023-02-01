@@ -1647,11 +1647,12 @@ cdef class Matrix(Matrix0):
         """
         from sage.matrix.constructor import matrix
 
-        if hasattr(right, '_vector_'):
-            right = right.column()
         if not isinstance(right, sage.matrix.matrix1.Matrix):
-            raise TypeError("a matrix must be augmented with another matrix, "
-                "or a vector")
+            if hasattr(right, '_vector_'):
+                right = right.column()
+            else:
+                raise TypeError("a matrix must be augmented with another matrix, "
+                    "or a vector")
 
         cdef Matrix other
         other = right

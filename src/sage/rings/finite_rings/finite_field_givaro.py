@@ -331,7 +331,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(R(1/5))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         PARI elements are interpreted as finite field elements; this PARI
         flexibility is (absurdly!) liberal::

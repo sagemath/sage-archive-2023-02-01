@@ -2088,7 +2088,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x/5
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+            ZeroDivisionError: division by zero in finite field
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():

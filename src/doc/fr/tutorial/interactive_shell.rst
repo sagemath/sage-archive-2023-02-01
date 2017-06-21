@@ -970,6 +970,22 @@ la variable ``b`` n'a pas été écrasée.
 L'interface *notebook*
 ======================
 
+Cette section concerne l'ancien bloc-note de Sage (“sagenb”). Pour plus de
+détails, voir la `documentation de sagenb
+<https://doc.sagemath.org/html/en/reference/notebook/index.html>`_.
+
+SageMath est en cours de transition vers l'utilisation par défaut du
+`bloc-note Jupyter
+<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_,
+qui a une structure différente. Pour les utilisateurs,
+la différence majeure est le fait que les feuilles de calcul sont
+sauvegardées dans le système de fichiers local comme n'importe quel autre
+fichier, alors que pour l'ancien bloc-note de Sage le principal accès aux
+feuilles de calcul passait par le serveur comme expliqué ci-dessous.
+
+Ancien bloc-note SageNB
+-----------------------
+
 Pour démarrer le *notebook* Sage, tapez
 
 .. skip

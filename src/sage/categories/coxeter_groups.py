@@ -629,11 +629,17 @@ class CoxeterGroups(Category_singleton):
                 sage: s0,s1,s2 = W.simple_reflections()
                 sage: W.bruhat_interval_poset(1, s0*s1*s2)
                 Finite poset containing 8 elements
+
+            TESTS::
+
+                sage: W.bruhat_interval_poset(s0*s1*s2, s0*s1*s2)
+                Finite poset containing 1 elements
             """
             if x == 1:
                 x = self.one()
             if y == 1:
                 y = self.one()
+            from sage.combinat.posets.posets import Poset
             if x == y:
                 return Poset([[x], []])
             if not x.bruhat_le(y):
@@ -654,7 +660,6 @@ class CoxeterGroups(Category_singleton):
                             nextlayer.add(t)
                 curlayer = nextlayer
 
-            from sage.combinat.posets.posets import Poset
             from sage.graphs.graph import DiGraph
             return Poset(DiGraph(d, format='dict_of_lists',
                                  data_structure='static_sparse'),

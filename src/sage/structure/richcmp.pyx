@@ -279,19 +279,19 @@ def richcmp_by_eq_and_lt(eq_attr, lt_attr):
         sage: from sage.structure.richcmp import richcmp_method, richcmp_by_eq_and_lt
         sage: @richcmp_method
         ....: class C(object):
-        ....:     __richcmp__ = richcmp_by_eq_and_lt("__eq__", "__lt__")
-        ....:     def __eq__(self, other):
+        ....:     __richcmp__ = richcmp_by_eq_and_lt("_eq", "_lt")
+        ....:     def _eq(self, other):
         ....:         return True
-        ....:     def __lt__(self, other):
+        ....:     def _lt(self, other):
         ....:         return True
         sage: a = C(); b = C()
         sage: a == b
         True
-        sage: a > b  # Calls b.__lt__(a)
+        sage: a > b  # Calls b._lt(a)
         True
         sage: class X(object): pass
         sage: x = X()
-        sage: a == x  # Does not call a.__eq__(x) because x does not have __eq__
+        sage: a == x  # Does not call a._eq(x) because x does not have _eq
         False
     """
     def richcmp(self, other, int op):

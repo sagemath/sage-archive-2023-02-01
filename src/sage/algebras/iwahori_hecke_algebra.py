@@ -31,7 +31,7 @@ from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polydict import ETuple
 from sage.arith.all import is_square
-from sage.combinat.root_system.weyl_group import WeylGroup
+from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 
@@ -426,18 +426,19 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         TESTS::
 
             sage: H = IwahoriHeckeAlgebra("A2", 1)
-            sage: H.coxeter_group() == WeylGroup("A2")
+            sage: W = CoxeterGroup("A2")
+            sage: H.coxeter_group() == W
             True
             sage: H.cartan_type() == CartanType("A2")
             True
             sage: H._q2 == -1
             True
-            sage: H2 = IwahoriHeckeAlgebra(WeylGroup("A2"), QQ(1), base_ring=ZZ)
+            sage: H2 = IwahoriHeckeAlgebra(W, QQ(1), base_ring=ZZ)
             sage: H is H2
             True
         """
         if W not in CoxeterGroups():
-            W = WeylGroup(W)
+            W = CoxeterGroup(W)
         if base_ring is None:
             base_ring = q1.parent()
         else:
@@ -456,7 +457,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: TestSuite(H).run()
         """
         self._W = W
-        self._cartan_type = W.cartan_type()
+        self._coxeter_type = W.coxeter_type()
 
         self._q1 = q1
         self._q2 = q2
@@ -512,8 +513,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: IwahoriHeckeAlgebra("A2", q1**2, q2**2, base_ring=Frac(R))
             Iwahori-Hecke algebra of type A2 in q1^2,q2^2 over Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
         """
+        try:
+            ct = self._coxeter_type._repr_(compact=True)
+        except TypeError:
+            ct = repr(self._coxeter_type)
         return "Iwahori-Hecke algebra of type {} in {},{} over {}".format(
-            self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
+            ct, self._q1, self._q2, self.base_ring())
 
     def _latex_(self):
         r"""
@@ -533,7 +538,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         from sage.misc.latex import latex
         return "\\mathcal{{H}}_{{{},{}}}\\left({}, {}\\right)".format(latex(self._q1),
-                latex(self._q2), latex(self._cartan_type), latex(self.base_ring()))
+                latex(self._q2), latex(self._coxeter_type), latex(self.base_ring()))
 
     def _bar_on_coefficients(self, c):
         r"""
@@ -551,6 +556,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         return normalized_laurent_polynomial(self._base, c).substitute(**self._inverse_base_ring_generators)
 
+    def coxeter_type(self):
+        r"""
+        Return the Coxeter type of ``self``.
+
+        EXAMPLES::
+
+            sage: IwahoriHeckeAlgebra("D4", 1).coxeter_type()
+            Coxeter type of ['D', 4]
+        """
+        return self._coxeter_type
+
     def cartan_type(self):
         r"""
         Return the Cartan type of ``self``.
@@ -560,7 +576,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: IwahoriHeckeAlgebra("D4", 1).cartan_type()
             ['D', 4]
         """
-        return self._cartan_type
+        try:
+            return self._coxeter_type.cartan_type()
+        except AttributeError:
+            return None
 
     def coxeter_group(self):
         r"""
@@ -569,7 +588,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: IwahoriHeckeAlgebra("B2", 1).coxeter_group()
-            Weyl Group of type ['B', 2] (as a matrix group acting on the ambient space)
+            Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with Coxeter matrix:
+            [1 4]
+            [4 1]
         """
         return self._W
 
@@ -703,7 +724,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
                     sage: H = IwahoriHeckeAlgebra("B2", 1)
                     sage: T = H.T()
-                    sage: G = WeylGroup("B2")
+                    sage: G = H.coxeter_group()
                     sage: T[G.one()]
                     1
                     sage: T[G.simple_reflection(1)]
@@ -2337,12 +2358,13 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         TESTS::
 
             sage: H1 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
-            sage: H2 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(WeylGroup("A2"))
+            sage: W = CoxeterGroup("A2")
+            sage: H2 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(W)
             sage: H1 is H2
             True
         """
         if W not in CoxeterGroups():
-            W = WeylGroup(W)
+            W = CoxeterGroup(W)
         return super(IwahoriHeckeAlgebra_nonstandard, cls).__classcall__(cls,W)
 
     def __init__(self, W):
@@ -2353,7 +2375,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             sage: TestSuite(H).run()
         """
         self._W = W
-        self._cartan_type = W.cartan_type()
+        self._coxeter_type = W.coxeter_type()
 
         base_ring = LaurentPolynomialRing(ZZ, 'u,v')
         u,v = base_ring.gens()
@@ -2391,8 +2413,12 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             A generic Iwahori-Hecke algebra of type A2 in u,-u^-1*v^2 over
              Multivariate Laurent Polynomial Ring in u, v over Integer Ring
         """
+        try:
+            ct = self._coxeter_type._repr_(compact=True)
+        except TypeError:
+            ct = repr(self._coxeter_type)
         return "A generic Iwahori-Hecke algebra of type {} in {},{} over {}".format(
-                self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
+                ct, self._q1, self._q2, self.base_ring())
 
     def _bar_on_coefficients(self, c):
         r"""

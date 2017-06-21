@@ -774,8 +774,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             ....:         assert (a <= b) == (CC(a) <= CC(b))
 
         The following is tested because of the implementation of
-        func:`Q_to_quadratic_field_element` which was the cause of some problems
-        with :trac:`13213`::
+        :func:`Q_to_quadratic_field_element` which was the cause of
+        some problems with :trac:`13213`::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: 1/2 + sqrt2 > 0

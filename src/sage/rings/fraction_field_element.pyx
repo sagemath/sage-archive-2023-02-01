@@ -51,7 +51,7 @@ import sage.misc.latex as latex
 
 def is_FractionFieldElement(x):
     """
-    Returns whether or not ``x`` is a :class`FractionFieldElement`.
+    Return whether or not ``x`` is a :class:`FractionFieldElement`.
 
     EXAMPLES::
 

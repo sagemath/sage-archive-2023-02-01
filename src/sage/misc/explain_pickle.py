@@ -65,7 +65,7 @@ The explain_pickle function has several use cases.
     in a way that would invalidate old pickles, the output of
     ``explain_pickle`` will also change.  At that point, you can add
     the previous output of :obj:`explain_pickle` as a new set of
-    doctests (and then update the :obj`explain_pickle` doctest to use
+    doctests (and then update the :obj:`explain_pickle` doctest to use
     the new output), to ensure that old pickles will continue to work.
     (These problems will also be caught using the :obj:`picklejar`,
     but having the tests directly in the relevant module is clearer.)

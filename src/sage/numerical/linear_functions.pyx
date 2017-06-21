@@ -957,7 +957,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef _lmul_(self, RingElement b):
+    cpdef _lmul_(self, Element b):
         r"""
         Multiplication by scalars
 

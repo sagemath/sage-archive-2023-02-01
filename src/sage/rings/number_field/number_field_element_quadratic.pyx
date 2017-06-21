@@ -1193,8 +1193,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
-
-    cpdef _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
@@ -1209,8 +1208,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
-
-    cpdef _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
@@ -2188,7 +2186,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()
 
     # We must override these since the basering is now ZZ not QQ.
-    cpdef _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-27)
@@ -2206,8 +2204,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         res._reduce_c_()
         return res
 
-
-    cpdef _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)

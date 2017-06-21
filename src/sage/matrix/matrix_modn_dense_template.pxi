@@ -850,7 +850,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         sig_off()
         return M
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         EXAMPLES::
 

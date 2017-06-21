@@ -369,7 +369,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return point(z, *args, **kwds)
         raise NotImplementedError("plotting of polynomials over %s not implemented"%R)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply self on the left by a scalar.
 
@@ -389,7 +389,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self._parent.zero()
         return self.parent()(left) * self
 
-    cpdef _rmul_(self, RingElement right):
+    cpdef _rmul_(self, Element right):
         """
         Multiply self on the right by a scalar.
 
@@ -9875,7 +9875,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         if not self.__coeffs:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
@@ -9887,7 +9887,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         res.__normalize()
         return res
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         if not self.__coeffs:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:

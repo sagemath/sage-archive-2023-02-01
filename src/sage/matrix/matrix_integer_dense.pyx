@@ -871,8 +871,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 

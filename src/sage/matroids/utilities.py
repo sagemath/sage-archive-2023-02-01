@@ -751,7 +751,7 @@ def contract_edge(G, e):
         sage: contract_edge(G,(0,1))
         Traceback (most recent call last):
         ...
-        ValueError: tuple index out of range
+        IndexError: tuple index out of range
 
     """
     G.allow_multiple_edges(True)

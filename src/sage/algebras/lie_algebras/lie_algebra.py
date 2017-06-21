@@ -983,7 +983,7 @@ class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
             # This guarantees that the generators have a specified ordering
             d = {self._indices[i]: self.element_class(self, v)
                  for i,v in enumerate(gens)}
-            gens = Family(list(self._indices), lambda i: d[i])
+            gens = Family(self._indices, lambda i: d[i])
         elif gens is not None: # It is a family
             gens = Family(self._indices,
                           lambda i: self.element_class(self, gens[i]),

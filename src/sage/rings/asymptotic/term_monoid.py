@@ -203,7 +203,7 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from .misc import richcmp_by_eq_and_lt
+from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 
 class ZeroCoefficientError(ValueError):
@@ -819,7 +819,7 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
-    _richcmp_ = richcmp_by_eq_and_lt
+    _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _lt_(self, other):
         r"""

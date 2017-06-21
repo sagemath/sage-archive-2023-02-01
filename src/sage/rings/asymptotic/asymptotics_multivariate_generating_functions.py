@@ -228,7 +228,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.rings import Rings
-from .misc import richcmp_by_eq_and_lt
+from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 
 @total_ordering
@@ -577,7 +577,7 @@ class FractionWithFactoredDenominator(RingElement):
         """
         return repr((self.numerator(), self.denominator_factored()))
 
-    _richcmp_ = richcmp_by_eq_and_lt
+    _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _eq_(self, other):
         r"""

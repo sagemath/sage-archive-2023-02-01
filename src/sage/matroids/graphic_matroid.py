@@ -190,6 +190,16 @@ class GraphicMatroid(Matroid):
             # otherwise use the default method for abstract matroids
             return Matroid._has_minor(self,N)
 
+    def groundset_to_edges(self, X):
+        """
+        Given a subset of the ground set, this will return the corresponding
+        set of edges.
+        """
+        for x in X:
+            if x not in self._groundset:
+                raise ValueError("input must be a subset of the ground set")
+        return self._groundset_to_edges(X)
+
     def _groundset_to_edges(self, X):
         """
         Given a subset of the ground set, this will return the corresponding

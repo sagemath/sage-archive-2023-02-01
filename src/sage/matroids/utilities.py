@@ -753,6 +753,17 @@ def contract_edge(G, e):
         ...
         IndexError: tuple index out of range
 
+    ::
+        sage: from sage.matroids.advanced import *
+        sage: from sage.matroids.utilities import contract_edge
+        sage: M = GraphicMatroid(graphs.CompleteGraph(4))
+        sage: G = M.graph(); G.edges()
+        [(0, 1, 0), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
+        sage: G.add_edge(1,1,6)
+        sage: contract_edge(G,(0,1,0))
+        sage: G.edges()
+        [(0, 0, 6), (0, 2, 1), (0, 2, 3), (0, 3, 2), (0, 3, 4), (2, 3, 5)]
+
     """
     G.allow_multiple_edges(True)
     G.allow_loops(True)
@@ -780,10 +791,33 @@ def contract_edge(G, e):
         for edge_label in edge_label_list:
             G.add_edge(e[0], e[0], edge_label)
 
-def update_edges(self, edge, edges):
+def update_edges(edge, edges):
     """
-    After a contraction, updates a list of edges to exclude the vertex
+    After a contraction in a graph, updates a list of edges to exclude the vertex
     that was removed.
+
+    INPUT:
+
+    - ``edge`` - The edge that was contracted.
+    - ``edges`` - A list containing 3-tuples representing edges.
+
+    OUTPUT:
+
+    An list containing 3-tuples representing edges with the vertices
+    updated to reflect the missing vertex.
+
+    EXAMPLES::
+
+    sage: from sage.matroids.advanced import *
+    sage: from sage.matroids.utilities import update_edges
+    sage: M = GraphicMatroid(graphs.CompleteGraph(4))
+    sage: G = M.graph(); G.edges()
+    [(0, 1, 0), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
+    sage: l = M.groundset_to_edges([1,2,3])
+    sage: contract_edge(G, (0,1,0))
+    sage: update_edges((0,1,0), l)
+    [(0, 2, 1), (0, 3, 2), (0, 2, 3)]
+
     """
     v0 = edge[0]
     v1 = edge[1]

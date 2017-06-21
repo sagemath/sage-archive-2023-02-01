@@ -1,5 +1,6 @@
-from sage.libs.mpc cimport *
+from sage.libs.mpc cimport mpc_t, mpc_rnd_t
 
+cimport sage.structure.element
 cimport sage.rings.ring
 
 cdef class MPComplexNumber(sage.structure.element.FieldElement):

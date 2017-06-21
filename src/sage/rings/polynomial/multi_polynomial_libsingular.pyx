@@ -1949,7 +1949,7 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     # sage version, the unpickled ring will belong the new implementation.
     return _multi_variate(base_ring, tuple(names), len(names), False, term_order, None)
 
-cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
+cdef class MPolynomial_libsingular(MPolynomial):
     """
     A multivariate polynomial implemented using libSINGULAR.
     """

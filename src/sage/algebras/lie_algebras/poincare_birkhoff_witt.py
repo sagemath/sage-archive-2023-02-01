@@ -362,6 +362,19 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: E * F * H * E
             PBW['E']^2*PBW['F']*PBW['H'] + 2*PBW['E']^2*PBW['F']
              - PBW['E']*PBW['H']^2 - 2*PBW['E']*PBW['H']
+
+        TESTS:
+
+        Check that :trac:`23268` is fixed::
+
+            sage: MS = MatrixSpace(QQ, 2,2)
+            sage: gl = LieAlgebra(associative=MS)
+            sage: Ugl = gl.pbw_basis()
+            sage: prod(Ugl.gens())
+            PBW[(0, 0)]*PBW[(0, 1)]*PBW[(1, 0)]*PBW[(1, 1)]
+            sage: prod(reversed(list(Ugl.gens())))
+            PBW[(0, 0)]*PBW[(0, 1)]*PBW[(1, 0)]*PBW[(1, 1)]
+             - PBW[(0, 0)]^2*PBW[(1, 1)] + PBW[(0, 0)]*PBW[(1, 1)]^2
         """
         # Some trivial base cases
         if lhs == self.one_basis():
@@ -380,7 +393,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         terms = self._g.monomial(trail).bracket(self._g.monomial(lead))
         lead = I.gen(lead)
         trail = I.gen(trail)
-        terms = self.sum_of_terms((I.gen(t), c) for t,c in terms)
+        mc = terms.monomial_coefficients(copy=False)
+        terms = self.sum_of_terms((I.gen(t), c) for t,c in mc.items())
         terms += self.monomial(lead * trail)
         return self.monomial(lhs // trail) * terms * self.monomial(rhs // lead)
 

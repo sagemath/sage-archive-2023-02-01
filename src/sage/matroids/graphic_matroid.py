@@ -23,35 +23,8 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
-from .utilities import newlabel
+from .utilities import newlabel, contract_edge
 from itertools import combinations
-
-#I'll put this here for now but I suspect it belongs in another file.
-def contract_edge(G, e):
-    """
-    Contract an element of a graphic matroid.
-    """
-    G.allow_multiple_edges(True)
-    G.allow_loops(True)
-
-    if e not in G.edges():
-        raise ValueError("The specified edge is not in the graph.")
-
-    G.delete_edge(e)
-
-    #If e was a loop, stop there. Otherwise, merge the vertices.
-    if not e[0] == e[1]:
-        # merge_vertices() loses multiedges, so we put them on as loops afterwards
-        edge_label_list = []
-        for edge in G.edges():
-            if ((edge[0] == e[0] and edge[1] == e[1]) or
-                (edge[0] == e[1] and edge[1] == e[0])):
-                edge_label_list.append(edge[2])
-
-        G.merge_vertices([e[0], e[1]])
-
-        for edge_label in edge_label_list:
-            G.add_edge(e[0], e[0], edge_label)
 
 class GraphicMatroid(Matroid):
     """
@@ -403,6 +376,37 @@ class GraphicMatroid(Matroid):
             g.delete_edge(e)
         return True
 
+    def _is_closed(self, X):
+        """
+        Test if input is a closed set.
+
+        INPUT:
+
+        - ``X`` -- An object with Python's ``frozenset`` interface containing
+          a subset of ``self.groundset()``.
+
+        OUTPUT:
+
+        Boolean.
+        """
+        # Take the set of vertices of the edges corresponding to the elements,
+        # and check if there are other edges incident with two of those vertices.
+        # Also, the must not be loops outside of X.
+        vertex_set = set()
+        edge_list = self._groundset_to_edges(X)
+        if not set(self._G.loops()).issubset(set(edge_list)):
+            return False
+
+        Y = self.groundset().difference(X)
+        edge_list2 = self._groundset_to_edges(Y)
+        for e in edge_list:
+            vertex_set.add(e[0])
+            vertex_set.add(e[1])
+        for e in edge_list2:
+            if e[0] in vertex_set and e[1] in vertex_set:
+                return False
+        return True
+
     def _is_isomorphic(self, other, certificate = False):
         """
         Test if ``self`` is isomorphic to ``other``.
@@ -535,6 +539,9 @@ class GraphicMatroid(Matroid):
         else:
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in groundset")
+        # To prevent an error for iterating over None:
+        if X is None:
+            X = []
 
         G = self.graph()
         vertices = G.vertices()
@@ -557,8 +564,7 @@ class GraphicMatroid(Matroid):
                 else:
                     raise ValueError("the edges are not all incident with u")
 
-        for e in edgelist:
-            if e[0] == u:
+            elif e[0] == u:
                 G.add_edge(v, e[1], e[2])
             elif e[1] == u:
                 G.add_edge(e[0], v, e[2])
@@ -566,3 +572,15 @@ class GraphicMatroid(Matroid):
         G.add_edge(u, v, element)
 
         return GraphicMatroid(deepcopy(G))
+
+    def twist(self, u, v):
+        """
+        Performs a Whitney twist on the graph
+        and rearranges vertex sums at ``u`` and ``v``
+        if ``(u,v)`` displays a 2-separation.
+        """
+        #Idea: use G.blocks_and_cut_vertices()
+        #If u and v are in the same block, check if deleting them disconnects the block
+        #If so, throw an error. If not, we can twist.
+        #If u or v is a cut vertex, things will get moved to the other side.
+        pass

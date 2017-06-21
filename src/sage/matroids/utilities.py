@@ -369,7 +369,7 @@ def spanning_forest(M):
 
     INPUT:
 
-    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the 
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the
       rows and columns, if `M[i,j]` is non-zero, then there is an edge
       between row `i` and column `j`.
 
@@ -403,19 +403,19 @@ def spanning_forest(M):
 
 def spanning_stars(M):
     r"""
-    Returns the edges of a connected subgraph that is a union of 
+    Returns the edges of a connected subgraph that is a union of
     all edges incident some subset of vertices.
 
     INPUT:
 
-    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the 
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the
       rows and columns, if `M[i,j]` is non-zero, then there is an edge
       between row i and column 0.
 
     OUTPUT:
 
     A list of tuples `(row,column)` in a spanning forest of the bipartite graph defined by ``M``
-    
+
     EXAMPLES::
 
         sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
@@ -724,3 +724,53 @@ def lift_map(target):
             R(-5)**(-1): G(-t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
 
     raise NotImplementedError(target)
+
+def contract_edge(G, e):
+    """
+    Contract an edge of a graph. This corresponds to contracting an element
+    of a graphic matroid. Unlike the
+    :meth:`Graph.merge_vertices() <sage.graphs.graph.Graph.merge_vertices>`
+    method, this will send edges to loops if an edge in parallel is contracted.
+
+    INPUT:
+
+    - ``G`` - A graph.
+    - ``e`` - A 3-tuple specifying the edge to be contracted.
+
+    OUTPUT:
+
+    None.
+
+    EXAMPLES::
+
+        sage: G = graphs.CompleteGraph(4)
+        sage: contract_edge(G,(0,1,None)); G
+        Complete graph: Looped multi-graph on 3 vertices
+        sage: G = graphs.CompleteGraph(4)
+        sage: contract_edge(G,(0,1))
+        Traceback (most recent call last):
+        ...
+        ValueError: specified edge is not in the graph
+
+    """
+    G.allow_multiple_edges(True)
+    G.allow_loops(True)
+
+    if e not in G.edges():
+        raise ValueError("specified edge is not in the graph")
+
+    G.delete_edge(e)
+
+    #If e was a loop, stop there. Otherwise, merge the vertices.
+    if not e[0] == e[1]:
+        # merge_vertices() loses multiedges, so we put them on as loops afterwards
+        edge_label_list = []
+        for edge in G.edges():
+            if ((edge[0] == e[0] and edge[1] == e[1]) or
+                (edge[0] == e[1] and edge[1] == e[0])):
+                edge_label_list.append(edge[2])
+
+        G.merge_vertices([e[0], e[1]])
+
+        for edge_label in edge_label_list:
+            G.add_edge(e[0], e[0], edge_label)

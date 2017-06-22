@@ -9,7 +9,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.six_vertex_model import (SquareIceModel,

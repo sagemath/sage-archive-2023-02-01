@@ -411,7 +411,7 @@ class AlgebraicScheme(scheme.Scheme):
 
         Note that `p=(1,1,0)` is a singular point of `X`. So the
         neighborhood of `p` is not just affine space. The
-        :meth:neighborhood` method returns a presentation of
+        :meth:`neighborhood` method returns a presentation of
         the neighborhood as a subscheme of an auxiliary 2-dimensional
         affine space::
 

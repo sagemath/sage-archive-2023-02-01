@@ -207,7 +207,7 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeMod
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.misc.mrange import cartesian_product_iterator
-
+from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
 
 from copy import copy
@@ -1504,7 +1504,7 @@ class BrandtModuleElement(HeckeModuleElement):
             x = x.element()
         HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -1522,12 +1522,7 @@ class BrandtModuleElement(HeckeModuleElement):
             sage: loads(dumps(B.0)) == B.0
             True
         """
-        if not isinstance(other, BrandtModuleElement):
-            other = self.parent()(other)
-        else:
-            c = cmp(self.parent(), other.parent())
-            if c: return c
-        return cmp(self.element(), other.element())
+        return richcmp(self.element(), other.element(), op)
 
     def monodromy_pairing(self, x):
         """

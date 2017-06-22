@@ -2797,7 +2797,7 @@ class FunctionField_global_integral(FunctionField_global):
         """
         Return the maximal order of the function field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2));
             sage: R.<t> = PolynomialRing(K);

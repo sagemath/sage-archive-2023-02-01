@@ -399,14 +399,16 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G == SmoothCharacterGroupQp(3, QQ)
             True
         """
-        return (type(self) == type(other) and
-                self.prime() == other.prime() and
+        if not isinstance(other, SmoothCharacterGroupGeneric):
+            return False
+
+        return (self.prime() == other.prime() and
                 self.number_field() == other.number_field() and
                 self.base_ring() == other.base_ring())
 
     def __ne__(self, other):
         """
-        Check whether ``self`` is not equalt to ``other``.
+        Check whether ``self`` is not equal to ``other``.
 
         EXAMPLES::
 

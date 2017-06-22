@@ -10670,7 +10670,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-        Make sure loops don't get lost
+        Make sure loops don't get lost::
 
             sage: edgelist = [(0,0,'a'), (0,1,'b'), (1,1,'c')]
             sage: G = Graph(edgelist, loops=True, multiedges=True)

@@ -10723,7 +10723,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``edges`` - a list containing 2-tuples or 4-tuples that represent edges
+        - ``edges`` - a list containing 2-tuples or 3-tuples that represent edges
 
         OUTPUT:
 

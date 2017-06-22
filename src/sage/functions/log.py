@@ -232,7 +232,7 @@ class Function_log1(GinacFunction):
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
                                conversions=dict(maxima='log', fricas='log',
-                                                mathematica='Log'))
+                                                mathematica='Log', giac='ln'))
 
 ln = function_log = Function_log1()
 

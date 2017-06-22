@@ -60,9 +60,7 @@ def mandelbrot_plot(**kwds):
 
     - ``number_of_colors`` -- int (optional - default: 30) number of colors used to plot image
 
-    - ``interacts`` -- boolean (optional - default: ``True``), controls whether plot will have interactive functionality.
-        For a static plot of the Mandelbrot set, set ``interacts`` to ``False``.
-
+    - ``interact`` -- boolean (optional - default: ``True``), controls whether plot will have interactive functionality.
 
     OUTPUT:
 
@@ -76,26 +74,24 @@ def mandelbrot_plot(**kwds):
 
     ::
 
-        mandelbrot_plot(pixel_count= 1000)
+        mandelbrot_plot(pixel_count=1000)
 
     ::
 
-        mandelbrot_plot(base_color= [70,40,240])
+        mandelbrot_plot(base_color=[70, 40, 240])
 
     ::
 
-        mandelbrot_plot(x_center= -0.75, y_center= 0.25, image_width= 1/2, number_of_colors= 75)
+        mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75)
 
-    To use the function outside of the notebook, you must set ``interacts`` to False::
+    To use the function outside of the notebook, you must set ``interact`` to False::
 
-        sage: mandelbrot_plot(interacts= False)
-        Launched png viewer for 500x500px 24-bit RGB image
+        sage: mandelbrot_plot(interact=False)
 
     ::
 
-        sage: mandelbrot_plot(interacts= False, x_center= -1.1, y_center= 0.23,
-        ....: image_width= 1/4096, max_iteration= 10000, number_of_colors= 10000)
-        Launched png viewer for 500x500px 24-bit RGB image
+        sage: mandelbrot_plot(interact=False, x_center=-1.11, y_center=0.2283, image_width=1/128,
+        ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100]) # long time
 
     """
 
@@ -113,19 +109,18 @@ def mandelbrot_plot(**kwds):
     base_color = kwds.pop("base_color", [40, 40, 40])
     iteration_level = kwds.pop("iteration_level", 1)
     number_of_colors = kwds.pop("number_of_colors", 30)
-    interacts = kwds.pop("interacts", True)
+    interacts = kwds.pop("interact", True)
 
     if interacts:
         @interact(layout={'bottom':[['real_center'], ['im_center'], ['width']],
          'top':[['iterations'], ['level_sep'], ['color_num'], ['image_color']]})
-        def _(real_center = input_box(x_center, 'Real'),
-            im_center = input_box(y_center, 'Imaginary'),
-            width = input_box(image_width, 'Width of Image'),
-            iterations = input_box(max_iteration, 'Max Number of Iterations'),
-            level_sep = input_box(iteration_level, 'Iterations between Colors'),
-            color_num = input_box(number_of_colors, 'Number of Colors'),
-            image_color = input_box(base_color, 'RGB Color')):
-            print "Center: %s + %s*i" % (real_center, im_center)
+        def _(real_center=input_box(x_center, 'Real'),
+            im_center=input_box(y_center, 'Imaginary'),
+            width=input_box(image_width, 'Width of Image'),
+            iterations=input_box(max_iteration, 'Max Number of Iterations'),
+            level_sep=input_box(iteration_level, 'Iterations between Colors'),
+            color_num=input_box(number_of_colors, 'Number of Colors'),
+            image_color=input_box(base_color, 'RGB Color')):
             fast_mandel_plot(real_center, im_center, width, iterations, pixel_count, level_sep, color_num, image_color).show()
 
     else:

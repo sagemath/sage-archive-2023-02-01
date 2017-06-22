@@ -53,13 +53,13 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
 
         sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
         sage: fast_mandel_plot(-1, 0, 4, 500, 600, 1, 20, [40, 40, 40])
-        Launched png viewer for 500x500px 24-bit RGB image
+        600x600px 24-bit RGB image
 
     We can focus on smaller parts of the set by adjusting image_width::
 
         sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
-        sage: fast_mandel_plot(-0.75, 0.10, 1/4, 500, 600, 10, 25, [40, 40, 40])
-        Launched png viewer for 500x500px 24-bit RGB image
+        sage: fast_mandel_plot(-1.11, 0.2283, 1/128, 2000, 500, 1, 500, [40, 100, 100]) # long time
+        500x500px 24-bit RGB image
     """
 
     from sage.plot.colors import Color
@@ -82,30 +82,27 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
     for i in range(color_num):
         color_list.append(copy(base_color))
         for j in range(3):
-            color_list[i][j] += i*(255-color_list[i][j])/color_num
+            color_list[i][j] += i * (255 - color_list[i][j]) / color_num
         color_list[i] = tuple(color_list[i])
 
     for row in range(pixel_count):
-        x_coor = x_center + image_width*(row-pixel_count/2)/pixel_count # width of image in cartesian coordinates
+        x_coor = x_center + image_width * (row-pixel_count / 2) / pixel_count # width of image in cartesian coordinates
         for col in range(pixel_count): # loop through pixels
-            y_coor = y_center + image_width*(col-pixel_count/2)/pixel_count
+            y_coor = y_center + image_width * (col-pixel_count / 2) / pixel_count
 
             # compute the orbit of 0 under the map f(z) = z^2 + c
-            new_x,new_y = (0.0, 0.0)
-            iteration = 0
+            new_x, new_y = 0.0, 0.0
 
+            iteration = 0
             while (new_x**2 + new_y**2 <= 4.0 and iteration < max_iteration): # escape condition
-                new_x,new_y = new_x**2 - new_y**2 + x_coor, 2*new_x*new_y + y_coor
+                new_x, new_y = new_x**2 - new_y**2 + x_coor, 2 * new_x * new_y + y_coor
                 iteration += 1
 
             if iteration != max_iteration:
-                level = iteration/level_sep
+                level = iteration / level_sep
 
-            if level < color_num:
-                pixel[row,col] = color_list[level]
-            else:
-                pixel[row,col] = color_list[-1]
-
-            if iteration == max_iteration:
-                pixel[row,col] = (0,0,0)
+                if level < color_num:
+                    pixel[row,col] = color_list[level]
+                else:
+                    pixel[row,col] = color_list[-1]
     return M

@@ -10698,24 +10698,15 @@ class GenericGraph(GenericGraph_pyx):
         if u == v:
             return None
 
-        if self.is_directed():
-            out_edges=self.edge_boundary([v])
-            # this should pick up loops on v
-            in_edges=self.edge_boundary(self.vertices(), [v])
-            v_edges = out_edges + in_edges
-        else:
-            v_edges = self.edges_incident(v)
+        if self.allows_loops():
+            # add loops
+            loop_labels = []
+            for e in self.edges_incident(v):
+                if set([e[0], e[1]]) == set([u, v]):
+                    loop_labels.append(e[2])
+            self.add_edges([(u, u, label) for label in loop_labels])
 
-        for (u1, u2, l) in v_edges:
-            if u1 == v and u2 == v:
-                self.add_edge(u, u, l)
-            # if we try to add a multiedge and they're not allowed, it will fail
-            # silently, but not so for loops
-            elif u1 == v and ( u2 != u or self.allows_loops() ):
-                self.add_edge(u, u2, l)
-            elif u2 == v and ( u1 != u or self.allows_loops() ):
-                self.add_edge(u1, u, l)
-        self.delete_vertex(v)
+        self.merge_vertices([u,v])
 
     def contract_edges(self, edges):
         """
@@ -10787,9 +10778,7 @@ class GenericGraph(GenericGraph_pyx):
         #implementation of union_find
         vertices = set([u for (u, v, label) in edge_list]).union(
             set([v for (u, v, label) in edge_list]))
-        destination = {}
-        for vertex in self.vertices():
-            destination[vertex] = vertex
+        destination = {vertex:vertex for vertex in self.vertices()}
 
         def root(v):
             while v != destination[v]:

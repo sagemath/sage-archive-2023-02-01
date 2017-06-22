@@ -1,3 +1,4 @@
+# distutils: libraries = mpfr
 r"""
 Gauss-Legendre integration for vector-valued functions
 

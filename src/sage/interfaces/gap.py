@@ -185,6 +185,7 @@ from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.structure.element import ModuleElement
 import re
 import os
 import pexpect
@@ -963,8 +964,10 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
+# We need to inherit from ModuleElement to support
+# sage.structure.coerce_actions.ModuleAction
 @instancedoc
-class GapElement_generic(ExtraTabCompletion, ExpectElement):
+class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 

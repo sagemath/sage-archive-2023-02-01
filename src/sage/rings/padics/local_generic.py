@@ -237,7 +237,8 @@ class LocalGeneric(CommutativeRing):
         OUTPUT:
             boolean -- whether self is exact, i.e. False.
 
-        EXAMPLES:
+        EXAMPLES::
+
             #sage: R = Zp(5, 3, 'lazy'); R.is_exact()
             #False
             sage: R = Zp(5, 3, 'fixed-mod'); R.is_exact()

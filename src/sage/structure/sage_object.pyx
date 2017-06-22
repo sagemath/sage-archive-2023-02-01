@@ -1524,7 +1524,7 @@ def picklejar(obj, dir=None):
 
     Test an unaccessible directory::
 
-        sage: import os
+        sage: import os, sys
         sage: os.chmod(dir, 0o000)
         sage: try:
         ....:     uid = os.getuid()
@@ -1532,6 +1532,8 @@ def picklejar(obj, dir=None):
         ....:     uid = -1
         sage: if uid==0:
         ....:     raise OSError('You must not run the doctests as root, geez!')
+        ....: elif sys.platform == 'cygwin':
+        ....:     raise OSError("This won't always behave on Cygwin depending on permission handling configuration.")
         ....: else:
         ....:     sage.structure.sage_object.picklejar(1, dir + '/noaccess')
         Traceback (most recent call last):

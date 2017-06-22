@@ -126,8 +126,7 @@ class MemoryChunk(object):
             sage: print(mc.init_class_members())
                     count = args['args']
                     self._n_args = count
-                    self._args = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * count)
-                    if self._args == NULL: raise MemoryError
+                    self._args = <mpfr_t*>check_allocarray(self._n_args, sizeof(mpfr_t))
                     for i in range(count):
                         mpfr_init2(self._args[i], self.domain.prec())
             <BLANKLINE>
@@ -304,8 +303,7 @@ class MemoryChunkLonglivedArray(MemoryChunk):
             sage: print(mc.init_class_members())
                     count = args['args']
                     self._n_args = count
-                    self._args = <double*>sig_malloc(sizeof(double) * count)
-                    if self._args == NULL: raise MemoryError
+                    self._args = <double*>check_allocarray(self._n_args, sizeof(double))
             <BLANKLINE>
         """
         return je(ri(0, """
@@ -368,8 +366,7 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
             sage: print(mc.init_class_members())
                     val = args['constants']
                     self._n_constants = len(val)
-                    self._constants = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * len(val))
-                    if self._constants == NULL: raise MemoryError
+                    self._constants = <mpfr_t*>check_allocarray(self._n_constants, sizeof(mpfr_t))
                     for i in range(len(val)):
                         mpfr_init2(self._constants[i], self.domain.prec())
                     for i in range(len(val)):

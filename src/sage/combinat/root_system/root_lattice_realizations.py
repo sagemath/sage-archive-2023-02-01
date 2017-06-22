@@ -1599,7 +1599,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: pi[1](x[2])
                 -Lambda[1] + 2*Lambda[2]
 
-            TESTS:
+            TESTS::
+
                 sage: pi
                 pi
             """

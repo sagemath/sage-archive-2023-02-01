@@ -135,7 +135,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, R, monomials,
                                          prefix='', bracket=False, latex_bracket=False,
                                          sorting_key=self._monomial_key,
-                                         category=Algebras(R).WithBasis())
+                                         category=Algebras(R).WithBasis().Filtered())
 
     def _basis_key(self, x):
         """
@@ -157,8 +157,25 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: prod(PBW.gens())  # indirect doctest
             PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
+
+        Check that :trac:`23266` is fixed::
+
+            sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+            sage: sl2.indices()
+            {'e1', 'f1', 'h1'}
+            sage: type(sl2.basis().keys())
+            <type 'list'>
+            sage: Usl2 = sl2.pbw_basis()
+            sage: Usl2._basis_key(2)
+            2
+            sage: Usl2._basis_key(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not in list
         """
         K = self._g.basis().keys()
+        if isinstance(K, (list, tuple)):
+            return K.index(x)
         if K.cardinality() == float('inf'):
             return x
         lst = list(K)
@@ -345,6 +362,19 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: E * F * H * E
             PBW['E']^2*PBW['F']*PBW['H'] + 2*PBW['E']^2*PBW['F']
              - PBW['E']*PBW['H']^2 - 2*PBW['E']*PBW['H']
+
+        TESTS:
+
+        Check that :trac:`23268` is fixed::
+
+            sage: MS = MatrixSpace(QQ, 2,2)
+            sage: gl = LieAlgebra(associative=MS)
+            sage: Ugl = gl.pbw_basis()
+            sage: prod(Ugl.gens())
+            PBW[(0, 0)]*PBW[(0, 1)]*PBW[(1, 0)]*PBW[(1, 1)]
+            sage: prod(reversed(list(Ugl.gens())))
+            PBW[(0, 0)]*PBW[(0, 1)]*PBW[(1, 0)]*PBW[(1, 1)]
+             - PBW[(0, 0)]^2*PBW[(1, 1)] + PBW[(0, 0)]*PBW[(1, 1)]^2
         """
         # Some trivial base cases
         if lhs == self.one_basis():
@@ -363,7 +393,26 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         terms = self._g.monomial(trail).bracket(self._g.monomial(lead))
         lead = I.gen(lead)
         trail = I.gen(trail)
-        terms = self.sum_of_terms((I.gen(t), c) for t,c in terms)
+        mc = terms.monomial_coefficients(copy=False)
+        terms = self.sum_of_terms((I.gen(t), c) for t,c in mc.items())
         terms += self.monomial(lead * trail)
         return self.monomial(lhs // trail) * terms * self.monomial(rhs // lead)
+
+    def degree_on_basis(self, m):
+        """
+        Return the degree of the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.sl(QQ, 2)
+            sage: PBW = L.pbw_basis()
+            sage: E,F,H = PBW.algebra_generators()
+            sage: PBW.degree_on_basis(E.leading_support())
+            1
+            sage: PBW.degree_on_basis(((H*F)^10).leading_support())
+            20
+            sage: ((H*F*E)^4).maximal_degree()
+            12
+        """
+        return m.length()
 

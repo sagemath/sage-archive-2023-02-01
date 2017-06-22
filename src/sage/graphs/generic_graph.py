@@ -10709,7 +10709,7 @@ class GenericGraph(GenericGraph_pyx):
         for (u1, u2, l) in v_edges:
             if u1 == v and u2 == v:
                 self.add_edge(u, u, l)
-            # if we try to add a multiedge and they're not allows, it will fail
+            # if we try to add a multiedge and they're not allowed, it will fail
             # silently, but not so for loops
             elif u1 == v and ( u2 != u or self.allows_loops() ):
                 self.add_edge(u, u2, l)
@@ -10744,9 +10744,9 @@ class GenericGraph(GenericGraph_pyx):
 
         ::
 
-            sage: G = graphs.CompleteGraph(4).to_directed()
-            sage: G.allow_loops(True); G.allow_multiple_edges(True)
-            sage: G.contract_edges([(0,1),(1,0),(0,2)]); G.edges()
+            sage: D = graphs.CompleteGraph(4).to_directed()
+            sage: D.allow_loops(True); D.allow_multiple_edges(True)
+            sage: D.contract_edges([(0,1),(1,0),(0,2)]); D.edges()
             [(0, 0, None),
              (0, 0, None),
              (0, 0, None),
@@ -10784,20 +10784,43 @@ class GenericGraph(GenericGraph_pyx):
         # drop non-edges so they don't miraculously become edges after contraction
         edge_list = [e for e in edge_list if self.has_edge(e)]
 
-        while edge_list:
-            (u, v, label) = edge_list.pop(0)
-            edge_list2 = copy(edge_list)
-            self.contract_edge(u, v, label)
-            # we must update the remaining input to replace all instances
-            # of v with u
-            while edge_list2:
-                (u0, v0, label0) = edge_list2.pop(0)
-                edge_list.remove((u0, v0, label0))
-                if u0 == v:
-                    u0 = u
-                if v0 == v:
-                    v0 = u
-                edge_list.append((u0, v0, label0))
+        #implementation of union_find
+        vertices = set([u for (u, v, label) in edge_list]).union(
+            set([v for (u, v, label) in edge_list]))
+        destination = {}
+        for vertex in self.vertices():
+            destination[vertex] = vertex
+
+        def root(v):
+            while v != destination[v]:
+                v = destination[v]
+            return v
+
+        def unite(u, v):
+            root_u = root(u)
+            root_v = root(v)
+            destination[root_v] = root_u
+
+        for (u, v, label) in edge_list:
+            unite(u, v)
+
+        self.delete_edges(edge_list)
+        edges_incident = []
+        vertices = [v for v in vertices if v!= destination[v]]
+        if self.is_directed():
+            for v in vertices:
+                out_edges=self.edge_boundary([v])
+                in_edges=self.edge_boundary(self.vertices(), [v])
+                edges_incident = edges_incident + out_edges + in_edges
+                self.delete_vertex(v)
+        else:
+            for v in vertices:
+                edges_incident = edges_incident + self.edges_incident(v)
+                self.delete_vertex(v)
+
+        for (u, v, label) in edges_incident:
+            if root(v) != root(u) or self.allows_loops():
+                self.add_edge(root(u), root(v), label)
 
     def delete_multiedge(self, u, v):
         """

@@ -17,7 +17,7 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.structure.sage_object cimport richcmp, rich_to_bool
+from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
 cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):

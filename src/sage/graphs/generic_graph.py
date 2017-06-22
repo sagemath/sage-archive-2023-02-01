@@ -1661,7 +1661,7 @@ class GenericGraph(GenericGraph_pyx):
         return d
 
     def adjacency_matrix(self, sparse=None, vertices=None):
-        r""" 
+        r"""
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring
@@ -10624,6 +10624,164 @@ class GenericGraph(GenericGraph_pyx):
         """
         for e in edges:
             self.delete_edge(e)
+
+    def contract_edge(self, u, v=None, label=None):
+        """
+        Contract an edge from u to v, returning silently if vertices or edge
+        does not exist.
+
+        INPUT: The following forms are all accepted:
+
+        - G.contract_edge( 1, 2 )
+        - G.contract_edge( (1, 2) )
+        - G.contract_edges( [ (1, 2) ] )
+        - G.contract_edge( 1, 2, 'label' )
+        - G.contract_edge( (1, 2, 'label') )
+        - G.contract_edges( [ (1, 2, 'label') ] )
+
+        OUTPUT:
+
+        None.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.contract_edge((0,1)); G.edges()
+            [(0, 2, None), (0, 3, None), (2, 3, None)]
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edge((0,1)); G.edges()
+            [(0, 2, None), (0, 2, None), (0, 3, None), (0, 3, None), (2, 3, None)]
+            sage: G.contract_edge((0,2)); G.edges()
+            [(0, 0, None), (0, 3, None), (0, 3, None), (0, 3, None)]
+
+        ::
+
+            sage: G = graphs.CompleteGraph(4).to_directed()
+            sage: G.allow_loops(True)
+            sage: G.contract_edge(0,1); G.edges()
+            [(0, 0, None),
+             (0, 2, None),
+             (0, 3, None),
+             (2, 0, None),
+             (2, 3, None),
+             (3, 0, None),
+             (3, 2, None)]
+
+        TESTS::
+
+        Make sure loops don't get lost
+
+            sage: edgelist = [(0,0,'a'), (0,1,'b'), (1,1,'c')]
+            sage: G = Graph(edgelist, loops=True, multiedges=True)
+            sage: G.contract_edge(0,1,'b'); G.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+            sage: D = DiGraph(edgelist, loops=True, multiedges=True)
+            sage: D.contract_edge(0,1,'b'); D.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+
+        """
+        # standard code to allow 3 arguments or a single tuple:
+        if label is None:
+            if v is None:
+                try:
+                    u, v, label = u
+                except Exception:
+                    u, v = u
+                    label = None
+        # unlike delete_edge(), we must be careful about contracting non-edges
+        if not self.has_edge(u, v, label):
+            return None
+        self.delete_edge(u ,v ,label)
+        # if the edge was a loop, stop
+        # this could potentially leave isolated vertices
+        if u == v:
+            return None
+
+        if self.is_directed():
+            out_edges=self.edge_boundary([v])
+            # this should pick up loops on v
+            in_edges=self.edge_boundary(self.vertices(), [v])
+            v_edges = out_edges + in_edges
+        else:
+            v_edges = self.edges_incident(v)
+
+        for (u1, u2, l) in v_edges:
+            if u1 == v and u2 == v:
+                self.add_edge(u, u, l)
+            # if we try to add a multiedge and they're not allows, it will fail
+            # silently, but not so for loops
+            elif u1 == v and ( u2 != u or self.allows_loops() ):
+                self.add_edge(u, u2, l)
+            elif u2 == v and ( u1 != u or self.allows_loops() ):
+                self.add_edge(u1, u, l)
+        self.delete_vertex(v)
+
+    def contract_edges(self, edges):
+        """
+        Contract edges from an iterable container.
+
+        INPUT:
+
+        - ``edges`` - a list containing 2-tuples or 4-tuples that represent edges
+
+        OUTPUT:
+
+        None.
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edges([(0,1),(1,2),(0,2)]); G.edges()
+            [(0, 3, None), (0, 3, None), (0, 3, None)]
+            sage: G.contract_edges([(1,3),(2,3)]); G.edges()
+            [(0, 3, None), (0, 3, None), (0, 3, None)]
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edges([(0,1),(1,2),(0,2),(1,3),(2,3)]); G.edges()
+            [(0, 0, None)]
+
+        ::
+
+            sage: G = graphs.CompleteGraph(4).to_directed()
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edges([(0,1),(1,0),(0,2)]); G.edges()
+            [(0, 0, None),
+             (0, 0, None),
+             (0, 0, None),
+             (0, 3, None),
+             (0, 3, None),
+             (0, 3, None),
+             (3, 0, None),
+             (3, 0, None),
+             (3, 0, None)]
+
+        """
+        edge_list = []
+        for e in edges:
+            # try to get the vertices and label of e as distinct variables
+            try:
+                u, v, label = e
+            except Exception:
+                u, v = e
+                label = None
+            edge_list.append((u, v, label))
+
+        while edge_list:
+            (u, v, label) = edge_list.pop(0)
+            edge_list2 = copy(edge_list)
+            self.contract_edge(u, v, label)
+            # we must update the remaining input to replace all instances
+            # of v with u
+            while edge_list2:
+                (u0, v0, label0) = edge_list2.pop(0)
+                edge_list.remove((u0, v0, label0))
+                if u0 == v:
+                    u0 = u
+                if v0 == v:
+                    v0 = u
+                edge_list.append((u0, v0, label0))
 
     def delete_multiedge(self, u, v):
         """
@@ -21372,7 +21530,7 @@ class GenericGraph(GenericGraph_pyx):
             (True, None)
 
         Deprecation from :trac:`21111`::
- 
+
             sage: G = DiGraph({'a':['b']})
             sage: H = DiGraph({0:[1]})
             sage: G.is_isomorphic(H, certify=True)

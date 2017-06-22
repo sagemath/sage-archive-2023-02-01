@@ -10757,6 +10757,20 @@ class GenericGraph(GenericGraph_pyx):
              (3, 0, None),
              (3, 0, None)]
 
+        TESTS::
+
+        With non-edges in the input::
+
+            sage: G = graphs.BullGraph(); G.add_edge(3,4); G.edges()
+            [(0, 1, None),
+             (0, 2, None),
+             (1, 2, None),
+             (1, 3, None),
+             (2, 4, None),
+             (3, 4, None)]
+            sage: G.contract_edges([(1,3),(1,4)]); G.edges()
+            [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
+
         """
         edge_list = []
         for e in edges:
@@ -10767,6 +10781,8 @@ class GenericGraph(GenericGraph_pyx):
                 u, v = e
                 label = None
             edge_list.append((u, v, label))
+        # drop non-edges so they don't miraculously become edges after contraction
+        edge_list = [e for e in edge_list if self.has_edge(e)]
 
         while edge_list:
             (u, v, label) = edge_list.pop(0)

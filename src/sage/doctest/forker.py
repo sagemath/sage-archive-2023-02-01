@@ -2013,7 +2013,7 @@ class DocTestWorker(multiprocessing.Process):
         Kill this worker
 
         This method is only called if there is something wrong with the
-        worker. Under normal circumstances, the worker is supported to
+        worker. Under normal circumstances, the worker is supposed to
         exit by himself after finishing.
 
         The first time this is called, use ``SIGQUIT``. This will trigger

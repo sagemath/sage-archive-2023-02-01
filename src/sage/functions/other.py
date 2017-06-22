@@ -2210,6 +2210,7 @@ class Function_real_part(GinacFunction):
             0
             sage: real_part(real_part(x))
             x
+            sage: forget()
 
         TESTS::
 

@@ -498,6 +498,14 @@ Verify that :trac:`10981` is fixed::
     sage: P = 1/(1+x^4)
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
+
+Check that :trac:`22202` is fixed::
+
+    sage: R1.<x> = AA[]; R2.<s> = QQbar[]
+    sage: v = QQbar.polynomial_root(x^2 - x + 1, CIF(0.5, RIF(-0.87, -0.85)))
+    sage: a = QQbar.polynomial_root((-4*v + 2)*s + (v - 1/2), CIF(RIF(0.24, 0.26), RIF(0)))
+    sage: QQ(a)
+    1/4
 """
 
 from __future__ import absolute_import, print_function
@@ -510,10 +518,11 @@ import operator
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import (SageObject, richcmp,
-                                        rich_to_bool, richcmp_not_equal,
-                                        op_EQ, op_NE, op_LE, op_LT,
-                                        op_GE, op_GT)
+from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import (richcmp,
+                                    rich_to_bool, richcmp_not_equal,
+                                    op_EQ, op_NE, op_LE, op_LT,
+                                    op_GE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
 from sage.rings.complex_field import ComplexField

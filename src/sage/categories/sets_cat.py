@@ -125,7 +125,7 @@ class Sets(Category_singleton):
         <class 'sage.categories.sets_cat.Sets.parent_class'>
         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.parent_class'>
         <class 'sage.categories.objects.Objects.parent_class'>
-        <type 'object'>
+        <... 'object'>
 
     We run some generic checks on P::
 
@@ -183,7 +183,7 @@ class Sets(Category_singleton):
         <class 'sage.categories.sets_cat.Sets.element_class'>
         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.element_class'>
         <class 'sage.categories.objects.Objects.element_class'>
-        <type 'object'>
+        <... 'object'>
 
     FIXME: Objects.element_class is not very meaningful ...
 

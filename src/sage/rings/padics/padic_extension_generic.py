@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
-from sage.structure.sage_object import op_EQ
+from sage.structure.richcmp import op_EQ
 from functools import reduce
 
 
@@ -81,6 +81,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
             elif R._prec_type() == 'capped-rel':
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+            elif R._prec_type() == 'floating-point':
+                from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
             return coerce_map(R, self)
 
     def __eq__(self, other):

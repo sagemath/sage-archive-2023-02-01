@@ -1878,18 +1878,38 @@ cdef class FormalCompositeMap(Map):
             sage: c3 = FormalCompositeMap(Hom(V2, QQ^1, phi2.category_for()), psi2, psi1)
             sage: c3.is_injective()
             False
+
+        TESTS:
+
+        Check that :trac:`23205` has been resolved::
+
+            sage: f = QQ.hom(QQbar)*ZZ.hom(QQ)
+            sage: f.is_injective()
+            True
+
         """
-        # Maybe the category can tell us something
         try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
             return self.getattr_from_category('is_injective')()
         except NotImplementedError:
             pass
-        without_bij = (f for f in self.__list if not (f.is_injective() and f.is_surjective()))
-        if not next(without_bij).is_injective():
+
+        injectives = []
+        for f in self.__list:
+            if f.is_injective():
+                injectives.append(f)
+            else:
+                break
+        else:
+            return True
+
+        if all([f.is_surjective() for f in injectives]):
             return False
 
-        if all(f.is_injective() for f in without_bij):
-            return True
         raise NotImplementedError("Not enough information to deduce injectivity.")
 
     def is_surjective(self):
@@ -1934,17 +1954,28 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
-        # Maybe the category can tell us something
         try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
             return self.getattr_from_category('is_surjective')()
         except NotImplementedError:
             pass
-        without_bij = (f for f in self.__list[-1::-1] if not (f.is_injective() and f.is_surjective()))
-        if not next(without_bij).is_surjective():
+
+        surjectives = []
+        for f in self.__list[::-1]:
+            if f.is_surjective():
+                surjectives.append(f)
+            else:
+                break
+        else:
+            return True
+
+        if all([f.is_injective() for f in surjectives]):
             return False
 
-        if all(f.is_surjective() for f in without_bij):
-            return True
         raise NotImplementedError("Not enough information to deduce surjectivity.")
 
     def domains(self):

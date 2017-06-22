@@ -71,7 +71,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         if check and not p.is_prime():
             raise ArithmeticError("p must be prime")
         self.__char = p
-        self._kwargs = {}
         # FiniteField_generic does nothing more than IntegerModRing_generic, and
         # it saves a non trivial overhead
         integer_mod_ring.IntegerModRing_generic.__init__(self, p, category=_FiniteFields)

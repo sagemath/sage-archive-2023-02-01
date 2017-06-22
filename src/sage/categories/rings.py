@@ -94,11 +94,7 @@ class Rings(CategoryWithAxiom):
             Unless the codomain is the zero ring::
 
                 sage: codomain = Integers(1)
-                sage: f = K.hom([codomain(1)]); f
-                Function Field morphism:
-                  From: Rational function field in x over Rational Field
-                  To:   Ring of integers modulo 1
-                  Defn: x |--> 0
+                sage: f = QQ.hom([Zmod(1)(0)], check=False)
                 sage: f.is_injective()
                 False
 
@@ -877,8 +873,24 @@ class Rings(CategoryWithAxiom):
 
                 sage: QQ[I]
                 Number Field in I with defining polynomial x^2 + 1
+                sage: QQ[I].coerce_embedding()
+                Generic morphism:
+                 From: Number Field in I with defining polynomial x^2 + 1
+                 To:   Complex Lazy Field
+                 Defn: I -> 1*I
+
+            ::
+
                 sage: QQ[sqrt(2)]
                 Number Field in sqrt2 with defining polynomial x^2 - 2
+                sage: QQ[sqrt(2)].coerce_embedding()
+                Generic morphism:
+                 From: Number Field in sqrt2 with defining polynomial x^2 - 2
+                 To:   Real Lazy Field
+                 Defn: sqrt2 -> 1.414213562373095?
+
+            ::
+
                 sage: QQ[sqrt(2),sqrt(3)]
                 Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
@@ -890,6 +902,18 @@ class Rings(CategoryWithAxiom):
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5
                 sage: ZZ[sqrt(2)+sqrt(3)]
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+
+            Embeddings are found for simple extensions (when that makes sense)::
+
+                sage: QQi.<i> = QuadraticField(-1, 'i')
+                sage: QQ[i].coerce_embedding()
+                Generic morphism:
+                  From: Number Field in i with defining polynomial x^2 + 1
+                  To:   Complex Lazy Field
+                  Defn: i -> 1*I
+                sage: QQi.<i> = QuadraticField(-1, embedding=None)
+                sage: QQ[i].coerce_embedding() is None
+                True
 
             TESTS:
 
@@ -936,6 +960,21 @@ class Rings(CategoryWithAxiom):
                 sage: K.base_field().base_field()
                 Number Field in b with defining polynomial x^3 - 3
 
+            Embeddings::
+
+                sage: QQ[I](I.pyobject())
+                I
+                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
+                sage: QQ[expr].coerce_embedding() is None
+                False
+                sage: QQ[sqrt(5)].gen() > 0
+                True
+                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)
+                sage: QQ[expr].coerce_embedding()
+                Generic morphism:
+                  From: Number Field in a with defining polynomial x^2 - 2
+                  To:   Real Lazy Field
+                  Defn: a -> 1.414213562373095?
             """
             def normalize_arg(arg):
                 if isinstance(arg, (tuple, list)):
@@ -980,8 +1019,36 @@ class Rings(CategoryWithAxiom):
 
             if minpolys:
                 # how to pass in names?
-                # TODO: set up embeddings
                 names = tuple(_gen_names(elts))
+                if len(elts) == 1:
+                    from sage.rings.all import CIF, CLF, RIF, RLF
+                    elt = elts[0]
+                    try:
+                        iv = CIF(elt)
+                    except (TypeError, ValueError):
+                        emb = None
+                    else:
+                        # First try creating an ANRoot manually, because
+                        # extension(..., embedding=CLF(expr)) (or
+                        # ...QQbar(expr)) would normalize the expression in
+                        # QQbar, which currently is VERY slow in many cases.
+                        # This may fail when minpoly has close roots or elt is
+                        # a complicated symbolic expression.
+                        # TODO: Rewrite using #19362 and/or #17886 and/or
+                        # #15600 once those issues are solved.
+                        from sage.rings.qqbar import AlgebraicNumber, ANRoot
+                        try:
+                            elt = AlgebraicNumber(ANRoot(minpolys[0], iv))
+                        except ValueError:
+                            pass
+                        # Force a real embedding when possible, to get the
+                        # right ordered ring structure.
+                        if (iv.imag().is_zero() or iv.imag().contains_zero()
+                                                   and elt.imag().is_zero()):
+                            emb = RLF(elt)
+                        else:
+                            emb = CLF(elt)
+                        return self.extension(minpolys[0], names[0], embedding=emb)
                 try:
                     # Doing the extension all at once is best, if possible...
                     return self.extension(minpolys, names)

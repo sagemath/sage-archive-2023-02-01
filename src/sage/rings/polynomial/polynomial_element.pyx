@@ -369,7 +369,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return point(z, *args, **kwds)
         raise NotImplementedError("plotting of polynomials over %s not implemented"%R)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply self on the left by a scalar.
 
@@ -389,7 +389,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self._parent.zero()
         return self.parent()(left) * self
 
-    cpdef _rmul_(self, RingElement right):
+    cpdef _rmul_(self, Element right):
         """
         Multiply self on the right by a scalar.
 
@@ -2088,7 +2088,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x/5
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+            ZeroDivisionError: division by zero in finite field
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
@@ -8014,6 +8014,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_irreducible()
             True
 
+        If the base ring implements `_is_irreducible_univariate_polynomial`,
+        then this method gets used instead of the generic algorithm which just
+        factors the input::
+
+            sage: R.<x> = QQbar[]
+            sage: hasattr(QQbar, "_is_irreducible_univariate_polynomial")
+            True
+            sage: (x^2 + 1).is_irreducible()
+            False
+
         Constants can be irreducible if they are not units::
 
             sage: R.<x> = ZZ[]
@@ -8040,6 +8050,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return False
         if self.degree() == 0:
             return self.base_ring()(self).is_irreducible()
+
+        B = self.parent().base_ring()
+        if hasattr(B, '_is_irreducible_univariate_polynomial'):
+            return B._is_irreducible_univariate_polynomial(self)
 
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:
@@ -8147,6 +8161,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef _inplace_truncate(self, long prec):
         return self.truncate(prec)
 
+    @cached_method
     def is_squarefree(self):
         """
         Return False if this polynomial is not square-free, i.e., if there is a
@@ -8235,6 +8250,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             TypeError: is_squarefree() is not defined for polynomials over Ring of integers modulo 9
 
         TESTS:
+
+        Check that the results are cached::
+
+            sage: R.<x> = ZZ[]
+            sage: f = x^2
+            sage: f.is_squarefree()
+            False
+            sage: f.is_squarefree.cache
+            False
 
         If the base ring implements `_is_squarefree_univariate_polynomial`,
         then this method gets used instead of the generic algorithm in
@@ -9851,7 +9875,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         if not self.__coeffs:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:
@@ -9863,7 +9887,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         res.__normalize()
         return res
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         if not self.__coeffs:
             return self
         if c._parent is not (<Element>self.__coeffs[0])._parent:

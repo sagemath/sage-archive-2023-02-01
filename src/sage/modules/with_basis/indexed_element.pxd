@@ -7,6 +7,6 @@ cdef class IndexedFreeModuleElement(Element):
 
     cpdef dict monomial_coefficients(self, bint copy=*)
     cpdef _coefficient_fast(self, m)
-    cpdef _lmul_(self, RingElement right)
-    cpdef _rmul_(self, RingElement left)
+    cpdef _lmul_(self, Element right)
+    cpdef _rmul_(self, Element left)
 

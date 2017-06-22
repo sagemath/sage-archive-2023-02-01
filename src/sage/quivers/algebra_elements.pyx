@@ -1203,7 +1203,7 @@ cdef class PathAlgebraElement(RingElement):
 
 ## (scalar) multiplication
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -1234,7 +1234,7 @@ cdef class PathAlgebraElement(RingElement):
             return self._new_(outnxt)
         return self._new_(out)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 

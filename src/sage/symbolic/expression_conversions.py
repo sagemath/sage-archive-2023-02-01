@@ -154,10 +154,10 @@ class Converter(object):
 
     def __call__(self, ex=None):
         """
-        .. note::
+        .. NOTE::
 
-           If this object does not have an attribute *ex*, then an argument
-           must be passed into :meth`__call__`::
+            If this object does not have an attribute ``ex``, then an argument
+            must be passed into :meth:`__call__`.
 
         EXAMPLES::
 

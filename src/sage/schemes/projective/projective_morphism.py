@@ -3512,7 +3512,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N) for j in range(i+1, N)]
             L = [t for t in L if t != 0]
             X = PS.subscheme(L + list(dom.defining_polynomials()))
-            if return_scheme: #this includes the indeterminancy locus points!
+            if return_scheme:  # this includes the indeterminacy locus points!
                 if minimal and n != 1:
                     raise NotImplementedError("return_subscheme only implemented for minimal=False")
                 return X

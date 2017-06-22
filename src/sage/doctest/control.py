@@ -720,8 +720,8 @@ class DocTestController(SageObject):
 
             sage: dirname = tmp_dir()
             sage: filename = os.path.join(dirname, 'not_tested.py')
-            sage: with open(filename, 'w') as F:
-            ....:     _ = F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: DC.sources

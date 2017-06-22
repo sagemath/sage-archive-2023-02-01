@@ -965,7 +965,8 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of infinite algebras over (quotient fields and metric spaces)
+            Category of infinite finite dimensional algebras with basis
+             over (quotient fields and metric spaces)
             sage: MS in Rings()
             True
 
@@ -1567,6 +1568,7 @@ cdef class Parent(category_object.CategoryObject):
         D = mor.domain()
 
         assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from {} to {} already registered or discovered".format(D, self)
+        mor._is_coercion = True
         self._coerce_from_list.append(mor)
         self._registered_domains.append(D)
         self._coerce_from_hash.set(D,mor)
@@ -2090,6 +2092,7 @@ cdef class Parent(category_object.CategoryObject):
         if S is self:
             from sage.categories.homset import Hom
             mor = Hom(self, self).identity()
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             return mor
 
@@ -2098,6 +2101,7 @@ cdef class Parent(category_object.CategoryObject):
             if debug.unique_parent_warnings:
                 print("Warning: non-unique parents %s" % (type(S)))
             mor = self._generic_coerce_map(S)
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
             return mor
@@ -2125,6 +2129,7 @@ cdef class Parent(category_object.CategoryObject):
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
                 if mor is not None:
+                    mor._is_coercion = True
                     mor._make_weak_references()
             return mor
         except CoercionException as ex:
@@ -2188,9 +2193,9 @@ cdef class Parent(category_object.CategoryObject):
             sage: c.parent() is M
             True
             sage: K.coerce_map_from(QQ)
-            Conversion map:
-            From: Rational Field
-            To:   Number Field in a with defining polynomial x^2 - 2 over its base field
+            Coercion map:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 - 2 over its base field
 
         Test that :trac:`17981` is fixed::
 
@@ -2232,7 +2237,7 @@ cdef class Parent(category_object.CategoryObject):
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
-            Conversion map:
+            Coercion map:
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
         """

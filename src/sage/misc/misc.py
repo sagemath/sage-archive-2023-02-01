@@ -41,13 +41,13 @@ from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types
 
-from warnings import warn
 import os
 import stat
 import sys
 import time
 import resource
 import sage.misc.prandom as random
+import warnings
 from .lazy_string import lazy_string
 
 
@@ -1793,7 +1793,7 @@ def get_main_globals():
     return G
 
 
-def inject_variable(name, value):
+def inject_variable(name, value, warn=True):
     """
     Inject a variable into the main global namespace.
 
@@ -1801,6 +1801,7 @@ def inject_variable(name, value):
 
     - ``name``  -- a string
     - ``value`` -- anything
+    - ``warn`` -- a boolean (default: :obj:`False`)
 
     EXAMPLES::
 
@@ -1826,6 +1827,13 @@ def inject_variable(name, value):
         doctest:...: UserWarning: blah
         sage: warn("blah")
 
+    Warnings can be disabled::
+
+        sage: b = 3
+        sage: inject_variable("b", 42, warn=False)
+        sage: b
+        42
+
     Use with care!
     """
     assert isinstance(name, str)
@@ -1833,8 +1841,8 @@ def inject_variable(name, value):
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.
     G = get_main_globals()
-    if name in G:
-        warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+    if name in G and warn:
+        warnings.warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
     G[name] = value
 
 

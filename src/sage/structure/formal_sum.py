@@ -402,7 +402,7 @@ class FormalSums(UniqueRepresentation, Module):
 
             sage: FormalSums(ZZ).get_action(QQ)   # indirect test
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
         """
@@ -437,7 +437,7 @@ class FormalSums(UniqueRepresentation, Module):
 
             sage: A = FormalSums(ZZ);  A.get_action(QQ)
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
             sage: A = FormalSums(QQ);  A.get_action(ZZ)

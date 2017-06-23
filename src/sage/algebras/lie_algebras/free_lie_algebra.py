@@ -201,7 +201,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
 
         .. MATH::
 
-            \frac{1}{k} \sum_{d \mid k} \mu(d) n^(k/d)
+            \frac{1}{k} \sum_{d \mid k} \mu(d) n^{k/d},
 
         where `\mu` is the Mobius function.
 

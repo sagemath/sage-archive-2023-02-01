@@ -76,7 +76,14 @@ and ask for a new worksheet:
 .. image:: media/JupyterIntroDetails.png
     :align: center
 
-Note that Jupyter will allow you many types of files to open.  To use
+.. NOTE::
+
+   The Jupyter notebook saves your files locally in your normal
+   filesystem, as normal file names.  So if you start the notebook
+   from a different location than usual, you may have to navigate
+   a bit to find your worksheet.
+
+Jupyter will allow you many types of files to open.  To use
 SageMath directly, just choose the Sage type; this will ensure that
 Jupyter runs using Sage and not pure Python or some other language.
 
@@ -108,12 +115,15 @@ like this.
 .. image:: media/SignIn.png
     :align: center
 
-You can create an account in two ways.
+You can create an account in three ways.
 
 - Use an :ref:`OpenID <OpenID>` account to verify your account
 
 - Create a login in the :ref:`standard way <Standard>` by creating a
   username and password.
+
+- If you have opened it on your local machine (e.g. from the command
+  line or the Mac app), you should be automatically logged in.
 
 .. _OpenID:
 
@@ -168,15 +178,25 @@ worksheet <FromScratch>`.
 Two Usage Scenarios
 -------------------
 
-There are two main scenarios when starting with Sage on a server.
+There are two main scenarios when starting with Sage.
 
-- You are going to a Sage server, and just want to start trying some
+- You are running Sage locally or
+  going to a Sage server, and just want to start trying some
   mathematics.  We cover this situation :ref:`first <FromScratch>`.
 
 - Someone has given you a link to a published tutorial or other
   worksheet (perhaps one similar to this!) and you would like to try out
   the mathematics there, using your own editable copy of the worksheet.
   We cover this less common situation :ref:`below <LiveCopy>`.
+
+.. NOTE::
+
+   In either scenario, the Sage notebook will be saving your files
+   in a "hidden" location not meant for ordinary users and you will
+   ordinarily interact with your Sage worksheets only through the
+   notebook server.  Please see the
+   `reference manual <https://doc.sagemath.org/html/en/reference/notebook/index.html>`_
+   for SageNB for more information on how to access all this.
 
 .. _FromScratch:
 

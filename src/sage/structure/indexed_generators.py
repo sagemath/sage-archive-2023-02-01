@@ -522,7 +522,8 @@ def split_index_keywords(kwds):
     ret = {}
     for option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
                    'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
-                   'generator_cmp', 'string_quotes']:
+                   'generator_cmp', 'sorting_key', 'sorting_reverse',
+                   'string_quotes']:
         try:
             ret[option] = kwds.pop(option)
         except KeyError:

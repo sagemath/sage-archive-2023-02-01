@@ -111,6 +111,24 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
     def __ne__(self, other):
         """
         Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: A = species.CombinatorialSpecies()
+            sage: B = species.CombinatorialSpecies()
+            sage: A != B
+            True
+            sage: X = species.SingletonSpecies()
+            sage: A.define(X+A*A)
+            sage: B.define(X+B*B)
+            sage: A != B
+            False
+
+            sage: C = species.CombinatorialSpecies()
+            sage: E = species.EmptySetSpecies()
+            sage: C.define(E+X*C*C)
+            sage: A != C
+            True
         """
         return not (self == other)
 

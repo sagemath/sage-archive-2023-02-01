@@ -1128,7 +1128,7 @@ cdef class Element(SageObject):
         try:
             left_cmp = left.__cmp__
         except AttributeError:
-            left_cmp = None
+            pass
         else:
             return left_cmp(right)
         msg = LazyFormat("comparison not implemented for %r") % type(left)

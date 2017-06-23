@@ -8,7 +8,7 @@ AUTHORS:
 .. TODO::
 
     - when shape is given, check that it is compatible with filling or labels
-    - implement backward rules for :class:`GrowthDiagramDomino` and :class:`GrowthDiagramSylvester`
+    - implement backward rules for :class:`GrowthDiagramDomino`
     - optimise rules, mainly for :class:`GrowthDiagramRSK` and :class:`GrowthDiagramBurge`
     - make semistandard extension generic
 
@@ -153,6 +153,10 @@ REFERENCES:
    *Dual Graded Graphs in Combinatorial Hopf Algebras*.
    https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
 
+.. [vanLee1996] Marc van Leeuwen.
+   *The Robinson-Schensted and Schützenberger algorithms, an elementary approach*.
+   Electronic Journal of Combinatorics 3, no. 2 (1996): Research Paper 15, approx. 32 pp. (electronic)
+
 .. [Vie1983] Xavier G. Viennot.
    *Maximal chains of subwords and up-down sequences of permutations*.
    Journal of Combinatorial Theory, Series A Volume 34, (1983), pp. 1-14
@@ -163,8 +167,12 @@ REFERENCES:
 
 """
 from sage.structure.sage_object import SageObject
+from sage.combinat.posets.posets import Poset
 from sage.combinat.words.word import Word
+from sage.combinat.words.words import Words
 from sage.combinat.binary_tree import BinaryTree
+from sage.combinat.binary_tree import BinaryTrees
+from sage.combinat.composition import Compositions
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
@@ -184,7 +192,7 @@ class GrowthDiagram(SageObject):
     - ``self._rank_function``, the rank function of the dual
       graded graphs,
 
-    - ``self._covers_1``, ``self._covers_2``, functions taking
+    - ``self._covers_Q``, ``self._covers_P``, functions taking
       two vertices as arguments and return True if the first
       covers the second in the respective graded graph.
 
@@ -203,7 +211,7 @@ class GrowthDiagram(SageObject):
         sage: G = GrowthDiagramRSK()
         Traceback (most recent call last):
         ...
-        ValueError: please provide a filling or a sequence of labels.
+        ValueError: Please provide a filling or a sequence of labels.
     """
     def __init__(self,
                  filling = None,
@@ -256,17 +264,17 @@ class GrowthDiagram(SageObject):
           initialise ``labels``.
         """
         try:
-            self._covers_1(self._zero, self._zero)
+            self._covers_Q
         except AttributeError:
-            self._covers_1 = lambda a,b: True
+            self._covers_Q = lambda a,b: True
         try:
-            self._covers_2(self._zero, self._zero)
+            self._covers_P
         except AttributeError:
-            self._covers_2 = lambda a,b: True
+            self._covers_P = lambda a,b: True
 
         if filling is None:
             if labels is None:
-                raise ValueError("please provide a filling or a sequence of labels.")
+                raise ValueError("Please provide a filling or a sequence of labels.")
 
             if shape is None:
                 shape = self._shape_from_labels(labels)
@@ -280,6 +288,40 @@ class GrowthDiagram(SageObject):
             self._in_labels = self._init_labels_forward_from_various_input(labels)
             self._check_labels(self._in_labels)
             self._grow()
+
+    @classmethod
+    def _check_duality(cls, n, r):
+        """
+        Raise an error if the graphs are not r-dual at level n.
+        """
+        def check_vertex(w, P, Q):
+            DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
+            UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
+            UDw.extend([w]*r)
+            assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
+
+        P = cls.P_poset(n+2)
+        Q = cls.Q_poset(n+2)
+        for w in cls.vertices(n):
+            check_vertex(w, Q, P)
+
+    @classmethod
+    def P_poset(cls, n):
+        r"""
+        Return the first n levels of the first dual graded graph.
+        """
+        return Poset(([w for k in range(n) for w in cls.vertices(k)],
+                      lambda x,y: cls._covers_P(y, x)),
+                     cover_relations=True)
+
+    @classmethod
+    def Q_poset(cls, n):
+        r"""
+        Return the first n levels of the second dual graded graph.
+        """
+        return Poset(([w for k in range(n) for w in cls.vertices(k)],
+                      lambda x,y: cls._covers_Q(y, x)),
+                     cover_relations=True)
 
     def filling(self):
         r"""
@@ -577,6 +619,13 @@ class GrowthDiagram(SageObject):
                 self._mu == other._mu and
                 self._filling == other._filling)
 
+    def __ne__(self, other):
+        r"""
+        Return ``True`` if the growth diagram ``other`` does not have the
+        same shape and the same filling as ``self``.
+        """
+        return not self == other
+
     def _half_perimeter(self):
         r"""
         Return half the perimeter of the shape of the growth diagram.
@@ -611,20 +660,21 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: labels = [[],[1],[],[1],[]]
+            sage: labels = [[],[2],[1],[],[1],[]]
             sage: G = GrowthDiagramRSK(labels=labels); G
             0 1
             1
+            1
             sage: G._shape_from_labels(G.out_labels())
-            [2, 1]
+            [2, 1, 1]
 
         """
         def right_left(la, mu):
             if self._rank_function(la) < self._rank_function(mu):
-                assert self._covers_1(mu, la), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
+                assert self._covers_Q(mu, la), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
                 return 1
             elif self._rank_function(la) > self._rank_function(mu):
-                assert self._covers_2(la, mu), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
+                assert self._covers_P(la, mu), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
                 return 0
             else:
                 raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
@@ -997,27 +1047,35 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
     TESTS::
 
-        sage: G = GrowthDiagramBinWord([1,3,2])
-        sage: G._zero
+        sage: BW = GrowthDiagramBinWord
+        sage: BW._zero
         word:
-        sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,1,0],[0,1]])
+        sage: G = BW(labels = [[1,1],[1,1,0],[0,1]])
         Traceback (most recent call last):
         ...
-        AssertionError: 01 has smaller rank than 110 but isn't covered by it!
+        AssertionError: 01 has smaller rank than 110 but isn't covered by it in P!
 
-        sage: G = GrowthDiagramBinWord(labels = [[1,1],[1,0,1],[0,1]])
+        sage: G = BW(labels = [[1,1],[1,0,1],[0,1]])
         Traceback (most recent call last):
         ...
-        AssertionError: 11 has smaller rank than 101 but isn't covered by it!
+        AssertionError: 11 has smaller rank than 101 but isn't covered by it in Q!
 
+    Check duality:
+
+        sage: BW._check_duality(4, 1)
+
+    Check that the rules are bijective::
+
+        sage: all(BW(labels=BW(pi).out_labels()).to_word() == pi for pi in Permutations(4))
+        True
         sage: pi = Permutations(10).random_element()
-        sage: G = GrowthDiagramBinWord(pi)
-        sage: list(GrowthDiagramBinWord(labels=G.out_labels())) == list(G)
+        sage: G = BW(pi)
+        sage: list(BW(labels=G.out_labels())) == list(G)
         True
 
     Test that the Kleitman Greene invariant is indeed the descent word::
 
-        sage: r=4; all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)]) == GrowthDiagramBinWord(w).out_labels()[r] for w in Permutations(r))
+        sage: r=4; all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)]) == BW(w).out_labels()[r] for w in Permutations(r))
         True
 
     """
@@ -1028,15 +1086,32 @@ class GrowthDiagramBinWord(GrowthDiagram):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[0,1]) for la in labels]
-        self._zero = Word([], alphabet=[0,1])
-        self._rank_function = lambda w: len(w)
-        self._covers_1 = lambda w, v: w[:-1] == v
-        self._covers_2 = lambda w, v: v.is_subword_of(w)
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
+    _zero = Word([], alphabet=[0,1])
+
+    @staticmethod
+    def vertices(n):
+        if n == 0:
+            return [GrowthDiagramBinWord._zero]
+        else:
+            w1 = Word([1], [0,1])
+            return [w1+w for w in Words([0,1], n-1)]
+
+    @staticmethod
+    def _rank_function(w):
+        return len(w)
+
+    @staticmethod
+    def _covers_Q(w, v):
+        return w[:-1] == v
+
+    @staticmethod
+    def _covers_P(w, v):
+        return len(w) == len(v) + 1 and v.is_subword_of(w)
 
     @staticmethod
     def _forward_rule(y, t, x, content):
@@ -1167,16 +1242,40 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
     TESTS::
 
-        sage: G = GrowthDiagramSylvester([1,3,2])
-        sage: G._zero
+        sage: SY = GrowthDiagramSylvester
+        sage: SY._zero
         .
 
         sage: for pi in Permutations(5):
-        ....:     G = GrowthDiagramSylvester(pi)
+        ....:     G = SY(pi)
         ....:     R = LabelledBinaryTree(None)
         ....:     for i in pi:
         ....:         R = R.binary_search_insert(i)
         ....:     assert BinaryTree(R) == G.P_chain()[-1]
+
+        sage: B = BinaryTree; R = B([None,[]]); L = B([[],None]); T = B([[],[]]); S = B([L,None])
+        sage: G = SY(labels = [R, T, R])
+        Traceback (most recent call last):
+        ...
+        AssertionError: [., [., .]] has smaller rank than [[., .], [., .]] but isn't covered by it in P!
+
+        sage: G = SY(labels = [R, S, R])
+        Traceback (most recent call last):
+        ...
+        AssertionError: [., [., .]] has smaller rank than [[[., .], .], .] but isn't covered by it in Q!
+
+    Check duality:
+
+        sage: SY._check_duality(4, 1)
+
+    Check that the rules are bijective::
+
+        sage: all(SY(labels=SY(pi).out_labels()).to_word() == pi for pi in Permutations(4))
+        True
+        sage: pi = Permutations(10).random_element()
+        sage: G = SY(pi)
+        sage: list(SY(labels=G.out_labels())) == list(G)
+        True
 
     """
     def __init__(self,
@@ -1186,12 +1285,53 @@ class GrowthDiagramSylvester(GrowthDiagram):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [BinaryTree(la) for la in labels]
-        self._zero = BinaryTree()
-        self._rank_function = lambda w: w.node_number()
         super(GrowthDiagramSylvester, self).__init__(filling = filling,
                                                      shape = shape,
                                                      labels = labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
+
+    _zero = BinaryTree()
+
+    @staticmethod
+    def vertices(n):
+        return BinaryTrees(n)
+
+    @staticmethod
+    def _rank_function(w):
+        return w.node_number()
+
+    @staticmethod
+    def _covers_Q(w, v):
+        def is_subtree(T1, T2):
+            if T2.is_empty():
+                return False
+            elif T2[0].is_empty() and T2[1].is_empty():
+                return T1.is_empty()
+            elif T1.is_empty():
+                return False
+            else:
+                return ((T1[0] == T2[0] and is_subtree(T1[1], T2[1])) or
+                        (T1[1] == T2[1] and is_subtree(T1[0], T2[0])))
+        return is_subtree(v, w)
+
+    @staticmethod
+    def _covers_P(w, v):
+        if w.is_empty():
+            return False
+        else:
+            return v == GrowthDiagramSylvester._delete_right_most_node(w)
+
+    @staticmethod
+    def _delete_right_most_node(b):
+        """
+        Return the tree obtained by deleting the right most node from ``b``.
+        """
+        if b.is_empty():
+            raise ValueError("Cannot delete right most node from empty tree")
+        elif b[1].is_empty():
+            return b[0]
+        else:
+            return BinaryTree([b[0], GrowthDiagramSylvester._delete_right_most_node(b[1])])
 
     @staticmethod
     def _forward_rule(x, t, y, content):
@@ -1290,24 +1430,13 @@ class GrowthDiagramSylvester(GrowthDiagram):
                 for t in successors(b[1]):
                     yield BinaryTree([b[0], t])
 
-        def delete_right_most_node(b):
-            """
-            Return the tree obtained by deleting the right most node from ``b``.
-            """
-            if b.is_empty():
-                raise ValueError("Cannot delete right most node from empty tree")
-            elif b[1].is_empty():
-                return b[0]
-            else:
-                return BinaryTree([b[0], delete_right_most_node(b[1])])
-
         def union(x, y):
             """
             Return the unique tree obtained by adding a node to ``x`` such
             that deleting the right most node gives ``y``.
             """
             for t in successors(x):
-                if delete_right_most_node(t) == y:
+                if GrowthDiagramSylvester._delete_right_most_node(t) == y:
                     return t
             raise ValueError("Couldn't find union of %s and %s" %(x,y))
 
@@ -1327,6 +1456,51 @@ class GrowthDiagramSylvester(GrowthDiagram):
         else:
             z = union(x, y)
         return z
+
+    @staticmethod
+    def _backward_rule(y, z, x):
+        r"""
+        Return the output shape given three shapes and the content.
+
+        See [Nze2007]_, page 9.
+
+        INPUT:
+
+        - ``y, z, x`` -- three binary trees from a cell in a growth
+          diagram, labelled as::
+
+                y
+              x z
+
+        OUTPUT:
+
+        A pair ``(t, content)`` consisting of the shape of the fourth
+        binary tree t and the content of the cell.
+
+        TESTS::
+
+            sage: G = GrowthDiagramSylvester
+            sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None]); R = B([None,[]]); T = B([[],[]])
+
+            sage: ascii_art(G._backward_rule(E, E, E))
+            ( , 0 )
+            sage: ascii_art(G._backward_rule(N, N, N))
+            ( o, 0 )
+
+        """
+        if x == y == z:
+            return (x, 0)
+        elif x == z != y:
+            return (y, 0)
+        elif x != z == y:
+            return (x, 0)
+        else:
+            if x == y and z == x.over(BinaryTree([])):
+                return (x, 1)
+            else:
+                t = GrowthDiagramSylvester._delete_right_most_node(y)
+                return (t, 0)
+
 
 class GrowthDiagramYoungFibonacci(GrowthDiagram):
     r"""
@@ -1358,27 +1532,30 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
 
     TESTS::
 
-        sage: G = GrowthDiagramYoungFibonacci([1,3,2])
-        sage: G._zero
+        sage: YF = GrowthDiagramYoungFibonacci
+        sage: YF._zero
         word:
-        sage: G = GrowthDiagramYoungFibonacci(labels = [[1],[1,0],[1]])
+        sage: G = YF(labels = [[1],[1,0],[1]])
         Traceback (most recent call last):
         ...
         ValueError: 0 not in alphabet!
 
-        sage: G = GrowthDiagramYoungFibonacci(labels = [[1,1],[1,2]])
+        sage: G = YF(labels = [[1,1],[1,2]])
         Traceback (most recent call last):
         ...
-        AssertionError: 11 has smaller rank than 12 but isn't covered by it!
+        AssertionError: 11 has smaller rank than 12 but isn't covered by it in Q!
 
-        sage: G = GrowthDiagramYoungFibonacci(labels = [[1,2],[1,1]])
+        sage: G = YF(labels = [[1,2],[1,1]])
         Traceback (most recent call last):
         ...
-        AssertionError: 11 has smaller rank than 12 but isn't covered by it!
+        AssertionError: 11 has smaller rank than 12 but isn't covered by it in P!
 
+
+        sage: all(YF(labels=YF(pi).out_labels()).to_word() == pi for pi in Permutations(4))
+        True
         sage: pi = Permutations(10).random_element()
-        sage: G = GrowthDiagramYoungFibonacci(pi)
-        sage: list(GrowthDiagramYoungFibonacci(labels=G.out_labels())) == list(G)
+        sage: G = YF(pi)
+        sage: list(YF(labels=G.out_labels())) == list(G)
         True
 
     """
@@ -1389,9 +1566,26 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[1,2]) for la in labels]
-        self._zero = Word([], alphabet=[1,2])
-        self._rank_function = lambda w: sum(w)
+        super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
+                                                          shape = shape,
+                                                          labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
+    _zero = Word([], alphabet=[1,2])
+
+    @staticmethod
+    def vertices(n):
+        if n == 0:
+            return [GrowthDiagramYoungFibonacci._zero]
+        else:
+            return [Word(list(w), [1,2]) for w in Compositions(n, max_part=2)]
+
+    @staticmethod
+    def _rank_function(w):
+        return sum(w)
+
+    @staticmethod
+    def _covers_P(w, v):
         def covers(c):
             for i in range(len(c)+1):
                 d = list(c)
@@ -1402,13 +1596,9 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                     d[i] = 2
                     yield Word(d, alphabet=[1,2])
                     break
+        return sum(w) == sum(v) + 1 and w in covers(v)
 
-        self._covers_1 = self._covers_2 = lambda w, v: w in covers(v)
-
-        super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
-                                                          shape = shape,
-                                                          labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
+    _covers_Q = _covers_P
 
     @staticmethod
     def _forward_rule(shape3, shape2, shape1, content):
@@ -1509,10 +1699,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
 class GrowthDiagramOnPartitions(GrowthDiagram):
     r"""
     A class for growth diagrams on Young's lattice on integer
-    partitions graded by size.  Since we do not use the covering
-    relation, but only check partition containment, this class can
-    also be used as a base class for growth diagrams modelling domino
-    insertion, :class:`GrowthDiagramDomino`.
+    partitions graded by size.
 
     TESTS::
 
@@ -1803,7 +1990,7 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
             i = i-1
         return (Partition(shape2), carry)
 
-class GrowthDiagramDomino(GrowthDiagramOnPartitions):
+class GrowthDiagramDomino(GrowthDiagram):
     r"""
     A class modelling domino insertion.
 
@@ -1834,12 +2021,100 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
         2  3  2  2
         2  3  3  3
 
-        sage: l = [GrowthDiagramDomino(pi) for pi in SignedPermutations(4)]
-        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l]))
+        sage: l = {pi: GrowthDiagramDomino(pi) for pi in SignedPermutations(4)}
+        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
         384
+
+        The spin of a domino tableau is half the number of vertical dominos:
+
+        sage: def spin(T):
+        ....:     return sum(2*len(set(row)) - len(row) for row in T)/4
+
+        According to [Lam2004]_, the number of negative entries in
+        the signed permutation equals the sum of the spins of the two
+        associated tableaux:
+
+        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
+        True
+
+        Negating all signs transposes all the partitions:
+
+        sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
+        True
+
+        Check part of Theorem 4.2.3 in [vanLee1996]_:
+
+        sage: def to_permutation(pi):
+        ....:     pi1 = list(pi)
+        ....:     n = len(pi1)
+        ....:     pi2 = [-e for e in pi][::-1] + pi1
+        ....:     return Permutation([e+n+1 if e<0 else e+n for e in pi2])
+        sage: def good(pi):
+        ....:     return GrowthDiagramDomino(pi).P_chain()[-1] == GrowthDiagramRSK(to_permutation(pi)).P_chain()[-1]
+        sage: all(good(pi) for pi in SignedPermutations(4))
+        True
+
+        sage: G = GrowthDiagramDomino(labels = [[1],[2,1]])
+        Traceback (most recent call last):
+        ...
+        AssertionError: [1] has smaller rank than [2, 1] but isn't covered by it in Q!
+
+        sage: G = GrowthDiagramDomino(labels = [[2,1],[1]])
+        Traceback (most recent call last):
+        ...
+        AssertionError: [1] has smaller rank than [2, 1] but isn't covered by it in P!
 
     .. automethod:: _forward_rule
     """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        if labels is not None:
+            labels = [Partition(la) for la in labels]
+        self._zero = Partition([])
+        self._rank_function = lambda p: p.size()
+        def covering(w, v):
+            try:
+                (row_1, col_1), (row_2, col_2) = SkewPartition([w, v]).cells()
+                return row_1 == row_2 or col_1 == col_2
+            except ValueError:
+                return False
+
+        self._covers_Q = self._covers_P = lambda w, v: covering(w, v)
+        super(GrowthDiagramDomino, self).__init__(filling = filling,
+                                                  shape = shape,
+                                                  labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
+
+    def P_symbol(self):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+            sage: G.P_symbol().pp()
+            1  2  2
+            2
+        """
+        return SkewTableau(chain = self.P_chain())
+
+    def Q_symbol(self):
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([[0,1,0], [1,0,2]])
+            sage: G.Q_symbol().pp()
+            1  3  3
+            2
+        """
+        return SkewTableau(chain = self.Q_chain())
+
     @staticmethod
     def _forward_rule(shape3, shape2, shape1, content):
         r"""

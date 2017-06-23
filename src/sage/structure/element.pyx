@@ -1129,7 +1129,7 @@ cdef class Element(SageObject):
             left_cmp = left.__cmp__
         except AttributeError:
             left_cmp = None
-        if isinstance(left_cmp, MethodType):
+        else:
             return left_cmp(right)
         msg = LazyFormat("comparison not implemented for %r") % type(left)
         raise NotImplementedError(msg)

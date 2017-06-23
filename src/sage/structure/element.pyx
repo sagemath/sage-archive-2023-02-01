@@ -1075,6 +1075,33 @@ cdef class Element(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: comparison not implemented for <type 'sage.structure.element.Element'>
+
+        We now create an ``Element`` class where we define ``_richcmp_``
+        and check that comparison works::
+
+            sage: cython('''
+            ....: from sage.structure.richcmp cimport rich_to_bool
+            ....: from sage.structure.element cimport Element
+            ....: cdef class FloatCmp(Element):
+            ....:     cdef float x
+            ....:     def __init__(self, float v):
+            ....:         self.x = v
+            ....:     cpdef _richcmp_(self, other, int op):
+            ....:         cdef float x1 = (<FloatCmp>self).x
+            ....:         cdef float x2 = (<FloatCmp>other).x
+            ....:         return rich_to_bool(op, (x1 > x2) - (x1 < x2))
+            ....: ''')
+            sage: a = FloatCmp(1)
+            sage: b = FloatCmp(2)
+            sage: a <= b, b <= a
+            (True, False)
+
+        This works despite ``_cmp_`` not being implemented::
+
+            sage: a._cmp_(b)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: comparison not implemented for <type '...FloatCmp'>
         """
         # Obvious case
         if left is right:
@@ -1085,8 +1112,10 @@ cdef class Element(SageObject):
             c = left._cmp_(right)
         except NotImplementedError:
             # Check equality by id(), knowing that left is not right
-            if op == Py_EQ: return False
-            if op == Py_NE: return True
+            if op == Py_EQ:
+                return False
+            if op == Py_NE:
+                return True
             raise
         assert -1 <= c <= 1
         return rich_to_bool(op, c)
@@ -1098,10 +1127,10 @@ cdef class Element(SageObject):
         """
         try:
             left_cmp = left.__cmp__
-            if isinstance(left_cmp, MethodType):
-                return left_cmp(right)
         except AttributeError:
-            pass
+            left_cmp = None
+        if isinstance(left_cmp, MethodType):
+            return left_cmp(right)
         msg = LazyFormat("comparison not implemented for %r") % type(left)
         raise NotImplementedError(msg)
 

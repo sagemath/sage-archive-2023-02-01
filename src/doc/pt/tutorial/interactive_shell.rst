@@ -943,6 +943,22 @@ variável ``b`` não foi redefinida.
 A Interface do Notebook
 =======================
 
+Esta seção refere-se ao notebook Sage legado, ou "sagenb". Consulte a
+`documentação da sagenb <https://doc.sagemath.org/html/en/reference/notebook/index.html>`_
+para obter maiores detalhes.
+
+SageMath está em transição para uso do
+`Jupyter <http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_
+como padrão, que tem uma
+estrutura diferente. A diferença mais importante para os usuários é que
+as planilhas individuais no Jupyter são salvas no seu sistema local
+(como qualquer outro arquivo é salvo), enquanto que no tipo de notebook
+anterior Sage (ou sagenb) o principal ponto de acesso está nos arquivos
+descritos abaixo através do servidor.
+
+Notebook Sage legado
+--------------------
+
 O Sage Notebook é iniciado digitando
 
 .. skip

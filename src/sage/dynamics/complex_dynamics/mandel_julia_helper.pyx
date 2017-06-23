@@ -19,6 +19,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.plot.colors import Color
+from sage.repl.image import Image
+from copy import copy
+
 def fast_mandel_plot(float x_center, float y_center, float image_width,
  int max_iteration, int pixel_count, int level_sep, int color_num, base_color):
 
@@ -62,22 +66,20 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
         500x500px 24-bit RGB image
     """
 
-    from sage.plot.colors import Color
-    from sage.repl.image import Image
-    from copy import copy
-
     cdef int color_value, row, col, iteration, i, j
     cdef float new_x, new_y, x_coor, y_coor
     cdef color_list, M, pixel
 
-    # reflect image about x-axis
-    y_center *= -1
-
-    M = Image("RGB", (pixel_count,pixel_count), 'black') # create image
-    pixel = M.pixels() # get pixels
-
+    # Make sure image_width is positive
     image_width = abs(image_width)
 
+    # Intialize an image to the color black and access the pixels
+    M = Image("RGB", (pixel_count,pixel_count), 'black')
+    pixel = M.pixels()
+
+    # Take the given base color and create a list of evenly spaced
+    # colors between the given base color and white. The number of
+    # colors in the list depends on the variable color_num.
     color_list = []
     for i in range(color_num):
         color_list.append(copy(base_color))
@@ -85,22 +87,36 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
             color_list[i][j] += i * (255 - color_list[i][j]) / color_num
         color_list[i] = tuple(color_list[i])
 
+    # Loop through each pixel in the image and convert it to a point
+    # in the complex plane.
+    scale_factor = image_width / pixel_count
+    x_step = x_center - image_width/2
+    y_step = - y_center - image_width/2
     for row in range(pixel_count):
-        x_coor = x_center + image_width * (row-pixel_count / 2) / pixel_count # width of image in cartesian coordinates
-        for col in range(pixel_count): # loop through pixels
-            y_coor = y_center + image_width * (col-pixel_count / 2) / pixel_count
+        x_coor = row*scale_factor + x_step
+        for col in range(pixel_count):
+            y_coor = col*scale_factor + y_step
 
-            # compute the orbit of 0 under the map f(z) = z^2 + c
+            # We compute the orbit of 0 under the map Q(z) = z^2 + c
+            # until we either reach the maximum number of iterations
+            # or find a point in the orbit with modulus greater than 2
             new_x, new_y = 0.0, 0.0
-
             iteration = 0
-            while (new_x**2 + new_y**2 <= 4.0 and iteration < max_iteration): # escape condition
-                new_x, new_y = new_x**2 - new_y**2 + x_coor, 2 * new_x * new_y + y_coor
+            while (new_x**2 + new_y**2 <= 4.0 and iteration < max_iteration):
+                new_x, new_y = new_x**2 - new_y**2 + x_coor, \
+                 2*new_x*new_y + y_coor
                 iteration += 1
 
+            # If the point escapes to infinity, assign the point a color
+            # based on how fast it escapes. The faster the point escapes
+            # to infinity, the darker its color will be. Otherwise, assume
+            # the point is in the Mandelbrot set and leave it black.
             if iteration != max_iteration:
+                # Assign each point a level based on its number of iterations.
                 level = iteration / level_sep
 
+                # Assign the pixel a color based on it's level. If we run out
+                # of colors, assign it the last color in the list.
                 if level < color_num:
                     pixel[row,col] = color_list[level]
                 else:

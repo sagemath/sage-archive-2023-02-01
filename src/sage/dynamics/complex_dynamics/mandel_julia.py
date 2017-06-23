@@ -3,10 +3,10 @@ Mandelbrot and Julia sets
 
 Plots the Mandelbrot set for the map `Q_c(z)=z^2+c` in the complex plane.
 
-The Mandelbrot set is the set of complex numbers `c` for which the function `Q_c(z)=z^2+c`
-does not diverge when iterated from `z = 0`. This set of complex numbers can be visualized
-by plotting each value for `c` in the complex plane. The Mandelbrot set is an example of
-a fractal when plotted in the complex plane.
+The Mandelbrot set is the set of complex numbers `c` for which the function
+`Q_c(z)=z^2+c` does not diverge when iterated from `z = 0`. This set of complex
+numbers can be visualized by plotting each value for `c` in the complex plane.
+The Mandelbrot set is an example of a fractal when plotted in the complex plane.
 
 AUTHORS:
 
@@ -24,23 +24,29 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
+from sagenb.notebook.interact import interact
+from sagenb.notebook.interact import slider
+from sagenb.notebook.interact import input_box
+
 def mandelbrot_plot(**kwds):
     r"""
     Interactive plot of the Mandelbrot set for the map `Q_c(z) = z^2 + c`.
 
     ALGORITHM:
 
-    Let each pixel in the image be a point `c \in \mathbb{C}` and define the map `Q_c(z) = z^2 + c`.
-    If `|Q_{c}^{k}(c)| > 2` for some `k \geq 0`, it follows that `Q_{c}^{n}(c) \to \infty`.
-    Let `N` be the maximum number of iterations. Compute the first `N` points on the orbit
-    of `0` under `Q_c`. If for any `k < N`, `|Q_{c}^{k}(0)| > 2`, we stop the iteration
-    and assign a color to the point `c` based on how quickly `0` escaped to infinity under
-    iteration of `Q_c`. If `|Q_{c}^{i}(0)| \leq 2` for all `i \leq N`, we assume `c` is in the Mandelbrot set
-    and assign the point `c` the color black.
+    Let each pixel in the image be a point `c \in \mathbb{C}` and define the
+    map `Q_c(z) = z^2 + c`. If `|Q_{c}^{k}(c)| > 2` for some `k \geq 0`, it
+    follows that `Q_{c}^{n}(c) \to \infty`. Let `N` be the maximum number of
+    iterations. Compute the first `N` points on the orbit of `0` under `Q_c`.
+    If for any `k < N`, `|Q_{c}^{k}(0)| > 2`, we stop the iteration and assign
+    a color to the point `c` based on how quickly `0` escaped to infinity under
+    iteration of `Q_c`. If `|Q_{c}^{i}(0)| \leq 2` for all `i \leq N`, we assume
+    `c` is in the Mandelbrot set and assign the point `c` the color black.
 
     REFERENCE:
 
-    .. [Devaney] Devaney, Robert L. An Introduction to Chaotic Dynamical Systems. Boulder: Westview, 2005, 331.
+    [Devaney]_
 
     kwds:
 
@@ -70,19 +76,19 @@ def mandelbrot_plot(**kwds):
 
     ::
 
-        mandelbrot_plot()
+        sage: mandelbrot_plot()
 
     ::
 
-        mandelbrot_plot(pixel_count=1000)
+        sage: mandelbrot_plot(pixel_count=1000)
 
     ::
 
-        mandelbrot_plot(base_color=[70, 40, 240])
+        sage: mandelbrot_plot(base_color=[70, 40, 240])
 
     ::
 
-        mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75)
+        sage: mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75)
 
     To use the function outside of the notebook, you must set ``interact`` to False::
 
@@ -94,12 +100,6 @@ def mandelbrot_plot(**kwds):
         ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100]) # long time
 
     """
-
-    from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
-    from sagenb.notebook.interact import interact
-    from sagenb.notebook.interact import slider
-    from sagenb.notebook.interact import input_box
-
 
     x_center = kwds.pop("x_center", -1.0)
     y_center = kwds.pop("y_center", 0.0)
@@ -121,7 +121,9 @@ def mandelbrot_plot(**kwds):
             level_sep=input_box(iteration_level, 'Iterations between Colors'),
             color_num=input_box(number_of_colors, 'Number of Colors'),
             image_color=input_box(base_color, 'RGB Color')):
-            fast_mandel_plot(real_center, im_center, width, iterations, pixel_count, level_sep, color_num, image_color).show()
+            fast_mandel_plot(real_center, im_center, width, iterations,
+             pixel_count, level_sep, color_num, image_color).show()
 
     else:
-        fast_mandel_plot(x_center, y_center, image_width, max_iteration, pixel_count, iteration_level, number_of_colors, base_color).show()
+        fast_mandel_plot(x_center, y_center, image_width, max_iteration,
+         pixel_count, iteration_level, number_of_colors, base_color).show()

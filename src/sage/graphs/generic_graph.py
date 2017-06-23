@@ -10808,8 +10808,10 @@ class GenericGraph(GenericGraph_pyx):
                 self.delete_vertex(v)
 
         for (u, v, label) in edges_incident:
-            if root(v) != root(u) or self.allows_loops():
-                self.add_edge(root(u), root(v), label)
+            root_u = root(u)
+            root_v = root(v)
+            if root_v != root_u or self.allows_loops():
+                self.add_edge(root_u, root_v, label)
 
     def delete_multiedge(self, u, v):
         """

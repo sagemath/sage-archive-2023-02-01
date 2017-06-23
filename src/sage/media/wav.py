@@ -20,10 +20,13 @@ sample, and the number of channels in the file.
 
 AUTHORS:
 
-- Bobby Moretti and Gonzolo Tornaria (2007-07-01): First version
+- Bobby Moretti and Gonzalo Tornaria (2007-07-01): First version
 - William Stein (2007-07-03): add more
 - Bobby Moretti (2007-07-03): add doctests
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 import math
 import os
@@ -72,7 +75,7 @@ class Wave(SageObject):
             self._framerate = wv.getframerate()
             self._nframes = wv.getnframes()
             self._bytes = wv.readframes(self._nframes)
-            from channels import _separate_channels
+            from .channels import _separate_channels
             self._channel_data = _separate_channels(self._bytes,
                                                    self._width,
                                                    self._nchannels)
@@ -222,7 +225,7 @@ class Wave(SageObject):
         seconds = float(self._nframes) / float(self._width)
         frame_duration = seconds / (float(npoints) * float(self._framerate))
 
-        domain = [n * frame_duration for n in xrange(npoints)]
+        domain = [n * frame_duration for n in range(npoints)]
         return domain
 
     def values(self, npoints=None, channel=0):
@@ -238,7 +241,7 @@ class Wave(SageObject):
 
         # now scale the values
         scale = float(1 << (8*self._width -1))
-        values = [cd[frame_skip*i]/scale for i in xrange(npoints)]
+        values = [cd[frame_skip*i]/scale for i in range(npoints)]
         return values
 
     def set_values(self, values, channel=0):
@@ -256,7 +259,7 @@ class Wave(SageObject):
 
         # the values of the function at each point in the domain
         c = self.channel_data(channel)
-        for i in xrange(npoints):
+        for i in range(npoints):
             c[i] = values[i]
 
     def vector(self, npoints=None, channel=0):
@@ -310,9 +313,9 @@ class Wave(SageObject):
         npoints = self._normalize_npoints(npoints)
         seconds = float(self._nframes) / float(self._width)
         sample_step = seconds / float(npoints)
-        domain = [float(n*sample_step) / float(self._framerate) for n in xrange(npoints)]
+        domain = [float(n*sample_step) / float(self._framerate) for n in range(npoints)]
         frame_skip = self._nframes / npoints
-        values = [self.channel_data(channel)[frame_skip*i] for i in xrange(npoints)]
+        values = [self.channel_data(channel)[frame_skip*i] for i in range(npoints)]
         points = zip(domain, values)
 
         return list_plot(points, plotjoined=plotjoined, **kwds)
@@ -351,7 +354,7 @@ class Wave(SageObject):
         start = start * self._width
         stop = stop * self._width
         channels_sliced = [self._channel_data[i][start:stop] for i in range(self._nchannels)]
-        print stop - start
+        print(stop - start)
 
         return Wave(nchannels = self._nchannels,
                     width = self._width,

@@ -191,7 +191,7 @@ matrices::
     sage: rows = [randint(1, 10) for i in range(10)]
     sage: cols = [randint(1, 10) for i in range(10)]
     sage: rings = [ZZ]*10
-    sage: M = map(random_matrix, rings, rows, cols)
+    sage: M = list(map(random_matrix, rings, rows, cols))
     sage: M[0]  # random
     <BLANKLINE>
     [ -1  -3  -1 -37   1  -1  -4   5]
@@ -213,8 +213,8 @@ together with ``map`` as follows::
     [ 2  6  2]
     sage: rows = [randint(1, 10) for i in range(10)]
     sage: cols = [randint(1, 10) for i in range(10)]
-    sage: M = map(rand_mat, rows, cols)
-    sage: M = map(matrix, M)
+    sage: M = list(map(rand_mat, rows, cols))
+    sage: M = list(map(matrix, M))
     sage: M[0]  # random
     <BLANKLINE>
     [ 9  1  5  2 10 10  1]
@@ -380,12 +380,7 @@ there is a built-in function that satisfies your requirement. The
 module
 `itertools <http://docs.python.org/library/itertools.html>`_
 has numerous built-in functions to efficiently process sequences of
-items. The functions ``filter``, ``map`` and ``zip`` have their
-counterparts in ``itertools`` as
-`itertools.ifilter <http://docs.python.org/library/itertools.html#itertools.ifilter>`_,
-`itertools.imap <http://docs.python.org/library/itertools.html#itertools.imap>`_
-and
-`itertools.izip <http://docs.python.org/library/itertools.html#itertools.izip>`_.
+items.
 
 Another useful resource for functional programming in Python is the
 `Functional Programming HOWTO <http://docs.python.org/howto/functional.html>`_

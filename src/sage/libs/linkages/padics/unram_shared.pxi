@@ -64,7 +64,7 @@ def norm_unram(self, base = None):
         field theoretic norm down to a ground ring.  If you want the
         `p`-adic absolute value, use the ``abs()`` function instead.
 
-    INPUT::
+    INPUT:
 
         ``base`` -- a subfield of the parent `L` of this element.
                     The norm is the relative norm from ``L`` to ``base``.
@@ -102,7 +102,7 @@ def norm_unram(self, base = None):
 
     TESTS:
 
-    Check that #11586 has been resolved::
+    Check that :trac:`11586` has been resolved::
 
         sage: R.<x> = QQ[]
         sage: f = x^2 + 3*x + 1

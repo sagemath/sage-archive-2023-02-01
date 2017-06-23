@@ -16,6 +16,9 @@ Hasse diagrams of posets
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six.moves import range
 
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
@@ -23,6 +26,42 @@ from sage.rings.integer_ring import ZZ
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
+
+class LatticeError(ValueError):
+    """
+    Helper exception class to forward elements without meet or
+    join to upper level, so that the user will see "No meet for
+    a and b" instead of "No meet for 1 and 2".
+    """
+
+    def __init__(self, fail, x, y):
+        """
+        Initialize the exception.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import LatticeError
+            sage: error = LatticeError('join', 3, 8)
+            sage: error.x
+            3
+        """
+        ValueError.__init__(self, None)
+        self.fail = fail
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        """
+        Return string representation of the exception.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import LatticeError
+            sage: error = LatticeError('meet', 15, 18)
+            sage: error.__str__()
+            'no meet for 15 and 18'
+        """
+        return "no {} for {} and {}".format(self.fail, self.x, self.y)
 
 class HasseDiagram(DiGraph):
     """
@@ -68,7 +107,7 @@ class HasseDiagram(DiGraph):
             [0, 1, 2, 3]
         """
         # Recall: we assume range(n) is a linear extension.
-        return range(len(self))
+        return list(range(len(self)))
 
     def linear_extensions(self):
         r"""
@@ -83,7 +122,7 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
-    def is_linear_extension(self,lin_ext=None):
+    def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.
 
@@ -91,18 +130,18 @@ class HasseDiagram(DiGraph):
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
-            sage: H.is_linear_extension(range(4))
+            sage: H.is_linear_extension(list(range(4)))
             True
             sage: H.is_linear_extension([3,2,1,0])
             False
         """
-        if lin_ext is None or lin_ext == range(len(self)):
-            for x,y in self.cover_relations_iterator():
+        if lin_ext is None or lin_ext == list(range(len(self))):
+            for x, y in self.cover_relations_iterator():
                 if not x < y:
                     return False
             return True
         else:
-            for x,y in self.cover_relations_iterator():
+            for x, y in self.cover_relations_iterator():
                 if not lin_ext.index(x) < lin_ext.index(y):
                     return False
             return True
@@ -377,6 +416,27 @@ class HasseDiagram(DiGraph):
                 all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
                 all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
 
+    def is_antichain_of_poset(self, elms):
+        """
+        Return ``True`` if ``elms`` is an antichain of the Hasse
+        diagram and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.is_antichain_of_poset([1, 2, 3])
+            True
+            sage: H.is_antichain_of_poset([0, 2, 3])
+            False
+        """
+        from itertools import combinations
+        from sage.misc.misc import uniq
+
+        elms_sorted = uniq(elms)
+        return not any(self.is_lequal(a, b) for a, b in
+                       combinations(elms_sorted, 2))
+
     def dual(self):
         """
         Returns a poset that is dual to the given poset.
@@ -398,7 +458,7 @@ class HasseDiagram(DiGraph):
             False
         """
         H = self.reverse()
-        H.relabel(perm=range(H.num_verts()-1,-1,-1), inplace=True)
+        H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
         return HasseDiagram(H)
 
     def interval(self, x, y):
@@ -493,8 +553,8 @@ class HasseDiagram(DiGraph):
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
-            ...    if r(v) != r(u) + 1:
-            ...        print "Bug in rank_function!"
+            ....:     if r(v) != r(u) + 1:
+            ....:         print("Bug in rank_function!")
 
         ::
 
@@ -616,18 +676,6 @@ class HasseDiagram(DiGraph):
         """
         return bool(self.rank_function())
 
-    def is_graded(self):
-        r"""
-        Deprecated, has conflicting definition of "graded" vs. "ranked"
-        with posets.
-
-        Return ``True`` if the Hasse diagram is ranked. For definition
-        of ranked see :meth:`~rank_function`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(16998, "Use is_ranked(). Definition conflict with posets.")
-        return self.is_ranked()
-
     def covers(self,x,y):
         """
         Returns True if y covers x and False otherwise.
@@ -715,7 +763,7 @@ class HasseDiagram(DiGraph):
             2
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
         """
         try:
             return self._moebius_function_values[(i,j)]
@@ -795,7 +843,7 @@ class HasseDiagram(DiGraph):
             2
             sage: for u,v in P.cover_relations_iterator():
             ....:     if P.moebius_function(u,v) != -1:
-            ....:         print "Bug in moebius_function!"
+            ....:         print("Bug in moebius_function!")
 
         This uses ``self._moebius_function_matrix``, as computed by
         :meth:`moebius_function_matrix`.
@@ -978,10 +1026,64 @@ class HasseDiagram(DiGraph):
         """
         return bool(self._leq_matrix[i,j])
 
+    def prime_elements(self):
+        r"""
+        Return the join-prime and meet-prime elements of the bounded poset.
+
+        An element `x` of a poset `P` is join-prime if the subposet
+        induced by `\{y \in P \mid y \not\ge x\}` has a top element.
+        Meet-prime is defined dually.
+
+        .. NOTE::
+
+            The poset is expected to be bounded, and this is *not* checked.
+
+        OUTPUT:
+
+        A pair `(j, m)` where `j` is a list of join-prime elements
+        and `m` is a list of meet-prime elements.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: H.prime_elements()
+            ([1, 2], [2, 3])
+        """
+        n = self.order()
+        join_primes = []
+        meet_primes = []
+
+        def add_elements(e):
+            upset = frozenset(self.depth_first_search(e))
+            # The complement of the upper set of a join-prime must have
+            # a top element. Maximal elements of the complement are those
+            # covered by only elements in the upper set. If there is only
+            # one maximal element, it is a meet-prime and 'e' is a
+            # join-prime.
+            meet_prime = None
+            for u in upset:
+                for m in self.neighbor_in_iterator(u):
+                    if (m not in upset and
+                        all(u_ in upset for u_ in
+                            self.neighbor_out_iterator(m))):
+                        if meet_prime is not None:
+                            return
+                        meet_prime = m
+            join_primes.append(e)
+            meet_primes.append(meet_prime)
+
+        for e in range(n):
+            # Join-primes are join-irreducibles, only check those.
+            if self.in_degree(e) == 1:
+                add_elements(e)
+
+        return join_primes, meet_primes
+
     @lazy_attribute
     def _meet(self):
         r"""
-        Computes the matrix of meets of ``self``. The ``(x,y)``-entry of
+        Return the matrix of meets of ``self``. The ``(x,y)``-entry of
         this matrix is the meet of ``x`` and ``y`` in ``self``.
 
         EXAMPLES::
@@ -1005,13 +1107,13 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No meet for x=...
+            LatticeError: no meet for ...
 
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
@@ -1022,20 +1124,19 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_bottom():
-            raise ValueError("Not a meet-semilattice: no bottom element.")
-        le = self._leq_matrix
+            raise ValueError("not a meet-semilattice: no bottom element")
         meet = [[0 for x in range(n)] for x in range(n)]
-        lc = [self.neighbors_in(x) for x in range(n)]
+        lc = [self.neighbors_in(x) for x in range(n)]  # Lc = lower covers
 
-        for x in range(n): # x=x_k
+        for x in range(n):
             meet[x][x] = x
             for y in range(x):
-                T = [meet[y][z] for z in lc[x]] # T = {x_i \wedge z : z>-x_k}
+                T = [meet[y][z] for z in lc[x]]
 
                 q = max(T)
                 for z in T:
-                    if not le[z,q]:
-                        raise ValueError("No meet for x=%s y=%s"%(x,y))
+                    if meet[z][q] != z:
+                        raise LatticeError('meet', x, y)
                 meet[x][y] = q
                 meet[y][x] = q
 
@@ -1084,13 +1185,13 @@ class HasseDiagram(DiGraph):
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a meet-semilattice: no bottom element.
+            ValueError: not a meet-semilattice: no bottom element
 
             sage: H = HasseDiagram({0:[1,2],1:[3,4],2:[3,4]})
             sage: H.meet_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No meet for x=...
+            LatticeError: no meet for ...
         """
         return self._meet
 
@@ -1148,13 +1249,13 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No join for x=...
+            LatticeError: no join for ...
 
             sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: P = L.dual()
@@ -1165,27 +1266,23 @@ class HasseDiagram(DiGraph):
         if n == 0:
             return matrix(0)
         if not self.has_top():
-            raise ValueError("Not a join-semilattice: no top element.")
-        join = [[0 for x in range(n)] for x in range(n)]
-        le = self.lequal_matrix()
-        uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
-                x in reversed(range(n))]
+            raise ValueError("not a join-semilattice: no top element")
+        join = [[n for x in range(n)] for x in range(n)]
+        uc = [self.neighbors_out(x) for x in range(n)]  # uc = upper covers
 
-        for x in range(n): # x=x_k
+        for x in range(n-1, -1, -1):
             join[x][x] = x
-
-            for y in range(x):
+            for y in range(n-1, x, -1):
                 T = [join[y][z] for z in uc[x]]
 
-                q = max(T)
+                q = min(T)
                 for z in T:
-                    if not le[n-1-q, n-1-z]:
-                        raise ValueError("No join for x=%s y=%s"%(x,y))
+                    if join[z][q] != z:
+                        raise LatticeError('join', x, y)
                 join[x][y] = q
                 join[y][x] = q
 
-        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)]
-                           for x in range(n)])
+        return matrix(ZZ, join)
 
     def join_matrix(self):
         r"""
@@ -1222,13 +1319,13 @@ class HasseDiagram(DiGraph):
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: Not a join-semilattice: no top element.
+            ValueError: not a join-semilattice: no top element
 
             sage: H = HasseDiagram({0:[2,3],1:[2,3],2:[4],3:[4]})
             sage: H.join_matrix()
             Traceback (most recent call last):
             ...
-            ValueError: No join for x=...
+            LatticeError: no join for ...
         """
         return self._join
 
@@ -1256,6 +1353,56 @@ class HasseDiagram(DiGraph):
             return False
         else:
             return True
+
+    def find_nonsemidistributive_elements(self, meet_or_join):
+        r"""
+        Check if the lattice is semidistributive or not.
+
+        INPUT:
+
+        - ``meet_or_join`` -- string ``'meet'`` or ``'join'``
+          to decide if to check for join-semidistributivity or
+          meet-semidistributivity
+
+        OUTPUT:
+
+        - ``None`` if the lattice is semidistributive OR
+        - tuple ``(u, e, x, y)`` such that
+          `u = e \vee x = e \vee y` but `u \neq e \vee (x \wedge y)`
+          if ``meet_or_join=='join'`` and
+          `u = e \wedge x = e \wedge y` but `u \neq e \wedge (x \vee y)`
+          if ``meet_or_join=='meet'``
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6],
+            ....:                   4:[6], 5:[6]})
+            sage: H.find_nonsemidistributive_elements('join') is None
+            False
+            sage: H.find_nonsemidistributive_elements('meet') is None
+            True
+        """
+        if meet_or_join == 'join':
+            M1 = self._join
+            M2 = self._meet
+        elif meet_or_join == 'meet':
+            M1 = self._meet
+            M2 = self._join
+        else:
+            raise ValueError("meet_or_join must be 'join' or 'meet'")
+
+        n = self.order()
+
+        for e in range(n):
+            for x in range(n):
+                u = M1[e, x]
+                for y in range(x):
+                    if u == M1[e, y]:
+                        if u != M1[e, M2[x, y]]:
+                            return (u, e, x, y)
+
+        return None
 
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
@@ -1295,22 +1442,24 @@ class HasseDiagram(DiGraph):
         functions of lattices.
 
         The property of being vertically decomposable is defined for lattices.
-        This is not checked, and the function works with any bounded poset.
+        This is *not* checked, and the function works with any bounded poset.
 
         INPUT:
 
         - ``return_list``, a boolean. If ``False`` (the default), return
-          ``True`` if the lattice is vertically decomposable and ``False``
-          otherwise. If ``True``, return list of decomposition elements.
+          an element that is not the top neither the bottom element of the
+          lattice, but is comparable to all elements of the lattice, if
+          the lattice is vertically decomposable and ``None`` otherwise.
+          If ``True``, return list of decomposition elements.
 
         EXAMPLES::
 
             sage: H = Posets.BooleanLattice(4)._hasse_diagram
-            sage: H.vertical_decomposition()
-            False
+            sage: H.vertical_decomposition() is None
+            True
             sage: P = Poset( ([1,2,3,6,12,18,36], attrcall("divides")) )
             sage: P._hasse_diagram.vertical_decomposition()
-            True
+            3
             sage: P._hasse_diagram.vertical_decomposition(return_list=True)
             [3]
         """
@@ -1319,7 +1468,7 @@ class HasseDiagram(DiGraph):
             if return_list:
                 return []
             else:
-                return False
+                return None
         result = [] # Never take the bottom element to list.
         e = 0
         m = 0
@@ -1328,58 +1477,48 @@ class HasseDiagram(DiGraph):
                 m = max(m, j[1])
             if m == i+1:
                 if not return_list:
-                    return m < n-1
+                    if m < n-1:
+                        return m
+                    else:
+                        return None
                 result.append(m)
         result.pop() # Remove the top element.
         return result
 
-    def is_complemented_lattice(self):
-        r"""
-        Return ``True`` if ``self`` is the Hasse diagram of a
-        complemented lattice, and ``False`` otherwise.
+    def is_complemented(self):
+        """
+        Return an element of the lattice that has no complement.
+
+        If the lattice is complemented, return ``None``.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
-            sage: H.is_complemented_lattice()
-            True
 
             sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
-            sage: H.is_complemented_lattice()
-            False
+            sage: H.is_complemented()
+            1
+
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
+            sage: H.is_complemented() is None
+            True
         """
-        from itertools import izip
-        try:
-            mt = self.meet_matrix()
-            jn = self.join_matrix()
-        except ValueError:
-            return False
-        n = self.cardinality() - 1
-        for row1, row2 in izip(mt, jn):
-            for c1, c2 in izip(row1, row2):
-                if c1 == 0 and c2 == n:
+        mt = self.meet_matrix()
+        jn = self.join_matrix()
+        top = self.cardinality() - 1
+        has_complement = [False] * top
+
+        for i in range(1, top):
+            if has_complement[i]:
+                continue
+            for j in range(top, 0, -1):
+                if jn[i, j] == top and mt[i, j] == 0:
+                    has_complement[j] = True
                     break
             else:
-                return False
-        return True
+                return i
 
-    def complements(self):
-        r"""
-        Deprecated.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17138, "This function is broken. Do not use.")
-        jn = self.join_matrix()
-        mt = self.meet_matrix()
-        n = self.cardinality()
-        c = [None for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return c
+        return None
 
     def pseudocomplement(self, element):
         """
@@ -1419,6 +1558,229 @@ class HasseDiagram(DiGraph):
             e1 -= 1
         return e
 
+    def orthocomplementations_iterator(self):
+        r"""
+        Return an iterator over orthocomplementations of the lattice.
+
+        OUTPUT:
+
+        An iterator that gives plain list of integers.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1,2], 1:[3,4], 3:[5], 4:[5], 2:[6,7],
+            ....:                   6:[8], 7:[8], 5:[9], 8:[9]})
+            sage: list(H.orthocomplementations_iterator())
+            [[9, 8, 5, 6, 7, 2, 3, 4, 1, 0], [9, 8, 5, 7, 6, 2, 4, 3, 1, 0]]
+
+        ALGORITHM:
+
+        As ``DiamondPoset(2*n+2)`` has `(2n)!/(n!2^n)` different
+        orthocomplementations, the complexity of listing all of
+        them is necessarily `O(n!)`.
+
+        An orthocomplemented lattice is self-dual, so that for example
+        orthocomplement of an atom is a coatom. This function
+        basically just computes list of possible orthocomplementations
+        for every element (i.e. they must be complements and "duals"),
+        and then tries to fit them all.
+
+        TESTS:
+
+        Special and corner cases::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram()  # Empty
+            sage: list(H.orthocomplementations_iterator())
+            [[]]
+            sage: H = HasseDiagram({0:[]})  # One element
+            sage: list(H.orthocomplementations_iterator())
+            [[0]]
+            sage: H = HasseDiagram({0:[1]})  # Two elements
+            sage: list(H.orthocomplementations_iterator())
+            [[1, 0]]
+
+        Trivial cases: odd number of elements, not self-dual, not complemented::
+
+            sage: H = Posets.DiamondPoset(5)._hasse_diagram
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = Posets.ChainPoset(4)._hasse_diagram
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [1, 4], [1, 8], [4, 6], [4, 7], [6, 9], [7, 9], [2, 5], [3, 5], [5, 8], [8, 9]]) )
+            sage: list(H.orthocomplementations_iterator())
+            []
+            sage: H = HasseDiagram({0:[1, 2, 3], 1: [4], 2:[4], 3: [5], 4:[5]})
+            sage: list(H.orthocomplementations_iterator())
+            []
+
+        Complemented, self-dual and even number of elements, but
+        not orthocomplemented::
+
+            sage: H = HasseDiagram( ([[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [0, 6], [3, 7], [5, 7], [6, 7]]) )
+            sage: list(H.orthocomplementations_iterator())
+            []
+
+        Unique orthocomplementations; second is not uniquely complemented,
+        but has only one orthocomplementation.
+
+            sage: H = Posets.BooleanLattice(4)._hasse_diagram  # Uniquely complemented
+            sage: len(list(H.orthocomplementations_iterator()))
+            1
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[4], 3:[5], 4:[5]})
+            sage: len([_ for _ in H.orthocomplementations_iterator()])
+            1
+
+        "Lengthening diamond" must keep the number of orthocomplementations::
+
+            sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [0, 4], [1, 5], [2, 5], [3, 5], [4, 5]]) )
+            sage: n = len([_ for _ in H.orthocomplementations_iterator()]); n
+            3
+            sage: H = HasseDiagram('M]??O?@??C??OA???OA??@?A??C?A??O??')
+            sage: len([_ for _ in H.orthocomplementations_iterator()]) == n
+            True
+
+        This lattice has an unique "possible orthocomplement" for every
+        element, but they can not be fit together; orthocomplement pairs
+        would be 0-11, 1-7, 2-4, 3-10, 5-9 and 6-8, and then orthocomplements
+        for chain 0-1-6-11 would be 11-7-8-0, which is not a chain::
+
+            sage: H = HasseDiagram('KTGG_?AAC?O?o?@?@?E?@?@??')
+            sage: list([_ for _ in H.orthocomplementations_iterator()])
+            []
+        """
+        n = self.order()
+
+        # Special cases first
+        if n == 0:
+            yield []
+            raise(StopIteration)
+        if n == 1:
+            yield [0]
+            raise(StopIteration)
+        if n % 2 == 1:
+            raise(StopIteration)
+
+        dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
+        if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
+            raise(StopIteration)
+
+        # We compute possible orthocomplements, i.e. elements
+        # with "dual position" and complement to each other.
+
+        orbits = self.automorphism_group(return_group=False, orbits=True)
+
+        orbit_number = [None] * n
+        for ind, orbit in enumerate(orbits):
+            for e in orbit:
+                orbit_number[e] = ind
+
+        comps = [None] * n
+        for e in range(n):
+            # Fix following after ticket #20727
+            comps[e] = [x for x in range(n) if
+                        self._meet[e, x] == 0 and self._join[e, x] == n-1 and
+                        x in orbits[orbit_number[dual_isomorphism[e]]]]
+
+        # Fitting is done by this recursive function:
+        def recursive_fit(orthocomplements, unbinded):
+            if not unbinded:
+                yield orthocomplements
+            else:
+                next_to_fit = unbinded[0]
+                possible_values = [x for x in comps[next_to_fit] if not x in orthocomplements]
+                for x in self.lower_covers_iterator(next_to_fit):
+                    if orthocomplements[x] is not None:
+                        possible_values = [y for y in possible_values if self.has_edge(y, orthocomplements[x])]
+                for x in self.upper_covers_iterator(next_to_fit):
+                    if orthocomplements[x] is not None:
+                        possible_values = [y for y in possible_values if self.has_edge(orthocomplements[x], y)]
+
+                for e in possible_values:
+
+                    new_binded = orthocomplements[:]
+                    new_binded[next_to_fit] = e
+                    new_binded[e] = next_to_fit
+
+                    new_unbinded = unbinded[1:]  # Remove next_to_fit
+                    new_unbinded.remove(e)
+
+                    for i_want_python3_yield_from in recursive_fit(new_binded, new_unbinded):
+                        yield i_want_python3_yield_from
+
+        start = [None] * n
+        # A little optimization
+        for e in range(n):
+            if len(comps[e]) == 0:  # Not any possible orthocomplement
+                raise(StopIteration)
+            if len(comps[e]) == 1:  # Do not re-fit this every time
+                e_ = comps[e][0]
+                # Every element might have one possible orthocomplement,
+                # but so that they don't fit together. Must check that.
+                for lc in self.lower_covers_iterator(e):
+                    if start[lc] is not None:
+                        if not self.has_edge(e_, start[lc]):
+                            raise(StopIteration)
+                if start[e_] is None:
+                    start[e] = e_
+                    start[e_] = e
+        start_unbinded = [e for e in range(n) if start[e] is None]
+
+        for i_want_python3_yield_from in recursive_fit(start, start_unbinded):
+            yield i_want_python3_yield_from
+
+    def find_nonsemimodular_pair(self, upper):
+        """
+        Return pair of elements showing the lattice is not modular.
+
+        INPUT:
+
+        - upper, a Boolean -- if ``True``, test wheter the lattice is
+          upper semimodular; otherwise test whether the lattice is
+          lower semimodular.
+
+        OUTPUT:
+
+        ``None``, if the lattice is semimodular. Pair `(a, b)` violating
+        semimodularity otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0:[1, 2], 1:[3, 4], 2:[4, 5], 3:[6], 4:[6], 5:[6]})
+            sage: H.find_nonsemimodular_pair(upper=True) is None
+            True
+            sage: H.find_nonsemimodular_pair(upper=False)
+            (5, 3)
+
+            sage: H_ = HasseDiagram(H.reverse().relabel(lambda x: 6-x, inplace=False))
+            sage: H_.find_nonsemimodular_pair(upper=True)
+            (3, 1)
+            sage: H_.find_nonsemimodular_pair(upper=False) is None
+            True
+        """
+        if upper:
+            neighbors = self.neighbors_out
+        else:
+            neighbors = self.neighbors_in
+
+        n = self.order()
+        for e in range(n):
+            covers = neighbors(e)
+            covers_len = len(covers)
+            if covers_len < 2:
+                continue
+            for a_i in range(covers_len):
+                a = covers[a_i]
+                covers_a = neighbors(a)
+                for b_i in range(a_i):
+                    b = covers[b_i]
+                    if not any(j in covers_a for j in neighbors(b)):
+                        return (a, b)
+        return None
+
     def antichains_iterator(self):
         r"""
         Return an iterator over the antichains of the poset.
@@ -1457,11 +1819,14 @@ class HasseDiagram(DiGraph):
             sage: list(H.antichains_iterator())
             [[]]
         """
+        # NOTE: Ordering of antichains as a prefix tree is crucial for
+        # congruences_iterator() to work. Change it, if you change this.
+
         # Complexity note:
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then
         # the largest element of a is strictly smaller than that of b.
-        antichains_queues = [([], range(self.cardinality()-1,-1,-1))]
+        antichains_queues = [([], list(range(self.cardinality()-1, -1, -1)))]
         leq = self.lequal_matrix()
         while antichains_queues:
             (antichain, queue) = antichains_queues.pop()
@@ -1607,7 +1972,7 @@ class HasseDiagram(DiGraph):
             sage: list(P._hasse_diagram.chains(element_class=tuple, exclude=[0]))
             [(), (1,), (1, 2), (2,), (3,)]
 
-        .. seealso:: :meth:`antichains`
+        .. SEEALSO:: :meth:`antichains`
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
         if not(exclude is None):
@@ -1617,6 +1982,51 @@ class HasseDiagram(DiGraph):
         return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
                                          element_class = element_class)
+
+    def sublattices_iterator(self, elms, min_e):
+        """
+        Return an iterator over sublattices of the Hasse diagram.
+
+        INPUT:
+
+        - ``elms`` -- elements already in sublattice; use set() at start
+        - ``min_e`` -- smallest new element to add for new sublattices
+
+        OUTPUT:
+
+        List of sublattices as sets of integers.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1:[3], 2:[3]})
+            sage: it = H.sublattices_iterator(set(), 0); it
+            <generator object sublattices_iterator at ...>
+            sage: next(it)
+            set()
+            sage: next(it)
+            {0}
+        """
+        # Python3-note: "yield from" would be simpler.
+        yield elms
+        for e in range(min_e, self.cardinality()):
+            if e in elms:
+                continue
+            current_set = set(elms)
+            gens = set([e])
+            while gens:
+                g = gens.pop()
+                if g < e and g not in elms:
+                    break
+                if g in current_set:
+                    continue
+                for x in current_set:
+                    gens.add(self._meet[x, g])
+                    gens.add(self._join[x, g])
+                current_set.add(g)
+            else:
+                for x in self.sublattices_iterator(current_set, e+1):
+                    yield x
 
     def maximal_sublattices(self):
         """
@@ -1739,6 +2149,722 @@ class HasseDiagram(DiGraph):
         max_sublats = self.maximal_sublattices()
         return [e for e in range(self.cardinality()) if
                 all(e in ms for ms in max_sublats)]
+
+    def kappa_dual(self, a):
+        r"""
+        Return the minimum element smaller than the element covering
+        ``a`` but not smaller than ``a``.
+
+        Define `\kappa^*(a)` as the minimum element of
+        `(\downarrow a_*) \setminus (\downarrow a)`, where `a_*` is the element
+        covering `a`. It is always a join-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be meet-irreducible, and
+            this is *not* checked.
+
+        INPUT:
+
+        - ``a`` -- a join-irreducible element of the lattice
+
+        OUTPUT:
+
+        The element `\kappa^*(a)` or ``None`` if there
+        is not a unique smallest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: H.kappa_dual(3)
+            2
+            sage: H.kappa_dual(4) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa_dual(0)
+            1
+        """
+        uc = next(self.neighbor_out_iterator(a))
+        if self.in_degree(uc) == 1:
+            return uc
+        lt_a = set(self.depth_first_search(a, neighbors=self.neighbors_in))
+        tmp = list(self.depth_first_search(uc, neighbors=lambda v: [v_ for v_ in self.neighbors_in(v) if v_ not in lt_a]))
+        result = None
+        for e in tmp:
+            if all(x not in tmp for x in self.neighbors_in(e)):
+                if result:
+                    return None
+                result = e
+        return result
+
+    def skeleton(self):
+        """
+        Return the skeleton of the lattice.
+
+        The lattice is expected to be pseudocomplemented and non-empty.
+
+        The skeleton of the lattice is the subposet induced by
+        those elements that are the pseudocomplement to at least one
+        element.
+
+        OUTPUT:
+
+        List of elements such that the subposet induced by them is
+        the skeleton of the lattice.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3, 4], 2: [4],
+            ....:                   3: [5], 4: [5]})
+            sage: H.skeleton()
+            [5, 2, 0, 3]
+        """
+        p_atoms = []
+        for atom in self.neighbor_out_iterator(0):
+            p_atom = self.pseudocomplement(atom)
+            if p_atom is None:
+                raise ValueError("lattice is not pseudocomplemented")
+            p_atoms.append(p_atom)
+        n = len(p_atoms)
+        mt = self._meet
+        pos = [0] * n
+        meets = [self.order()-1] * n
+        result = [self.order()-1]
+        i = 0
+
+        while i >= 0:
+            new_meet = mt[meets[i-1], p_atoms[pos[i]]]
+            result.append(new_meet)
+            if pos[i] == n-1:
+                i -= 1
+                pos[i] = pos[i]+1
+            else:
+                meets[i] = new_meet
+                pos[i+1] = pos[i]+1
+                i += 1
+
+        return result
+
+    def is_convex_subset(self, S):
+        r"""
+        Return ``True`` if `S` is a convex subset of the poset,
+        and ``False`` otherwise.
+
+        A subset `S` is *convex* in the poset if `b \in S` whenever
+        `a, c \in S` and `a \le b \le c`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: B3 = HasseDiagram({0: [1, 2, 4], 1: [3, 5], 2: [3, 6],
+            ....:                    3: [7], 4: [5, 6], 5: [7], 6: [7]})
+            sage: B3.is_convex_subset([1, 3, 5, 4])  # Also connected
+            True
+            sage: B3.is_convex_subset([1, 3, 4])  # Not connected
+            True
+
+            sage: B3.is_convex_subset([0, 1, 2, 3, 6])  # No, 0 < 4 < 6
+            False
+            sage: B3.is_convex_subset([0, 1, 2, 7])  # No, 1 < 3 < 7.
+            False
+
+        TESTS::
+
+            sage: B3.is_convex_subset([])
+            True
+            sage: B3.is_convex_subset([6])
+            True
+        """
+        if not S:  # S is empty set
+            return True
+        s_max = max(S)
+        ok = set()  # Already checked elements not less than any element is S.
+
+        for a in S:
+            for b in self.neighbor_out_iterator(a):
+                if b >= s_max or b in S:
+                    continue
+                # Now b not in S, b > a and a in S.
+                neighbors = lambda v_: [v for v in self.neighbor_out_iterator(v_)
+                                        if v <= s_max and v not in ok]
+                for c in self.depth_first_search(b, neighbors=neighbors):
+                    if c in S:  # Now c in S, b not in S, a in S, a < b < c.
+                        return False
+                    ok.add(c)  # Do not re-check this for being our b.
+
+        return True
+
+    def neutral_elements(self):
+        """
+        Return the list of neutral elements of the lattice.
+
+        An element `a` in a lattice is neutral if the sublattice
+        generated by `a`, `x` and `y` is distributive for every
+        `x`, `y` in the lattice.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H= HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4, 5],
+            ....:                  4: [6], 5:[6]})
+            sage: sorted(H.neutral_elements())
+            [0, 4, 6]
+
+        ALGORITHM:
+
+        Basically we just check the distributivity against all element
+        pairs `x, y` to see if element `a` is neutral or not.
+
+        If we found that `a, x, y` is not a distributive triple, we add
+        all three to list of non-neutral elements. If we found `a` to
+        be neutral, we add it to list of neutral elements. When testing
+        we skip already found neutral elements, as they can't be our `x`
+        or `y`.
+
+        We skip `a, x, y` as trivial if it is a chain. We do that by
+        letting `x` to be a non-comparable to `a`; `y` can be any element.
+
+        We first try to found `x` and `y` from elements not yet tested,
+        so that we could get three birds with one stone.
+
+        And last, the top and bottom elements are always neutral and
+        need not be tested.
+        """
+        n = self.order()
+        if n < 5:
+            return set(range(n))
+
+        todo = set(range(1, n-1))
+        neutrals = set([0, n-1])
+        notneutrals = set()
+        all_elements = set(range(n))
+
+        mt = self._meet
+        jn = self._join
+
+        def is_neutral(a):
+            noncomp = all_elements.difference(self.depth_first_search(a))
+            noncomp.difference_update(self.depth_first_search(a, neighbors=self.neighbors_in))
+
+            for x in noncomp.intersection(todo):
+                meet_ax = mt[a, x]
+                join_ax = jn[a, x]
+                for y in todo:
+                    if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
+                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                        notneutrals.add(x)
+                        notneutrals.add(y)
+                        return False
+                for y in notneutrals:
+                    if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
+                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                        notneutrals.add(x)
+                        return False
+            for x in noncomp.difference(todo):
+                meet_ax = mt[a, x]
+                join_ax = jn[a, x]
+                for y in todo:
+                    if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
+                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                        notneutrals.add(y)
+                        return False
+                for y in notneutrals:
+                    if (mt[mt[join_ax, jn[a, y]], jn[x, y]] !=
+                        jn[jn[meet_ax, mt[a, y]], mt[x, y]]):
+                        return False
+            return True
+
+        while todo:
+            e = todo.pop()
+            if is_neutral(e):
+                neutrals.add(e)
+            else:
+                notneutrals.add(e)
+
+        return neutrals
+
+    def kappa(self, a):
+        r"""
+        Return the maximum element greater than the element covered
+        by ``a`` but not greater than ``a``.
+
+        Define `\kappa(a)` as the maximum element of
+        `(\uparrow a_*) \setminus (\uparrow a)`, where `a_*` is the element
+        covered by `a`. It is always a meet-irreducible element, if it exists.
+
+        .. NOTE::
+
+            Element ``a`` is expected to be join-irreducible, and
+            this is *not* checked.
+
+        INPUT:
+
+        - ``a`` -- a join-irreducible element of the lattice
+
+        OUTPUT:
+
+        The element `\kappa(a)` or ``None`` if there
+        is not a unique greatest element with given constraints.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4, 5], 3: [5], 4: [6], 5: [6]})
+            sage: H.kappa(1)
+            5
+            sage: H.kappa(2) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1]})
+            sage: H.kappa(1)
+            0
+        """
+        lc = next(self.neighbor_in_iterator(a))
+        if self.out_degree(lc) == 1:
+            return lc
+        gt_a = set(self.depth_first_search(a))
+        tmp = list(self.depth_first_search(lc, neighbors=lambda v: [v_ for v_ in self.neighbors_out(v) if v_ not in gt_a]))
+        result = None
+        for e in tmp:
+            if all(x not in tmp for x in self.neighbors_out(e)):
+                if result:
+                    return None
+                result = e
+        return result
+
+    def atoms_of_congruence_lattice(self):
+        r"""
+        Return atoms of the congruence lattice.
+
+        In other words, return "minimal non-trivial" congruences:
+        A congruence is minimal if the only finer (as a partition
+        of set of elements) congruence is the trivial congruence
+        where every block contains only one element.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        OUTPUT:
+
+        List of congruences, every congruence as
+        :class:`sage.combinat.set_partition.SetPartition`
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: N5 = HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3:[4]})
+            sage: N5.atoms_of_congruence_lattice()
+            [{{0}, {1}, {2, 3}, {4}}]
+            sage: Hex = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [5], 4: [5]})
+            sage: Hex.atoms_of_congruence_lattice()
+            [{{0}, {1}, {2, 4}, {3}, {5}}, {{0}, {1, 3}, {2}, {4}, {5}}]
+
+        ALGORITHM:
+
+        Every atom is a join-irreducible. Every join-irreducible of
+        `\mathrm{Con}(L)` is a principal congruence generated by a
+        meet-irreducible element and the only element covering it (and also
+        by a join-irreducible element and the only element covered by it).
+        Hence we check those principal congruences to find the minimal ones.
+        """
+        # Note: A lattice L if subdirectly reducible (i.e. is a sublattice
+        # of a Cartesian product of two smaller lattices) iff Con(L) has
+        # at least two atoms. That's were this is used for.
+
+        from sage.combinat.set_partition import SetPartitions
+
+        # Get smaller set, meet- or join-irreducibles
+        join_irreducibles = [v for v in self if self.in_degree(v) == 1]
+        meet_irreducibles = [v for v in self if self.out_degree(v) == 1]
+        if len(join_irreducibles) < len(meet_irreducibles):
+            irr = [(v, next(self.neighbor_in_iterator(v))) for v in join_irreducibles]
+        else:
+            irr = [(next(self.neighbor_out_iterator(v)), v) for v in meet_irreducibles]
+
+        S = SetPartitions(range(self.order()))
+        min_congruences = []
+        already_tried = []
+
+        while irr:
+            next_pair = irr.pop()
+            cong = self.congruence([next_pair], stop_pairs=already_tried)
+            already_tried.append(next_pair)
+            if cong is not None:
+                cong = S(cong)
+                min_congruences = [c for c in min_congruences if c != cong and not S.is_less_than(cong, c)]
+                if not any(S.is_less_than(c, cong) for c in min_congruences):
+                    min_congruences.append(cong)
+
+        return min_congruences
+
+    def congruence(self, parts, start=None, stop_pairs=[]):
+        """
+        Return the congruence ``start`` "extended" by ``parts``.
+
+        ``start`` is assumed to be a valid congruence of the lattice,
+        and this is *not* checked.
+
+        INPUT:
+
+        - ``parts`` -- a list of lists; congruences to add
+        - ``start`` -- a disjoint set; already computed congruence (or ``None``)
+        - ``stop_pairs`` -- a list of pairs; list of pairs for stopping computation
+
+        OUTPUT:
+
+        ``None``, if the congruence generated by ``start`` and ``parts``
+        together contains a block that has elements `a, b` so that ``(a, b)``
+        is in the list ``stop_pairs``. Otherwise the least congruence that
+        contains a block whose subset is `p` for every `p` in ``parts`` or
+        ``start``, given as :class:`sage.sets.disjoint_set.DisjointSet_class`.
+
+        ALGORITHM:
+
+        Use the quadrilateral argument from page 120 of [Dav1997]_.
+
+        Basically we take one block from todo-list, search quadrilateral
+        blocks up and down against the block, and then complete them to
+        closed intervals and add to todo-list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: cong = H.congruence([[0, 1]]); cong
+            {{0, 1, 3}, {2, 4}}
+            sage: H.congruence([[0, 2]], start=cong)
+            {{0, 1, 2, 3, 4}}
+
+            sage: H.congruence([[0, 1]], stop_pairs=[(1, 3)]) is None
+            True
+
+        TESTS::
+
+            sage: H = HasseDiagram('HT@O?GO?OE?G@??')
+            sage: H.congruence([[0, 1]]).number_of_subsets()
+            1
+            sage: H = HasseDiagram('HW_oC?@@O@?O@??')
+            sage: H.congruence([[0, 1]]).number_of_subsets()
+            1
+
+        Check :trac:`21861`::
+
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [4], 3: [4]})
+            sage: tmp = H.congruence([[1, 3]])
+            sage: tmp.number_of_subsets()
+            4
+            sage: H.congruence([[0, 1]], start=tmp).number_of_subsets()
+            2
+            sage: tmp.number_of_subsets()
+            4
+        """
+        from sage.sets.disjoint_set import DisjointSet
+        from copy import copy
+
+        n = self.order()
+        mt = self._meet
+        jn = self._join
+
+        def fill_to_interval(S):
+            """
+            Return the smallest interval containing elements in the set S.
+            """
+            m = n-1
+            for e in S:
+                m = mt[m, e]
+            j = 0
+            for e in S:
+                j = jn[j, e]
+            return self.interval(m, j)
+
+        cong = copy(start) if start else DisjointSet(n)
+        t = -1
+
+        while t != cong.number_of_subsets():
+            for part in parts:
+                if part:  # Skip empty parts
+                    c = part[0]
+                    for e in fill_to_interval(part):
+                        cong.union(e, c)
+            t = cong.number_of_subsets()
+
+            # Following is needed for cases like
+            # Posets.BooleanLattice(3).congruence([(0,1), (0,2), (0,4)])
+            for c in list(cong):
+                r = c[0]
+                for v in fill_to_interval(c):
+                    cong.union(r, v)
+
+        todo = set(cong.find(e) for part in parts for e in part)
+
+        while todo:
+
+            # First check if we should stop now.
+            for a, b in stop_pairs:
+                if cong.find(a) == cong.find(b):
+                    return None
+
+            # We take one block and try to find as big interval
+            # as possible to unify as a new block by the quadrilateral
+            # argument.
+            block = sorted(cong.root_to_elements_dict()[cong.find(todo.pop())])
+
+            b = block[-1]
+            for a in block:  # Quadrilateral up
+                for c in self.neighbor_out_iterator(a):
+                    if c not in block:
+                        d = self._join[c, b]
+                        if cong.find(d) != cong.find(c):
+                            break
+                else:
+                    continue
+                break
+
+            else:  # Not found, so...
+                a = block[0]
+                for b in reversed(block):  # ...quadrilateral down
+                    for d in self.neighbor_in_iterator(b):
+                        if d not in block:
+                            c = self._meet[d, a]
+                            if cong.find(c) != cong.find(d):
+                                break
+                    else:
+                        continue
+                    break
+                else:  # Nothing found
+                    continue
+
+            # Something was found, so we put this block back to todo
+            # together with just found new block.
+            todo.add(a)
+            todo.add(c)
+
+            # Now the interval [c, d] will be of the same block.
+            # It may "crab" other blocks within, and that can be
+            # recursive process. In particular it may also combine to
+            # [a, b] block we just used.
+            while c is not None:
+                newblock = cong.find(c)
+                I = self.interval(c, d)
+                for i in I:
+                    cong.union(newblock, i)
+                C = cong.root_to_elements_dict()[cong.find(newblock)]
+                mins = [i for i in C if all(i_ not in C for i_ in self.neighbor_in_iterator(i))]
+                maxs = [i for i in C if all(i_ not in C for i_ in self.neighbor_out_iterator(i))]
+                c = None  # To stop loop, if this is not changed below.
+                if len(mins) > 1 or len(maxs) > 1:
+                    c = n-1
+                    for m in mins:
+                        c = self._meet[c, m]
+                    d = 0
+                    for m in maxs:
+                        d = self._join[d, m]
+
+            # This removes duplicates from todo.
+            todo = set(cong.find(x) for x in todo)
+
+        return cong
+
+    def find_nontrivial_congruence(self):
+        """
+        Return a pair that generates non-trivial congruence or
+        ``None`` if there is not any.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [5], 2: [3, 4], 3: [5], 4: [5]})
+            sage: H.find_nontrivial_congruence()
+            {{0, 1}, {2, 3, 4, 5}}
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.find_nontrivial_congruence() is None
+            True
+
+        ALGORITHM:
+
+        See http://www.math.hawaii.edu/~ralph/Preprints/conlat.pdf:
+
+        If `\Theta` is a join irreducible element of a `\mathrm{Con}(L)`,
+        then there is at least one join-irreducible `j` and one
+        meet-irreducible `m` such that `\Theta` is both the principal
+        congruence generated by `(j^*, j)`, where `j^*` is the unique
+        lower cover of `j`, and the principal congruence generated by
+        `(m, m^*)`, where `m^*` is the unique upper cover of `m`.
+
+        So, we only check join irreducibles or meet irreducibles,
+        whichever is a smaller set. To optimize more we stop computation
+        whenever it founds a pair that we know to generate one-element
+        congruence.
+        """
+        join_irreducibles = [v for v in self if self.in_degree(v) == 1]
+        meet_irreducibles = [v for v in self if self.out_degree(v) == 1]
+        if len(join_irreducibles) < len(meet_irreducibles):
+            irr = [(v, self.neighbors_in(v)[0]) for v in join_irreducibles]
+        else:
+            irr = [(self.neighbors_out(v)[0], v) for v in meet_irreducibles]
+        tried = []
+        for pair in irr:
+            cong = self.congruence([pair], stop_pairs=tried)
+            if cong is not None and cong.number_of_subsets() > 1:
+                return cong
+            tried.append(pair)
+        return None
+
+    def principal_congruences_poset(self):
+        r"""
+        Return the poset of join-irreducibles of the congruence lattice.
+
+        OUTPUT:
+
+        A pair `(P, D)` where `P` is a poset and `D` is a dictionary.
+
+        Elements of `P` are pairs `(x, y)` such that `x` is an element
+        of the lattice and `y` is an element covering it. In the poset
+        `(a, b)` is less than `(c, d)` iff the principal congruence
+        generated by `(a, b)` is refinement of the principal congruence
+        generated by `(c, d)`.
+
+        `D` is a dictionary from pairs `(x, y)` to the congruence
+        (given as DisjointSet) generated by the pair.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: N5 = HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4]})
+            sage: P, D = N5.principal_congruences_poset()
+            sage: P
+            Finite poset containing 3 elements
+            sage: P.bottom()
+            (2, 3)
+            sage: D[(2, 3)]
+            {{0}, {1}, {2, 3}, {4}}
+        """
+        from sage.combinat.set_partition import SetPartition, SetPartitions
+        from sage.combinat.posets.posets import Poset
+
+        n = self.order()
+
+        # Select smaller set, meet- or join-irreducibles
+        if self.in_degree_sequence().count(1) > self.out_degree_sequence().count(1):
+            irr = [(e, next(self.neighbor_out_iterator(e))) for e in range(n) if self.out_degree(e) == 1]
+        else:
+            irr = [(next(self.neighbor_in_iterator(e)), e) for e in range(n) if self.in_degree(e) == 1]
+
+        D = {}
+        P = {}
+        uniq_congs = set()
+        for ab in irr:
+            cong = self.congruence([ab])
+            cong_ = SetPartition(cong)
+            if cong_ not in uniq_congs:
+                uniq_congs.add(cong_)
+                D[ab] = cong
+                P[ab] = cong_
+
+        # Todo: Make a function that creates the poset from a set
+        # by comparison function with minimal number of comparisons.
+
+        T = SetPartitions(n)
+        P = DiGraph([D, lambda a, b: T.is_less_than(P[a], P[b])])
+        return (Poset(P), D)
+
+    def congruences_iterator(self):
+        """
+        Return an iterator over all congruences of the lattice.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram('GY@OQ?OW@?O?')
+            sage: it = H.congruences_iterator(); it
+            <generator object ...>
+            sage: sorted([cong.number_of_subsets() for cong in it])
+            [1, 2, 2, 2, 4, 4, 4, 8]
+        """
+        from sage.sets.disjoint_set import DisjointSet
+
+        P, congs = self.principal_congruences_poset()
+        for a in P.antichains_iterator():
+            achain = tuple(a)
+            n = len(achain)
+            if n == 0:
+                yield DisjointSet(self.order())
+            if n == 1:
+                # We have congs[(x,y)], but we want congs[((x,y))].
+                congs[achain] = congs[a[0]]
+                yield congs[achain[0]]
+            if n > 1:
+                c = congs[achain[:-1]]
+                c = self.congruence([achain[-1]], start=c)
+                yield c
+                congs[achain] = c
+
+    def is_congruence_normal(self):
+        """
+        Return ``True`` if the lattice can be constructed from the one-element
+        lattice with Day doubling constructions of convex subsets.
+
+        Subsets to double does not need to be lower nor upper pseudo-intervals.
+        On the other hand they must be convex, i.e. doubling a non-convex but
+        municipal subset will give a lattice that returns ``False`` from
+        this function.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram('IX?Q@?AG?OG?W?O@??')
+            sage: H.is_congruence_normal()
+            True
+
+        The 5-element diamond is the smallest non-example::
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.is_congruence_normal()
+            False
+
+        This is done by doubling a non-convex subset::
+
+            sage: H = HasseDiagram('OQC?a?@CO?G_C@?GA?O??_??@?BO?A_?G??C??_?@???')
+            sage: H.is_congruence_normal()
+            False
+
+        TESTS::
+
+            sage: HasseDiagram().is_congruence_normal()
+            True
+            sage: HasseDiagram({0: []}).is_congruence_normal()
+            True
+
+        ALGORITHM:
+
+        See http://www.math.hawaii.edu/~jb/inflation.pdf
+        """
+        from sage.combinat.set_partition import SetPartition
+
+        n = self.order()
+        congs_ji = {}
+
+        for ji in range(n):
+            if self.in_degree(ji) == 1:
+                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))
+                if cong not in congs_ji:
+                    congs_ji[cong] = []
+                congs_ji[cong].append(ji)
+
+        for mi in range(n):
+            if self.out_degree(mi) == 1:
+                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))
+                if any(self.is_lequal(ji, mi) for ji in congs_ji[cong]):
+                    return False
+
+        return True
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

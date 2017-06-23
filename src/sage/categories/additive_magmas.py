@@ -18,7 +18,6 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.element import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -200,7 +199,7 @@ class AdditiveMagmas(Category_singleton):
 
             .. TODO:: Add an example.
             """
-            return x._add_(y)
+            return x + y
 
         summation_from_element_class_add = summation
 
@@ -388,50 +387,6 @@ class AdditiveMagmas(Category_singleton):
                                   names=names, elements=elements)
 
     class ElementMethods:
-
-        # This could eventually be moved to SageObject
-        def __add__(self, right):
-            r"""
-            Return the sum of ``self`` and ``right``.
-
-            This calls the `_add_` method of ``self``, if it is
-            available and the two elements have the same parent.
-
-            Otherwise, the job is delegated to the coercion model.
-
-            Do not override; instead implement an ``_add_`` method in the
-            element class or a ``summation`` method in the parent class.
-
-            EXAMPLES::
-
-                sage: F = CommutativeAdditiveSemigroups().example()
-                sage: (a,b,c,d) = F.additive_semigroup_generators()
-                sage: a + b
-                a + b
-            """
-            if have_same_parent(self, right) and hasattr(self, "_add_"):
-                return self._add_(right)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(self, right, operator.add)
-
-        def __radd__(self, left):
-            r"""
-            Handles the sum of two elements, when the left hand side
-            needs to be coerced first.
-
-            EXAMPLES::
-
-                sage: F = CommutativeAdditiveSemigroups().example()
-                sage: (a,b,c,d) = F.additive_semigroup_generators()
-                sage: a.__radd__(b)
-                a + b
-            """
-            if have_same_parent(left, self) and hasattr(left, "_add_"):
-                return left._add_(self)
-            from sage.structure.element import get_coercion_model
-            import operator
-            return get_coercion_model().bin_op(left, self, operator.add)
 
         @abstract_method(optional = True)
         def _add_(self, right):
@@ -832,7 +787,7 @@ class AdditiveMagmas(Category_singleton):
 
             def _test_nonzero_equal(self, **options):
                 r"""
-                Test that ``.__nonzero__()`` behave consistently
+                Test that ``.__bool__()`` behave consistently
                 with `` == 0``.
 
                 TESTS::
@@ -844,27 +799,6 @@ class AdditiveMagmas(Category_singleton):
                 tester = self._tester(**options)
                 tester.assertEqual(bool(self), self != self.parent().zero())
                 tester.assertEqual(not self, self == self.parent().zero())
-
-            def __sub__(left, right):
-                """
-                Return the difference between ``left`` and ``right``, if it exists.
-
-                This top-level implementation delegates the work to
-                the ``_sub_`` method or to coercion. See the extensive
-                documentation at the top of :ref:`sage.structure.element`.
-
-                EXAMPLES::
-
-                    sage: F = CombinatorialFreeModule(QQ, ['a','b'])
-                    sage: a,b = F.basis()
-                    sage: a - b
-                    B['a'] - B['b']
-                """
-                if have_same_parent(left, right):
-                    return left._sub_(right)
-                from sage.structure.element import get_coercion_model
-                import operator
-                return get_coercion_model().bin_op(left, right, operator.sub)
 
             def _sub_(left, right):
                 r"""
@@ -885,7 +819,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.one() - C.one()
                     (0, 0)
                 """
-                return left._add_(-right)
+                return left + (-right)
 
             def __neg__(self):
                 """
@@ -905,10 +839,6 @@ class AdditiveMagmas(Category_singleton):
 
                 TESTS::
 
-                    sage: b.__neg__.__module__
-                    'sage.categories.additive_magmas'
-                    sage: b._neg_.__module__
-                    'sage.combinat.free_module'
                     sage: F = CombinatorialFreeModule(ZZ, ['a','b'])
                     sage: a,b = F.gens()
                     sage: FF = cartesian_product((F,F))
@@ -980,7 +910,7 @@ class AdditiveMagmas(Category_singleton):
                     return [AdditiveMagmas().AdditiveUnital().AdditiveInverse()]
 
                 class ElementMethods:
-                    def __neg__(self):
+                    def _neg_(self):
                         """
                         Return the negation of ``self``.
 
@@ -1020,7 +950,7 @@ class AdditiveMagmas(Category_singleton):
                     r"""
                     Returns the zero of this group
 
-                    EXAMPLE::
+                    EXAMPLES::
 
                         sage: GF(8,'x').cartesian_product(GF(5)).zero()
                         (0, 0)

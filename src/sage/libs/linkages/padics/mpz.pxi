@@ -16,13 +16,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 from cpython.list cimport *
 
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_pythonhash
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -67,7 +67,7 @@ cdef inline int ccmp(mpz_t a, mpz_t b, long prec, bint reduce_a, bint reduce_b, 
     - ``reduce_b`` -- a bint, whether b needs to be reduced.
     - ``prime_pow`` -- the PowComputer for the ring.
 
-    OUPUT:
+    OUTPUT:
 
     - If neither a nor be needs to be reduced, returns
       -1 (`a < b`), 0 (`a = b`) or 1 (`a > b`)
@@ -327,7 +327,7 @@ cdef inline int cdivunit(mpz_t out, mpz_t a, mpz_t b, long prec, PowComputer_ pr
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:

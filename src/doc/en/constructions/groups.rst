@@ -175,16 +175,16 @@ or
 
 Here's another way, working more directly with GAP::
 
-    sage: print gap.eval("G := AlternatingGroup( 5 )")
+    sage: print(gap.eval("G := AlternatingGroup( 5 )"))
     Alt( [ 1 .. 5 ] )
-    sage: print gap.eval("normal := NormalSubgroups( G )")
+    sage: print(gap.eval("normal := NormalSubgroups( G )"))
     [ Group(()), Alt( [ 1 .. 5 ] ) ]
     sage: G = gap.new("DihedralGroup( 10 )")
     sage: G.NormalSubgroups()
     [ Group( <identity> of ... ), Group( [ f2 ] ), Group( [ f1, f2 ] ) ]
-    sage: print gap.eval("G := SymmetricGroup( 4 )")
+    sage: print(gap.eval("G := SymmetricGroup( 4 )"))
     Sym( [ 1 .. 4 ] )
-    sage: print gap.eval("normal := NormalSubgroups( G );")
+    sage: print(gap.eval("normal := NormalSubgroups( G );"))
     [ Group(()), Group([ (1,4)(2,3), (1,3)(2,4) ]), Group([ (2,4,3), (1,4)
       (2,3), (1,3)(2,4) ]), Sym( [ 1 .. 4 ] ) ]
 
@@ -297,7 +297,7 @@ from there.
 
     sage: G = H.semidirect_product(K, phi)
 
-To avoid unnecessary repitition, we will now give commands that one can use to
+To avoid unnecessary repetition, we will now give commands that one can use to
 create the cyclic group of order `n`, `C_n`, and the dihedral group on `n`
 letters, `D_n`. We will present one more example of each to ensure that the
 reader understands the command, then it will be withheld.
@@ -502,7 +502,7 @@ to be returned. For example, to construct
     sage: A = groups.presentation.FGAbelian([4,2,2,2])
 
 The output for a given group is the same regardless of the input list of
-integers.  The following example yeilds identical presentations for the
+integers.  The following example yields identical presentations for the
 cyclic group of order 30.
 ::
 
@@ -538,9 +538,9 @@ order 16 as a semidirect product of cyclic groups.
 
 The following table shows the groups of order 15 or less, and how to construct
 them in Sage. Repeated commands have been omitted but instead are described
-by the following exmples.
+by the following examples.
 
-The cyclic group of order `n` can be crated with a single command:
+The cyclic group of order `n` can be created with a single command:
 
 .. skip
 

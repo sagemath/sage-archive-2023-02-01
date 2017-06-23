@@ -8,6 +8,7 @@ p-adic Capped Relative Dense Polynomials
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 import sage.rings.polynomial.polynomial_element_generic
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -20,6 +21,7 @@ import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
 from sage.structure.element import coerce_binop
+import six
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX
@@ -108,14 +110,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         elif isinstance(x, dict):
             zero = parentbr.zero()
             n = max(x.keys()) if x else 0
-            v = [zero for _ in xrange(n + 1)]
-            for i, z in x.iteritems():
+            v = [zero] * (n + 1)
+            for i, z in six.iteritems(x):
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):
             x = [parentbr(w) for w in x.list()]
             check = False
-        #The default behavior if we haven't already figured out what the type is is to assume it coerces into the base_ring as a constant polynomial
+        # The default behavior, if we haven't already figured out what
+        # the type is, is to assume it coerces into the base_ring as a
+        # constant polynomial
         elif not isinstance(x, list):
             x = [x] # constant polynomial
 
@@ -157,7 +161,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         The value a must be an element of the base ring of P. That
         assumption is not verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = Zp(5)[]
             sage: t._new_constant_poly(O(5),R)
@@ -291,7 +295,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         return self._poly.parent()([(0 if (c is infinity) else (one << (n * c))) for c in self._valaddeds] + \
                                    [(0 if (c is infinity) else (one << (n * c))) for c in self._relprecs[len(self._valaddeds):]])
 
-    def list(self):
+    def list(self, copy=True):
         """
         Return a list of coefficients of ``self``.
 
@@ -316,7 +320,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         """
         if self._list is None:
             self._comp_list()
-        return list(self._list)
+        if copy:
+            return list(self._list)
+        else:
+            return self._list
 
     def lift(self):
         """
@@ -387,7 +394,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             if stop is None or stop > d:
                 stop = d
             values = ([self.base_ring().zero()] * start
-                      + [self[i] for i in xrange(start, stop)])
+                      + [self[i] for i in range(start, stop)])
             return self.parent()(values)
 
         try:
@@ -720,7 +727,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     zero = self._base_ring()(0)
                     self._list.extend([zero] * (n - len(self._list)) + [value])
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         Return ``self`` as a Pari object.
         """
@@ -1033,6 +1040,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             sage: g.quo_rem(f)
             ((1 + O(3^10))*T^3 + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*T^2 + (1 + 3 + O(3^10))*T + (1 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)),
             (2 + 3 + 3^3 + O(3^10)))
+
+        TESTS:
+
+        Verify that :trac:`15188` has been resolved::
+
+            sage: R.<x> = Qp(3)[]
+            sage: x.quo_rem(x)
+            ((1 + O(3^20)), 0)
+
         """
         return self._quo_rem_list(right, secure=secure)
 
@@ -1137,8 +1153,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         from sage.misc.stopgap import stopgap
         stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
 
-        from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_field
-        return Polynomial_generic_field.xgcd(self,right)
+        return Polynomial_generic_cdv.xgcd(self,right)
 
     #def discriminant(self):
     #    raise NotImplementedError

@@ -5,7 +5,7 @@ Modular parametrization of elliptic curves over `\QQ`
 By the work of Taylor--Wiles et al. it is known that there
 is a surjective morphism
 
-.. math::
+.. MATH::
 
     \phi_E: X_0(N) \rightarrow E.
 
@@ -27,6 +27,7 @@ AUTHORS:
 - chris wuthrich (02/10) - moved from ell_rational_field.py.
 
 """
+from __future__ import absolute_import
 
 ######################################################################
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -43,7 +44,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-import heegner
+from . import heegner
 
 from sage.rings.all import (LaurentSeriesRing, RationalField, ComplexField, QQ)
 import sage.misc.misc as misc
@@ -52,7 +53,7 @@ class ModularParameterization:
     r"""
     This class represents the modular parametrization of an elliptic curve
 
-    .. math::
+    .. MATH::
 
         \phi_E: X_0(N) \rightarrow E.
 
@@ -236,7 +237,7 @@ class ModularParameterization:
 
         The series should satisfy the differential equation
 
-        .. math::
+        .. MATH::
 
             \frac{\mathrm{d}X}{2Y + a_1 X + a_3} = \frac{f(q)\, \mathrm{d}q}{q}
 

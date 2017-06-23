@@ -18,14 +18,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import division, print_function
 
 from libc.math cimport ceil
-from sage.rings.integer cimport Integer
-from sage.structure.element cimport parent_c as parent
-from sage.structure.sequence import Sequence
+from cysignals.signals cimport sig_check
 
-include "cysignals/signals.pxi"
+from sage.rings.integer cimport Integer
+from sage.structure.element cimport parent
+from sage.structure.sequence import Sequence
 
 
 def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include_endpoint=False, endpoint_tolerance=1e-5):
@@ -87,7 +87,7 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
         sage: xsrange(10)
         <generator object at 0x...>
         sage: for i in xsrange(1,5):
-        ....:     print i
+        ....:     print(i)
         1
         2
         3
@@ -101,7 +101,7 @@ def xsrange(start, end=None, step=1, universe=None, *, coerce=True, bint include
 
         sage: it = xsrange(10^30, 10^100)
         sage: for i in range(5):
-        ....:     print next(it)
+        ....:     print(next(it))
         1000000000000000000000000000000
         1000000000000000000000000000001
         1000000000000000000000000000002
@@ -208,14 +208,15 @@ def srange(*args, **kwds):
 
     OUTPUT: a list
 
-    .. note::
+    .. NOTE::
 
        This function is called ``srange`` to distinguish
        it from the built-in Python ``range`` command.  The s
        at the beginning of the name stands for "Sage".
 
-    .. seealso: :func:`xsrange` -- iterator which is used to implement
-       :func:`srange`.
+    .. SEEALSO::
+
+        :func:`xsrange` -- iterator which is used to implement :func:`srange`.
 
     EXAMPLES::
 
@@ -423,7 +424,7 @@ def ellipsis_iter(*args, step=None):
                 next = None
             more = xsrange(start, end, step, coerce=False, include_endpoint=True)
             try:
-                first = more.next()
+                first = more.next()  # BUG: cannot currently use next(more)
                 if last_end != first:
                     yield first
                 for a in more:

@@ -15,6 +15,7 @@ Test backwards compatibility::
     See http://trac.sagemath.org/16930 for details.
     Finite Field in a of size 3^2
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2010-2012 David Roe
@@ -129,8 +130,6 @@ class FiniteField_givaro(FiniteField):
             True
             sage: TestSuite(GF(2^3, 'a')).run()
         """
-        self._kwargs = {}
-
         if repr not in ['int', 'log', 'poly']:
             raise ValueError("Unknown representation %s"%repr)
 
@@ -146,11 +145,8 @@ class FiniteField_givaro(FiniteField):
         if q >= 1<<16:
             raise ValueError("q must be < 2^16")
 
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         FiniteField.__init__(self, GF(p), name, normalize=False)
-
-        self._kwargs['repr'] = repr
-        self._kwargs['cache'] = cache
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if not is_Polynomial(modulus):
@@ -269,12 +265,13 @@ class FiniteField_givaro(FiniteField):
             sage: k(2) # indirect doctest
             0
 
-            Floats coerce in:
+        Floats are converted like integers::
+
             sage: k(float(2.0))
             0
 
         Rational are interpreted as ``self(numerator)/self(denominator)``.
-        Both may not be greater than :meth:characteristic()`.
+        Both may not be greater than :meth:`characteristic`.
         ::
 
             sage: k = GF(3**8, 'a')
@@ -343,7 +340,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(pari('Mod(1,2)'))
             1
             sage: k(pari('Mod(2,3)'))
-            0
+            a
             sage: k(pari('Mod(1,3)*a^20'))
             a^7 + a^5 + a^4 + a^2
 
@@ -441,7 +438,7 @@ class FiniteField_givaro(FiniteField):
         try:
             return self._prime_subfield
         except AttributeError:
-            from finite_field_constructor import GF
+            from .finite_field_constructor import GF
             self._prime_subfield = GF(self.characteristic())
             return self._prime_subfield
 
@@ -534,7 +531,7 @@ class FiniteField_givaro(FiniteField):
             sage: list(GF(2**2, 'a'))
             [0, a, a + 1, 1]
         """
-        from element_givaro import FiniteField_givaro_iterator
+        from .element_givaro import FiniteField_givaro_iterator
         return FiniteField_givaro_iterator(self._cache)
 
     def a_times_b_plus_c(self, a, b, c):

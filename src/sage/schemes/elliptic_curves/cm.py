@@ -32,6 +32,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.interfaces.all import magma
 from sage.rings.all import (Integer,
@@ -185,7 +186,7 @@ def cm_j_invariants(K, proof=None):
 
     (list) -- A list of CM `j`-invariants in the field `K`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: cm_j_invariants(QQ)
         [-262537412640768000, -147197952000, -884736000, -12288000, -884736, -32768, -3375, 0, 1728, 8000, 54000, 287496, 16581375]
@@ -227,7 +228,7 @@ def cm_j_invariants_and_orders(K, proof=None):
     `j`-invariant in `K` with quadratic fundamental discriminant `D`
     and conductor `f`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: cm_j_invariants_and_orders(QQ)
         [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
@@ -254,10 +255,10 @@ def cm_j_invariants_and_orders(K, proof=None):
     # polynomial F(x) with a root in K.  If F(x) has a root alpha in K,
     # then F is the minimal polynomial of alpha in K, so the degree of
     # F(x) is at most [K:QQ].
-    dlist = sum([v for h,v in discriminants_with_bounded_class_number(K.degree(), proof=proof).iteritems()], [])
+    dlist = sum([v for h, v in iteritems(discriminants_with_bounded_class_number(K.degree(), proof=proof))], [])
 
-    return [(D,f,j) for D, f in dlist
-             for j in hilbert_class_polynomial(D*f*f).roots(K, multiplicities=False)]
+    return [(D, f, j) for D, f in dlist
+            for j in hilbert_class_polynomial(D*f*f).roots(K, multiplicities=False)]
 
 
 @cached_function
@@ -414,7 +415,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     EXAMPLES::
 
         sage: v = sage.schemes.elliptic_curves.cm.discriminants_with_bounded_class_number(3)
-        sage: v.keys()
+        sage: list(v)
         [1, 2, 3]
         sage: v[1]
         [(-3, 3), (-3, 2), (-3, 1), (-4, 2), (-4, 1), (-7, 2), (-7, 1), (-8, 1), (-11, 1), (-19, 1), (-43, 1), (-67, 1), (-163, 1)]
@@ -423,7 +424,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         sage: v[3]
         [(-3, 9), (-3, 6), (-11, 2), (-19, 2), (-23, 2), (-23, 1), (-31, 2), (-31, 1), (-43, 2), (-59, 1), (-67, 2), (-83, 1), (-107, 1), (-139, 1), (-163, 2), (-211, 1), (-283, 1), (-307, 1), (-331, 1), (-379, 1), (-499, 1), (-547, 1), (-643, 1), (-883, 1), (-907, 1)]
         sage: v = sage.schemes.elliptic_curves.cm.discriminants_with_bounded_class_number(8, proof=False)
-        sage: [len(v[h]) for h in v.keys()]
+        sage: [len(v[h]) for h in v]
         [13, 29, 25, 84, 29, 101, 38, 208]
 
     Find all class numbers for discriminant up to 50::
@@ -475,7 +476,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         D = Integer(D)
         if is_fundamental_discriminant(D):
             h_D = D.class_number(proof)
-            # For each fundamental discrimant D, loop through the f's such
+            # For each fundamental discriminant D, loop through the f's such
             # that h(D*f^2) could possibly be <= hmax.  As explained to me by Cremona,
             # we have h(D*f^2) >= (1/c)*h(D)*phi_D(f) >= (1/c)*h(D)*euler_phi(f), where
             # phi_D(f) is like euler_phi(f) but the factor (1-1/p) is replaced
@@ -528,14 +529,14 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
                         T[h] = [z]
                 f += 1
 
-    for h in T.keys():
+    for h in T:
         T[h] = list(reversed(T[h]))
 
     if fund_count is not None:
         # Double check that we found the right number of fundamental
         # discriminants; we might as well, since Watkins provides this
         # data.
-        for h in T.keys():
+        for h in T:
             if len([D for D,f in T[h] if f==1]) != fund_count[h]:
                 raise RuntimeError("number of discriminants inconsistent with Watkins's table")
 
@@ -544,7 +545,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 @cached_function
 def is_cm_j_invariant(j):
     """
-    Returns whether or not this is a CM `j`-invariant.
+    Return whether or not this is a CM `j`-invariant.
 
     INPUT:
 
@@ -554,7 +555,7 @@ def is_cm_j_invariant(j):
 
     A pair (bool, (d,f)) which is either (False, None) if `j` is not a
     CM j-invariant or (True, (d,f)) if `j` is the `j`-invariant of the
-    immaginary quadratic order of discriminant `D=df^2` where `d` is
+    imaginary quadratic order of discriminant `D=df^2` where `d` is
     the associated fundamental discriminant and `f` the index.
 
     .. note::
@@ -566,7 +567,6 @@ def is_cm_j_invariant(j):
        version, using the fact that `d` must be supported on the
        primes dividing the discriminant of the minimal polynomial of
        `j`.
-
 
     EXAMPLES::
 

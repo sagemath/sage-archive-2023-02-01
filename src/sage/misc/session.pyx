@@ -57,16 +57,19 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function, absolute_import
 
 # Standard python imports
-import cPickle, os, types
+from six.moves import cPickle
+import os
+import types
 
 # We want the caller's locals, but locals() is emulated in Cython
-import __builtin__
-cdef caller_locals = __builtin__.locals
+from six.moves import builtins
+cdef caller_locals = builtins.locals
 
 # Sage imports
-from misc import embedded
+from .misc import embedded
 from sage.structure.sage_object import load, save
 
 # This module-scope variables is used to save the
@@ -212,7 +215,7 @@ def show_identifiers(hidden=False):
         ['__', '_i', '_6', '_4', '_3', '_1', '_ii', '__doc__', '__builtins__', '___', '_9', '__name__', '_', 'a', '_i12', '_i14', 'factor', '__file__', '_hello', '_i13', '_i11', '_i10', '_i15', '_i5', '_13', '_10', '_iii', '_i9', '_i8', '_i7', '_i6', '_i4', '_i3', '_i2', '_i1', '_init_cmdline', '_14']
     """
     state = caller_locals()
-    return [x for x, v in state.iteritems() if _is_new_var(x, v, hidden)]
+    return sorted([x for x, v in state.iteritems() if _is_new_var(x, v, hidden)])
 
 def save_session(name='sage_session', verbose=False):
     r"""
@@ -269,7 +272,7 @@ def save_session(name='sage_session', verbose=False):
         sage: save_session(tmp_f)
         sage: del a
         sage: load_session(tmp_f)
-        sage: print a
+        sage: print(a)
         5
 
     We illustrate what happens when one of the variables is a function::
@@ -285,6 +288,7 @@ def save_session(name='sage_session', verbose=False):
 
         sage: g = cython_lambda('double x', 'x*x + 1.5')
         sage: save_session(tmp_f, verbose=True)
+        Saving...
         Not saving g: g is a function, method, class or type
         ...
     """
@@ -296,7 +300,7 @@ def save_session(name='sage_session', verbose=False):
     for k in show_identifiers(hidden = True):
         try:
             x = state[k]
-            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, types.TypeType, types.ClassType)):
+            if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, type)):
                 raise TypeError('{} is a function, method, class or type'.format(k))
 
             # We attempt to pickle *and* unpickle every variable to
@@ -308,7 +312,7 @@ def save_session(name='sage_session', verbose=False):
             # not at all useful.
             _ = cPickle.loads(cPickle.dumps(x, protocol=2))
             if verbose:
-                print "Saving %s"%k
+                print("Saving %s" % k)
             D[k] = x
         except Exception as msg:
             if verbose:
@@ -321,11 +325,12 @@ def save_session(name='sage_session', verbose=False):
         # if the user does not save it in the DATA directory.
         # save(D, '../../data/' + name)
         if name.find('.sagenb/') <= 0 or name.find('/data/') <= 0:
-            print ( "To store the session in a common directory that the "
-                    "entire worksheet can access, save it using the command:\n"
-                    "save_session(DATA + '{0}')\n"
-                    "You can later load it by running in any cell:\n"
-                    "load_session(DATA + '{0}')".format(name.rsplit('/', 1)[-1]))
+            print("To store the session in a common directory that the "
+                  "entire worksheet can access, save it using the command:\n"
+                  "save_session(DATA + '{0}')\n"
+                  "You can later load it by running in any cell:\n"
+                  "load_session(DATA + '{0}')".format(name.rsplit('/', 1)[-1]))
+
 
 def load_session(name='sage_session', verbose=False):
     r"""
@@ -357,13 +362,13 @@ def load_session(name='sage_session', verbose=False):
         sage: save_session(tmp_f)
         sage: del a; del f
         sage: load_session(tmp_f)
-        sage: print a
+        sage: print(a)
         5
 
     Note that ``f`` does not come back, since it is a function, hence
     couldn't be saved::
 
-        sage: print f
+        sage: print(f)
         Traceback (most recent call last):
         ...
         NameError: name 'f' is not defined

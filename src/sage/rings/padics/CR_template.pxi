@@ -273,7 +273,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         return unpickle_cre_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp, self.relprec)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the additive inverse of this element.
 
@@ -297,7 +297,7 @@ cdef class CRElement(pAdicTemplateElement):
             creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Return the sum of this element and ``_right``.
 
@@ -339,7 +339,7 @@ cdef class CRElement(pAdicTemplateElement):
                 creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Return the difference of this element and ``_right``.
 
@@ -413,7 +413,7 @@ cdef class CRElement(pAdicTemplateElement):
         cinvert(ans.unit, self.unit, ans.relprec, ans.prime_pow)
         return ans
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -444,7 +444,7 @@ cdef class CRElement(pAdicTemplateElement):
         check_ordp(ans.ordp)
         return ans
 
-    cpdef RingElement _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         """
         Return the quotient of this element and ``right``.
 
@@ -498,14 +498,14 @@ cdef class CRElement(pAdicTemplateElement):
 
         Let `\alpha` be in `\mathcal{O}_K`.  Let
 
-        ..math ::
+        .. MATH::
 
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
         the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^p \equiv \left{ \begin{array}{lll}
             1 + \alpha^p \pi_K^{p \lambda} &
@@ -577,10 +577,9 @@ cdef class CRElement(pAdicTemplateElement):
             representative congruent to `\alpha` modulo `\pi_K`.  Thus
             the result will always be congruent to `1` modulo `\pi_K`.
 
-        .. REFERENCES::
+        REFERENCES:
 
-        .. [SP] Constructing Class Fields over Local Fields.
-                Sebastian Pauli.
+        .. [SP] *Constructing Class Fields over Local Fields*. Sebastian Pauli.
 
         INPUT:
 
@@ -758,7 +757,7 @@ cdef class CRElement(pAdicTemplateElement):
                 ans._normalize()
         return ans
 
-    cpdef RingElement _floordiv_(self, RingElement _right):
+    cpdef _floordiv_(self, _right):
         """
         Floor division.
 
@@ -826,7 +825,7 @@ cdef class CRElement(pAdicTemplateElement):
         an equal element with precision set to the minimum of ``self's``
         precision and ``absprec``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
@@ -1403,7 +1402,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         if exactzero(self.ordp):
             return infinity
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.ordp + self.relprec)
         return ans
 
@@ -1429,8 +1428,8 @@ cdef class CRElement(pAdicTemplateElement):
             0
             sage: R(0,7).precision_relative()
             0
-       """
-        cdef Integer ans = PY_NEW(Integer)
+        """
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.relprec)
         return ans
 
@@ -1528,7 +1527,7 @@ cdef class CRElement(pAdicTemplateElement):
             raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         if exactzero((<CRElement>self).ordp):
             raise ValueError("unit part of 0 not defined")
-        cdef Integer val = PY_NEW(Integer)
+        cdef Integer val = Integer.__new__(Integer)
         mpz_set_si(val.value, (<CRElement>self).ordp)
         cdef CRElement unit = (<CRElement>self)._new_c()
         unit.ordp = 0
@@ -1714,7 +1713,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
 cdef class pAdicConvert_CR_ZZ(RingMap):
     """
     The map from a capped relative ring back to the ring of integers that
-    returns the the smallest non-negative integer approximation to its input
+    returns the smallest non-negative integer approximation to its input
     which is accurate up to the precision.
 
     Raises a ``ValueError``, if the input is not in the closure of the image of
@@ -1761,7 +1760,7 @@ cdef class pAdicConvert_CR_ZZ(RingMap):
             ...
             ValueError: negative valuation
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         cdef CRElement x = _x
         if x.relprec != 0:
             cconv_mpz_t_out(ans.value, x.unit, x.ordp, x.relprec, x.prime_pow)

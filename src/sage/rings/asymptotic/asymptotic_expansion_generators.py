@@ -1,27 +1,6 @@
 r"""
 Common Asymptotic Expansions
 
-.. WARNING::
-
-    As this code is experimental, a warning is thrown when an
-    asymptotic ring (or an associated structure) is created for the
-    first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: AsymptoticRing(growth_group='z^ZZ * log(z)^QQ', coefficient_ring=ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Asymptotic Ring <z^ZZ * log(z)^QQ> over Integer Ring
-
-
 Asymptotic expansions in SageMath can be built through the
 ``asymptotic_expansions`` object. It contains generators for common
 asymptotic expressions. For example,
@@ -92,6 +71,8 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.structure.sage_object import SageObject
 
@@ -284,7 +265,7 @@ class AsymptoticExpansionGenerators(SageObject):
             from sage.rings.rational_field import QQ
             coefficient_ring = QQ
 
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         A = AsymptoticRing(growth_group='{n}^ZZ * log({n})^ZZ'.format(n=var),
                            coefficient_ring=coefficient_ring)
         n = A.gen()
@@ -350,7 +331,7 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <m^ZZ> over Rational Field
         """
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         from sage.rings.rational_field import QQ
 
         A = AsymptoticRing(growth_group='{n}^ZZ'.format(n=var),
@@ -422,8 +403,8 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
             sage: for p in range(5):
-            ....:     print asymptotic_expansions.HarmonicNumber(
-            ....:         'n', precision=p)
+            ....:     print(asymptotic_expansions.HarmonicNumber(
+            ....:         'n', precision=p))
             O(log(n))
             log(n) + O(1)
             log(n) + euler_gamma + O(n^(-1))
@@ -439,7 +420,7 @@ class AsymptoticExpansionGenerators(SageObject):
             from sage.rings.rational_field import QQ
             coefficient_ring = QQ
 
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         A = AsymptoticRing(growth_group='{n}^ZZ * log({n})^ZZ'.format(n=var),
                            coefficient_ring=coefficient_ring)
         n = A.gen()
@@ -563,7 +544,7 @@ class AsymptoticExpansionGenerators(SageObject):
         try:
             SCR.coerce(k)
         except TypeError as e:
-            from misc import combine_exceptions
+            from .misc import combine_exceptions
             raise combine_exceptions(
                 TypeError('Cannot use k={}.'.format(k)), e)
 
@@ -889,8 +870,8 @@ class AsymptoticExpansionGenerators(SageObject):
             NotImplementedError: not implemented for delta!=0
         """
         from itertools import islice, count
-        from asymptotic_ring import AsymptoticRing
-        from growth_group import ExponentialGrowthGroup, \
+        from .asymptotic_ring import AsymptoticRing
+        from .growth_group import ExponentialGrowthGroup, \
                 MonomialGrowthGroup
         from sage.arith.all import falling_factorial
         from sage.categories.cartesian_product import cartesian_product
@@ -995,7 +976,7 @@ class AsymptoticExpansionGenerators(SageObject):
             if alpha > 0 and alpha <= precision:
                 result = A(0)
             elif alpha <= 0 and precision > 0:
-                from misc import NotImplementedOZero
+                from .misc import NotImplementedOZero
                 raise NotImplementedOZero(A)
 
         for (k, r) in it:

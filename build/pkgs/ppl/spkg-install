@@ -22,19 +22,6 @@ export CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
 
 cd src
 
-# Apply patch: patch out tests that
-# * fail to compile on Solaris gcc 4.5.1
-# * break when setting MAKE="make -jN"
-# They cover code that is not exposed by the Cython wrapper
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 # Enable only what's needed for Sage
 PPL_CONFIGURE="--enable-coefficients=mpz --disable-fpmath $PPL_CONFIGURE"
 
@@ -59,6 +46,13 @@ if [ $? -ne 0 ]; then
         echo >&2 "Error configuring the Parma Polyhedra Library."
         exit 1
     fi
+fi
+
+# Workaround to disable PPL's "watchdog timer", preventing it from clobbering
+# Cysignals' SIGALRM handler on Cygwin; see
+# https://trac.sagemath.org/ticket/21190
+if [ "$UNAME" = "CYGWIN" ]; then
+    sed -i 's/#define HAVE_DECL_SETITIMER 1/#define HAVE_DECL_SETITIMER 0/' config.h
 fi
 
 $MAKE

@@ -5,6 +5,7 @@ At the moment this module only implement one method, which calls Brendan McKay's
 Nauty (`<http://cs.anu.edu.au/~bdm/nauty/>`_) to enumerate hypergraphs up to
 isomorphism.
 """
+from __future__ import print_function
 
 class HypergraphGenerators():
     r"""
@@ -92,14 +93,14 @@ class HypergraphGenerators():
         vertices::
 
             sage: fano = next(hypergraphs.nauty(7, 7, uniform=3, max_intersection=1))
-            sage: print fano
+            sage: print(fano)
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
 
         The Fano Plane, as the only 3-regular hypergraph with 7 sets and 7
         vertices::
 
             sage: fano = next(hypergraphs.nauty(7, 7, regular=3, max_intersection=1))
-            sage: print fano
+            sage: print(fano)
             ((0, 1, 2), (0, 3, 4), (0, 5, 6), (1, 3, 5), (2, 4, 5), (2, 3, 6), (1, 4, 6))
         """
         import subprocess
@@ -164,7 +165,7 @@ class HypergraphGenerators():
 
         - ``k,n`` -- nonnegative integers with `k\leq n`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: h = hypergraphs.CompleteUniform(5,2); h
             Incidence structure with 5 points and 10 blocks

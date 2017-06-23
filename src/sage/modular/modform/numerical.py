@@ -11,6 +11,7 @@ Numerical computation of newforms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import integer_types
 
 from sage.structure.sage_object  import SageObject
 from sage.structure.sequence     import Sequence
@@ -97,7 +98,7 @@ class NumericalEigenforms(SageObject):
             sage: numerical_eigenforms(61) # indirect doctest
             Numerical Hecke eigenvalues for Congruence Subgroup Gamma0(61) of weight 2
         """
-        if isinstance(group, (int, long, Integer)):
+        if isinstance(group, integer_types + (Integer,)):
             group = Gamma0(Integer(group))
         self._group  = group
         self._weight = Integer(weight)
@@ -206,9 +207,9 @@ class NumericalEigenforms(SageObject):
         then they should compare as equal, causing both eigenvectors
         to be absent from the matrix returned.  The remaining eigenvalues
         (ostensibly unique) are visible in the test, which should be
-        indepedent of which eigenvectors are returned, but it does presume
+        independent of which eigenvectors are returned, but it does presume
         an ordering of these eigenvectors for the test to succeed.
-        This exercises a correction in Trac 8018. ::
+        This exercises a correction in :trac:`8018`. ::
 
             sage: n = numerical_eigenforms(61, eps=2.0)
             sage: evectors = n._eigenvectors()
@@ -426,7 +427,7 @@ class NumericalEigenforms(SageObject):
         EXAMPLES::
 
             sage: n = numerical_eigenforms(1,12)
-            sage: n.eigenvalues([3,5,13])  # rel tol 2e-10
+            sage: n.eigenvalues([3,5,13])  # rel tol 2.4e-10
             [[177148.0, 252.00000000001896], [48828126.0, 4830.000000001376], [1792160394038.0, -577737.9999898539]]
         """
         primes = [Integer(p) for p in primes]
@@ -443,7 +444,7 @@ class NumericalEigenforms(SageObject):
             EXAMPLES::
 
                 sage: n = numerical_eigenforms(1,12)  # indirect doctest
-                sage: n.eigenvalues([3,5,13])  # rel tol 2e-10
+                sage: n.eigenvalues([3,5,13])  # rel tol 2.4e-10
                 [[177148.0, 252.00000000001896], [48828126.0, 4830.000000001376], [1792160394038.0, -577737.9999898539]]
             """
             return y.element() * B
@@ -525,6 +526,3 @@ def support(v, eps):
 
     """
     return [i for i in range(v.degree()) if abs(v[i]) > eps]
-
-
-

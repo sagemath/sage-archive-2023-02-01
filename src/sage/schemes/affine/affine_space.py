@@ -9,7 +9,10 @@ Affine `n` space over a ring
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six import integer_types
 
+from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
 from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
@@ -18,6 +21,7 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
+from sage.categories.homset import End
 from sage.categories.number_fields import NumberFields
 from sage.misc.all import latex
 from sage.structure.category_object import normalize_names
@@ -89,7 +93,7 @@ def AffineSpace(n, R=None, names='x'):
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R
         return A
-    if isinstance(R, (int, long, Integer)):
+    if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -271,7 +275,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         EXAMPLES::
 
-            sage: print latex(AffineSpace(1, ZZ, 'x'))
+            sage: print(latex(AffineSpace(1, ZZ, 'x')))
             \mathbf{A}_{\Bold{Z}}^1
 
         TESTS::
@@ -478,6 +482,67 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         if mm != m:
             raise ValueError("m must be an integer")
         return AffineSpace(self.dimension_relative() * mm, self.base_ring())
+
+    def __mul__(self, right):
+        r"""
+        Create the product of affine spaces.
+
+        INPUT:
+
+        - ``right`` - an affine space or subscheme.
+
+        OUTPUT: an affine space.= or subscheme.
+
+        EXAMPLES::
+
+            sage: A1 = AffineSpace(QQ, 1, 'x')
+            sage: A2 = AffineSpace(QQ, 2, 'y')
+            sage: A3 = A1*A2; A3
+            Affine Space of dimension 3 over Rational Field
+            sage: A3.variable_names()
+            ('x', 'y0', 'y1')
+
+            ::
+
+            sage: A2 = AffineSpace(ZZ, 2, 't')
+            sage: A3 = AffineSpace(ZZ, 3, 'x')
+            sage: A3.inject_variables()
+            Defining x0, x1, x2
+            sage: X = A3.subscheme([x0*x2 - x1])
+            sage: A2*X
+            Closed subscheme of Affine Space of dimension 5 over Integer Ring defined by:
+              x0*x2 - x1
+
+        ::
+
+            sage: S = ProjectiveSpace(QQ, 3, 'x')
+            sage: T = AffineSpace(2, QQ, 'y')
+            sage: T*S
+            Traceback (most recent call last):
+            ...
+            TypeError: Projective Space of dimension 3 over Rational Field
+            must be an affine space or affine subscheme
+        """
+        if self.base_ring() != right.base_ring():
+            raise ValueError ('Must have the same base ring')
+
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
+        if isinstance(right, AffineSpace_generic):
+            if self is right:
+                return self.__pow__(2)
+            return AffineSpace(self.dimension_relative() + right.dimension_relative(),\
+                    self.base_ring(), self.variable_names() + right.variable_names())
+        elif isinstance(right, AlgebraicScheme_subscheme):
+            AS = self*right.ambient_space()
+            CR = AS.coordinate_ring()
+            n = self.ambient_space().coordinate_ring().ngens()
+
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+            psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+            return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+        else:
+            raise TypeError('%s must be an affine space or affine subscheme'%right)
 
     def change_ring(self, R):
         r"""
@@ -712,6 +777,77 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         R = self.base_ring()
         return self([(5 - i) * R.an_element() for i in range(n)])
 
+    def chebyshev_polynomial(self, n, kind='first'):
+        """
+        Generates an endomorphism of this affine line by a Chebyshev polynomial.
+        
+        Chebyshev polynomials are a sequence of recursively defined orthogonal
+        polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
+        `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
+        the second kind are defined as `U_0(x) = 1`,
+        `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
+    
+        INPUT:
+    
+        - ``n`` -- a non-negative integer.
+    
+        - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
+          to generate. Defaults to ``first``.
+    
+        OUTPUT: :class:`SchemeMorphism_polynomial_affine_space`
+    
+        EXAMPLES::
+    
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: A.chebyshev_polynomial(5, 'first')
+            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x) to
+            (16*x^5 - 20*x^3 + 5*x)
+    
+        ::
+    
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: A.chebyshev_polynomial(3, 'second')
+            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
+            Defn: Defined on coordinates by sending (x) to
+            (8*x^3 - 4*x)
+    
+        ::
+    
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: A.chebyshev_polynomial(3, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: keyword 'kind' must have a value of either 'first' or 'second'
+    
+        ::
+    
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: A.chebyshev_polynomial(-4, 'second')
+            Traceback (most recent call last):
+            ...
+            ValueError: first parameter 'n' must be a non-negative integer
+
+        ::
+
+            sage: A = AffineSpace(QQ, 2, 'x')
+            sage: A.chebyshev_polynomial(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: affine space must be of dimension 1
+        """
+        if self.dimension_relative() != 1:
+            raise TypeError("affine space must be of dimension 1")
+        n = ZZ(n)
+        if (n < 0):
+            raise ValueError("first parameter 'n' must be a non-negative integer")
+        H = End(self)
+        if kind == 'first':
+            return H([chebyshev_T(n, self.gen(0))])
+        elif kind == 'second':
+            return H([chebyshev_U(n, self.gen(0))])
+        else:
+            raise ValueError("keyword 'kind' must have a value of either 'first' or 'second'")
 
 class AffineSpace_field(AffineSpace_generic):
     def _point(self, *args, **kwds):
@@ -858,6 +994,24 @@ class AffineSpace_field(AffineSpace_generic):
                 X = AffineSpace(K, d*self.dimension_relative(), 'z')
             self.__weil_restriction = X
         return X
+
+    def curve(self,F):
+        r"""
+        Return a curve defined by ``F`` in this affine space.
+
+        INPUT:
+
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
+          of this affine space.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: A.curve([y - x^4, z - y^5])
+            Affine Curve over Rational Field defined by -x^4 + y, -y^5 + z
+        """
+        from sage.schemes.curves.constructor import Curve
+        return Curve(F, self)
 
 class AffineSpace_finite_field(AffineSpace_field):
     def _point(self, *args, **kwds):

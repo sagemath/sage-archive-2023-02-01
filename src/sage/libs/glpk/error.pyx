@@ -12,7 +12,8 @@ Error handler for the GLPK library
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_error
+
 from .env cimport *
 from cpython.exc cimport PyErr_SetObject
 from sage.numerical.mip import MIPSolverException
@@ -70,8 +71,8 @@ def setup_glpk_error_handler():
 
         sage: cython('''
         ....: #clib glpk z gmp
+        ....: from cysignals.signals cimport sig_on, sig_off
         ....: from sage.libs.glpk.env cimport glp_term_out
-        ....: include "cysignals/signals.pxi"
         ....:
         ....: sig_on()
         ....: glp_term_out(12345)  # invalid value
@@ -81,6 +82,24 @@ def setup_glpk_error_handler():
         ...
         GLPKError: glp_term_out: flag = 12345; invalid parameter
         Error detected in file env/stdout.c at line ...
+
+    Check that normal terminal output still works, see :trac:`20832`::
+
+        sage: def verbose_GLPK():
+        ....:     from sage.numerical.backends.generic_backend import get_solver
+        ....:     s = get_solver(solver = "GLPK")
+        ....:     s.set_verbosity(2)
+        ....:     return s
+        sage: p = MixedIntegerLinearProgram(solver=verbose_GLPK)
+        sage: x, y = p['x'], p['y']
+        sage: p.add_constraint(2*x + 3*y <= 6)
+        sage: p.add_constraint(3*x + 2*y <= 6)
+        sage: p.add_constraint(x >= 0)
+        sage: p.set_objective(x + y)
+        sage: res = p.solve()
+              0: obj = ...
+        sage: res  # rel tol 1e-15
+        2.4
     """
     glp_term_hook(sage_glpk_term_hook, NULL)
     glp_error_hook(sage_glpk_error_hook, NULL)

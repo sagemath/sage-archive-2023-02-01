@@ -48,11 +48,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/libs/ntl/decl.pxi"
 from cpython.list cimport *
 from cpython.dict cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+include "sage/libs/ntl/decl.pxi"
 
 import weakref
 from sage.misc.misc import cputime
@@ -88,7 +89,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         sage: A = PowComputer_ext_maker(5, 10, 10, 40, False, ntl.ZZ_pX([-5,65,125,0,1],5^10), 'small','e',ntl.ZZ_pX([1,-13,-25],5^10)) # indirect doctest
     """
     if prime_pow.deg <= 1:
-        raise ValueError, "Eisenstein extension must have degree at least 2"
+        raise ValueError("Eisenstein extension must have degree at least 2")
     cdef unsigned long D = prime_pow.deg - 1
     cdef int low_length = 0
     cdef int high_length = 0
@@ -562,11 +563,11 @@ cdef class PowComputer_ext(PowComputer_class):
             PowComputer_ext for 5, with polynomial [9765620 0 1]
         """
         cdef Integer cache_limit, prec_cap, ram_prec_cap
-        cache_limit = PY_NEW(Integer)
+        cache_limit = Integer.__new__(Integer)
         mpz_set_si(cache_limit.value, self.cache_limit)
-        prec_cap = PY_NEW(Integer)
+        prec_cap = Integer.__new__(Integer)
         mpz_set_si(prec_cap.value, self.prec_cap)
-        ram_prec_cap = PY_NEW(Integer)
+        ram_prec_cap = Integer.__new__(Integer)
         mpz_set_si(ram_prec_cap.value, self.ram_prec_cap)
         return PowComputer_ext_maker, (self.prime, cache_limit, prec_cap, ram_prec_cap, self.in_field, self._poly, self._prec_type, self._ext_type, self._shift_seed)
 
@@ -696,7 +697,7 @@ cdef class PowComputer_ext(PowComputer_class):
         m = Integer(m)
         n = Integer(n)
         if m < 0 or n < 0:
-            raise ValueError, "m, n must be non-negative"
+            raise ValueError("m, n must be non-negative")
         cdef ntl_ZZ ans = ntl_ZZ.__new__(ntl_ZZ)
         ZZ_mul(ans.x, self.pow_ZZ_tmp(mpz_get_ui((<Integer>m).value))[0], self.pow_ZZ_tmp(mpz_get_ui((<Integer>n).value))[0])
         return ans
@@ -1008,11 +1009,11 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         if self.pow_Integer(mpz_get_si(n.value)) != Integer(a.c.p):
             #print self.pow_Integer(mpz_get_si(n.value))
             #print a.c.p
-            raise ValueError, "a context mismatch"
+            raise ValueError("a context mismatch")
         if self.pow_Integer(mpz_get_si(n.value)) != Integer(b.c.p):
             #print self.pow_Integer(mpz_get_si(n.value))
             #print b.c.p
-            raise ValueError, "b context mismatch"
+            raise ValueError("b context mismatch")
         cdef ntl_ZZ_pX r = (<ntl_ZZ_pX>a)._new()
         cdef ntl_ZZ_pX aa = (<ntl_ZZ_pX>a)._new()
         cdef ntl_ZZ_pX bb = (<ntl_ZZ_pX>b)._new()
@@ -1103,7 +1104,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             4
         """
         cdef Integer _n = Integer(n)
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.capdiv(mpz_get_si(_n.value)))
         return ans
 
@@ -1279,7 +1280,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
                 self.f = 1
             self.ram_prec_cap = ram_prec_cap
         else:
-            raise NotImplementedError, "NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM"
+            raise NotImplementedError("NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM")
 
     cdef ntl_ZZ_pContext_class get_top_context(self):
         """
@@ -1354,7 +1355,7 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
         # The __new__ method for PowComputer_ZZ_pX_FM has already run, so we have access to self.mod
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
-            raise TypeError, "shift_seed must be an ntl_ZZ_pX"
+            raise TypeError("shift_seed must be an ntl_ZZ_pX")
         ZZ_pX_Eis_init(self, <ntl_ZZ_pX>shift_seed)
 
     def _low_shifter(self, i):
@@ -1609,7 +1610,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
         if cache_limit != prec_cap:
             self.cleanup_ext()
-            raise ValueError, "prec_cap and cache_limit must be equal in the small case"
+            raise ValueError("prec_cap and cache_limit must be equal in the small case")
 
         self.c = []
         # We cache from 0 to cache_limit inclusive, and provide one extra slot to return moduli above the cache_limit
@@ -1618,7 +1619,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         sig_off()
         if self.mod == NULL:
             self.cleanup_ext()
-            raise MemoryError, "out of memory allocating moduli"
+            raise MemoryError("out of memory allocating moduli")
 
         cdef ntl_ZZ_pX printer
         cdef Py_ssize_t i
@@ -1646,7 +1647,7 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
                 self.f = 1
             self.ram_prec_cap = ram_prec_cap
         else:
-            raise NotImplementedError, "NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM"
+            raise NotImplementedError("NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM")
 
     def __dealloc__(self):
         """
@@ -1803,7 +1804,7 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
         """
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
-            raise TypeError, "shift_seed must be an ntl_ZZ_pX"
+            raise TypeError("shift_seed must be an ntl_ZZ_pX")
         ZZ_pX_Eis_init(self, <ntl_ZZ_pX>shift_seed)
 
     def _low_shifter(self, i):
@@ -1971,13 +1972,13 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         self.context_list = []
         #if self.c == NULL:
         #    self.cleanup_ext()
-        #    raise MemoryError, "out of memory allocating contexts"
+        #    raise MemoryError("out of memory allocating contexts")
         sig_on()
         self.modulus_list = Allocate_ZZ_pX_Modulus_array(cache_limit + 1)
         sig_off()
         if self.modulus_list == NULL:
             self.cleanup_ext()
-            raise MemoryError, "out of memory allocating moduli"
+            raise MemoryError("out of memory allocating moduli")
 
         cdef Py_ssize_t i
         cdef ZZ_pX_c tmp, pol
@@ -2010,7 +2011,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
                 self.f = 1
             self.ram_prec_cap = ram_prec_cap
         else:
-            raise NotImplementedError, "NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM"
+            raise NotImplementedError("NOT IMPLEMENTED IN PowComputer_ZZ_pX_FM")
 
     def __dealloc__(self):
         """
@@ -2231,7 +2232,7 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
         """
         self._ext_type = 'e'
         if not isinstance(shift_seed, ntl_ZZ_pX):
-            raise TypeError, "shift_seed must be an ntl_ZZ_pX"
+            raise TypeError("shift_seed must be an ntl_ZZ_pX")
         ZZ_pX_Eis_init(self, <ntl_ZZ_pX>shift_seed)
 
     def _low_shifter(self, i):
@@ -2432,4 +2433,3 @@ def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, 
         return PowComputer_ZZ_pX_FM_Eis(_prime, _cache_limit, _prec_cap, _ram_prec_cap, inf, poly, shift_seed)
     else:
         raise ValueError("prec_type must be one of 'small', 'big' or 'FM' and ext_type must be one of 'u' or 'e' or 't'")
-

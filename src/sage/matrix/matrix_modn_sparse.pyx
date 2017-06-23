@@ -31,7 +31,7 @@ EXAMPLES::
     sage: a*b
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 3 sparse matrices over Ring of integers modulo 37' and 'Full MatrixSpace of 2 by 3 sparse matrices over Ring of integers modulo 37'
+    TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 3 by 3 sparse matrices over Ring of integers modulo 37' and 'Full MatrixSpace of 2 by 3 sparse matrices over Ring of integers modulo 37'
     sage: b*a
     [15 18 21]
     [ 5 17 29]
@@ -68,22 +68,29 @@ TESTS::
     []
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
-include 'sage/modules/vector_modn_sparse_c.pxi'
+from __future__ import absolute_import
+
+from cysignals.memory cimport check_calloc, sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.modules.vector_modn_sparse cimport *
+
 from cpython.sequence cimport *
 
-cimport matrix
-cimport matrix_sparse
-cimport matrix_dense
+from sage.libs.gmp.mpz cimport mpz_init_set_si
+cimport sage.matrix.matrix as matrix
+cimport sage.matrix.matrix_sparse as matrix_sparse
+cimport sage.matrix.matrix_dense as matrix_dense
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.misc.misc import verbose, get_verbose
@@ -97,10 +104,10 @@ from sage.structure.element import is_Vector
 
 cimport sage.structure.element
 
-include 'sage/modules/binary_search.pxi'
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-from matrix_integer_sparse cimport Matrix_integer_sparse
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+
+from .matrix_integer_sparse cimport Matrix_integer_sparse
 from sage.misc.decorators import rename_keyword
 
 ################
@@ -141,20 +148,18 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         p = parent.base_ring().order()
         self.p = p
 
-
-        self.rows = <c_vector_modint*> sig_malloc(nr*sizeof(c_vector_modint))
-        if self.rows == NULL:
-            raise MemoryError, "error allocating memory for sparse matrix"
+        self.rows = <c_vector_modint*>check_calloc(nr, sizeof(c_vector_modint))
 
         for i from 0 <= i < nr:
             init_c_vector_modint(&self.rows[i], p, nc, 0)
 
 
     def __dealloc__(self):
-        cdef int i
-        for i from 0 <= i < self._nrows:
-            clear_c_vector_modint(&self.rows[i])
-        sig_free(self.rows)
+        cdef Py_ssize_t i
+        if self.rows:
+            for i in range(self._nrows):
+                clear_c_vector_modint(&self.rows[i])
+            sig_free(self.rows)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -197,12 +202,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 if z != 0:
                     i, j = ij  # nothing better to do since this is user input, which may be bogus.
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
-                        raise IndexError, "invalid entries list"
+                        raise IndexError("invalid entries list")
                     set_entry(&self.rows[i], j, z)
         elif isinstance(entries, list):
             # Dense input format
             if len(entries) != self._nrows * self._ncols:
-                raise TypeError, "list of entries must be a dictionary of (i,j):x or a dense list of n * m elements"
+                raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
             seq = PySequence_Fast(entries,"expected a list")
             X = PySequence_Fast_ITEMS(seq)
             k = 0
@@ -220,7 +225,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             if s == 0:
                 return
             if self._nrows != self._ncols:
-                raise TypeError, "matrix must be square to initialize with a scalar."
+                raise TypeError("matrix must be square to initialize with a scalar.")
             for i from 0 <= i < self._nrows:
                 set_entry(&self.rows[i], i, s)
 
@@ -255,7 +260,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -315,7 +320,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         if version == 1:
             self.__init__(self.parent(), data, copy=False, coerce=False)
         else:
-            raise ValueError, "unknown matrix format"
+            raise ValueError("unknown matrix format")
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix _right):
         """
@@ -506,7 +511,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             #endfor
             if min_row != -1:
                 r = min_row
-                #print "min number of entries in a pivoting row = ", min
+                # print("min number of entries in a pivoting row = ", min)
                 pivots.append(c)
                 # Since we can use row r to clear column c, the
                 # entry in position c in row r must be the first nonzero entry.
@@ -537,7 +542,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
             sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -593,7 +598,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         Return the transpose of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(127),3,3,[0,1,0,2,0,0,3,0,0],sparse=True)
             sage: A
@@ -637,7 +642,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         -  ``rows`` - list or tuple of row indices
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = MatrixSpace(GF(127),3,3,sparse=True)
             sage: A = M(range(9)); A
@@ -653,8 +658,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            raise TypeError, "rows must be a list of integers"
-
+            raise TypeError("rows must be a list of integers")
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -662,7 +666,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         for ii in rows:
             i = ii
             if i < 0 or i >= self.nrows():
-                raise IndexError, "row %s out of range"%i
+                raise IndexError("row %s out of range" % i)
 
             row = self.rows[i]
             for j from 0 <= j < row.num_nonzero:
@@ -693,7 +697,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            raise TypeError, "rows must be a list of integers"
+            raise TypeError("rows must be a list of integers")
 
         A = self.new_matrix(ncols = len(cols))
 
@@ -730,7 +734,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             self.cache('rank', r)
             return r
         else:
-            raise TypeError, "only GF(p) supported via LinBox"
+            raise TypeError("only GF(p) supported via LinBox")
 
     def rank(self, gauss=False):
         """
@@ -745,7 +749,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
            False)
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
             sage: r1 = A.rank(gauss=False)
@@ -767,7 +771,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
           Crimea, Ukraine, 22-27 sept. 2002, Springer-Verlag,
           http://perso.ens-lyon.fr/gilles.villard/BIBLIOGRAPHIE/POSTSCRIPT/rankjgd.ps
 
-        .. note::
+        .. NOTE::
 
            For very sparse matrices Gaussian elimination is faster
            because it barly has anything to do. If the fill in needs to
@@ -787,7 +791,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             elif gauss == "native":
                 return Matrix2.rank(self)
             else:
-                raise TypeError, "parameter 'gauss' not understood"
+                raise TypeError("parameter 'gauss' not understood")
         else:
             return Matrix2.rank(self)
 
@@ -798,7 +802,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
 
-        .. note::
+        .. NOTE::
 
            In Sage one can also write ``A  B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
@@ -850,13 +854,13 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             return Matrix2.solve_right(self, B)
 
         if check_rank and self.rank() < self.nrows():
-            raise ValueError, "self must be of full rank."
+            raise ValueError("self must be of full rank.")
 
         if self.nrows() != B.nrows():
-            raise ValueError, "input matrices must have the same number of rows."
+            raise ValueError("input matrices must have the same number of rows.")
 
         if not self.is_square():
-            raise NotImplementedError, "input matrix must be square"
+            raise NotImplementedError("input matrix must be square")
 
         self._init_linbox()
 
@@ -870,7 +874,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             if isinstance(B, Matrix_modn_sparse):
                 b = B
             else:
-                raise TypeError, "B must be a matrix or vector over the same base as self"
+                raise TypeError("B must be a matrix or vector over the same base as self")
 
         X = self.new_matrix(b.ncols(), A.ncols())
 
@@ -883,7 +887,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         elif algorithm == "LinBox:Wiedemann":
             algorithm = 3
         else:
-            raise TypeError, "parameter 'algorithm' not understood"
+            raise TypeError("parameter 'algorithm' not understood")
 
         b = b.transpose() # to make walking the rows easier
         for i in range(X.nrows()):
@@ -934,13 +938,13 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             L_row.entries = <mpz_t*> sig_malloc(sizeof(mpz_t)*A_row.num_nonzero)
             L_row.num_nonzero = A_row.num_nonzero
             if L_row.entries == NULL:
-                raise MemoryError, "error allocating space for sparse vector during sparse lift"
+                raise MemoryError("error allocating space for sparse vector during sparse lift")
             sig_free(L_row.positions)
             L_row.positions = <Py_ssize_t*> sig_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
             if L_row.positions == NULL:
                 sig_free(L_row.entries)
                 L_row.entries = NULL
-                raise MemoryError, "error allocating space for sparse vector during sparse lift"
+                raise MemoryError("error allocating space for sparse vector during sparse lift")
             for j from 0 <= j < A_row.num_nonzero:
                 L_row.positions[j] = A_row.positions[j]
                 mpz_init_set_si(L_row.entries[j], A_row.entries[j])

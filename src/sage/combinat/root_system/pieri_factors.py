@@ -9,6 +9,7 @@ Pieri Factors
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
@@ -371,7 +372,8 @@ class PieriFactors_affine_type(PieriFactors):
         s = ct.translation_factors()[1]
         R = RootSystem(ct).weight_space()
         Lambda = R.fundamental_weights()
-        orbit = [ R.reduced_word_of_translation(x) for x in (s*(Lambda[1]-Lambda[1].level()*Lambda[0])).orbit() ]
+        orbit = [R.reduced_word_of_translation(x)
+                 for x in (s*(Lambda[1]-Lambda[1].level()*Lambda[0]))._orbit_iter()]
         return [self.W.from_reduced_word(x) for x in orbit]
 
 
@@ -465,7 +467,9 @@ class PieriFactors_type_B(PieriFactors_finite_type):
             sage: PF.maximal_elements_combinatorial()[0].reduced_word()
             [1, 2, 3, 4, 3, 2, 1]
         """
-        return [self.W.from_reduced_word(range(1,self.W.cartan_type().n) + range(self.W.cartan_type().n,0,-1))]
+        N = self.W.cartan_type().n
+        li = list(range(1, N)) + list(range(N, 0, -1))
+        return [self.W.from_reduced_word(li)]
 
     def stanley_symm_poly_weight(self,w):
         r"""

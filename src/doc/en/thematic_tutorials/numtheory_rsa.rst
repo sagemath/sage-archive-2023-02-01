@@ -104,19 +104,22 @@ those integers `n`, where `1 \leq n \leq 20`, such that
 `\gcd(n,20) = 1`.  The latter task can be easily accomplished with a
 little bit of Sage programming::
 
+    sage: L = []
     sage: for n in range(1, 21):
     ....:     if gcd(n, 20) == 1:
-    ....:         print n,
-    ...
-    1 3 7 9 11 13 17 19
+    ....:         L.append(n)
+    sage: L
+    [1, 3, 7, 9, 11, 13, 17, 19]
 
 The above programming statements can be saved to a text file called,
 say, ``/home/mvngu/totient.sage``, organizing it as follows to enhance
 readability. ::
 
+    L = []
     for n in xrange(1, 21):
         if gcd(n, 20) == 1:
-            print n,
+            L.append(n)
+    L
 
 We refer to ``totient.sage`` as a Sage script, just as one would refer
 to a file containing Python code as a Python script.  We use 4 space
@@ -128,7 +131,7 @@ programming statements into Sage and, upon loading the content of the
 file, have Sage execute those statements::
 
     load("/home/mvngu/totient.sage")
-    1 3 7 9 11 13 17 19
+    [1, 3, 7, 9, 11, 13, 17, 19]
 
 From the latter list, there are 8 integers in the closed interval
 `[1, 20]` that are coprime to 20.  Without explicitly generating the
@@ -397,7 +400,7 @@ practice. In Sage, we can obtain an integer representation of our
 message as follows::
 
     sage: m = "HELLOWORLD"
-    sage: m = map(ord, m); m
+    sage: m = [ord(x) for x in m]; m
     [72, 69, 76, 76, 79, 87, 79, 82, 76, 68]
     sage: m = ZZ(list(reversed(m)), 100) ; m
     72697676798779827668

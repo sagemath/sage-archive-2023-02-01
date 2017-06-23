@@ -1,4 +1,4 @@
-__doc__="""
+"""
 Root Systems
 ============
 
@@ -56,6 +56,7 @@ Coxeter groups
 - :ref:`sage.combinat.root_system.weyl_group`
 - :ref:`sage.combinat.root_system.extended_affine_weyl_group`
 - :ref:`sage.combinat.root_system.fundamental_group`
+- :ref:`sage.combinat.root_system.braid_move_calculator`
 
 .. SEEALSO::
 
@@ -88,6 +89,7 @@ Root system data and code for specific families of Cartan types
 - :ref:`sage.combinat.root_system.type_folded`
 - :ref:`sage.combinat.root_system.type_reducible`
 - :ref:`sage.combinat.root_system.type_relabel`
+- :ref:`sage.combinat.root_system.type_marked`
 
 Root system data and code for specific Cartan types
 ---------------------------------------------------
@@ -109,15 +111,14 @@ Root system data and code for specific Cartan types
 - :ref:`sage.combinat.root_system.type_F_affine`
 - :ref:`sage.combinat.root_system.type_G_affine`
 - :ref:`sage.combinat.root_system.type_BC_affine`
+- :ref:`sage.combinat.root_system.type_A_infinity`
 """
-
-# currently needed to activate the backward compatibility register_unpickle_override
-import type_A
-import type_B
-import type_C
-import type_D
-import type_E
-import type_F
-import type_G
-
-import all
+# currently needed to activate the backward compatibility
+# register_unpickle_override
+from . import type_A
+from . import type_B
+from . import type_C
+from . import type_D
+from . import type_E
+from . import type_F
+from . import type_G

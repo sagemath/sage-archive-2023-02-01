@@ -59,7 +59,7 @@ misc-clean:
 	rm -rf logs
 	rm -rf dist
 	rm -rf tmp
-	rm -f aclocal.m4 config.log config.status confcache
+	rm -f aclocal.m4 config.log config.status confcache src/bin/sage-env-config
 	rm -rf autom4te.cache
 	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART
@@ -129,24 +129,14 @@ ptestoptionallong: all
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d
 
-install:
-	echo "Experimental use only!"
-	if [ "$(DESTDIR)" = "" ]; then \
-		echo >&2 "Set the environment variable DESTDIR to the install path."; \
-		exit 1; \
-	fi
-	# Make sure we remove only an existing directory. If $(DESTDIR)/sage is
-	# a file instead of a directory then the mkdir statement later will fail
-	if [ -d "$(DESTDIR)"/sage ]; then \
-		rm -rf "$(DESTDIR)"/sage; \
-	fi
-	mkdir -p "$(DESTDIR)"/sage
-	mkdir -p "$(DESTDIR)"/bin
-	cp -Rp * "$(DESTDIR)"/sage
-	rm -f "$(DESTDIR)"/bin/sage
-	ln -s ../sage/sage "$(DESTDIR)"/bin/sage
-	"$(DESTDIR)"/bin/sage -c # Run sage-location
-
+install: all
+	@echo "******************************************************************"
+	@echo "The '$@' target is a no-op; 'make' already does 'make install'"
+	@echo "You can change the install prefix from its default"
+	@echo "(the subdirectory 'local') by using ./configure --prefix=PREFIX"
+	@echo "You can also consider using the binary packaging scripts"
+	@echo "from https://github.com/sagemath/binary-pkg"
+	@echo "******************************************************************"
 
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \

@@ -1,6 +1,7 @@
 """
 Coerce maps
 """
+from __future__ import print_function
 
 import re
 import types
@@ -20,7 +21,7 @@ cdef class DefaultConvertMap(Map):
     This morphism simply calls the codomain's element_constructor method,
     passing in the codomain as the first argument.
     """
-    def __init__(self, domain, codomain, force_use=False):
+    def __init__(self, domain, codomain, category=None, force_use=False):
         """
         TESTS:
 
@@ -36,8 +37,10 @@ cdef class DefaultConvertMap(Map):
         """
         if not isinstance(domain, Parent):
             domain = Set_PythonType(domain)
-        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-        parent = domain.Hom(codomain, category=SetsWithPartialMaps())
+        if category is None:
+            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+            category = SetsWithPartialMaps()
+        parent = domain.Hom(codomain, category=category)
         Map.__init__(self, parent)
         self._coerce_cost = 100
         self._force_use = force_use
@@ -61,8 +64,8 @@ cdef class DefaultConvertMap(Map):
             return C._element_constructor(C, x)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -81,8 +84,8 @@ cdef class DefaultConvertMap(Map):
                     return C._element_constructor(C, x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
 
@@ -104,8 +107,8 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
             return C._element_constructor(x)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -123,14 +126,14 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
                     return C._element_constructor(x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print type(C), C
-                print type(C._element_constructor), C._element_constructor
+                print(type(C), C)
+                print(type(C._element_constructor), C._element_constructor)
             raise
 
 
 cdef class NamedConvertMap(Map):
     """
-    This is used for creating a elements via the _xxx_ methods.
+    This is used for creating elements via the _xxx_ methods.
 
     For example, many elements implement an _integer_ method to
     convert to ZZ, or a _rational_ method to convert to QQ.
@@ -229,9 +232,9 @@ cdef class NamedConvertMap(Map):
             method = getattr(x, self.method_name)
         except AttributeError:
             if print_warnings:
-                print type(x), x
-                print type(C), C
-                print self.method_name
+                print(type(x), x)
+                print(type(C), C)
+                print(self.method_name)
             raise TypeError("Cannot coerce {} to {}".format(x, C))
         cdef Map m
         cdef Element e = method(C)
@@ -384,8 +387,8 @@ cdef class CallableConvertMap(Map):
                 y = self._func(x)
         except Exception:
             if print_warnings:
-                print self._func
-                print C
+                print(self._func)
+                print(C)
             raise
         if y is None:
             raise RuntimeError("BUG in coercion model: {} returned None".format(self._func))
@@ -420,13 +423,13 @@ cdef class CallableConvertMap(Map):
                 y = self._func(x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print self._func
-                print self._codomain
+                print(self._func)
+                print(self._codomain)
             raise
         if y is None:
-            raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
+            raise RuntimeError("BUG in coercion model: %s returned None" % (self._func))
         elif y._parent is not self._codomain:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+            raise RuntimeError("BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent))
         return y
 
 
@@ -568,7 +571,7 @@ cdef class TryMap(Map):
         """
         if (morphism_preferred.domain() is not morphism_backup.domain()
              or morphism_preferred.codomain() is not morphism_backup.codomain()):
-            raise TypeError, "incorrectly matching parent"
+            raise TypeError("incorrectly matching parent")
         Map.__init__(self, morphism_preferred.parent())
         self._map_p = morphism_preferred
         self._map_b = morphism_backup

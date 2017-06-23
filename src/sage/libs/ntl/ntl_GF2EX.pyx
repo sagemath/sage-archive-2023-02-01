@@ -13,15 +13,16 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
 from ntl_ZZ import unpickle_class_args
 from ntl_GF2EContext import ntl_GF2EContext
-from ntl_GF2EContext cimport ntl_GF2EContext_class
-from ntl_GF2E cimport ntl_GF2E
+from .ntl_GF2EContext cimport ntl_GF2EContext_class
+from .ntl_GF2E cimport ntl_GF2E
 
 ##############################################################################
 #
@@ -46,7 +47,7 @@ cdef class ntl_GF2EX(object):
             [[1] [0 1]]
         """
         if modulus is None:
-            raise ValueError, "You must specify a modulus when creating a GF2E."
+            raise ValueError("You must specify a modulus when creating a GF2E.")
 
         s = str(x)
         sig_on()

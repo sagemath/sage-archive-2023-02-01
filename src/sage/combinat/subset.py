@@ -26,7 +26,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
 
+import six
+from six.moves import range
 import sage.misc.prandom as rnd
 import itertools
 
@@ -41,7 +44,7 @@ from sage.sets.set import Set, Set_object_enumerated
 from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-import combination
+from . import combination
 
 ZZ_0 = ZZ.zero()
 
@@ -123,11 +126,11 @@ def Subsets(s, k=None, submultiset=False):
         sage: S2.cardinality()
         256
         sage: it = iter(S2)
-        sage: [next(it) for _ in xrange(8)]
+        sage: [next(it) for _ in range(8)]
         [{}, {{}}, {{1}}, {{2}}, {{3}}, {{1, 2}},  {{1, 3}}, {{2, 3}}]
         sage: S2.random_element()     # random
         {{2}, {1, 2, 3}, {}}
-        sage: [S2.unrank(k) for k in xrange(256)] == S2.list()
+        sage: [S2.unrank(k) for k in range(256)] == S2.list()
         True
 
         sage: S3 = Subsets(S2)
@@ -437,7 +440,7 @@ class Subsets_s(Parent):
                     Set(sub), self._s))
 
         n = self._s.cardinality()
-        r = sum(binomial(n,i) for i in xrange(len(index_list)))
+        r = sum(binomial(n,i) for i in range(len(index_list)))
         return r + combination.rank(index_list,n)
 
     def unrank(self, r):
@@ -714,7 +717,8 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(3,3).list()
             [{1, 2, 3}]
         """
-        return itertools.imap(self.element_class, self._fast_iterator())
+        for x in self._fast_iterator():
+            yield self.element_class(x)
 
     def random_element(self):
         """
@@ -821,7 +825,7 @@ def dict_to_list(d):
         ['a', 'b', 'b', 'b']
     """
     l = []
-    for i,j in d.iteritems():
+    for i,j in six.iteritems(d):
         l.extend([i]*j)
     return l
 
@@ -1138,9 +1142,9 @@ class SubMultiset_sk(SubMultiset_s):
 
             sage: x = ZZ['x'].gen()
             sage: l = [1,1,1,1,2,2,3]
-            sage: for k in xrange(len(l)):
+            sage: for k in range(len(l)):
             ....:    S = Subsets(l,k,submultiset=True)
-            ....:    print S.generating_serie(x) == S.cardinality()*x**k
+            ....:    print(S.generating_serie(x) == S.cardinality()*x**k)
             True
             True
             True
@@ -1232,7 +1236,7 @@ class SubMultiset_sk(SubMultiset_s):
             [[1, 2], [1, 3], [2, 2], [2, 3]]
         """
         from sage.combinat.integer_vector import IntegerVectors
-        elts = self._d.keys()
+        elts = list(self._d)
         for iv in IntegerVectors(self._k, len(self._d), outer=self._d.values()):
             yield sum([[elts[i]] * iv[i] for i in range(len(iv))], [])
 

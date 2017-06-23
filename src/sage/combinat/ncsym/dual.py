@@ -11,6 +11,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -129,18 +130,11 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 sage: w = SymmetricFunctionsNonCommutingVariables(QQ).dual().w()
                 sage: TestSuite(w).run()
             """
-            def lt_set_part(A, B):
-                A = sorted(map(sorted, A))
-                B = sorted(map(sorted, B))
-                for i in range(len(A)):
-                    if A[i] > B[i]:
-                        return 1
-                    elif A[i] < B[i]:
-                        return -1
-                return 0
+            def key_func_set_part(A):
+                return sorted(map(sorted, A))
             CombinatorialFreeModule.__init__(self, NCSymD.base_ring(), SetPartitions(),
                                              prefix='w', bracket=False,
-                                             monomial_cmp=lt_set_part,
+                                             sorting_key=key_func_set_part,
                                              category=NCSymDualBases(NCSymD))
 
         @lazy_attribute
@@ -379,10 +373,10 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
 
         def _set_par_to_par(self, A):
             r"""
-            Return the the shape of ``A`` if ``A`` is the canonical standard
+            Return the shape of ``A`` if ``A`` is the canonical standard
             set partition `A_1 | A_2 | \cdots | A_k` where `|` is the pipe
             operation (see
-            :meth:~sage.combinat.set_partition.SetPartition.pipe()` )
+            :meth:`~sage.combinat.set_partition.SetPartition.pipe()` )
             and `A_i = [\lambda_i]` where `\lambda_1 \leq \lambda_2 \leq
             \cdots \leq \lambda_k`. Otherwise, return ``None``.
 
@@ -420,7 +414,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             cur = 1
             prev_len = 0
             for p in A:
-                if prev_len > len(p) or list(p) != range(cur, cur+len(p)):
+                if prev_len > len(p) or list(p) != list(range(cur, cur+len(p))):
                     return None
                 prev_len = len(p)
                 cur += len(p)

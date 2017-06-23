@@ -7,7 +7,7 @@ Routines for computing special values of L-functions
 - :func:`quadratic_L_function__numerical` -- Numerical values of the Dirichlet L-functions of quadratic characters in the domain of convergence
 """
 # python3
-from __future__ import division
+from __future__ import division, print_function
 
 from sage.combinat.combinat import bernoulli_polynomial
 from sage.misc.functional import denominator
@@ -19,7 +19,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import is_RealField
 from sage.symbolic.constants import pi
-from sage.symbolic.pynac import I
+from sage.symbolic.all import I
 
 # ---------------- The Gamma Function  ------------------
 
@@ -96,7 +96,7 @@ def zeta__exact(n):
     The argument must be a critical value, namely either positive even
     or negative odd.
 
-    See for example [Iwasawa]_, p13, Special value of `\zeta(2k)`
+    See for example [Iwa1972]_, p13, Special value of `\zeta(2k)`
 
     EXAMPLES:
 
@@ -104,16 +104,16 @@ def zeta__exact(n):
 
         sage: RR = RealField(100)
         sage: for i in range(1,10):
-        ...       print "zeta(" + str(1-2*i) + "): ", RR(zeta__exact(1-2*i)) - zeta(RR(1-2*i))
-        zeta(-1):  0.00000000000000000000000000000
-        zeta(-3):  0.00000000000000000000000000000
-        zeta(-5):  0.00000000000000000000000000000
-        zeta(-7):  0.00000000000000000000000000000
-        zeta(-9):  0.00000000000000000000000000000
-        zeta(-11):  0.00000000000000000000000000000
-        zeta(-13):  0.00000000000000000000000000000
-        zeta(-15):  0.00000000000000000000000000000
-        zeta(-17):  0.00000000000000000000000000000
+        ....:     print("zeta({}): {}".format(1-2*i, RR(zeta__exact(1-2*i)) - zeta(RR(1-2*i))))
+        zeta(-1): 0.00000000000000000000000000000
+        zeta(-3): 0.00000000000000000000000000000
+        zeta(-5): 0.00000000000000000000000000000
+        zeta(-7): 0.00000000000000000000000000000
+        zeta(-9): 0.00000000000000000000000000000
+        zeta(-11): 0.00000000000000000000000000000
+        zeta(-13): 0.00000000000000000000000000000
+        zeta(-15): 0.00000000000000000000000000000
+        zeta(-17): 0.00000000000000000000000000000
 
     Let us test the accuracy for positive special values::
 
@@ -135,9 +135,9 @@ def zeta__exact(n):
 
     REFERENCES:
 
-    .. [Iwasawa] Iwasawa, *Lectures on p-adic L-functions*
-    .. [IreRos] Ireland and Rosen, *A Classical Introduction to Modern Number Theory*
-    .. [WashCyc] Washington, *Cyclotomic Fields*
+    - [Iwa1972]_
+    - [IR1990]_
+    - [Was1997]_
     """
     if n < 0:
         return bernoulli(1-n)/(n-1)
@@ -172,7 +172,7 @@ def QuadraticBernoulliNumber(k, d):
 
     REFERENCES:
 
-    - [Iwasawa]_, pp 7-16.
+    - [Iwa1972]_, pp 7-16.
     """
     # Ensure the character is primitive
     d1 = fundamental_discriminant(d)
@@ -213,9 +213,9 @@ def quadratic_L_function__exact(n, d):
 
     REFERENCES:
 
-    - [Iwasawa]_, pp 16-17, Special values of `L(1-n, \chi)` and `L(n, \chi)`
-    - [IreRos]_
-    - [WashCyc]_
+    - [Iwa1972]_, pp 16-17, Special values of `L(1-n, \chi)` and `L(n, \chi)`
+    - [IR1990]_
+    - [Was1997]_
     """
     from sage.all import SR, sqrt
     if n <= 0:
@@ -257,12 +257,12 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
 
         sage: RR = RealField(100)
         sage: for i in range(5):
-        ...       print "L(" + str(1+2*i) + ", (-4/.)): ", RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)
-        L(1, (-4/.)):  0.000049999999500000024999996962707
-        L(3, (-4/.)):  4.99999970000003...e-13
-        L(5, (-4/.)):  4.99999922759382...e-21
-        L(7, (-4/.)):  ...e-29
-        L(9, (-4/.)):  ...e-29
+        ....:     print("L({}, (-4/.)): {}".format(1+2*i, RR(quadratic_L_function__exact(1+2*i, -4)) - quadratic_L_function__numerical(RR(1+2*i),-4, 10000)))
+        L(1, (-4/.)): 0.000049999999500000024999996962707
+        L(3, (-4/.)): 4.99999970000003...e-13
+        L(5, (-4/.)): 4.99999922759382...e-21
+        L(7, (-4/.)): ...e-29
+        L(9, (-4/.)): ...e-29
 
     This procedure fails for negative special values, as the Dirichlet
     series does not converge here::
@@ -277,7 +277,7 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
 
         sage: for d in range(-20,0):  # long time (2s on sage.math 2014)
         ....:     if abs(RR(quadratic_L_function__numerical(1, d, 10000) - quadratic_L_function__exact(1, d))) > 0.001:
-        ....:         print "Oops!  We have a problem at d = ", d, "    exact = ", RR(quadratic_L_function__exact(1, d)), "    numerical = ", RR(quadratic_L_function__numerical(1, d))
+        ....:         print("Oops! We have a problem at d = {}: exact = {}, numerical = {}".format(d, RR(quadratic_L_function__exact(1, d)), RR(quadratic_L_function__numerical(1, d))))
     """
     # Set the correct precision if it is given (for n).
     if is_RealField(n.parent()):

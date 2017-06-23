@@ -27,7 +27,7 @@ following three cases. In inhomogeneous coordinates, they are
 
   * Cubic in `\mathbb{P}^2`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -40,7 +40,7 @@ following three cases. In inhomogeneous coordinates, they are
 
   * Biquadric in `\mathbb{P}^1\times \mathbb{P}^1`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -54,7 +54,7 @@ following three cases. In inhomogeneous coordinates, they are
   * Anticanonical hypersurface in weighted projective space
     `\mathbb{P}^2[1,1,2]`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -95,7 +95,7 @@ matters. For example::
     (0, -27/4)
 
 This allows you to work with either homogeneous or inhomogeneous
-variables. For exmple, here is the del Pezzo surface of degree 8::
+variables. For example, here is the del Pezzo surface of degree 8::
 
     sage: dP8 = toric_varieties.dP8()
     sage: dP8.inject_variables()
@@ -154,12 +154,16 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
 
 from sage.misc.all import prod
 from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.rings.all import invariant_theory
+
+import six
+
 
 ######################################################################
 #
@@ -361,7 +365,7 @@ def Newton_polygon_embedded(polynomial, variables):
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]
     embedded_polynomial = polynomial.parent().zero()
-    for e, c in p_dict.iteritems():
+    for e, c in six.iteritems(p_dict):
         e_embed = embedding[e]
         embedded_polynomial += c * x**(e_embed[0]) * y**(e_embed[1])
     return newton_polytope, embedded_polynomial, (x, y)
@@ -406,7 +410,7 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
     `\mathbb{P}^2[2,3,1]` is returned.
     That is, the triple satisfies
 
-    .. math::
+    .. MATH::
 
         Y^2 = X^3 + f X Z^4 + g Z^6
 
@@ -478,7 +482,7 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
         sage: for P in ReflexivePolytopes(2):
         ....:     S = ToricVariety(FaceFan(P))
         ....:     p = sum((-S.K()).sections_monomials())
-        ....:     print WeierstrassForm(p)
+        ....:     print(WeierstrassForm(p))
         (-25/48, -1475/864)
         (-97/48, 17/864)
         (-25/48, -611/864)
@@ -687,7 +691,7 @@ def WeierstrassForm_P2(polynomial, variables=None):
     Input/output is the same as :func:`WeierstrassForm`, except that
     the input polynomial must be a standard cubic in `\mathbb{P}^2`,
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -887,7 +891,7 @@ def WeierstrassForm_P1xP1(biquadric, variables=None):
     Input/output is the same as :func:`WeierstrassForm`, except that
     the input polynomial must be a standard biquadric in `\mathbb{P}^2`,
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;
@@ -1026,7 +1030,7 @@ def WeierstrassForm_P2_112(polynomial, variables=None):
     the input polynomial must be a standard anticanonical hypersurface
     in weighted projective space `\mathbb{P}^2[1,1,2]`:
 
-    .. math::
+    .. MATH::
 
         \begin{split}
           p(x,y) =&\;

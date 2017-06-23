@@ -7,6 +7,7 @@ Colored Permutations
     generalized to `G \wr S_n`
 """
 import itertools
+from six.moves import range
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
@@ -463,7 +464,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             raise ValueError("i must be in the index set")
         colors = [self._C.zero()] * self._n
         if i < self._n:
-            p = range(1, self._n + 1)
+            p = list(range(1, self._n + 1))
             p[i - 1] = i + 1
             p[i] = i
             return self.element_class(self, colors, self._P(p))
@@ -949,7 +950,8 @@ class SignedPermutations(ColoredPermutations):
     This is a finite Coxeter group of type `B_n`::
 
         sage: S.canonical_representation()
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 2 with Coxeter matrix:
         [1 3 2 2]
         [3 1 3 2]
         [2 3 1 4]
@@ -1035,7 +1037,7 @@ class SignedPermutations(ColoredPermutations):
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
         if i < self._n:
-            p = range(1, self._n + 1)
+            p = list(range(1, self._n + 1))
             p[i - 1] = i + 1
             p[i] = i
             return self.element_class(self, [ZZ.one()] * self._n, self._P(p))
@@ -1154,7 +1156,7 @@ class SignedPermutations(ColoredPermutations):
         """
         if index_set is not None:
             return super(SignedPermutations, self).long_element()
-        p = range(self._n, 0, -1)
+        p = list(range(self._n, 0, -1))
         return self.element_class(self, [-ZZ.one()] * self._n, self._P(p))
 
     Element = SignedPermutation
@@ -1168,7 +1170,7 @@ class SignedPermutations(ColoredPermutations):
 #        """
 #        Return a string representation of ``self``.
 #        """
-#        return "Even signed permtuations of {}".format(self._n)
+#        return "Even signed permutations of {}".format(self._n)
 #
 #    def __iter__(self):
 #        """

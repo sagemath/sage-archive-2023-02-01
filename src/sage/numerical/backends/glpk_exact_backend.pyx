@@ -31,13 +31,30 @@ cdef class GLPKExactBackend(GLPKBackend):
 
         sage: p = MixedIntegerLinearProgram(solver="GLPK/exact")
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+        glp_exact: 5 rows, 1 columns, 4 non-zeros
+        GNU MP bignum library is being used
+        *     0:   objval =                      0   (0)
+        *     0:   objval =                      0   (0)
+        OPTIMAL SOLUTION FOUND
+        glp_exact: 5 rows, 1 columns, 4 non-zeros
+        GNU MP bignum library is being used
+        *     0:   objval =                      0   (0)
+        *     0:   objval =                      0   (0)
+        PROBLEM HAS UNBOUNDED SOLUTION
+        glp_exact: 3 rows, 3 columns, 8 non-zeros
+        GNU MP bignum library is being used
+              0:   infsum =                      1   (0)
+              4:   infsum =                      0   (0)
+        *     4:   objval =       1.66666666666667   (0)
+        *     4:   objval =       1.66666666666667   (0)
+        OPTIMAL SOLUTION FOUND
     """
 
     def __cinit__(self, maximization = True):
         """
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK/exact")
         """
@@ -74,7 +91,7 @@ cdef class GLPKExactBackend(GLPKBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK/exact")
@@ -142,7 +159,7 @@ cdef class GLPKExactBackend(GLPKBackend):
 
         OUTPUT: The index of the variable created last.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK/exact")
@@ -178,7 +195,7 @@ cdef class GLPKExactBackend(GLPKBackend):
             *  0  Binary
             * -1 Real
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK/exact")

@@ -169,9 +169,12 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-# imports
 from libc.string cimport memset
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.graphs.graph import Graph
 from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
 from sage.arith.all import binomial
@@ -179,13 +182,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.data_structures.bitset import Bitset
-include "cysignals/memory.pxi"
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
-include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 
@@ -237,9 +238,9 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
         return (H,{}) if (relabel and return_map) else H
 
     if relabel:
-        map = dict(zip(iter(vertices),xrange(len(vertices))))
+        map = dict(zip(iter(vertices), xrange(len(vertices))))
     else:
-        map = dict(zip(iter(vertices),iter(vertices)))
+        map = dict(zip(iter(vertices), iter(vertices)))
 
     B = {}
     for v in G.vertex_iterator():
@@ -345,7 +346,7 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
                             certificate = [a, b, c, d]
 
                             if verbose:
-                                print 'New lower bound:', ZZ(hh)/2
+                                print('New lower bound:', ZZ(hh)/2)
 
     # Last, we return the computed value and the certificate
     if h_LB != -1:
@@ -372,7 +373,7 @@ def _greedy_dominating_set(H, verbose=False):
             seen.update(H.neighbor_iterator(u))
 
     if verbose:
-        print "Greedy dominating set:", sorted(list(DOM))
+        print("Greedy dominating set:", sorted(list(DOM)))
 
     return DOM
 
@@ -534,7 +535,7 @@ cdef inline pair** sort_pairs(uint32_t N,
        position k a pointer to the first included pair (i,j) such that
        values[i][j] = k.
     """
-        # pairs_of_length[d] is the list of pairs of vertices at distance d
+    # pairs_of_length[d] is the list of pairs of vertices at distance d
     cdef pair ** pairs_of_length = <pair **>check_allocarray(D+1, sizeof(pair *))
     cdef unsigned short *p_to_include
     cdef uint32_t i,j,k
@@ -556,21 +557,10 @@ cdef inline pair** sort_pairs(uint32_t N,
                     nb_p[0] += 1
                     nb_pairs_of_length[ values[i][j] ] += 1
 
-    if pairs_of_length != NULL:
-        pairs_of_length[0] = <pair *>check_allocarray(nb_p[0], sizeof(pair))
+    pairs_of_length[0] = <pair *>check_allocarray(nb_p[0], sizeof(pair))
 
     # temporary variable used to fill pairs_of_length
     cdef uint32_t * cpt_pairs = <uint32_t *>check_calloc(D+1, sizeof(uint32_t))
-
-    if (pairs_of_length    == NULL or
-        pairs_of_length[0] == NULL or
-        cpt_pairs          == NULL):
-        if pairs_of_length != NULL:
-            sig_free(pairs_of_length[0])
-        sig_free(nb_pairs_of_length)
-        sig_free(pairs_of_length)
-        sig_free(cpt_pairs)
-        raise MemoryError
 
     # ==> Defines pairs_of_length[d] for all d
     for i from 1 <= i <= D:
@@ -636,12 +626,12 @@ cdef tuple hyperbolicity_BCCM(int N,
       value larger than 1.0, the function stop computations as soon as the
       ratio between the upper bound and the best found solution is less than
       the approximation factor. When the approximation factor is 1.0, the
-      problem is solved optimaly.
+      problem is solved optimally.
 
      - ``additive_gap`` -- When sets to a positive number, the function stop
        computations as soon as the difference between the upper bound and the
        best found solution is less than additive gap. When the gap is 0.0, the
-       problem is solved optimaly.
+       problem is solved optimally.
 
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
@@ -734,13 +724,13 @@ cdef tuple hyperbolicity_BCCM(int N,
                                               &nb_p, nb_pairs_of_length)
 
     if verbose:
-        print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
+        print("Current 2 connected component has %d vertices and diameter %d" %(N,D))
         if far_apart_pairs == NULL:
-            print "Number of pairs: %d" %(nb_p)
-            print "Repartition of pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
+            print("Number of pairs: %d" %(nb_p))
+            print("Repartition of pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0])
         else:
-            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2))
-            print "Repartition of far-apart pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
+            print("Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2)))
+            print("Repartition of far-apart pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0])
 
     cdef pair * sorted_pairs = pairs_of_length[0]
 
@@ -829,7 +819,7 @@ cdef tuple hyperbolicity_BCCM(int N,
                             certificate = [a, b, c, d]
 
                             if verbose:
-                                print "New lower bound:",ZZ(hh)/2
+                                print("New lower bound:", ZZ(hh)/2)
 
         # We reset acc_bool
         for v in range(n_acc):
@@ -844,7 +834,7 @@ cdef tuple hyperbolicity_BCCM(int N,
     sig_free(pairs_of_length)
 
     if verbose:
-        print "Visited 4-tuples:", nq
+        print("Visited 4-tuples:", nq)
 
     # Last, we return the computed value and the certificate
     if len(certificate) == 0:
@@ -892,12 +882,12 @@ cdef tuple hyperbolicity_CCL(int N,
       value larger than 1.0, the function stop computations as soon as the
       ratio between the upper bound and the best found solution is less than
       the approximation factor. When the approximation factor is 1.0, the
-      problem is solved optimaly.
+      problem is solved optimally.
 
      - ``additive_gap`` -- When sets to a positive number, the function stop
        computations as soon as the difference between the upper bound and the
        best found solution is less than additive gap. When the gap is 0.0, the
-       problem is solved optimaly.
+       problem is solved optimally.
 
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
@@ -942,13 +932,13 @@ cdef tuple hyperbolicity_CCL(int N,
                                               &nb_p, nb_pairs_of_length)
 
     if verbose:
-        print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
+        print("Current 2 connected component has %d vertices and diameter %d" %(N,D))
         if far_apart_pairs == NULL:
-            print "Number of pairs: %d" %(nb_p)
-            print "Repartition of pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
+            print("Number of pairs: %d" %(nb_p))
+            print("Repartition of pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0])
         else:
-            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2))
-            print "Repartition of far-apart pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
+            print("Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2)))
+            print("Repartition of far-apart pairs:", [(i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0])
 
 
     approximation_factor = min(approximation_factor, D)
@@ -985,7 +975,7 @@ cdef tuple hyperbolicity_CCL(int N,
             h_UB = l2
 
             if verbose:
-                print "New upper bound:",ZZ(h_UB)/2
+                print("New upper bound:", ZZ(h_UB) / 2)
 
         # Termination if required approximation is found
         if certificate and ((h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap)):
@@ -1039,7 +1029,7 @@ cdef tuple hyperbolicity_CCL(int N,
                         certificate = [a, b, c, d]
 
                         if verbose:
-                            print "New lower bound:",ZZ(hh)/2
+                            print("New lower bound:", ZZ(hh) / 2)
 
                         # If we cannot improve further, we stop
                         if l2 <= h:
@@ -1125,13 +1115,13 @@ def hyperbolicity(G,
       is set to some value (larger than 1.0), the function stop computations as
       soon as the ratio between the upper bound and the best found solution is
       less than the approximation factor. When the approximation factor is 1.0,
-      the problem is solved optimaly. This parameter is used only when the
+      the problem is solved optimally. This parameter is used only when the
       chosen algorithm is ``'CCL'``, ``'CCL+FA'``, or ``'BCCM'``.
 
     - ``additive_gap`` -- (default: None) When sets to a positive number, the
       function stop computations as soon as the difference between the upper
       bound and the best found solution is less than additive gap. When the gap
-      is 0.0, the problem is solved optimaly. This parameter is used only when
+      is 0.0, the problem is solved optimally. This parameter is used only when
       the chosen algorithm is ``'CCL'`` or ``'CCL+FA'``, or ``'BCCM'``.
 
     - ``verbose`` -- (default: ``False``) is a boolean set to True to display
@@ -1209,7 +1199,7 @@ def hyperbolicity(G,
     Comparison of results::
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
-        sage: for i in xrange(10): # long time
+        sage: for i in range(10): # long time
         ....:     G = graphs.RandomBarabasiAlbert(100,2)
         ....:     d1,_,_ = hyperbolicity(G,algorithm='basic')
         ....:     d2,_,_ = hyperbolicity(G,algorithm='CCL')
@@ -1218,7 +1208,7 @@ def hyperbolicity(G,
         ....:     d5,_,_ = hyperbolicity(G,algorithm='BCCM')
         ....:     l3,_,u3 = hyperbolicity(G,approximation_factor=2)
         ....:     if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
-        ....:        print "That's not good!"
+        ....:        print("That's not good!")
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: import random
@@ -1235,7 +1225,7 @@ def hyperbolicity(G,
         ....:         d5,_,_ = hyperbolicity(cc, algorithm='BCCM')
         ....:         l3,_,u3 = hyperbolicity(cc, approximation_factor=2)
         ....:         if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
-        ....:             print "Error in graph ", cc.edges()
+        ....:             print("Error in graph ", cc.edges())
 
     The hyperbolicity of a graph is the maximum value over all its biconnected
     components::
@@ -1360,8 +1350,8 @@ def hyperbolicity(G,
         if verbose:
             # we compute the distribution of size of the blocks
             L = [len(V) for V in B]
-            print "Graph with %d blocks" %(len(B))
-            print "Blocks size distribution:", {x:L.count(x) for x in L}
+            print("Graph with %d blocks" %(len(B)))
+            print("Blocks size distribution:", {x:L.count(x) for x in L})
 
         for V in B:
 
@@ -1405,12 +1395,6 @@ def hyperbolicity(G,
         _distances_       = <unsigned short *> check_allocarray(N * N, sizeof(unsigned short))
         _far_apart_pairs_ = <unsigned short *> check_allocarray(N * N, sizeof(unsigned short))
         far_apart_pairs   = <unsigned short **>check_allocarray(N, sizeof(unsigned short *))
-        if _distances_ == NULL or _far_apart_pairs_ == NULL or far_apart_pairs == NULL:
-            sig_free(_distances_)
-            sig_free(distances)
-            sig_free(_far_apart_pairs_)
-            sig_free(far_apart_pairs)
-            raise MemoryError("Unable to allocate array '_distances_' or '_far_apart_pairs_'.")
 
         distances_and_far_apart_pairs(G, _distances_, _far_apart_pairs_)
 

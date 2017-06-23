@@ -6,18 +6,11 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-cd src
+echo "Deleting old gf2x files."
+rm -f "$SAGE_LOCAL"/lib/libgf2x*
+rm -rf "$SAGE_LOCAL"/include/gf2x*
 
-# Apply patches.  See SPKG.txt for information about what each patch
-# does.
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+cd src
 
 # Use newer version of config.guess and config.sub (see Trac #19727)
 cp "$SAGE_ROOT"/config/config.* config
@@ -85,10 +78,6 @@ case "$SAGE_TUNE_GF2X" in
         fi
         ;;
 esac
-
-echo "Deleting old gf2x files."
-rm -f "$SAGE_LOCAL"/lib/libgf2x*
-rm -rf "$SAGE_LOCAL"/include/gf2x*
 
 echo "Installing gf2x."
 $MAKE install

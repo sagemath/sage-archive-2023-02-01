@@ -148,10 +148,14 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -338,7 +342,7 @@ def shortest_path_all_pairs(G):
     The integer corresponding to a vertex is its index in the list
     ``G.vertices()``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import shortest_path_all_pairs
         sage: g = graphs.PetersenGraph()
@@ -418,7 +422,7 @@ def distances_all_pairs(G):
     This function returns a double dictionary ``D`` of vertices, in which the
     distance between vertices ``u`` and ``v`` is ``D[u][v]``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import distances_all_pairs
         sage: g = graphs.PetersenGraph()
@@ -629,7 +633,7 @@ def distances_and_predecessors_all_pairs(G):
     ``G.vertices()``.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import distances_and_predecessors_all_pairs
         sage: g = graphs.PetersenGraph()
@@ -822,7 +826,7 @@ def eccentricity(G, algorithm="standard"):
       ``'standard'`` which performs a BFS from each vertex and ``'bounds'``
       which uses the fast algorithm proposed in [TK13]_ for undirected graphs.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = graphs.PetersenGraph()
@@ -908,7 +912,7 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     Perform a breadth first search (BFS) using the same method as in
     sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS
 
-    Furthermore, the method returns the the eccentricity of the source which is
+    Furthermore, the method returns the eccentricity of the source which is
     either the last computed distance when all vertices are seen, or a very
     large number (UINT32_MAX) when the graph is not connected.
 
@@ -1325,13 +1329,13 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: d1 = diameter(G, algorithm='standard')
         sage: d2 = diameter(G, algorithm='iFUB')
         sage: d3 = diameter(G, algorithm='iFUB', source=G.random_vertex())
-        sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
+        sage: if d1!=d2 or d1!=d3: print("Something goes wrong!")
 
     Comparison of lower bound algorithms::
 
         sage: lb2 = diameter(G, algorithm='2sweep')
         sage: lbm = diameter(G, algorithm='multi-sweep')
-        sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
+        sage: if not (lb2<=lbm and lbm<=d3): print("Something goes wrong!")
 
     TEST:
 
@@ -1422,7 +1426,7 @@ def wiener_index(G):
       paths from `\Omega` containing `e`. We then have
       `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     From [GYLL93c]_, cited in [KRG96b]_::
 
@@ -1595,7 +1599,7 @@ def floyd_warshall(gg, paths = True, distances = False):
 
         sage: g = graphs.Grid2dGraph(2,2)
         sage: from sage.graphs.distances_all_pairs import floyd_warshall
-        sage: print floyd_warshall(g)
+        sage: print(floyd_warshall(g))
         {(0, 1): {(0, 1): None, (1, 0): (0, 0), (0, 0): (0, 1), (1, 1): (0, 1)},
         (1, 0): {(0, 1): (0, 0), (1, 0): None, (0, 0): (1, 0), (1, 1): (1, 0)},
         (0, 0): {(0, 1): (0, 0), (1, 0): (0, 0), (0, 0): None, (1, 1): (0, 1)},
@@ -1613,7 +1617,7 @@ def floyd_warshall(gg, paths = True, distances = False):
         sage: u,v = g.random_vertex(), g.random_vertex()
         sage: p = [v]
         sage: while p[0] is not None:
-        ...     p.insert(0,path[u][p[0]])
+        ....:   p.insert(0,path[u][p[0]])
         sage: len(p) == dist[u][v] + 2
         True
 

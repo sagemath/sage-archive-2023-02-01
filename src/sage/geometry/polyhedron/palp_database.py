@@ -9,7 +9,7 @@ EXAMPLES::
     ....:     fan = Fan([cone])
     ....:     X = ToricVariety(fan)
     ....:     ideal = X.affine_algebraic_patch(cone).defining_ideal()
-    ....:     print lp.n_vertices(), ideal.hilbert_series()
+    ....:     print("{} {}".format(lp.n_vertices(), ideal.hilbert_series()))
     3 (-t^2 - 7*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
     3 (-t^2 - t - 1)/(t^3 - 3*t^2 + 3*t - 1)
     3 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
@@ -27,6 +27,7 @@ EXAMPLES::
     5 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
     6 (t^2 + 4*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)
 """
+from __future__ import print_function
 
 from subprocess import Popen, PIPE
 
@@ -34,9 +35,10 @@ from sage.structure.sage_object import SageObject
 from sage.matrix.all import matrix
 from sage.rings.all import Integer, ZZ
 
+from sage.interfaces.process import terminate
+
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
 from sage.geometry.polyhedron.constructor import Polyhedron
-
 
 
 #########################################################################
@@ -69,12 +71,12 @@ class PALPreader(SageObject):
         sage: next(iter(PALPreader(2, output='list')))
         [[1, 0], [0, 1], [-1, -1]]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
 
         sage: next(iter(PALPreader(2, output='Polyhedron')))
         A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
         sage: type(_)
-        <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+        <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
 
         sage: next(iter(PALPreader(2, output='PPL')))
         A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
@@ -106,8 +108,8 @@ class PALPreader(SageObject):
             self._data_basename = data_basename
         else:
             import os
-            from sage.env import SAGE_SHARE
-            self._data_basename = os.path.join(SAGE_SHARE, 'reflexive_polytopes',
+            from sage.env import POLYTOPE_DATA_DIR
+            self._data_basename = os.path.join(POLYTOPE_DATA_DIR,
                                                'Full'+str(dim)+'d', 'zzdb')
             info = self._data_basename + '.info'
             if not os.path.exists(info):
@@ -205,8 +207,9 @@ class PALPreader(SageObject):
             start = 0
         if step is None:
             step = 1
+
         palp = self._palp_Popen()
-        try:
+        with terminate(palp):
             palp_out = palp.stdout
             i = 0
             while True:
@@ -230,14 +233,6 @@ class PALPreader(SageObject):
                 i += 1
                 if stop is not None and i>=stop:
                     return
-        finally:
-            palp.poll()
-            if palp.returncode is None:
-                palp.terminate()
-            palp.poll()
-            if palp.returncode is None:
-                palp.kill()
-
 
     def _iterate_Polyhedron(self, start, stop, step):
         """
@@ -435,8 +430,8 @@ class Reflexive4dHodge(PALPreader):
         dim = 4
         if data_basename is None:
             import os
-            from sage.env import SAGE_SHARE
-            data_basename = os.path.join(SAGE_SHARE, 'reflexive_polytopes',
+            from sage.env import POLYTOPE_DATA_DIR
+            data_basename = os.path.join(POLYTOPE_DATA_DIR,
                                          'Hodge4d', 'all')
             info = data_basename + '.vinfo'
             if not os.path.exists(info):

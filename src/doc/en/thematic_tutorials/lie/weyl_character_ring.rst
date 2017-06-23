@@ -203,7 +203,7 @@ Example
 
 Suppose that we wish to compute the integral
 
-.. MATH ::
+.. MATH::
 
    \int_{U(n)} |tr(g)|^{2k}\,dg
 
@@ -273,7 +273,8 @@ odd spin groups::
     ....:
     sage: spinrepn(3)
     B3(1/2,1/2,1/2)
-    sage: for r in [1..4]: print r, spinrepn(r).frobenius_schur_indicator()
+    sage: for r in [1..4]:
+    ....:     print("{} {}".format(r, spinrepn(r).frobenius_schur_indicator()))
     1 -1
     2 -1
     3 1
@@ -456,7 +457,7 @@ Integration
 
 Suppose that we wish to compute the integral
 
-.. MATH ::
+.. MATH::
 
    \int_{U(n)} |tr(g)|^{2k}\,dg
 

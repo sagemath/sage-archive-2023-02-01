@@ -4,7 +4,7 @@ r"""
 This module implements filtered vector spaces, that is, a descending
 sequence of vector spaces
 
-.. math::
+.. MATH::
 
     \cdots \supset F_d \supset F_{d+1} \supset F_{d+2} \supset \cdots
 
@@ -107,6 +107,8 @@ Or the algebraic field::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
+from six.moves import range
 
 from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
@@ -315,7 +317,7 @@ def construct_from_generators(filtration, base_ring, check):
 
     # normalize filtration data
     normalized = dict()
-    for deg, gens_deg in filtration.iteritems():
+    for deg, gens_deg in iteritems(filtration):
         indices = [generators.index(normalize_gen(v)) for v in gens_deg]
         normalized[deg] = tuple(indices)
     return construct_from_generators_indices(generators, normalized, base_ring, check)
@@ -374,7 +376,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
 
     # normalize filtration data
     normalized = dict()
-    for deg, gens in filtration.iteritems():
+    for deg, gens in iteritems(filtration):
         deg = normalize_degree(deg)
         gens = map(ZZ, gens)
         if any(i < 0 or i >= len(generators) for i in gens):
@@ -446,7 +448,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         if check:
             assert matrix(generators).rank() == self.dimension()
             assert isinstance(filtration, dict)
-            for degree, indices in filtration.iteritems():
+            for degree, indices in iteritems(filtration):
                 assert isinstance(degree, Integer) or degree == infinity
                 assert isinstance(indices, tuple)
                 assert all(isinstance(r, Integer) for r in indices)
@@ -598,7 +600,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
 
         A tuple of integers (and plus infinity) in ascending
         order. The last entry is plus infinity if and only if the
-        flitration is not separating (see :meth:`is_separating`).
+        filtration is not separating (see :meth:`is_separating`).
 
         EXAMPLES::
 
@@ -850,7 +852,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F._repr_degrees(-2, 4)
             ['QQ^2', 'QQ^2', 'QQ^2', 'QQ^1', 'QQ^1', '0', '0', '0']
         """
-        degrees = range(min_deg, max_deg+1)
+        degrees = list(range(min_deg, max_deg + 1))
         dims = []
         for i in degrees + [infinity]:
             d = self.get_degree(i).dimension()
@@ -1205,7 +1207,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         """
         generators, filtration = self.presentation()
         shifted = dict()
-        for d, indices in filtration.iteritems():
+        for d, indices in iteritems(filtration):
             shifted[d + deg] = indices
         return FilteredVectorSpace(generators, shifted, base_ring=self.base_ring())
 

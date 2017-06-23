@@ -67,6 +67,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import weakref
 
@@ -75,7 +76,7 @@ import sage.misc.latex as latex
 import sage.rings.ring as ring
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-import free_module
+from . import free_module
 
 ###############################################################################
 #
@@ -361,13 +362,20 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: P = M.span([[1,2,3], [1,1,1]])
             sage: P.discriminant()
             6
+        
+        TESTS::
+        
+            sage: M=FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: M.discriminant()
+            -1
+            sage: M=FreeQuadraticModule(QQ,3,matrix.identity(3))
+            sage: M.discriminant()
+            -1
+            
         """
         n = self.rank()
-        if n%2 == 0:
-            r = n//2
-        else:
-            r = (n-1)//2
-        return (-1)^r*self.gram_matrix().determinant()
+        r = n//2
+        return (-1)**r*self.gram_matrix().determinant()
 
     def gram_matrix(self):
         """

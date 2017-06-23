@@ -66,7 +66,7 @@ cdef class Vector_real_double_dense(vector_double_dense.Vector_double_dense):
         left tail of the distribution. (Paragraph from the scipy.stats
         docstring.)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: v = vector(RDF, range(9))
             sage: v.stats_skew()
             0.0
@@ -79,7 +79,7 @@ cdef class Vector_real_double_dense(vector_double_dense.Vector_double_dense):
         """
         Pickling
 
-        EXAMPLE:
+        EXAMPLES:
             sage: a = vector(RDF, range(9))
             sage: loads(dumps(a)) == a
             True
@@ -92,7 +92,7 @@ def unpickle_v0(parent, entries, degree):
     """
     Create a real double vector containing the entries.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: v = vector(RDF, [1,2,3])
         sage: w = sage.modules.vector_real_double_dense.unpickle_v0(v.parent(), list(v), v.degree())
         sage: v == w
@@ -105,7 +105,7 @@ def unpickle_v1(parent, entries, degree, is_mutable=None):
     Create a real double vector with the given parent, entries,
     degree, and mutability.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: v = vector(RDF, [1,2,3])
         sage: w = sage.modules.vector_real_double_dense.unpickle_v1(v.parent(), list(v), v.degree(), v.is_mutable())
         sage: v == w

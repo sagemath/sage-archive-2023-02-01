@@ -119,7 +119,7 @@ Methods
 
 from libc.stdlib cimport qsort
 from libc.stdint cimport uint64_t
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 
 ctypedef struct hypergraph:
     int n
@@ -309,7 +309,7 @@ cdef int cmp_128_bits(void * a, void * b) nogil:
 
 cdef int is_induced_admissible64(hypergraph h1,hypergraph * h2_induced,int n,hypergraph tmp1):
     r"""
-    Tests if the hypergrap induced in h1 by 0,...,n-1 is equal to the hypergraph
+    Test if the hypergraph induced in h1 by 0,...,n-1 is equal to the hypergraph
     induced in h2 by 0,...,n-1.
 
     ``h2_induced`` is expected to be a pointer toward the hypergraph induced by
@@ -347,7 +347,7 @@ cdef class SubHypergraphSearch:
         r"""
         See the documentation's class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.subhypergraph_search import SubHypergraphSearch
             sage: g1 = IncidenceStructure(graphs.PetersenGraph().edges(labels=False))
@@ -441,7 +441,7 @@ cdef class SubHypergraphSearch:
         This function is called when an instance of :class:`SubHypergraphSearch`
         is created.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: d = designs.projective_plane(3)
             sage: d.isomorphic_substructures_iterator(d).relabel_heuristic()

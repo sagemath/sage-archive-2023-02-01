@@ -318,7 +318,7 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: type(a.Tietze())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(a.Tietze()[0])
             <type 'sage.rings.integer.Integer'>
         """
@@ -571,7 +571,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
 
     INPUT:
 
-    - ``n`` -- integer or ``None`` (default). The nnumber of
+    - ``n`` -- integer or ``None`` (default). The number of
       generators. If not specified the ``names`` are counted.
 
     - ``names`` -- string or list/tuple/iterable of strings (default:
@@ -857,7 +857,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         `i_1 \dots i_j`, such that the abelianization of the
         group is isomorphic to
 
-        .. math::
+        .. MATH::
 
             \ZZ / (i_1) \times \dots \times \ZZ / (i_j)
 

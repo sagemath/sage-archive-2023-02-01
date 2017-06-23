@@ -6,13 +6,25 @@ for interaction with other types. Also implements the main
 context class, and related utilities.
 """
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *
 from cpython.complex cimport *
 from cpython.number cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
@@ -29,7 +41,7 @@ DEF S_INF = 3
 DEF S_NINF = 4
 DEF S_NAN = 5
 
-from ext_impl cimport *
+from .ext_impl cimport *
 
 import mpmath.rational as rationallib
 import mpmath.libmp as libmp
@@ -841,9 +853,9 @@ cdef class Context:
 
     def fdot(ctx, A, B=None, bint conjugate=False):
         r"""
-        Computes the dot product of the iterables `A` and `B`,
+        Compute the dot product of the iterables `A` and `B`,
 
-        .. math ::
+        .. MATH::
 
             \sum_{k=0} A_k B_k.
 
@@ -852,7 +864,7 @@ cdef class Context:
 
         The elements are automatically converted to mpmath numbers.
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import mp, fdot
             sage: mp.dps = 15; mp.pretty = False
@@ -860,7 +872,7 @@ cdef class Context:
             sage: B = [1, -1, 2]
             sage: fdot(A, B)
             mpf('6.5')
-            sage: zip(A, B)
+            sage: list(zip(A, B))
             [(2, 1), (1.5, -1), (3, 2)]
             sage: fdot(_)
             mpf('6.5')
@@ -1054,11 +1066,11 @@ cdef class Context:
         ::
 
             sage: class MyInt(int):
-            ...       pass
+            ....:     pass
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: class MyFloat(float):
-            ...       pass
+            ....:     pass
             sage: mag(MyInt(10)), mag(MyLong(10))
             (4, 4)
 
@@ -1187,11 +1199,11 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.sqrt(2)   # indirect doctest
+            sage: print(mp.sqrt(2))   # indirect doctest
             1.4142135623731
-            sage: print mp.sqrt(-2)
+            sage: print(mp.sqrt(-2))
             (0.0 + 1.4142135623731j)
-            sage: print mp.sqrt(2+2j)
+            sage: print(mp.sqrt(2+2j))
             (1.55377397403004 + 0.643594252905583j)
 
         """
@@ -1225,9 +1237,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.exp(2)   # indirect doctest
+            sage: print(mp.exp(2))   # indirect doctest
             7.38905609893065
-            sage: print mp.exp(2+2j)
+            sage: print(mp.exp(2+2j))
             (-3.07493232063936 + 6.71884969742825j)
 
         """
@@ -1257,9 +1269,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.cos(2)   # indirect doctest
+            sage: print(mp.cos(2))   # indirect doctest
             -0.416146836547142
-            sage: print mp.cos(2+2j)
+            sage: print(mp.cos(2+2j))
             (-1.56562583531574 - 3.29789483631124j)
 
         """
@@ -1294,9 +1306,9 @@ cdef class Context:
 
             sage: from mpmath import mp
             sage: mp.dps = 15
-            sage: print mp.sin(2)   # indirect doctest
+            sage: print(mp.sin(2))   # indirect doctest
             0.909297426825682
-            sage: print mp.sin(2+2j)
+            sage: print(mp.sin(2+2j))
             (3.42095486111701 - 1.50930648532362j)
 
         """
@@ -1330,11 +1342,11 @@ cdef class Context:
         EXAMPLES::
 
             sage: from mpmath import mp
-            sage: print mp.ln(2)   # indirect doctest
+            sage: print(mp.ln(2))   # indirect doctest
             0.693147180559945
-            sage: print mp.ln(-2)
+            sage: print(mp.ln(-2))
             (0.693147180559945 + 3.14159265358979j)
-            sage: print mp.ln(2+2j)
+            sage: print(mp.ln(2+2j))
             (1.03972077083992 + 0.785398163397448j)
 
         """
@@ -2034,7 +2046,7 @@ cdef class mpf(mpf_base):
             sage: int(mpf(2.5))
             2
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         MPF_to_fixed(tmp_mpz, &self.value, 0, True)
         return mpzi(tmp_mpz)
@@ -2052,7 +2064,7 @@ cdef class mpf(mpf_base):
             sage: import mpmath
             sage: v = mpmath.mpf(2)
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: MyLong(v)
             2L
         """
@@ -2067,7 +2079,7 @@ cdef class mpf(mpf_base):
             sage: float(mpf(2.5))
             2.5
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         return MPF_to_double(&self.value, False)
 
@@ -2129,7 +2141,7 @@ cdef class mpf(mpf_base):
             sage: mp.prec = 53
             sage: (+x).man
             6004799503160661
-            sage: print +x
+            sage: print(+x)
             0.333333333333333
         """
         cdef mpf r = mpf.__new__(mpf)
@@ -2213,9 +2225,9 @@ cdef class constant(mpf_base):
         custom precision and rounding direction can also be passed ::
 
             sage: from mpmath import pi
-            sage: print pi(dps=5, rounding='d')
+            sage: print(pi(dps=5, rounding='d'))
             3.1415901184082
-            sage: print pi(dps=5, rounding='u')
+            sage: print(pi(dps=5, rounding='u'))
             3.14159393310547
 
         """
@@ -2305,7 +2317,7 @@ cdef class constant(mpf_base):
         Computes the square root of the constant ::
 
             sage: from mpmath import pi
-            sage: print pi.sqrt()
+            sage: print(pi.sqrt())
             1.77245385090552
         """
         return mpf(self).sqrt()
@@ -2316,7 +2328,7 @@ cdef class constant(mpf_base):
         Convert to a fixed-point integer ::
 
             sage: from mpmath import pi
-            sage: print float(pi.to_fixed(10) / 2.0**10)
+            sage: float(pi.to_fixed(10) / 2.0**10)
             3.140625
         """
         return libmp.to_fixed(self._mpf_, prec)
@@ -2622,7 +2634,7 @@ def hypsum_internal(int p, int q, param_types, str ztype, coeffs, z,
 
         sage: from mpmath import mp  # indirect doctest
         sage: mp.dps = 15
-        sage: print mp.hyp1f1(1,2,3)
+        sage: print(mp.hyp1f1(1,2,3))
         6.36184564106256
 
     TODO: convert mpf/mpc parameters to fixed-point numbers here

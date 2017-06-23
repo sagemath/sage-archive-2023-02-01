@@ -35,7 +35,8 @@ For instance, you want to maximize `x_1 - x_0` subject to
  \left( \begin{array}{cc} 5 & 6  \\ 6 & 7  \end{array} \right),\quad
  \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right) x_0 +
  \left( \begin{array}{cc} 2 & 2  \\ 2 & 2  \end{array} \right) x_1 \preceq
- \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right).
+ \left( \begin{array}{cc} 3 & 3  \\ 3 & 3  \end{array} \right),
+ \quad x_0\geq 0, x_1\geq 0.
 
 An SDP can give you an answer to the problem above. Here is how it's done:
 
@@ -44,6 +45,7 @@ An SDP can give you an answer to the problem above. Here is how it's done:
      p.new_variable()``.
   #. Add those two matrix inequalities as inequality constraints via
      :meth:`~SemidefiniteProgram.add_constraint`.
+  #. Add another matrix inequality to specify nonnegativity of `x`.
   #. Specify the objective function via :meth:`~SemidefiniteProgram.set_objective`.
      In our case it is  `x_1 - x_0`. If it
      is a pure constraint satisfaction problem, specify it as ``None``.
@@ -62,24 +64,28 @@ The following example shows all these steps::
     sage: b1 = matrix([[1, 1.], [1., 1.]])
     sage: b2 = matrix([[2, 2.], [2., 2.]])
     sage: b3 = matrix([[3, 3.], [3., 3.]])
+    sage: c1 = matrix([[1.0, 0],[0,0]],sparse=True)
+    sage: c2 = matrix([[0.0, 0],[0,1]],sparse=True)
     sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
     sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
+    sage: p.add_constraint(c1*x[0] + c2*x[1] >= matrix.zero(2,2,sparse=True))
     sage: p.solver_parameter("show_progress", True)
     sage: opt = p.solve()
         pcost       dcost       gap    pres   dres   k/t
     0: ...
     ...
     Optimal solution found.
-    sage: print 'Objective Value:', round(opt,3)
-    Objective Value: 3.0
-    sage: map(lambda x: round(x,3), p.get_values(x).itervalues())
-    [-1.0, 2.0]
+    sage: print('Objective Value: {}'.format(round(opt,3)))
+    Objective Value: 1.0
+    sage: [round(x,3) for x in p.get_values(x).values()]
+    [0.0, 1.0]
     sage: p.show()
     Maximization:
       x_0 - x_1
     Constraints:
       constraint_0: [3.0 4.0][4.0 5.0]x_0 + [1.0 2.0][2.0 3.0]x_1 <=  [5.0 6.0][6.0 7.0]
       constraint_1: [2.0 2.0][2.0 2.0]x_0 + [1.0 1.0][1.0 1.0]x_1 <=  [3.0 3.0][3.0 3.0]
+      constraint_2: [ 0.0  0.0][ 0.0 -1.0]x_0 + [-1.0  0.0][ 0.0  0.0]x_1 <=  [0 0][0 0]
     Variables:
        x_0,  x_1
 
@@ -88,9 +94,9 @@ of primal and dual problems. Thus we can get the optimizer `X` of the dual probl
 as follows, as diagonal blocks, one per each constraint, via :meth:`~SemidefiniteProgram.dual_variable`.
 E.g.::
 
-    sage: p.dual_variable(1)  # tol 5e-03
-    [ 1.44 -1.22]
-    [-1.22  1.44]
+    sage: p.dual_variable(1)  # rel tol 1e-03
+    [ 85555.0 -85555.0]
+    [-85555.0  85555.0]
 
 We can see that the optimal value of the dual is equal (up to numerical noise) to `opt`.::
 
@@ -208,6 +214,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
@@ -302,7 +309,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         - :meth:`default_sdp_solver` -- Returns/Sets the default SDP solver.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(maximization=True)
 
@@ -371,7 +378,7 @@ cdef class SemidefiniteProgram(SageObject):
          r"""
          Returns a short description of the ``SemidefiniteProgram``.
 
-         EXAMPLE::
+         EXAMPLES::
 
              sage: p = SemidefiniteProgram()
              sage: x = p.new_variable()
@@ -384,7 +391,7 @@ cdef class SemidefiniteProgram(SageObject):
              sage: p.add_constraint(a1*x[0] + a2*x[1] <= a3)
              sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
              sage: p.add_constraint(b1*x[0] + b2*x[1] <= a1)
-             sage: print p
+             sage: print(p)
              Semidefinite Program ( maximization, 2 variables, 3 constraints )
          """
          cdef GenericSDPBackend b = self._backend
@@ -411,7 +418,7 @@ cdef class SemidefiniteProgram(SageObject):
         This method lets the user define LinearProgram without having to
         define independent dictionaries when it is not necessary for him.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: p.set_objective(p['x'] + p['z'])
@@ -450,7 +457,7 @@ cdef class SemidefiniteProgram(SageObject):
         - ``name`` -- A string representing the name of the
           ``SemidefiniteProgram``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: p.set_problem_name("Test program")
@@ -481,7 +488,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         - ``name`` -- string. Associates a name to the variable.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: x = p.new_variable()
@@ -551,7 +558,7 @@ cdef class SemidefiniteProgram(SageObject):
         r"""
         Returns the number of constraints assigned so far.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt")
             sage: x = p.new_variable()
@@ -574,7 +581,7 @@ cdef class SemidefiniteProgram(SageObject):
         Returns the number of variables used so far.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: a = matrix([[1, 2.], [2., 3.]])
@@ -624,29 +631,31 @@ cdef class SemidefiniteProgram(SageObject):
             varid_name[i] = s if s else 'x_'+str(i)
 
         ##### Sense and objective function
-        print ("Maximization:" if b.is_maximization() else "Minimization:")
-        print " ",
+        print("Maximization:" if b.is_maximization() else "Minimization:")
+        print(" ", end=" ")
         first = True
         for 0<= i< b.ncols():
             c = b.objective_coefficient(i)
             if c == 0:
                 continue
-            print (("+ " if (not first and c>0) else "") +
+            print((("+ " if (not first and c>0) else "") +
                    ("" if c == 1 else ("- " if c == -1 else str(c)+" ")) + varid_name[i]
-                   ),
+                   ), end=" ")
             first = False
-        if b.obj_constant_term > self._backend.zero(): print "+", b.obj_constant_term
-        elif b.obj_constant_term < self._backend.zero(): print "-", -b.obj_constant_term
-        print
+        if b.obj_constant_term > self._backend.zero():
+            print("+ {}".format(b.obj_constant_term))
+        elif b.obj_constant_term < self._backend.zero():
+            print("- {}".format(-b.obj_constant_term))
+        print("\n")
 
         ##### Constraints
-        print "Constraints:"
+        print("Constraints:")
         for 0<= i < b.nrows():
             indices, values = b.row(i)
-            print " ",
+            print(" ", end=" ")
             # Constraint's name
             if b.row_name(i):
-                print b.row_name(i)+":",
+                print(b.row_name(i)+":", end=" ")
             first = True
             l = sorted(zip(indices,values))
             l.reverse()
@@ -658,18 +667,19 @@ cdef class SemidefiniteProgram(SageObject):
             for j, c in l:
                 if c == 0:
                     continue
-                print (("+ " if (not first) else "") +
+                print((("+ " if (not first) else "") +
                         ( str(repr(c).replace('\n',"")  )  )+varid_name[j]),
+                      end=" ")
                 first = False
-            print ("<= "),
-            print repr(-last_value).replace('\n',"")
+            print(("<= "), end=" ")
+            print(repr(-last_value).replace('\n',""))
 
         ##### Variables
-        print "Variables:"
-        print ("  "),
+        print("Variables:")
+        print("  ", end=" ")
         for 0<= i < b.ncols()-1:
-            print (str(varid_name[i]) + ", "),
-        print (str(varid_name[b.ncols()-1]) ),
+            print(str(varid_name[i]) + ", ", end=" ")
+        print(str(varid_name[b.ncols()-1]), end=" ")
 
 
     def get_values(self, *lists):
@@ -690,7 +700,7 @@ cdef class SemidefiniteProgram(SageObject):
           by its corresponding numerical value.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization = False)
             sage: x = p.new_variable()
@@ -758,7 +768,7 @@ cdef class SemidefiniteProgram(SageObject):
           ( can also be set to ``None`` or ``0`` when just
           looking for a feasible solution )
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following semidefinite program::
 
@@ -815,7 +825,7 @@ cdef class SemidefiniteProgram(SageObject):
               case, arguments ``min`` and ``max`` will be ignored.
         - ``name`` -- A name for the constraint.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following semidefinite program::
 
@@ -1001,7 +1011,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         The matrix of the slack of the `i`-th constraint
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(maximization = False)
             sage: x = p.new_variable()
@@ -1054,7 +1064,7 @@ cdef class SemidefiniteProgram(SageObject):
         - ``value`` -- the parameter's value if it is to be defined,
           or ``None`` (default) to obtain its current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p.<x> = SemidefiniteProgram(solver = "cvxopt", maximization = False)
             sage: p.solver_parameter("show_progress", True)
@@ -1103,11 +1113,11 @@ cdef class SemidefiniteProgram(SageObject):
 
         The following command::
 
-            sage: s = p.sum([v[i] for i in xrange(90)])
+            sage: s = p.sum(v[i] for i in range(90))
 
         is much more efficient than::
 
-            sage: s = sum([v[i] for i in xrange(90)])
+            sage: s = sum(v[i] for i in range(90))
         """
         d = {}
         for v in L:
@@ -1122,7 +1132,7 @@ cdef class SemidefiniteProgram(SageObject):
         This might be useful when acces to additional functions provided by
         the backend is needed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This example prints a matrix coefficient::
 
@@ -1147,7 +1157,7 @@ class SDPSolverException(RuntimeError):
 
     ``SDPSolverException`` is the exception raised when the solver fails.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.numerical.sdp import SDPSolverException
         sage: SDPSolverException("Error")
@@ -1173,7 +1183,7 @@ class SDPSolverException(RuntimeError):
 
         sage: from sage.numerical.sdp import SDPSolverException
         sage: e = SDPSolverException("Error")
-        sage: print e
+        sage: print(e)
         Error
     """
     pass
@@ -1211,7 +1221,7 @@ cdef class SDPVariable(Element):
         For more informations, see the method
         ``SemidefiniteProgram.new_variable``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: p.new_variable()
@@ -1229,7 +1239,7 @@ cdef class SDPVariable(Element):
 
         Returns the element asked, otherwise creates it.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
@@ -1254,7 +1264,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns a representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p=SemidefiniteProgram()
             sage: v=p.new_variable()
@@ -1267,7 +1277,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns the keys already defined in the dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
@@ -1281,7 +1291,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns the pairs (keys,value) contained in the dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
@@ -1296,7 +1306,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns the symbolic variables associated to the current dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()

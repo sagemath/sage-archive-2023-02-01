@@ -1,6 +1,7 @@
 r"""
 Algebras With Basis
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -15,7 +16,10 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from unital_algebras import UnitalAlgebras
+from .unital_algebras import UnitalAlgebras
+
+import six
+
 
 class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -72,6 +76,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -81,6 +86,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -90,7 +96,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.__class__
         <class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category'>
         sage: A.element_class
-        <class 'sage.combinat.free_module.FreeAlgebra_with_category.element_class'>
+        <class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>
 
     Please see the source code of `A` (with ``A??``) for how to
     implement other algebras with basis.
@@ -149,8 +155,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             #Do the case where the user specifies how to multiply basis elements
             if hasattr(self, '_multiply_basis'):
-                for (left_m, left_c) in left._monomial_coefficients.iteritems():
-                    for (right_m, right_c) in right._monomial_coefficients.iteritems():
+                for (left_m, left_c) in six.iteritems(left._monomial_coefficients):
+                    for (right_m, right_c) in six.iteritems(right._monomial_coefficients):
                         res = self._multiply_basis(left_m, right_m)
                         #Handle the case where the user returns a dictionary
                         #where the keys are the monomials and the values are
@@ -183,7 +189,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             BR = self.base_ring()
             zero = BR(0)
             del_list = []
-            for m, c in z_elt.iteritems():
+            for m, c in six.iteritems(z_elt):
                 if c == zero:
                     del_list.append(m)
             for m in del_list:

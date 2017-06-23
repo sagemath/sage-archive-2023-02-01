@@ -15,9 +15,14 @@ Low-level multichoose
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from combinat import CombinatorialClass
+from __future__ import absolute_import
+from six.moves import range
+
+from .combinat import CombinatorialClass
 from sage.arith.all import binomial
 import sage.misc.prandom as rnd
+from sage.misc.superseded import deprecation
+
 
 class MultichooseNK(CombinatorialClass):
     def __init__(self, n, k):
@@ -25,9 +30,14 @@ class MultichooseNK(CombinatorialClass):
         TESTS::
 
             sage: a = MultichooseNK(3,2)
+            doctest:...: DeprecationWarning: MultichooseNK should be
+            replaced by itertools.combinations_with_replacement
+            See http://trac.sagemath.org/16473 for details.
             sage: a == loads(dumps(a))
             True
         """
+        deprecation(16473, "MultichooseNK should be replaced by "
+                    "itertools.combinations_with_replacement")
         self._n = n
         self._k = k
 
@@ -39,6 +49,9 @@ class MultichooseNK(CombinatorialClass):
         EXAMPLES::
 
             sage: MultichooseNK(3,2).cardinality()
+            doctest:...: DeprecationWarning: MultichooseNK should be
+            replaced by itertools.combinations_with_replacement
+            See http://trac.sagemath.org/16473 for details.
             6
         """
         n,k = self._n, self._k
@@ -51,6 +64,9 @@ class MultichooseNK(CombinatorialClass):
         EXAMPLES::
 
             sage: [c for c in MultichooseNK(3,2)]
+            doctest:...: DeprecationWarning: MultichooseNK should be
+            replaced by itertools.combinations_with_replacement
+            See http://trac.sagemath.org/16473 for details.
             [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]]
         """
         n,k = self._n, self._k
@@ -94,15 +110,17 @@ class MultichooseNK(CombinatorialClass):
         EXAMPLES::
 
             sage: MultichooseNK(5,2).random_element()
+            doctest:...: DeprecationWarning: MultichooseNK should be
+            replaced by itertools.combinations_with_replacement
+            See http://trac.sagemath.org/16473 for details.
             [0, 2]
             sage: MultichooseNK(5,2).random_element()
             [0, 1]
         """
-        n,k = self._n, self._k
-        rng = range(n)
+        n, k = self._n, self._k
+        rng = list(range(n))
         r = []
         for i in range(k):
-            r.append( rnd.choice(rng))
-
+            r.append(rnd.choice(rng))
         r.sort()
         return r

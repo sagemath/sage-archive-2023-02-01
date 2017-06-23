@@ -5,6 +5,7 @@ Space of modular symbols (base class)
 All the spaces of modular symbols derive from this class. This class is an
 abstract base class.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
@@ -22,7 +23,7 @@ abstract base class.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
@@ -33,12 +34,12 @@ import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
 from   sage.structure.all import Sequence, SageObject
-import sage.modular.modsym.ambient
+
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
 from sage.modular.modsym.element import ModularSymbolsElement
 
-import hecke_operator
+from . import hecke_operator
 
 from sage.misc.cachefunc import cached_method
 
@@ -379,7 +380,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: ModularSymbols(21,4).cuspidal_submodule().is_ambient()
             False
         """
-        return isinstance(self, sage.modular.modsym.ambient.ModularSymbolsAmbient)
+        from sage.modular.modsym.ambient import ModularSymbolsAmbient
+        return isinstance(self, ModularSymbolsAmbient)
 
     def is_cuspidal(self):
         """
@@ -929,7 +931,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         further details. Note that this will not work if ``algorithm=eigen``
         and the sign is 0.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(11, 2, base_ring=GF(4,'a')).cuspidal_submodule()._q_expansion_module(prec=4, algorithm="hecke")
             Vector space of degree 4 and dimension 1 over Finite Field in a of size 2^2
@@ -960,7 +962,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         def q_eigen_gens(f):
             r""" Temporary function for internal use.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: ModularSymbols(11, 4, base_ring=QuadraticField(-7,'b'),sign=1).cuspidal_submodule()._q_expansion_module(prec=5, algorithm="eigen") # indirect doctest
                 Vector space of degree 5 and dimension 2 over Number Field in b with defining polynomial x^2 + 7
@@ -975,7 +977,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                 return [X]
             else:
                 # X is a list of elements of a poly quotient ring
-                return [[X[i][j] for i in xrange(prec)] for j in xrange(d)]
+                return [[X[i][j] for i in range(prec)] for j in range(d)]
 
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
@@ -999,7 +1001,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         - ``prec`` (integer) - number of q-expansion terms to calculate.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(11, 4).cuspidal_submodule()._q_expansion_module_rational(5)
             Vector space of degree 5 and dimension 2 over Rational Field
@@ -1024,7 +1026,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             r"""
             Temporary function for internal use.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: ModularSymbols(13, 6).cuspidal_submodule()._q_expansion_module_rational(4) # indirect doctest
                 Vector space of degree 4 and dimension 3 over Rational Field
@@ -1038,12 +1040,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             X = f.padded_list(prec)
             d = A.dimension()
             if d == 1:
-                return [[X[i][j] for i in xrange(prec)] for j in xrange(n)]
+                return [[X[i][j] for i in range(prec)] for j in range(n)]
             else:
                 # This looks like it might be really slow -- though
                 # perhaps it's nothing compared to the time taken by
                 # whatever computed this in the first place.
-                return [[(X[i].list())[j][k] for i in xrange(prec)] for j in xrange(d) for k in range(n)]
+                return [[(X[i].list())[j][k] for i in range(prec)] for j in range(d) for k in range(n)]
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
         else:
@@ -1242,7 +1244,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         Return a basis of eigenforms corresponding to this space, which must be
         new, cuspidal and simple.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(17, 2,sign=1).cuspidal_submodule()._q_expansion_basis_eigen(2, "a")
             [q + O(q^2)]
@@ -1251,7 +1253,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             # should we perhaps check at this point if self is new?
             f = self.q_eigenform(prec, names)
             R = PowerSeriesRing(self.base_ring(), 'q')
-            B = [R([f[i][j] for i in xrange(prec)],prec) for j in range(self.rank())]
+            B = [R([f[i][j] for i in range(prec)],prec) for j in range(self.rank())]
             return B
         else:
             raise NotImplementedError
@@ -1394,7 +1396,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         r"""
         Alias for ``self.modular_symbols_of_level(level)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(11, 2).hecke_module_of_level(22)
             Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
@@ -1512,7 +1514,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         Decompose self into subspaces which are eigenspaces for the star
         involution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(Gamma1(19), 2).cuspidal_submodule().star_decomposition()
             [
@@ -1662,7 +1664,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         is often (but not always) different from the matrix returned by
         ``self.hecke_matrix``, even if the latter has integral entries.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularSymbols(6,4)
             sage: M.hecke_matrix(3)
@@ -1783,7 +1785,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         OUTPUT: a submodule of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(Gamma1(11), 3)._compute_sign_submodule(-1)
             Modular Symbols subspace of dimension 10 of Modular Symbols space of dimension 20 for Gamma_1(11) of weight 3 with sign 0 and over Rational Field
@@ -2377,7 +2379,7 @@ class PeriodMapping(SageObject):
 
         - ``A`` - matrix of the associated period map
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(2, 8).cuspidal_submodule().integral_period_mapping() # indirect doctest
             Integral period mapping associated to Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(2) of weight 8 with sign 0 over Rational Field
@@ -2403,7 +2405,7 @@ class PeriodMapping(SageObject):
         r"""
         Evaluate this mapping at an element of the domain.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularSymbols(17, 2).cuspidal_submodule().integral_period_mapping()
             sage: M(vector([1,0,2]))
@@ -2419,7 +2421,7 @@ class PeriodMapping(SageObject):
         r"""
         Return the matrix of this period mapping.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(11, 2).cuspidal_submodule().integral_period_mapping().matrix()
             [  0 1/5]
@@ -2433,7 +2435,7 @@ class PeriodMapping(SageObject):
         Return the domain of this mapping (which is the ambient space of the
         corresponding modular symbols space).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(17, 2).cuspidal_submodule().integral_period_mapping().domain()
             Modular Symbols space of dimension 3 for Gamma_0(17) of weight 2 with sign 0 over Rational Field
@@ -2444,7 +2446,7 @@ class PeriodMapping(SageObject):
         r"""
         Return the codomain of this mapping.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Note that this presently returns the wrong answer, as a consequence of
         various bugs in the free module routines::

@@ -1,6 +1,8 @@
+# cython: old_style_globals=True
 r"""
 Constructors that automatically inject variables into the global module scope
 """
+from __future__ import print_function
 
 import sage.rings.all
 import sage.misc.superseded
@@ -77,18 +79,18 @@ def inject_on(verbose=True):
     import sage.ext.interactive_constructors_c
     G = globals()
     if verbose:
-        print "Redefining:",
-    for X in sorted(sage.ext.interactive_constructors_c.__dict__.keys()):
+        print("Redefining:", end=" ")
+    for X in sorted(sage.ext.interactive_constructors_c.__dict__):
         if not 'inject' in X and X[0] != '_' and X[:4] != 'sage':
             if verbose:
-                print X,
+                print(X, end=" ")
             try:
                 _original_constructors[X] =  G[X] #sage.ext.interactive_constructors_c.__dict__[X]
             except KeyError:
                 pass
             G[X] = sage.ext.interactive_constructors_c.__dict__[X]
     if verbose:
-        print ""
+        print("")
 
 def inject_off():
     global _original_constructors
@@ -252,4 +254,3 @@ def PolynomialRing(*args, **kwds):
 
 
 ###################### need to add a bunch more ############################
-

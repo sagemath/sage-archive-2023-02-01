@@ -671,6 +671,11 @@ ex power::eval(int level) const
 						|| (num_sub_exponent == *_num_1_p && num_exponent.is_positive())) {
 					return power(sub_basis,num_sub_exponent.mul(num_exponent));
 				}
+                                numeric pexp = num_sub_exponent * num_exponent;
+                                if (pexp.is_integer()
+                                    and num_sub_exponent.is_even()
+                                    and sub_basis.info(info_flags::real))
+                                        return power(abs(sub_basis), pexp);
 			}
 		}
 	

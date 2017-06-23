@@ -598,7 +598,7 @@ class ToricVariety_field(AmbientSpace):
 
         boolean
 
-        True if and only if ``right`` is of the same type as ``self``,
+        ``True`` if and only if ``right`` is of the same type as ``self``,
         their fans are the same, names of variables are the same and
         stored in the same order, and base fields are the same.
 
@@ -636,7 +636,7 @@ class ToricVariety_field(AmbientSpace):
 
         boolean
 
-        True if and only if ``other`` is of the same type as ``self``,
+        ``True`` if and only if ``other`` is of the same type as ``self``,
         their fans are the same, names of variables are the same and
         stored in the same order, and base fields are the same.
 

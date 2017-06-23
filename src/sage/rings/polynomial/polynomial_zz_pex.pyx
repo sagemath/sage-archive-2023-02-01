@@ -194,7 +194,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i)))
                 for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         EXAMPLES::
 

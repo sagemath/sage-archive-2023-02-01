@@ -774,8 +774,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             ....:         assert (a <= b) == (CC(a) <= CC(b))
 
         The following is tested because of the implementation of
-        func:`Q_to_quadratic_field_element` which was the cause of some problems
-        with :trac:`13213`::
+        :func:`Q_to_quadratic_field_element` which was the cause of
+        some problems with :trac:`13213`::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: 1/2 + sqrt2 > 0
@@ -1193,8 +1193,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
-
-    cpdef _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
@@ -1209,8 +1208,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
-
-    cpdef _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
@@ -2188,7 +2186,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()
 
     # We must override these since the basering is now ZZ not QQ.
-    cpdef _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-27)
@@ -2206,8 +2204,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         res._reduce_c_()
         return res
 
-
-    cpdef _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)

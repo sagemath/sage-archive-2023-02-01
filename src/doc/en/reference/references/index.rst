@@ -697,6 +697,10 @@ REFERENCES:
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
 
+.. [FRT1990] Faddeev, Reshetikhin and Takhtajan.
+             *Quantization of Lie Groups and Lie Algebras*.
+             Leningrad Math. J. vol. **1** (1990), no. 1.
+
 .. [FST2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
             2012 (8): 1768-1804.
@@ -1050,6 +1054,10 @@ REFERENCES:
 
 .. [Kr1971] \D. Kraines, "On excess in the Milnor basis," Bull. London
             Math. Soc. 3 (1971), 363-365.
+
+.. [Kr2016] Stefan Kranich, An epsilon-delta bound for plane algebraic curves
+            and its use for certified homotopy continuation of systems of plane
+            algebraic curves, arXiv:1505.03432
 
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
@@ -1775,5 +1783,11 @@ REFERENCES:
 
 .. [Zor] Anton Zorich, "Generalized Permutation software"
          (http://perso.univ-rennes1.fr/anton.zorich)
+
+.. [ZZ2005] Hechun Zhang and R. B. Zhang.
+            *Dual canonical bases for the quantum special linear group
+            and invariant subalgebras*.
+            Lett. Math. Phys. **73** (2005), pp. 165-181.
+            :arxiv:`math/0509651`.
 
 .. include:: ../footer.txt

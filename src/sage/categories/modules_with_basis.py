@@ -195,7 +195,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         """
         return self.base_ring().is_field()
 
-    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis', at_startup=True)
     Filtered = LazyImport('sage.categories.filtered_modules_with_basis', 'FilteredModulesWithBasis')
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
     Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')

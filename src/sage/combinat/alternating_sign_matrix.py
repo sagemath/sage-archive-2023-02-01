@@ -447,7 +447,7 @@ class AlternatingSignMatrix(Element):
 
         .. SEEALSO::
 
-            :class:FullyPackedLoop
+            :class:`FullyPackedLoop`
 
         EXAMPLES::
 

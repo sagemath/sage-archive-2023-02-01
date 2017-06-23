@@ -237,6 +237,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: g = 2*G.monomial(3) +     G.monomial(4)
         sage: tensor([f, g])
         2*x[1] # y[3] + x[1] # y[4] + 4*x[2] # y[3] + 2*x[2] # y[4]
+
+    TESTS::
+
+        sage: XQ = SchubertPolynomialRing(QQ)
+        sage: XZ = SchubertPolynomialRing(ZZ)
+        sage: XQ == XZ
+        False
+        sage: XQ == XQ
+        True
     """
 
     @staticmethod
@@ -840,7 +849,14 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: A._order_cmp('a', 'y')
             1
         """
-        return cmp(self._rank_basis(x), self._rank_basis(y))
+        ix = self._rank_basis(x)
+        iy = self._rank_basis(y)
+        if ix < iy:
+            return -1
+        elif ix > iy:
+            return 1
+        else:
+            return 0
 
     def get_order_key(self):
         """
@@ -900,24 +916,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         cc = self.get_order()
         return self._from_dict({cc[index]: coeff for (index,coeff) in six.iteritems(vector)})
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: XQ = SchubertPolynomialRing(QQ)
-            sage: XZ = SchubertPolynomialRing(ZZ)
-            sage: XQ == XZ #indirect doctest
-            False
-            sage: XQ == XQ
-            True
-        """
-        if not isinstance(other, self.__class__):
-            return -1
-        c = cmp(self.base_ring(), other.base_ring())
-        if c:
-            return c
-        return 0
 
     def sum(self, iter_of_elements):
         """

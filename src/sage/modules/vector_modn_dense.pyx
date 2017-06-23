@@ -308,7 +308,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             z._entries[i] = (self._entries[i] * r._entries[i]) % self._p
         return z
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         cdef Vector_modn_dense z
 
         cdef mod_int a = ivalue(left)

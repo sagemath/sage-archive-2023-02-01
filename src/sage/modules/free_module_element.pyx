@@ -4158,7 +4158,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._sub_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -4172,7 +4172,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [left * x for x in self._entries]
         return self._new_c(v)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -4608,7 +4608,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = -a
         return left._new_c(v)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -4624,7 +4624,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 

@@ -398,7 +398,7 @@ class Semigroups(CategoryWithAxiom):
 
             In the following example `M` is a group; however its unit
             does not coincide with that of `R`, so `M` is only a
-            subsemigroup, and we need to specify its unit explictly::
+            subsemigroup, and we need to specify its unit explicitly::
 
                 sage: M = R.subsemigroup([R(5)],
                 ....:     category=Semigroups().Finite().Subobjects() & Groups()); M

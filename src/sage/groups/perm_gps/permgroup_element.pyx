@@ -1324,12 +1324,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
           trivial cycles should be counted (default: ``True``)
 
         - ``as_list`` -- ``True`` or ``False`` depending on whether the cycle
-          type should be returned as a ``list`` or as a class:`Partition` 
+          type should be returned as a ``list`` or as a :class:`Partition` 
           (default: ``False``)
 
         OUTPUT:
 
-        A class:`Partition`, or `list` if ``is_list`` is ``True``, giving the cycle type of ``g`` 
+        A :class:`Partition`, or list if ``is_list`` is ``True``,
+        giving the cycle type of ``g``
 
         If speed is a concern then ``as_list=True`` should be used.
 

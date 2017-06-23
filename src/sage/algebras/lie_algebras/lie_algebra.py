@@ -983,7 +983,7 @@ class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
             # This guarantees that the generators have a specified ordering
             d = {self._indices[i]: self.element_class(self, v)
                  for i,v in enumerate(gens)}
-            gens = Family(list(self._indices), lambda i: d[i])
+            gens = Family(self._indices, lambda i: d[i])
         elif gens is not None: # It is a family
             gens = Family(self._indices,
                           lambda i: self.element_class(self, gens[i]),
@@ -1102,7 +1102,7 @@ class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
             sage: L.monomial(x.leading_support())
             x
         """
-        if i not in self.basis().keys():
+        if i not in self._assoc.basis().keys():
             #return self(self._assoc.monomial(i))
             raise ValueError("not an index")
         return self.element_class(self, self._assoc.monomial(i))
@@ -1118,7 +1118,7 @@ class LieAlgebraFromAssociative(LieAlgebraWithGenerators):
             sage: L.term(x.leading_support(), 4)
             4*x
         """
-        if i not in self.basis().keys():
+        if i not in self._assoc.basis().keys():
             #return self(self._assoc.term(i, c))
             raise ValueError("not an index")
         return self.element_class(self, self._assoc.term(i, c))

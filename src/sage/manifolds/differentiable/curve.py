@@ -867,7 +867,7 @@ class DifferentiableCurve(DiffMap):
                   aspect_ratio='automatic', color='red', style='-',
                   label_axes=True):
         r"""
-        Plots a 2D or 3D curve in a Cartesian graph with axes labeled by
+        Plot a 2D or 3D curve in a Cartesian graph with axes labeled by
         the ambient coordinates; it is invoked by the methods
         :meth:`plot` of
         :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`,
@@ -876,6 +876,29 @@ class DifferentiableCurve(DiffMap):
         :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`,
         and
         :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedGeodesic`).
+
+        TESTS::
+
+            sage: M = Manifold(2, 'R^2')
+            sage: X.<x,y> = M.chart()
+            sage: R.<t> = RealLine()
+            sage: c = M.curve([cos(t), sin(t)], (t, 0, 2*pi), name='c')
+            sage: graph = c._graphics([[1,2], [3,4]], [x,y])
+            sage: graph._objects[0].xdata == [1,3]
+            True
+            sage: graph._objects[0].ydata == [2,4]
+            True
+            sage: graph._objects[0]._options['thickness'] == 1
+            True
+            sage: graph._extra_kwds['aspect_ratio'] == 'automatic'
+            True
+            sage: graph._objects[0]._options['rgbcolor'] == 'red'
+            True
+            sage: graph._objects[0]._options['linestyle'] == '-'
+            True
+            sage: l = [r'$'+latex(x)+r'$', r'$'+latex(y)+r'$']
+            sage: graph._extra_kwds['axes_labels'] == l
+            True
 
         """
 

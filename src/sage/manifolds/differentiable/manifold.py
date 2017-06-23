@@ -2571,11 +2571,10 @@ class DifferentiableManifold(TopologicalManifold):
         return curve_set(coord_expression, name=name, latex_name=latex_name)
 
     def integrated_curve(self, equations_rhs, velocities, curve_param,
-                         initial_tangent_vector, chart=None, parameters=None,
-                         name=None, latex_name=None, is_isomorphism=False,
-                         is_identity=False):
+                         initial_tangent_vector, chart=None, name=None,
+                         latex_name=None, verbose=True):
         r"""
-        Constructs a numerical curve defined by a system of second order
+        Construct a numerical curve defined by a system of second order
         differential equations in the coordinate functions.
 
         .. SEEALSO::
@@ -2622,19 +2621,19 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLE:
 
-        Trajectory of a particle of unit mass and unit charge in an
-        unit, axial, uniform, stationnary magnetic field::
+        Trajectory of a particle of unit mass and unit charge in a
+        unit, uniform, stationnary magnetic field::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x1,x2,x3> = M.chart()
-            sage: var('t')
-            t
+            sage: t = var('t')
             sage: D = X.symbolic_velocities()
             sage: eqns = [D[1], -D[0], SR(0)]
             sage: p = M.point((0,0,0), name='p')
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
-            sage: c = M.integrated_curve(eqns, D, (t, 0, 6), v,name='c')
+            sage: c = M.integrated_curve(eqns, D, (t, 0, 6), v,
+            ....:                               name='c', verbose=False)
             sage: c
             Integrated curve c in the 3-dimensional differentiable
              manifold M
@@ -2652,30 +2651,31 @@ class DifferentiableManifold(TopologicalManifold):
              components [1, 0, 1] w.r.t. Chart (M, (x1, x2, x3))
             <BLANKLINE>
             d(x1)/dt = Dx1
-            d(Dx1)/dt = Dx2
             d(x2)/dt = Dx2
-            d(Dx2)/dt = -Dx1
             d(x3)/dt = Dx3
+            d(Dx1)/dt = Dx2
+            d(Dx2)/dt = -Dx1
             d(Dx3)/dt = 0
             <BLANKLINE>
             sage: sol = c.solve(verbose=False)
             sage: interp = c.interpolate(verbose=False)
             sage: c(1.3)
             Evaluating point coordinates from the interpolation
-             associated with the key 'cubic spline-interp-rk4'
+             associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            [0.9635578097813995, -0.7325001553656034, 1.3]
+            [0.9635581155730744, -0.7325010457963622, 1.3]
             sage: tgt_vec = c.tangent_vector_eval_at(3.7)
             Evaluating tangent vector components from the interpolation
-             associated with the key 'cubic spline-interp-rk4'
+             associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
             sage: tgt_vec[:]
-            [-0.8481002291911669, 0.5298327234653155, 1.0000000000000036]
+            [-0.8481008455360024, 0.5298346120470748, 1.0000000000000007]
 
         """
 
         from sage.manifolds.differentiable.real_line import RealLine
-        from sage.manifolds.differentiable.integrated_curve import IntegratedCurve
+        from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
+
         if len(curve_param) != 3:
             raise ValueError("the argument 'curve_param' must be of the form " +
                              "(t, t_min, t_max)")
@@ -2684,18 +2684,17 @@ class DifferentiableManifold(TopologicalManifold):
         t_max = curve_param[2]
         real_field = RealLine(names=(repr(t),))
         interval = real_field.open_interval(t_min, t_max)
-        curve_set = Hom(interval, self)
-        return IntegratedCurve(curve_set, equations_rhs, velocities, t,
-                    initial_tangent_vector, chart=chart, parameters=parameters,
-                    name=name, latex_name=latex_name, is_isomorphism=is_isomorphism,
-                    is_identity=is_identity) #use any element_constructor ?
+        integrated_curve_set = IntegratedCurveSet(interval, self) # not
+        # possible to use Hom(interval, self)
+        return integrated_curve_set(equations_rhs, velocities, t,
+                initial_tangent_vector, chart=chart, name=name,
+                latex_name=latex_name, verbose=verbose)
 
-    def integrated_autoparallel_curve(self, affine_connection, curve_param,
-                         initial_tangent_vector, chart=None, parameters=None,
-                         name=None, latex_name=None, is_isomorphism=False,
-                         is_identity=False):
+    def integrated_autoparallel_curve(self, affine_connection,
+                        curve_param, initial_tangent_vector, chart=None,
+                        name=None, latex_name=None, verbose=True):
         r"""
-        Constructs a numerical autoparallel curve on the manifold with
+        Construct a numerical autoparallel curve on the manifold with
         respect to a given affine connection.
 
         .. SEEALSO::
@@ -2713,7 +2712,9 @@ class DifferentiableManifold(TopologicalManifold):
           where
 
           * ``t`` is the symbolic expression to be used as the parameter
-            of the curve ;
+            of the curve (the equations defining an instance of
+            IntegratedAutoparallelCurve are such that ``t`` will
+            actually be an affine parameter of the curve);
           * ``t_min`` is its minimal (finite) value;
           * ``t_max`` its maximal (finite) value;
 
@@ -2773,7 +2774,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v = Tp((1,1), basis=epolar_ON.at(p))
             sage: t = var('t')
             sage: c = S2.integrated_autoparallel_curve(nab, (t, 0, 6),
-            ....:                              v, chart=polar, name='c')
+            ....:               v, chart=polar, name='c', verbose=False)
             sage: sys = c.system()
             Autoparallel curve c in the 2-dimensional differentiable
              manifold S^2 equipped with Affine connection nab on the
@@ -2790,28 +2791,29 @@ class DifferentiableManifold(TopologicalManifold):
              Chart (S^2, (th, ph))
             <BLANKLINE>
             d(th)/dt = Dth
-            d(Dth)/dt = 0
             d(ph)/dt = Dph
+            d(Dth)/dt = 0
             d(Dph)/dt = -Dph*Dth*cos(th)/sin(th)
             <BLANKLINE>
             sage: sol = c.solve(verbose=False)
             sage: interp = c.interpolate(verbose=False)
             sage: c(1.3)
             Evaluating point coordinates from the interpolation
-             associated with the key 'cubic spline-interp-rk4'
+             associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            [2.085398163397449, 1.420314580385403]
+            [2.085398163397449, 1.4203172015958863]
             sage: tgt_vec = c.tangent_vector_eval_at(3.7)
             Evaluating tangent vector components from the interpolation
-             associated with the key 'cubic spline-interp-rk4'
+             associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
             sage: tgt_vec[:]
-            [0.9999999999999986, -0.9736581694086809]
+            [0.9999999999999732, -1.016513736236512]
 
         """
 
         from sage.manifolds.differentiable.real_line import RealLine
-        from sage.manifolds.differentiable.integrated_curve import IntegratedAutoparallelCurve
+        from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
+
         if len(curve_param) != 3:
             raise ValueError("the argument 'curve_param' must be of the form " +
                              "(t, t_min, t_max)")
@@ -2820,18 +2822,17 @@ class DifferentiableManifold(TopologicalManifold):
         t_max = curve_param[2]
         real_field = RealLine(names=(repr(t),))
         interval = real_field.open_interval(t_min, t_max)
-        curve_set = Hom(interval, self)
-        return IntegratedAutoparallelCurve(curve_set, affine_connection, t,
-                    initial_tangent_vector, chart=chart, parameters=parameters,
-                    name=name, latex_name=latex_name, is_isomorphism=is_isomorphism,
-                    is_identity=is_identity)
-                    #use any element_constructor ?
+        autoparallel_curve_set=IntegratedAutoparallelCurveSet(interval,self)
+        # not possible to use Hom(interval, self)
+        return autoparallel_curve_set(affine_connection, t,
+                initial_tangent_vector, chart=chart,
+                name=name, latex_name=latex_name, verbose=verbose)
 
-    def integrated_geodesic(self, metric, curve_param, initial_tangent_vector,
-                            chart=None, parameters=None, name=None, latex_name=None,
-                            is_isomorphism=False, is_identity=False):
+    def integrated_geodesic(self, metric, curve_param,
+                            initial_tangent_vector, chart=None,
+                            name=None, latex_name=None, verbose=True):
         r"""
-        Constructs a numerical geodesic on the manifold with respect to
+        Construct a numerical geodesic on the manifold with respect to
         a given metric.
 
         .. SEEALSO::
@@ -2848,7 +2849,9 @@ class DifferentiableManifold(TopologicalManifold):
           where
 
           * ``t`` is the symbolic expression to be used as the parameter
-            of the curve ;
+            of the curve (the equations defining an instance of
+            IntegratedGeodesic are such that ``t`` will actually be an
+            affine parameter of the curve);
           * ``t_min`` is its minimal (finite) value;
           * ``t_max`` its maximal (finite) value;
 
@@ -2896,7 +2899,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v = Tp((1, 1), basis=epolar.at(p))
             sage: t = var('t')
             sage: c = S2.integrated_geodesic(g, (t, 0, 6), v,
-            ....:                                 chart=polar, name='c')
+            ....:                  chart=polar, name='c', verbose=False)
             sage: sys = c.system()
             Geodesic c in the 2-dimensional differentiable manifold S^2
              equipped with Riemannian metric g on the 2-dimensional
@@ -2912,27 +2915,28 @@ class DifferentiableManifold(TopologicalManifold):
             components [1, 1] w.r.t. Chart (S^2, (th, ph))
             <BLANKLINE>
             d(th)/dt = Dth
-            d(Dth)/dt = Dph^2*cos(th)*sin(th)
             d(ph)/dt = Dph
+            d(Dth)/dt = Dph^2*cos(th)*sin(th)
             d(Dph)/dt = -2*Dph*Dth*cos(th)/sin(th)
             <BLANKLINE>
             sage: sol = c.solve(verbose=False)
             sage: interp = c.interpolate(verbose=False)
             sage: c(1.3)
             Evaluating point coordinates from the interpolation
-             associated with the key 'cubic spline-interp-rk4'
+             associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            [2.204750869496952, 0.7986664139663504]
+            [2.2047444794514663, 0.7986609561213334]
             sage: tgt_vec = c.tangent_vector_eval_at(3.7)
             Evaluating tangent vector components from the interpolation
-             associated with the key 'cubic spline-interp-rk4'
+             associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
             sage: tgt_vec[:]
-            [-1.0907562667574524, 0.6205613159665633]
+            [-1.090742147346732, 0.620568327518154]
 
         """
         from sage.manifolds.differentiable.real_line import RealLine
-        from sage.manifolds.differentiable.integrated_curve import IntegratedGeodesic
+        from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
+
         if len(curve_param) != 3:
             raise ValueError("the argument 'curve_param' must be of the form " +
                              "(t, t_min, t_max)")
@@ -2941,11 +2945,10 @@ class DifferentiableManifold(TopologicalManifold):
         t_max = curve_param[2]
         real_field = RealLine(names=(repr(t),))
         interval = real_field.open_interval(t_min, t_max)
-        curve_set = Hom(interval, self)
-        return IntegratedGeodesic(curve_set, metric, t, initial_tangent_vector,
-                chart=chart, parameters=parameters, name=name, latex_name=latex_name,
-                is_isomorphism=is_isomorphism, is_identity=is_identity)
-                #use any element_constructor ?
+        integrated_geodesic_set = IntegratedGeodesicSet(interval, self)
+        return integrated_geodesic_set(metric, t, initial_tangent_vector,
+                            chart=chart,name=name, latex_name=latex_name,
+                            verbose=verbose)
 
     def affine_connection(self, name, latex_name=None):
         r"""

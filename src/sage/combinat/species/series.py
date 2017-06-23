@@ -90,8 +90,10 @@ class LazyPowerSeriesRing(Algebra):
         """
         return "Lazy Power Series Ring over %s"%self.base_ring()
 
-    def __cmp__(self, x):
-        """
+    def __eq__(self, x):
+        """ 
+        Check whether ``self`` is equal to ``x``.
+
         EXAMPLES::
 
             sage: LQ = LazyPowerSeriesRing(QQ)
@@ -101,9 +103,24 @@ class LazyPowerSeriesRing(Algebra):
             sage: LZ == LQ
             False
         """
-        if self.__class__ is not x.__class__:
-            return cmp(self.__class__, x.__class__)
-        return cmp(self.base_ring(), x.base_ring())
+        if not isinstance(x, LazyPowerSeriesRing):
+            return False
+        return self.base_ring() == x.base_ring()
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: LQ = LazyPowerSeriesRing(QQ)
+            sage: LZ = LazyPowerSeriesRing(ZZ)
+            sage: LQ != LQ
+            False
+            sage: LZ != LQ
+            True
+        """
+        return not (self == other)
 
     def _coerce_impl(self, x):
         """

@@ -466,7 +466,7 @@ from __future__ import print_function, absolute_import
 
 from six.moves import range
 from six.moves.builtins import sorted
-from six import class_types
+from six import class_types, string_types
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -582,7 +582,7 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, CartanType_abstract):
             return t
 
-        if isinstance(t, str):
+        if isinstance(t, string_types):
             if "x" in t:
                 from . import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
@@ -596,7 +596,7 @@ class CartanTypeFactory(SageObject):
         t = list(t)
 
         from sage.rings.semirings.non_negative_integer_semiring import NN
-        if isinstance(t[0], str) and t[1] in [Infinity, ZZ, NN]:
+        if isinstance(t[0], string_types) and t[1] in [Infinity, ZZ, NN]:
             letter, n = t[0], t[1]
             if letter == 'A':
                 from . import type_A_infinity
@@ -605,7 +605,7 @@ class CartanTypeFactory(SageObject):
                 else:
                     return type_A_infinity.CartanType(ZZ)
 
-        if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
+        if isinstance(t[0], string_types) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
             if len(t) == 2:
                 if letter == "A":
@@ -917,10 +917,10 @@ class CartanTypeFactory(SageObject):
                       alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac")),
         dual_str=dict(default="*",
                       description='The string used for dual Cartan types when printing',
-                      checker=lambda char: isinstance(char,str)),
+                      checker=lambda char: isinstance(char, string_types)),
         dual_latex=dict(default="\\vee",
                         description='The latex used for dual CartanTypes when latexing',
-                        checker=lambda char: isinstance(char,str)),
+                        checker=lambda char: isinstance(char, string_types)),
         mark_special_node=dict(default="none",
                                description="Make the special nodes",
                                values=dict(none="no markup", latex="only in latex",
@@ -928,16 +928,16 @@ class CartanTypeFactory(SageObject):
                                case_sensitive=False),
         special_node_str=dict(default="@",
                               description="The string used to indicate which node is special when printing",
-                              checker=lambda char: isinstance(char,str)),
+                              checker=lambda char: isinstance(char, string_types)),
         marked_node_str=dict(default="X",
                              description="The string used to indicate a marked node when printing",
-                             checker=lambda char: isinstance(char, str)),
+                             checker=lambda char: isinstance(char, string_types)),
         latex_relabel=dict(default=True,
                            description="Indicate in the latex output if a Cartan type has been relabelled",
-                           checker=lambda x: isinstance(x,bool)),
+                           checker=lambda x: isinstance(x, bool)),
         latex_marked=dict(default=True,
                           description="Indicate in the latex output if a Cartan type has been marked",
-                          checker=lambda x: isinstance(x,bool))
+                          checker=lambda x: isinstance(x, bool))
     )
 
 

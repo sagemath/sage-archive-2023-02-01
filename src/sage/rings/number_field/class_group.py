@@ -579,11 +579,11 @@ class ClassGroup(AbelianGroupWithValues_class):
         if k == self.ngens():
             yield i0
             return
-        I = i0
-        for _ in range(self.invariants()[k]):
-            for J in self._iter_inner(I, k + 1):
+        gk = self.gen(k)
+        for _ in range(self._gens_orders[k]):
+            for J in self._iter_inner(i0, k + 1):
                 yield J
-            I *= self.gen(k)
+            i0 = i0 * gk
         return
 
     def _repr_(self):

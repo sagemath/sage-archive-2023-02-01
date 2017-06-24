@@ -1210,10 +1210,10 @@ class GrowthDiagramBinWord(GrowthDiagram):
         elif x != z == y:
             return (x, 0)
         else:
-            if x != y or (len(z) > 0 and z[-1] == 0):
-                return (x[:-1], 0)
-            elif x == y and len(z) > 0 and z[-1] == 1:
+            if x == y and len(z) > 0 and z[-1] == 1:
                 return (x, 1)
+            else:
+                return (x[:-1], 0)
 
 class GrowthDiagramSylvester(GrowthDiagram):
     r"""
@@ -1694,7 +1694,6 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                 return (z[1:], 1)
             elif z[0] == 2:
                 return (z[1:], 0)
-
 
 class GrowthDiagramOnPartitions(GrowthDiagram):
     r"""

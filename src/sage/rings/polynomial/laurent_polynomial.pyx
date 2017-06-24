@@ -1399,7 +1399,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             raise ArithmeticError("coefficients of integral cannot be coerced into the base ring")
         return LaurentPolynomial_univariate(self._parent, u, n+1)
 
-    def __call__(self, *x):
+    def __call__(self, *x, **kwds):
         """
         Compute value of this Laurent polynomial at ``x``.
 
@@ -1413,7 +1413,30 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             2
             sage: f(1/3)
             82/9
+            sage: f(t=-1)
+            2
+            sage: f(x=-1)
+            t^-2 + t^2
+            sage: f()
+            t^-2 + t^2
+            sage: f(1,2)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of arguments does not match number of
+             variables in parent
         """
+        if kwds:
+            f = self.subs(**kwds)
+            if x: # If there are non-keyword arguments
+                return f(*x)
+            else:
+                return f
+
+        if not x:
+            return self
+        if len(x) != 1:
+            raise TypeError("number of arguments does not match number"
+                            " of variables in parent")
         if isinstance(x[0], tuple):
             x = x[0]
         return self.__u(x) * (x[0]**self.__n)
@@ -2545,6 +2568,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
     def __call__(self, *x, **kwds):
         """
+        Compute value of ``self`` at ``x``.
 
         EXAMPLES::
 
@@ -2564,19 +2588,17 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f(2)
             Traceback (most recent call last):
             ...
-            TypeError: number of arguments does not match the number of generators in parent.
+            TypeError: number of arguments does not match the number of generators in parent
             sage: f(2,0)
             Traceback (most recent call last):
             ...
-            TypeError: number of arguments does not match the number of generators in parent.
+            TypeError: number of arguments does not match the number of generators in parent
             sage: f( (1,1,1) )
             6
         """
-        n = self.parent().ngens()
-
-        if len(kwds) > 0:
+        if kwds:
             f = self.subs(**kwds)
-            if len(x) > 0:
+            if x: # More than 1 non-keyword argument
                 return f(*x)
             else:
                 return f
@@ -2587,17 +2609,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x = x[0]
             l = len(x)
 
-        if l != n:
-            raise TypeError("number of arguments does not match the number of generators in parent.")
+        if l != self.parent().ngens():
+            raise TypeError("number of arguments does not match the number"
+                            " of generators in parent")
 
         #Check to make sure that we aren't dividing by zero
-        for m in range(n):
+        cdef int m
+        for m in range(l):
             if x[m] == 0:
                 if self.has_inverse_of(m):
                     raise ZeroDivisionError
 
         ans = self._poly(*x)
-        if ans != 0:
+        if ans:
             for m in self._mon.nonzero_positions():
                 ans *= x[m]**self._mon[m]
 

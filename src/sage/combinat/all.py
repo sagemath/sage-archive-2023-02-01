@@ -60,8 +60,7 @@ from .composition_signed import SignedCompositions
 #Partitions
 from .partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
-     PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions,\
-     StrictPartitions
+     PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
 
 from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
 from .skew_partition import SkewPartition, SkewPartitions

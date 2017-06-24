@@ -1323,7 +1323,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return []
 
         # The dense algorithm is to compute the roots from the factorization.
-        # It is faster to let the factorization take care of the content
         if algorithm == "dense":
             #NOTE: the content sometimes return an ideal sometimes a number...
             if parent(p).is_sparse():

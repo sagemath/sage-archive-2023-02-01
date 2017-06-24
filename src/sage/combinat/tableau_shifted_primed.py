@@ -1,7 +1,7 @@
 from six import add_metaclass
 import numpy as np
 
-from sage.combinat.partition import Partition, OrderedPartitions
+from sage.combinat.partition import Partition, Partitions, OrderedPartitions
 from sage.combinat.integer_vector import IntegerVectors
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -38,11 +38,14 @@ class ShiftedPrimedTableau(ClonableArray):
         sage: t = ShiftedPrimedTableau([[1,"2p",2.5,3],[0,2,2.5]])
         sage: t[1]
         (2.0, 2.5)
+
+    TEST::
+
         sage: t = ShiftedPrimedTableau([[1,2,2.5,3],[0,2,2.5]])
         Traceback (most recent call last):
         ...
-        ValueError: [(1.0, 2.0, 2.5, 3.0), (2.0, 2.5)] is not an element of Shifted Primed Tableaux
-    """
+        ValueError: [[1, 2, 2.50000000000000, 3], [0, 2, 2.50000000000000]] is not an element of Shifted Primed Tableaux
+        """
     
     @staticmethod
     def __classcall_private__(cls, T):
@@ -80,11 +83,11 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s==t
             True
             sage: t.parent()
-            Shifted primed tableaux of shape [4, 2]
+            Shifted Primed Tableaux of shape [4, 2]
             sage: s.parent()
-            Shifted Primed Tableaux of weight (1, 2, 3) and shape [4, 2]
+            Shifted Primed Tableaux
             sage: r = ShiftedPrimedTableaux([4, 2])(s); r.parent()
-            Shifted primed tableaux of shape [4, 2]
+            Shifted Primed Tableaux of shape [4, 2]
             sage: s is t # identical shifted tableaux are distinct objects
             False
 
@@ -314,9 +317,13 @@ class ShiftedPrimedTableau(ClonableArray):
         
             sage: Tab = ShiftedPrimedTableau([(1,1,1.5,2.5),(2,2)])
             sage: Tab.max_element()
-            3.0
+            3
         """
-        return round(max(flatten(self)))
+        if self==[]:
+            return 0
+        else:
+            flat = [item for sublist in self for item in sublist]
+            return int(round(max(flat)))
 
     
     def shape(self):
@@ -386,7 +393,7 @@ class ShiftedPrimedTableau(ClonableArray):
         if flat == []:
             max_ind = 0
         else:
-            max_ind = max(flat)
+            max_ind = int(max(flat))
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         return tuple(weight)
 
@@ -811,7 +818,7 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
             sage: ShiftedPrimedTableaux([[1]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1]] is not a partition
+            ValueError: shape [[1]] is not a partition
 
             sage: ShiftedPrimedTableaux(weight=(2,2,2), max_element=2)
             Traceback (most recent call last):
@@ -962,7 +969,7 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
         TESTS::
         
             sage: ShiftedPrimedTableaux()
-            ShiftedPrimedTableaux
+            Shifted Primed Tableaux
         """
         return "Shifted Primed Tableaux"
 
@@ -1038,7 +1045,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         TESTS::
 
             sage: ShiftedPrimedTableaux([3,2,1]) 
-            Shifted Primed tableaux of shape [3, 2, 1]
+            Shifted Primed Tableaux of shape [3, 2, 1]
         """
         if self._max_elt is None:
             return "Shifted Primed Tableaux of shape {}".format(self._shape)
@@ -1088,7 +1095,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux([3])([1,1])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 1] is not an element of Shifted Primed tableaux of shape [3]
+            ValueError: [1, 1] is not an element of Shifted Primed Tableaux of shape [3]
         """
 
         try:
@@ -1329,7 +1336,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux([3],(2,1))([1,1])
             Traceback (most recent call last):
             ...
-            ValueError: [1, 1] is not an element of Shifted Primed tableaux of weight (2, 1) and shape [3]
+            ValueError: [1, 1] is not an element of Shifted Primed Tableaux of weight (2, 1) and shape [3]
         """
         try:
             Tab = self.element_class(self, T)

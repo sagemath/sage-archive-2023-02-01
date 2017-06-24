@@ -27,7 +27,8 @@ TESTS::
 from __future__ import absolute_import
 
 from cysignals.memory cimport check_calloc, sig_free
-
+from collections import Iterator, Sequence
+        
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_modn_sparse cimport *
@@ -102,7 +103,6 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         - ``coerce`` -- ignored
         """
-        from collections import Iterator, Sequence
         cdef Py_ssize_t i, j, k
         cdef Integer z
         cdef PyObject** X

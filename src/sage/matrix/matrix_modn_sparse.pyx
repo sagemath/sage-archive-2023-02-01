@@ -662,10 +662,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            if isinstance(rows, (Iterator, Sequence)):
-                rows = list(rows)
-            else:
-                raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -704,10 +701,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            if isinstance(cols, (Iterator, Sequence)):
-                cols = list(cols)
-            else:
-                raise TypeError("cols must be a list of integers")
+            cols = list(cols)
 
         A = self.new_matrix(ncols = len(cols))
 

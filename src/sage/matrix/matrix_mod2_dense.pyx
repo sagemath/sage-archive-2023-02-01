@@ -104,6 +104,7 @@ from __future__ import absolute_import
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
+from collections import Iterator, Sequence
 cimport sage.matrix.matrix_dense as matrix_dense
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector,
@@ -254,7 +255,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         R = self.base_ring()
 
         # scalar ?
-        from collections import Iterator, Sequence
         if not isinstance(entries, (Iterator, Sequence)):
             if self._nrows and self._ncols and R(entries) == 1:
                 mzd_set_ui(self._entries, 1)

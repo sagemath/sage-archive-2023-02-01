@@ -29,6 +29,8 @@ from __future__ import absolute_import
 from cysignals.signals cimport sig_on, sig_off
 from cysignals.memory cimport sig_malloc, sig_free
 
+from collections import Iterator, Sequence
+
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_rational_sparse cimport *
@@ -122,8 +124,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         cdef Rational z
         cdef PyObject** X
 
-        from collections import Iterator, Sequence
-        if entries is None: return
+        if entries is None:
+            return
         # fill in entries in the dict case
         if isinstance(entries, dict):
             R = self.base_ring()

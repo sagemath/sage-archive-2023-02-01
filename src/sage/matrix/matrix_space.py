@@ -40,6 +40,8 @@ import sys
 import types
 import operator
 
+from collections import Iterator, Sequence
+
 # Sage matrix imports
 from . import matrix
 from . import matrix_generic_dense
@@ -1521,9 +1523,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
-        from collections import Iterator, Sequence
-        if (isinstance(x, (Iterator, Sequence)) and
-            not isinstance(x, (list, tuple))):
+        if (not isinstance(x, (list, tuple)) and
+            isinstance(x, (Iterator, Sequence))):
                 x = list(x)
         if not sparse and isinstance(x, dict):
             x = dict_to_list(x, m, n)

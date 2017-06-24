@@ -1699,10 +1699,7 @@ cdef class Matrix(Matrix0):
             [0 7]
         """
         if not isinstance(columns, (list, tuple)):
-            try:
-                columns = list(columns)
-            except TypeError:
-                raise TypeError("columns must be a list of integers")
+            columns = list(columns)
 
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
@@ -1714,7 +1711,7 @@ cdef class Matrix(Matrix0):
             if columns[i] < 0 or columns[i] >= self._ncols:
                 raise IndexError("column %s out of range" % columns[i])
             for r from 0 <= r < self._nrows:
-                A.set_unsafe(r,k, self.get_unsafe(r,columns[i]))
+                A.set_unsafe(r, k, self.get_unsafe(r,columns[i]))
             k = k + 1
         return A
 
@@ -1775,10 +1772,7 @@ cdef class Matrix(Matrix0):
         - Wai Yan Pong (2012-03-05)
         """
         if not isinstance(dcols, (list, tuple)):
-            try:
-                dcols = list(dcols)
-            except TypeError:
-                raise TypeError("the argument must be a list or a tuple, not {l}".format(l=dcols))
+            dcols = list(dcols)
 
         cdef list cols, diff_cols
 
@@ -1806,10 +1800,7 @@ cdef class Matrix(Matrix0):
             [3 4 5]
         """
         if not isinstance(rows, (list, tuple)):
-            try:
-                rows = list(rows)
-            except TypeError:
-                raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
@@ -1881,10 +1872,7 @@ cdef class Matrix(Matrix0):
         - Wai Yan Pong (2012-03-05)
         """
         if not isinstance(drows, (list, tuple)):
-            try:
-                drows = list(drows)
-            except TypeError:
-                raise TypeError("the argument must be a list or a tuple, not {l}".format(l=drows))
+            drows = list(drows)
 
         cdef list rows, diff_rows
 
@@ -1937,16 +1925,10 @@ cdef class Matrix(Matrix0):
         """
 
         if not isinstance(rows, (list, tuple)):
-            try:
-                rows = list(rows)
-            except TypeError:
-                raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         if not isinstance(columns, (list, tuple)):
-            try:
-                columns = list(columns)
-            except TypeError:
-                raise TypeError("columns must be a list of integers")
+            columns = list(columns)
 
         cdef Matrix A
         cdef Py_ssize_t nrows, ncols,k,r,i,j

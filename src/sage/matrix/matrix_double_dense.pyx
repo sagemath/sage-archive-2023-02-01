@@ -47,7 +47,8 @@ TESTS::
 from __future__ import absolute_import
 
 import math
-
+from collections import Iterator, Sequence
+        
 import sage.rings.real_double
 import sage.rings.complex_double
 
@@ -225,7 +226,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         cdef cnumpy.npy_intp dims[2]
         dims[0] = self._nrows
         dims[1] = self._ncols
-        from collections import Iterator, Sequence
         if isinstance(entries, (Iterator, Sequence)):
             if not isinstance(entries, (list, tuple)):
                 entries = list(entries)

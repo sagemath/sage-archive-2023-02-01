@@ -93,6 +93,8 @@ from cpython.bytes cimport *
 from cysignals.memory cimport check_malloc, check_allocarray, sig_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
+from collections import Iterator, Sequence
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
@@ -537,7 +539,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         R = self.base_ring()
 
         # scalar?
-        from collections import Iterator, Sequence
         if not isinstance(entries, (Iterator, Sequence)):
             sig_on()
             for i in range(self._nrows*self._ncols):
@@ -1476,7 +1477,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: A.minimal_polynomial()
             x
 
-            sage: A = Mat(GF(7),3,3)(list(range(3))*3)
+            sage: A = Mat(GF(7),3,3)([0, 1, 2] * 3)
             sage: A.charpoly()
             x^3 + 4*x^2
 

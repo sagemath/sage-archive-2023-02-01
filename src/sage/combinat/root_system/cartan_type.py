@@ -408,6 +408,13 @@ used to differentiate between the `A_{+\infty}` and `A_{\infty}` root systems::
     ..---O---O---O---O---O---O---O---..
         -3  -2  -1   0   1   2   3
 
+There are also the following shorthands::
+
+    sage: CartanType("Aoo")
+    ['A', ZZ]
+    sage: CartanType("A+oo")
+    ['A', NN]
+
 .. rubric:: Abstract classes for Cartan types
 
 - :class:`CartanType_abstract`
@@ -588,6 +595,7 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, CartanType_abstract):
             return t
 
+        from sage.rings.semirings.non_negative_integer_semiring import NN
         if isinstance(t, string_types):
             if "x" in t:
                 from . import type_reducible
@@ -596,14 +604,15 @@ class CartanTypeFactory(SageObject):
                 return CartanType(t[:-1]).dual()
             elif t[-1] == "~":
                 return CartanType(t[:-1]).affine()
-            elif t == u"A∞":
+            elif t in ["Aoo", u"A∞"]:
                 return CartanType(['A', Infinity])
+            elif t == "A+oo":
+                from . import type_A_infinity
+                return type_A_infinity.CartanType(NN)
             else:
                 return CartanType([t[0], eval(t[1:])])
 
         t = list(t)
-
-        from sage.rings.semirings.non_negative_integer_semiring import NN
         if isinstance(t[0], string_types) and t[1] in [Infinity, ZZ, NN]:
             letter, n = t[0], t[1]
             if letter == 'A':

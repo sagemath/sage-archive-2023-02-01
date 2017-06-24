@@ -110,6 +110,26 @@ cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
         from sage.rings.rational_field import QQ
         return QQ(self.constant_coefficient())
 
+    def change_ring(self, R):
+        """
+        Return a copy of this Laurent polynomial, with coefficients in ``R``.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(QQ)
+            sage: a = x^2 + 3*x^3 + 5*x^-1
+            sage: a.change_ring(GF(3))
+            2*x^-1 + x^2
+
+        Check that :trac:`22277` is fixed::
+
+            sage: R.<x, y> = LaurentPolynomialRing(QQ)
+            sage: a = 2*x^2 + 3*x^3 + 4*x^-1
+            sage: a.change_ring(GF(3))
+            -x^2 + x^-1
+        """
+        return self.parent().change_ring(R)(self)
+
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
     """
@@ -190,19 +210,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             True
         """
         return LaurentPolynomial_univariate, (self._parent, self.__u, self.__n)
-
-    def change_ring(self, R):
-        """
-        Return a copy of this Laurent polynomial, with coefficients in ``R``.
-
-        EXAMPLES::
-
-            sage: R.<x> = LaurentPolynomialRing(QQ)
-            sage: a = x^2 + 3*x^3 + 5*x^-1
-            sage: a.change_ring(GF(3))
-            2*x^-1 + x^2
-        """
-        return self.parent().change_ring(R)(self)
 
     def is_unit(self):
         """

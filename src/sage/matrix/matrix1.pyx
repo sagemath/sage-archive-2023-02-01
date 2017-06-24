@@ -1752,7 +1752,7 @@ cdef class Matrix(Matrix0):
             sage: A.delete_columns([-1,2,4])
             Traceback (most recent call last):
             ...
-            IndexError: [4, -1] contains invalid indices.
+            IndexError: [-1, 4] contains invalid indices
             sage: A.delete_columns([-1,2,4], check=False)
             [ 0  1  3]
             [ 4  5  7]
@@ -1762,10 +1762,10 @@ cdef class Matrix(Matrix0):
 
         The list of indices is checked.  ::
 
-            sage: A.delete_columns(3)
+            sage: A.delete_columns("junk")
             Traceback (most recent call last):
             ...
-            TypeError: the argument must be a list or a tuple, not 3
+            IndexError: ['j', 'k', 'n', 'u'] contains invalid indices
 
         AUTHORS:
 
@@ -1777,9 +1777,9 @@ cdef class Matrix(Matrix0):
         cdef list cols, diff_cols
 
         if check:
-            diff_cols = list(set(dcols).difference(set(range(self._ncols))))
+            diff_cols = sorted(set(dcols).difference(set(range(self._ncols))))
             if diff_cols:
-                raise IndexError("{d} contains invalid indices.".format(d=diff_cols))
+                raise IndexError("{d} contains invalid indices".format(d=diff_cols))
         cols = [k for k in range(self._ncols) if not k in dcols]
         return self.matrix_from_columns(cols)
 
@@ -1852,7 +1852,7 @@ cdef class Matrix(Matrix0):
             sage: A.delete_rows([-1,2,4])
             Traceback (most recent call last):
             ...
-            IndexError: [4, -1] contains invalid indices.
+            IndexError: [-1, 4] contains invalid indices
             sage: A.delete_rows([-1,2,4], check=False)
             [ 0  1  2]
             [ 3  4  5]
@@ -1862,10 +1862,10 @@ cdef class Matrix(Matrix0):
 
         The list of indices is checked.  ::
 
-            sage: A.delete_rows(4)
+            sage: A.delete_rows("junk")
             Traceback (most recent call last):
             ...
-            TypeError: the argument must be a list or a tuple, not 4
+            IndexError: ['j', 'k', 'n', 'u'] contains invalid indices
 
         AUTHORS
 
@@ -1877,9 +1877,9 @@ cdef class Matrix(Matrix0):
         cdef list rows, diff_rows
 
         if check:
-            diff_rows = list(set(drows).difference(set(range(self._nrows))))
+            diff_rows = sorted(set(drows).difference(set(range(self._nrows))))
             if diff_rows:
-                raise IndexError("{d} contains invalid indices.".format(d=diff_rows))
+                raise IndexError("{d} contains invalid indices".format(d=diff_rows))
         rows = [k for k in range(self._nrows) if not k in drows]
         return self.matrix_from_rows(rows)
 

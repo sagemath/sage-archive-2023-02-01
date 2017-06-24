@@ -65,11 +65,11 @@ We test corner cases for multiplication::
     [1] x [1] = [1]
 
     sage: bad  = [ (v1,m00), (v1,m01), (v0,m10), (v0,m11), (m00,v1), (m10,v1), (m01,v0), (m11,v0), (m01,m01), (m10,m10), (m11,m01), (m10,m11) ]
-    sage: for v,m in bad:
+    sage: for v, m in bad:
     ....:     try:
     ....:         v*m
     ....:         print('Uncaught dimension mismatch!')
-    ....:     except (TypeError, ArithmeticError):
+    ....:     except (IndexError, TypeError, ArithmeticError):
     ....:         pass
 
 """

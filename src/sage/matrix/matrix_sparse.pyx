@@ -842,12 +842,12 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: A.matrix_from_rows_and_columns(1,[2,3])
             Traceback (most recent call last):
             ...
-            TypeError: rows must be a list of integers
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
 
             sage: A.matrix_from_rows_and_columns([1,2],3)
             Traceback (most recent call last):
             ...
-            TypeError: columns must be a list of integers
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
 
         AUTHORS:
 

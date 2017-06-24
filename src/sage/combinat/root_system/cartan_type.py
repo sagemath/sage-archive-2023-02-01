@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Cartan types
 
@@ -564,6 +565,11 @@ class CartanTypeFactory(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: ['A', -1] is not a valid Cartan type
+
+        Check that unicode is handled properly (:trac:`23323`)::
+
+            sage: CartanType(u"A3")
+            ['A', 3]
         """
         if len(args) == 1:
             t = args[0]
@@ -590,6 +596,8 @@ class CartanTypeFactory(SageObject):
                 return CartanType(t[:-1]).dual()
             elif t[-1] == "~":
                 return CartanType(t[:-1]).affine()
+            elif t == u"A∞":
+                return CartanType(['A', Infinity])
             else:
                 return CartanType([t[0], eval(t[1:])])
 

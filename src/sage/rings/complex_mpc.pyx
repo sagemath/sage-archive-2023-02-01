@@ -78,6 +78,7 @@ from sage.misc.superseded import deprecated_function_alias
 from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
 from sage.structure.richcmp cimport rich_to_bool, richcmp
+from sage.categories.fields import Fields
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -299,6 +300,10 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             Complex Field with 1042 bits of precision and rounding RNDDZ
 
         ALGORITHMS: Computations are done using the MPC library.
+
+        TESTS::
+
+            sage: TestSuite(MPComplexField(17)).run()
         """
         if prec < mpfr_prec_min() or prec > mpfr_prec_max():
             raise ValueError("prec (=%s) must be >= %s and <= %s." % (
@@ -317,7 +322,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         self.__real_field = real_mpfr.RealField(prec, rnd=_mpfr_rounding_modes[rnd_re(n)])
         self.__imag_field = real_mpfr.RealField(prec, rnd=_mpfr_rounding_modes[rnd_im(n)])
 
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False)
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Infinite())
         self._populate_coercion_lists_(coerce_list=[MPFRtoMPC(self._real_field(), self)])
 
     cdef MPComplexNumber _new(self):

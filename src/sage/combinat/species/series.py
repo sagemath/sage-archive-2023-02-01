@@ -50,8 +50,15 @@ class LazyPowerSeriesRing(Algebra):
 
             sage: from sage.combinat.species.series import LazyPowerSeriesRing
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: loads(dumps(L))
-            Lazy Power Series Ring over Rational Field
+
+        Equality testing is undecidable in general, and not much
+        efforts are done at this stage to implement equality when
+        possible. Hence the failing tests below::
+
+            sage: TestSuite(L).run()
+            Failure in ...
+            The following tests failed: _test_additive_associativity, _test_associativity, _test_distributivity, _test_elements, _test_one, _test_prod, _test_zero
+
         """
         #Make sure R is a ring with unit element
         if not R in Rings():
@@ -70,7 +77,7 @@ class LazyPowerSeriesRing(Algebra):
         self._element_class = element_class if element_class is not None else LazyPowerSeries
         self._order = None
         self._name = names
-        sage.structure.parent_base.ParentWithBase.__init__(self, R)
+        sage.structure.parent_base.ParentWithBase.__init__(self, R, category=Rings())
 
     def ngens(self):
         """

@@ -187,14 +187,26 @@ class GrowthDiagram(SageObject):
     type, and sets the following attributes:
 
     - ``self._zero``, the zero element of the vertices of the
-      graphs,
+      graphs.
 
     - ``self._rank_function``, the rank function of the dual
-      graded graphs,
+      graded graphs.
 
-    - ``self._covers_Q``, ``self._covers_P``, functions taking
-      two vertices as arguments and return True if the first
-      covers the second in the respective graded graph.
+    - ``self._has_multiple_edges``, if the dual graded graph has
+      multiple edges and therefore edges are triples consisting of
+      two vertices and a label.  If not present, it is assumed to be
+      ``False``.
+
+    - ``self._zero_edge``, the zero label of the edges of the graphs.
+      If not present, it is assumed to be the integer 0.
+
+    - ``self._is_Q_edge``, ``self._is_P_edge``, functions that take
+      two vertices as arguments and return ``True`` or ``False``, or,
+      if multiple edges are allowed, the list of edge labels of the
+      edges from the second to the first in the respective graded
+      graph.  These are only used for checking user input and
+      providing the dual graded graph, and are therefore not
+      mandatory.
 
     It should then call the ``__init__`` method of this class.
 
@@ -227,9 +239,6 @@ class GrowthDiagram(SageObject):
         border on the side of the origin (forward growth), or labels
         for the boundary opposite of the origin (backward growth).
 
-        Currently, this class only provides methods for dual graded
-        graphs without multiple edges.
-
         Coordinates are of the form (col, row) where the origin is in
         the upper left, to be consistent with permutation matrices
         and skew tableaux.  This is different from Fomin's
@@ -254,23 +263,42 @@ class GrowthDiagram(SageObject):
           or, if possible, inferred from ``labels``, if ``filling``
           is ``None``.
 
-        - ``labels`` is ``None`` or a list.  If it is a list, its
-          length should be the half-perimeter of ``shape``.  If
-          ``filling`` is ``None``, its elements are the labels of the
-          boundary opposite of the origin.  Otherwise its elements
-          are the labels on the boundary on the side of the origin.
-          If ``labels`` is ``None`` (in which case ``filling`` must
-          not be ``None``) the value of ``self._zero`` is used to
-          initialise ``labels``.
-        """
+        - ``labels`` is ``None`` or a list.  If it is a list, it
+          specifies a path whose length is the half-perimeter of
+          ``shape``.  Thus, when ``self._has_multiple_edges`` is
+          ``True``, it is of the form `(v_1, e_1,..., e_{n-1}, v_n)`,
+          where `n` is the half-perimeter of ``shape``, and
+          `(v_{i-1}, e_i, v_i)` is an edge in the dual graded graph
+          for all `i`.  Otherwise, it is a list of `n` vertices.
+
+          If ``filling`` is ``None``, its elements are the labels of
+          the boundary opposite of the origin.  Otherwise its
+          elements are the labels on the boundary on the side of the
+          origin.  If ``labels`` is ``None`` (in which case
+          ``filling`` must not be ``None``) the value of
+          ``self._zero`` is used to initialise ``labels``.  """
         try:
-            self._covers_Q
+            self._has_multiple_edges
         except AttributeError:
-            self._covers_Q = lambda a,b: True
+            self._has_multiple_edges = False
         try:
-            self._covers_P
+            self._zero_edge
         except AttributeError:
-            self._covers_P = lambda a,b: True
+            self._zero_edge = 0
+        try:
+            self._is_Q_edge
+        except AttributeError:
+            if self._has_multiple_edges:
+                self._is_Q_edge = lambda a,b: [self._zero_edge]
+            else:
+                self._is_Q_edge = lambda a,b: True
+        try:
+            self._is_P_edge
+        except AttributeError:
+            if self._has_multiple_edges:
+                self._is_P_edge = lambda a,b: [self._zero_edge]
+            else:
+                self._is_P_edge = lambda a,b: True
 
         if filling is None:
             if labels is None:
@@ -306,22 +334,42 @@ class GrowthDiagram(SageObject):
             check_vertex(w, Q, P)
 
     @classmethod
-    def P_poset(cls, n):
+    def P_graph(cls, n):
         r"""
         Return the first n levels of the first dual graded graph.
         """
-        return Poset(([w for k in range(n) for w in cls.vertices(k)],
-                      lambda x,y: cls._covers_P(y, x)),
-                     cover_relations=True)
+        try:
+            cls._has_multiple_edges
+        except AttributeError:
+            cls._has_multiple_edges = False
+        if cls._has_multiple_edges:
+            return DiGraph([(x,y,e) for k in range(n-1)
+                            for x in cls.vertices(k)
+                            for y in cls.vertices(k+1)
+                            for e in cls._is_P_edge(y, x)], multiedges=True)
+        else:
+            return Poset(([w for k in range(n) for w in cls.vertices(k)],
+                          lambda x,y: cls._is_P_edge(y, x)),
+                         cover_relations=True)
 
     @classmethod
-    def Q_poset(cls, n):
+    def Q_graph(cls, n):
         r"""
         Return the first n levels of the second dual graded graph.
         """
-        return Poset(([w for k in range(n) for w in cls.vertices(k)],
-                      lambda x,y: cls._covers_Q(y, x)),
-                     cover_relations=True)
+        try:
+            cls._has_multiple_edges
+        except AttributeError:
+            cls._has_multiple_edges = False
+        if cls._has_multiple_edges:
+            return DiGraph([(x,y,e) for k in range(n-1)
+                            for x in cls.vertices(k)
+                            for y in cls.vertices(k+1)
+                            for e in cls._is_Q_edge(y, x)], multiedges=True)
+        else:
+            return Poset(([w for k in range(n) for w in cls.vertices(k)],
+                          lambda x,y: cls._is_Q_edge(y, x)),
+                         cover_relations=True)
 
     def filling(self):
         r"""
@@ -669,16 +717,28 @@ class GrowthDiagram(SageObject):
             [2, 1, 1]
 
         """
-        def right_left(la, mu):
-            if self._rank_function(la) < self._rank_function(mu):
-                assert self._covers_Q(mu, la), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
-                return 1
-            elif self._rank_function(la) > self._rank_function(mu):
-                assert self._covers_P(la, mu), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
-                return 0
-            else:
-                raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
-        return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
+        if self._has_multiple_edges:
+            def right_left(la, mu, e):
+                if self._rank_function(la) < self._rank_function(mu):
+                    assert e in self._is_Q_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in Q!" %(la, mu, e)
+                    return 1
+                elif self._rank_function(la) > self._rank_function(mu):
+                    assert e in self._is_P_edge(la, mu), "%s has smaller rank than %s but there is no edge of color %s in in P!" %(mu, la, e)
+                    return 0
+                else:
+                    raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
+            return Partitions().from_zero_one([right_left(labels[i], labels[i+2], labels[i+1]) for i in range(0, len(labels)-2, 2)])
+        else:
+            def right_left(la, mu):
+                if self._rank_function(la) < self._rank_function(mu):
+                    assert self._is_Q_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
+                    return 1
+                elif self._rank_function(la) > self._rank_function(mu):
+                    assert self._is_P_edge(la, mu), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
+                    return 0
+                else:
+                    raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
+            return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
 
     def _check_labels(self, labels):
         r"""
@@ -691,21 +751,27 @@ class GrowthDiagram(SageObject):
             sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])                 # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the number of labels is 2, but for this shape we need 3.
+            ValueError: The number of labels is 2, but for this shape we need 3.
 
             sage: GrowthDiagramRSK(labels=[[], [1], [2], [2,1]])                # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the number of labels is 4, but for this shape we need 1.
+            ValueError: The number of labels is 4, but for this shape we need 1.
 
         .. TODO::
 
             Can we do something more sensible when the chain of labels is strictly increasing?
         """
         half_perimeter = self._half_perimeter()
-        if len(labels) != half_perimeter:
-            raise ValueError("the number of labels is %s, but for this shape we need %s."
-                             %(len(labels), half_perimeter))
+        if self._has_multiple_edges:
+            assert is_odd(len(labels)), "Only a list of odd length can specify a path, but %s has even length."%s
+            path_length = (len(labels)+1)/2
+        else:
+            path_length = len(labels)
+
+        if path_length != half_perimeter:
+            raise ValueError("The number of labels is %s, but for this shape we need %s."
+                             %(path_length, half_perimeter))
 
     def _init_labels_forward_from_various_input(self, labels):
         r"""
@@ -734,7 +800,10 @@ class GrowthDiagram(SageObject):
 
         """
         if labels is None:
-            return [self._zero for i in range(self._half_perimeter())]
+            if self._has_multiple_edges:
+                return [self._zero, 0]*(self._half_perimeter()-1) + [self._zero]
+            else:
+                return [self._zero]*(self._half_perimeter())
         else:
             return labels
 
@@ -934,14 +1003,28 @@ class GrowthDiagram(SageObject):
         """
         labels = copy(self._in_labels)
         l = len(self._lambda)
-        for r in range(l):
-            for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
-                j = r
-                i = c-l+r
-                labels[c] = self._forward_rule(labels[c-1],
-                                               labels[c],
-                                               labels[c+1],
-                                               self._filling.get((i,j), 0))
+        if self._has_multiple_edges:
+            for r in range(l):
+                for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
+                    j = r
+                    i = c-l+r
+                    (labels[2*c-1],
+                     labels[2*c],
+                     labels[2*c+1]) = self._forward_rule(labels[2*c-2],
+                                                         labels[2*c-1],
+                                                         labels[2*c],
+                                                         labels[2*c+1],
+                                                         labels[2*c+2],
+                                                         self._filling.get((i,j), 0))
+        else:
+            for r in range(l):
+                for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
+                    j = r
+                    i = c-l+r
+                    labels[c] = self._forward_rule(labels[c-1],
+                                                   labels[c],
+                                                   labels[c+1],
+                                                   self._filling.get((i,j), 0))
 
         self._out_labels = labels
 
@@ -1016,6 +1099,205 @@ class GrowthDiagram(SageObject):
 
         self._in_labels = labels
         self._filling = F
+
+######################################################################
+# Specific classes of growth diagrams
+######################################################################
+
+class GrowthDiagramShiftedShapes(GrowthDiagram):
+    r"""
+    A class modelling the Schensted correspondence for shifted
+    shapes, which agrees with Sagan and Worley's and Haiman's
+    insertion algorithms.
+
+    EXAMPLES::
+
+        sage: GrowthDiagramShiftedShapes([3,4,1,2]).out_labels()
+        [[], 1, [1], 2, [2], 3, [3], 2, [3, 1], 0, [2, 1], 0, [2], 0, [1], 0, []]
+
+
+    The Kleitman Greene invariant is ???
+
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
+
+    TESTS::
+
+        sage: SY = GrowthDiagramShiftedShapes
+        sage: SY._zero
+        []
+
+
+    """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        # TODO: should check that the filling is standard
+        if labels is not None:
+            labels = [Partition(labels[i]) if is_even(i) else ZZ(labels[i]) for i in range(len(labels))]
+        super(GrowthDiagramShiftedShapes, self).__init__(filling = filling,
+                                                   shape = shape,
+                                                   labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
+
+    _zero = Partition([])
+    _has_multiple_edges = True
+
+    @staticmethod
+    def vertices(n):
+        if n == 0:
+            return [GrowthDiagramShiftedShapes._zero]
+        else:
+            return Partitions(n, max_slope=-1)
+
+    @staticmethod
+    def _rank_function(w):
+        return w.size
+
+    @staticmethod
+    def _is_Q_edge(w, v):
+        try:
+            l = SkewPartition([w, v]).cells()
+        except ValueError:
+            return []
+        else:
+            if l[0][1] == 0:
+                return [1]   # black
+            else:
+                return [2,3] # blue, red
+
+    @staticmethod
+    def _is_P_edge(w, v):
+        return [0] if w.contains(v) else []
+
+    @staticmethod
+    def _forward_rule(y, e, t, f, x, content):
+        r"""
+        Return the output path given two incident edges and the content.
+
+        See [Fom1995]_ Lemma 4.5.1, page 38.
+
+        INPUT:
+
+        - ``y, e, t, f, x`` -- a path of three partitions and two
+          colors from a cell in a growth diagram, labelled as::
+
+              t f x
+              e
+              y
+
+        - ``content`` -- 0 or 1, the content of the cell.
+
+        OUTPUT:
+
+        The two colors and the fourth partition g, z, h according.
+
+        TESTS::
+
+            sage: G = GrowthDiagramShiftedShapes
+
+            sage: G._forward_rule([], 0, [], 0, [], 1)
+            (0, [], 0)
+
+            sage: G._forward_rule([1], 0, [1], 0, [1], 1)
+            (0, [2], 0)
+
+        if ``x != y`` append last letter of ``x`` to ``y``::
+
+            sage: G._forward_rule([1,0], [1], [1,1], 0)
+            word: 101
+
+        if ``x == y != t`` append ``0`` to ``y``::
+
+            sage: G._forward_rule([1,1], [1], [1,1], 0)
+            word: 110
+
+a 1 and a 2 add different boxes =>
+  b 1 and b 2 add the same boxes as a 1 and a 2 , respectively;
+  b 2 has the same color as a 2 ;
+a 1 and a 2 add the same box, a 2 is blue =>
+  b 1 and b 2 add a box into the next row; b 2 is blue or black;
+a 1 and a 2 add the same box, a 2 is red or black =>
+  b 1 and b 2 add a box into the next column; b 2 is red;
+a 1 and a 2 are degenerate, a = 1 =>
+  b 1 and b 2 add a box into the first row; b 2 is blue or black
+        """
+        assert e == 0, "The P-graph should not be colored"
+        h = 0
+        if x == t == y:
+            assert f == 0, "Degenerate edge f should have color 0"
+            if content == 0:
+                g, z = 0, x
+            elif content == 1:
+                if len(x) == 0:
+                    g, z = 1, x.add_cell(0) # black
+                else:
+                    g, z = 2, x.add_cell(0) # blue
+            else:
+                raise NotImplementedError
+        elif content != 0:
+            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+        elif x != t == y:
+            g, z = f, x
+        elif x == t != y:
+            assert f == 0, "Degenerate edge f should have color 0"
+            g, z = f, y
+        else:
+            if x != y:
+                c = SkewPartition([x, t]).cells()[0][0]
+                g, z = f, y.add_cell(c)
+            elif x == y != t and f == 2: # blue
+                c = SkewPartition([x, t]).cells()[0][0]
+                if c == len(y):
+                    g, z = 1, y.add_cell(c+1) # black
+                else:
+                    g, z = 2, y.add_cell(c+1) # blue
+            elif x == y != t and f in [1,3]: # black or red
+                c = SkewPartition([x, t]).cells()[0][0]
+                g, z = 3, y.add_cell(c) # red
+            else:
+                raise NotImplementedError
+        return g, z, h
+#
+#    @staticmethod
+#    def _backward_rule(y, z, x):
+#        r"""
+#        Return the content and the input shape.
+#
+#        See [Fom1995]_ Lemma 4.6.1, page 40.
+#
+#        - ``y, z, x`` -- three binary words from a cell in a growth diagram,
+#          labelled as::
+#
+#                x
+#              y z
+#
+#        OUTPUT:
+#
+#        A pair ``(t, content)`` consisting of the shape of the fourth
+#        word and the content of the cell acording to Viennot's
+#        bijection [Vie1983]_.
+#
+#        TESTS::
+#
+#            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
+#            sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
+#            True
+#
+#        """
+#        if x == y == z:
+#            return (x, 0)
+#        elif x == z != y:
+#            return (y, 0)
+#        elif x != z == y:
+#            return (x, 0)
+#        else:
+#            if x == y and len(z) > 0 and z[-1] == 1:
+#                return (x, 1)
+#            else:
+#                return (x[:-1], 0)
+
 
 class GrowthDiagramBinWord(GrowthDiagram):
     r"""
@@ -1106,11 +1388,11 @@ class GrowthDiagramBinWord(GrowthDiagram):
         return len(w)
 
     @staticmethod
-    def _covers_Q(w, v):
+    def _is_Q_edge(w, v):
         return w[:-1] == v
 
     @staticmethod
-    def _covers_P(w, v):
+    def _is_P_edge(w, v):
         return len(w) == len(v) + 1 and v.is_subword_of(w)
 
     @staticmethod
@@ -1301,7 +1583,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
         return w.node_number()
 
     @staticmethod
-    def _covers_Q(w, v):
+    def _is_Q_edge(w, v):
         def is_subtree(T1, T2):
             if T2.is_empty():
                 return False
@@ -1315,7 +1597,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
         return is_subtree(v, w)
 
     @staticmethod
-    def _covers_P(w, v):
+    def _is_P_edge(w, v):
         if w.is_empty():
             return False
         else:
@@ -1585,7 +1867,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         return sum(w)
 
     @staticmethod
-    def _covers_P(w, v):
+    def _is_P_edge(w, v):
         def covers(c):
             for i in range(len(c)+1):
                 d = list(c)
@@ -1598,7 +1880,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                     break
         return sum(w) == sum(v) + 1 and w in covers(v)
 
-    _covers_Q = _covers_P
+    _is_Q_edge = _is_P_edge
 
     @staticmethod
     def _forward_rule(shape3, shape2, shape1, content):
@@ -2080,7 +2362,7 @@ class GrowthDiagramDomino(GrowthDiagram):
             except ValueError:
                 return False
 
-        self._covers_Q = self._covers_P = lambda w, v: covering(w, v)
+        self._is_Q_edge = self._is_P_edge = lambda w, v: covering(w, v)
         super(GrowthDiagramDomino, self).__init__(filling = filling,
                                                   shape = shape,
                                                   labels = labels)

@@ -10764,6 +10764,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         edge_list = []
+        vertices = set()
         for e in edges:
             # try to get the vertices and label of e as distinct variables
             try:
@@ -10771,13 +10772,12 @@ class GenericGraph(GenericGraph_pyx):
             except Exception:
                 u, v = e
                 label = None
-            edge_list.append((u, v, label))
-        # drop non-edges so they don't miraculously become edges after contraction
-        edge_list = [e for e in edge_list if self.has_edge(e)]
+            if self.has_edge((u, v, label)):
+                edge_list.append((u, v, label))
+                vertices.add(u)
+                vertices.add(v)
 
-        #implementation of union_find
-        vertices = set([u for (u, v, label) in edge_list]).union(
-            set([v for (u, v, label) in edge_list]))
+        # implementation of union_find
         destination = {vertex:vertex for vertex in self.vertices()}
 
         def root(v):

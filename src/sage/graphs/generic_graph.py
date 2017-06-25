@@ -10777,25 +10777,16 @@ class GenericGraph(GenericGraph_pyx):
                 vertices.add(u)
                 vertices.add(v)
 
-        # implementation of union_find
-        destination = {vertex:vertex for vertex in self.vertices()}
-
-        def root(v):
-            while v != destination[v]:
-                v = destination[v]
-            return v
-
-        def unite(u, v):
-            root_u = root(u)
-            root_v = root(v)
-            destination[root_v] = root_u
+        # implementation of union_find using DisjointSet
+        from sage.sets.disjoint_set import DisjointSet
+        DS = DisjointSet(self.vertices())
 
         for (u, v, label) in edge_list:
-            unite(u, v)
+            DS.union(u, v)
 
         self.delete_edges(edge_list)
         edges_incident = []
-        vertices = [v for v in vertices if v!= destination[v]]
+        vertices = [v for v in vertices if v!= DS.find(v)]
         if self.is_directed():
             for v in vertices:
                 out_edges=self.edge_boundary([v])
@@ -10808,8 +10799,8 @@ class GenericGraph(GenericGraph_pyx):
                 self.delete_vertex(v)
 
         for (u, v, label) in edges_incident:
-            root_u = root(u)
-            root_v = root(v)
+            root_u = DS.find(u)
+            root_v = DS.find(v)
             if root_v != root_u or self.allows_loops():
                 self.add_edge(root_u, root_v, label)
 

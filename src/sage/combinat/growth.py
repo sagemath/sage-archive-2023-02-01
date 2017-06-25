@@ -483,7 +483,10 @@ class GrowthDiagram(SageObject):
             [word: , word: 1, word: 11, word: 111, word: 1011]
         """
         if self.is_rectangular():
-            return self._out_labels[self._lambda[0]:][::-1]
+            if self._has_multiple_edges:
+                return self._out_labels[(2*self._lambda[0]):][::-1]
+            else:
+                return self._out_labels[self._lambda[0]:][::-1]
         else:
             raise ValueError("The P symbol is only defined for rectangular shapes.")
 
@@ -499,7 +502,10 @@ class GrowthDiagram(SageObject):
             [word: , word: 1, word: 10, word: 101, word: 1011]
         """
         if self.is_rectangular():
-            return self._out_labels[:self._lambda[0]+1]
+            if self._has_multiple_edges:
+                return self._out_labels[:(2*self._lambda[0]+1)]
+            else:
+                return self._out_labels[:self._lambda[0]+1]
         else:
             raise ValueError("The Q symbol is only defined for rectangular shapes.")
 
@@ -1115,6 +1121,47 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         sage: GrowthDiagramShiftedShapes([3,4,1,2]).out_labels()
         [[], 1, [1], 2, [2], 3, [3], 2, [3, 1], 0, [2, 1], 0, [2], 0, [1], 0, []]
 
+        sage: l = {pi: GrowthDiagramShiftedShapes(pi) for pi in Permutations(6)}
+        sage: Set([(G.out_labels()) for G in l.values()]).cardinality()
+
+        sage: G = GrowthDiagramShiftedShapes([2,6,5,1,7,4,3])
+        WRONG! should have shape 4,2:
+
+        1 2 3 6 7
+          4 5
+
+        1 2 4'5 7'  (this is the recording tableau...)
+          3 6'
+
+        [[],
+         1,
+         [1],
+         2,
+         [2],
+         2,
+         [2, 1],
+         3,
+         [3, 1],
+         2,
+         [4, 1],
+         2,
+         [4, 1, 1],
+         2,
+         [4, 1, 1, 1],
+         0,
+         [3, 1, 1, 1],
+         0,
+         [3, 1, 1],
+         0,
+         [3, 1],
+         0,
+         [3],
+         0,
+         [2],
+         0,
+         [1],
+         0,
+         []]
 
     The Kleitman Greene invariant is ???
 

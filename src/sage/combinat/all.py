@@ -206,4 +206,5 @@ lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
 # Growth diagrams
 lazy_import('sage.combinat.growth', ['GrowthDiagramRSK', 'GrowthDiagramBurge',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
-                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester',
+                                     'GrowthDiagramShiftedShapes'])

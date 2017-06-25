@@ -165,6 +165,10 @@ REFERENCES:
    *Binary Search Tree insertion, the Hypoplactic insertion, and Dual Graded Graphs*.
    :arXiv:`0705.2689` (2007)
 
+.. [Sag1987] Bruce E. Sagan.
+   *Shifted tableaux, Schur Q-functions, and a conjecture of R. Stanley*.
+   Journal of Combinatorial Theory, Series A Volume 45 (1987), pp. 62-103
+
 """
 from sage.structure.sage_object import SageObject
 from sage.combinat.posets.posets import Poset
@@ -177,6 +181,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from copy import copy
+from sage.misc.functional import is_odd
 
 class GrowthDiagram(SageObject):
     r"""
@@ -328,8 +333,8 @@ class GrowthDiagram(SageObject):
             UDw.extend([w]*r)
             assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
 
-        P = cls.P_poset(n+2)
-        Q = cls.Q_poset(n+2)
+        P = cls.P_graph(n+2)
+        Q = cls.Q_graph(n+2)
         for w in cls.vertices(n):
             check_vertex(w, Q, P)
 
@@ -1119,51 +1124,15 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
     EXAMPLES::
 
         sage: GrowthDiagramShiftedShapes([3,4,1,2]).out_labels()
-        [[], 1, [1], 2, [2], 3, [3], 2, [3, 1], 0, [2, 1], 0, [2], 0, [1], 0, []]
-
-        sage: l = {pi: GrowthDiagramShiftedShapes(pi) for pi in Permutations(6)}
-        sage: Set([(G.out_labels()) for G in l.values()]).cardinality()
+        [[], 1, [1], 2, [2], 3, [3], 1, [3, 1], 0, [2, 1], 0, [2], 0, [1], 0, []]
+    
+    Check example just before Corollary 3.2 in [Sag1987]_::
 
         sage: G = GrowthDiagramShiftedShapes([2,6,5,1,7,4,3])
-        WRONG! should have shape 4,2:
-
-        1 2 3 6 7
-          4 5
-
-        1 2 4'5 7'  (this is the recording tableau...)
-          3 6'
-
-        [[],
-         1,
-         [1],
-         2,
-         [2],
-         2,
-         [2, 1],
-         3,
-         [3, 1],
-         2,
-         [4, 1],
-         2,
-         [4, 1, 1],
-         2,
-         [4, 1, 1, 1],
-         0,
-         [3, 1, 1, 1],
-         0,
-         [3, 1, 1],
-         0,
-         [3, 1],
-         0,
-         [3],
-         0,
-         [2],
-         0,
-         [1],
-         0,
-         []]
-
-    The Kleitman Greene invariant is ???
+        sage: G.P_chain()
+        [[], 0, [1], 0, [2], 0, [3], 0, [3, 1], 0, [3, 2], 0, [4, 2], 0, [5, 2]]
+        sage: G.Q_chain()
+        [[], 1, [1], 2, [2], 1, [2, 1], 3, [3, 1], 2, [4, 1], 3, [4, 2], 3, [5, 2]]
 
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
@@ -1173,8 +1142,6 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         sage: SY = GrowthDiagramShiftedShapes
         sage: SY._zero
         []
-
-
     """
     def __init__(self,
                  filling = None,
@@ -1243,32 +1210,34 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         TESTS::
 
             sage: G = GrowthDiagramShiftedShapes
-
             sage: G._forward_rule([], 0, [], 0, [], 1)
-            (0, [], 0)
+            (1, [1], 0)
 
             sage: G._forward_rule([1], 0, [1], 0, [1], 1)
-            (0, [2], 0)
+            (2, [2], 0)
 
-        if ``x != y`` append last letter of ``x`` to ``y``::
+        if ``x != y``::
 
-            sage: G._forward_rule([1,0], [1], [1,1], 0)
-            word: 101
+            sage: G._forward_rule([3], 0, [2], 1, [2,1], 0)
+            (1, [3, 1], 0)
 
-        if ``x == y != t`` append ``0`` to ``y``::
+            sage: G._forward_rule([2,1], 0, [2], 2, [3], 0)
+            (2, [3, 1], 0)
 
-            sage: G._forward_rule([1,1], [1], [1,1], 0)
-            word: 110
+        if ``x == y != t``::
 
-a 1 and a 2 add different boxes =>
-  b 1 and b 2 add the same boxes as a 1 and a 2 , respectively;
-  b 2 has the same color as a 2 ;
-a 1 and a 2 add the same box, a 2 is blue =>
-  b 1 and b 2 add a box into the next row; b 2 is blue or black;
-a 1 and a 2 add the same box, a 2 is red or black =>
-  b 1 and b 2 add a box into the next column; b 2 is red;
-a 1 and a 2 are degenerate, a = 1 =>
-  b 1 and b 2 add a box into the first row; b 2 is blue or black
+            sage: G._forward_rule([3], 0, [2], 2, [3], 0)
+            (1, [3, 1], 0)
+
+            sage: G._forward_rule([3,1], 0, [2,1], 2, [3,1], 0)
+            (2, [3, 2], 0)
+
+            sage: G._forward_rule([2,1], 0, [2], 1, [2,1], 0)
+            (3, [3, 1], 0)
+
+            sage: G._forward_rule([3], 0, [2], 3, [3], 0)
+            (3, [4], 0)
+
         """
         assert e == 0, "The P-graph should not be colored"
         h = 0
@@ -1278,9 +1247,9 @@ a 1 and a 2 are degenerate, a = 1 =>
                 g, z = 0, x
             elif content == 1:
                 if len(x) == 0:
-                    g, z = 1, x.add_cell(0) # black
+                    g, z = 1, Partition(x).add_cell(0) # black
                 else:
-                    g, z = 2, x.add_cell(0) # blue
+                    g, z = 2, Partition(x).add_cell(0) # blue
             else:
                 raise NotImplementedError
         elif content != 0:
@@ -1293,16 +1262,22 @@ a 1 and a 2 are degenerate, a = 1 =>
         else:
             if x != y:
                 c = SkewPartition([x, t]).cells()[0][0]
-                g, z = f, y.add_cell(c)
+                g, z = f, Partition(y).add_cell(c)
             elif x == y != t and f == 2: # blue
-                c = SkewPartition([x, t]).cells()[0][0]
-                if c == len(y):
-                    g, z = 1, y.add_cell(c+1) # black
+                row = 1+SkewPartition([x, t]).cells()[0][0]
+                if row == len(y):
+                    g, z = 1, Partition(y).add_cell(row) # black
                 else:
-                    g, z = 2, y.add_cell(c+1) # blue
-            elif x == y != t and f in [1,3]: # black or red
-                c = SkewPartition([x, t]).cells()[0][0]
-                g, z = 3, y.add_cell(c) # red
+                    g, z = 2, Partition(y).add_cell(row) # blue
+            elif x == y != t and f in [1, 3]: # black or red
+                c = SkewPartition([x, t]).cells()[0]
+                col = c[0] + c[1] + 1
+                # print y, t, x, c, col
+                for i in range(len(y)):
+                    if i+y[i] == col:
+                        z = y[:i] + [y[i]+1] + y[i+1:]
+                        break
+                g = 3
             else:
                 raise NotImplementedError
         return g, z, h

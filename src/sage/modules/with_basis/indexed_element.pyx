@@ -22,7 +22,7 @@ from __future__ import print_function
 from six import iteritems
 
 from sage.structure.element cimport parent
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal, rich_to_bool
 from cpython.object cimport Py_NE, Py_EQ
 
 from sage.misc.misc import repr_lincomb
@@ -816,7 +816,7 @@ cdef class IndexedFreeModuleElement(Element):
                           scal(scalar, self._monomial_coefficients,
                                factor_on_left=not self_on_left))
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         For backward compatibility.
 
@@ -828,7 +828,7 @@ cdef class IndexedFreeModuleElement(Element):
         """
         return self._acted_upon_(right, True)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         For backward compatibility.
 

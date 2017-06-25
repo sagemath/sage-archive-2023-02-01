@@ -146,10 +146,10 @@ cdef class PowerSeries_mpoly(PowerSeries):
         return PowerSeries_mpoly(self._parent, self.__f - right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         return PowerSeries_mpoly(self._parent, self.__f._rmul_(c), self._prec, check=False)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         return PowerSeries_mpoly(self._parent, self.__f._lmul_(c), self._prec, check=False)
 
 

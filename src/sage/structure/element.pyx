@@ -293,7 +293,7 @@ cdef dict _coerce_op_symbols = dict(
 cdef MethodType
 from types import MethodType
 
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type
@@ -1010,7 +1010,7 @@ cdef class Element(SageObject):
         and check that comparison works::
 
             sage: cython('''
-            ....: from sage.structure.sage_object cimport rich_to_bool
+            ....: from sage.structure.richcmp cimport rich_to_bool
             ....: from sage.structure.element cimport Element
             ....: cdef class FloatCmp(Element):
             ....:     cdef float x
@@ -2206,7 +2206,7 @@ cdef class ModuleElement(Element):
         return coercion_model.bin_op(self, n, mul)
 
     # rmul -- left * self
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Reversed scalar multiplication for module elements with the
         module element on the right and the scalar on the left.
@@ -2216,7 +2216,7 @@ cdef class ModuleElement(Element):
         return self._lmul_(left)
 
     # lmul -- self * right
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Scalar multiplication for module elements with the module
         element on the left and the scalar on the right.

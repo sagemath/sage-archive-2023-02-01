@@ -275,9 +275,9 @@ class Category(UniqueRepresentation, SageObject):
         sage: As().parent_class
         <class '__main__.As.parent_class'>
         sage: As().parent_class.__bases__
-        (<type 'object'>,)
+        (<... 'object'>,)
         sage: As().parent_class.mro()
-        [<class '__main__.As.parent_class'>, <type 'object'>]
+        [<class '__main__.As.parent_class'>, <... 'object'>]
 
     ::
 
@@ -286,7 +286,7 @@ class Category(UniqueRepresentation, SageObject):
         sage: Bs().parent_class.__bases__
         (<class '__main__.As.parent_class'>,)
         sage: Bs().parent_class.mro()
-        [<class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
+        [<class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <... 'object'>]
 
     ::
 
@@ -295,7 +295,7 @@ class Category(UniqueRepresentation, SageObject):
         sage: Cs().parent_class.__bases__
         (<class '__main__.As.parent_class'>,)
         sage: Cs().parent_class.__mro__
-        (<class '__main__.Cs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>)
+        (<class '__main__.Cs.parent_class'>, <class '__main__.As.parent_class'>, <... 'object'>)
 
     ::
 
@@ -304,7 +304,7 @@ class Category(UniqueRepresentation, SageObject):
         sage: Ds().parent_class.__bases__
         (<class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>)
         sage: Ds().parent_class.mro()
-        [<class '__main__.Ds.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
+        [<class '__main__.Ds.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <... 'object'>]
 
     Note that that two categories in the same class need not have the
     same ``super_categories``. For example, ``Algebras(QQ)`` has
@@ -351,7 +351,7 @@ class Category(UniqueRepresentation, SageObject):
         <class '__main__.Cs.parent_class'>,
         <class '__main__.Bs.parent_class'>,
         <class '__main__.As.parent_class'>,
-        <type 'object'>]
+        <... 'object'>]
         sage: D.fA()
         'A'
         sage: D.fB()
@@ -376,7 +376,7 @@ class Category(UniqueRepresentation, SageObject):
         <class '__main__.Cs.element_class'>,
         <class '__main__.Bs.element_class'>,
         <class '__main__.As.element_class'>,
-        <type 'object'>]
+        <... 'object'>]
 
 
     TESTS::

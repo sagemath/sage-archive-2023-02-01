@@ -174,10 +174,9 @@ from __future__ import absolute_import, print_function
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-
 from cpython.object cimport Py_NE
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
@@ -247,7 +246,7 @@ from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeRingElement
 from sage.structure.element cimport coercion_model
 
-from sage.structure.sage_object cimport rich_to_bool, richcmp
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 
@@ -471,9 +470,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.has_coerce_map_from(ZZ['t'])
             False
             sage: R.coerce_map_from(ZZ['x'])
-            Conversion map:
-            From: Univariate Polynomial Ring in x over Integer Ring
-            To:   Multivariate Polynomial Ring in x, y over Rational Field
+            Coercion map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
 
         """
         base_ring = self.base_ring()
@@ -2271,7 +2270,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                                 _ring)
         return new_MP((<MPolynomial_libsingular>left)._parent, _p)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply self with a base ring element.
 

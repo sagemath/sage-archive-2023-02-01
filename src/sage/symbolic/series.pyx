@@ -107,6 +107,12 @@ Check that :trac:`22959` is fixed::
     1*x^2 + 1*x^4 + 1*x^6 + 1*x^8 + Order(x^10)
     sage: (x^2/(1-x^2)).series(x==0, 11)
     1*x^2 + 1*x^4 + 1*x^6 + 1*x^8 + 1*x^10 + Order(x^11)
+
+Check that :trac:`22733` is fixed::
+
+    sage: _ = var('z')
+    sage: z.series(x)
+    (z)
 """
 
 #*****************************************************************************

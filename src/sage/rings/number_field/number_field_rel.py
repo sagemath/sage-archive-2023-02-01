@@ -828,9 +828,9 @@ class NumberField_relative(NumberField_generic):
         # todo: more general coercion if embedding have been asserted
         raise TypeError("Cannot coerce element into this number field")
 
-    def _coerce_non_number_field_element_in(self, x):
+    def _convert_non_number_field_element(self, x):
         r"""
-        Coerce the non-number field element `x` into this number field.
+        Convert the non-number field element `x` into this number field.
 
         INPUT:
 
@@ -840,14 +840,14 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2/3)
-            sage: K._coerce_non_number_field_element_in(-7/8)
+            sage: K._convert_non_number_field_element(-7/8)
             -7/8
-            sage: K._coerce_non_number_field_element_in([1,2,3])
+            sage: K._convert_non_number_field_element([1,2,3])
             3*a^2 + 2*a + 1
 
         The list is just turned into a polynomial in the generator.::
 
-            sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
+            sage: K._convert_non_number_field_element([0,0,0,1,1])
             -2/3*a - 2/3
 
         Any polynomial whose coefficients can be coerced to rationals will
@@ -855,7 +855,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: f = GF(7)['y']([1,2,3]); f
             3*y^2 + 2*y + 1
-            sage: K._coerce_non_number_field_element_in(f)
+            sage: K._convert_non_number_field_element(f)
             3*a^2 + 2*a + 1
 
         But not this one over a field of order 27.::
@@ -863,10 +863,10 @@ class NumberField_relative(NumberField_generic):
             sage: F27.<g> = GF(27)
             sage: f = F27['z']([g^2, 2*g, 1]); f
             z^2 + 2*g*z + g^2
-            sage: K._coerce_non_number_field_element_in(f)
+            sage: K._convert_non_number_field_element(f)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
+            TypeError: unable to convert z^2 + 2*g*z + g^2 to Number Field in a with defining polynomial x^3 + 2/3
 
         One can also coerce an element of the polynomial quotient ring
         that is isomorphic to the number field::

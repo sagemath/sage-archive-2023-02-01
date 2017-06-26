@@ -10712,7 +10712,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Contract edges from an iterable container. If `e` is an edge that is
         not contracted but the vertices of `e` are merged by contraction of other
-        edges, then `v` will become a loop.
+        edges, then `e` will become a loop.
 
         INPUT:
 

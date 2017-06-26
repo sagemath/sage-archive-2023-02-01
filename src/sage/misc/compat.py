@@ -63,6 +63,8 @@ elif sys.platform == 'darwin':
         finally:
             if orig_dyld_library_path is not None:
                 os.environ['DYLD_LIBRARY_PATH'] = orig_dyld_library_path
+            else:
+                del os.environ['DYLD_LIBRARY_PATH']
 else:
     # On other Unix-like platforms, at least where gcc is available,
     # ctypes.util.find_library works, because it takes into account where gcc

@@ -9,7 +9,7 @@
 cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
-cdef class Parent(category_object.CategoryObject):
+cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef public _element_constructor
     cdef public _convert_method_name
     cdef public bint _element_init_pass_parent

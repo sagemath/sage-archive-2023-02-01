@@ -1734,8 +1734,10 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                         {
                         PyObject* p = lh.v._pyobject;
                         lh.v._pyobject = PyNumber_Add(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr)
+                        if (lh.v._pyobject == nullptr) {
+                                lh.v._pyobject = p;
                                 py_error("numeric operator+=");
+                        }
                         lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
@@ -1789,8 +1791,10 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                         {
                         PyObject* p = lh.v._pyobject;
                         lh.v._pyobject = PyNumber_Subtract(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr)
+                        if (lh.v._pyobject == nullptr) {
+                                lh.v._pyobject = p;
                                 py_error("numeric operator-=");
+                        }
                         lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
@@ -1861,8 +1865,10 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         {
                         PyObject* p = lh.v._pyobject;
                         lh.v._pyobject = PyNumber_Multiply(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr)
+                        if (lh.v._pyobject == nullptr) {
+                                lh.v._pyobject = p;
                                 py_error("numeric operator*=");
+                        }
                         lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
@@ -1964,8 +1970,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                                 Integer(PyInt_AsLong(rh.v._pyobject)));
                                         // I don't 100% understand why I have to incref this, 
                                         // but if I don't, Sage crashes on exit.
-                                        if (lh.v._pyobject == nullptr)
+                                        if (lh.v._pyobject == nullptr) {
+                                                lh.v._pyobject = p;
                                                 py_error("numeric operator/=");
+                                        }
                                         lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(p);
                                         Py_INCREF(lh.v._pyobject);
@@ -1973,8 +1981,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 } else if (PyLong_Check(rh.v._pyobject)) {
                                         PyObject* d = py_funcs.py_integer_from_python_obj(rh.v._pyobject);
                                         lh.v._pyobject = PyNumber_TrueDivide(p, d);
-                                        if (lh.v._pyobject == nullptr)
+                                        if (lh.v._pyobject == nullptr) {
+                                                lh.v._pyobject = p;
                                                 py_error("numeric operator/=");
+                                        }
                                         lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(d);
                                         Py_DECREF(p);
@@ -1984,8 +1994,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         } else if (PyLong_Check(p)) {
                                 PyObject* n = py_funcs.py_integer_from_python_obj(p);
                                 lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
-                                if (lh.v._pyobject == nullptr)
+                                if (lh.v._pyobject == nullptr) {
+                                        lh.v._pyobject = p;
                                         py_error("numeric operator/=");
+                                }
                                 lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
@@ -1998,8 +2010,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         if (PyLong_Check(p)) {
                                 PyObject* n = py_funcs.py_integer_from_python_obj(p);
                                 lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
-                                if (lh.v._pyobject == nullptr)
+                                if (lh.v._pyobject == nullptr) {
+                                        lh.v._pyobject = p;
                                         py_error("numeric operator/=");
+                                }
                                 lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
@@ -2009,8 +2023,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         }
 #endif
                         lh.v._pyobject = PyNumber_TrueDivide(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr)
+                        if (lh.v._pyobject == nullptr) {
+                                lh.v._pyobject = p;
                                 py_error("numeric operator/=");
+                        }
                         lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);

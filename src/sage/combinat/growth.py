@@ -182,6 +182,7 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from copy import copy
 from sage.misc.functional import is_odd
+from sage.graphs.digraph import DiGraph
 
 class GrowthDiagram(SageObject):
     r"""
@@ -348,10 +349,12 @@ class GrowthDiagram(SageObject):
         except AttributeError:
             cls._has_multiple_edges = False
         if cls._has_multiple_edges:
-            return DiGraph([(x,y,e) for k in range(n-1)
-                            for x in cls.vertices(k)
-                            for y in cls.vertices(k+1)
-                            for e in cls._is_P_edge(y, x)], multiedges=True)
+            D = DiGraph([(x,y,e) for k in range(n-1)
+                         for x in cls.vertices(k)
+                         for y in cls.vertices(k+1)
+                         for e in cls._is_P_edge(y, x)], multiedges=True)
+            D.layout_default = D.layout_acyclic
+            return D
         else:
             return Poset(([w for k in range(n) for w in cls.vertices(k)],
                           lambda x,y: cls._is_P_edge(y, x)),
@@ -367,10 +370,12 @@ class GrowthDiagram(SageObject):
         except AttributeError:
             cls._has_multiple_edges = False
         if cls._has_multiple_edges:
-            return DiGraph([(x,y,e) for k in range(n-1)
+            D = DiGraph([(x,y,e) for k in range(n-1)
                             for x in cls.vertices(k)
                             for y in cls.vertices(k+1)
                             for e in cls._is_Q_edge(y, x)], multiedges=True)
+            D.layout_default = D.layout_acyclic
+            return D
         else:
             return Poset(([w for k in range(n) for w in cls.vertices(k)],
                           lambda x,y: cls._is_Q_edge(y, x)),
@@ -1125,7 +1130,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
         sage: GrowthDiagramShiftedShapes([3,4,1,2]).out_labels()
         [[], 1, [1], 2, [2], 3, [3], 1, [3, 1], 0, [2, 1], 0, [2], 0, [1], 0, []]
-    
+
     Check example just before Corollary 3.2 in [Sag1987]_::
 
         sage: G = GrowthDiagramShiftedShapes([2,6,5,1,7,4,3])
@@ -1280,7 +1285,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
                 g = 3
             else:
                 raise NotImplementedError
-        return g, z, h
+        return g, Partition(z), h
 #
 #    @staticmethod
 #    def _backward_rule(y, z, x):

@@ -737,7 +737,7 @@ ex power::eval(int level) const
 						GINAC_ASSERT(num_coeff.is_negative());
 						if (not num_coeff.is_minus_one()) {
 							auto mulp = new mul(mulref);
-							mulp->overall_coeff = *_num1_p;
+							mulp->overall_coeff = *_num_1_p;
 							mulp->setflag(status_flags::dynallocated);
 							mulp->clearflag(status_flags::evaluated);
 							mulp->clearflag(status_flags::hash_calculated);

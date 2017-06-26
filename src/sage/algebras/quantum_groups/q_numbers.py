@@ -1,53 +1,51 @@
 r"""
-q-Numbers
+`q`-Numbers
+
+.. NOTE::
+
+    These are the quantum group `q`-analogs, not the usual `q`-analogs
+    typically used in combinatorics (see :mod:`sage.combinat.q_analogues`).
 """
+
 #*****************************************************************************
-#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>,
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
-
-@cached_function
 def q_number(n, q=None):
     r"""
-    Return the `q`-analogue of the integer `n`.
+    Return the `q`-analog of the integer `n`.
 
     The `q`-number of `n` is given by
 
     .. MATH::
 
-        [n]_q = \frac{q^n - q^{-n}}{q - q^-1} = q^{n-1} + q^{n-3} + \cdots
-        + q^{-n+3} + q^{-n+1}.
+        [n]_q = \frac{q^n - q^{-n}}{q - q^-1}
+        = q^{n-1} + q^{n-3} + \cdots + q^{-n+3} + q^{-n+1}.
 
-    If ``q`` is unspecified, then it defaults to using the generator `q` for
-    a Laurent polynomial ring over the integers.
+    If ``q`` is unspecified, then it defaults to using the generator `q`
+    for a Laurent polynomial ring over the integers.
 
     .. NOTE::
 
-        This is not the "usual" `q`-analogue (or `q`-number) but a variant
-        useful for quantum groups.
+        This is not the "usual" `q`-analog (or `q`-number) but a variant
+        useful for quantum groups. For the other version, see
+        :mod:`sage.combinat.q_analogues`.
 
     INPUT:
 
     - ``n`` -- the value `n` defined above
 
-    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
-      default variable in `\ZZ[q, q^{-1}]`
+    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the variable `q`
 
     EXAMPLES::
 
@@ -80,8 +78,8 @@ def q_number(n, q=None):
 
 
 def q_factorial(n, q=None):
-    """
-    Return the `q`-analogue of the factorial `n!`.
+    r"""
+    Return the `q`-analog of the factorial `n!`.
 
     The `q`-factorial is defined by:
 
@@ -90,22 +88,22 @@ def q_factorial(n, q=None):
         [n]_q! = [n]_q \cdot [n-1]_q \cdots [2]_q \cdot [1]_q
 
     where `[n]_q` denotes the `q`-number defined in
-    :meth:`sage.algebras.quantum_groups.q_numbers.q_number()`.
+    :func:`sage.algebras.quantum_groups.q_numbers.q_number()`.
 
-    If ``q`` is unspecified, then it defaults to using the generator `q` for
-    a Laurent polynomial ring over the integers.
+    If ``q`` is unspecified, then it defaults to using the generator `q`
+    for a Laurent polynomial ring over the integers.
 
     .. NOTE::
 
         This is not the "usual" `q`-factorial but a variant useful
-        for quantum groups.
+        for quantum groups. For the other version, see
+        :mod:`sage.combinat.q_analogues`.
 
     INPUT:
 
     - ``n`` -- the value `n` defined above
 
-    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
-      default variable in `\ZZ[q, q^{-1}]`
+    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the variable `q`
 
     EXAMPLES::
 
@@ -119,7 +117,7 @@ def q_factorial(n, q=None):
         sage: q_factorial(3, p)
         (p^6 + 2*p^4 + 2*p^2 + 1)/p^3
 
-    The `q`-analogue of `n!` is only defined for `n` a nonnegative
+    The `q`-analog of `n!` is only defined for `n` a nonnegative
     integer (:trac:`11411`)::
 
         sage: q_factorial(-2)
@@ -151,14 +149,14 @@ def q_binomial(n, k, q=None):
     .. NOTE::
 
         This is not the "usual" `q`-binomial but a variant useful
-        for quantum groups.
+        for quantum groups. For the other version, see
+        :mod:`sage.combinat.q_analogues`.
 
     INPUT:
 
     - ``n, k`` -- the values, `n` and `k` defined above
 
-    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
-      default variable in `\ZZ[q, q^{-1}]`
+    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the variable `q`
 
     EXAMPLES:
 
@@ -183,11 +181,11 @@ def q_binomial(n, k, q=None):
         ValueError: n must be nonnegative
     """
     # sanity checks
-    if not(n in ZZ and k in ZZ):
+    if not (n in ZZ and k in ZZ):
         raise ValueError("arguments ({}, {}) must be integers".format(n, k))
     if n < 0:
         raise ValueError('n must be nonnegative')
-    if not(0 <= k and k <= n):
+    if not (0 <= k and k <= n):
         return 0
 
     k = min(n - k, k) # Pick the smallest k

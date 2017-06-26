@@ -103,7 +103,7 @@ Numeric evaluation::
     sage: hypergeometric([1, 2, 3], [4, 5, 6], 1/2).n(digits=30)
     1.02573619590133865036584139535
     sage: hypergeometric([5 - 3*I], [3/2, 2 + I, sqrt(2)], 4 + I).n()
-    5.52605111678805 - 7.86331357527544*I
+    5.52605111678803 - 7.86331357527540*I
     sage: hypergeometric((10, 10), (50,), 2.)
     -1705.75733163554 - 356.749986056024*I
 
@@ -168,7 +168,7 @@ from sage.functions.other import sqrt, gamma, real_part
 from sage.functions.log import exp, log
 from sage.functions.trig import sin
 from sage.functions.hyperbolic import cosh, sinh
-from sage.functions.other import erf
+from sage.functions.error import erf
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
 from sage.symbolic.function import BuiltinFunction

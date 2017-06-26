@@ -337,7 +337,8 @@ class Semigroups(CategoryWithAxiom):
                     target not in elements):
                     return
                 if simple:
-                    result.add_edge([source, target])
+                    if source != target:
+                        result.add_edge([source, target])
                 elif side == "twosided":
                     result.add_edge([source, target, (label, side_label)])
                 else:
@@ -397,7 +398,7 @@ class Semigroups(CategoryWithAxiom):
 
             In the following example `M` is a group; however its unit
             does not coincide with that of `R`, so `M` is only a
-            subsemigroup, and we need to specify its unit explictly::
+            subsemigroup, and we need to specify its unit explicitly::
 
                 sage: M = R.subsemigroup([R(5)],
                 ....:     category=Semigroups().Finite().Subobjects() & Groups()); M

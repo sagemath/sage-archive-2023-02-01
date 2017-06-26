@@ -143,15 +143,15 @@ def HeckeAlgebra(M):
 
 def _heckebasis(M):
     r"""
-    Gives a basis of the hecke algebra of M as a ZZ-module
+    Return a basis of the Hecke algebra of M as a ZZ-module.
 
     INPUT:
 
-    - ``M`` - a hecke module
+    - ``M`` -- a Hecke module
 
     OUTPUT:
 
-    - a list of hecke algebra elements represented as matrices
+    a list of Hecke algebra elements represented as matrices
 
     EXAMPLES::
 

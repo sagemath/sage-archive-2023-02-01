@@ -371,7 +371,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         TESTS:
 
-        An element is not invertable if the base ring is not a field
+        An element is not invertible if the base ring is not a field
         (see :trac:`13303`)::
 
             sage: Z16x.<x> = Integers(16)[]

@@ -621,7 +621,7 @@ class InitialForm(SageObject):
 
 def verts_for_normal(normal, poly):
     """
-    Returns the exponents of the vertices of a newton polytope
+    Returns the exponents of the vertices of a Newton polytope
     that make up the supporting hyperplane for the given outward
     normal.
 

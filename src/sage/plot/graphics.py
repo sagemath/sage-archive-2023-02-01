@@ -29,6 +29,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import zip
+from six import integer_types
 
 import os
 from math import isnan
@@ -1025,7 +1026,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, (int, long)) and other == 0:
+        if isinstance(other, integer_types) and other == 0:
             return self
         raise TypeError
 
@@ -3027,14 +3028,15 @@ class Graphics(WithEqualityById, SageObject):
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
+        Save an image representation of self.
 
-        .. Note::
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.  Currently this is implemented by calling
+        the :meth:`save` method of self, passing along all arguments
+        and keywords.
+
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.

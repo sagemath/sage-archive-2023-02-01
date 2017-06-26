@@ -928,7 +928,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def jacobian (self):
         r"""
-        Returns the Jacobian matrix of partial derivitive of this map.
+        Return the Jacobian matrix of partial derivative of this map.
 
         The `(i, j)` entry of the Jacobian matrix is the partial derivative
         `diff(functions[i], variables[j])`.

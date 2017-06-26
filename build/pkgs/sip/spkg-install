@@ -8,7 +8,7 @@ fi
 
 cd src/
 
-python configure.py
+sage-python23 configure.py
 if [ $? -ne 0 ]
 then
     echo "Configuration of sip failed"

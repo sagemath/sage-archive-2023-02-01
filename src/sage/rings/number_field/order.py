@@ -1006,7 +1006,8 @@ class Order(IntegralDomain):
 ##         """
 ##         Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.
 
-##          EXAMPLES:
+##         EXAMPLES::
+
 ##         sage: K.<a, b> = NumberField([x^2 + 1, x^3 + x + 1]); OK = K.maximal_order()
 ##         Traceback (most recent call last):
 ##         ...
@@ -1030,7 +1031,8 @@ class Order(IntegralDomain):
 
 ##         This is used mainly to implement some internal arithmetic.
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: NumberField(x^2 + 1,'a').maximal_order().polynomial_ntl()
 ##             ([1 0 1], 1)
 ##         """

@@ -38,8 +38,8 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import string_types
 
 import os
 import signal
@@ -49,7 +49,6 @@ import time
 import gc
 from . import quit
 from . import cleaner
-import six
 from random import randrange
 
 import pexpect
@@ -169,7 +168,7 @@ class Expect(Interface):
         self.__init_code = init_code
 
         #Handle the log file
-        if isinstance(logfile, six.string_types):
+        if isinstance(logfile, string_types):
             self.__logfile = None
             self.__logfilename = logfile
         else:
@@ -773,9 +772,9 @@ If this all works, you can then make calls like:
             3
 
         """
-        F = open(self._local_tmpfile(), 'w')
-        F.write(line+'\n')
-        F.close()
+        with open(self._local_tmpfile(), 'w') as F:
+            F.write(line + '\n')
+
         tmp_to_use = self._local_tmpfile()
         if self.is_remote():
             self._send_tmpfile_to_server()
@@ -939,7 +938,7 @@ If this all works, you can then make calls like:
 
             if len(line)>0:
                 try:
-                    if isinstance(wait_for_prompt, six.string_types):
+                    if isinstance(wait_for_prompt, string_types):
                         E.expect(wait_for_prompt)
                     else:
                         E.expect(self._prompt)
@@ -1139,16 +1138,14 @@ If this all works, you can then make calls like:
             self.interrupt()
             raise
 
-    def _sendstr(self, str):
+    def _sendstr(self, string):
         r"""
         Send a string to the pexpect interface, autorestarting the expect
         interface if anything goes wrong.
 
         INPUT:
 
-
-        -  ``str`` - a string
-
+        -  ``string`` -- a string
 
         EXAMPLES: We illustrate this function using the R interface::
 
@@ -1167,11 +1164,11 @@ If this all works, you can then make calls like:
         if self._expect is None:
             self._start()
         try:
-            os.write(self._expect.child_fd, str)
+            os.write(self._expect.child_fd, string)
         except OSError:
             self._crash_msg()
             self.quit()
-            self._sendstr(str)
+            self._sendstr(string)
 
     def _crash_msg(self):
         r"""
@@ -1285,7 +1282,7 @@ If this all works, you can then make calls like:
             except AttributeError:
                 pass
 
-        if not isinstance(code, six.string_types):
+        if not isinstance(code, string_types):
             raise TypeError('input code must be a string.')
 
         #Remove extra whitespace
@@ -1376,7 +1373,7 @@ class ExpectElement(InterfaceElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
-        if isinstance(value, six.string_types) and parent._eval_using_file_cutoff and \
+        if isinstance(value, string_types) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 

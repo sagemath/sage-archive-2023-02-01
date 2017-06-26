@@ -121,7 +121,7 @@ from __future__ import print_function
 import copy
 import operator
 import sys
-from sage.structure.sage_object cimport richcmp, Py_NE, Py_EQ
+from sage.structure.richcmp cimport richcmp, Py_NE, Py_EQ
 
 
 cdef class SymmetricReductionStrategy:

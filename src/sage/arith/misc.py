@@ -15,6 +15,7 @@ Miscellaneous arithmetic functions
 
 from __future__ import absolute_import, print_function
 from six.moves import range
+from six import integer_types
 
 import math
 
@@ -1321,7 +1322,7 @@ def divisors(n):
     if not n:
         raise ValueError("n must be nonzero")
 
-    if isinstance(n, (int, long)):
+    if isinstance(n, integer_types):
         n = ZZ(n) # we have specialized code for this case, make sure it gets used
 
     try:
@@ -1773,17 +1774,14 @@ def xkcd(n=""):
 
     INPUT:
 
-    -  ``n`` - an integer (optional)
+    - ``n`` -- an integer (optional)
 
-    OUTPUT:
-
-    This function outputs nothing it just prints something. Note that this
-    function does not feel itself at ease in a html deprived environment.
+    OUTPUT: a fragment of HTML
 
     EXAMPLES::
 
-        sage: xkcd(353) # optional - internet
-        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+        sage: xkcd(353)  # optional - internet
+        <h1>Python</h1><img src="https://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div>
     """
     import contextlib
     import json
@@ -1814,13 +1812,12 @@ def xkcd(n=""):
         alt = data['alt']
         title = data['safe_title']
         link = "http://xkcd.com/{}".format(data['num'])
-        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+        return html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
             + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
-        return
 
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
-    html('<script> alert("Error: -41"); </script>')
+    return html('<script> alert("Error: -41"); </script>')
 
 
 def inverse_mod(a, m):
@@ -2270,7 +2267,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         [4, 3, 5, 7]
 
     """
-    if isinstance(n, (int, long)):
+    if isinstance(n, integer_types):
         n = ZZ(n)
 
     if isinstance(n, Integer):
@@ -2450,7 +2447,7 @@ def is_square(n, root=False):
         sage: is_square(4, True)
         (True, 2)
     """
-    if isinstance(n, (int,long)):
+    if isinstance(n, integer_types):
         n = ZZ(n)
     try:
         if root:
@@ -2507,7 +2504,7 @@ def is_squarefree(n):
         ...
         ArithmeticError: non-principal ideal in factorization
     """
-    if isinstance(n, (int,long)):
+    if isinstance(n, integer_types):
         n = Integer(n)
 
     try:
@@ -2759,7 +2756,7 @@ def crt(a,b,m=None,n=None):
     """
     if isinstance(a, list):
         return CRT_list(a, b)
-    if isinstance(a, (int, long)):
+    if isinstance(a, integer_types):
         a = Integer(a) # otherwise we get an error at (b-a).quo_rem(g)
     g, alpha, beta = XGCD(m, n)
     q, r = (b - a).quo_rem(g)
@@ -3274,7 +3271,7 @@ def multinomial_coefficients(m, n):
     ALGORITHM: The algorithm we implement for computing the multinomial
     coefficients is based on the following result:
 
-    ..math::
+    .. MATH::
 
         \binom{n}{k_1, \cdots, k_m} =
         \frac{k_1+1}{n-k_1}\sum_{i=2}^m \binom{n}{k_1+1, \cdots, k_i-1, \cdots}
@@ -3696,7 +3693,7 @@ class Moebius:
             sage: Moebius().__call__(7)
             -1
         """
-        if isinstance(n, (int, long)):
+        if isinstance(n, integer_types):
             n = ZZ(n)
         elif not isinstance(n, Integer):
             # Use a generic algorithm.
@@ -4221,7 +4218,7 @@ def falling_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer, int, long)) or
+    if (isinstance(a, (Integer,) + integer_types) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x - i) for i in range(a)), z=x.parent().one())
@@ -4316,7 +4313,7 @@ def rising_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer, int, long)) or
+    if (isinstance(a, (Integer,) + integer_types) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x + i) for i in range(a)), z=x.parent().one())

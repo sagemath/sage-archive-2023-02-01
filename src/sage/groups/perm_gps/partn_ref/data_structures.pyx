@@ -29,8 +29,8 @@ REFERENCES:
 from libc.math cimport log, ceil
 from libc.string cimport memcpy, memset
 from libc.stdlib cimport rand
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 
-include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 from sage.rings.integer cimport Integer
 from sage.libs.flint.ulong_extras cimport n_is_prime

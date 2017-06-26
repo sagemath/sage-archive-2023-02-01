@@ -131,6 +131,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 
 from functools import wraps
 
@@ -425,7 +426,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             #Here we need to check if all of the points are integers
             #to make the domain contain all integers up to the max.
             #This is needed for backward compatibility
-            if all(isinstance(p, (Integer, int, long)) for p in domain):
+            if all(isinstance(p, (Integer,) + integer_types) for p in domain):
                 domain = list(range(min([1] + domain), max([1] + domain)+1))
 
         if domain not in FiniteEnumeratedSets():
@@ -666,7 +667,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         except AttributeError:
             pass
 
-        if isinstance(x, (int, long, Integer)) and x == 1:
+        if isinstance(x, integer_types + (Integer,)) and x == 1:
             return self.identity()
 
         return self._element_class()(x, self, check=check)

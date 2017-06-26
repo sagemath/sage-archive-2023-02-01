@@ -53,15 +53,17 @@ AUTHORS:
 - Volker Braun (2013-06-22): Rewrite
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-########################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
@@ -70,6 +72,7 @@ from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
 
 
+@richcmp_method
 class InternalRealInterval(UniqueRepresentation, Parent):
     """
     A real interval.
@@ -295,7 +298,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         """
         return not self._upper_closed
                 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Intervals are sorted by lower bound, then upper bound
 
@@ -321,8 +324,9 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: RealSet((0, 1),[1, 1],(1, 2))
             (0, 2)
         """
-        return cmp([self._lower, not self._lower_closed, self._upper, self._upper_closed],
-                   [other._lower, not other._lower_closed, other._upper, other._upper_closed])
+        x = (self._lower, not self._lower_closed, self._upper, self._upper_closed)
+        y = (other._lower, not other._lower_closed, other._upper, other._upper_closed)
+        return richcmp(x, y, op)
         
     element_class = LazyFieldElement
 
@@ -599,6 +603,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         return False
 
 
+@richcmp_method
 class RealSet(UniqueRepresentation, Parent):
 
     @staticmethod
@@ -679,7 +684,7 @@ class RealSet(UniqueRepresentation, Parent):
         Parent.__init__(self, category = Sets())
         self._intervals = intervals
     
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Intervals are sorted by lower bound, then upper bound
 
@@ -700,9 +705,11 @@ class RealSet(UniqueRepresentation, Parent):
              sage: I1 == I1
              True
         """
+        if not isinstance(other, RealSet):
+            return NotImplemented
         # note that the interval representation is normalized into a
         # unique form
-        return cmp(self._intervals, other._intervals)
+        return richcmp(self._intervals, other._intervals, op)
 
     def __iter__(self):
         """

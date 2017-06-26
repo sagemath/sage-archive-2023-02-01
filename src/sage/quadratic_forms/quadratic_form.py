@@ -1158,11 +1158,11 @@ class QuadraticForm(SageObject):
 
     def polynomial(self,names='x'):
         r"""
-        Returns the polynomial in 'n' variables of the quadratic form in the ring 'R[names].'
+        Return the polynomial in 'n' variables of the quadratic form in the ring 'R[names].'
 
         INPUT:
 
-            -'self' - a quadratic form over a commatitive ring.
+            -'self' - a quadratic form over a commutative ring.
             -'names' - the name of the variables. Digits will be appended to the name for each different canonical
             variable e.g x1, x2, x3 etc.
 

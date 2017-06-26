@@ -32,7 +32,7 @@ algorithm in that paper:
 
 The best description of the algorithms used (other than this source
 code itself) is in the slides for my Sage Days 4 talk, currently available
-from http://www.sagemath.org:9001/days4schedule .
+from https://wiki.sagemath.org/days4schedule .
 """
 
 ################################################################################

@@ -28,6 +28,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.memory cimport check_realloc
+from cysignals.signals cimport sig_on, sig_off
+
 ## Define an environment variable that enables MeatAxe to find
 ## its multiplication tables.
 
@@ -57,8 +60,6 @@ from libc.stdlib cimport free
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
-
-include "cysignals/memory.pxi"
 
 ####################
 #
@@ -601,7 +602,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         Get an element without checking.
 
-        TEST::
+        TESTS::
 
             sage: F.<z> = GF(9)
             sage: M = MatrixSpace(F,3)(sorted(list(F)))
@@ -1112,7 +1113,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("The matrix must not be empty")
         return self._lmul_(self._base_ring(-1))
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 

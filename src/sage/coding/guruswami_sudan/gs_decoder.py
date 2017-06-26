@@ -425,7 +425,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             - ``s`` is the multiplicity parameter, and
             - ``l`` is the list size parameter.
 
-        ..NOTE::
+        .. NOTE::
 
             One has to provide either ``C`` or ``(n, k)``. If neither or both
             are given, an exception will be raised.
@@ -489,7 +489,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         - ``n_k`` -- (default: ``None``) a tuple of integers, respectively the
           length and the dimension of the :class:`GeneralizedReedSolomonCode`
 
-        ..NOTE::
+        .. NOTE::
 
             One has to provide either ``C`` or ``(n, k)``. If none or both are
             given, an exception will be raised.

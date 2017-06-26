@@ -19,9 +19,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
 import sage.calculus.interpolation
 

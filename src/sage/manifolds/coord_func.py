@@ -71,7 +71,7 @@ class CoordFunction(AlgebraElement):
         r"""
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -300,9 +300,11 @@ class CoordFunction(AlgebraElement):
         """
 
     @abstract_method
-    def is_zero(self):
+    def __bool__(self):
         r"""
-        Return ``True`` if the function is zero and ``False`` otherwise.
+        Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
+
+        This method is called by :meth:`~sage.structure.element.Element.is_zero()`.
 
         TESTS:
 
@@ -313,10 +315,10 @@ class CoordFunction(AlgebraElement):
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X.function_ring())
-            sage: f.is_zero()
+            sage: f.__bool__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: <abstract method is_zero at 0x...>
+            NotImplementedError: <abstract method __bool__ at 0x...>
 
         """
 

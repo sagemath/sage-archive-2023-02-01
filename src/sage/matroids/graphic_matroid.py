@@ -53,8 +53,6 @@ class GraphicMatroid(Matroid):
 
         self._groundset = groundset_set
 
-        #Map ground set elements to graph edges:
-        self._groundset_edge_map = {x: y for (x,y) in zip(groundset, G.edges(labels=False))}
         #Construct a graph and assign edge labels corresponding to the ground set
         edge_list = []
         for i, e in enumerate(G.edges()):
@@ -70,8 +68,12 @@ class GraphicMatroid(Matroid):
             v1 = random.choice(comps[0])
             v2 = random.choice(comps[1])
             self._G.add_edge((v1, v2, None))
-            self._G.add_edge((v1, v2, None))
             contract_edge(self._G, (v1, v2, None))
+
+        # Map ground set elements to graph edges:
+        # The the edge labels should already be the elements.
+        self._groundset_edge_map = ({l: (u, v) for
+            (u, v, l) in self._G.edges()})
 
     #COPYING, LOADING, SAVING
 
@@ -98,16 +100,37 @@ class GraphicMatroid(Matroid):
         OUTPUT:
 
         The rank of `X` in the matroid.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: edgelist = [(0,0,0), (0,1,1), (0,2,2), (0,3,3), (1,2,4), (1,3,5)]
+            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.rank([0])
+            0
+            sage: M.rank([1,2])
+            2
+            sage: M.rank([1,2,4])
+            2
+            sage: M.rank(M.groundset()) == M.full_rank()
+            True
+            sage: edgelist = [(0,0,0), (1,2,1), (1,2,2), (2,3,3)]
+            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.rank(M.groundset())
+            2
+            sage: M.rank([0,3])
+            1
+
         """
-        #we get ValueErrors if loops and multiedges are not enabled
-        self._H = Graph(loops=True, multiedges=True)
-
-        for x in X:
-            self._H.add_edge(self._groundset_edge_map[x])
-            if not self._H.is_forest():
-                self._H.delete_edge(self._groundset_edge_map[x])
-
-        return len(self._H.edges())
+        edges = self.groundset_to_edges(X)
+        vertices = set([u for (u, v, l) in edges]).union(
+            set([v for (u, v, l) in edges]))
+        # This counts components:
+        from sage.sets.disjoint_set import DisjointSet
+        DS_vertices = DisjointSet(vertices)
+        for (u, v, l) in edges:
+            DS_vertices.union(u,v)
+        return (len(vertices) - DS_vertices.number_of_subsets())
 
     def groundset(self):
         """

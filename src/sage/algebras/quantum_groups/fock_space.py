@@ -30,7 +30,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.partition import (Partition, _Partitions,
+from sage.combinat.partition import (_Partitions, Partitions,
                                      RegularPartitions_truncated)
 from sage.combinat.partition_tuple import PartitionTuples
 from sage.algebras.quantum_groups.q_numbers import q_factorial
@@ -159,7 +159,7 @@ class FockSpace(Parent, UniqueRepresentation):
         G(\nu) = \sum_{\lambda \vdash |\nu|} d_{\lambda,\nu} |\lambda \rangle
 
     described the decomposition matrices of the Hecke algebras when
-    restricting to `V(\mu)` [Ariki96]_.
+    restricting to `V(\mu)` [Ariki1996]_.
 
     To go between the canonical basis and the natural basis, for level 1
     Fock space, we follow the LLT algorithm [LLT1996]_. Indeed, we first
@@ -170,36 +170,145 @@ class FockSpace(Parent, UniqueRepresentation):
     where the higher level is considered as a tensor product space
     of the corresponding level 1 Fock spaces.
 
+    There are three bases currently implemented:
+
+    - The natural basis:
+      :class:~sage.algebras.quantum_groups.fock_space.FockSpace.F`.
+    - The approximation basis that comes from LLT(-type) algorithms:
+      :class:~sage.algebras.quantum_groups.fock_space.FockSpace.A`.
+    - The lower global crystal basis:
+      :class:~sage.algebras.quantum_groups.fock_space.FockSpace.G`.
+
     .. TODO::
 
         - Implement the approximation and lower global crystal bases on
           all partition tuples.
         - Implement the bar involution.
-        - Implement the full `U_q(\widehat{\mathfrak{g}})`-action.
+        - Implement the full `U_q(\widehat{\mathfrak{gl}})`-action.
 
     INPUT:
 
     - ``n`` -- the value `n`
-    - ``multicharge`` -- (default: `[0]`) the multicharge
+    - ``multicharge`` -- (default: ``[0]``) the multicharge
     - ``q`` -- (optional) the parameter `q`
     - ``base_ring`` -- (optional) the base ring containing ``q``
 
+    EXAMPLES:
+
+    We start by constructing the natural basis and doing
+    some computations::
+
+        sage: Fock = FockSpace(3)
+        sage: F = Fock.natural()
+        sage: u = F.highest_weight_vector()
+        sage: u.f(0,2,(1,2),0)
+        |2, 2, 1> + q*|2, 1, 1, 1>
+        sage: u.f(0,2,(1,2),0,2)
+        |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>
+        sage: x = u.f(0,2,(1,2),0,2)
+        sage: [x.h(i) for i in range(3)]
+        [q*|3, 2, 1> + q^2*|3, 1, 1, 1> + q^2*|2, 2, 2> + q^3*|2, 1, 1, 1, 1>,
+         |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>,
+         |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>]
+        sage: [x.hi(i) for i in range(3)]
+        [1/q*|3, 2, 1> + |3, 1, 1, 1> + |2, 2, 2> + q*|2, 1, 1, 1, 1>,
+         |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>,
+         |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>]
+        sage: x.d()
+        1/q^2*|3, 2, 1> + 1/q*|3, 1, 1, 1> + 1/q*|2, 2, 2> + |2, 1, 1, 1, 1>
+
+    Next, we construct the approximation and lower global crystal bases
+    and convert to the natural basis::
+
+        sage: A = Fock.A()
+        sage: G = Fock.G()
+        sage: F(A[4,2,2,1])
+        |4, 2, 2, 1> + q*|4, 2, 1, 1, 1>
+        sage: F(G[4,2,2,1])
+        |4, 2, 2, 1> + q*|4, 2, 1, 1, 1>
+        sage: F(A[7,3,2,1,1])
+        |7, 3, 2, 1, 1> + q*|7, 2, 2, 2, 1> + q^2*|7, 2, 2, 1, 1, 1>
+         + q*|6, 3, 3, 1, 1> + q^2*|6, 2, 2, 2, 2> + q^3*|6, 2, 2, 1, 1, 1, 1>
+         + q*|5, 5, 2, 1, 1> + q^2*|5, 4, 3, 1, 1> + (q^2+1)*|4, 4, 3, 2, 1>
+         + (q^3+q)*|4, 4, 3, 1, 1, 1> + (q^3+q)*|4, 4, 2, 2, 2>
+         + (q^4+q^2)*|4, 4, 2, 1, 1, 1, 1> + q*|4, 3, 3, 3, 1>
+         + q^2*|4, 3, 2, 1, 1, 1, 1, 1> + q^2*|4, 2, 2, 2, 2, 2>
+         + q^3*|4, 2, 2, 2, 1, 1, 1, 1> + q^2*|3, 3, 3, 3, 2>
+         + q^3*|3, 3, 3, 1, 1, 1, 1, 1> + q^3*|3, 2, 2, 2, 2, 2, 1>
+         + q^4*|3, 2, 2, 2, 2, 1, 1, 1>
+        sage: F(G[7,3,2,1,1])
+        |7, 3, 2, 1, 1> + q*|7, 2, 2, 2, 1> + q^2*|7, 2, 2, 1, 1, 1>
+         + q*|6, 3, 3, 1, 1> + q^2*|6, 2, 2, 2, 2>
+         + q^3*|6, 2, 2, 1, 1, 1, 1> + q*|5, 5, 2, 1, 1>
+         + q^2*|5, 4, 3, 1, 1> + q^2*|4, 4, 3, 2, 1>
+         + q^3*|4, 4, 3, 1, 1, 1> + q^3*|4, 4, 2, 2, 2>
+         + q^4*|4, 4, 2, 1, 1, 1, 1>
+        sage: A(F(G[7,3,2,1,1]))
+        A[7, 3, 2, 1, 1] - A[4, 4, 3, 2, 1]
+        sage: G(F(A[7,3,2,1,1]))
+        G[7, 3, 2, 1, 1] + G[4, 4, 3, 2, 1]
+        sage: A(F(G[8,4,3,2,2,1]))
+        A[8, 4, 3, 2, 2, 1] - A[6, 4, 4, 2, 2, 1, 1] - A[5, 5, 4, 3, 2, 1]
+         + ((-q^2-1)/q)*A[5, 4, 4, 3, 2, 1, 1]
+        sage: G(F(A[8,4,3,2,2,1]))
+        G[8, 4, 3, 2, 2, 1] + G[6, 4, 4, 2, 2, 1, 1] + G[5, 5, 4, 3, 2, 1]
+         + ((q^2+1)/q)*G[5, 4, 4, 3, 2, 1, 1]
+
+    We can also construct higher level Fock spaces and perform
+    similar computations::
+
+        sage: Fock = FockSpace(3, [1,0])
+        sage: F = Fock.natural()
+        sage: A = Fock.A()
+        sage: G = Fock.G()
+        sage: F(G[[2,1],[4,1,1]])
+        |[2, 1], [4, 1, 1]> + q*|[2, 1], [3, 2, 1]>
+         + q^2*|[2, 1], [3, 1, 1, 1]> + q^2*|[2], [4, 2, 1]>
+         + q^3*|[2], [4, 1, 1, 1]> + q^4*|[2], [3, 2, 1, 1]>
+         + q*|[1, 1, 1], [4, 1, 1]> + q^2*|[1, 1, 1], [3, 2, 1]>
+         + q^3*|[1, 1, 1], [3, 1, 1, 1]> + q^2*|[1, 1], [3, 2, 2]>
+         + q^3*|[1, 1], [3, 1, 1, 1, 1]> + q^3*|[1], [4, 2, 2]>
+         + q^4*|[1], [4, 1, 1, 1, 1]> + q^4*|[1], [3, 2, 2, 1]>
+         + q^5*|[1], [3, 2, 1, 1, 1]>
+        sage: A(F(G[[2,1],[4,1,1]]))
+        A([2, 1], [4, 1, 1]) - A([2], [4, 2, 1])
+        sage: G(F(A[[2,1],[4,1,1]]))
+        G([2, 1], [4, 1, 1]) + G([2], [4, 2, 1])
+
+    For level `0`, the truncated Fock space of [GW1999]_
+    is implemented. This can be used to improve the speed
+    of the computation of the lower global crystal basis
+    proved the truncation is not too small::
+
+        sage: FS = FockSpace(2)
+        sage: F = FS.natural()
+        sage: G = FS.G()
+        sage: FS3 = FockSpace(2, truncated=3)
+        sage: F3 = FS3.natural()
+        sage: G3 = FS3.G()
+        sage: F(G[6,2,1])
+        |6, 2, 1> + q*|5, 3, 1> + q^2*|5, 2, 2> + q^3*|5, 2, 1, 1>
+         + q*|4, 2, 1, 1, 1> + q^2*|3, 3, 1, 1, 1> + q^3*|3, 2, 2, 1, 1>
+         + q^4*|3, 2, 1, 1, 1, 1>
+        sage: F3(G3[6,2,1])
+        |6, 2, 1> + q*|5, 3, 1> + q^2*|5, 2, 2>
+        sage: FS5 = FockSpace(2, truncated=5)
+        sage: F5 = FS5.natural()
+        sage: G5 = FS5.G()
+        sage: F5(G5[6,2,1])
+        |6, 2, 1> + q*|5, 3, 1> + q^2*|5, 2, 2> + q^3*|5, 2, 1, 1>
+         + q*|4, 2, 1, 1, 1> + q^2*|3, 3, 1, 1, 1> + q^3*|3, 2, 2, 1, 1>
+
     REFERENCES:
 
-    .. [Ariki96] Susumu Ariki.
-       *On the decomposition numbers of the Hecke algebra of* `G(m,1,n)`.
-       J. Math. Kyoto Univ. **36** (1996). pp 789--808.
-
-    .. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
-       *Hecke algebras at roots of unity and crystal bases of quantum affine
-       algebras*. Commun. Math. Phys. **181** (1996). pp 205-263.
-
-    .. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
-       higher-level canonical bases*. (2010). :arxiv:`0908.1749v3`.
+    - [Ariki1996]_
+    - [LLT1996]_
+    - [Fayers2010]_
+    - [GW1999]_
     """
     @staticmethod
     def __classcall_private__(cls, n, multicharge=[0], q=None, base_ring=None, truncated=None):
-        """
+        r"""
         Standardize input to ensure a unique representation.
 
         EXAMPLES::
@@ -227,7 +336,7 @@ class FockSpace(Parent, UniqueRepresentation):
         return super(FockSpace, cls).__classcall__(cls, n, multicharge, q, base_ring)
 
     def __init__(self, n, multicharge, q, base_ring):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
@@ -240,12 +349,13 @@ class FockSpace(Parent, UniqueRepresentation):
         self._n = n
         self._q = q
         self._multicharge = multicharge
+        self._index_set = set(range(n))
         cat = ModulesWithBasis(base_ring).WithRealizations()
         Parent.__init__(self, base=base_ring, category=cat)
         self._realizations = [self.natural(), self.A(), self.G()]
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -257,7 +367,8 @@ class FockSpace(Parent, UniqueRepresentation):
             Fock space of rank 4 of multicharge (2, 0, 1) over Fraction Field
              of Univariate Polynomial Ring in q over Integer Ring
         """
-        return "Fock space of rank {} of multicharge {} over {}".format(self._n, self._multicharge, self.base_ring())
+        return "Fock space of rank {} of multicharge {} over {}".format(
+                        self._n, self._multicharge, self.base_ring())
 
     def _latex_(self):
         r"""
@@ -279,7 +390,7 @@ class FockSpace(Parent, UniqueRepresentation):
     options = FockSpaceOptions
 
     def q(self):
-        """
+        r"""
         Return the parameter `q` of ``self``.
 
         EXAMPLES::
@@ -295,7 +406,7 @@ class FockSpace(Parent, UniqueRepresentation):
         return self._q
 
     def multicharge(self):
-        """
+        r"""
         Return the multicharge of ``self``.
 
         EXAMPLES::
@@ -311,7 +422,7 @@ class FockSpace(Parent, UniqueRepresentation):
         return self._multicharge
 
     def a_realization(self):
-        """
+        r"""
         Return a realization of ``self``.
 
         EXAMPLES::
@@ -325,8 +436,8 @@ class FockSpace(Parent, UniqueRepresentation):
         return self.natural()
 
     def inject_shorthands(self, verbose=True):
-        """
-        Imports standard shorthands into the global namespace
+        r"""
+        Import standard shorthands into the global namespace.
 
         INPUT:
 
@@ -358,8 +469,8 @@ class FockSpace(Parent, UniqueRepresentation):
             inject_variable(shorthand, realization)
 
     def highest_weight_vector(self):
-        """
-        Return the module generator of ``self``.
+        r"""
+        Return the module generator of ``self`` in the natural basis.
 
         EXAMPLES::
 
@@ -373,7 +484,7 @@ class FockSpace(Parent, UniqueRepresentation):
         return self.natural().highest_weight_vector()
 
     def __getitem__(self, i):
-        """
+        r"""
         Return the basis element indexed by ``i``.
 
         INPUT:
@@ -399,8 +510,49 @@ class FockSpace(Parent, UniqueRepresentation):
         return self.natural()[i]
 
     class F(CombinatorialFreeModule, BindableClass):
-        """
+        r"""
         The natural basis of the Fock space.
+
+        This is the basis indexed by partitions. This has an action
+        of the quantum group `U_q(\widetilde{\mathfrak{sl}}_n)`
+        described in
+        :class:`~sage.algebras.quantum_groups.fock_space.FockSpace`.
+
+        EXAMPLES:
+
+        We construct the natural basis and perform some computations::
+
+            sage: F = FockSpace(4).natural()
+            sage: q = F.q()
+            sage: u = F.highest_weight_vector()
+            sage: u
+            |>
+            sage: u.f(0,1,2)
+            |3>
+            sage: u.f(0,1,3)
+            |2, 1>
+            sage: u.f(0,1,2,0)
+            0
+            sage: u.f(0,1,3,2)
+            |3, 1> + q*|2, 1, 1>
+            sage: u.f(0,1,2,3)
+            |4> + q*|3, 1>
+            sage: u.f(0,1,3,2,2,0)
+            ((q^2+1)/q)*|3, 2, 1>
+            sage: x = (q^4 * u + u.f(0,1,3,(2,2)))
+            sage: x
+            |3, 1, 1> + q^4*|>
+            sage: x.f(0,1,3)
+            |4, 3, 1> + q*|4, 2, 1, 1> + q*|3, 3, 2>
+             + q^2*|3, 2, 2, 1> + q^4*|2, 1>
+            sage: x.hi(2)
+            q^2*|3, 1, 1> + q^4*|>
+            sage: x.hi(0)
+            1/q*|3, 1, 1> + q^3*|>
+            sage: x.d()
+            1/q*|3, 1, 1> + q^4*|>
+            sage: x.e(2)
+            |3, 1> + q*|2, 1, 1>
         """
         def __init__(self, F):
             """
@@ -409,7 +561,7 @@ class FockSpace(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: F = FockSpace(2).natural()
-                sage: TestSuite(F).run()
+                sage: TestSuite(F).run()  # long time
             """
             self._basis_name = "natural"
             # If the cell x is above the cell y
@@ -434,7 +586,7 @@ class FockSpace(Parent, UniqueRepresentation):
         options = FockSpaceOptions
 
         def _repr_term(self, m):
-            """
+            r"""
             Return a representation of the monomial indexed by ``m``.
 
             EXAMPLES::
@@ -457,7 +609,7 @@ class FockSpace(Parent, UniqueRepresentation):
             return '|' + m._repr_list()[1:-1] + ">" # Strip the outer brackets of m
 
         def _ascii_art_term(self, m):
-            """
+            r"""
             Return a representation of the monomial indexed by ``m``.
 
             EXAMPLES::
@@ -520,12 +672,58 @@ class FockSpace(Parent, UniqueRepresentation):
             ret._baseline = h - 1
             return ret
 
+        def _test_representation(self, **options):
+            r"""
+            Test that ``self`` is a
+            `U_q(\widehat{\mathfrak{sl}}_n)`-representation.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3, [0,1]).natural()
+                sage: F._test_representation()  # long time
+            """
+            from sage.combinat.root_system.cartan_matrix import CartanMatrix
+            from sage.combinat.root_system.root_system import RootSystem
+            from sage.algebras.quantum_groups.q_numbers import q_binomial
+
+            tester = self._tester(**options)
+            F = self.realization_of()
+            q = F.q()
+            n = F._n
+            I = F._index_set
+            A = CartanMatrix(['A',n-1,1])
+            P = RootSystem(['A',n-1,1]).weight_lattice()
+            al = P.simple_roots()
+            ac = P.simple_coroots()
+            zero = self.zero()
+            for x in self.some_elements():
+                for i in I:
+                    for j in I:
+                        tester.assertEqual(x.hi(j).f(i).h(j), q**-al[i].scalar(ac[j]) * x.f(i))
+                        tester.assertEqual(x.hi(j).e(i).h(j), q**al[i].scalar(ac[j]) * x.e(i))
+                        if i == j:
+                            tester.assertEqual(x.f(i).e(i) - x.e(i).f(i),
+                                               (x.h(i) - x.hi(i)) / (q - q**-1))
+                            continue
+                        tester.assertEqual(x.f(j).e(i) - x.e(i).f(j), zero)
+                        aij = A[i,j]
+                        tester.assertEqual(zero,
+                                           sum((-1)**k
+                                           * q_binomial(1-aij, k, q)
+                                           * x.e(*([i]*(1-aij-k) + [j] + [i]*k))
+                                           for k in range(1-aij+1)))
+                        tester.assertEqual(zero,
+                                           sum((-1)**k
+                                           * q_binomial(1-aij, k, q)
+                                           * x.f(*([i]*(1-aij-k) + [j] + [i]*k))
+                                           for k in range(1-aij+1)))
+
         class Element(CombinatorialFreeModule.Element):
             """
             An element in the Fock space.
             """
             def _e(self, i):
-                """
+                r"""
                 Apply `e_i` to ``self``.
 
                 EXAMPLES::
@@ -551,9 +749,9 @@ class FockSpace(Parent, UniqueRepresentation):
                                       for la,c in self for x in P._removable(la, i))
 
             def e(self, *data):
-                """
-                Apply the action of the divided difference operator `e_i^{(p)}`
-                on ``self``.
+                r"""
+                Apply the action of the divided difference operator
+                `e_i^{(p)}` on ``self``.
 
                 INPUT:
 
@@ -599,7 +797,7 @@ class FockSpace(Parent, UniqueRepresentation):
                 """
                 ret = self
                 q = self.parent().realization_of()._q
-                I = set(range(self.parent().realization_of()._n))
+                I = self.parent().realization_of()._index_set
                 for i in data:
                     if isinstance(i, tuple):
                         i, p = i
@@ -615,7 +813,7 @@ class FockSpace(Parent, UniqueRepresentation):
                 return ret
 
             def _f(self, i):
-                """
+                r"""
                 Apply `f_i` to ``self``.
 
                 EXAMPLES::
@@ -646,9 +844,9 @@ class FockSpace(Parent, UniqueRepresentation):
                                        for la,c in self for x in P._addable(la, i) )
 
             def f(self, *data):
-                """
-                Apply the action of the divided difference operator `f_i^{(p)}`
-                on ``self``.
+                r"""
+                Apply the action of the divided difference operator
+                `f_i^{(p)}` on ``self``.
 
                 INPUT:
 
@@ -692,7 +890,7 @@ class FockSpace(Parent, UniqueRepresentation):
                 """
                 ret = self
                 q = self.parent().realization_of()._q
-                I = set(range(self.parent().realization_of()._n))
+                I = self.parent().realization_of()._index_set
                 for i in data:
                     if isinstance(i, tuple):
                         i, p = i
@@ -708,7 +906,7 @@ class FockSpace(Parent, UniqueRepresentation):
                 return ret
 
             def h(self, *data):
-                """
+                r"""
                 Apply the action of `h_i` on ``self``.
 
                 EXAMPLES::
@@ -733,19 +931,54 @@ class FockSpace(Parent, UniqueRepresentation):
                     q*|[2, 1], [1], [2]>
                 """
                 P = self.parent()
-                N_i = lambda la, i: len(P._addable(la, i)) - len(P._removable(la, i))
                 q = P.realization_of()._q
-                I = set(range(self.parent().realization_of()._n))
+                I = self.parent().realization_of()._index_set
                 d = self.monomial_coefficients(copy=True)
                 for i in data:
                     if i not in I:
                         raise ValueError("{} not in the index set".format(i))
                     for la in d:
-                        d[la] *= q**N_i(la, i)
+                        d[la] *= q**(len(P._addable(la, i)) - len(P._removable(la, i)))
+                return P._from_dict(d, coerce=False)
+
+            def hi(self, *data):
+                r"""
+                Apply the action of `h_i^{-1}` on ``self``.
+
+                EXAMPLES::
+
+                    sage: F = FockSpace(2)
+                    sage: F[2,1,1].hi(0)
+                    1/q*|2, 1, 1>
+                    sage: F[2,1,1].hi(1)
+                    |2, 1, 1>
+                    sage: F[2,1,1].hi(0, 0)
+                    1/q^2*|2, 1, 1>
+
+                    sage: F = FockSpace(4, [2,0,1])
+                    sage: elt = F[[2,1],[1],[2]]
+                    sage: elt.hi(0)
+                    1/q^2*|[2, 1], [1], [2]>
+                    sage: elt.hi(1)
+                    |[2, 1], [1], [2]>
+                    sage: elt.hi(2)
+                    |[2, 1], [1], [2]>
+                    sage: elt.hi(3)
+                    1/q*|[2, 1], [1], [2]>
+                """
+                P = self.parent()
+                q = P.realization_of()._q
+                I = self.parent().realization_of()._index_set
+                d = self.monomial_coefficients(copy=True)
+                for i in data:
+                    if i not in I:
+                        raise ValueError("{} not in the index set".format(i))
+                    for la in d:
+                        d[la] *= q**-(len(P._addable(la, i)) - len(P._removable(la, i)))
                 return P._from_dict(d, coerce=False)
 
             def d(self):
-                """
+                r"""
                 Apply the action of `d` on ``self``.
 
                 EXAMPLES::
@@ -779,8 +1012,17 @@ class FockSpace(Parent, UniqueRepresentation):
 
     class A(CombinatorialFreeModule, BindableClass):
         r"""
-        The `A` basis of the Fock space which is the approximation of the
-        lower global crystal basis.
+        The `A` basis of the Fock space which is the approximation
+        of the lower global crystal basis.
+
+        The approximation basis `A` is a basis that is constructed
+        from the highest weight element by applying divided
+        difference operators using the ladder construction of
+        [LLT1996]_ and [GW1999]_. Thus, this basis is bar invariant
+        and upper unitriangular (using dominance order on partitions)
+        when expressed in the natural basis. This basis is then
+        converted to the lower global crystal basis by using
+        Gaussian elemination.
 
         EXAMPLES:
 
@@ -808,13 +1050,15 @@ class FockSpace(Parent, UniqueRepresentation):
             |[2, 1], [1]> + q*|[2], [2]> + q^2*|[2], [1, 1]> + q^2*|[1, 1], [2]>
              + q^3*|[1, 1], [1, 1]> + q^4*|[1], [2, 1]>
             sage: F(A[[4],[]])
-            |[4], []> + q*|[3, 1], []> + q*|[2, 1, 1], []> + (q^2+1)*|[2, 1], [1]>
-             + 2*q*|[2], [2]> + 2*q^2*|[2], [1, 1]> + q^2*|[1, 1, 1, 1], []>
-             + 2*q^2*|[1, 1], [2]> + 2*q^3*|[1, 1], [1, 1]> + (q^4+q^2)*|[1], [2, 1]>
-             + q^2*|[], [4]> + q^3*|[], [3, 1]> + q^3*|[], [2, 1, 1]> + q^4*|[], [1, 1, 1, 1]>
+            |[4], []> + q*|[3, 1], []> + q*|[2, 1, 1], []>
+             + (q^2+1)*|[2, 1], [1]> + 2*q*|[2], [2]> + 2*q^2*|[2], [1, 1]>
+             + q^2*|[1, 1, 1, 1], []> + 2*q^2*|[1, 1], [2]>
+             + 2*q^3*|[1, 1], [1, 1]> + (q^4+q^2)*|[1], [2, 1]>
+             + q^2*|[], [4]> + q^3*|[], [3, 1]> + q^3*|[], [2, 1, 1]>
+             + q^4*|[], [1, 1, 1, 1]>
         """
         def __init__(self, F):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
@@ -837,7 +1081,7 @@ class FockSpace(Parent, UniqueRepresentation):
 
         @cached_method
         def _A_to_fock_basis(self, la):
-            """
+            r"""
             Return the `A` basis indexed by ``la`` in the natural basis.
 
             EXAMPLES::
@@ -877,10 +1121,12 @@ class FockSpace(Parent, UniqueRepresentation):
                     Gp = F.G()
                     if k + 1 == len(R._multicharge):
                         cur = Gp._G_to_fock_basis(Gp._indices(la[k]))
-                        cur = fock.sum_of_terms((fock._indices([[]]*k + [p]), c) for p,c in cur)
+                        cur = fock.sum_of_terms((fock._indices([[]]*k + [p]), c)
+                                                for p,c in cur)
                     else:
                         cur = Gp._G_to_fock_basis(Gp._indices(la[k:]))
-                        cur = fock.sum_of_terms((fock._indices([[]]*k + list(pt)), c) for pt,c in cur)
+                        cur = fock.sum_of_terms((fock._indices([[]]*k + list(pt)), c)
+                                                for pt,c in cur)
                 la = la[k-1]
                 r = R._multicharge[k-1]
             else:
@@ -893,7 +1139,8 @@ class FockSpace(Parent, UniqueRepresentation):
             q = R._q
             k = R._n - 1 # This is sl_{k+1}
             b = ZZ.zero()
-            while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
+            # While there is some cell left to count
+            while any(c[1]*k + c[0] >= b for c in corners):
                 power = 0
                 i = -b + r # This will be converted to a mod n number
                 for x in range(0, b // k + 1):
@@ -907,7 +1154,7 @@ class FockSpace(Parent, UniqueRepresentation):
     approximation = A
 
     class G(CombinatorialFreeModule, BindableClass):
-        """
+        r"""
         The lower global crystal basis living inside of Fock space.
 
         EXAMPLES:
@@ -931,7 +1178,8 @@ class FockSpace(Parent, UniqueRepresentation):
             sage: F(G[5])
             |5> + q*|3, 1, 1> + q^2*|1, 1, 1, 1, 1>
             sage: F(G[4,2])
-            |4, 2> + q*|4, 1, 1> + q*|3, 3> + q^2*|3, 1, 1, 1> + q^2*|2, 2, 2> + q^3*|2, 2, 1, 1>
+            |4, 2> + q*|4, 1, 1> + q*|3, 3> + q^2*|3, 1, 1, 1>
+             + q^2*|2, 2, 2> + q^3*|2, 2, 1, 1>
             sage: F(G[4,2,1])
             |4, 2, 1> + q*|3, 3, 1> + q^2*|3, 2, 2> + q^3*|3, 2, 1, 1>
             sage: F(G[6,2])
@@ -949,13 +1197,15 @@ class FockSpace(Parent, UniqueRepresentation):
             |7, 2, 1> + q*|5, 2, 1, 1, 1> + q^2*|3, 2, 1, 1, 1, 1, 1>
             sage: F(G[10,1])
             |10, 1> + q*|8, 1, 1, 1> + q^2*|6, 1, 1, 1, 1, 1>
-             + q^3*|4, 1, 1, 1, 1, 1, 1, 1> + q^4*|2, 1, 1, 1, 1, 1, 1, 1, 1, 1>
+             + q^3*|4, 1, 1, 1, 1, 1, 1, 1>
+             + q^4*|2, 1, 1, 1, 1, 1, 1, 1, 1, 1>
             sage: F(G[6,3,2])
             |6, 3, 2> + q*|6, 3, 1, 1> + q^2*|6, 2, 2, 1> + q^3*|5, 3, 2, 1>
              + q*|4, 3, 2, 1, 1> + q^2*|4, 3, 1, 1, 1, 1>
              + q^3*|4, 2, 2, 1, 1, 1> + q^4*|3, 3, 2, 1, 1, 1>
             sage: F(G[5,3,2,1])
-            |5, 3, 2, 1> + q*|4, 4, 2, 1> + q^2*|4, 3, 3, 1> + q^3*|4, 3, 2, 2> + q^4*|4, 3, 2, 1, 1>
+            |5, 3, 2, 1> + q*|4, 4, 2, 1> + q^2*|4, 3, 3, 1>
+             + q^3*|4, 3, 2, 2> + q^4*|4, 3, 2, 1, 1>
 
         For `\widehat{\mathfrak{sl}}_3`::
 
@@ -1013,11 +1263,13 @@ class FockSpace(Parent, UniqueRepresentation):
             sage: F(G[6,1])
             |6, 1> + q*|4, 3>
             sage: F(G[3,2,2,1])
-            |3, 2, 2, 1> + q*|3, 1, 1, 1, 1, 1> + q*|2, 2, 2, 2> + q^2*|2, 1, 1, 1, 1, 1, 1>
+            |3, 2, 2, 1> + q*|3, 1, 1, 1, 1, 1> + q*|2, 2, 2, 2>
+             + q^2*|2, 1, 1, 1, 1, 1, 1>
             sage: F(G[7,2])
             |7, 2> + q*|6, 2, 1> + q*|5, 4> + q^2*|5, 3, 1>
             sage: F(G[5,2,2,1])
-            |5, 2, 2, 1> + q*|5, 1, 1, 1, 1, 1> + q*|4, 2, 2, 1, 1> + q^2*|4, 2, 1, 1, 1, 1>
+            |5, 2, 2, 1> + q*|5, 1, 1, 1, 1, 1> + q*|4, 2, 2, 1, 1>
+             + q^2*|4, 2, 1, 1, 1, 1>
 
         We construct the examples in Section 5.1 of [Fayers2010]_::
 
@@ -1025,16 +1277,17 @@ class FockSpace(Parent, UniqueRepresentation):
             sage: F = FS.natural()
             sage: G = FS.G()
             sage: F(G[[2,1],[1]])
-            |[2, 1], [1]> + q*|[2], [2]> + q^2*|[2], [1, 1]> + q^2*|[1, 1], [2]>
-             + q^3*|[1, 1], [1, 1]> + q^4*|[1], [2, 1]>
+            |[2, 1], [1]> + q*|[2], [2]> + q^2*|[2], [1, 1]>
+             + q^2*|[1, 1], [2]> + q^3*|[1, 1], [1, 1]> + q^4*|[1], [2, 1]>
             sage: F(G[[4],[]])
             |[4], []> + q*|[3, 1], []> + q*|[2, 1, 1], []> + q^2*|[2, 1], [1]>
-             + q*|[2], [2]> + q^2*|[2], [1, 1]> + q^2*|[1, 1, 1, 1], []> + q^2*|[1, 1], [2]>
-             + q^3*|[1, 1], [1, 1]> + q^2*|[1], [2, 1]> + q^2*|[], [4]> + q^3*|[], [3, 1]>
-             + q^3*|[], [2, 1, 1]> + q^4*|[], [1, 1, 1, 1]>
+             + q*|[2], [2]> + q^2*|[2], [1, 1]> + q^2*|[1, 1, 1, 1], []>
+             + q^2*|[1, 1], [2]> + q^3*|[1, 1], [1, 1]> + q^2*|[1], [2, 1]>
+             + q^2*|[], [4]> + q^3*|[], [3, 1]> + q^3*|[], [2, 1, 1]>
+             + q^4*|[], [1, 1, 1, 1]>
         """
         def __init__(self, F):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
@@ -1057,7 +1310,7 @@ class FockSpace(Parent, UniqueRepresentation):
 
         @cached_method
         def _G_to_fock_basis(self, la):
-            """
+            r"""
             Return the `G` basis indexed by ``la`` in the natural basis.
 
             EXAMPLES::
@@ -1102,7 +1355,7 @@ class FockSpace(Parent, UniqueRepresentation):
             s.pop() # Remove the largest
 
             q = R._q
-            while len(s) != 0:
+            while s:
                 mu = s.pop()
                 d = cur[mu].denominator()
                 k = d.degree()
@@ -1153,7 +1406,7 @@ class FockSpaceBases(Category_realization_of_parent):
 
     def _repr_(self):
         r"""
-        Returns the representation of ``self``.
+        Return the representation of ``self``.
 
         EXAMPLES::
 
@@ -1184,7 +1437,7 @@ class FockSpaceBases(Category_realization_of_parent):
 
     class ParentMethods:
         def _repr_(self):
-            """
+            r"""
             Text representation of this basis of Fock space.
 
             EXAMPLES::
@@ -1201,8 +1454,39 @@ class FockSpaceBases(Category_realization_of_parent):
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)
 
-        def q(self):
+        def some_elements(self):
+            r"""
+            Return some elements of ``self``.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(3).natural()
+                sage: F.some_elements()[::13]
+                [3*|2> + 2*|1> + 2*|>,
+                 |5>,
+                 |3, 1, 1, 1>,
+                 |3, 2, 2>,
+                 |5, 1, 1, 1>,
+                 |2, 2, 1, 1, 1, 1>,
+                 |5, 2, 1, 1>,
+                 |3, 2, 1, 1, 1, 1>]
+
+                sage: F = FockSpace(3, [0,1]).natural()
+                sage: F.some_elements()[::13]
+                [2*|[1], []> + 4*|[], [1]> + |[], []>,
+                 |[1, 1], [1]>,
+                 |[1, 1, 1], [1]>,
+                 |[5], []>,
+                 |[3], [1, 1]>,
+                 |[1], [2, 2]>,
+                 |[4, 1, 1], []>,
+                 |[2, 1, 1, 1], [1]>]
             """
+            others = [self.monomial(la) for la in self.basis().keys().some_elements()]
+            return [self.an_element()] + others
+
+        def q(self):
+            r"""
             Return the parameter `q` of ``self``.
 
             EXAMPLES::
@@ -1220,7 +1504,7 @@ class FockSpaceBases(Category_realization_of_parent):
             return self.realization_of()._q
 
         def multicharge(self):
-            """
+            r"""
             Return the multicharge of ``self``.
 
             EXAMPLES::
@@ -1239,7 +1523,7 @@ class FockSpaceBases(Category_realization_of_parent):
 
         @cached_method
         def highest_weight_vector(self):
-            """
+            r"""
             Return the highest weight vector of ``self``.
 
             EXAMPLES::
@@ -1261,7 +1545,7 @@ class FockSpaceBases(Category_realization_of_parent):
             return self.monomial(self._indices([[]]*level))
 
         def __getitem__(self, i):
-            """
+            r"""
             Return the basis element indexed by ``i``.
 
             INPUT:
@@ -1321,18 +1605,21 @@ class FockSpaceBases(Category_realization_of_parent):
 ## Truncated Fock space
 
 class FockSpaceTruncated(FockSpace):
-    """
+    r"""
     This is the Fock space given by partitions of length no more than `k`.
 
-    This can be formed as the quotient `\mathcal{F} / \mathcak{F}_k` where
-    `\mathcal{F}_k` is the submodule spanned by all diagrams of length
-    (strictly) more than `k`.
+    This can be formed as the quotient `\mathcal{F} / \mathcak{F}_k`,
+    where `\mathcal{F}_k` is the submodule spanned by all diagrams
+    of length (strictly) more than `k`.
 
     We have three bases:
 
-    - The natural basis indexed by trucated `n`-regular partitions.
-    - The approximation basis which comes from LLT(-type) algorithms.
-    - The lower global crystal basis.
+    - The natural basis indexed by trucated `n`-regular partitions:
+      :class:~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.F`.
+    - The approximation basis that comes from LLT(-type) algorithms:
+      :class:~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.A`.
+    - The lower global crystal basis:
+      :class:~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.G`.
 
     .. SEEALSO::
 
@@ -1358,13 +1645,11 @@ class FockSpaceTruncated(FockSpace):
 
     REFERENCES:
 
-    .. [GW1998] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
-       affine algebras and affine Kazhdan-Lusztig polyonmials*. (1998).
-       :arxiv:`math/9807014v1`.
+    - [GW1999]_
     """
     @staticmethod
     def __classcall_private__(cls, n, k, q=None, base_ring=None):
-        """
+        r"""
         Standardize input to ensure a unique representation.
 
         EXAMPLES::
@@ -1390,7 +1675,7 @@ class FockSpaceTruncated(FockSpace):
         return super(FockSpace, cls).__classcall__(cls, n, k, q, base_ring)
 
     def __init__(self, n, k, q, base_ring):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
@@ -1403,7 +1688,7 @@ class FockSpaceTruncated(FockSpace):
         FockSpace.__init__(self, n, (M(0),), q, base_ring)
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -1415,17 +1700,41 @@ class FockSpaceTruncated(FockSpace):
         return "Fock space of rank {} truncated at {} over {}".format(self._n, self._k, self.base_ring())
 
     class F(CombinatorialFreeModule, BindableClass):
-        """
-        The natural basis of the Fock space.
+        r"""
+        The natural basis of the truncated Fock space.
+
+        This is the natural basis of the full Fock space projected
+        onto the truncated Fock space. It inherits the
+        `U_q(\widehat{\widetilde{sl}}_n)`-action from the action
+        on the full Fock space.
+
+        EXAMPLES::
+
+            sage: FS = FockSpace(4)
+            sage: F = FS.natural()
+            sage: FS3 = FockSpace(4, truncated=3)
+            sage: F3 = FS3.natural()
+            sage: u = F.highest_weight_vector()
+            sage: u3 = F3.highest_weight_vector()
+
+            sage: u3.f(0,3,2,1)
+            |2, 1, 1>
+            sage: u.f(0,3,2,1)
+            |2, 1, 1> + q*|1, 1, 1, 1>
+
+            sage: u.f(0,3,2,1,1)
+            ((q^2+1)/q)*|2, 1, 1, 1>
+            sage: u3.f(0,3,2,1,1)
+            0
         """
         def __init__(self, F):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
 
-                sage: F = FockSpace(2).natural()
-                sage: TestSuite(F).run()
+                sage: F = FockSpace(2, truncated=3).natural()
+                sage: TestSuite(F).run()  # long time
             """
             self._basis_name = "natural"
             # If the cell x is above the cell y
@@ -1438,7 +1747,7 @@ class FockSpaceTruncated(FockSpace):
             self._removable = lambda la,i: [x for x in la.corners()
                                             if la.content(*x, multicharge=F._multicharge) == i]
 
-            indices = RegularPartitions_truncated(F._n, F._k)
+            indices = Partitions(F._n, max_length=F._k)
             CombinatorialFreeModule.__init__(self, F.base_ring(), indices,
                                              prefix='', bracket=['|', '>'],
                                              latex_bracket=['\\lvert', '\\rangle'],
@@ -1448,32 +1757,25 @@ class FockSpaceTruncated(FockSpace):
         options = FockSpaceOptions
 
         def _repr_term(self, m):
-            """
+            r"""
             Return a representation of the monomial indexed by ``m``.
 
             EXAMPLES::
 
-                sage: F = FockSpace(2).natural()
+                sage: F = FockSpace(2, truncated=3).natural()
                 sage: F._repr_term(Partition([2,1,1]))
                 '|2, 1, 1>'
                 sage: F.highest_weight_vector()
                 |>
-                sage: F = FockSpace(2, [2, 1, 1]).natural()
-                sage: mg = F.highest_weight_vector(); mg
-                |[], [], []>
-                sage: q = F.q()
-                sage: mg.f(1).f(1).f(0) / (q^-1 + q)
-                |[1], [1], [1]> + q*|[], [2], [1]> + q^2*|[], [1, 1], [1]>
-                 + q^3*|[], [1], [2]> + q^4*|[], [1], [1, 1]>
             """
             return '|' + repr(m)[1:-1] + ">" # Strip the outer brackets of m
 
         class Element(FockSpace.natural.Element):
-            """
+            r"""
             An element in the trucated Fock space.
             """
-            def f(self, i):
-                """
+            def _f(self, i):
+                r"""
                 Apply the action of `f_i` on ``self``.
 
                 EXAMPLES::
@@ -1482,15 +1784,15 @@ class FockSpaceTruncated(FockSpace):
                     sage: mg = F.highest_weight_vector()
                     sage: mg.f(0)
                     |1>
-                    sage: mg.f(0).f(1)
+                    sage: mg.f(0,1)
                     |2> + q*|1, 1>
-                    sage: mg.f(0).f(1).f(0)
+                    sage: mg.f(0,1,0)
                     |3> + q*|1, 1, 1>
-                    sage: mg.f(0).f(1).f(0).f(0)
+                    sage: mg.f(0,1,0,0)
                     0
-                    sage: mg.f(0).f(1).f(0).f(1)
+                    sage: mg.f(0,1,0,1)
                     |4> + q*|3, 1> + q*|2, 1, 1>
-                    sage: mg.f(0).f(1).f(0).f(1).f(0)
+                    sage: mg.f(0,1,0,1,0)
                     |5> + |3, 2> + 2*q*|3, 1, 1> + q^2*|2, 2, 1>
                 """
                 P = self.parent()
@@ -1506,9 +1808,9 @@ class FockSpaceTruncated(FockSpace):
     natural = F
 
     class A(CombinatorialFreeModule, BindableClass):
-        """
-        The `A` basis of the Fock space which is the approximation of the
-        lower global crystal basis.
+        r"""
+        The `A` basis of the Fock space, which is the approximation
+        basis of the lower global crystal basis.
 
         INPUT:
 
@@ -1516,7 +1818,7 @@ class FockSpaceTruncated(FockSpace):
           computing this basis in the Fock space; the possible values are:
 
           * ``'GW'`` -- use the algorithm given by Goodman and Wenzl
-            in [GW1998]_
+            in [GW1999]_
           * ``'LLT'`` -- use the LLT algorithm given in [LLT1996]_
 
         .. NOTE::
@@ -1545,7 +1847,7 @@ class FockSpaceTruncated(FockSpace):
             |12, 9> + q*|12, 4, 4, 1> + q*|8, 8, 5> + q^2*|8, 8, 4, 1>
         """
         def __init__(self, F, algorithm='GW'):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
@@ -1572,8 +1874,8 @@ class FockSpaceTruncated(FockSpace):
         options = FockSpaceOptions
 
         @cached_method
-        def LLT(self, la):
-            """
+        def _LLT(self, la):
+            r"""
             Return the result from the regular LLT algorithm on the partition
             ``la`` to compute the `A`-basis element in the corresponding
             Fock space.
@@ -1585,7 +1887,7 @@ class FockSpaceTruncated(FockSpace):
                 sage: A = FS.A()
                 sage: F(A[12,9])
                 |12, 9> + q*|12, 4, 4, 1> + q*|8, 8, 5> + (q^2+1)*|8, 8, 4, 1>
-                sage: A.LLT(Partition([12,9]))
+                sage: A._LLT(Partition([12,9]))
                 |12, 9> + q*|12, 4, 4, 1> + q*|8, 8, 5> + (q^2+2)*|8, 8, 4, 1>
             """
             R = self.realization_of()
@@ -1612,7 +1914,7 @@ class FockSpaceTruncated(FockSpace):
             return cur
 
         def _skew_tableau(self, cur, nu, d):
-            """
+            r"""
             Return the action of the skew tableaux formed from ``nu`` by
             applying the ``d`` fundamental weights.
 
@@ -1649,7 +1951,7 @@ class FockSpaceTruncated(FockSpace):
 
         @cached_method
         def _A_to_fock_basis(self, la):
-            """
+            r"""
             Return the `A` basis indexed by ``la`` in the natural basis.
 
             EXAMPLES::
@@ -1676,7 +1978,7 @@ class FockSpaceTruncated(FockSpace):
                  + q^3*|7, 3, 3, 2, 1> + q^4*|6, 4, 3, 2, 1>
             """
             if self._alg == 'LLT':
-                return self.LLT(la)
+                return self._LLT(la)
 
             # Otherwise we use the GW algorithm
             fock = self.realization_of().natural()
@@ -1722,7 +2024,7 @@ class FockSpaceTruncated(FockSpace):
                 for j in range(i+1):
                     a[j] -= d_i
             if sum(a) == 0: # a is contained in the fundamental box
-                return self.LLT(la)
+                return self._LLT(la)
 
             p = list(a) # Make a copy that we can change
             for i in range(k-2):
@@ -1758,7 +2060,7 @@ class FockSpaceTruncated(FockSpace):
                 if j != -2 and p[-1] > n:
                     j = k - 1
                 if j < 0:
-                    return self.LLT(la)
+                    return self._LLT(la)
 
                 G = self.realization_of().G()
                 nu = I([p[i] - n if i <= j else p[i] for i in range(k-1)])
@@ -1771,8 +2073,9 @@ class FockSpaceTruncated(FockSpace):
     approximation = A
 
     class G(CombinatorialFreeModule, BindableClass):
-        """
-        The lower global crystal basis living inside of Fock space.
+        r"""
+        The lower global crystal basis living inside of a
+        truncated Fock space.
 
         EXAMPLES::
 
@@ -1817,7 +2120,7 @@ class FockSpaceTruncated(FockSpace):
             |7> + q*|3, 3, 1>
         """
         def __init__(self, F):
-            """
+            r"""
             Initialize ``self``.
 
             EXAMPLES::
@@ -1841,7 +2144,7 @@ class FockSpaceTruncated(FockSpace):
 
         @cached_method
         def _G_to_fock_basis(self, la, algorithm='GW'):
-            """
+            r"""
             Return the `G` basis indexed by ``la`` in the natural basis.
 
             EXAMPLES::
@@ -1866,10 +2169,10 @@ class FockSpaceTruncated(FockSpace):
                 n = self.realization_of()._n
                 k = self.realization_of()._k
                 if len(la) == k:
-                    I = self._indices
                     x = la[-1]
-                    mu = Partition([p - x for p in la])
-                    add_cols = lambda nu: I([ v + x for v in list(nu) + [0]*(k - len(nu)) ])
+                    mu = _Partitions([p - x for p in la])
+                    def add_cols(nu):
+                        return _Partitions([ v + x for v in list(nu) + [0]*(k - len(nu)) ])
                     return fock.sum_of_terms((add_cols(nu), c) for nu,c in self._G_to_fock_basis(mu))
 
                 # For critical partitions
@@ -1886,7 +2189,7 @@ class FockSpaceTruncated(FockSpace):
             s.pop() # Remove the largest
 
             q = self.realization_of()._q
-            while len(s) != 0:
+            while s:
                 mu = s.pop()
                 d = cur[mu].denominator()
                 k = d.degree()

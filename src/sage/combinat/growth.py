@@ -11,6 +11,7 @@ AUTHORS:
     - implement backward rules for :class:`GrowthDiagramDomino`
     - optimise rules, mainly for :class:`GrowthDiagramRSK` and :class:`GrowthDiagramBurge`
     - make semistandard extension generic
+    - implement rules from [LamShi2007]_
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
 generalisation of the Robinson-Schensted-Knuth correspondence between
@@ -1103,15 +1104,31 @@ class GrowthDiagram(SageObject):
         F = dict()
         labels = copy(self._out_labels)
         l = len(self._lambda)
-        for r in range(l):
-            for c in range(self._lambda[l-r-1]+r, self._mu[l-r-1]+r, -1):
-                j = l-r-1
-                i = c-r-1
-                labels[c], v = self._backward_rule(labels[c-1],
-                                                   labels[c],
-                                                   labels[c+1])
-                if v != 0:
-                    F[(i,j)] = v
+        if self._has_multiple_edges:
+            for r in range(l):
+                for c in range(self._lambda[l-r-1]+r, self._mu[l-r-1]+r, -1):
+                    j = l-r-1
+                    i = c-r-1
+                    (labels[2*c-1],
+                     labels[2*c],
+                     labels[2*c+1], v) = self._backward_rule(labels[2*c-2],
+                                                             labels[2*c-1],
+                                                             labels[2*c],
+                                                             labels[2*c+1],
+                                                             labels[2*c+2])
+                    if v != 0:
+                        F[(i,j)] = v
+
+        else:
+            for r in range(l):
+                for c in range(self._lambda[l-r-1]+r, self._mu[l-r-1]+r, -1):
+                    j = l-r-1
+                    i = c-r-1
+                    labels[c], v = self._backward_rule(labels[c-1],
+                                                       labels[c],
+                                                       labels[c+1])
+                    if v != 0:
+                        F[(i,j)] = v
 
         self._in_labels = labels
         self._filling = F
@@ -1147,6 +1164,15 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         sage: SY = GrowthDiagramShiftedShapes
         sage: SY._zero
         []
+
+    Check that the rules are bijective::
+
+        sage: all(SY(labels=SY(pi).out_labels()).to_word() == pi for pi in Permutations(5))
+        True
+        sage: pi = Permutations(10).random_element()
+        sage: G = SY(pi)
+        sage: list(SY(labels=G.out_labels())) == list(G)
+        True
     """
     def __init__(self,
                  filling = None,
@@ -1172,7 +1198,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
     @staticmethod
     def _rank_function(w):
-        return w.size
+        return w.size()
 
     @staticmethod
     def _is_Q_edge(w, v):
@@ -1210,7 +1236,8 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
         OUTPUT:
 
-        The two colors and the fourth partition g, z, h according.
+        The two colors and the fourth partition g, z, h according to
+        Sagan - Worley insertion.
 
         TESTS::
 
@@ -1266,8 +1293,8 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             g, z = f, y
         else:
             if x != y:
-                c = SkewPartition([x, t]).cells()[0][0]
-                g, z = f, Partition(y).add_cell(c)
+                row = SkewPartition([x, t]).cells()[0][0]
+                g, z = f, Partition(y).add_cell(row)
             elif x == y != t and f == 2: # blue
                 row = 1+SkewPartition([x, t]).cells()[0][0]
                 if row == len(y):
@@ -1286,45 +1313,60 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             else:
                 raise NotImplementedError
         return g, Partition(z), h
-#
-#    @staticmethod
-#    def _backward_rule(y, z, x):
-#        r"""
-#        Return the content and the input shape.
-#
-#        See [Fom1995]_ Lemma 4.6.1, page 40.
-#
-#        - ``y, z, x`` -- three binary words from a cell in a growth diagram,
-#          labelled as::
-#
-#                x
-#              y z
-#
-#        OUTPUT:
-#
-#        A pair ``(t, content)`` consisting of the shape of the fourth
-#        word and the content of the cell acording to Viennot's
-#        bijection [Vie1983]_.
-#
-#        TESTS::
-#
-#            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
-#            sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
-#            True
-#
-#        """
-#        if x == y == z:
-#            return (x, 0)
-#        elif x == z != y:
-#            return (y, 0)
-#        elif x != z == y:
-#            return (x, 0)
-#        else:
-#            if x == y and len(z) > 0 and z[-1] == 1:
-#                return (x, 1)
-#            else:
-#                return (x[:-1], 0)
 
+    @staticmethod
+    def _backward_rule(y, g, z, h, x):
+        r"""
+        Return the input path and the content given two incident edges.
+
+        See [Fom1995]_ Lemma 4.5.1, page 38.
+
+        INPUT:
+
+        - ``y, g, z, h, x`` -- a path of three partitions and two
+          colors from a cell in a growth diagram, labelled as::
+
+                  x
+                  h
+              y g z
+
+        OUTPUT:
+
+        A tuple ``(e, t, f, content)`` consisting of the shape ``t``
+        of the fourth word, the colours of the incident edges and the
+        content of the cell acording to Sagan - Worley insertion.
+        """
+        assert h == 0, "The P-graph should not be colored"
+
+        if x == y == z:
+            assert g == 0, "Degenerate edge g should have color 0"
+            return (0, x, 0, 0)
+        elif x == z != y:
+            return (0, y, g, 0)
+        elif x != z == y:
+            assert g == 0, "Degenerate edge g should have color 0"
+            return (0, x, 0, 0)
+        else:
+            if x != y:
+                row = SkewPartition([z, x]).cells()[0][0]
+                return (0, Partition(y).remove_cell(row), g, 0)
+            else:
+                row, col = SkewPartition([z, x]).cells()[0]
+                if row > 0 and g in [1, 2]: # black or blue
+                    return (0, Partition(y).remove_cell(row-1), 2, 0)
+                elif row == 0 and g in [1, 2]: # black or blue
+                    return (0, y, 0, 1)
+                else:
+                    # find last cell in column col-1
+                    for i in range(len(y)-1,-1,-1):
+                        if i+y[i] == col + row:
+                            if y[i] == 1:
+                                t = y[:i]
+                                return (0, t, 1, 0)
+                            else:
+                                t = y[:i] + [y[i]-1] + y[i+1:]
+                                return (0, t, 3, 0)
+                    raise ValueError("This should not happen.")
 
 class GrowthDiagramBinWord(GrowthDiagram):
     r"""

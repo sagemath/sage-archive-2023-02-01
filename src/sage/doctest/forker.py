@@ -2014,7 +2014,7 @@ class DocTestWorker(multiprocessing.Process):
 
         This method is only called if there is something wrong with the
         worker. Under normal circumstances, the worker is supposed to
-        exit by himself after finishing.
+        exit by itself after finishing.
 
         The first time this is called, use ``SIGQUIT``. This will trigger
         the cysignals ``SIGQUIT`` handler and try to print an enhanced

@@ -12372,13 +12372,18 @@ cdef class Matrix(Matrix1):
             sage: A == L*D*L.transpose()
             True
 
+        This works correctly for the 0x0 matrix::
+
+            sage: Matrix(0).indefinite_factorization()
+            ([], ())
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
         """
         from sage.modules.free_module_element import vector
         L, d = self._indefinite_factorization(algorithm, check=check)
-        if not L:
+        if L is False:
             msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
@@ -12544,6 +12549,11 @@ cdef class Matrix(Matrix1):
             ValueError: Could not see Finite Field in a of size 5^3 as a subring
             of the real or complex numbers
 
+        The 0x0 matrix is trivially positive definite::
+
+            sage: Matrix(0).is_positive_definite()
+            True
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12565,7 +12575,7 @@ cdef class Matrix(Matrix1):
             raise ValueError("Could not see {} as a subring of the "
                     "real or complex numbers".format(R))
 
-        if not L:
+        if L is False:
             return False
 
         # Now have diagonal entries (hopefully real) and so can

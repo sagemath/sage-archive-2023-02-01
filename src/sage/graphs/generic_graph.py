@@ -10668,7 +10668,7 @@ class GenericGraph(GenericGraph_pyx):
              (3, 0, None),
              (3, 2, None)]
 
-        TESTS::
+        TESTS:
 
         Make sure loops don't get lost::
 
@@ -10710,7 +10710,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def contract_edges(self, edges):
         """
-        Contract edges from an iterable container.
+        Contract edges from an iterable container. If `e` is an edge that is
+        not contracted but the vertices of `e` are merged by contraction of other
+        edges, then `v` will become a loop.
 
         INPUT:
 
@@ -10748,7 +10750,7 @@ class GenericGraph(GenericGraph_pyx):
              (3, 0, None),
              (3, 0, None)]
 
-        TESTS::
+        TESTS:
 
         With non-edges in the input::
 
@@ -10761,6 +10763,14 @@ class GenericGraph(GenericGraph_pyx):
              (3, 4, None)]
             sage: G.contract_edges([(1,3),(1,4)]); G.edges()
             [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
+
+		With loops in a digraph::
+
+			sage: D = DiGraph([(0,0), (0,1), (1,1)], loops=True, multiedges=True)
+			sage: D.contract_edges([(1,0)]); D.edges()
+			[(0, 0, None), (0, 1, None), (1, 1, None)]
+			sage: D.contract_edges([(0,1)]); D.edges()
+			[(0, 0, None), (0, 0, None)]
 
         """
         edge_list = []
@@ -10790,8 +10800,8 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed():
             for v in vertices:
                 out_edges=self.edge_boundary([v])
-                in_edges=self.edge_boundary(self.vertices(), [v])
-                edges_incident = edges_incident + out_edges + in_edges
+                edges_incident.extend(out_edges)
+                edges_incident.extend(self.incoming_edges(v))
                 self.delete_vertex(v)
         else:
             for v in vertices:

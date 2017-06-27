@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Fraction Field of Integral Domains
 
 AUTHORS:
@@ -7,6 +8,9 @@ AUTHORS:
   Wetherell)
 
 - Burcin Erocal
+
+- Julian Rüth (2017-06-27): embedding into the field of fractions and its
+  section
 
 EXAMPLES:
 
@@ -54,20 +58,13 @@ TESTS::
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2017 Julian Rüth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
@@ -80,8 +77,10 @@ import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.parent import Parent
-from sage.structure.coerce_maps import CallableConvertMap
+from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields
+from sage.categories.morphism import Morphism
+from sage.categories.map import Section
 
 def FractionField(R, names=None):
     """
@@ -288,6 +287,10 @@ class FractionField_generic(ring.Field):
         from sage.rings.number_field.number_field_base import NumberField
         from sage.rings.polynomial.laurent_polynomial_ring import \
             LaurentPolynomialRing_generic
+
+        if S is self._R:
+            parent = self._R.Hom(self)
+            return parent.__make_element_class__(FractionFieldEmbedding)(self._R, self, category=parent.homset_category())
 
         # The case ``S`` being `\QQ` requires special handling since `\QQ` is
         # not implemented as a ``FractionField_generic``.
@@ -779,3 +782,226 @@ class FractionField_1poly_field(FractionField_generic):
             1
         """
         return 1
+
+
+class FractionFieldEmbedding(DefaultConvertMap_unique):
+    r"""
+    The embedding of an integral domain into its field of fractions.
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: f = R.fraction_field().coerce_map_from(R); f
+        Coercion map:
+          From: Univariate Polynomial Ring in x over Rational Field
+          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+    
+    TESTS::
+
+        sage: from sage.rings.fraction_field import FractionFieldEmbedding
+        sage: isinstance(f, FractionFieldEmbedding)
+        True
+        sage: TestSuite(f).run()
+
+    Check that :trac:`23185` has been resolved::
+
+        sage: R.<x> = QQ[]
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.is_subring(K)
+        True
+        sage: R.is_subring(R.fraction_field())
+        True
+
+    """
+    def is_surjective(self):
+        r"""
+        Return whether this map is surjective.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).is_surjective()
+            False
+
+        """
+        return self.domain().is_field()
+
+    def is_injective(self):
+        r"""
+        Return whether this map is injective.
+
+        EXAMPLES:
+
+        The map from an integral domain to its fraction field is always
+        injective:
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).is_injective()
+            True
+
+        """
+        return True
+
+    def section(self):
+        r"""
+        Return a section of this map.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).section()
+            Section map:
+              From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+
+        """
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        from sage.all import Hom
+        parent = Hom(self.codomain(), self.domain(), SetsWithPartialMaps())
+        return parent.__make_element_class__(FractionFieldEmbeddingSection)(self)
+
+    def __eq__(self, other):
+        r"""
+        Return whether ``other`` is the same embedding into a fraction field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.fraction_field().coerce_map_from(R)
+            sage: S.<y> = GF(2)[]
+            sage: g = S.fraction_field().coerce_map_from(S)
+            
+            sage: f == g
+            False
+            sage: f == f
+            True
+
+        """
+        return isinstance(other, FractionFieldEmbedding) and other.domain() is self.domain() and other.codomain() is self.codomain()
+
+    def __neq__(self, other):
+        r"""
+        Return whether ``other`` is not the same embedding into a fraction field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.fraction_field().coerce_map_from(R)
+            sage: S.<y> = GF(2)[]
+            sage: g = S.fraction_field().coerce_map_from(S)
+            
+            sage: f != g
+            True
+            sage: f != f
+            False
+
+        """
+        return not (self == other)
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this embedding.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: hash(R.fraction_field().coerce_map_from(R)) == hash(R.fraction_field().coerce_map_from(R))
+            True
+
+        """
+        return hash((type(self), self.codomain()))
+
+
+class FractionFieldEmbeddingSection(Section):
+    r"""
+    The section of the embedding of an integral domain into its field of
+    fractions.
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: f = R.fraction_field().coerce_map_from(R).section(); f
+        Section map:
+          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+          To:   Univariate Polynomial Ring in x over Rational Field
+    
+    TESTS::
+
+        sage: from sage.rings.fraction_field import FractionFieldEmbeddingSection
+        sage: isinstance(f, FractionFieldEmbeddingSection)
+        True
+        sage: TestSuite(f).run()
+
+    """
+    def _call_(self, x):
+        r"""
+        Evaluate this map at ``x``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K = R.fraction_field()
+            sage: x = K.gen()
+            sage: f = K.coerce_map_from(R).section()
+            sage: f(x)
+            x
+            sage: f(1/x)
+            Traceback (most recent call last):
+            ...
+            ValueError: fraction must have unit denominator
+
+        """
+        if not x.denominator().is_unit():
+            raise ValueError("fraction must have unit denominator")
+        return x.numerator() * x.denominator().inverse_of_unit()
+
+    def __eq__(self, other):
+        r"""
+        Return whether ``other`` is the same section.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.fraction_field().coerce_map_from(R).section()
+            sage: S.<y> = GF(2)[]
+            sage: g = S.fraction_field().coerce_map_from(S).section()
+            
+            sage: f == g
+            False
+            sage: f == f
+            True
+
+        """
+        return isinstance(other, FractionFieldEmbeddingSection) and other.domain() is self.domain() and other.codomain() is self.codomain()
+
+    def __neq__(self, other):
+        r"""
+        Return whether ``other`` is not the same section.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.fraction_field().coerce_map_from(R).section()
+            sage: S.<y> = GF(2)[]
+            sage: g = S.fraction_field().coerce_map_from(S).section()
+            
+            sage: f != g
+            True
+            sage: f != f
+            False
+
+        """
+        return not (self == other)
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this section.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: hash(R.fraction_field().coerce_map_from(R).section()) == hash(R.fraction_field().coerce_map_from(R).section())
+            True
+
+        """
+        return hash((type(self), self.domain()))

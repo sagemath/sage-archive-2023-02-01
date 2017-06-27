@@ -2298,7 +2298,7 @@ class AbstractLinearCode(Module):
         B1 = NonlinearBinaryCodeStruct(CW1)
         B2 = NonlinearBinaryCodeStruct(CW2)
         ans = B1.is_isomorphic(B2)
-        if ans:
+        if ans is not False:
             if algorithm=="verbose":
                 Sn = SymmetricGroup(n)
                 return True, Sn([i+1 for i in ans])**(-1)

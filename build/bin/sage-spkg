@@ -650,6 +650,9 @@ cd ..
 # The package has been extracted, prepare for installation
 ##################################################################
 
+# Rewrites the given bash pseudo-script with a boilerplate header that includes
+# the shebang line and sourcing sage-env.  Make sure the name of the script is
+# passed in as an absolute path.
 write_script_wrapper() {
     local script="$1"
     local pkgdir="$(dirname "$script")"
@@ -676,9 +679,11 @@ fi
         exit 1
     fi
 
-    echo "$header" > ".tmp-$script"
-    cat "$script" >> ".tmp-$script"
-    mv ".tmp-$script" "$script"
+    local tmpscript="$(dirname "$script")/.tmp-${script##*/}"
+
+    echo "$header" > "$tmpscript"
+    cat "$script" >> "$tmpscript"
+    mv "$tmpscript" "$script"
     chmod +x "$script"
 
     trap - ERR

@@ -149,7 +149,7 @@ class FunctionFieldOrder(Parent):
 
     def is_finite(self):
         """
-        Return False since orders are never finite.
+        Return ``False`` since orders are never finite.
 
         EXAMPLES::
 
@@ -160,7 +160,7 @@ class FunctionFieldOrder(Parent):
 
     def is_field(self):
         """
-        Return False since orders are never fields.
+        Return ``False`` since orders are never fields.
 
         EXAMPLES::
 
@@ -171,7 +171,7 @@ class FunctionFieldOrder(Parent):
 
     def is_noetherian(self):
         """
-        Return True since orders in function fields are noetherian.
+        Return ``True`` since orders in function fields are noetherian.
 
         EXAMPLES::
 
@@ -195,7 +195,7 @@ class FunctionFieldOrder(Parent):
 
     def is_subring(self, other):
         """
-        Return True if the order is a subring of the other order.
+        Return ``True`` if the order is a subring of the other order.
 
         INPUT:
 
@@ -237,7 +237,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         - ``basis`` -- list of elements of the function field
 
-        - ``check`` -- (default: True) if True, check whether the module
+        - ``check`` -- (default: ``True``) if ``True``, check whether the module
           that ``basis`` generates forms an order
 
         EXAMPLES::
@@ -262,7 +262,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         The basis also has to be linearly independent and of the same rank as the
         degree of the function field of its elements (only checked when ``check``
-        is True)::
+        is ``True``)::
 
             sage: L.order(L(x))
             Traceback (most recent call last):
@@ -532,7 +532,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
 
     The basis only defines an order if the module it generates is closed under
     multiplication and contains the identity element (only checked when
-    ``check`` is True)::
+    ``check`` is ``True``)::
 
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
@@ -546,7 +546,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
 
     The basis also has to be linearly independent and of the same rank as the
     degree of the function field of its elements (only checked when ``check``
-    is True)::
+    is ``True``)::
 
         sage: L.order(L(x))
         Traceback (most recent call last):
@@ -565,7 +565,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
 
         - ``basis`` -- elements of the function field
 
-        - ``check`` -- boolean (default: True); if True, check the basis generates
+        - ``check`` -- boolean (default: ``True``); if ``True``, check the basis generates
           an order
 
         EXAMPLES::
@@ -770,7 +770,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
 
     def basis(self):
         """
-        Return a basis of self over the maximal order of the base field.
+        Return a basis of this order over the maximal order of the base field.
 
         EXAMPLES::
 
@@ -1318,7 +1318,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         - ``d`` -- (default: 1) a nonzero element of the polynomial ring
 
-        - ``check`` -- boolean (default: True); if True, compute the real
+        - ``check`` -- boolean (default: ``True``); if ``True``, compute the real
           denominator of the vectors, possibly different from ``d``.
 
         EXAMPLES::

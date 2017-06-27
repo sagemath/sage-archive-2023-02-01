@@ -66,7 +66,7 @@ lazy_import('sage.rings.function_field.divisor', 'prime_divisor')
 
 def is_Place(x):
     """
-    Return True if ``x`` is a place of a function field.
+    Return ``True`` if ``x`` is a place of a function field.
 
     EXAMPLES::
 
@@ -298,7 +298,7 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
 
     def is_infinite_place(self):
         """
-        Return True if the place is at infinite.
+        Return ``True`` if the place is at infinite.
 
         EXAMPLES::
 
@@ -495,7 +495,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
     def is_infinite_place(self):
         """
-        Return True if the place is above the unique infinite place
+        Return ``True`` if the place is above the unique infinite place
         of the underlying rational function field.
 
         EXAMPLES::

@@ -116,7 +116,7 @@ lazy_import('sage.rings.function_field.divisor', 'FunctionFieldDivisor')
 
 def is_Ideal(x):
     """
-    Return True if ``x`` is an ideal in a function field.
+    Return ``True`` if ``x`` is an ideal in a function field.
 
     EXAMPLES::
 
@@ -382,7 +382,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def is_prime(self):
         """
-        Return True if this is a prime ideal.
+        Return ``True`` if this is a prime ideal.
 
         EXAMPLES::
 
@@ -670,7 +670,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __contains__(self, x):
         """
-        Return True if ``x`` is in the ideal.
+        Return ``True`` if ``x`` is in the ideal.
 
         EXAMPLES::
 
@@ -1029,7 +1029,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         This is a very general implementation of Ideal multiplication.
 
-        The number of generators of ```self * other` will be
+        The number of generators of ``self * other`` will be
         ``self.ngens() * other.ngens()``. So if used repeatedly this method
         will create an ideal with a uselessly large amount of generators.
         Therefore it is advisable to overwrite this method with a method that
@@ -1177,7 +1177,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def __contains__(self, x):
         """
-        Return True if ``x`` is in the ideal.
+        Return ``True`` if ``x`` is in the ideal.
 
         EXAMPLES::
 
@@ -1728,7 +1728,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def is_integral(self):
         """
-        Return True if this is an integral ideal.
+        Return ``True`` if this is an integral ideal.
 
         EXAMPLES::
 
@@ -1963,7 +1963,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def is_prime(self):
         """
-        Return True if the ideal is a prime ideal.
+        Return ``True`` if the ideal is a prime ideal.
 
         If checked to be a prime ideal, then the ideal can be used
         as a prime ideal.
@@ -2277,7 +2277,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
     def is_prime(self):
         """
-        Return True if the ideal is a prime ideal.
+        Return ``True`` if the ideal is a prime ideal.
 
         EXAMPLES::
 
@@ -2488,7 +2488,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
 
     def __contains__(self, x):
         """
-        Return True if ``x`` is in the ideal.
+        Return ``True`` if ``x`` is in the ideal.
 
         INPUT:
 
@@ -2963,7 +2963,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
     def is_prime(self):
         """
-        Return True if the ideal is a prime ideal.
+        Return ``True`` if the ideal is a prime ideal.
 
         EXAMPLES::
 

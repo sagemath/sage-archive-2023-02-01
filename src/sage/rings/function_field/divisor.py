@@ -115,7 +115,7 @@ def prime_divisor(field, place, m=1):
 
 def is_Divisor(x):
     """
-    Return True if ``x`` is a function field divisor.
+    Return ``True`` if ``x`` is a function field divisor.
 
     EXAMPLES::
 
@@ -165,7 +165,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``split`` -- boolean; if True, split at the end of each place
+        - ``split`` -- boolean; if ``True``, split at the end of each place
 
         EXAMPLES::
 

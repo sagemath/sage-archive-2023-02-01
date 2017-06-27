@@ -118,7 +118,7 @@ class FunctionFieldDerivation(Map):
 
     def is_injective(self):
         r"""
-        Return False since a derivation is never injective.
+        Return ``False`` since a derivation is never injective.
 
         EXAMPLES::
 
@@ -758,7 +758,7 @@ class FunctionFieldIsomorphism(Morphism):
 
     def is_injective(self):
         """
-        Return True, since the isomorphism is injective.
+        Return ``True``, since the isomorphism is injective.
 
         EXAMPLES::
 
@@ -772,7 +772,7 @@ class FunctionFieldIsomorphism(Morphism):
 
     def is_surjective(self):
         """
-        Return True, since the isomorphism is surjective.
+        Return ``True``, since the isomorphism is surjective.
 
         EXAMPLES::
 

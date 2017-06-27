@@ -10636,14 +10636,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - G.contract_edge( 1, 2 )
         - G.contract_edge( (1, 2) )
-        - G.contract_edges( [ (1, 2) ] )
+        - G.contract_edge( [ (1, 2) ] )
         - G.contract_edge( 1, 2, 'label' )
         - G.contract_edge( (1, 2, 'label') )
-        - G.contract_edges( [ (1, 2, 'label') ] )
-
-        OUTPUT:
-
-        None.
+        - G.contract_edge( [ (1, 2, 'label') ] )
 
         EXAMPLES::
 
@@ -10693,36 +10689,34 @@ class GenericGraph(GenericGraph_pyx):
                     label = None
         # unlike delete_edge(), we must be careful about contracting non-edges
         if not self.has_edge(u, v, label):
-            return None
+            return
         self.delete_edge(u ,v ,label)
         # if the edge was a loop, stop
         # this could potentially leave isolated vertices
         if u == v:
-            return None
+            return
 
         if self.allows_loops():
             # add loops
             loop_labels = []
-            for e in self.edges_incident(v):
-                if set([e[0], e[1]]) == set([u, v]):
-                    loop_labels.append(e[2])
-            self.add_edges([(u, u, label) for label in loop_labels])
+            for (x, y, l) in self.edges_incident(v):
+                if set([x, y]) == set([u, v]):
+                    loop_labels.append(l)
+            self.add_edges([(u, u, l) for l in loop_labels])
 
         self.merge_vertices([u,v])
 
     def contract_edges(self, edges):
         """
-        Contract edges from an iterable container. If `e` is an edge that is
+        Contract edges from an iterable container.
+
+        If `e` is an edge that is
         not contracted but the vertices of `e` are merged by contraction of other
         edges, then `e` will become a loop.
 
         INPUT:
 
         - ``edges`` - a list containing 2-tuples or 3-tuples that represent edges
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 
@@ -10788,6 +10782,8 @@ class GenericGraph(GenericGraph_pyx):
                 edge_list.append((u, v, label))
                 vertices.add(u)
                 vertices.add(v)
+        if not edges:
+            return
 
         # implementation of union_find using DisjointSet
         from sage.sets.disjoint_set import DisjointSet
@@ -10801,13 +10797,13 @@ class GenericGraph(GenericGraph_pyx):
         vertices = [v for v in vertices if v!= DS.find(v)]
         if self.is_directed():
             for v in vertices:
-                out_edges=self.edge_boundary([v])
+                out_edges = self.edge_boundary([v])
                 edges_incident.extend(out_edges)
                 edges_incident.extend(self.incoming_edges(v))
                 self.delete_vertex(v)
         else:
             for v in vertices:
-                edges_incident = edges_incident + self.edges_incident(v)
+                edges_incident.extend(self.edges_incident(v))
                 self.delete_vertex(v)
 
         for (u, v, label) in edges_incident:

@@ -181,8 +181,10 @@ from sage.combinat.composition import Compositions
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.core import Core
 from copy import copy
-from sage.misc.functional import is_odd
+from sage.misc.functional import is_odd, is_even
+from sage.rings.integer_ring import ZZ
 from sage.graphs.digraph import DiGraph
 
 class GrowthDiagram(SageObject):
@@ -1367,6 +1369,75 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
                                 t = y[:i] + [y[i]-1] + y[i+1:]
                                 return (0, t, 3, 0)
                     raise ValueError("This should not happen.")
+
+class GrowthDiagramLLMSClass(GrowthDiagram):
+    pass
+
+def GrowthDiagramLLMS(k):
+    """
+    """
+    class GrowthDiagramLLMS(GrowthDiagramLLMSClass):
+        _k = k
+        _zero = Core([], k)
+
+    return GrowthDiagramLLMS
+
+
+class GrowthDiagramLLMSClass(GrowthDiagram):
+    r"""
+    A class modelling the Schensted correspondence for affine
+    permutations.
+
+    EXAMPLES::
+
+        sage: GrowthDiagramLLMS(3)([3,4,1,2]).out_labels()
+
+    Check example of Figure 1 in [LamShi2007]_::
+
+        sage: G = GrowthDiagramLLMS(3)([4,1,2,6,3,5])
+        sage: G.P_chain()
+
+        sage: G.Q_chain()
+
+    .. automethod:: _forward_rule
+    .. automethod:: _backward_rule
+
+    TESTS::
+
+        sage: G = GrowthDiagramLLMS(3)
+        sage: G._zero
+        []
+
+    """
+    def __init__(self,
+                 filling = None,
+                 shape = None,
+                 labels = None):
+        # TODO: should check that the filling is standard
+        if labels is not None:
+            labels = [Core(labels[i], self._k) if is_even(i) else ZZ(labels[i]) for i in range(len(labels))]
+        super(GrowthDiagramLLMS, self).__init__(filling = filling,
+                                                shape = shape,
+                                                labels = labels)
+    __init__.__doc__ = GrowthDiagram.__init__.__doc__
+
+    _has_multiple_edges = True
+
+    @classmethod
+    def vertices(cls, n):
+        return Cores(cls._k, length=n)
+
+    @staticmethod
+    def _is_Q_edge(w, v):
+        return [0] if w in v.weak_covers() else []
+
+    @staticmethod
+    def _is_P_edge(w, v):
+        if w in v.strong_covers():
+            T = SkewPartition([w.to_partition(), v.to_partition()])
+            return T.cell_poset().connected_components()
+        else:
+            return []
 
 class GrowthDiagramBinWord(GrowthDiagram):
     r"""

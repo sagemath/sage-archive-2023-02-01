@@ -504,7 +504,6 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         coord_expression = {chart2: target_coord}
         return self.element_class(self, coord_expression)
 
-
 #******************************************************************************
 
 class IntegratedCurveSet(DifferentiableCurveSet):
@@ -527,23 +526,13 @@ class IntegratedCurveSet(DifferentiableCurveSet):
       denote the set of integrated curves; if ``None``,
       `\mathrm{Hom_{integrated}}(I,M)` will be used
 
-    EXAMPLES:
-
-
-
-
-
-                        TO DO !
-
-
-
-
+    EXAMPLE:
 
     This parent class needs to be imported::
 
         sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
 
-    Integrated curves are only allowed to defined on interval with
+    Integrated curves are only allowed to be defined on an interval with
     finite bounds.
     This forbids to define an instance of this parent class whose domain
     has infinite bounds::
@@ -562,7 +551,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedCurveSet(I, M) ; H
-        Set of Morphisms from Real interval (-1, 2) to 3-dimensional
+        Set of Morphisms from Real interval (-1, 2) to 2-dimensional
          differentiable manifold M in Category of homsets of subobjects
          of sets and topological spaces which actually are integrated
          curves
@@ -576,11 +565,11 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         Integrated curve c in the 2-dimensional differentiable
          manifold M
 
-    An element of ``H`` is a curve in ``M``::
+    A "typical" element of ``H`` is a curve in ``M``::
 
         sage: d = H.an_element(); d
         Integrated curve in the 2-dimensional differentiable manifold M
-        sage: sys = d.system()
+        sage: sys = d.system(verbose=True)
         Curve in the 2-dimensional differentiable manifold M integrated
          over the Real interval (-1, 2) as a solution to the following
          system, written w.r.t. Chart (M, (x, y)):
@@ -612,11 +601,11 @@ class IntegratedCurveSet(DifferentiableCurveSet):
          of sets and topological spaces which actually are integrated
          curves
 
-    An element of ``H`` is a curve in ``M``::
+    A "typical" element of ``H`` is a curve in ``M``::
 
         sage: f = H.an_element(); f
         Integrated curve in the 2-dimensional differentiable manifold M
-        sage: sys = f.system()
+        sage: sys = f.system(verbose=True)
         Curve in the 2-dimensional differentiable manifold M integrated
          over the Real interval (a, b) as a solution to the following
          system, written w.r.t. Chart (M, (x, y)):
@@ -660,12 +649,28 @@ class IntegratedCurveSet(DifferentiableCurveSet):
     The identity element of the monoid is a numerical version of the
     identity map of `J`::
 
+        sage: e = H.one() ; e
+        Integrated curve Id_(a, b) in the Real interval (a, b)
 
-                        COMPLETE !
+    A "typical" element of the monoid::
+
+        sage: g = H.an_element() ; g
+        Integrated curve in the Real interval (a, b)
+        sage: sys = g.system(verbose=True)
+        Curve in the Real interval (a, b) integrated over the Real interval (a, b) as a solution to the following system, written w.r.t. Chart ((a, b), (t,)):
+        <BLANKLINE>
+        Initial point: Point on the Real number line R with coordinates [0] w.r.t. Chart ((a, b), (t,))
+        Initial tangent vector: Tangent vector at Point on the Real number line R with components [1/4] w.r.t. Chart ((a, b), (t,))
+        <BLANKLINE>
+        d(t)/ds = Dt
+        d(Dt)/ds = -1/4*sin(-a + s)
+        <BLANKLINE>
+
+    The test suite is passed::
+
+        sage: TestSuite(H).run()
 
     """
-
-
 
     Element = IntegratedCurve
 
@@ -753,7 +758,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
     def _element_constructor_(self, equations_rhs, velocities,
                  curve_parameter, initial_tangent_vector, chart=None,
                  name=None, latex_name=None, is_isomorphism=False,
-                 is_identity=False, verbose=True):
+                 is_identity=False, verbose=False):
         r"""
         Construct an element of ``self``, i.e. an integrated curve
         `I \to M`, where `I` is a real interval and `M` some
@@ -808,7 +813,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: c = H._an_element_() ; c
             Integrated curve in the 2-dimensional differentiable
              manifold M
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Curve in the 2-dimensional differentiable manifold M
              integrated over the Real interval (-1, 2) as a solution to
              the following system, written w.r.t. Chart (M, (x, y)):
@@ -824,14 +829,14 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             d(Dx)/dt = -1/4*sin(t + 1)
             d(Dy)/dt = 0
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1, verbose=False)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1)
             [0.22732435599328793, 0.0]
             sage: H = IntegratedCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated curve in the Real interval (-1, 2)
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Curve in the Real interval (-1, 2) integrated over the Real
              interval (-1, 2) as a solution to the following system,
              written w.r.t. Chart ((-1, 2), (t,)):
@@ -844,9 +849,9 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             <BLANKLINE>
             d(t)/ds = Dt
             d(Dt)/ds = -3/8*sin(s + 1)
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1, verbose=False)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1)
             [0.840986533989932]
 
         """
@@ -935,7 +940,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         - the identity map of `M`, as an instance of
           :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`
 
-        EXAMPLES:
+        EXAMPLE::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(3, 'M')
@@ -993,14 +998,120 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
       differentiable manifold `M` (codomain of the morphisms)
     - ``name`` -- (default: ``None``) string; name given to the set of
       integrated autoparallel curves; if ``None``,
-      ``Hom_integrated_autoparallel(I, M)`` will be used
+      ``Hom_autoparallel(I, M)`` will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
       the set of integrated autoparallel curves; if ``None``,
-      `\mathrm{Hom_{integrated autoparallel}}(I,M)` will be used
+      `\mathrm{Hom_{autoparallel}}(I,M)` will be used
 
-    EXAMPLES:
+    EXAMPLE:
 
-                        TO DO !
+    This parent class needs to be imported::
+
+        sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
+
+    Integrated autoparallel curves are only allowed to be defined on an
+    interval with finite bounds.
+    This forbids to define an instance of this parent class whose domain
+    has infinite bounds::
+
+        sage: M = Manifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: R.<t> = RealLine()
+        sage: H = IntegratedAutoparallelCurveSet(R, M)
+        Traceback (most recent call last):
+        ...
+        ValueError: Both boundaries of the interval defining the domain
+         of a Homset of integrated autoparallel curves need to be finite.
+
+    An instance whose domain is an interval with finite bounds allows to
+    build a curve that is autoparallel w.r.t a connection defined on the
+    codomain::
+
+        sage: I = R.open_interval(-1, 2)
+        sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
+        Set of Morphisms from Real interval (-1, 2) to 2-dimensional
+         differentiable manifold M in Category of homsets of subobjects
+         of sets and topological spaces which actually are integrated
+         autoparallel curves w.r.t a certain affine connection
+        sage: nab = M.affine_connection('nabla')
+        sage: nab[0,1,0], nab[0,0,1] = 1,2
+        sage: nab.torsion()[:]
+        [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]
+        sage: t = var('t')
+        sage: p = M.point((3,4))
+        sage: Tp = M.tangent_space(p)
+        sage: v = Tp((1,2))
+        sage: c = H(nab, t, v, name='c') ; c
+        Integrated autoparallel curve c in the 2-dimensional
+         differentiable manifold M
+
+    A "typical" element of ``H`` is an autoparallel curve in ``M``::
+
+        sage: d = H.an_element(); d
+        Integrated autoparallel curve in the 2-dimensional
+         differentiable manifold M
+        sage: sys = d.system(verbose=True)
+        Autoparallel curve in the 2-dimensional differentiable manifold
+         M equipped with Affine connection nab on the Open subset U of
+         the 2-dimensional differentiable manifold M, and integrated
+         over the Real interval (-1, 2) as a solution to the following
+         equations, written w.r.t. Chart (M, (x, y)):
+        <BLANKLINE>
+        Initial point: Point on the 2-dimensional differentiable
+         manifold M with coordinates [0.0312500000000000, -1/2] w.r.t.
+         Chart (M, (x, y))
+        Initial tangent vector: Tangent vector at Point on the
+         2-dimensional differentiable manifold M with components
+         [0.156250000000000, 2.07698341289763] w.r.t. Chart (M, (x, y))
+        <BLANKLINE>
+        d(x)/dt = Dx
+        d(y)/dt = Dy
+        d(Dx)/dt = 0
+        d(Dy)/dt = -Dx*Dy*cos(x)/sin(x)
+        <BLANKLINE>
+
+    The test suite is passed::
+
+        sage: TestSuite(H).run()
+
+    For any open interval `J` with finite bounds `(a,b)`, all curves are
+    autoparallel w.r.t any connection.
+    Therefore, the set of autoparallel curves `J \longrightarrow J` is a set of
+    numerical (manifold) endomorphisms that is a monoid for the law of
+    morphism composition::
+
+        sage: [a,b] = var('a b')
+        sage: J = R.open_interval(a, b)
+        sage: H = IntegratedAutoparallelCurveSet(J, J); H
+        Set of Morphisms from Real interval (a, b) to Real interval
+         (a, b) in Category of endsets of subobjects of sets and
+         topological spaces which actually are integrated autoparallel
+         curves w.r.t a certain affine connection
+        sage: H.category()
+        Category of endsets of subobjects of sets and topological spaces
+        sage: H in Monoids()
+        True
+        sage: e = H.one() ; e
+        Integrated autoparallel curve Id_(a, b) in the Real
+         interval (a, b)
+
+    A "typical" element of the monoid::
+
+        sage: g = H.an_element() ; g
+        Integrated autoparallel curve in the Real interval (a, b)
+        sage: sys = g.system(verbose=True)
+        Autoparallel curve in the Real interval (a, b) equipped with Affine connection nab on the Open subset U of the Real number line R, and integrated over the Real interval (a, b) as a solution to the following equations, written w.r.t. Chart ((a, b), (t,)):
+        <BLANKLINE>
+        Initial point: Point on the Real number line R with coordinates [1/200] w.r.t. Chart ((a, b), (t,))
+        Initial tangent vector: Tangent vector at Point on the Real number line R with components [-9999/400/(a - b)] w.r.t. Chart ((a, b), (t,))
+        <BLANKLINE>
+        d(t)/ds = Dt
+        d(Dt)/ds = -Dt^2/t
+        <BLANKLINE>
+
+    The test suite is passed::
+
+        sage: TestSuite(H).run()
 
     """
 
@@ -1053,12 +1164,12 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
                              "be finite.")
 
         if name is None:
-            self._name = "Hom_integrated_autoparallel"
+            self._name = "Hom_autoparallel"
             self._name += "({},{})".format(domain._name, codomain._name)
         else:
             self._name = name
         if latex_name is None:
-            self._latex_name=r"\mathrm{{Hom}_{integrated autoparallel}}"
+            self._latex_name=r"\mathrm{{Hom}_{autoparallel}}"
             self._latex_name+= r"\left({},{}\right)".format(
                                domain._latex_name, codomain._latex_name)
         else:
@@ -1095,7 +1206,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
     def _element_constructor_(self, affine_connection, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
                     latex_name=None, is_isomorphism=False,
-                    is_identity=False, verbose=True):
+                    is_identity=False, verbose=False):
         r"""
         Construct an element of ``self``, i.e. an integrated
         autoparallel curve `I \to M`, where `I` is a real interval and
@@ -1152,7 +1263,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: c = H._an_element_() ; c
             Integrated autoparallel curve in the 2-dimensional
              differentiable manifold M
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Autoparallel curve in the 2-dimensional differentiable
              manifold M equipped with Affine connection nab on the Open
              subset U of the 2-dimensional differentiable manifold M,
@@ -1173,14 +1284,14 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             d(Dx)/dt = 0
             d(Dy)/dt = -Dx*Dy*cos(x)/sin(x)
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1, verbose=False)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1)
             [0.34375000000000056, 0.49999813529956155]
             sage: H = IntegratedAutoparallelCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated autoparallel curve in the Real interval (-1, 2)
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Autoparallel curve in the Real interval (-1, 2) equipped
              with Affine connection nab on the Open subset U of the Real
              number line R, and integrated over the Real
@@ -1196,9 +1307,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             d(t)/ds = Dt
             d(Dt)/ds = -Dt^2/t
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1, verbose=False)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1)
             [1.0606601601128764]
 
         """
@@ -1383,7 +1494,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         - the identity map of `M`, as an instance of
           :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`
 
-        EXAMPLES:
+        EXAMPLE::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(3, 'M')
@@ -1453,14 +1564,122 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
       differentiable manifold `M` (codomain of the morphisms)
     - ``name`` -- (default: ``None``) string; name given to the set of
-      integrated geodesics; if ``None``, ``Hom(I, M)`` will be used
+      integrated geodesics; if ``None``, ``Hom_geodesic(I, M)`` will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
       the set of integrated geodesics; if ``None``,
       `\mathrm{Hom_{geodesic}}(I,M)` will be used
 
-    EXAMPLES:
+    EXAMPLE:
 
-                    TO DO !
+    This parent class needs to be imported::
+
+        sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
+
+    Integrated geodesics are only allowed to be defined on an interval
+    with finite bounds.
+    This forbids to define an instance of this parent class whose domain
+    has infinite bounds::
+
+        sage: M = Manifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: R.<t> = RealLine()
+        sage: H = IntegratedGeodesicSet(R, M)
+        Traceback (most recent call last):
+        ...
+        ValueError: Both boundaries of the interval defining the domain
+         of a Homset of integrated geodesics need to be finite.
+
+    An instance whose domain is an interval with finite bounds allows to
+    build a geodesic w.r.t. a metric defined on the codomain::
+
+        sage: I = R.open_interval(-1, 2)
+        sage: H = IntegratedGeodesicSet(I, M) ; H
+        Set of Morphisms from Real interval (-1, 2) to 2-dimensional
+         differentiable manifold M in Category of homsets of subobjects
+         of sets and topological spaces which actually are integrated
+         geodesics w.r.t a certain metric
+        sage: g = M.metric('g')
+        sage: g[0,0], g[1,1], g[0,1] = 1, 1, 2
+        sage: t = var('t')
+        sage: p = M.point((3,4))
+        sage: Tp = M.tangent_space(p)
+        sage: v = Tp((1,2))
+        sage: c = H(g, t, v, name='c') ; c
+        Integrated geodesic c in the 2-dimensional differentiable
+         manifold M
+
+    A "typical" element of ``H`` is a geodesic in ``M``::
+
+        sage: d = H.an_element(); d
+        Integrated geodesic in the 2-dimensional differentiable
+         manifold M
+        sage: sys = d.system(verbose=True)
+        Geodesic in the 2-dimensional differentiable manifold M equipped
+         with Riemannian metric g on the 2-dimensional differentiable
+         manifold M, and integrated over the Real interval (-1, 2) as a
+         solution to the following geodesic equations, written w.r.t.
+         Chart (M, (x, y)):
+        <BLANKLINE>
+        Initial point: Point on the 2-dimensional differentiable
+         manifold M with coordinates [0.0312500000000000, 0] w.r.t.
+         Chart (M, (x, y))
+        Initial tangent vector: Tangent vector at Point on the
+         2-dimensional differentiable manifold M with components
+         [0.156250000000000, 0] w.r.t. Chart (M, (x, y))
+        <BLANKLINE>
+        d(x)/dt = Dx
+        d(y)/dt = Dy
+        d(Dx)/dt = Dy^2*cos(x)*sin(x)
+        d(Dy)/dt = -2*Dx*Dy*cos(x)/sin(x)
+
+    The test suite is passed::
+
+        sage: TestSuite(H).run()
+
+    For any open interval `J` with finite bounds `(a,b)`, all curves are
+    geodesics w.r.t any metric.
+    Therefore, the set of geodesics `J \longrightarrow J` is a set of
+    numerical (manifold) endomorphisms that is a monoid for the law of
+    morphism composition::
+
+        sage: [a,b] = var('a b')
+        sage: J = R.open_interval(a, b)
+        sage: H = IntegratedGeodesicSet(J, J); H
+        Set of Morphisms from Real interval (a, b) to Real interval
+         (a, b) in Category of endsets of subobjects of sets and
+         topological spaces which actually are integrated geodesics
+         w.r.t a certain metric
+        sage: H.category()
+        Category of endsets of subobjects of sets and topological spaces
+        sage: H in Monoids()
+        True
+        sage: e = H.one() ; e
+        Integrated geodesic Id_(a, b) in the Real interval (a, b)
+
+    A "typical" element of the monoid::
+
+        sage: g = H.an_element() ; g
+        Integrated geodesic in the Real interval (a, b)
+        sage: sys = g.system(verbose=True)
+        Geodesic in the Real interval (a, b) equipped with Riemannian
+         metric g on the Open subset U of the Real number line R, and
+         integrated over the Real interval (a, b) as a solution to the
+         following geodesic equations, written w.r.t.
+         Chart ((a, b), (t,)):
+        <BLANKLINE>
+        Initial point: Point on the Real number line R with coordinates
+         [1/200] w.r.t. Chart ((a, b), (t,))
+        Initial tangent vector: Tangent vector at Point on the Real
+         number line R with components [-9999999999/1000/(a - b)] w.r.t.
+         Chart ((a, b), (t,))
+        <BLANKLINE>
+        d(t)/ds = Dt
+        d(Dt)/ds = -4*Dt^2/t
+        <BLANKLINE>
+
+    The test suite is passed::
+
+        sage: TestSuite(H).run()
 
     """
 
@@ -1551,7 +1770,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
     def _element_constructor_(self, metric, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
                     latex_name=None, is_isomorphism=False,
-                    is_identity=False, verbose=True):
+                    is_identity=False, verbose=False):
         r"""
         Construct an element of ``self``, i.e. an integrated geodesic
         `I \to M`, where `I` is a real interval and
@@ -1605,7 +1824,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: c = H._an_element_() ; c
             Integrated geodesic in the 4-dimensional differentiable
              manifold M
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Geodesic in the 4-dimensional differentiable manifold M
              equipped with Riemannian metric g on the 4-dimensional
              differentiable manifold M, and integrated over the Real
@@ -1628,14 +1847,14 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             d(Dy)/dt = 0
             d(Dz)/dt = 0
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1, verbose=False)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1)
             [0.34375000000000056, 0.0, 0.0, 0.0]
             sage: H = IntegratedGeodesicSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated geodesic in the Real interval (-1, 2)
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Geodesic in the Real interval (-1, 2) equipped with
              Riemannian metric g on the Open subset U of the Real number
              line R, and integrated over the Real interval (-1, 2) as a
@@ -1651,9 +1870,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             d(t)/ds = Dt
             d(Dt)/ds = -4*Dt^2/t
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1, verbose=False)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1)
             [1.1495758053215723]
 
         """

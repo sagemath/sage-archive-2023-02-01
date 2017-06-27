@@ -2572,9 +2572,9 @@ class DifferentiableManifold(TopologicalManifold):
 
     def integrated_curve(self, equations_rhs, velocities, curve_param,
                          initial_tangent_vector, chart=None, name=None,
-                         latex_name=None, verbose=True):
+                         latex_name=None, verbose=False):
         r"""
-        Construct a numerical curve defined by a system of second order
+        Construct a curve defined by a system of second order
         differential equations in the coordinate functions.
 
         .. SEEALSO::
@@ -2632,12 +2632,10 @@ class DifferentiableManifold(TopologicalManifold):
             sage: p = M.point((0,0,0), name='p')
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((1,0,1))
-            sage: c = M.integrated_curve(eqns, D, (t, 0, 6), v,
-            ....:                               name='c', verbose=False)
-            sage: c
+            sage: c=M.integrated_curve(eqns, D, (t,0,6), v, name='c'); c
             Integrated curve c in the 3-dimensional differentiable
              manifold M
-            sage: sys = c.system()
+            sage: sys = c.system(verbose=True)
             Curve c in the 3-dimensional differentiable manifold M
              integrated over the Real interval (0, 6) as a solution to
              the following system, written w.r.t.
@@ -2657,14 +2655,14 @@ class DifferentiableManifold(TopologicalManifold):
             d(Dx2)/dt = -Dx1
             d(Dx3)/dt = 0
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1.3)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
             [0.9635581155730744, -0.7325010457963622, 1.3]
-            sage: tgt_vec = c.tangent_vector_eval_at(3.7)
+            sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
@@ -2692,10 +2690,10 @@ class DifferentiableManifold(TopologicalManifold):
 
     def integrated_autoparallel_curve(self, affine_connection,
                         curve_param, initial_tangent_vector, chart=None,
-                        name=None, latex_name=None, verbose=True):
+                        name=None, latex_name=None, verbose=False):
         r"""
-        Construct a numerical autoparallel curve on the manifold with
-        respect to a given affine connection.
+        Construct an autoparallel curve on the manifold w.r.t. a given
+        affine connection.
 
         .. SEEALSO::
 
@@ -2706,8 +2704,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``affine_connection`` --
           :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
-          affine connection with respect to which the curve is
-          autoparallel
+          affine connection w.r.t. which the curve is autoparallel
         - ``curve_param`` -- a tuple of the type ``(t, t_min, t_max)``,
           where
 
@@ -2774,8 +2771,8 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v = Tp((1,1), basis=epolar_ON.at(p))
             sage: t = var('t')
             sage: c = S2.integrated_autoparallel_curve(nab, (t, 0, 6),
-            ....:               v, chart=polar, name='c', verbose=False)
-            sage: sys = c.system()
+            ....:                              v, chart=polar, name='c')
+            sage: sys = c.system(verbose=True)
             Autoparallel curve c in the 2-dimensional differentiable
              manifold S^2 equipped with Affine connection nab on the
              2-dimensional differentiable manifold S^2, and integrated
@@ -2795,14 +2792,14 @@ class DifferentiableManifold(TopologicalManifold):
             d(Dth)/dt = 0
             d(Dph)/dt = -Dph*Dth*cos(th)/sin(th)
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1.3)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
             [2.085398163397449, 1.4203172015958863]
-            sage: tgt_vec = c.tangent_vector_eval_at(3.7)
+            sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
@@ -2830,10 +2827,9 @@ class DifferentiableManifold(TopologicalManifold):
 
     def integrated_geodesic(self, metric, curve_param,
                             initial_tangent_vector, chart=None,
-                            name=None, latex_name=None, verbose=True):
+                            name=None, latex_name=None, verbose=False):
         r"""
-        Construct a numerical geodesic on the manifold with respect to
-        a given metric.
+        Construct a geodesic on the manifold w.r.t. a given metric.
 
         .. SEEALSO::
 
@@ -2844,7 +2840,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``metric`` --
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
-          metric with respect to which the curve is a geodesic
+          metric w.r.t. which the curve is a geodesic
         - ``curve_param`` -- a tuple of the type ``(t, t_min, t_max)``,
           where
 
@@ -2899,8 +2895,8 @@ class DifferentiableManifold(TopologicalManifold):
             sage: v = Tp((1, 1), basis=epolar.at(p))
             sage: t = var('t')
             sage: c = S2.integrated_geodesic(g, (t, 0, 6), v,
-            ....:                  chart=polar, name='c', verbose=False)
-            sage: sys = c.system()
+            ....:                                 chart=polar, name='c')
+            sage: sys = c.system(verbose=True)
             Geodesic c in the 2-dimensional differentiable manifold S^2
              equipped with Riemannian metric g on the 2-dimensional
              differentiable manifold S^2, and integrated over the Real
@@ -2919,14 +2915,14 @@ class DifferentiableManifold(TopologicalManifold):
             d(Dth)/dt = Dph^2*cos(th)*sin(th)
             d(Dph)/dt = -2*Dph*Dth*cos(th)/sin(th)
             <BLANKLINE>
-            sage: sol = c.solve(verbose=False)
-            sage: interp = c.interpolate(verbose=False)
-            sage: c(1.3)
+            sage: sol = c.solve()
+            sage: interp = c.interpolate()
+            sage: c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
             [2.2047444794514663, 0.7986609561213334]
-            sage: tgt_vec = c.tangent_vector_eval_at(3.7)
+            sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...

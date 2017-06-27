@@ -174,8 +174,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import, print_function
+from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
@@ -185,6 +185,7 @@ from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.structure.element import ModuleElement
 import re
 import os
 import pexpect
@@ -477,7 +478,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
@@ -739,17 +740,17 @@ class Gap_generic(ExtraTabCompletion, Expect):
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
 
-            if len(error)> 0:
+            if len(error):
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
                 raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
-            if len(normal) == 0:
+            if not len(normal):
                 return ''
 
-            if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
+            if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
             elif normal.endswith(self._prompt):
                 n = len(self._prompt)
@@ -758,7 +759,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             else:
                 n = 0
             out = normal[:-n]
-            if len(out) > 0 and out[-1] == "\n":
+            if len(out) and out[-1] == "\n":
                 out = out[:-1]
             return out
 
@@ -963,8 +964,10 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
+# We need to inherit from ModuleElement to support
+# sage.structure.coerce_actions.ModuleAction
 @instancedoc
-class GapElement_generic(ExtraTabCompletion, ExpectElement):
+class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 
@@ -1193,12 +1196,13 @@ class Gap(Gap_generic):
             sage: g.quit()
         """
         if self.__use_workspace_cache:
+            from sage.libs.gap.saved_workspace import timestamp
             try:
                 # Check to see if we need to auto-regenerate the gap
                 # workspace, i.e., if the gap script is more recent
                 # than the saved workspace, which signals that gap has
                 # been upgraded.
-                if os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_BINARY):
+                if os.path.getmtime(WORKSPACE) < timestamp():
                     raise OSError("GAP workspace too old")
                 # Set the modification time of the workspace to the
                 # current time.  This ensures the workspace doesn't

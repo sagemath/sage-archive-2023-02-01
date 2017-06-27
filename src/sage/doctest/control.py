@@ -123,7 +123,7 @@ class DocTestDefaults(SageObject):
         s += ")"
         return s
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison by __dict__.
 
@@ -135,9 +135,23 @@ class DocTestDefaults(SageObject):
             sage: DD1 == DD2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__,other.__dict__)
+        if not isinstance(other, DocTestDefaults):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults
+            sage: DD1 = DocTestDefaults(long=True)
+            sage: DD2 = DocTestDefaults(long=True)
+            sage: DD1 != DD2
+            False
+        """
+        return not (self == other)
 
 
 def skipdir(dirname):
@@ -170,7 +184,7 @@ def skipfile(filename):
         sage: f = tmp_filename(ext=".pyx")
         sage: skipfile(f)
         False
-        sage: open(f, "w").write("# nodoctest")
+        sage: _ = open(f, "w").write("# nodoctest")
         sage: skipfile(f)
         True
     """
@@ -198,7 +212,7 @@ class Logger(object):
         sage: from sage.doctest.control import Logger
         sage: t = open(tmp_filename(), "w+")
         sage: L = Logger(sys.stdout, t)
-        sage: L.write("hello world\n")
+        sage: _ = L.write("hello world\n")
         hello world
         sage: t.seek(0)
         sage: t.read()
@@ -706,8 +720,8 @@ class DocTestController(SageObject):
 
             sage: dirname = tmp_dir()
             sage: filename = os.path.join(dirname, 'not_tested.py')
-            sage: with open(filename, 'w') as F:
-            ....:     F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: DC.sources

@@ -41,7 +41,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six import iteritems, iterkeys
+from six import iteritems, iterkeys, integer_types
 from six.moves import range
 
 from sage.structure.category_object import normalize_names
@@ -226,12 +226,12 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
            sage: (w0 + 2*w8 + w13)^2
            w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
     """
-    if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
+    if is_Element(arg1) and not isinstance(arg1, integer_types + (Integer,)):
         arg1 = repr(arg1)
-    if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
+    if is_Element(arg2) and not isinstance(arg2, integer_types + (Integer,)):
         arg2 = repr(arg2)
 
-    if isinstance(arg1, (int, long, Integer)):
+    if isinstance(arg1, integer_types + (Integer,)):
         arg1, arg2 = arg2, arg1
 
     if not names is None:
@@ -250,7 +250,7 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
         arg2 = [str(x) for x in arg2]
-    if isinstance(arg2, (int, long, Integer)):
+    if isinstance(arg2, integer_types + (Integer,)):
         # 3. LaurentPolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
             raise TypeError("You *must* specify the names of the variables.")
@@ -470,7 +470,7 @@ def _split_dict_(D, indices, group_by=None):
 
 def _split_laurent_polynomial_dict_(P, M, d):
     r"""
-    Helper function for splitting a multivariate laurent polynomial
+    Helper function for splitting a multivariate Laurent polynomial
     during conversion.
 
     INPUT:
@@ -620,7 +620,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     def variable_names_recursive(self, depth=infinity):
         r"""
         Return the list of variable names of this ring and its base rings,
-        as if it were a single multi-variate laurent polynomial.
+        as if it were a single multi-variate Laurent polynomial.
 
         INPUT:
 

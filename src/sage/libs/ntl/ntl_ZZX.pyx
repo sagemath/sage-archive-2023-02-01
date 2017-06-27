@@ -15,8 +15,8 @@
 
 from __future__ import division, print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include "decl.pxi"
 include 'misc.pxi'
 

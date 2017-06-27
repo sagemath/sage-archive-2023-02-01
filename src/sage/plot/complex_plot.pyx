@@ -18,8 +18,7 @@ Complex Plots
 #*****************************************************************************
 
 # TODO: use NumPy buffers and complex fast_callable (when supported)
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 cimport numpy as cnumpy
 

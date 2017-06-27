@@ -329,7 +329,7 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:
@@ -437,12 +437,12 @@ cdef inline cpickle(celement a, PowComputer_class prime_pow):
 
 cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -1:
     """
-    Reconstruction from the output of meth:`cpickle`.
+    Reconstruction from the output of :meth:`cpickle`.
 
     INPUT:
 
     - ``out`` -- the ``celement`` in which to store the result.
-    - ``x`` -- the result of `meth`:cpickle.
+    - ``x`` -- the result of :meth:`cpickle`.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     pass

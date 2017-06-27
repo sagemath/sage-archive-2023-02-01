@@ -80,6 +80,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import integer_types
 
 from sage.arith.misc import binomial
 
@@ -206,7 +207,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         A = ProjectiveSpace(n.ngens()-1, n.base_ring())
         A._coordinate_ring = n
         return A
-    if isinstance(R, (int, long, Integer)):
+    if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -567,7 +568,8 @@ class ProjectiveSpace_ring(AmbientSpace):
             [0]
             [0]
 
-        If the multiplcity ``m`` is 0, then the a matrix with zero rows is returned::
+        If the multiplicity `m` is 0, then the a matrix with zero rows
+        is returned::
 
             sage: P = ProjectiveSpace(GF(5), 2, names='x')
             sage: pt = P([1, 1, 1])

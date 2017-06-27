@@ -131,7 +131,7 @@ class DocTestSource(object):
         """
         self.options = options
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison is just by comparison of attributes.
 
@@ -148,9 +148,28 @@ class DocTestSource(object):
             sage: FDS == FDS2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        if type(self) != type(other):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults
+            sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.env import SAGE_SRC
+            sage: import os
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
+            sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,DD)
+            sage: FDS2 = FileDocTestSource(filename,DD)
+            sage: FDS != FDS2
+            False
+        """
+        return not (self == other)
 
     def _process_doc(self, doctests, doc, namespace, start):
         """
@@ -240,7 +259,7 @@ class DocTestSource(object):
             sage: FDS.qualified_name = NestedName('sage.doctest.sources')
             sage: doctests, extras = FDS._create_doctests({})
             sage: len(doctests)
-            40
+            41
             sage: extras['tab']
             False
             sage: extras['line_number']
@@ -509,7 +528,7 @@ class FileDocTestSource(DocTestSource):
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = tmp_filename(ext=".py")
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
-            sage: open(filename, 'w').write(s)
+            sage: _ = open(filename, 'w').write(s)
             sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: for n, line in FDS:
             ....:     print("{} {}".format(n, line))
@@ -633,16 +652,16 @@ class FileDocTestSource(DocTestSource):
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: len(doctests)
-            40
+            41
             sage: extras['tab']
             False
 
         We give a self referential example::
 
-            sage: doctests[17].name
+            sage: doctests[18].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
-            sage: doctests[17].examples[10].source
-            'doctests[Integer(17)].examples[Integer(10)].source\n'
+            sage: doctests[18].examples[10].source
+            'doctests[Integer(18)].examples[Integer(10)].source\n'
 
         TESTS:
 
@@ -654,7 +673,7 @@ class FileDocTestSource(DocTestSource):
             sage: n = -920390823904823094890238490238484; hash(n) > 0
             False # 32-bit
             True  # 64-bit
-            sage: ex = doctests[17].examples[13]
+            sage: ex = doctests[18].examples[13]
             sage: (bitness == '64' and ex.want == 'True  \n') or (bitness == '32' and ex.want == 'False \n')
             True
 
@@ -1011,13 +1030,25 @@ class PythonSource(SourceLanguage):
             sage: FDS.starting_docstring("class NewClass(object):")
             sage: FDS.starting_docstring("    '''")
             <_sre.SRE_Match object at ...>
+            sage: FDS.ending_docstring("    '''")
+            <_sre.SRE_Match object at ...>
             sage: FDS.qualified_name
             sage.doctest.sources.NewClass
+            sage: FDS.starting_docstring("print(")
+            sage: FDS.starting_docstring("    '''Not a docstring")
+            sage: FDS.starting_docstring("    ''')")
+            sage: FDS.starting_docstring("def foo():")
+            sage: FDS.starting_docstring("    '''This is a docstring'''")
+            <_sre.SRE_Match object at ...>
         """
         indent = whitespace.match(line).end()
         quotematch = None
-        if self.quotetype is None:
-            # We're not inside a triple quote
+        if self.quotetype is None and not self.code_wrapping:
+            # We're not inside a triple quote and not inside code like
+            # print(
+            #     """Not a docstring
+            #     """)
+
             if line[indent] != '#' and (indent == 0 or indent > self.last_indent):
                 quotematch = triple_quotes.match(line)
                 # It would be nice to only run the name_regex when

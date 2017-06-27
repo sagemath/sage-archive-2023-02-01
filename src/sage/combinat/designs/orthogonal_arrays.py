@@ -1424,7 +1424,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     `x` blocks of an `OA` are said to be disjoint if they all have
     different values for a every given index, i.e. if they correspond to
-    disjoint blocks in the `TD` assciated with the `OA`.
+    disjoint blocks in the `TD` associated with the `OA`.
 
     INPUT:
 

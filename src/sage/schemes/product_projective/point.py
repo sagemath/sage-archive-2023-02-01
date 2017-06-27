@@ -27,7 +27,7 @@ from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.structure.sequence import Sequence
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 
 class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):

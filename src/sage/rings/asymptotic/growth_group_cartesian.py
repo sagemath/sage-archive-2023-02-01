@@ -16,21 +16,6 @@ ACKNOWLEDGEMENT:
 
 - Benjamin Hackl is supported by the Google Summer of Code 2015.
 
-.. WARNING::
-
-    As this code is experimental, warnings are thrown when a growth
-    group is created for the first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup, GrowthGroup
-        sage: GenericGrowthGroup(ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group Generic(ZZ)
 
 TESTS::
 
@@ -645,11 +630,11 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^ZZ * log(x)^ZZ
             sage: cm.discover_coercion(A, B)
             ((map internal to coercion system -- copy before use)
-             Conversion map:
+             Coercion map:
                From: Growth Group QQ^x * x^ZZ
                To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ,
              (map internal to coercion system -- copy before use)
-             Conversion map:
+             Coercion map:
                From: Growth Group x^ZZ * log(x)^ZZ
                To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ)
             sage: cm.common_parent(A, B)
@@ -1372,7 +1357,7 @@ class UnivariateProduct(GenericProduct):
         r"""
         See :class:`UnivariateProduct` for details.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: type(GrowthGroup('x^ZZ * log(x)^ZZ'))  # indirect doctest
@@ -1405,7 +1390,7 @@ class MultivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
         r"""
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: type(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest

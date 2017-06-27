@@ -41,6 +41,8 @@ Check that sphinx is not imported at Sage start-up::
 
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
+
 import os, re, sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
@@ -635,7 +637,7 @@ def format(s, embedded=False):
         ...
 
     """
-    if not isinstance(s, str):
+    if not isinstance(s, string_types):
         raise TypeError("s must be a string")
 
     # Leading empty lines must be removed, since we search for directives
@@ -717,7 +719,7 @@ def format_src(s):
         sage: format_src('<<<Sq>>>')[5:15]
         'Sq(*nums):'
     """
-    if not isinstance(s, str):
+    if not isinstance(s, string_types):
         raise TypeError("s must be a string")
     docs = set([])
     import sage.all

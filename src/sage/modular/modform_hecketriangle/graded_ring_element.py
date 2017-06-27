@@ -24,7 +24,7 @@ from sage.rings.number_field.number_field import QuadraticField
 from sage.symbolic.all import pi
 
 from sage.structure.parent_gens import localvars
-from sage.structure.sage_object import op_NE, op_EQ
+from sage.structure.richcmp import op_NE, op_EQ
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 

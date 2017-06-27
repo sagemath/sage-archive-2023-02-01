@@ -84,7 +84,7 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
-from sage.structure.sage_object import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
+from sage.structure.richcmp import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
@@ -153,7 +153,7 @@ class TamariIntervalPoset(Element):
     its roots on top. This forest is usually given the structure of a
     planar forest by ordering brother nodes by their labels; it then has
     the property that if its nodes are traversed in post-order
-    (see :meth:~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
+    (see :meth:`~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
     and traverse the trees of the forest from left to right as well),
     then the labels encountered are `1, 2, \ldots, n` in this order.
 
@@ -1088,6 +1088,172 @@ class TamariIntervalPoset(Element):
         return msg.format(self.size(),
                           self.increasing_cover_relations() +
                           self.decreasing_cover_relations())
+
+    def _ascii_art_(self):
+        """
+        Return an ascii art picture of ``self``.
+
+        This is a picture of the Hasse diagram. Vertices from `1` to `n`
+        are placed on the diagonal from top-left to bottom-right.
+        Then increasing covers are drawn above the diagonal
+        and decreasing covers are drawn below the diagonal.
+
+        EXAMPLES::
+
+            sage: T = TamariIntervalPosets(5)[56]
+            sage: ascii_art(T)
+             O-----------+
+                O--------+
+                +--O--+  |
+                      O--+
+                         O
+            sage: T.poset().cover_relations()
+            [[3, 4], [3, 2], [4, 5], [2, 5], [1, 5]]
+        """
+        n = self.size()
+        M = [[' O ' if i == j else '   ' for i in range(n)] for j in range(n)]
+
+        def superpose(x, y, b):
+            # put symbol b at position x, y
+            # on top of existing symbols there
+            i = x - 1
+            j = y - 1
+            a = M[i][j]
+            if a == '   ':
+                M[i][j] = b
+            elif a == '-+ ':
+                if b == a:
+                    pass
+                elif b == '---':
+                    M[i][j] = '-+-'
+                elif b == ' | ':
+                    M[i][j] = '-+ '
+            elif a == ' +-':
+                if b == a:
+                    pass
+                elif b == '---':
+                    M[i][j] = '-+-'
+                elif b == ' | ':
+                    M[i][j] = ' +-'
+            elif a == '---':
+                if b == a:
+                    pass
+                elif b == '-+ ':
+                    M[i][j] = '-+-'
+                elif b == ' +-':
+                    M[i][j] = '-+-'
+            elif a == ' | ':
+                if b == a:
+                    pass
+                elif b == '-+ ':
+                    M[i][j] = '-+ '
+                elif b == ' +-':
+                    M[i][j] = ' +-'
+
+        def superpose_node(i, right=True):
+            i -= 1 # for indexing
+            if M[i][i] == ' O ':
+                if right:
+                    M[i][i] = ' O-'
+                else:
+                    M[i][i] = '-O '
+            elif M[i][i] == ' O-' and not right:
+                M[i][i] = '-O-'
+            elif M[i][i] == '-O ' and right:
+                M[i][i] = '-O-'
+
+        for i, j in self.poset().hasse_diagram().edges(labels=False):
+            if i > j:
+                superpose_node(i, False)
+                superpose(i, j, ' +-')
+                for k in range(j + 1, i):
+                    superpose(k, j, ' | ')
+                    superpose(i, k, '---')
+            else:
+                superpose_node(i, True)
+                superpose(i, j, '-+ ')
+                for k in range(i + 1 , j):
+                    superpose(i, k, '---')
+                    superpose(k, j, ' | ')
+
+        from sage.typeset.ascii_art import AsciiArt
+        return AsciiArt([''.join(ligne) for ligne in M])
+
+    def _unicode_art_(self):
+        """
+        Return an unicode picture of ``self``.
+
+        This is a picture of the Hasse diagram. Vertices from `1` to `n` are
+        placed on the diagonal from top-left to bottom-right.
+        Then increasing covers are drawn above the diagonal
+        and decreasing covers are drawn below the diagonal.
+
+        EXAMPLES::
+
+            sage: T = TamariIntervalPosets(5)[56]
+            sage: unicode_art(T)
+            o───╮
+             o──┤
+             ╰o╮│
+               o┤
+                o
+            sage: T.poset().cover_relations()
+            [[3, 4], [3, 2], [4, 5], [2, 5], [1, 5]]
+        """
+        n = self.size()
+        M = [[u'o' if i == j else u' ' for i in range(n)] for j in range(n)]
+
+        def superpose(x, y, b):
+            # put symbol b at position x, y
+            # on top of existing symbols there
+            i = x - 1
+            j = y - 1
+            a = M[i][j]
+            if a == ' ':
+                M[i][j] = b
+            elif a == u'╮':
+                if b == a:
+                    pass
+                elif b == u'─':
+                    M[i][j] = u'┬'
+                elif b == u'│':
+                    M[i][j] = u'┤'
+            elif a == u'╰':
+                if b == a:
+                    pass
+                elif b == u'─':
+                    M[i][j] = u'┴'
+                elif b == u'│':
+                    M[i][j] = u'├'
+            elif a == u'─':
+                if b == a:
+                    pass
+                elif b == u'╮':
+                    M[i][j] = u'┬'
+                elif b == u'╰':
+                    M[i][j] = u'┴'
+            elif a == u'│':
+                if b == a:
+                    pass
+                elif b == u'╮':
+                    M[i][j] = u'┤'
+                elif b == u'╰':
+                    M[i][j] = u'├'
+
+        for i, j in self.poset().hasse_diagram().edges(labels=False):
+            if i > j:
+                superpose(i, j, u'╰')
+                for k in range(j + 1, i):
+                    superpose(k, j, u'│')
+                    superpose(i, k, u'─')
+            else:
+                superpose(i, j, u'╮')
+                for k in range(i + 1 , j):
+                    superpose(i, k, u'─')
+                    superpose(k, j, u'│')
+
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt([''.join(ligne) for ligne in M])
 
     def _richcmp_(self, other, op):
         r"""
@@ -2921,7 +3087,7 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
 
     def _repr_(self):
         r"""
-        TEST::
+        TESTS::
 
             sage: TamariIntervalPosets()
             Interval-posets

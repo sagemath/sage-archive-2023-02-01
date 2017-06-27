@@ -77,7 +77,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.superseded import deprecated_function_alias
 from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
-from sage.structure.sage_object cimport rich_to_bool, richcmp
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -472,7 +472,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
 
         late_import()
         if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
-            return self._generic_convert_map(S)
+            return self._generic_coerce_map(S)
 
         return self._coerce_map_via([CLF], S)
 

@@ -283,9 +283,10 @@ Methods
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from libc.string cimport memset
+from cysignals.memory cimport check_malloc, sig_malloc, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
 include "sage/data_structures/binary_matrix.pxi"
@@ -355,7 +356,7 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <uint8_t *> sig_malloc(sizeof(uint8_t)* n)
+    minimums = <uint8_t *>check_malloc(n)
     cdef unsigned int i
 
     # They are initialized to n
@@ -956,14 +957,8 @@ def vertex_separation_exp(G, verbose = False):
         print("Memory allocation")
         g.print_adjacency_matrix()
 
-    sig_on()
-
     cdef unsigned int mem = 1 << g.n
-    cdef uint8_t * neighborhoods = <uint8_t *> sig_malloc(mem)
-
-    if neighborhoods == NULL:
-        sig_off()
-        raise MemoryError("Error allocating memory. I just tried to allocate "+str(mem>>10)+"MB, could that be too much ?")
+    cdef uint8_t * neighborhoods = <uint8_t *>check_malloc(mem)
 
     memset(neighborhoods, <uint8_t> -1, mem)
 
@@ -972,6 +967,7 @@ def vertex_separation_exp(G, verbose = False):
         if verbose:
             print("Looking for a strategy of cost", str(k))
 
+        sig_check()
         if exists(g, neighborhoods, 0, k) <= k:
             break
 
@@ -982,7 +978,6 @@ def vertex_separation_exp(G, verbose = False):
     cdef list order = find_order(g, neighborhoods, k)
 
     sig_free(neighborhoods)
-    sig_off()
 
     return k, list( g.int_to_vertices[i] for i in order )
 

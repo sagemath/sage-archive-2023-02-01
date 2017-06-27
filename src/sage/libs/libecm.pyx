@@ -17,12 +17,16 @@ EXAMPLES::
 
     sage: from sage.libs.libecm import ecmfactor
     sage: result = ecmfactor(999, 0.00)
-    sage: result[0] and (result[1] in [27, 37, 999])
+    sage: result[0]
+    True
+    sage: result[1] in [3, 9, 27, 37, 111, 333, 999] or result[1]
     True
     sage: result = ecmfactor(999, 0.00, verbose=True)
     Performing one curve with B1=0
     Found factor in step 1: ...
-    sage: result[0] and (result[1] in [27, 37, 999])
+    sage: result[0]
+    True
+    sage: result[1] in [3, 9, 27, 37, 111, 333, 999] or result[1]
     True
     sage: ecmfactor(2^128+1,1000,sigma=227140902)
     (True, 5704689200685129054721, 227140902)
@@ -41,7 +45,8 @@ EXAMPLES::
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 

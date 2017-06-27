@@ -5,7 +5,7 @@ diff --git a/Modules/signalmodule.c b/Modules/signalmodule.c
 index 753d987..c69c0ce 100644
 --- a/Modules/signalmodule.c
 +++ b/Modules/signalmodule.c
-@@ -962,7 +962,11 @@ fill_siginfo(siginfo_t *si)
+@@ -957,7 +957,11 @@ fill_siginfo(siginfo_t *si)
      PyStructSequence_SET_ITEM(result, 4, _PyLong_FromUid(si->si_uid));
      PyStructSequence_SET_ITEM(result, 5,
                                  PyLong_FromLong((long)(si->si_status)));
@@ -39,15 +39,13 @@ index 2fbe259..8281f95 100755
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for time.h that defines altzone" >&5
  $as_echo_n "checking for time.h that defines altzone... " >&6; }
 diff --git a/configure.ac b/configure.ac
-index 8ef1760..6bfee80 100644
+index 9eacf52..b4da665 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -3692,7 +3692,9 @@
- AC_CHECK_MEMBERS([struct stat.st_flags])
- AC_CHECK_MEMBERS([struct stat.st_gen])
- AC_CHECK_MEMBERS([struct stat.st_birthtime])
--AC_STRUCT_ST_BLOCKS
-+AC_CHECK_MEMBERS([struct stat.st_blocks])
+@@ -3943,6 +3943,8 @@ AC_CHECK_MEMBERS([struct passwd.pw_gecos, struct passwd.pw_passwd], [], [], [[
+   #include <sys/types.h>
+   #include <pwd.h>
+ ]])
 +# Issue #21085: In Cygwin, siginfo_t does not have si_band field.
 +AC_CHECK_MEMBERS([siginfo_t.si_band], [], [], [[#include <signal.h>]])
  
@@ -57,7 +55,7 @@ diff --git a/pyconfig.h.in b/pyconfig.h.in
 index 6304a8e..eda0cf9 100644
 --- a/pyconfig.h.in
 +++ b/pyconfig.h.in
-@@ -837,6 +837,9 @@
+@@ -856,6 +856,9 @@
  /* Define to 1 if you have the `sigaltstack' function. */
  #undef HAVE_SIGALTSTACK
  

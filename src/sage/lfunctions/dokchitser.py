@@ -28,11 +28,17 @@ AUTHORS:
 from __future__ import absolute_import, print_function
 
 import copy
+import os
+import re
+import string
+import time
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ComplexField, Integer
-from sage.misc.all import verbose, sage_eval
+from sage.misc.all import verbose, sage_eval, SAGE_TMP
 import sage.interfaces.gp
+from sage.env import SAGE_EXTCODE
+
 
 
 class Dokchitser(SageObject):
@@ -168,9 +174,28 @@ class Dokchitser(SageObject):
         sage: L.taylor_series(1,3)
         0.0374412812685155 + 0.0709221123619322*z + 0.0380744761270520*z^2 + O(z^3)
     """
-    def __init__(self, conductor, gammaV, weight, eps,
-                 poles=[], residues='automatic', prec=53,
-                 init=None):
+
+    __gp = None
+    __globals = set()  # set of global variables defined in a run of the
+                       # computel.gp script that are replaced by indexed copies
+                       # in the computel.gp.template
+    __globals_re = None
+    __instance = 0  # Monotonically increasing unique instance ID
+    __n_instances = 0  # Number of currently allocated instances
+    __template_filename = os.path.join(SAGE_EXTCODE, 'pari', 'dokchitser',
+                                       'computel.gp.template')
+    __init = False
+
+    def __new__(cls, *args, **kwargs):
+        inst = super(Dokchitser, cls).__new__(cls, *args, **kwargs)
+        inst.__instance = cls.__instance
+        cls.__n_instances += 1
+        cls.__instance += 1
+        return inst
+
+    def __init__(self, conductor, gammaV, weight, eps, \
+                       poles=[], residues='automatic', prec=53,
+                       init=None):
         """
         Initialization of Dokchitser calculator EXAMPLES::
 
@@ -187,11 +212,9 @@ class Dokchitser(SageObject):
         self.prec = prec
         self.__CC = ComplexField(self.prec)
         self.__RR = self.__CC._real_field()
+        self.__initialized = False
         if init is not None:
             self.init_coeffs(init)
-            self.__init = init
-        else:
-            self.__init = False
 
     def __reduce__(self):
         D = copy.copy(self.__dict__)
@@ -204,7 +227,7 @@ class Dokchitser(SageObject):
             self.conductor, self.weight)
 
     def __del__(self):
-        self.gp().quit()
+        self._teardown_gp(self.__instance)
 
     def gp(self):
         """
@@ -220,34 +243,102 @@ class Dokchitser(SageObject):
             sage: L.gp()
             PARI/GP interpreter
         """
-        try:
+
+        if self.__gp is None:
+            self._instantiate_gp()
+        elif self.__initialized:
             return self.__gp
-        except AttributeError:
-            logfile = None
-            # For debugging
-            import os
-            from sage.env import DOT_SAGE
-            logfile = os.path.join(DOT_SAGE, 'dokchitser.log')
-            g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
-                                      logfile=logfile)
-            g.read('computel.gp')
-            self.__gp = g
-            self._gp_eval('default(realprecision, %s)' % (self.prec // 3 + 2))
-            self._gp_eval('conductor = %s' % self.conductor)
-            self._gp_eval('gammaV = %s' % self.gammaV)
-            self._gp_eval('weight = %s' % self.weight)
-            self._gp_eval('sgn = %s' % self.eps)
-            self._gp_eval('Lpoles = %s' % self.poles)
-            self._gp_eval('Lresidues = %s' % self.residues)
-            g._dokchitser = True
-            return g
+
+        self.__initialized = True
+
+        with open(self.__template_filename) as tf:
+            template = string.Template(tf.read())
+        tmp_script = os.path.join(SAGE_TMP, 'computel_%s.gp' % self.__instance)
+        with open(tmp_script, 'w') as f:
+            f.write(template.substitute(i=str(self.__instance)))
+
+        try:
+            self.__gp.read(tmp_script)
+        finally:
+            os.unlink(tmp_script)
+
+        self._gp_eval('default(realprecision, %s)' % (self.prec // 3 + 2))
+        self._gp_set_inst('conductor', self.conductor)
+        self._gp_set_inst('gammaV', self.gammaV)
+        self._gp_set_inst('weight', self.weight)
+        self._gp_set_inst('sgn', self.eps)
+        self._gp_set_inst('Lpoles', self.poles)
+        self._gp_set_inst('Lresidues', self.residues)
+        return self.__gp
+
+    @classmethod
+    def _instantiate_gp(cls):
+        from sage.env import DOT_SAGE
+        logfile = os.path.join(DOT_SAGE, 'dokchitser.log')
+        cls.__gp = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
+                                         logfile=logfile)
+        # Read the script template and parse out all indexed global variables
+        # (easy because they all end in "_$i" and there's nothing else in the
+        # script that uses $)
+        global_re = re.compile(r'([a-zA-Z0-9]+)_\$i')
+        with open(cls.__template_filename) as f:
+            for line in f:
+                for m in global_re.finditer(line):
+                    cls.__globals.add(m.group(1))
+
+        cls.__globals_re = re.compile(
+            '([^a-zA-Z0-9_]|^)(%s)([^a-zA-Z0-9_]|$)' % '|'.join(cls.__globals))
+        return
+
+    @classmethod
+    def _teardown_gp(cls, instance=None):
+        cls.__n_instances -= 1
+        if cls.__n_instances == 0:
+            cls.__gp.quit()
+        elif instance is not None:
+            # Clean up all global variables created by this instance
+            for varname in cls.__globals:
+                cls.__gp.eval('kill(%s_%s)' % (varname, instance))
+
+    def _gp_call_inst(self, func, *args):
+        """
+        Call the specified PARI function in the GP interpreter, with the
+        instance number of this `Dokchitser` instance automatically appended.
+
+        For example, ``self._gp_call_inst('L', 1)`` is equivalent to
+        ``self.gp().eval('L_N(1)')`` where ``N`` is ``self.__instance``.
+        """
+
+        cmd = '%s_%d(%s)' % (func, self.__instance,
+                             ','.join(str(a) for a in args))
+        return self._gp_eval(cmd)
+
+    def _gp_set_inst(self, varname, value):
+        """
+        Like ``_gp_call_inst`` but sets the variable given by ``varname`` to
+        the given value, appending ``_N`` to the variable name.
+
+        If ``varname`` is a function (e.g. ``'func(n)'``) then this sets
+        ``func_N(n)``).
+        """
+
+        if '(' in varname:
+            funcname, args = varname.split('(', 1)
+            varname = '%s_%s(%s' % (funcname, self.__instance, args)
+        else:
+            varname = '%s_%s' % (varname, self.__instance)
+
+        cmd = '%s = %s' % (varname, value)
+        return self._gp_eval(cmd)
 
     def _gp_eval(self, s):
         try:
             t = self.gp().eval(s)
         except (RuntimeError, TypeError):
             raise RuntimeError("Unable to create L-series, due to precision or other limits in PARI.")
-        if '***' in t:
+        if not self.__init and '***' in t:
+            # After init_coeffs is called, future calls to this method should
+            # return the full output for futher parsing
             raise RuntimeError("Unable to create L-series, due to precision or other limits in PARI.")
         return t
 
@@ -275,7 +366,7 @@ class Dokchitser(SageObject):
             sage: L.num_coeffs()
             4
         """
-        return Integer(self.gp().eval('cflength(%s)' % T))
+        return Integer(self._gp_call_inst('cflength', T))
 
     def init_coeffs(self, v, cutoff=1,
                     w=None,
@@ -296,7 +387,7 @@ class Dokchitser(SageObject):
 
         -  ``w`` -- list of complex numbers or string (pari function of k)
 
-        -  ``pari_precode`` -- some code to egxecute in pari
+        -  ``pari_precode`` -- some code to execute in pari
            before calling initLdata
 
         -  ``max_imaginary_part`` -- (default: 0): redefine if
@@ -343,29 +434,43 @@ class Dokchitser(SageObject):
         if isinstance(v, tuple) and w is None:
             v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs = v
 
-        self.__init = (v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs)
-        gp = self.gp()
+        if pari_precode:
+            # Must have __globals_re instantiated
+            if self.__gp is None:
+                self._instantiate_gp()
+
+            def repl(m):
+                return '%s%s_%d%s' % (m.group(1), m.group(2), self.__instance,
+                                      m.group(3))
+
+            # If any of the pre-code contains references to some of the
+            # templated global variables we must replace those as well
+            pari_precode = self.__globals_re.sub(repl, pari_precode)
+
         if pari_precode != '':
             self._gp_eval(pari_precode)
         RR = self.__CC._real_field()
         cutoff = RR(cutoff)
         if isinstance(v, str):
             if w is None:
-                self._gp_eval('initLdata("%s", %s)' % (v, cutoff))
-                return
-            self._gp_eval('initLdata("%s",%s,"%s")' % (v, cutoff, w))
-            return
-        if not isinstance(v, (list, tuple)):
+                self._gp_call_inst('initLdata', '"%s"' % v, cutoff)
+            else:
+                self._gp_call_inst('initLdata', '"%s"' % v, cutoff, '"%s"' % w)
+        elif not isinstance(v, (list, tuple)):
             raise TypeError("v (=%s) must be a list, tuple, or string" % v)
-        CC = self.__CC
-        v = ','.join([CC(a)._pari_init_() for a in v])
-        self._gp_eval('Avec = [%s]' % v)
-        if w is None:
-            self._gp_eval('initLdata("Avec[k]", %s)' % cutoff)
-            return
-        w = ','.join([CC(a)._pari_init_() for a in w])
-        self._gp_eval('Bvec = [%s]' % w)
-        self._gp_eval('initLdata("Avec[k]",%s,"Bvec[k]")' % cutoff)
+        else:
+            CC = self.__CC
+            v = ','.join([CC(a)._pari_init_() for a in v])
+            self._gp_eval('Avec = [%s]' % v)
+            if w is None:
+                self._gp_call_inst('initLdata', '"Avec[k]"', cutoff)
+            else:
+                w = ','.join([CC(a)._pari_init_() for a in w])
+                self._gp_eval('Bvec = [%s]' % w)
+                self._gp_call_inst('initLdata', '"Avec[k]"', cutoff,
+                                   '"Bvec[k]"')
+        self.__init = (v, cutoff, w, pari_precode, max_imaginary_part,
+                       max_asymp_coeffs)
 
     def __to_CC(self, s):
         s = s.replace('.E', '.0E').replace(' ', '')
@@ -403,7 +508,7 @@ class Dokchitser(SageObject):
             self.__values = {}
         except KeyError:
             pass
-        z = self.gp().eval('L(%s)' % s)
+        z = self._gp_call_inst('L', s)
         if 'pole' in z:
             print(z)
             raise ArithmeticError
@@ -440,7 +545,7 @@ class Dokchitser(SageObject):
         self.__check_init()
         s = self.__CC(s)
         k = Integer(k)
-        z = self.gp().eval('L(%s,,%s)' % (s, k))
+        z = self._gp_call_inst('L', s, '', k)
         if 'pole' in z:
             raise ArithmeticError(z)
         elif 'Warning' in z:
@@ -493,7 +598,8 @@ class Dokchitser(SageObject):
         a = self.__CC(a)
         k = Integer(k)
         try:
-            z = self.gp()('Vec(Lseries(%s,,%s))' % (a, k - 1))
+            z = self._gp_call_inst('Lseries', a, '', k - 1)
+            z = self.gp()('Vec(%s)' % z)
         except TypeError as msg:
             raise RuntimeError("%s\nUnable to compute Taylor expansion (try lowering the number of terms)" % msg)
         r = repr(z)
@@ -552,7 +658,8 @@ class Dokchitser(SageObject):
             -9.73967861488124
         """
         self.__check_init()
-        z = self.gp().eval('checkfeq(%s)' % T).replace(' ', '')
+        z = self._gp_call_inst('checkfeq', T)
+        z = z.replace(' ', '')
         return self.__CC(z)
 
     def set_coeff_growth(self, coefgrow):
@@ -582,8 +689,8 @@ class Dokchitser(SageObject):
         """
         if not isinstance(coefgrow, str):
             raise TypeError("coefgrow must be a string")
-        g = self.gp()
-        g.eval('coefgrow(n) = %s' % (coefgrow.replace('\n', ' ')))
+
+        self._gp_set_inst('coefgrow(n)', coefgrow.replace('\n', ' '))
 
 
 def reduce_load_dokchitser(D):

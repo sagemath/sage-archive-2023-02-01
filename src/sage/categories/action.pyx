@@ -236,11 +236,11 @@ cdef class InverseAction(Action):
 
         sage: c = cm.get_action(ZZ, list, operator.mul)
         sage: c
-        Left action by Integer Ring on <type 'list'>
+        Left action by Integer Ring on <... 'list'>
         sage: ~c
         Traceback (most recent call last):
         ...
-        TypeError: no inverse defined for Left action by Integer Ring on <type 'list'>
+        TypeError: no inverse defined for Left action by Integer Ring on <... 'list'>
 
     TESTS:
 
@@ -307,9 +307,8 @@ cdef class PrecomposedAction(Action):
         sage: y = x.modular_symbol_rep()
         sage: A = y.parent().get_action(QQ, self_on_left=False, op=operator.mul)
         sage: A
-        Left scalar multiplication by Rational Field on Abelian Group of all
-        Formal Finite Sums over Rational Field
-        with precomposition on right by Conversion map:
+        Left scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
+        with precomposition on right by Coercion map:
           From: Abelian Group of all Formal Finite Sums over Integer Ring
           To:   Abelian Group of all Formal Finite Sums over Rational Field
     """

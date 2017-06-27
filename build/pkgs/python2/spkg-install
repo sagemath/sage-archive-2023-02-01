@@ -130,7 +130,7 @@ if [ "$UNAME" = "Darwin" ] && \
     rm -f "$SAGE_LOCAL/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
 elif [ "$UNAME" = "CYGWIN" ]; then
     # See http://trac.sagemath.org/ticket/20437
-    ln -sf "python/config/libpython${PYTHON_VERSION}.dll.a" "$SAGE_LOCAL/lib/libpython${PYTHON_VERSION}.dll.a"
+    ln -sf "python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.dll.a" "$SAGE_LOCAL/lib/libpython${PYTHON_VERSION}.dll.a"
 fi
 
 # Make sure extension modules were built correctly.

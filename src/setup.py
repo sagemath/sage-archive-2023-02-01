@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os, sys, time, errno, platform, subprocess
+import json
 from distutils import log
 from distutils.core import setup
 from distutils.cmd import Command
@@ -281,6 +282,8 @@ class sage_build_cython(Command):
         self.parallel = None
         self.force = None
 
+        self.cython_directives = None
+
         self.build_lib = None
         self.cythonized_files = None
 
@@ -331,16 +334,25 @@ class sage_build_cython(Command):
                 "Cython must be installed and importable in order to run "
                 "the cythonize command")
 
+        # Cython compiler directives
+        self.cython_directives = dict(
+            autotestdict=False,
+            cdivision=True,
+            embedsignature=True,
+            fast_getattr=True,
+            profile=self.profile,
+        )
+
         # We check the Cython version and some relevant configuration
         # options from the earlier build to see if we need to force a
         # recythonization. If the version or options have changed, we
         # must recythonize all files.
         self._version_file = os.path.join(self.build_dir, '.cython_version')
-        self._version_stamp = '\n'.join('{0}: {1}'.format(key, value)
-                for key, value in [
-                    ('cython version', Cython.__version__),
-                    ('debug', self.debug),
-                    ('profile', self.profile)])
+        self._version_stamp = json.dumps({
+            'version': Cython.__version__,
+            'debug': self.debug,
+            'directives': self.cython_directives,
+        }, sort_keys=True)
 
         # Read an already written version file if it exists and compare to the
         # current version stamp
@@ -404,13 +416,8 @@ class sage_build_cython(Command):
             build_dir=self.build_dir,
             force=self.force,
             aliases=aliases,
-            compiler_directives={
-                'autotestdict': False,
-                'cdivision': True,
-                'embedsignature': True,
-                'fast_getattr': True,
-                'profile': self.profile,
-            },
+            compiler_directives=self.cython_directives,
+            compile_time_env={'PY_VERSION_HEX':sys.hexversion},
             create_extension=sage_create_extension,
             # Debugging
             gdb_debug=self.debug,

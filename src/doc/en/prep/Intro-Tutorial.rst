@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _prep-intro-tutorial:
+
 Introductory Sage Tutorial
 ==========================
 

@@ -17,7 +17,7 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.structure.sage_object cimport richcmp, rich_to_bool
+from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
 cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
@@ -790,7 +790,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -801,7 +801,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -1260,8 +1260,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         The formal derivative of this Laurent polynomial, with respect
         to variables supplied in args.
 
-        Multiple variables and iteration counts may be supplied; see
-        documentation for the global :func`derivative()` function for more
+        Multiple variables and iteration counts may be supplied. See
+        documentation for the global :func:`derivative` function for more
         details.
 
         .. SEEALSO::
@@ -2303,7 +2303,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = -self._poly
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Returns self * right where right is in self's base ring.
 
@@ -2320,7 +2320,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * right
         return ans
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Returns left*self where left is in self's base ring.
 
@@ -2399,16 +2399,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     @coerce_binop
     def quo_rem(self, right):
         """
-        Divide this laurent polynomial by ``right`` and return a quotient and
+        Divide this Laurent polynomial by ``right`` and return a quotient and
         a remainder.
 
         INPUT:
 
-        - ``right`` -- a laurent polynomial
+        - ``right`` -- a Laurent polynomial
 
         OUTPUT:
 
-        A pair of laurent polynomials.
+        A pair of Laurent polynomials.
 
         EXAMPLES::
 

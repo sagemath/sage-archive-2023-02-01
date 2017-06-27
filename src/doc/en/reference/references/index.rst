@@ -252,6 +252,10 @@ REFERENCES:
             (arxiv:0710.5614) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
+            generators for inseparable algebraic extensions. Bulletin of the
+            American Mathematical Society 46, no. 2 (1940): 182-186.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 
@@ -269,6 +273,8 @@ REFERENCES:
 .. [Bob2013] \J.W. Bober. Conditionally bounding analytic ranks of
              elliptic curves. ANTS
              10, 2013. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+
+.. [Bo2009] Bosch, S., Algebra, Springer 2009
 
 .. [BP1982] \H. Beker and F. Piper. *Cipher Systems: The Protection of
             Communications*. John Wiley and Sons, 1982.
@@ -321,6 +327,11 @@ REFERENCES:
 .. [BW1996] Anders Bjorner and Michelle L. Wachs. *Shellable nonpure
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
+
+.. [BZ01] \A. Berenstein, A. Zelevinsky
+          *Tensor product multiplicities, canonical bases
+          and totally positive varieties*
+          Invent. Math. **143** No. 1. (2002), 77-128.
 
 .. _ref-C:
 
@@ -491,6 +502,11 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
+.. [Dec1998] W. Decker and T. de Jong. Groebner Bases and Invariant
+             Theory in Groebner Bases and Applications. London
+             Mathematical Society Lecture Note Series No. 251. (1998)
+             61--89.
+
 .. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
               Lyubashevsky. *Lattice Signatures and Bimodal
               Gaussians*; in Advances in Cryptology – CRYPTO 2013;
@@ -552,6 +568,10 @@ REFERENCES:
 .. [DLMF-Bessel] \F. W. J. Olver and L. C. Maximon: 10. Bessel
                  Functions, in NIST Digital Library of Mathematical
                  Functions. http://dlmf.nist.gov/10
+
+.. [DLMF-Error] \N. M. Temme: 7. Error Functions, Dawson’s and Fresnel
+                 Integrals, in NIST Digital Library of Mathematical
+                 Functions. http://dlmf.nist.gov/7
 
 .. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in
                  NIST Digital Library of Mathematical
@@ -663,6 +683,10 @@ REFERENCES:
             curves". LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
 
+.. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
+             Kirillov-Reshetikhin crystals for nonexceptional types*.
+             Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
+
 .. [FP1996] Komei Fukuda, Alain Prodon: Double Description Method
             Revisited, Combinatorics and Computer Science, volume 1120
             of Lecture Notes in Computer Science, page
@@ -672,6 +696,10 @@ REFERENCES:
             solutions of some problems of computational
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
+
+.. [FRT1990] Faddeev, Reshetikhin and Takhtajan.
+             *Quantization of Lie Groups and Lie Algebras*.
+             Leningrad Math. J. vol. **1** (1990), no. 1.
 
 .. [FST2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
@@ -774,6 +802,10 @@ REFERENCES:
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
+.. [GT1996] \P. Gianni and B. Trager. "Square-free algorithms in
+            positive characteristic". Applicable Algebra in Engineering,
+            Communication and Computing, 7(1), 1-14 (1996)
+
 .. [GT2014] \M.S. Gowda and J. Tao. On the bilinearity rank of a
             proper cone and Lyapunov-like
             transformations. Mathematical Programming, 147 (2014)
@@ -807,8 +839,8 @@ REFERENCES:
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
 
-.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation", 
-             Society for Industrial and Applied Mathematics (2008). 
+.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
+             Society for Industrial and Applied Mathematics (2008).
 
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
@@ -935,6 +967,13 @@ REFERENCES:
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
 
+.. [Kam2007] Joel Kamnitzer,
+             *The crystal structure on the set of Mirković-Vilonen polytopes*,
+             Adv. Math. **215** (2007), 66-93.
+
+.. [Kam2010] Joel Kamnitzer, *Mirković-Vilonen cycles and polytopes*,
+             Ann. Math. (2) **171** (2010), 731-777.
+
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
 
@@ -954,11 +993,20 @@ REFERENCES:
             \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
             Vol. 1, Chapter 18, 1995
 
+.. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa, T. Nakashima,
+                and A. Nakayashiki. *Affine crystals and vertex models*.
+                Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
+
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",
             Advances in algebra and combinatorics, 225--242, World
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
+
+.. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer.
+             *Positroid Varieties: Juggling and Geometry*
+             Compositio Mathematica, **149** (2013), no. 10.
+             :arXiv:`1111.3660`.
 
 .. [KMM2004] Tomasz Kaczynski, Konstantin Mischaikow, and Marian
              Mrozek, "Computational Homology", Springer-Verlag (2004).
@@ -1006,6 +1054,10 @@ REFERENCES:
 
 .. [Kr1971] \D. Kraines, "On excess in the Milnor basis," Bull. London
             Math. Soc. 3 (1971), 363-365.
+
+.. [Kr2016] Stefan Kranich, An epsilon-delta bound for plane algebraic curves
+            and its use for certified homotopy continuation of systems of plane
+            algebraic curves, arXiv:1505.03432
 
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
@@ -1495,6 +1547,24 @@ REFERENCES:
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
+.. [SS2015] Anne Schilling and Travis Scrimshaw.
+            *Crystal structure on rigged configurations and the filling map*.
+            Electon. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
+
+.. [SS2015II] Ben Salisbury and Travis Scrimshaw.
+              *A rigged configuration model for* `B(\infty)`.
+              J. Combin. Theory Ser. A, **133** (2015) pp. 29-75.
+              :arxiv:`1404.6539`.
+
+.. [SS2017] Ben Salisbury and Travis Scrimshaw.
+            *Rigged configurations for all symmetrizable types*.
+            Electon. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
+
+.. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
+            Kirillov-Reshetikhin crystals, and the energy function*.
+            Electronic Journal of Combinatorics. **19(2)**. 2012.
+            :arXiv:`1104.2359`
+
 .. [Sta2007] Stanley, Richard: *Hyperplane Arrangements*, Geometric
              Combinatorics (E. Miller, V. Reiner, and B. Sturmfels,
              eds.), IAS/Park City Mathematics Series, vol. 13,
@@ -1526,6 +1596,9 @@ REFERENCES:
 .. [Stu1987] \J. Sturm, On the congruence of modular forms, Number
              theory (New York, 1984-1985), Springer, Berlin, 1987,
              pp. 275-280.
+
+.. [Stu1993] \B. Sturmfels, Algorithms in invariant theory, Springer-Verlag,
+             1993.
 
 .. [STW2016] C. Stump, H. Thomas, N. Williams. *Cataland II*, in
              preparation, 2016.
@@ -1660,6 +1733,8 @@ REFERENCES:
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
 
+.. [WP-Error] :wikipedia:`Error_function`
+
 .. [WP-Struve] :wikipedia:`Struve_function`
 
 .. _ref-X:
@@ -1708,5 +1783,11 @@ REFERENCES:
 
 .. [Zor] Anton Zorich, "Generalized Permutation software"
          (http://perso.univ-rennes1.fr/anton.zorich)
+
+.. [ZZ2005] Hechun Zhang and R. B. Zhang.
+            *Dual canonical bases for the quantum special linear group
+            and invariant subalgebras*.
+            Lett. Math. Phys. **73** (2005), pp. 165-181.
+            :arxiv:`math/0509651`.
 
 .. include:: ../footer.txt

@@ -10634,14 +10634,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - G.contract_edge( 1, 2 )
         - G.contract_edge( (1, 2) )
-        - G.contract_edges( [ (1, 2) ] )
+        - G.contract_edge( [ (1, 2) ] )
         - G.contract_edge( 1, 2, 'label' )
         - G.contract_edge( (1, 2, 'label') )
-        - G.contract_edges( [ (1, 2, 'label') ] )
-
-        OUTPUT:
-
-        None.
+        - G.contract_edge( [ (1, 2, 'label') ] )
 
         EXAMPLES::
 
@@ -10680,6 +10676,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.contract_edge(0,1,'b'); D.edges()
             [(0, 0, 'a'), (0, 0, 'c')]
 
+        When the graph has edge labels but no label is given as input::
+
+			sage: edgelist = [(0,1,0), (0,1,1), (0,2,2), (1,2,3)]
+        	sage: G = Graph(edgelist, loops=True, multiedges=True)
+			sage: G.contract_edge(0,2); G.edges()
+			[(0, 1, 0), (0, 1, 1), (0, 1, 3)]
+
         """
         # standard code to allow 3 arguments or a single tuple:
         if label is None:
@@ -10690,9 +10693,20 @@ class GenericGraph(GenericGraph_pyx):
                     u, v = u
                     label = None
         # unlike delete_edge(), we must be careful about contracting non-edges
-        if not self.has_edge(u, v, label):
-            return None
-        self.delete_edge(u ,v ,label)
+        if self.has_edge(u, v):
+	        if self.has_edge(u, v, label):
+	            self.delete_edge(u, v, label)
+	        elif label is None:
+	        	# if there are multiple edges between u and v and they have
+	        	# different labels, let the ambiguity be resolved
+	        	# however delete_edge() resolves it
+	        	self.delete_edge(u, v)
+	        else:
+	        	# if the given label is wrong, fail silently
+	        	return None
+	    else:
+	    	return None
+
         # if the edge was a loop, stop
         # this could potentially leave isolated vertices
         if u == v:
@@ -10701,26 +10715,24 @@ class GenericGraph(GenericGraph_pyx):
         if self.allows_loops():
             # add loops
             loop_labels = []
-            for e in self.edges_incident(v):
-                if set([e[0], e[1]]) == set([u, v]):
-                    loop_labels.append(e[2])
-            self.add_edges([(u, u, label) for label in loop_labels])
+            for (x, y, l) in self.edges_incident(v):
+                if set([x, y]) == set([u, v]):
+                    loop_labels.append(l)
+            self.add_edges([(u, u, l) for l in loop_labels])
 
         self.merge_vertices([u,v])
 
     def contract_edges(self, edges):
         """
-        Contract edges from an iterable container. If `e` is an edge that is
+        Contract edges from an iterable container.
+
+        If `e` is an edge that is
         not contracted but the vertices of `e` are merged by contraction of other
         edges, then `e` will become a loop.
 
         INPUT:
 
         - ``edges`` - a list containing 2-tuples or 3-tuples that represent edges
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 

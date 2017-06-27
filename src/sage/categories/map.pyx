@@ -1895,7 +1895,7 @@ cdef class FormalCompositeMap(Map):
             # class); therefore, we can not simply call "super" but need to
             # invoke the category method explicitly
             return self.getattr_from_category('is_injective')()
-        except NotImplementedError:
+        except (AttributeError, NotImplementedError):
             pass
 
         injectives = []
@@ -1961,7 +1961,7 @@ cdef class FormalCompositeMap(Map):
             # class); therefore, we can not simply call "super" but need to
             # invoke the category method explicitly
             return self.getattr_from_category('is_surjective')()
-        except NotImplementedError:
+        except (AttributeError, NotImplementedError):
             pass
 
         surjectives = []

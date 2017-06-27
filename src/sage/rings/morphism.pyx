@@ -915,7 +915,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         EXAMPLES::
 
             sage: f = ZZ.hom(QQ); f                    # indirect doctest
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
 
@@ -935,9 +935,9 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
 
             sage: f = ZZ.hom(QQ)
             sage: type(f)
-            <type 'sage.rings.morphism.RingHomomorphism_coercion'>
+            <type 'sage.rings.rational.Z_to_Q'>
             sage: f._repr_type()
-            'Ring Coercion'
+            'Natural'
         """
         return "Ring Coercion"
 
@@ -979,7 +979,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
 
             sage: f = ZZ.hom(QQ)
             sage: type(f)
-            <type 'sage.rings.morphism.RingHomomorphism_coercion'>
+            <type 'sage.rings.rational.Z_to_Q'>
             sage: hash(f) == hash(f)
             True
             sage: {f: 1}[f]
@@ -994,7 +994,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         EXAMPLES::
 
             sage: f = ZZ.hom(QQ); type(f)
-            <type 'sage.rings.morphism.RingHomomorphism_coercion'>
+            <type 'sage.rings.rational.Z_to_Q'>
             sage: f(2) == 2
             True
             sage: type(f(2))          # indirect doctest

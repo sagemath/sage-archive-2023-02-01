@@ -1641,6 +1641,19 @@ class TopologicalManifold(ManifoldSubset):
             F: U --> R
                (x, y, z) |--> cos(y)*sin(x) + z
 
+
+        Same tests with ``sympy``::
+            sage: c_xyz.set_calculus_method('sympy')
+            sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
+            Scalar field F on the Open subset U of the 3-dimensional topological manifold M
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+
+            sage: type(f.coord_function(c_xyz).expr())
+               <class 'sympy.core.add.Add'>
+
+
         See the documentation of class
         :class:`~sage.manifolds.scalarfield.ScalarField` for more
         examples.

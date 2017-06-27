@@ -441,7 +441,7 @@ class DifferentiableCurve(DiffMap):
         coords = [coord_functions[i].expr().substitute(dict_subs)
                   for i in range(n)]
         if simplify:
-            coords = [chart_pair[0]._simplify[chart_pair[0]._calc_method._current](coords[i]) for i in range(n)]
+            coords = [chart_pair[0].simplify(coords[i]) for i in range(n)]
         if self._name is not None:
             name = "{}({})".format(self._name, t)
         else:

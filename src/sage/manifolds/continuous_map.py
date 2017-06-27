@@ -1831,8 +1831,8 @@ class ContinuousMap(Morphism):
             for i in range(n1):
                 x = inv_functions[i]
                 try:
-                    curr = chart2._calc_method.current
-                    inv_functions[i] = chart2._simplify[curr](x)
+                    # simplify derived from calculus_method
+                    inv_functions[i] = chart2.simplify(x)
                 except AttributeError:
                     pass
             coord_functions[(chart2, chart1)] = inv_functions

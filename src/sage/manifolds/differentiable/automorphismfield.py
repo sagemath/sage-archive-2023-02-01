@@ -1061,7 +1061,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
                                   output_formatter=fmodule._output_formatter)
                 for i in range(si, nsi):
                     for j in range(si, nsi):
-                        val = chart._simplify[chart._calc_method._current](mat_inv[i-si,j-si])
+                        val = chart.simplify(mat_inv[i-si,j-si])
                         cinv[i, j] = {chart: val}
                 self._inverse._components[frame] = cinv
         return self._inverse

@@ -294,6 +294,56 @@ class AffineConnection(SageObject):
         sage: nab.restrict(U)(a.restrict(V)) == da.restrict(W)
         True
 
+    Same tests with ``sympy``::
+        sage: M.set_calculus_method('sympy')
+
+        sage: nab = M.affine_connection('nabla', r'\nabla')
+
+    The connection is first defined on the open subset U by means of its
+    coefficients w.r.t. the frame eU (the manifold's default frame)::
+
+        sage: nab[0,0,0], nab[1,0,1] = x, x*y
+
+    The coefficients w.r.t the frame eV are deduced by continuation of the
+    coefficients w.r.t. the frame eVW on the open subset `W=U\cap V`::
+
+        sage: for i in M.irange():
+        ....:     for j in M.irange():
+        ....:         for k in M.irange():
+        ....:             nab.add_coef(eV)[i,j,k] = nab.coef(eVW)[i,j,k,c_uvW].expr()
+        ....:
+
+    At this stage, the connection is fully defined on all the manifold::
+
+        sage: nab.coef(eU)[:]
+        [[[x, 0], [0, 0]], [[0, x*y], [0, 0]]]
+        sage: nab.coef(eV)[:]
+        [[[u**2/16 + u/8 - v**2/16 + v/8, -u**2/16 + u/8 + v**2/16 + v/8],
+         [u**2/16 + u/8 - v**2/16 + v/8, -u**2/16 + u/8 + v**2/16 + v/8]],
+        [[-u**2/16 + u/8 + v**2/16 + v/8, u**2/16 + u/8 - v**2/16 + v/8],
+         [-u**2/16 + u/8 + v**2/16 + v/8, u**2/16 + u/8 - v**2/16 + v/8]]]
+
+    We may let it act on a vector field defined globally on `M`::
+
+        sage: a = M.vector_field('a')
+        sage: a[eU,:] = [-y,x]
+        sage: a[eV,0] = a[eVW,0,c_uvW].expr()
+        sage: a[eV,1] = a[eVW,1,c_uvW].expr()
+        sage: a.display(eU)
+        a = -y d/dx + x d/dy
+        sage: a.display(eV)
+        a = v d/du - u d/dv
+        sage: da = nab(a) ; da
+        Tensor field nabla(a) of type (1,1) on the 2-dimensional differentiable
+         manifold M
+        sage: da.display(eU)
+        nabla(a) = -x*y d/dx*dx - d/dx*dy + d/dy*dx - x*y^2 d/dy*dy
+        sage: da.display(eV)
+        nabla(a) = (-1/16*u^3 + 1/16*u^2*v + 1/16*(u + 2)*v^2 - 1/16*v^3 - 1/8*u^2) d/du*du
+         + (1/16*u^3 - 1/16*u^2*v - 1/16*(u - 2)*v^2 + 1/16*v^3 - 1/8*u^2 + 1) d/du*dv
+         + (1/16*u^3 - 1/16*u^2*v - 1/16*(u - 2)*v^2 + 1/16*v^3 - 1/8*u^2 - 1) d/dv*du
+         + (-1/16*u^3 + 1/16*u^2*v + 1/16*(u + 2)*v^2 - 1/16*v^3 - 1/8*u^2) d/dv*dv
+
     """
     def __init__(self, domain, name, latex_name=None):
         r"""

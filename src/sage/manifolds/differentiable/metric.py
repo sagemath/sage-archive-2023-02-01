@@ -995,6 +995,7 @@ class PseudoRiemannianMetric(TensorField):
             [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
              [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
 
+
         In dimension 2, the Riemann tensor can be expressed entirely in terms of
         the Ricci scalar `r`:
 
@@ -1009,6 +1010,19 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.riemann() == \
             ....:  -g.ricci_scalar()*(g*U.tangent_identity_field()).antisymmetrize(2,3)
             True
+
+
+        Test with ``sympy``::
+            sage: M.set_calculus_method('sympy')
+            sage: g = U.metric('g')
+            sage: g[1,1], g[2,2] = a**2, a**2*sin(th)**2
+            sage: g.riemann()
+            Tensor field Riem(g) of type (1,3) on the Open subset U of the
+             2-dimensional differentiable manifold S^2
+            sage: g.riemann()[:]
+            [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
+             [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
+
 
         """
         return self.connection().riemann(name, latex_name)
@@ -1443,7 +1457,7 @@ class PseudoRiemannianMetric(TensorField):
             for chart in gg[[i1, i1]]._express:
                 gm = matrix( [[ gg[i, j, chart].expr()
                             for j in manif.irange()] for i in manif.irange()] )
-                detgm = chart._simplify[chart._calc_method._current](gm.det())
+                detgm = chart.simplify(gm.det())
                 resu.add_expr(detgm, chart=chart)
             self._determinants[frame] = resu
         return self._determinants[frame]
@@ -1533,7 +1547,7 @@ class PseudoRiemannianMetric(TensorField):
             resu = frame._domain.scalar_field()
             for chart in detg._express:
                 x = self._indic_signat * detg._express[chart].expr() # |g|
-                x = chart._simplify[chart._calc_method._current](sqrt(x))
+                x = chart.simplify(sqrt(x))
                 resu.add_expr(x, chart=chart)
             self._sqrt_abs_dets[frame] = resu
         return self._sqrt_abs_dets[frame]
@@ -2206,6 +2220,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ 1/(x + 1)          0]
             [         0 -1/(x - 1)]
 
+        Test with ``sympy``::
+            sage: M.set_calculus_method('sympy')
+            sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
+            sage: g[:]  # components in the manifold's default frame
+            [ x + 1    x*y]
+            [   x*y -x + 1]
+            sage: ig = g.inverse() ; ig
+            Tensor field inv_g of type (2,0) on the 2-dimensional
+              differentiable manifold M
+            sage: ig[:]
+            [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
+            [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]
+
+
+
         """
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
@@ -2234,7 +2263,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                         continue
                     for i in range(si, nsi):
                         for j in range(i, nsi):
-                            val = chart._simplify[chart._calc_method._current](gmat_inv[i-si,j-si])
+                            val = chart.simplify(gmat_inv[i-si,j-si],method='SR')
+
                             cinv_scal[(i,j)].add_expr(val,chart=chart)
                 for i in range(si, nsi):
                     for j in range(i, nsi):

@@ -603,7 +603,7 @@ class InterfaceInit(Converter):
             subs = ["%s = %s"%(t._maxima_init_(),a._maxima_init_()) for t,a in zip(temp_args,args)]
             outstr = "at(diff(%s, %s), [%s])"%(f._maxima_init_(),
                 ", ".join(params),
-                ", ".join(subs))            
+                ", ".join(subs))
         else:
             f = operator.function()(*args)
             params = operator.parameter_set()
@@ -611,7 +611,7 @@ class InterfaceInit(Converter):
             outstr = "diff(%s, %s)"%(f._maxima_init_(),
                                         ", ".join(params))
         return outstr
-    
+
     def arithmetic(self, ex, operator):
         """
         EXAMPLES::
@@ -756,14 +756,22 @@ class SympyConverter(Converter):
             sage: s.composition(f, f.operator())
             asin(2)
         """
-        f = operator._sympy_init_()
-        g = ex.operands()
         import sympy
 
-        f_sympy = getattr(sympy, f, None)
-        if f_sympy:
-            return f_sympy(*sympy.sympify(g, evaluate=False))
-        else:
+        f = operator._sympy_init_()
+        g = ex.operands()
+
+        f_sympy = getattr(sympy, f, sympy.Function)
+        # print(f,g,f_sympy,sympy.sympify(g, evaluate=False),*sympy.sympify(g, evaluate=False))
+        try :
+            if f_sympy == sympy.Function :
+                # Case f generic fuction
+                # print (type(f_sympy(f)))
+                # print (type(f_sympy(f)(*sympy.sympify(g, evaluate=False))))
+                return f_sympy(f)(*sympy.sympify(g, evaluate=False))
+            else :
+                return f_sympy(*sympy.sympify(g, evaluate=False))
+        except:
             raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 
 sympy = SympyConverter()
@@ -1763,7 +1771,7 @@ class RingConverter(Converter):
         if operator == add_vararg:
             operator = _operator.add
         elif operator == mul_vararg:
-            operator = _operator.mul         
+            operator = _operator.mul
         return reduce(operator, map(self, operands))
 
     def composition(self, ex, operator):
@@ -2020,4 +2028,3 @@ class HoldRemover(ExpressionTreeWalker):
             return operator(*map(self, ex.operands()), hold=True)
         else:
             return operator(*map(self, ex.operands()))
-

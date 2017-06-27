@@ -268,7 +268,7 @@ class Chart(UniqueRepresentation, SageObject):
         self._domain = domain
 
         self._calc_method = CalculusMethod(current=calc_method,chart=self)
-        self._simplify = self._calc_method._simplify
+        self.simplify = self._calc_method.simplify
 
         # Treatment of the coordinates:
         if ' ' in coordinates:
@@ -3046,7 +3046,7 @@ class CoordChange(SageObject):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         coords2 = self._chart2[:]
         n2 = len(coords2)
-        expr = self._transf.expr()
+        expr = self._transf.expr('SR')
         rtxt = ""
         if n2 == 1:
             rlatex = r"\begin{array}{lcl}"

@@ -27,15 +27,34 @@ from sage.manifolds.utilities import (simplify_chain_real,
                                       simplify_chain_generic_sympy,)
 
 import sympy
+from sympy.core.function import FunctionClass
 
 
 # conversion functions
 def _SR_to_Sympy(expression):
+    #print('_SR_to_Sympy', expression)
+    # first test if expression is yet Sympy
+    # I have not found an elegant way to do that (MMancini)
+    if isinstance(type(expression),FunctionClass):
+            return expression
+
+
     return SR(expression)._sympy_()
+    # except:
+
+    #     if isinstance(type(expression),FunctionClass):
+    #         return expression
+    #     else:
+    #         raise
+    #         print (type(type(expression)),expression)
+    #     return (_Sympy_to_SR(expression))._sympy_()
 
 def _Sympy_to_SR(expression):
-    return SR(expression)
-
+    #print('_Sympy_to_SR',expression)
+    try:
+        return SR(expression)
+    except:
+        return expression._sage_()
 
 class CalculusMethod(SageObject):
     r"""
@@ -47,7 +66,7 @@ class CalculusMethod(SageObject):
     """
     _default = 'SR'  # default symbolic method
     _methods = ('SR','sympy') # implemented methods
-    _tranf = {'SR': SR,'sympy' : _SR_to_Sympy} # translators
+    _tranf = {'SR':  _Sympy_to_SR,'sympy' : _SR_to_Sympy} # translators
 
     def __init__(self,current=None,chart=None):
         r"""
@@ -78,14 +97,25 @@ class CalculusMethod(SageObject):
         self._current = self._default if current is None else current
 
 
-        self._simplify = {}
+        self._simplify_dict = {}
 
-        if chart.manifold().base_field_type() == 'real':
-            self._simplify['sympy'] = simplify_chain_real_sympy
-            self._simplify['SR'] = simplify_chain_real
+        if chart is not None :
+            self._bf_type = chart.manifold().base_field_type()
+        else :
+            self._bf_type = 'bo'
+
+        if self._bf_type == 'real':
+            self._simplify_dict['sympy'] = simplify_chain_real_sympy
+            self._simplify_dict['SR'] = simplify_chain_real
         else:
-            self._simplify['sympy'] = simplify_chain_generic_sympy
-            self._simplify['SR'] = simplify_chain_generic
+            self._simplify_dict['sympy'] = simplify_chain_generic_sympy
+            self._simplify_dict['SR'] = simplify_chain_generic
+
+
+
+    def simplify(self,expression,method=None):
+        if method is None : method = self._current
+        return self._simplify_dict[method](expression)
 
 
     def set(self,method):

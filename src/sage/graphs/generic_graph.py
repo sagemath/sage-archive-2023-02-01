@@ -10768,7 +10768,19 @@ class GenericGraph(GenericGraph_pyx):
 			sage: D.contract_edges([(0,1)]); D.edges()
 			[(0, 0, None), (0, 0, None)]
 
+        ::
+
+            sage: edgelist = [(0,1,0), (0,1,1), (0,1,2)]
+            sage: G = Graph(edgelist, loops=True, multiedges=True)
+            sage: G.contract_edges([(0,1), (0,1,2)]); G.edges()
+            Traceback (most recent call last):
+            ...
+            ValueError: edge tuples in input should have the same length
+
+
         """
+        if len(set([len(e) for e in edges])) > 1:
+            raise ValueError("edge tuples in input should have the same length")
         edge_list = []
         vertices = set()
         for e in edges:

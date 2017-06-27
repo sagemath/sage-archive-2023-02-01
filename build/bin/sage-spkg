@@ -655,10 +655,9 @@ write_script_wrapper() {
     local header="\
 #!/usr/bin/env bash
 
-if [ -f \"$SAGE_SRC/bin/sage-env\" ]; then
-    . \"$SAGE_SRC/bin/sage-env\"
-else
-    echo >&2 \"Error: sage-env not found; is $SAGE_ROOT the correct SAGE_ROOT?\"
+source \"$SAGE_SRC/bin/sage-env\"
+if [ $? -ne 0 ]; then
+    echo >&2 \"Error: failed to source sage-env; is $SAGE_ROOT the correct SAGE_ROOT?\"
     exit 1
 fi
 "

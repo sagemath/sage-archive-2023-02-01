@@ -665,7 +665,7 @@ fi
 
     trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
 
-    if grep -q -x -m 1 '^#!.*' "$script"; then
+    if head -1 "$script" | grep '^#!.*$' >/dev/null; then
         echo >&2 "Error: ${script##*/} should not contain a shebang line; it will be prepended automatically."
         exit 1
     fi

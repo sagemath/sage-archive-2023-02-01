@@ -466,9 +466,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    60
+    78
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    90
+    118
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -824,7 +824,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Conversion map:
+    Coercion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 

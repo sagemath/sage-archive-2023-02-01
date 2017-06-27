@@ -1691,7 +1691,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         INPUT:
             x -- string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
             sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
             -1/3*theta25 - 1
@@ -6803,7 +6804,8 @@ class NumberField_absolute(NumberField_generic):
         INPUT:
             x -- string
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
             sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
             -1/3*theta25 - 1
@@ -9032,7 +9034,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         Return a string that provides a representation of ``self`` in GAP.
 
-        TESTS:
+        TESTS::
 
             sage: K = CyclotomicField(8)
             sage: gap(K)   # indirect doctest
@@ -9455,7 +9457,8 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##                    even in some cases when x is not in a subfield of
 ##                    the cyclotomics (as long as x is a root of unity).
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: k5 = CyclotomicField(5)
 ##             sage: k3 = CyclotomicField(3)
 ##             sage: k15 = CyclotomicField(15)

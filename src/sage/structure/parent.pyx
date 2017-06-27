@@ -965,7 +965,8 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of infinite algebras over (quotient fields and metric spaces)
+            Category of infinite finite dimensional algebras with basis
+             over (quotient fields and metric spaces)
             sage: MS in Rings()
             True
 
@@ -2107,6 +2108,7 @@ cdef class Parent(category_object.CategoryObject):
             if debug.unique_parent_warnings:
                 print("Warning: non-unique parents %s" % (type(S)))
             mor = self._generic_coerce_map(S)
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
             return mor

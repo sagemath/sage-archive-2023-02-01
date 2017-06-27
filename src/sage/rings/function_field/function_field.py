@@ -159,31 +159,54 @@ class FunctionField(Field):
         return self.characteristic() == 0
 
     def some_elements(self):
-         """
-         Return a predetermined list of elements in the function field.
+        """
+        Return some elemnts in this function field.
 
-         EXAMPLES::
+        EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ)
-            sage: K.some_elements()
-            [x,
-            1/x,
-            1,
+           sage: K.<x> = FunctionField(QQ)
+           sage: K.some_elements()
+           [1,
+            x,
+            2*x,
+            x/(x^2 + 2*x + 1),
+            1/x^2,
+            x/(x^2 - 1),
+            x/(x^2 + 1),
+            x/(2*x^2 + 2),
             0,
-            2,
-            42,
-            1009,
-            x^2,
-            256*x^5,
-            (x + 1)/x,
-            11111*x/(x^4 - x - 1),
-            (2*x^2 + 1)/(x - 1),
-            (x^5 + x^4 + x^3 + x^2 + 1)/x^12]
-         """
-         return [self.gen(), 1/self.gen(), self(1), self(0), self(2), self(42),
-         self(1009), self.gen()**2, 256*self.gen()**5, (1+self.gen())/self.gen(),
-         11111*self.gen()/(self.gen()**4-self.gen()-1), (2*self.gen()**2+1)/(self.gen()-1),
-         (self.gen()**5+self.gen()**4+self.gen()**3+self.gen()**2+1)/(self.gen()**12)]
+            1/x,
+            ...]
+
+        ::
+
+           sage: R.<y> = K[]
+           sage: L.<y> = K.extension(y^2 - x)
+           sage: L.some_elements()
+           [1,
+            y,
+            1/x*y,
+            ((1/4*x + 1/4)/(1/4*x^2 - 1/2*x + 1/4))*y - 1/2*x/(1/4*x^2 - 1/2*x + 1/4),
+            -1/-x,
+            (1/(x - 1))*y,
+            (1/(x + 1))*y,
+            (1/(2*x + 2))*y,
+            0,
+            ...]
+
+        """
+        elements = []
+
+        polynomials = [self(f) for f in self._ring.some_elements()]
+
+        for numerator in polynomials:
+            for denominator in polynomials:
+                if denominator:
+                    some_element = numerator/denominator
+                    if some_element not in elements:
+                        elements.append(some_element)
+
+        return elements
 
     def characteristic(self):
         """

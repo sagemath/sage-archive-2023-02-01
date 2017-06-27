@@ -66,6 +66,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subdivide_edges` | Subdivide k times edges from an iterable container.
     :meth:`~GenericGraph.delete_edge` | Delete the edge from u to v
     :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
+    :meth:`~GenericGraph.contract_edge` | Contracts the specified edge.
+    :meth:`~GenericGraph.contract_edges` | Contracts edges from an iterable container.
     :meth:`~GenericGraph.delete_multiedge` | Delete all edges from u and v.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
     :meth:`~GenericGraph.has_edge` | Return True if (u, v) is an edge, False otherwise.

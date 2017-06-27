@@ -720,18 +720,6 @@ if [ ! -f spkg-install ]; then
 fi
 
 
-# If spkg-install is a Python script (i.e. the first line of the file
-# contains "python"), verify that Python has already been installed.
-if head -1 spkg-install | grep python >/dev/null; then
-    # If there is no Python installed in local/bin, exit with an error.
-    if [ ! -x "$SAGE_LOCAL"/bin/python ]; then
-         echo >&2 "Error: The spkg-install script is written in Python, but the Python"
-         echo >&2 'package is not yet installed in Sage.  You should add $(PYTHON)'
-         echo >&2 "as dependency in build/pkgs/$PKG_BASE/dependencies"
-         exit 1
-    fi
-fi
-
 # SAGE_CHECK_PACKAGES: if this contains "!pkg", skip tests for "pkg",
 # so set SAGE_CHECK=no.  If this contains "pkg", run tests, so set
 # SAGE_CHECK=yes.  Check this now and export SAGE_CHECK so that the

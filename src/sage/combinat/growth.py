@@ -150,6 +150,10 @@ REFERENCES:
    *Dual graded graphs for Kac-Moody algebras*.
    Algebra & Number Theory 1.4 (2007): pp. 451-488
 
+.. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne Schilling, Mark Shimozono and Mike Zabrocki.
+   *k-Schur functions and affine Schubert calculus*.
+   https://arxiv.org/pdf/1301.3569.pdf
+
 .. [HivNze] Florent Hivert and Janvier Nzeutchap.
    *Dual Graded Graphs in Combinatorial Hopf Algebras*.
    https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
@@ -181,7 +185,7 @@ from sage.combinat.composition import Compositions
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.core import Core
+from sage.combinat.core import Core, Cores
 from copy import copy
 from sage.misc.functional import is_odd, is_even
 from sage.rings.integer_ring import ZZ
@@ -327,15 +331,26 @@ class GrowthDiagram(SageObject):
             self._grow()
 
     @classmethod
-    def _check_duality(cls, n, r):
+    def _check_duality(cls, n, r=1):
         """
         Raise an error if the graphs are not r-dual at level n.
         """
-        def check_vertex(w, P, Q):
-            DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
-            UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
-            UDw.extend([w]*r)
-            assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
+        try:
+            cls._has_multiple_edges
+        except AttributeError:
+            cls._has_multiple_edges = False
+        if cls._has_multiple_edges:
+            def check_vertex(w, P, Q):
+                DUw = [v[0] for uw in P.outgoing_edges(w) for v in Q.incoming_edges(uw[1])]
+                UDw = [v[1] for lw in Q.incoming_edges(w) for v in P.outgoing_edges(lw[0])]
+                UDw.extend([w]*r)
+                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
+        else:
+            def check_vertex(w, P, Q):
+                DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
+                UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
+                UDw.extend([w]*r)
+                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
 
         P = cls.P_graph(n+2)
         Q = cls.Q_graph(n+2)
@@ -820,7 +835,7 @@ class GrowthDiagram(SageObject):
         """
         if labels is None:
             if self._has_multiple_edges:
-                return [self._zero, 0]*(self._half_perimeter()-1) + [self._zero]
+                return [self._zero, self._zero_edge]*(self._half_perimeter()-1) + [self._zero]
             else:
                 return [self._zero]*(self._half_perimeter())
         else:
@@ -1167,6 +1182,8 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         sage: SY._zero
         []
 
+        sage: SY._check_duality(4)
+
     Check that the rules are bijective::
 
         sage: all(SY(labels=SY(pi).out_labels()).to_word() == pi for pi in Permutations(5))
@@ -1379,6 +1396,7 @@ def GrowthDiagramLLMS(k):
     class GrowthDiagramLLMS(GrowthDiagramLLMSClass):
         _k = k
         _zero = Core([], k)
+        _zero_edge = None # to prevent confusion with the edge labelled with content 0
 
     return GrowthDiagramLLMS
 
@@ -1408,6 +1426,8 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         sage: G._zero
         []
 
+        sage: G._check_duality(4)
+
     """
     def __init__(self,
                  filling = None,
@@ -1415,10 +1435,10 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
                  labels = None):
         # TODO: should check that the filling is standard
         if labels is not None:
-            labels = [Core(labels[i], self._k) if is_even(i) else ZZ(labels[i]) for i in range(len(labels))]
-        super(GrowthDiagramLLMS, self).__init__(filling = filling,
-                                                shape = shape,
-                                                labels = labels)
+            labels = [Core(labels[i], self._k) if is_even(i) else labels[i] for i in range(len(labels))]
+        super(GrowthDiagramLLMSClass, self).__init__(filling = filling,
+                                                     shape = shape,
+                                                     labels = labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _has_multiple_edges = True
@@ -1429,15 +1449,124 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
     @staticmethod
     def _is_Q_edge(w, v):
-        return [0] if w in v.weak_covers() else []
+        return [None] if w in v.weak_covers() else []
 
     @staticmethod
     def _is_P_edge(w, v):
+        """For two k-cores v and w containing v, there are as many edges as
+        there are components in the skew partition w/v.  These
+        components are ribbons, and therefore contain a unique cell
+        with maximal content.  We index the edge with this content.
+        """
         if w in v.strong_covers():
             T = SkewPartition([w.to_partition(), v.to_partition()])
-            return T.cell_poset().connected_components()
+            return [max([j-i for i,j in c]) for c in T.cell_poset().connected_components()]
         else:
             return []
+
+    def Q_symbol(self):
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramLLMS(3)()
+            sage: G.Q_symbol().pp()
+            1  3  3
+            2
+        """
+        return WeakTableau(SkewTableau(chain = self.Q_chain()[::2]), self._k-1)
+
+    @classmethod
+    def _forward_rule(cls, y, e, t, f, x, content):
+        r"""
+        Return the output path given two incident edges and the content.
+
+        See [LamShi2007]_ Section 3.4 and [LLMSSZ2013]_ Section 6.3.
+
+        INPUT:
+
+        - ``y, e, t, f, x`` -- a path of three partitions and two
+          colors from a cell in a growth diagram, labelled as::
+
+              t f x
+              e
+              y
+
+        - ``content`` -- 0 or 1, the content of the cell.
+
+        OUTPUT:
+
+        The two colors and the fourth partition g, z, h according to
+        LLMS insertion.
+
+        TESTS::
+
+            sage: G = GrowthDiagramLLMS(3); Z = G._zero
+            sage: G._forward_rule(Z, None, Z, None, Z, 0)
+            (None, [], None)
+
+            sage: G._forward_rule(Z, None, Z, None, Z, 1)
+            (None, [1], 0)
+
+        if ``x != y``::
+
+            sage: Y = Core([1,1], 3); T = Core([1], 3); X = Core([2], 3)
+            sage: G._forward_rule(Y, -1, T, None, X, 0)
+            (None, [2, 1, 1], -1)
+
+            sage: Y = Core([2,1,1], 3); T = Core([2], 3); X = Core([3,1], 3)
+            sage: G._forward_rule(Y, -1, T, None, X, 0)
+            (None, [3, 1, 1], -2)
+
+        if ``x == y != t``::
+
+            sage: Y = Core([1], 3); T = Core([], 3); X = Core([1], 3)
+            sage: G._forward_rule(Y, 0, T, None, X, 0)
+            (None, [1, 1], -1)
+
+        """
+        assert f == None, "The Q-graph should not be colored"
+        g = None
+        if x == t == y:
+            assert e == None, "Degenerate edge e should have color None"
+            if content == 0:
+                z, h = x, None
+            elif content == 1:
+                if t.size() == 0:
+                    z = t.affine_symmetric_group_simple_action(0)
+                else:
+                    z = t.affine_symmetric_group_simple_action(t[0])
+                h = z[0]-1
+            else:
+                raise ValueError("Should not happen.")
+        elif content != 0:
+            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+        elif x != t == y:
+            assert e == None, "Degenerate edge e should have color None"
+            z, h = x, e
+        elif x == t != y:
+            z, h = y, e
+        else: #  x != t and y != t
+            qx = SkewPartition([x.to_partition(), t.to_partition()])
+            qy = SkewPartition([y.to_partition(), t.to_partition()])
+            if not all(c in qx.cells() for c in qy.cells()):
+                res = [(j-i)%(cls._k) for i,j in qx.cells()]
+                assert len(set(res)) == 1
+                r = res[0]
+                z = y.affine_symmetric_group_simple_action(r)
+                if e%(cls._k) == r:
+                    h = e-1
+                else:
+                    h = e
+            elif x == y != t:
+                # the addable cell with largest content at most e
+                cprime = sorted([c for c in y.to_partition().addable_cells() if c[1]-c[0] <= e], reverse=True)[0]
+                h = cprime[1]-cprime[0]
+                z = y.affine_symmetric_group_simple_action(h%(cls._k))
+
+        return g, z, h
 
 class GrowthDiagramBinWord(GrowthDiagram):
     r"""
@@ -1482,9 +1611,9 @@ class GrowthDiagramBinWord(GrowthDiagram):
         ...
         AssertionError: 11 has smaller rank than 101 but isn't covered by it in Q!
 
-    Check duality:
+    Check duality::
 
-        sage: BW._check_duality(4, 1)
+        sage: BW._check_duality(4)
 
     Check that the rules are bijective::
 
@@ -1686,9 +1815,9 @@ class GrowthDiagramSylvester(GrowthDiagram):
         ...
         AssertionError: [., [., .]] has smaller rank than [[[., .], .], .] but isn't covered by it in Q!
 
-    Check duality:
+    Check duality::
 
-        sage: SY._check_duality(4, 1)
+        sage: SY._check_duality(4)
 
     Check that the rules are bijective::
 
@@ -1957,6 +2086,11 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         sage: YF = GrowthDiagramYoungFibonacci
         sage: YF._zero
         word:
+
+    Check duality::
+
+        sage: YF._check_duality(4)
+
         sage: G = YF(labels = [[1],[1,0],[1]])
         Traceback (most recent call last):
         ...

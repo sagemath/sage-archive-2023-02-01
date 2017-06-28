@@ -2552,12 +2552,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Return the value of the currently best known bound.
 
-        This method returns the current best upper (resp. lower) bound on the
-        optimal value of the objective function in a maximization
-        (resp. minimization) problem. It is equal to the output of
-        :meth:get_objective_value if the MILP found an optimal solution, but it
-        can differ if it was interrupted manually or after a time limit (cf
-        :meth:solver_parameter).
+        This method returns the current best upper (resp. lower) bound
+        on the optimal value of the objective function in a
+        maximization (resp. minimization) problem. It is equal to the
+        output of :meth:`get_objective_value` if the MILP found an
+        optimal solution, but it can differ if it was interrupted
+        manually or after a time limit (cf :meth:`solver_parameter`).
 
         .. NOTE::
 

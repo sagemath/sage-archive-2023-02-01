@@ -39,6 +39,7 @@ from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.pari.all import pari_gen
+from sage.structure.richcmp import richcmp, richcmp_not_equal, rich_to_bool, rich_to_bool_sgn
 from sage.structure.element import coerce_binop
 
 from sage.rings.infinity import infinity, Infinity
@@ -1415,8 +1416,7 @@ class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_g
 # XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #
 # until at least until 4.5.0 unpickle correctly as polynomials implemented #
 # via FLINT.                                                               #
-from sage.structure.sage_object import (register_unpickle_override,
-        richcmp, richcmp_not_equal, rich_to_bool, rich_to_bool_sgn)
+from sage.structure.sage_object import register_unpickle_override
 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
 
 register_unpickle_override( \

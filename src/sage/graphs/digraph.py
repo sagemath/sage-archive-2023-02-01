@@ -104,6 +104,7 @@ graphs. Here is what they can do
     :delim: |
 
     :meth:`~DiGraph.flow_polytope` | Computes the flow polytope of a digraph
+    :meth:`~DiGraph.degree_polynomial` | Returns the generating polynomial of degrees of vertices in ``self``.
 
 Methods
 -------
@@ -1387,6 +1388,41 @@ class DiGraph(GenericGraph):
         """
         return [x for x in self if self.out_degree(x)==0]
 
+    def degree_polynomial(self):
+        r"""
+        Return the generating polynomial of degrees of vertices in ``self``.
+
+        This is the sum
+
+        .. MATH::
+
+            \sum_{v \in G} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
+
+        where ``in(v)`` and ``out(v)`` are the number of incoming and
+        outgoing edges at vertex `v` in the digraph `G`.
+
+        Because this polynomial is multiplicative for Cartesian
+        product of digraphs, it is useful to help see if the digraph can
+        be isomorphic to a Cartesian product.
+
+        .. SEEALSO::
+
+            :meth:`num_verts` for the value at `(x, y) = (1, 1)`
+
+        EXAMPLES::
+
+            sage: G = posets.PentagonPoset().hasse_diagram()
+            sage: G.degree_polynomial()
+            x^2 + 3*x*y + y^2
+
+            sage: G = posets.BooleanLattice(4).hasse_diagram()
+            sage: G.degree_polynomial().factor()
+            (x + y)^4
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(ZZ, 'x,y')
+        x, y = R.gens()
+        return R.sum(x ** self.in_degree(v) * y ** self.out_degree(v) for v in self)
 
     def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""

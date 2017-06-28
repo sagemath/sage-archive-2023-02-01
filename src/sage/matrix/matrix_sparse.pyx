@@ -9,19 +9,20 @@ Base class for sparse matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 cimport cython
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix0 as matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from cpython cimport *
 
 import sage.matrix.matrix_space
@@ -294,7 +295,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Left scalar multiplication. Internal usage only.
 
@@ -1035,10 +1036,11 @@ cdef class Matrix_sparse(matrix.Matrix):
             [1 0 1 0]
             [0 1 0 1]
         """
-        if hasattr(right, '_vector_'):
-            right = right.column()
         if not isinstance(right, matrix.Matrix):
-            raise TypeError("right must be a matrix")
+            if hasattr(right, '_vector_'):
+                right = right.column()
+            else:
+                raise TypeError("right must be a matrix")
 
         if not (self._base_ring is right.base_ring()):
             right = right.change_ring(self._base_ring)

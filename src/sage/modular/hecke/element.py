@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object import richcmp, op_NE
+from sage.structure.richcmp import richcmp, op_NE
 from sage.structure.element import ModuleElement
 
 def is_HeckeModuleElement(x):

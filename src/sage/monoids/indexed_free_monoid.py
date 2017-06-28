@@ -21,7 +21,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
-from sage.structure.sage_object import op_EQ, op_NE, richcmp, rich_to_bool
+from sage.structure.richcmp import op_EQ, op_NE, richcmp, rich_to_bool
 import sage.data_structures.blas_dict as blas
 
 from sage.categories.monoids import Monoids
@@ -578,9 +578,15 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             Traceback (most recent call last):
             ...
             ValueError: invalid cancellation
+            sage: elt // e^4
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid cancellation
         """
         d = copy(self._monomial)
-        for k,v in iteritems(elt._monomial):
+        for k, v in iteritems(elt._monomial):
+            if k not in d:
+                raise ValueError("invalid cancellation")
             d[k] -= v
         for k,v in d.items():
             if v < 0:

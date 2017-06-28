@@ -28,8 +28,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from sage.structure.sage_object import SageObject
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing
@@ -996,7 +996,7 @@ cdef class Dist_vector(Dist):
         """
         return self._addsub(<Dist_vector>_right, True)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         r"""
         Scalar product of a distribution with a ring element that coerces into the base ring.
 

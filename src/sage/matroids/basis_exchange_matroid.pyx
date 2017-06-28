@@ -2155,8 +2155,8 @@ cdef class BasisExchangeMatroid(Matroid):
             True
         """
         if not isinstance(other, BasisExchangeMatroid):
-            from . import basis_matroid
-            ot = basis_matroid.BasisMatroid(other)
+            from .basis_matroid import BasisMatroid
+            ot = BasisMatroid(other)
         else:
             ot = other
         return self.__is_isomorphism(ot, morphism)
@@ -2221,8 +2221,8 @@ cdef class BasisExchangeMatroid(Matroid):
             True
         """
         if not isinstance(other, BasisExchangeMatroid):
-            from . import basis_matroid
-            other = basis_matroid.BasisMatroid(other)
+            from .basis_matroid import BasisMatroid
+            other = BasisMatroid(other)
         if self is other:
             return {e:e for e in self.groundset()}
         if len(self) != len(other):

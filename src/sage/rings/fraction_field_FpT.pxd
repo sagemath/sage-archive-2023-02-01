@@ -1,6 +1,6 @@
 from sage.libs.flint.types cimport nmod_poly_t
 
-from sage.rings.morphism cimport RingHomomorphism_coercion
+from sage.rings.morphism cimport RingHomomorphism
 from sage.categories.morphism cimport Morphism
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.categories.map cimport Section

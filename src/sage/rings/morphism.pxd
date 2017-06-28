@@ -17,9 +17,6 @@ cdef class RingMap_lift(RingMap):
 cdef class RingHomomorphism(RingMap):
     cdef RingMap _lift
 
-cdef class RingHomomorphism_coercion(RingHomomorphism):
-    pass
-
 cdef class RingHomomorphism_im_gens(RingHomomorphism):
     cdef __im_gens
 

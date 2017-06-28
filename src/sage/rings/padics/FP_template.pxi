@@ -1250,7 +1250,7 @@ cdef class FPElement(pAdicTemplateElement):
             return 314159
         return chash(self.unit, self.ordp, self.prime_pow.prec_cap, self.prime_pow) ^ self.ordp
 
-cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
+cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
     """
     The canonical inclusion from the integer ring to a floating point ring.
 
@@ -1260,6 +1260,11 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         Ring Coercion morphism:
           From: Integer Ring
           To:   5-adic Ring with floating precision 20
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, R):
         """
@@ -1270,7 +1275,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
             sage: f = ZpFP(5).coerce_map_from(ZZ); type(f)
             <type 'sage.rings.padics.padic_floating_point_element.pAdicCoercion_ZZ_FP'>
         """
-        RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
+        RingHomomorphism.__init__(self, ZZ.Hom(R))
         self._zero = <FPElement?>R._element_constructor(R, 0)
         self._section = pAdicConvert_FP_ZZ(R)
 
@@ -1291,7 +1296,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1310,7 +1315,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -1451,7 +1456,7 @@ cdef class pAdicConvert_FP_ZZ(RingMap):
             cconv_mpz_t_out(ans.value, x.unit, x.ordp, x.prime_pow.prec_cap, x.prime_pow)
         return ans
 
-cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
+cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
     """
     The canonical inclusion from the rationals to a floating point field.
 
@@ -1461,6 +1466,11 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         Ring Coercion morphism:
           From: Rational Field
           To:   5-adic Field with floating precision 20
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, R):
         """
@@ -1471,7 +1481,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
             sage: f = QpFP(5).coerce_map_from(QQ); type(f)
             <type 'sage.rings.padics.padic_floating_point_element.pAdicCoercion_QQ_FP'>
         """
-        RingHomomorphism_coercion.__init__(self, QQ.Hom(R), check=False)
+        RingHomomorphism.__init__(self, QQ.Hom(R))
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_FP_QQ(R)
 
@@ -1498,7 +1508,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1523,7 +1533,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -1776,7 +1786,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
             raise ValueError("p divides the denominator")
         return ans
 
-cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
+cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
     r"""
     The canonical inclusion of `\ZZ_q` into its fraction field.
 
@@ -1788,6 +1798,11 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         Ring Coercion morphism:
           From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
           To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, R, K):
         r"""
@@ -1800,7 +1815,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
             sage: f = K.coerce_map_from(R); type(f)
             <type 'sage.rings.padics.qadic_flint_FP.pAdicCoercion_FP_frac_field'>
         """
-        RingHomomorphism_coercion.__init__(self, R.Hom(K), check=False)
+        RingHomomorphism.__init__(self, R.Hom(K))
         self._zero = K(0)
         self._section = pAdicConvert_FP_frac_field(K, R)
 
@@ -1915,7 +1930,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         r"""
@@ -1943,7 +1958,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
 cdef class pAdicConvert_FP_frac_field(Morphism):
     r"""

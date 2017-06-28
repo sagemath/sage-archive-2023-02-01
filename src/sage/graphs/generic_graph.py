@@ -10720,7 +10720,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph(edgelist, loops=True, multiedges=True)
             sage: D.contract_edge(0,1,'b'); D.edges()
             [(0, 0, 'a'), (0, 0, 'c')]
-
         """
         # standard code to allow 3 arguments or a single tuple:
         if label is None:
@@ -10739,13 +10738,12 @@ class GenericGraph(GenericGraph_pyx):
         if u == v:
             return
 
-        if self.allows_loops():
+        if (self.allows_loops() and (self.allows_multiple_edges() or
+            not self.has_edge(u, u))):
             # add loops
-            loop_labels = []
             for (x, y, l) in self.edges_incident(v):
                 if set([x, y]) == set([u, v]):
-                    loop_labels.append(l)
-            self.add_edges([(u, u, l) for l in loop_labels])
+                    self.add_edge(u, u, l)
 
         self.merge_vertices([u,v])
 
@@ -10819,8 +10817,6 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: edge tuples in input should have the same length
-
-
         """
         if len(set([len(e) for e in edges])) > 1:
             raise ValueError("edge tuples in input should have the same length")
@@ -10833,7 +10829,7 @@ class GenericGraph(GenericGraph_pyx):
             except Exception:
                 u, v = e
                 label = None
-            if self.has_edge((u, v, label)):
+            if self.has_edge(u, v, label):
                 edge_list.append((u, v, label))
                 vertices.add(u)
                 vertices.add(v)

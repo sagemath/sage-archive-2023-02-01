@@ -56,7 +56,7 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
     Plot the Mandelbrot set with the center point `-1 + 0i`::
 
         sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
-        sage: fast_mandel_plot(-1, 0, 4, 500, 600, 1, 20, [40, 40, 40])
+        sage: fast_mandel_plot(-1, 0, 4, 500, 600, 1, 20, [40, 40, 40]) # long time
         600x600px 24-bit RGB image
 
     We can focus on smaller parts of the set by adjusting image_width::

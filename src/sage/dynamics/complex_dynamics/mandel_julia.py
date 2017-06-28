@@ -76,29 +76,105 @@ def mandelbrot_plot(**kwds):
 
     ::
 
-        sage: mandelbrot_plot()
+        sage: mandelbrot_plot() # not tested
 
     ::
 
-        sage: mandelbrot_plot(pixel_count=1000)
+        sage: mandelbrot_plot(pixel_count=1000) # not tested
 
     ::
 
-        sage: mandelbrot_plot(base_color=[70, 40, 240])
+        sage: mandelbrot_plot(base_color=[70, 40, 240]) # not tested
 
     ::
 
-        sage: mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75)
+        sage: mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75) # not tested
 
     To use the function outside of the notebook, you must set ``interact`` to False::
 
-        sage: mandelbrot_plot(interact=False)
+        sage: mandelbrot_plot(interact=False) # not tested
+        Launched png viewer for 500x500px 24-bit RGB image
 
     ::
 
-        sage: mandelbrot_plot(interact=False, x_center=-1.11, y_center=0.2283, image_width=1/128,
-        ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100]) # long time
+        sage: mandelbrot_plot(interact=False, x_center=-1.11, y_center=0.2283, image_width=1/128, # not tested
+        ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100])
+        Launched png viewer for 500x500px 24-bit RGB image
 
+    TESTS:
+
+    sage: mandelbrot_plot()
+    <html><!--notruncate-->
+            <div padding=6 id="div-interact-0">
+              <table width=800px height=20px bgcolor="#c5c5c5" cellpadding=15>
+                <tr>
+                  <td bgcolor="#f9f9f9" valign=top align=left>
+                <table>
+                  <tr><td colspan=3><table><tr><td align=right><font color="black">Max Number of Iterations&nbsp;</font></td><td><input type="text" value="500" size=80 onchange="interact(0, {variable: 'iterations', adapt_number: 4, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Iterations between Colors&nbsp;</font></td><td><input type="text" value="1" size=80 onchange="interact(0, {variable: 'level_sep', adapt_number: 5, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Number of Colors&nbsp;</font></td><td><input type="text" value="30" size=80 onchange="interact(0, {variable: 'color_num', adapt_number: 6, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">RGB Color&nbsp;</font></td><td><input type="text" value="[40, 40, 40]" size=80 onchange="interact(0, {variable: 'image_color', adapt_number: 7, value: encode64(this.value)}, 1)"></input></td>
+    </tr></table></td></tr>
+                  <tr><td></td><td style='width: 100%;'>
+            <div id="cell-interact-0"><?__SAGE__START>
+              <table border=0 bgcolor="white" width=100%>
+                <tr>
+                  <td bgcolor="white" align=left valign=top>
+                    <pre><?__SAGE__TEXT></pre>
+                  </td>
+                </tr>
+                <tr>
+                  <td align=left valign=top><?__SAGE__HTML></td>
+                </tr>
+              </table><?__SAGE__END>
+            </div></td><td></td></tr>
+                  <tr><td colspan=3><table><tr><td align=right><font color="black">Real&nbsp;</font></td><td><input type="text" value="-1.0" size=80 onchange="interact(0, {variable: 'real_center', adapt_number: 1, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Imaginary&nbsp;</font></td><td><input type="text" value="0.0" size=80 onchange="interact(0, {variable: 'im_center', adapt_number: 2, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Width of Image&nbsp;</font></td><td><input type="text" value="4.0" size=80 onchange="interact(0, {variable: 'width', adapt_number: 3, value: encode64(this.value)}, 1)"></input></td>
+    </tr></table></td></tr>
+                </table></td>
+                </tr>
+              </table>
+            </div></html>
+
+    sage: mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75, base_color=[70, 40, 240], pixel_count=1000)
+    <html><!--notruncate-->
+            <div padding=6 id="div-interact-0">
+              <table width=800px height=20px bgcolor="#c5c5c5" cellpadding=15>
+                <tr>
+                  <td bgcolor="#f9f9f9" valign=top align=left>
+                <table>
+                  <tr><td colspan=3><table><tr><td align=right><font color="black">Max Number of Iterations&nbsp;</font></td><td><input type="text" value="500" size=80 onchange="interact(0, {variable: 'iterations', adapt_number: 11, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Iterations between Colors&nbsp;</font></td><td><input type="text" value="1" size=80 onchange="interact(0, {variable: 'level_sep', adapt_number: 12, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Number of Colors&nbsp;</font></td><td><input type="text" value="75" size=80 onchange="interact(0, {variable: 'color_num', adapt_number: 13, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">RGB Color&nbsp;</font></td><td><input type="text" value="[70, 40, 240]" size=80 onchange="interact(0, {variable: 'image_color', adapt_number: 14, value: encode64(this.value)}, 1)"></input></td>
+    </tr></table></td></tr>
+                  <tr><td></td><td style='width: 100%;'>
+            <div id="cell-interact-0"><?__SAGE__START>
+              <table border=0 bgcolor="white" width=100%>
+                <tr>
+                  <td bgcolor="white" align=left valign=top>
+                    <pre><?__SAGE__TEXT></pre>
+                  </td>
+                </tr>
+                <tr>
+                  <td align=left valign=top><?__SAGE__HTML></td>
+                </tr>
+              </table><?__SAGE__END>
+            </div></td><td></td></tr>
+                  <tr><td colspan=3><table><tr><td align=right><font color="black">Real&nbsp;</font></td><td><input type="text" value="-0.750000000000000" size=80 onchange="interact(0, {variable: 'real_center', adapt_number: 8, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Imaginary&nbsp;</font></td><td><input type="text" value="0.250000000000000" size=80 onchange="interact(0, {variable: 'im_center', adapt_number: 9, value: encode64(this.value)}, 1)"></input></td>
+    </tr><tr><td align=right><font color="black">Width of Image&nbsp;</font></td><td><input type="text" value="1/2" size=80 onchange="interact(0, {variable: 'width', adapt_number: 10, value: encode64(this.value)}, 1)"></input></td>
+    </tr></table></td></tr>
+                </table></td>
+                </tr>
+              </table>
+            </div></html>
+
+    sage: mandelbrot_plot(interact=False)
+
+    sage: mandelbrot_plot(interact=False, x_center=-1.11, y_center=0.2283, image_width=1/128, # long time
+    ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100])
     """
 
     x_center = kwds.pop("x_center", -1.0)

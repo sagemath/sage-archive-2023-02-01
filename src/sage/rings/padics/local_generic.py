@@ -295,6 +295,32 @@ class LocalGeneric(CommutativeRing):
             2
             sage: Kdown.base_ring()
             5-adic Field with floating precision 4
+
+        Changing the prime works for extensions as long as the defining polynomial is exact::
+
+            sage: x = polygen(ZZ)
+            sage: R.<a> = Zp(5).extension(x^2 + 2)
+            sage: S = R.change(p=7)
+            sage: S.defining_polynomial()
+            (1 + O(7^20))*x^2 + (O(7^20))*x + (2 + O(7^20))
+            sage: A.<y> = Zp(5)[]
+            sage: R.<a> = Zp(5).extension(y^2 + 2)
+            sage: S = R.change(p=7)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion between padic extensions not implemented
+
+        Moreover, you cannot currently increase the precision above the limit
+        imposed by the defining polynomial::
+
+            sage: R.<a> = Zq(5^3)
+            sage: S = R.change(prec=50)
+            Traceback (most recent call last):
+            ...
+            ValueError: Not enough precision in defining polynomial
+
+        Both of these issues will be partially alleviated with a switch to exact
+        defining polynomials in `trac`:23331
         """
         # We support both print_* and * for *=mode, pos, sep, alphabet
         for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):
@@ -347,11 +373,12 @@ class LocalGeneric(CommutativeRing):
                             raise TypeError('You must specify the type explicitly')
                 elif ring.is_field():
                     ring = ring.ring_of_integers()
+            p = kwds.get('p', functor.p)
+            curpstr = str(self.prime())
             # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
             if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
                 (functor.extras['print_mode'].get('mode') == 'digits' and
-                 kwds.get('p', functor.p) > functor.p)):
-                p = kwds.get('p', functor.p)
+                 p > functor.p)):
                 from .padic_printing import _printer_defaults
                 kwds['alphabet'] = _printer_defaults.alphabet()[:p]
             for atr in ('p', 'prec', 'type'):
@@ -365,10 +392,19 @@ class LocalGeneric(CommutativeRing):
                 res_name = kwds.pop('res_name', names + '0')
                 modulus = kwds.pop('modulus', get_unramified_modulus(q, res_name))
                 implementation = kwds.pop('implementation', 'FLINT')
-            for atr in ('names', 'check'):
+            # We have to change the way p prints in the default case
+            if 'names' in kwds:
+                functor.extras['names'] = kwds.pop('names')
+            elif functor.extras['names'][0] == curpstr:
+                functor.extras['names'] = (str(p),)
+            for atr in ('ram_name', 'var_name'):
                 if atr in kwds:
-                    functor.extras[atr] = kwds.pop(atr)
-            for atr in ('mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec'):
+                    functor.extras['print_mode'][atr] = kwds.pop(atr)
+                elif functor.extras['print_mode'].get(atr) == curpstr:
+                    functor.extras['print_mode'][atr] = str(p)
+            if 'check' in kwds:
+                functor.extras['check'] = kwds.pop('check')
+            for atr in ('mode', 'pos', 'unram_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec'):
                 if atr in kwds:
                     functor.extras['print_mode'][atr] = kwds.pop(atr)
             if kwds:
@@ -413,9 +449,13 @@ class LocalGeneric(CommutativeRing):
                 if q is not None and self.f() == 1:
                     kwds['q'] = q
                 ring = ring.change(**kwds)
-            if modulus is not None:
-                # the following should change after we switch to exact defining polynomials
-                functor.polys = [modulus.change_ring(ring)]
+            if modulus is None:
+                if len(functor.polys) != 1:
+                    raise RuntimeError("Unexpected number of defining polynomials")
+                modulus = functor.polys[0]
+            if isinstance(modulus.base_ring(), pAdicBaseGeneric):
+                modulus.change_ring(ring)
+            functor.polys = [modulus]
         return functor(ring)
 
     def precision_cap(self):

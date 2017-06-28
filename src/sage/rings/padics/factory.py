@@ -2489,10 +2489,11 @@ class pAdicExtension_class(UniqueFactory):
             #elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             #    halt = None
             halt = None
+            prec_cap = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()])
             if prec is None:
-                prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()])
-            else:
-                prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()] + [prec])
+                prec = prec_cap
+            elif prec > prec_cap and base._prec_type() in ('capped-rel', 'capped-abs'):
+                raise ValueError("Not enough precision in defining polynomial")
             shift_seed = None
             modulus = truncate_to_prec(modulus, prec)
         elif is_eisenstein(modulus):
@@ -2541,12 +2542,12 @@ class pAdicExtension_class(UniqueFactory):
                         # give up on getting more precision
                         shift_seed = -preseed.change_ring(base)
                         shift_seed /= base.uniformizer()
-            if prec is None:
-                prec = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] +
+            prec_cap = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] +
                            [modulus.leading_coefficient().precision_absolute()] + [base.precision_cap()]) * e
-            else:
-                prec = min([c.precision_absolute() * e for c in shift_seed.list() if not c._is_exact_zero()] +
-                           [modulus.leading_coefficient().precision_absolute() * e] + [base.precision_cap() * e] + [prec])
+            if prec is None:
+                prec = prec_cap
+            elif prec > prec_cap and base._prec_type() in ('capped-rel', 'capped-abs'):
+                raise ValueError("Not enough precision in defining polynomial")
             modulus = truncate_to_prec(modulus, (prec/e).ceil() + 1)
         else:
             if unram_name is None:

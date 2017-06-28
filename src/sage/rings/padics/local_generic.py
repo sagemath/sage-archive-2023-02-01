@@ -216,23 +216,23 @@ class LocalGeneric(CommutativeRing):
         - ``res_name`` -- string
         - ``unram_name`` -- string
         - ``ram_name`` -- string
-        -- ``names`` -- string
-        -- ``modulus`` -- polynomial
+        - ``names`` -- string
+        - ``modulus`` -- polynomial
 
         The following arguments have special behavior:
 
-        -- ``prec`` -- integer.  If the precision is increased on an extension ring,
+        - ``prec`` -- integer.  If the precision is increased on an extension ring,
                        the precision on the base is increased as necessary (respecting ramification).
                        If the precision is decreased, the precision of the base is unchanged.
 
-        -- ``field`` -- bool.  If True, switch to a tower of fields via the fraction field.
+        - ``field`` -- bool.  If True, switch to a tower of fields via the fraction field.
                         If False, switch to a tower of rings of integers.
 
-        -- ``q`` -- prime power.  Replace the initial unramified extension of `\Qp` or `\Zp`
+        - ``q`` -- prime power.  Replace the initial unramified extension of `\Qp` or `\Zp`
                     with an unramified extension of residue cardinality `q`.
                     If the initial extension is ramified, add in an unramified extension.
 
-        -- ``base`` -- ring or field. Use a specific base ring instead of recursively
+        - ``base`` -- ring or field. Use a specific base ring instead of recursively
                        calling :meth:`change` down the tower.
 
         See the :mod:`constructors <sage.rings.padics.factory>` for more details on the
@@ -391,6 +391,8 @@ class LocalGeneric(CommutativeRing):
             if q is not None:
                 if 'names' in kwds:
                     names = kwds.pop('names')
+                elif 'unram_name' in kwds:
+                    names = kwds.pop('unram_name')
                 else:
                     raise TypeError("You must specify the name of the generator")
                 res_name = kwds.pop('res_name', names + '0')

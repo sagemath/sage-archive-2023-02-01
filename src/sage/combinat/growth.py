@@ -12,7 +12,7 @@ AUTHORS:
     - optimise rules, mainly for :class:`GrowthDiagramRSK` and :class:`GrowthDiagramBurge`
     - make semistandard extension generic
     - implement backward rules for :class:`GrowthDiagramDomino`
-    - implement backward rule from [LLMSSZ2013]_, [LamShi2007]_
+    - implement backward rule from [LLMSSZ2013]_, [LS2007]_
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
 generalisation of the Robinson-Schensted-Knuth correspondence between
@@ -128,52 +128,6 @@ correspondence producing binary words originally due to Viennot
 (:class:`GrowthDiagramBinWord`), and a correspondence producing
 domino tableaux (:class:`GrowthDiagramDomino`) originally due to
 Barbasch and Vogan.
-
-REFERENCES:
-
-.. [Fom1995] Sergey V. Fomin.
-   *Schensted algorithms for dual graded graphs*.
-   Journal of Algebraic Combinatorics Volume 4, Number 1 (1995), pp. 5-45
-
-.. [Rob1991] Tom Roby.
-   *Applications and extensions of Fomin's generalization of the Robinson-Schensted correspondence to differential posets*.
-   M.I.T., Cambridge, Massachusetts
-
-.. [Kra2006] Christian Krattenthaler.
-   *Growth diagrams, and increasing and decreasing chains in fillings of Ferrers shapes*.
-   Advances in Applied Mathematics Volume 37, Number 3 (2006), pp. 404-431
-
-.. [Lam2004] Thomas Lam.
-   *Growth diagrams, domino insertion and sign-imbalance*.
-   Journal of Combinatorial Theory, Series A Volume 107, Number 1 (2004), pp. 87-115
-
-.. [LamShi2007] Thomas Lam and Mark Shimozono.
-   *Dual graded graphs for Kac-Moody algebras*.
-   Algebra & Number Theory 1.4 (2007): pp. 451-488
-
-.. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne Schilling, Mark Shimozono and Mike Zabrocki.
-   *k-Schur functions and affine Schubert calculus*.
-   https://arxiv.org/pdf/1301.3569.pdf
-
-.. [HivNze] Florent Hivert and Janvier Nzeutchap.
-   *Dual Graded Graphs in Combinatorial Hopf Algebras*.
-   https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
-
-.. [vanLee1996] Marc van Leeuwen.
-   *The Robinson-Schensted and Schützenberger algorithms, an elementary approach*.
-   Electronic Journal of Combinatorics 3, no. 2 (1996): Research Paper 15, approx. 32 pp. (electronic)
-
-.. [Vie1983] Xavier G. Viennot.
-   *Maximal chains of subwords and up-down sequences of permutations*.
-   Journal of Combinatorial Theory, Series A Volume 34, (1983), pp. 1-14
-
-.. [Nze2007] Janvier Nzeutchap.
-   *Binary Search Tree insertion, the Hypoplactic insertion, and Dual Graded Graphs*.
-   :arXiv:`0705.2689` (2007)
-
-.. [Sag1987] Bruce E. Sagan.
-   *Shifted tableaux, Schur Q-functions, and a conjecture of R. Stanley*.
-   Journal of Combinatorial Theory, Series A Volume 45 (1987), pp. 62-103
 
 """
 from sage.structure.sage_object import SageObject
@@ -292,29 +246,6 @@ class GrowthDiagram(SageObject):
           origin.  If ``labels`` is ``None`` (in which case
           ``filling`` must not be ``None``) the value of
           ``self._zero`` is used to initialise ``labels``.  """
-        try:
-            self._has_multiple_edges
-        except AttributeError:
-            self._has_multiple_edges = False
-        try:
-            self._zero_edge
-        except AttributeError:
-            self._zero_edge = 0
-        try:
-            self._is_Q_edge
-        except AttributeError:
-            if self._has_multiple_edges:
-                self._is_Q_edge = lambda a,b: [self._zero_edge]
-            else:
-                self._is_Q_edge = lambda a,b: True
-        try:
-            self._is_P_edge
-        except AttributeError:
-            if self._has_multiple_edges:
-                self._is_P_edge = lambda a,b: [self._zero_edge]
-            else:
-                self._is_P_edge = lambda a,b: True
-
         if filling is None:
             if labels is None:
                 raise ValueError("Please provide a filling or a sequence of labels.")
@@ -332,6 +263,28 @@ class GrowthDiagram(SageObject):
             self._check_labels(self._in_labels)
             self._grow()
 
+    _has_multiple_edges = False # override when necessary
+    _zero_edge = 0              # override when necessary
+    @classmethod
+    def _is_P_edge(cls, a, b):
+        """
+        A default implementation to make :meth:`_shape_from_labels` work.
+        """
+        if cls._has_multiple_edges:
+            return [cls._zero_edge]
+        else:
+            return True
+
+    @classmethod
+    def _is_Q_edge(cls, a, b):
+        """
+        A default implementation to make :meth:`_shape_from_labels` work.
+        """
+        if cls._has_multiple_edges:
+            return [cls._zero_edge]
+        else:
+            return True
+
     @classmethod
     def _check_duality(cls, n, r=1):
         """
@@ -343,10 +296,6 @@ class GrowthDiagram(SageObject):
 
         - ``r``, a positive integer, corresponding to the number in the equation `UD-DU=rI`.
         """
-        try:
-            cls._has_multiple_edges
-        except AttributeError:
-            cls._has_multiple_edges = False
         if cls._has_multiple_edges:
             def check_vertex(w, P, Q):
                 DUw = [v[0] for uw in P.outgoing_edges(w) for v in Q.incoming_edges(uw[1])]
@@ -370,10 +319,6 @@ class GrowthDiagram(SageObject):
         r"""
         Return the first n levels of the first dual graded graph.
         """
-        try:
-            cls._has_multiple_edges
-        except AttributeError:
-            cls._has_multiple_edges = False
         if cls._has_multiple_edges:
             D = DiGraph([(x,y,e) for k in range(n-1)
                          for x in cls.vertices(k)
@@ -391,10 +336,6 @@ class GrowthDiagram(SageObject):
         r"""
         Return the first n levels of the second dual graded graph.
         """
-        try:
-            cls._has_multiple_edges
-        except AttributeError:
-            cls._has_multiple_edges = False
         if cls._has_multiple_edges:
             D = DiGraph([(x,y,e) for k in range(n-1)
                             for x in cls.vertices(k)
@@ -1416,7 +1357,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
     EXAMPLES:
 
-    Check example of Figure 1 in [LamShi2007]_::
+    Check example of Figure 1 in [LS2007]_::
 
         sage: G = GrowthDiagramLLMS(3)([4,1,2,6,3,5])
         sage: G.P_symbol().pp()
@@ -1447,7 +1388,6 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         3
 
     .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
 
     TESTS::
 
@@ -1540,7 +1480,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         r"""
         Return the output path given two incident edges and the content.
 
-        See [LamShi2007]_ Section 3.4 and [LLMSSZ2013]_ Section 6.3.
+        See [LS2007]_ Section 3.4 and [LLMSSZ2013]_ Section 6.3.
 
         INPUT:
 
@@ -2675,7 +2615,7 @@ class GrowthDiagramDomino(GrowthDiagram):
         sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
         True
 
-        Check part of Theorem 4.2.3 in [vanLee1996]_:
+        Check part of Theorem 4.2.3 in [Lee1996]_:
 
         sage: def to_permutation(pi):
         ....:     pi1 = list(pi)

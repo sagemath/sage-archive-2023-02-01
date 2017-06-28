@@ -10760,13 +10760,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.contract_edges([(1,3),(1,4)]); G.edges()
             [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
 
-		With loops in a digraph::
+        With loops in a digraph::
 
-			sage: D = DiGraph([(0,0), (0,1), (1,1)], loops=True, multiedges=True)
-			sage: D.contract_edges([(1,0)]); D.edges()
-			[(0, 0, None), (0, 1, None), (1, 1, None)]
-			sage: D.contract_edges([(0,1)]); D.edges()
-			[(0, 0, None), (0, 0, None)]
+            sage: D = DiGraph([(0,0), (0,1), (1,1)], loops=True, multiedges=True)
+            sage: D.contract_edges([(1,0)]); D.edges()
+            [(0, 0, None), (0, 1, None), (1, 1, None)]
+            sage: D.contract_edges([(0,1)]); D.edges()
+            [(0, 0, None), (0, 0, None)]
 
         ::
 
@@ -10794,7 +10794,7 @@ class GenericGraph(GenericGraph_pyx):
                 edge_list.append((u, v, label))
                 vertices.add(u)
                 vertices.add(v)
-        if not edges:
+        if not edge_list:
             return
 
         # implementation of union_find using DisjointSet

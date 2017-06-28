@@ -2474,7 +2474,7 @@ class pAdicExtension_class(UniqueFactory):
             if not isinstance(names, str):
                 names = str(names)
         else:
-            modulus = premodulus
+            modulus = premodulus.change_ring(base)
 
         # We now decide on the extension class: unramified, Eisenstein, two-step or general
         if unram or is_unramified(modulus):

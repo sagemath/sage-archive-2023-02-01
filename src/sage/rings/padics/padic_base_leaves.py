@@ -239,8 +239,9 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = ZpCR(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
 
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
@@ -329,8 +330,9 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = ZpCA(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
 
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedAbsoluteElement)
@@ -422,8 +424,9 @@ class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = ZpFP(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
 
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFloatingPointElement)
@@ -509,8 +512,9 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = ZpFM(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
 
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFixedModElement)
@@ -629,8 +633,9 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             sage: R._test_metric(elements=[R.random_element() for i in range(3^3)])
 
             sage: R = Qp(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
         """
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
 
@@ -747,8 +752,9 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = QpFP(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
 
         """
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFloatingPointElement)

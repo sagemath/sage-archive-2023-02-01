@@ -1,1 +1,2 @@
-from sage.dynamics.complex_dynamics.mandel_julia import mandelbrot_plot
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.dynamics.complex_dynamics.mandel_julia", "mandelbrot_plot")

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Growth diagrams and dual graded graphs
 
@@ -8,10 +9,10 @@ AUTHORS:
 .. TODO::
 
     - when shape is given, check that it is compatible with filling or labels
-    - implement backward rules for :class:`GrowthDiagramDomino`
     - optimise rules, mainly for :class:`GrowthDiagramRSK` and :class:`GrowthDiagramBurge`
     - make semistandard extension generic
-    - implement rules from [LamShi2007]_
+    - implement backward rules for :class:`GrowthDiagramDomino`
+    - implement backward rule from [LLMSSZ2013]_, [LamShi2007]_
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
 generalisation of the Robinson-Schensted-Knuth correspondence between
@@ -335,6 +336,12 @@ class GrowthDiagram(SageObject):
     def _check_duality(cls, n, r=1):
         """
         Raise an error if the graphs are not r-dual at level n.
+
+        INPUT:
+
+        - ``n``, a positive integer specifying which rank of the graph to test.
+
+        - ``r``, a positive integer, corresponding to the number in the equation `UD-DU=rI`.
         """
         try:
             cls._has_multiple_edges
@@ -1407,7 +1414,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
     A class modelling the Schensted correspondence for affine
     permutations.
 
-    EXAMPLES::
+    EXAMPLES:
 
     Check example of Figure 1 in [LamShi2007]_::
 

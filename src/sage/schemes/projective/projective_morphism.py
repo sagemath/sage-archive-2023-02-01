@@ -3551,7 +3551,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-    def multiplier_spectra(self, n, formal=True, embedding=None):
+    def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the formal ``n`` multiplier spectra of this map.
 
@@ -3561,15 +3561,23 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         multipliers of all periodic points of period ``n``.The map must be defined over
         projective space of dimension 1 over a number field.
 
+        The parameter ``type`` determines if the multipliers are computed one per cycle
+        (with multiplicity) or one per point (with multiplcity). Note that in the
+        ``cycle`` case, a map with a cycle which collapses into multiple smaller cycles
+        will have more multipliers than one that does not.
+
         INPUT:
 
         - ``n`` - a positive integer, the period.
 
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
             of this map. False specifies to find the ``n`` multiplier spectra
-            of this map. Default: True
+            of this map. Default: False
 
         - ``embedding`` - embedding of the base field into `\QQbar`
+
+        - ``type``- string - either ``point`` or ``cycle`` depending on whether you
+            compute one multiplier per point or one per cycle. Default : ``point``
 
         OUTPUT:
 
@@ -3582,7 +3590,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([4608*x^10 - 2910096*x^9*y + 325988068*x^8*y^2 + 31825198932*x^7*y^3 - 4139806626613*x^6*y^4\
             - 44439736715486*x^5*y^5 + 2317935971590902*x^4*y^6 - 15344764859590852*x^3*y^7 + 2561851642765275*x^2*y^8\
             + 113578270285012470*x*y^9 - 150049940203963800*y^10, 4608*y^10])
-            sage: f.multiplier_spectra(1)
+            sage: f.multiplier_spectra(1, type='point')
             [0, -7198147681176255644585/256, 848446157556848459363/19683, -3323781962860268721722583135/35184372088832,
             529278480109921/256, -4290991994944936653/2097152, 1061953534167447403/19683, -3086380435599991/9,
             82911372672808161930567/8192, -119820502365680843999, 3553497751559301575157261317/8192]
@@ -3595,7 +3603,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - w/4*y^2, y^2])
-            sage: f.multiplier_spectra(2, False, embedding=K.embeddings(QQbar)[0])
+            sage: f.multiplier_spectra(2, formal=False, embedding=K.embeddings(QQbar)[0], type='cycle')
             [0,
              5.931851652578137? + 0.?e-47*I,
              0.0681483474218635? - 1.930649271699173?*I,
@@ -3606,24 +3614,28 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 - 3/4*y^2, y^2])
-            sage: f.multiplier_spectra(2)
-            [1]
+            sage: f.multiplier_spectra(2, formal=False, type='cycle')
+            [0, 1, 1, 9]
+            sage: f.multiplier_spectra(2, formal=False, type='point')
+            [0, 1, 1, 1, 9]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 - 7/4*y^2, y^2])
-            sage: f.multiplier_spectra(3)
+            sage: f.multiplier_spectra(3, formal=True, type='cycle')
             [1, 1]
+            sage: f.multiplier_spectra(3, formal=True, type='point')
+            [1, 1, 1, 1, 1, 1]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2, x*y])
-            sage: f.sigma_invariants(1)
-            [3, 3, 1]
+            sage: f.multiplier_spectra(1)
+            [1, 1, 1]
         """
         PS = self.domain()
         n = Integer(n)
@@ -3674,25 +3686,30 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             for i in range(R[1]):
                 points.append(PS([R[0],1])) # include copies of higher multiplicity roots
 
-        newpoints = [] # should include one representative point per cycle, included with the right multiplicity
+        if type == 'cycle':
+            # should include one representative point per cycle, included with the right multiplicity
+            newpoints = []
 
-        while(points != []):
-            P = points[0]
-            newpoints.append(P)
-            points.pop(0)
-            Q = P
-            for i in range(1,n):
-                try:
-                    points.remove(f(Q))
-                except ValueError:
-                    pass
-                Q = f(Q)
+            while(points != []):
+                P = points[0]
+                newpoints.append(P)
+                points.pop(0)
+                Q = P
+                for i in range(1,n):
+                    try:
+                        points.remove(f(Q))
+                    except ValueError:
+                        pass
+                    Q = f(Q)
+            points = newpoints
+        elif type != 'point':
+            raise ValueError("type must be either point or cycle")
 
-        multipliers = [f.multiplier(P,n)[0,0] for P in newpoints]
+        multipliers = [f.multiplier(P,n)[0,0] for P in points]
 
         return multipliers
 
-    def sigma_invariants(self, n, formal=True, embedding=None):
+    def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of the formal
         ``n`` multilpier spectra of this map.
@@ -3702,6 +3719,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         multipliers of all periodic points of period ``n``. The map must be defined
         over projective space of dimension 1. The base ring should be over a
         number field or a polynomial ring over a number field.
+
+        The parameter ``type`` determines if the sigma are computed from the multipliers
+        calculated at one per cycle (with multiplicity) or one per point (with
+        multiplcity). Note that in the ``cycle`` case, a map with a cycle which collapses
+        into multiple smaller cycles will have more multipliers than one that does not.
 
         ALGORITHM: We use the Poisson product of the resultant of two polynomials.
 
@@ -3717,12 +3739,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``n`` - a positive integer, the period.
 
-        - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
-            corresponding to the formal ``n`` multiplier spectra of this map. False specifies to instead find
-            the values corresponding to the ``n`` multiplier spectra of this map, which includes the multipliers
-            of all periodic points of period ``n`` of this map. Default: True
+        - ``formal`` - a Boolean. True specifies to find the values of the elementary
+            symmetric polynomials corresponding to the formal ``n`` multiplier spectra
+            of this map. False specifies to instead find the values corresponding to
+            the ``n`` multiplier spectra of this map, which includes the multipliers
+            of all periodic points of period ``n`` of this map. Default: False
 
         - ``embedding`` - Deprecated in ticket 23333
+
+        - ``type``- string - either ``point`` or ``cycle`` depending on whether you
+            compute one multiplier per point or one per cycle. Default : ``point``
 
         OUTPUT: a list of elements in the base ring.
 
@@ -3730,8 +3756,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
-            sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3 - 2630045017*x*y^4\
-            + 28193217129*y^5, 512*y^5])
+            sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3\
+             - 2630045017*x*y^4 + 28193217129*y^5, 512*y^5])
             sage: f.sigma_invariants(1)
             [19575526074450617/1048576, -9078122048145044298567432325/2147483648,
             -2622661114909099878224381377917540931367/1099511627776,
@@ -3746,8 +3772,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
-            sage: f.sigma_invariants(2, False)
+            sage: f.sigma_invariants(2, formal=False, type='cycle')
             [13, 11, -25, 0]
+            sage: f.sigma_invariants(2, formal=False, type='point')
+            [12, -2, -36, 25, 0]
+
 
         ::
 
@@ -3765,8 +3794,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
             sage: f = H([x^2 - w*y^2, (1-w)*x*y])
-            sage: f.sigma_invariants(2, False)
+            sage: f.sigma_invariants(2, formal=False, type='cycle')
             [2*w + 14, 8*w + 37, 6*w + 12]
+            sage: f.sigma_invariants(2, formal=False, type='point')
+            [2*w + 17, 14*w + 79, 30*w + 123, 18*w + 36]
 
         ::
 
@@ -3779,18 +3810,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         doubled fixed point::
 
-            P.<x,y> = ProjectiveSpace(QQ, 1)
-            H = End(P)
-            f = H([x^2 - 3/4*y^2, y^2])
-            f.sigma_invariants(2, True)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 3/4*y^2, y^2])
+            sage: f.sigma_invariants(2, formal=True)
             [2, 1]
 
         doubled 2 cycle::
 
-            P.<x,y> = ProjectiveSpace(QQ, 1)
-            H = End(P)
-            f = H([x^2 - 5/4*y^2, y^2])
-            f.sigma_invariants(4, False)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 5/4*y^2, y^2])
+            sage: f.sigma_invariants(4, formal=False, type='cycle')
             [171, 5365, 177895, 1141315, 2407681, 2077191, 638125, 0]
         """
         if (n < 1):
@@ -3842,29 +3873,33 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         #evaluate the resultant
         res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
 
-        #now we need to deal with having the correct number of factors
-        #1 multiplier for each cycle. But we need to be careful about
-        #the length of the cycle and the mutliplicities
-        good_res = 1
-        L = dict(res.factor())
-        for p in L.keys():
-            e = L[p] #get exponent
-            #have to find cycle length
-            for d in n.divisors():
-                if formal:
-                    fd = F.nth_iterate_map(d).dehomogenize(1)
-                    resd = mult_poly.resultant(phi(fd[0].numerator() - fd.domain().gen()*fd[0].denominator()), S.gen(0))
-                else:
-                    fd = F.dehomogenize(1).dynatomic_polynomial(d)
-                    resd = mult_poly.resultant(phi(fd), S.gen(0))
-                if p.divides(resd):
-                    #this comes from a d-cycle
-                    good_res *= p**(e/d)
-                    break #done since we've found the period
+        if type == 'cycle':
+            #now we need to deal with having the correct number of factors
+            #1 multiplier for each cycle. But we need to be careful about
+            #the length of the cycle and the mutliplicities
+            good_res = 1
+            L = dict(res.factor())
+            for p in L.keys():
+                e = L[p] #get exponent
+                #have to find cycle length
+                for d in n.divisors():
+                    if formal:
+                        fd = F.nth_iterate_map(d).dehomogenize(1)
+                        resd = mult_poly.resultant(phi(fd[0].numerator() - fd.domain().gen()*fd[0].denominator()), S.gen(0))
+                    else:
+                        fd = F.dehomogenize(1).dynatomic_polynomial(d)
+                        resd = mult_poly.resultant(phi(fd), S.gen(0))
+                    if p.divides(resd):
+                        #this comes from a d-cycle
+                        good_res *= p**(e/d)
+                        break #done since we've found the period
+            res = good_res
+        elif type != 'point':
+            raise ValueError("type must be either point or cycle")
 
         #the sigmas are the coeficients
         #need to fix the signs and the order
-        sig = good_res.coefficients(sparse=False)
+        sig = res.coefficients(sparse=False)
         den = sig.pop(-1)
         sig.reverse()
         sig = [sig[i]*(-1)**(i+1)/den for i in range(len(sig))]

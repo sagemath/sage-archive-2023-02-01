@@ -1430,6 +1430,9 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
         sage: G = GrowthDiagramLLMS(3)([4,1,3,2])
         sage: G.P_symbol().pp()
+        -1 -2  3
+        -3
+        -4
 
         sage: G.Q_symbol().pp()
         1  3  4
@@ -1496,10 +1499,15 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             -3 -4
 
         """
-        T = SkewTableau(chain = self.P_chain()[::2])
-        # TODO: mark appropriate cells
-        return T
-        return StrongTableau(T, self._k-1)
+        C = self.P_chain()
+        T = SkewTableau(chain = C[::2])
+        S = T.to_list()
+        for entry, content in enumerate(C[1::2], 1):
+            for i,j in T.cells_containing(entry):
+                if j-i == content:
+                    S[i][j] = -S[i][j]
+                    break
+        return StrongTableau(S, self._k-1)
 
     def Q_symbol(self):
         r"""
@@ -1541,7 +1549,9 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
         TESTS::
 
-            sage: G = GrowthDiagramLLMS(3); Z = G._zero
+            sage: G = GrowthDiagramLLMS(3)
+            sage: H = GrowthDiagramLLMS(4)
+            sage: Z = G._zero
             sage: G._forward_rule(Z, None, Z, None, Z, 0)
             (None, [], None)
 
@@ -1558,15 +1568,28 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G._forward_rule(Y, -1, T, None, X, 0)
             (None, [2, 1, 1], -1)
 
+            sage: Y = Core([2], 4); T = Core([1], 4); X = Core([1,1], 4)
+            sage: H._forward_rule(Y, 1, T, None, X, 0)
+            (None, [2, 1], 1)
+
             sage: Y = Core([2,1,1], 3); T = Core([2], 3); X = Core([3,1], 3)
             sage: G._forward_rule(Y, -1, T, None, X, 0)
             (None, [3, 1, 1], -2)
+
 
         if ``x == y != t``::
 
             sage: Y = Core([1], 3); T = Core([], 3); X = Core([1], 3)
             sage: G._forward_rule(Y, 0, T, None, X, 0)
             (None, [1, 1], -1)
+
+            sage: Y = Core([1], 4); T = Core([], 4); X = Core([1], 4)
+            sage: H._forward_rule(Y, 0, T, None, X, 0)
+            (None, [1, 1], -1)
+
+            sage: Y = Core([2,1], 4); T = Core([1,1], 4); X = Core([2,1], 4)
+            sage: H._forward_rule(Y, 1, T, None, X, 0)
+            (None, [2, 2], 0)
 
         """
         assert f == None, "The Q-graph should not be colored"
@@ -1604,7 +1627,9 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
                     h = e
             elif x == y != t:
                 # the addable cell with largest content at most e
-                cprime = sorted([c for c in y.to_partition().addable_cells() if c[1]-c[0] <= e], reverse=True)[0]
+                cprime = sorted([c for c in y.to_partition().addable_cells()
+                                 if c[1]-c[0] <= e],
+                                key = lambda c: -(c[1]-c[0]))[0]
                 h = cprime[1]-cprime[0]
                 z = y.affine_symmetric_group_simple_action(h%(cls._k))
 

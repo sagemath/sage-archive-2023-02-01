@@ -34,6 +34,17 @@ class GraphicMatroid(Matroid):
     INPUT:
     G -- a SageMath graph
     groundset (optional) -- a list in 1-1 correspondence with G.edges()
+
+    EXAMPLES::
+
+        sage: from sage.matroids.advanced import *
+        sage: edgelist = [('a','b'),('b','c'),('c','d'),('d','a')]
+        sage: M = GraphicMatroid(Graph(edgelist))
+        sage: M.graph().edges()
+        [(0, 1, 0), (0, 3, 1), (1, 2, 2), (2, 3, 3)]
+        sage: M.is_isomorphic(Matroid(graphs.CycleGraph(4)))
+        True
+
     """
 
     def __init__(self, G, groundset = None):
@@ -53,10 +64,15 @@ class GraphicMatroid(Matroid):
 
         self._groundset = groundset_set
 
-        #Construct a graph and assign edge labels corresponding to the ground set
+        # Force vertices to be integers
+        vertex_to_integer_map = {vertex: integer for (vertex, integer) in zip(
+            G.vertices(), range(len(G.vertices())))}
+
+        # Construct a graph and assign edge labels corresponding to the ground set
         edge_list = []
         for i, e in enumerate(G.edges()):
-            edge_list.append((e[0],e[1],groundset[i]))
+            edge_list.append((vertex_to_integer_map[e[0]],
+                vertex_to_integer_map[e[1]],groundset[i]))
         self._G = Graph(edge_list, loops=True, multiedges=True)
 
         # The graph should be connected to make computations easier

@@ -15,7 +15,7 @@ cdef class RingMap_lift(RingMap):
     cdef CategoryObject S
 
 cdef class RingHomomorphism(RingMap):
-    cdef RingMap _lift
+    cdef Morphism _lift
 
 cdef class RingHomomorphism_im_gens(RingHomomorphism):
     cdef __im_gens

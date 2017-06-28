@@ -147,6 +147,7 @@ Inclusion of ``GF(2)`` into ``GF(4,'a')``::
     Ring morphism:
       From: Finite Field of size 2
       To:   Finite Field in a of size 2^2
+      Defn: 1 |--> 1
     sage: i(0)
     0
     sage: a = i(1); a.parent()
@@ -157,7 +158,7 @@ We next compose the inclusion with reduction from the integers to
 
     sage: pi = ZZ.hom(k)
     sage: pi
-    Ring morphism:
+    Natural morphism:
       From: Integer Ring
       To:   Finite Field of size 2
     sage: f = i * pi
@@ -165,13 +166,14 @@ We next compose the inclusion with reduction from the integers to
     Composite map:
       From: Integer Ring
       To:   Finite Field in a of size 2^2
-      Defn:   Ring morphism:
+      Defn:   Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 2
             then
               Ring morphism:
               From: Finite Field of size 2
               To:   Finite Field in a of size 2^2
+              Defn: 1 |--> 1
     sage: a = f(5); a
     1
     sage: a.parent()
@@ -597,56 +599,30 @@ cdef class RingHomomorphism(RingMap):
 
         EXAMPLES::
 
-            sage: f = ZZ.hom(Zmod(6)); f
+            sage: f = ZZ.hom(Zp(3)); f
             Ring morphism:
               From: Integer Ring
-              To:   Ring of integers modulo 6
+              To:   3-adic Ring with capped relative precision 20
+
+        TESTS::
+
             sage: isinstance(f, sage.rings.morphism.RingHomomorphism)
             True
+
         """
         if not homset.is_RingHomset(parent):
             raise TypeError("parent must be a ring homset")
         RingMap.__init__(self, parent)
 
-    def __nonzero__(self):
-        """
-        Every ring map is nonzero unless the domain or codomain is the
-        0 ring, since there is no zero map between rings, since 1 goes
-        to 1.
-
-        EXAMPLES:
-
-        Usually ring morphisms are nonzero::
-
-            sage: bool(ZZ.hom(QQ,[1]))
-            True
-
-        However, they aren't if ``1 == 0`` in the codomain::
-
-            sage: R1 = Zmod(1)
-            sage: phi = R1.hom(R1, [1])
-            sage: bool(phi)
-            False
-            sage: bool(ZZ.hom(R1, [1]))
-            False
-        """
-        return bool(self.codomain().one())
-
     def _repr_type(self):
         """
         Used internally in printing this morphism.
 
-        TESTS:
+        TESTS::
 
-        This never actually gets called, since derived classes
-        override it.  Nevertheless, we call it directly to illustrate
-        that it works as a default.::
-
-            sage: phi = ZZ.hom(QQ,[1])
-            sage: phi._repr_type()
-            'Ring Coercion'
-            sage: sage.rings.morphism.RingHomomorphism._repr_type(phi)
+            sage: ZZ.hom(Zp(3))._repr_type()
             'Ring'
+
         """
         return "Ring"
 
@@ -667,13 +643,14 @@ cdef class RingHomomorphism(RingMap):
 
         EXAMPLES::
 
-            sage: f = ZZ.hom(Zmod(7))
-            sage: f._set_lift(Zmod(7).lift())
-            sage: f.lift()
+            sage: R = ZZ.quo(3*ZZ)
+            sage: pi = R.cover() # indirect doctest
+            sage: pi.lift()
             Set-theoretic ring morphism:
-              From: Ring of integers modulo 7
+              From: Ring of integers modulo 3
               To:   Integer Ring
               Defn: Choice of lifting map
+
         """
         if lift.domain() != self.codomain():
             raise TypeError("lift must have correct domain")
@@ -738,11 +715,18 @@ cdef class RingHomomorphism(RingMap):
             sage: f = R.hom([a+b,a-b])
             sage: g = S.hom(Frac(S))
             sage: g*f # indirect doctest
-            Ring morphism:
+            Composite map:
               From: Multivariate Polynomial Ring in x, y over Rational Field
               To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
-              Defn: x |--> a + b
-                    y |--> a - b
+              Defn:   Ring morphism:
+                      From: Multivariate Polynomial Ring in x, y over Rational Field
+                      To:   Multivariate Polynomial Ring in a, b over Rational Field
+                      Defn: x |--> a + b
+                            y |--> a - b
+                    then
+                      Conversion via FractionFieldElement map:
+                      From: Multivariate Polynomial Ring in a, b over Rational Field
+                      To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
         When ``right`` is defined by the images of generators, the
         result has the type of a homomorphism between its domain and
@@ -775,7 +759,7 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Polynomial Ring in a, b over Rational Field
                     then
-                      Ring morphism:
+                      Conversion via FractionFieldElement map:
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
@@ -798,44 +782,6 @@ cdef class RingHomomorphism(RingMap):
                 except ValueError:
                     pass
         return sage.categories.map.Map._composition_(self, right, homset)
-
-    def is_zero(self):
-        r"""
-        Return ``True`` if this is the zero map and ``False`` otherwise.
-
-        A *ring* homomorphism is considered to be 0 if and only if it
-        sends the 1 element of the domain to the 0 element of the codomain.
-        Since rings in Sage all have a 1 element, the zero homomorphism is
-        only to a ring of order 1, where ``1 == 0``, e.g., the ring
-        ``Integers(1)``.
-
-        EXAMPLES:
-
-        First an example of a map that is obviously nonzero::
-
-            sage: h = Hom(ZZ, QQ)
-            sage: f = h.natural_map()
-            sage: f.is_zero()
-            False
-
-        Next we make the zero ring as `\ZZ/1\ZZ`::
-
-            sage: R = Integers(1)
-            sage: R
-            Ring of integers modulo 1
-            sage: h = Hom(ZZ, R)
-            sage: f = h.natural_map()
-            sage: f.is_zero()
-            True
-
-        Finally we check an example in characteristic 2::
-
-            sage: h = Hom(ZZ, GF(2))
-            sage: f = h.natural_map()
-            sage: f.is_zero()
-            False
-        """
-        return self(self.domain()(1)) == self.codomain()(0)
 
     def pushforward(self, I):
         """
@@ -862,7 +808,7 @@ cdef class RingHomomorphism(RingMap):
 
         This is not implemented in any generality yet::
 
-            sage: f = ZZ.hom(ZZ)
+            sage: f = ZZ.hom(Zp)
             sage: f.inverse_image(ZZ.ideal(2))
             Traceback (most recent call last):
             ...

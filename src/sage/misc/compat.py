@@ -52,19 +52,20 @@ elif sys.platform == 'darwin':
     def _find_library(name):
         sage_local_lib = os.path.join(SAGE_LOCAL, 'lib')
         orig_dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH')
-        if orig_dyld_library_path:
-            os.environ['DYLD_LIBRARY_PATH'] = '%s:%s' % (
-                    sage_local_lib, orig_dyld_library_path)
-        else:
-            os.environ['DYLD_LIBRARY_PATH'] = sage_local_lib
-
         try:
+            if orig_dyld_library_path:
+                os.environ['DYLD_LIBRARY_PATH'] = '%s:%s' % (
+                        sage_local_lib, orig_dyld_library_path)
+            else:
+                os.environ['DYLD_LIBRARY_PATH'] = sage_local_lib
+
             return _orig_find_library(name)
         finally:
+            # Set os.environ back to what it was
             if orig_dyld_library_path is not None:
                 os.environ['DYLD_LIBRARY_PATH'] = orig_dyld_library_path
             else:
-                del os.environ['DYLD_LIBRARY_PATH']
+                os.environ.pop('DYLD_LIBRARY_PATH', None)
 else:
     # On other Unix-like platforms, at least where gcc is available,
     # ctypes.util.find_library works, because it takes into account where gcc

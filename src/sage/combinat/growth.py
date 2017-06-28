@@ -1465,6 +1465,10 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
     _has_multiple_edges = True
 
+    @staticmethod
+    def _rank_function(w):
+        return w.length()
+
     @classmethod
     def vertices(cls, n):
         return Cores(cls._k, length=n)

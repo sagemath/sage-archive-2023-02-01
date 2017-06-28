@@ -172,8 +172,8 @@ class GraphicMatroid(Matroid):
         while cont_edges != []:
             e = cont_edges.pop()
             contract_edge(g, e)
-            del_edges = self.update_edges(e, del_edges)
-            cont_edges = self.update_edges(e, cont_edges)
+            del_edges = update_edges(e, del_edges)
+            cont_edges = update_edges(e, cont_edges)
 
         g.delete_edges(del_edges)
         #for x in deletions:
@@ -298,7 +298,7 @@ class GraphicMatroid(Matroid):
             e = edgelist.pop()
             if e not in g.loops():
                 contract_edge(g,e)
-                edgelist = self.update_edges(e, edgelist)
+                edgelist = update_edges(e, edgelist)
                 res.add(e[2])
         return frozenset(res)
 
@@ -597,14 +597,78 @@ class GraphicMatroid(Matroid):
 
         return GraphicMatroid(deepcopy(G))
 
-    def twist(self, u, v):
+    def twist(self, X):
         """
-        Performs a Whitney twist on the graph
-        and rearranges vertex sums at ``u`` and ``v``
-        if ``(u,v)`` displays a 2-separation.
+        Performs a Whitney twist on the graph if `X` is part of a
+        2-separation.
+
+        INPUT:
+
+        - ``X`` - The set of elements to be twisted with respect
+          to the rest of the matroid. The connectivity of ``X`` must be 1,
+          and deletion of the edges corresponding to the elements of ``X``
+          must not create new nontrivial components.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: edgelist = [(0,1,0), (1,2,1), (1,2,2), (2,3,3), (2,3,4), (2,3,5), (3,0,6)]
+            sage: M = GraphicMatroid(Graph(edgelist, multiedges=True))
+            sage: M1 = M.twist([0,1,2]); M1.graph().edges()
+            [(0, 1, 1), (0, 1, 2), (0, 3, 6), (1, 2, 0), (2, 3, 3), (2, 3, 4), (2, 3, 5)]
+            sage: M2 = M.twist([0,1,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: the input must display a 2-separation and not a 1-separation
+
+
         """
-        #Idea: use G.blocks_and_cut_vertices()
-        #If u and v are in the same block, check if deleting them disconnects the block
-        #If so, throw an error. If not, we can twist.
-        #If u or v is a cut vertex, things will get moved to the other side.
+        # We require two things:
+        # The connectivity of X is less than 2,
+        # and the graph M is connected if we delete X
+        if not set(X).issubset(self.groundset()):
+            raise ValueError("X must be a subset of the ground set")
+        connectivity = self.connectivity(X)
+        if connectivity != 1:
+            raise ValueError("the input must display a 2-separation "
+                + "and not a 1-separation")
+        G = self.graph()
+        X_edges = self.groundset_to_edges(X)
+        G.delete_edges(X_edges)
+        isolated_vertices = [v for v in G if G.degree(v) == 0]
+        G.delete_vertices(isolated_vertices)
+        if not G.is_connected():
+            raise ValueError("the input must be a separation of the graph")
+
+        # Determine the vertices
+        X_vertices = set([e[0] for e in X_edges]).union(
+            set([e[1] for e in X_edges]))
+        Y_edges = self.groundset_to_edges(self.groundset().difference(set(X)))
+        Y_vertices = set([e[0] for e in Y_edges]).union(
+            set([e[1] for e in Y_edges]))
+        vertices = X_vertices.intersection(Y_vertices)
+        a = list(vertices)[0]
+        b = list(vertices)[1]
+
+        edges = [(u, v, l) for (u, v, l) in X_edges if (
+            u in vertices or v in vertices)]
+        G = self.graph()
+        for (u, v, l) in edges:
+            G.delete_edge(u, v, l)
+            if u == a:
+                u = b
+            elif u == b:
+                u = a
+            if v == a:
+                v = b
+            elif v == b:
+                v = a
+            G.add_edge(u, v, l)
+        return GraphicMatroid(G)
+
+
+    def one_sum(self, X, u, v):
+        """
+        Similar to above, except rearranging blocks
+        """
         pass

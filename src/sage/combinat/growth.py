@@ -186,6 +186,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.core import Core, Cores
+from sage.combinat.k_tableau import WeakTableau, StrongTableau
 from copy import copy
 from sage.misc.functional import is_odd, is_even
 from sage.rings.integer_ring import ZZ
@@ -1408,14 +1409,32 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
     EXAMPLES::
 
-        sage: GrowthDiagramLLMS(3)([3,4,1,2]).out_labels()
-
     Check example of Figure 1 in [LamShi2007]_::
 
         sage: G = GrowthDiagramLLMS(3)([4,1,2,6,3,5])
-        sage: G.P_chain()
+        sage: G.P_symbol().pp()
+        -1 -2 -3 -5
+         3  5
+        -4 -6
+         5
+         6
 
-        sage: G.Q_chain()
+        sage: G.Q_symbol().pp()
+        1  3  4  5
+        2  5
+        3  6
+        5
+        6
+
+    Check Example 6.2 in [LLMSSZ2013]_::
+
+        sage: G = GrowthDiagramLLMS(3)([4,1,3,2])
+        sage: G.P_symbol().pp()
+
+        sage: G.Q_symbol().pp()
+        1  3  4
+        2
+        3
 
     .. automethod:: _forward_rule
     .. automethod:: _backward_rule
@@ -1464,6 +1483,24 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         else:
             return []
 
+    def P_symbol(self):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramLLMS(4)([3,4,1,2])
+            sage: G.P_symbol().pp()
+            -1 -2
+            -3 -4
+
+        """
+        T = SkewTableau(chain = self.P_chain()[::2])
+        # TODO: mark appropriate cells
+        return T
+        return StrongTableau(T, self._k-1)
+
     def Q_symbol(self):
         r"""
         Return the labels along the horizontal boundary of a rectangular
@@ -1471,10 +1508,11 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
         EXAMPLES::
 
-            sage: G = GrowthDiagramLLMS(3)()
+            sage: G = GrowthDiagramLLMS(4)([3,4,1,2])
             sage: G.Q_symbol().pp()
-            1  3  3
-            2
+            1 2
+            3 4
+
         """
         return WeakTableau(SkewTableau(chain = self.Q_chain()[::2]), self._k-1)
 
@@ -1510,6 +1548,10 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G._forward_rule(Z, None, Z, None, Z, 1)
             (None, [1], 0)
 
+            sage: Y = Core([3,1,1], 3);
+            sage: G._forward_rule(Y, None, Y, None, Y, 1)
+            (None, [4, 2, 1, 1], 3)
+
         if ``x != y``::
 
             sage: Y = Core([1,1], 3); T = Core([1], 3); X = Core([2], 3)
@@ -1537,7 +1579,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
                 if t.size() == 0:
                     z = t.affine_symmetric_group_simple_action(0)
                 else:
-                    z = t.affine_symmetric_group_simple_action(t[0])
+                    z = t.affine_symmetric_group_simple_action((t[0])%(cls._k))
                 h = z[0]-1
             else:
                 raise ValueError("Should not happen.")

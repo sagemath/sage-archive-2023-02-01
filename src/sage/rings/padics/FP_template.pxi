@@ -1257,7 +1257,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
     EXAMPLES::
 
         sage: f = ZpFP(5).coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   5-adic Ring with floating precision 20
 
@@ -1463,7 +1463,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
     EXAMPLES::
 
         sage: f = QpFP(5).coerce_map_from(QQ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Rational Field
           To:   5-adic Field with floating precision 20
 
@@ -1494,7 +1494,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
             sage: f = QpFP(5).coerce_map_from(QQ)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Rational Field
               To:   5-adic Field with floating precision 20
             sage: g == f
@@ -1519,7 +1519,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
             sage: f = QpFP(5).coerce_map_from(QQ)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Rational Field
               To:   5-adic Field with floating precision 20
             sage: g == f
@@ -1794,8 +1794,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
 
         sage: R.<a> = ZqFP(27, implementation='FLINT')
         sage: K = R.fraction_field()
-        sage: K.coerce_map_from(R)
-        Ring Coercion morphism:
+        sage: f = K.coerce_map_from(R); f
+        Ring morphism:
           From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
           To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
 
@@ -1915,7 +1915,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
               To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
             sage: g == f
@@ -1943,7 +1943,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
               To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
             sage: g == f

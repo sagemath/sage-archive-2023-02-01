@@ -835,7 +835,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
     EXAMPLES::
 
         sage: f = ZpFM(5).coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   5-adic Ring of fixed modulus 5^20
 

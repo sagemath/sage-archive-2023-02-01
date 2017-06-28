@@ -1564,7 +1564,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
     EXAMPLES::
 
         sage: f = Zp(5).coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   5-adic Ring with capped relative precision 20
 
@@ -1595,7 +1595,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
             sage: f = Zp(5).coerce_map_from(ZZ)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Integer Ring
               To:   5-adic Ring with capped relative precision 20
             sage: g == f
@@ -1621,7 +1621,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
             sage: f = Zp(5).coerce_map_from(ZZ)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Integer Ring
               To:   5-adic Ring with capped relative precision 20
             sage: g == f
@@ -1778,7 +1778,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
     EXAMPLES::
 
         sage: f = Qp(5).coerce_map_from(QQ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Rational Field
           To:   5-adic Field with capped relative precision 20
 
@@ -1809,7 +1809,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
             sage: f = Qp(5).coerce_map_from(QQ)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Rational Field
               To:   5-adic Field with capped relative precision 20
             sage: g == f
@@ -1835,7 +1835,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
             sage: f = Qp(5).coerce_map_from(QQ)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Rational Field
               To:   5-adic Field with capped relative precision 20
             sage: g == f
@@ -2142,8 +2142,8 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
 
         sage: R.<a> = ZqCR(27, implementation='FLINT')
         sage: K = R.fraction_field()
-        sage: K.coerce_map_from(R)
-        Ring Coercion morphism:
+        sage: f = K.coerce_map_from(R); f
+        Ring morphism:
           From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
           To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
 
@@ -2267,7 +2267,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
               To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
             sage: g == f
@@ -2295,7 +2295,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
               To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
             sage: g == f

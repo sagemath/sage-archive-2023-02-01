@@ -144,7 +144,7 @@ Inclusion of ``GF(2)`` into ``GF(4,'a')``::
     sage: k = GF(2)
     sage: i = k.hom(GF(4, 'a'))
     sage: i
-    Ring Coercion morphism:
+    Ring morphism:
       From: Finite Field of size 2
       To:   Finite Field in a of size 2^2
     sage: i(0)
@@ -157,7 +157,7 @@ We next compose the inclusion with reduction from the integers to
 
     sage: pi = ZZ.hom(k)
     sage: pi
-    Ring Coercion morphism:
+    Ring morphism:
       From: Integer Ring
       To:   Finite Field of size 2
     sage: f = i * pi
@@ -165,11 +165,11 @@ We next compose the inclusion with reduction from the integers to
     Composite map:
       From: Integer Ring
       To:   Finite Field in a of size 2^2
-      Defn:   Ring Coercion morphism:
+      Defn:   Ring morphism:
               From: Integer Ring
               To:   Finite Field of size 2
             then
-              Ring Coercion morphism:
+              Ring morphism:
               From: Finite Field of size 2
               To:   Finite Field in a of size 2^2
     sage: a = f(5); a
@@ -181,7 +181,7 @@ Inclusion from `\QQ` to the 3-adic field::
 
     sage: phi = QQ.hom(Qp(3, print_mode = 'series'))
     sage: phi
-    Ring Coercion morphism:
+    Ring morphism:
       From: Rational Field
       To:   3-adic Field with capped relative precision 20
     sage: phi.codomain()
@@ -598,7 +598,7 @@ cdef class RingHomomorphism(RingMap):
         EXAMPLES::
 
             sage: f = ZZ.hom(Zmod(6)); f
-            Ring Coercion morphism:
+            Ring morphism:
               From: Integer Ring
               To:   Ring of integers modulo 6
             sage: isinstance(f, sage.rings.morphism.RingHomomorphism)
@@ -775,7 +775,7 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Polynomial Ring in a, b over Rational Field
                     then
-                      Ring Coercion morphism:
+                      Ring morphism:
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 

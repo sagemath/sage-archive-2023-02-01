@@ -1005,7 +1005,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Univariate Polynomial Ring in t over Finite Field of size 5
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         sage: type(f)
@@ -1309,7 +1309,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
         sage: R.<t> = GF(5)[]
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(GF(5)); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Finite Field of size 5
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         sage: type(f)
@@ -1616,7 +1616,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
         sage: R.<t> = GF(17)[]
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 17
         sage: type(f)

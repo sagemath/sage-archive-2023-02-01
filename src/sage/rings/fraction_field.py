@@ -76,6 +76,7 @@ from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
+from sage.structure.richcmp import richcmp_not_equal, op_EQ, op_NE
 from sage.structure.parent import Parent
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields
@@ -860,9 +861,9 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         parent = Hom(self.codomain(), self.domain(), SetsWithPartialMaps())
         return parent.__make_element_class__(FractionFieldEmbeddingSection)(self)
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Return whether ``other`` is the same embedding into a fraction field.
+        Compare this element to ``other`` with respect to ``op``.
 
         EXAMPLES::
 
@@ -871,32 +872,19 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S)
             
-            sage: f == g
+            sage: f == g # indirect doctest
             False
             sage: f == f
             True
 
         """
-        return isinstance(other, FractionFieldEmbedding) and other.domain() is self.domain() and other.codomain() is self.codomain()
-
-    def __neq__(self, other):
-        r"""
-        Return whether ``other`` is not the same embedding into a fraction field.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: f = R.fraction_field().coerce_map_from(R)
-            sage: S.<y> = GF(2)[]
-            sage: g = S.fraction_field().coerce_map_from(S)
-            
-            sage: f != g
-            True
-            sage: f != f
-            False
-
-        """
-        return not (self == other)
+        if isinstance(other, FractionFieldEmbedding) and other.domain() is self.domain() and other.codomain() is self.codomain():
+            if op == op_EQ:
+                return True
+            if op == op_NE:
+                return False
+        else:
+            return richcmp_not_equal(self, other, op)
 
     def __hash__(self):
         r"""
@@ -955,9 +943,9 @@ class FractionFieldEmbeddingSection(Section):
             raise ValueError("fraction must have unit denominator")
         return x.numerator() * x.denominator().inverse_of_unit()
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Return whether ``other`` is the same section.
+        Compare this element to ``other`` with respect to ``op``.
 
         EXAMPLES::
 
@@ -966,32 +954,19 @@ class FractionFieldEmbeddingSection(Section):
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S).section()
             
-            sage: f == g
+            sage: f == g # indirect doctest
             False
             sage: f == f
             True
 
         """
-        return isinstance(other, FractionFieldEmbeddingSection) and other.domain() is self.domain() and other.codomain() is self.codomain()
-
-    def __neq__(self, other):
-        r"""
-        Return whether ``other`` is not the same section.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: f = R.fraction_field().coerce_map_from(R).section()
-            sage: S.<y> = GF(2)[]
-            sage: g = S.fraction_field().coerce_map_from(S).section()
-            
-            sage: f != g
-            True
-            sage: f != f
-            False
-
-        """
-        return not (self == other)
+        if isinstance(other, FractionFieldEmbeddingSection) and other.domain() is self.domain() and other.codomain() is self.codomain():
+            if op == op_EQ:
+                return True
+            if op == op_NE:
+                return False
+        else:
+            return richcmp_not_equal(self, other, op)
 
     def __hash__(self):
         r"""

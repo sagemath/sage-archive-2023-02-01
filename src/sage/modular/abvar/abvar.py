@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Base class for modular abelian varieties
 
@@ -966,17 +967,20 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def __add__(self, other):
         r"""
         Return the sum of the *images* of self and other inside the
-        ambient Jacobian product. self and other must be abelian
+        ambient Jacobian product.
+
+        Here self and other must be abelian
         subvarieties of the ambient Jacobian product.
 
-        ..warning::
+        .. WARNING::
 
-          The sum of course only makes sense in some ambient variety,
-          and by definition this function takes the sum of the images
-          of both self and other in the ambient product Jacobian.
+            The sum of course only makes sense in some ambient variety,
+            and by definition this function takes the sum of the images
+            of both self and other in the ambient product Jacobian.
 
-        EXAMPLES: We compute the sum of two abelian varieties of
-        `J_0(33)`::
+        EXAMPLES:
+
+        We compute the sum of two abelian varieties of `J_0(33)`::
 
             sage: J = J0(33)
             sage: J[0] + J[1]
@@ -3780,7 +3784,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _complement_shares_no_factors_with_same_label(self):
         """
         Return True if no simple factor of self has the same newform_label
-        as any factor in a Poincare complement of self in the ambient
+        as any factor in a Poincaré complement of self in the ambient
         product Jacobian.
 
         EXAMPLES: `J_0(37)` is made up of two non-isogenous

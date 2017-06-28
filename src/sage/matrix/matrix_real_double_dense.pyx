@@ -3,8 +3,8 @@ Dense matrices over the Real Double Field using NumPy
 
 EXAMPLES::
 
-    sage: b=Mat(RDF,2,3).basis()
-    sage: b[0]
+    sage: b = Mat(RDF,2,3).basis()
+    sage: b[0,0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
 
@@ -45,7 +45,7 @@ cimport numpy as cnumpy
 numpy=None
 scipy=None
 
-cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
+cdef class Matrix_real_double_dense(Matrix_double_dense):
     """
     Class that implements matrices over the real double field. These
     are supposed to be fast matrix operations using C doubles. Most

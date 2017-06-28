@@ -30,6 +30,7 @@ from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
 
+
 class GaloisGroup_v1(SageObject):
     r"""
     A wrapper around a class representing an abstract transitive group.
@@ -64,28 +65,50 @@ class GaloisGroup_v1(SageObject):
         self.__group = group
         self.__number_field = number_field
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two number field Galois groups.  First the number
-        fields are compared, then the Galois groups if the number
-        fields are equal.  (Of course, if the number fields are the
-        same, the Galois groups are automatically equal.)
+        Compare two number field Galois groups.
+
+        First the number fields are compared, then the Galois groups
+        if the number fields are equal.  (Of course, if the number
+        fields are the same, the Galois groups are automatically
+        equal.)
 
         EXAMPLES::
 
             sage: G = NumberField(x^3 + 2, 'alpha').galois_group(type="pari")
             sage: H = QQ[sqrt(2)].galois_group(type="pari")
-            sage: cmp(G,H)
-            -1
+            sage: H == G
+            False
             sage: H == H
             True
             sage: G == G
             True
         """
         if not isinstance(other, GaloisGroup_v1):
-            return cmp(type(self), type(other))
-        return cmp( (self.__number_field, self.__group),
-                    (other.__number_field, other.__group) )
+            return False
+        if self.__number_field == other.__number_field:
+            return True
+        if self.__group == other.__group:
+            return True
+        return False
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: G = NumberField(x^3 + 2, 'alpha').galois_group(type="pari")
+            sage: H = QQ[sqrt(2)].galois_group(type="pari")
+            sage: H != G
+            True
+            sage: H != H
+            False
+            sage: G != G
+            False
+        """
+        return not (self == other)
 
     def __repr__(self):
         """
@@ -97,8 +120,8 @@ class GaloisGroup_v1(SageObject):
             sage: G.__repr__()
             'Galois group PARI group [24, -1, 5, "S4"] of degree 4 of the Number Field in a with defining polynomial x^4 + 2*x + 2'
         """
-        return "Galois group %s of the %s"%(
-            self.__group, self.__number_field)
+        return "Galois group %s of the %s" % (self.__group,
+                                              self.__number_field)
 
     def group(self):
         """
@@ -176,8 +199,6 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: NumberField(x^3 - 2, 'b').galois_group(names="c")
             Galois group of Galois closure in c of Number Field in b with defining polynomial x^3 - 2
         """
-
-        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         self._number_field = number_field
 
         if not number_field.is_galois():
@@ -185,14 +206,15 @@ class GaloisGroup_v2(PermutationGroup_generic):
         else:
             self._galois_closure, self._gc_map = (number_field, number_field.hom(number_field.gen(), number_field))
 
-        self._pari_gc = self._galois_closure._pari_()
+        self._pari_gc = self._galois_closure.__pari__()
 
         g = self._pari_gc.galoisinit()
         self._pari_data = g
 
-        # Sort the vector of permutations using cmp() to avoid errors
+        # Sort the vector of permutations using .list() as key to avoid errors
         # from using comparison operators on non-scalar PARI objects.
-        PermutationGroup_generic.__init__(self, sorted(g[6], cmp=cmp))
+        PermutationGroup_generic.__init__(self,
+                                          sorted(g[6], key=lambda x: x.list()))
 
         # PARI computes all the elements of self anyway, so we might as well store them
         self._elts = sorted([self(x, check=False) for x in g[5]])
@@ -247,7 +269,8 @@ class GaloisGroup_v2(PermutationGroup_generic):
         from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
         if isinstance(x, NumberFieldHomomorphism_im_gens) and x.parent() == self.number_field().Hom(self.number_field()):
             l = [g for g in self if g.as_hom() == x]
-            if len(l) != 1: raise ArithmeticError
+            if len(l) != 1:
+                raise ArithmeticError
             return l[0]
         return GaloisGroupElement(x, parent=self, check=check)
 
@@ -473,7 +496,8 @@ class GaloisGroup_v2(PermutationGroup_generic):
         g = self.number_field().gen()
         gconj = P(g).conjugate()
         elts = [s for s in self if P(s(g)) == gconj]
-        if len(elts) != 1: raise ArithmeticError("Something has gone very wrong here")
+        if len(elts) != 1:
+            raise ArithmeticError("Something has gone very wrong here")
         return elts[0]
 
     def ramification_group(self, P, v):
@@ -576,11 +600,13 @@ class GaloisGroup_v2(PermutationGroup_generic):
         t = []
         gens = self.number_field().ring_of_integers().ring_generators()
         for s in self.decomposition_group(P):
-            w = [ (s(g) - g**p).valuation(P) for g in gens]
+            w = [(s(g) - g**p).valuation(P) for g in gens]
             if min(w) >= 1:
                 t.append(s)
-        if len(t) > 1: raise ValueError("%s is ramified" % P)
+        if len(t) > 1:
+            raise ValueError("%s is ramified" % P)
         return t[0]
+
 
 class GaloisGroup_subgroup(GaloisGroup_v2):
     r"""
@@ -612,7 +638,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             sage: G.artin_symbol(P)
             ()
         """
-        #XXX: This should be fixed so that this can use GaloisGroup_v2.__init__
+        # XXX This should be fixed so that this can use GaloisGroup_v2.__init__
         PermutationGroup_generic.__init__(self, elts, canonicalize=True,
                                           domain=ambient.domain())
         self._ambient = ambient
@@ -641,7 +667,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
 
         """
         if self.order() == 1:
-            return self._galois_closure # work around a silly error
+            return self._galois_closure  # work around a silly error
 
         vecs = [pari(g.domain()).Vecsmall() for g in self._elts]
         v = self._ambient._pari_data.galoisfixedfield(vecs)
@@ -660,6 +686,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             'Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23'
         """
         return "Subgroup %s of %s" % (self._elts, self._ambient)
+
 
 class GaloisGroupElement(PermutationGroupElement):
     r"""
@@ -739,7 +766,7 @@ class GaloisGroupElement(PermutationGroupElement):
         if x.parent() == self.parent().splitting_field():
             return self.as_hom()(x)
         else:
-            return self.as_hom()( self.parent()._gc_map(x) )
+            return self.as_hom()(self.parent()._gc_map(x))
 
     def ramification_degree(self, P):
         """
@@ -758,11 +785,10 @@ class GaloisGroupElement(PermutationGroupElement):
         if not self.parent().is_galois():
             raise TypeError("Ramification degree only defined for Galois extensions")
         gens = self.parent().number_field().ring_of_integers().ring_generators()
-        w = [ (self(g) - g).valuation(P) for g in gens]
+        w = [(self(g) - g).valuation(P) for g in gens]
         return min(w)
 
 
 # For unpickling purposes we rebind GaloisGroup as GaloisGroup_v1.
 
 GaloisGroup = GaloisGroup_v1
-

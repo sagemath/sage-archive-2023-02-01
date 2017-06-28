@@ -14,8 +14,8 @@
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 

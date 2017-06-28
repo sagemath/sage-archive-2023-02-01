@@ -10,17 +10,20 @@ AUTHORS:
   the CBC package to version 2.7.5
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.numerical.mip import MIPSolverException
 from copy import copy
@@ -687,7 +690,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.nrows()                                       # optional - cbc
             0
             sage: p.add_linear_constraints(5, 0, None)                      # optional - cbc
-            sage: p.add_col(range(5), range(5))                    # optional - cbc
+            sage: p.add_col(list(range(5)), list(range(5)))                    # optional - cbc
             sage: p.nrows()                                       # optional - cbc
             5
         """
@@ -721,7 +724,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - cbc
             sage: p.add_linear_constraints(5, 0, None)       # optional - cbc
-            sage: p.add_col(range(5), [1,2,3,4,5])  # optional - cbc
+            sage: p.add_col(list(range(5)), [1,2,3,4,5])  # optional - cbc
             sage: p.solve()                         # optional - cbc
             0
 

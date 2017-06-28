@@ -165,7 +165,7 @@ from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
 from sage.symbolic.constants import pi
-from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.calculus.calculus import maxima
 from sage.structure.element import parent
@@ -1013,34 +1013,21 @@ class EllipticPi(BuiltinFunction):
 elliptic_pi = EllipticPi()
 
 
-def error_fcn(t):
-    r"""
-    The complementary error function
-    `\frac{2}{\sqrt{\pi}}\int_t^\infty e^{-x^2} dx` (t belongs
-    to RR).  This function is currently always
-    evaluated immediately.
+def error_fcn(x):
+    """
+    Deprecated in :trac:`21819`. Please use ``erfc()``.
 
     EXAMPLES::
 
-        sage: error_fcn(6)
-        2.15197367124989e-17
-        sage: error_fcn(RealField(100)(1/2))
-        0.47950012218695346231725334611
-
-    Note this is literally equal to `1 - erf(t)`::
-
-        sage: 1 - error_fcn(0.5)
-        0.520499877813047
-        sage: erf(0.5)
-        0.520499877813047
+        sage: error_fcn(x)
+        doctest:warning
+        ...
+        DeprecationWarning: error_fcn() is deprecated. Please use erfc()
+        See http://trac.sagemath.org/21819 for details.
+        erfc(x)
     """
-    try:
-        return t.erfc()
-    except AttributeError:
-        try:
-            return RR(t).erfc()
-        except Exception:
-            raise NotImplementedError
-
-
+    from .error import erfc
+    from sage.misc.superseded import deprecation
+    deprecation(21819, "error_fcn() is deprecated. Please use erfc()")
+    return erfc(x)
 

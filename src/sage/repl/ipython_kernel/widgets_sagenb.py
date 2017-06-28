@@ -14,7 +14,7 @@ EXAMPLES::
 
     sage: from sage.repl.ipython_kernel.widgets_sagenb import text_control
     sage: text_control("Hello World!")
-    HTML(value=u'Hello World!')
+    HTMLText(value=u'Hello World!')
 """
 
 #*****************************************************************************
@@ -29,7 +29,7 @@ EXAMPLES::
 
 from ipywidgets.widgets import (IntSlider, IntRangeSlider, FloatSlider,
         FloatRangeSlider, SelectionSlider,
-        Checkbox, ToggleButtons, Dropdown, HTML)
+        Checkbox, ToggleButtons, Dropdown)
 from .widgets import (TransformText, TransformTextarea,
         TransformIntSlider, TransformIntRangeSlider,
         TransformFloatSlider, TransformFloatRangeSlider,
@@ -46,9 +46,7 @@ from sage.symbolic.ring import SR
 from sage.rings.all import RR
 
 
-# The SageNB text_control widget does exactly the same as the
-# ipywidgets.HTML widget
-text_control = HTML
+from .widgets import HTMLText as text_control
 
 
 def input_box(default=None, label=None, type=None, width=80, height=1):
@@ -199,7 +197,7 @@ def slider(vmin, vmax=None, step_size=None, default=None, label=None, display_va
         sage: w = slider(int(5)); w
         IntSlider(value=5, min=5, max=100, step=1)
         sage: parent(w.get_interact_value())
-        <type 'int'>
+        <... 'int'>
         sage: w = slider(5, 20, step_size=RDF("0.1")); w
         TransformFloatSlider(value=5.0, min=5.0, max=20.0, step=0.1)
         sage: parent(w.get_interact_value())
@@ -373,7 +371,7 @@ def range_slider(*args, **kwds):
         sage: w = range_slider(int(5)); w
         IntRangeSlider(value=(28, 76), min=5, max=100, step=1)
         sage: [parent(x) for x in w.get_interact_value()]
-        [<type 'int'>, <type 'int'>]
+        [<... 'int'>, <... 'int'>]
         sage: w = range_slider(5, 20, step_size=RDF("0.1")); w
         TransformFloatRangeSlider(value=(8.75, 16.25), min=5.0, max=20.0, step=0.1)
         sage: [parent(x) for x in w.get_interact_value()]

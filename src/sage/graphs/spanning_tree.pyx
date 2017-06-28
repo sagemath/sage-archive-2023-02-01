@@ -241,7 +241,8 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ....:     for i in range(ntries):
         ....:         u = randint(0, k-1)
         ....:         v = randint(0, k-1)
-        ....:         G.add_edge(u, v)
+        ....:         if u != v or loops:
+        ....:             G.add_edge(u, v)
         ....:     while G.is_connected():
         ....:         u = randint(0, k-1)
         ....:         v = randint(0, k-1)

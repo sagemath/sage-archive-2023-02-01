@@ -109,6 +109,7 @@ lazy_import('sage.modules.free_module_element', 'vector')
 #####################################################################
 ## Abstract model
 
+
 class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
     r"""
     Abstract base class for hyperbolic models.
@@ -150,9 +151,9 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP()
-            Hyperbolic plane in the Upper Half Plane Model model
+            Hyperbolic plane in the Upper Half Plane Model
         """
-        return u'Hyperbolic plane in the {} model'.format(self._name)
+        return u'Hyperbolic plane in the {}'.format(self._name)
 
     def _element_constructor_(self, x, is_boundary=None, **graphics_options): #Abstract
         """
@@ -233,7 +234,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
     def point_in_model(self, p):
         r"""
-        Return ``True`` if the point ``p`` is in the interiror of the
+        Return ``True`` if the point ``p`` is in the interior of the
         given model and ``False`` otherwise.
 
         INPUT:
@@ -656,7 +657,8 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
             sage: UHP.dist(I, 2*I)
             arccosh(5/4)
         """
-        coords = lambda x: self(x).coordinates()
+        def coords(x):
+            return self(x).coordinates()
 
         if isinstance(a, HyperbolicGeodesic):
             if isinstance(b, HyperbolicGeodesic):
@@ -672,7 +674,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
                     return self._dist_points(coords(p), coords(q))
 
                 raise NotImplementedError("can only compute distance between"
-                                          " ultra-parallel and interecting geodesics")
+                                          " ultra-parallel and intersecting geodesics")
 
             # If only one is a geodesic, make sure it's b to make things easier
             a,b = b,a
@@ -727,7 +729,9 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         """
         R = self.realization_of().a_realization()
         assert R is not self
-        phi = lambda c: R.coerce_map_from(self).image_coordinates(c)
+
+        def phi(c):
+            return R.coerce_map_from(self).image_coordinates(c)
         return R._dist_geod_point(phi(start), phi(end), phi(p))
 
     ####################
@@ -1137,6 +1141,7 @@ class HyperbolicModelUHP(HyperbolicModel):
 #####################################################################
 ## Poincaré disk model
 
+
 class HyperbolicModelPD(HyperbolicModel):
     r"""
     Poincaré Disk Model.
@@ -1237,8 +1242,8 @@ class HyperbolicModelPD(HyperbolicModel):
         # alpha = A[0][0]
         # beta = A[0][1]
         # Orientation preserving and reversing
-        return (HyperbolicIsometryPD._orientation_preserving(A)
-                or HyperbolicIsometryPD._orientation_preserving(I * A))
+        return (HyperbolicIsometryPD._orientation_preserving(A) or
+                HyperbolicIsometryPD._orientation_preserving(I * A))
 
     def get_background_graphic(self, **bdry_options):
         r"""
@@ -1351,12 +1356,13 @@ class HyperbolicModelKM(HyperbolicModel):
         """
         if isinstance(A, HyperbolicIsometry):
             return True
-        return bool((A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2
-                    < EPSILON)
+        return bool((A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2 <
+                    EPSILON)
 
     def get_background_graphic(self, **bdry_options):
         r"""
         Return a graphic object that makes the model easier to visualize.
+
         For the Klein model, the background object is the ideal boundary.
 
         EXAMPLES::
@@ -1364,10 +1370,11 @@ class HyperbolicModelKM(HyperbolicModel):
             sage: circ = HyperbolicPlane().KM().get_background_graphic()
         """
         from sage.plot.circle import circle
-        return circle((0,0), 1, axes=False, color='black')
+        return circle((0, 0), 1, axes=False, color='black')
 
 #####################################################################
 ## Hyperboloid model
+
 
 class HyperbolicModelHM(HyperbolicModel):
     r"""

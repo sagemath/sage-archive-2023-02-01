@@ -17,13 +17,14 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc import six
 from sage.rings.all import ZZ, infinity, LaurentSeries, O
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
 from sage.symbolic.all import pi
 
 from sage.structure.parent_gens import localvars
-from sage.structure.sage_object import op_NE, op_EQ
+from sage.structure.richcmp import op_NE, op_EQ
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -38,15 +39,16 @@ from .series_constructor import MFSeriesConstructor
 
 
 # Warning: We choose CommutativeAlgebraElement because we want the
-# corresponding operations (e.g. __mul__) even though the category
+# corresponding operations (e.g. __pow__) even though the category
 # (and class) of the parent is in some cases not
 # CommutativeAlgebras but Modules
-class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
+class FormsRingElement(six.with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        CommutativeAlgebraElement, UniqueRepresentation
+    )):
     r"""
     Element of a FormsRing.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     from .analytic_type import AnalyticType
     AT = AnalyticType()
 

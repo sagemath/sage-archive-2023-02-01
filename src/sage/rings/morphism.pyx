@@ -357,8 +357,8 @@ from __future__ import print_function
 import ideal
 import homset
 from cpython.object cimport Py_EQ, Py_NE
-from sage.structure.sage_object cimport (richcmp, rich_to_bool,
-                                         richcmp_not_equal)
+from sage.structure.richcmp cimport (richcmp, rich_to_bool,
+        richcmp_not_equal)
 
 
 def is_RingHomomorphism(phi):
@@ -515,20 +515,17 @@ cdef class RingMap_lift(RingMap):
             True
             sage: f == g
             False
-            sage: f < g
-            True
-            sage: f > g
-            False
 
         Verify that :trac:`5758` has been fixed::
 
             sage: Zmod(8).lift() == 1
             False
         """
-        if not isinstance(other, RingMap_lift):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
+
+        if not isinstance(other, RingMap_lift):
+            return (op == Py_NE)
 
         # Since they are lifting maps they are determined by their
         # parents, i.e., by the domain and codomain, since we just
@@ -801,24 +798,6 @@ cdef class RingHomomorphism(RingMap):
                     pass
         return sage.categories.map.Map._composition_(self, right, homset)
 
-    def is_injective(self):
-        """
-        Return whether or not this morphism is injective, or raise
-        a ``NotImplementedError``.
-
-        EXAMPLES:
-
-        Note that currently this is not implemented in most
-        interesting cases::
-
-            sage: f = ZZ.hom(QQ)
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def is_zero(self):
         r"""
         Return ``True`` if this is the zero map and ``False`` otherwise.
@@ -975,18 +954,16 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             sage: g = ZZ.hom(ZZ)
             sage: f == g
             False
-            sage: f > g
-            True
-            sage: f < g
-            False
+
             sage: h = Zmod(6).lift()
             sage: f == h
             False
         """
-        if not isinstance(other, RingHomomorphism_coercion):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
+
+        if not isinstance(other, RingHomomorphism_coercion):
+            return (op == Py_NE)
 
         # Since they are coercion morphisms they are determined by
         # their parents, i.e., by the domain and codomain, so we just
@@ -1195,7 +1172,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f2(x^3 + x + y^2)
             a - b
 
-        TEST::
+        TESTS::
 
             sage: loads(dumps(f2)) == f2
             True
@@ -1336,7 +1313,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.morphism import RingHomomorphism_from_base
             sage: R.<x> = ZZ[]
@@ -1670,10 +1647,12 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: phi == R.quo(x^2 + y^3).cover()
             False
         """
-        if not isinstance(other, RingHomomorphism_cover):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
+
+        if not isinstance(other, RingHomomorphism_cover):
+            return (op == Py_NE)
+
         return richcmp(self.parent(), other.parent(), op)
 
     def __hash__(self):
@@ -1867,10 +1846,12 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             sage: phi == f
             True
         """
-        if not isinstance(other, RingHomomorphism_from_quotient):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
+
+        if not isinstance(other, RingHomomorphism_from_quotient):
+            return (op == Py_NE)
+
         cdef RingHomomorphism_from_quotient left = self
         cdef RingHomomorphism_from_quotient right = other
         return richcmp(left.phi, right.phi, op)

@@ -86,6 +86,15 @@ cdef extern from "sage/libs/pynac/wrap.h":
         GExListIter end()
         GExList append_sym "append" (GSymbol e)
 
+    cdef cppclass GSymbolSetIter "GiNaC::symbolset::const_iterator":
+        void inc "operator++" ()
+        GEx obj "operator*" ()
+        bint operator!=(GSymbolSetIter i)
+
+    cdef cppclass GSymbolSet "GiNaC::symbolset":
+        GSymbolSetIter begin()
+        GSymbolSetIter end()
+
     cdef cppclass GEx "ex":
         GEx()
         GEx(GSymbol m)
@@ -105,6 +114,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
         bint is_polynomial(GEx vars)  except +
         bint match(GEx pattern, GExList s) except +
         bint find(GEx pattern, GExList s) except +
+        GSymbolSet free_symbols()     except +
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
         GEx subs_map "subs" (GExMap map, unsigned options) except +
@@ -150,7 +160,12 @@ cdef extern from "sage/libs/pynac/wrap.h":
     py_object_from_numeric(GEx e)     except +
 
     # Algorithms
-    GEx g_gcd "gcd"(GEx a, GEx b)   except +
+    GEx g_gcd "gcd"(GEx a, GEx b) except +
+    GEx g_gosper_term "gosper_term"(GEx the_ex, GEx n) except +
+    GEx g_gosper_sum_definite "gosper_sum_definite"(GEx the_ex,
+            GEx n, GEx a, GEx b, int* p) except +
+    GEx g_gosper_sum_indefinite "gosper_sum_indefinite"(GEx the_ex,
+            GEx n, int* p) except +
     GEx to_gamma(GEx expr)          except +
     GEx gamma_normalize(GEx expr)   except +
     GEx g_resultant "resultant"(GEx a, GEx b, GEx v) except +
@@ -319,7 +334,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
 
     GEx g_abs "GiNaC::abs" (GEx x)                      except + # absolute value
-    GEx g_step "GiNaC::step" (GEx x)                    except + # step function
+    GEx g_step "GiNaC::unit_step" (GEx x)               except + # step function
     GEx g_csgn "GiNaC::csgn" (GEx x)                    except + # complex sign
     GEx g_conjugate "GiNaC::conjugate_function" (GEx x) except + # complex conjugation
     GEx g_real_part "GiNaC::real_part_function" (GEx x) except + # real part
@@ -416,7 +431,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
     unsigned g_register_new "GiNaC::function::register_new" (GFunctionOpt opt)
 
     unsigned find_function "GiNaC::function::find_function" (char* name,
-            unsigned nargs) except +ValueError
+            unsigned nargs) except +
 
     bint has_symbol "GiNaC::has_symbol" (GEx ex)
     bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)

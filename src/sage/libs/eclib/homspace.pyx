@@ -1,7 +1,7 @@
 "Cremona modular symbols"
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from ..eclib cimport mat
 from .mat cimport MatrixFactory

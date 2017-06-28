@@ -597,7 +597,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def _rmul_(self, left):
         """
-        TEST::
+        TESTS::
 
             sage: R.<alpha,beta> = InfinitePolynomialRing(QQ, implementation='sparse')
             sage: R.from_base_ring(4)   # indirect doctest
@@ -608,7 +608,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def _lmul_(self, right):
         """
-        TEST::
+        TESTS::
 
             sage: R.<alpha,beta> = InfinitePolynomialRing(QQ, implementation='sparse')
             sage: alpha[3]*4   # indirect doctest
@@ -1429,7 +1429,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
 
     def _rmul_(self, left):
         """
-        TEST::
+        TESTS::
 
             sage: R.<alpha,beta> = InfinitePolynomialRing(QQ)
             sage: R.from_base_ring(4)   # indirect doctest
@@ -1440,7 +1440,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
 
     def _lmul_(self, right):
         """
-        TEST::
+        TESTS::
 
             sage: R.<alpha,beta> = InfinitePolynomialRing(QQ)
             sage: alpha[3]*4   # indirect doctest

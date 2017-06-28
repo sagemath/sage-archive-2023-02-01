@@ -29,10 +29,10 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
+
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -42,7 +42,7 @@ from sage.libs.mpfi cimport mpfi_set_z, mpfi_set_q, mpfi_sqrt, mpfi_add_z, mpfi_
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.sage_object cimport rich_to_bool_sgn
+from sage.structure.richcmp cimport rich_to_bool_sgn
 
 from sage.rings.rational cimport Rational
 from sage.rings.integer_ring import ZZ
@@ -60,7 +60,7 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
     """
     Used in unpickling elements of number fields.
 
-    TEST::
+    TESTS::
 
         sage: K.<a> = NumberField(x^2-x+13)
         sage: loads(dumps(a)) == a # indirect doctest
@@ -72,7 +72,7 @@ def __make_NumberFieldElement_quadratic1(parent, cls, a, b, denom):
     """
     Used in unpickling elements of number fields.
 
-    TEST::
+    TESTS::
 
         sage: K.<a> = NumberField(x^2-x+13)
         sage: loads(dumps(a)) == a # indirect doctest
@@ -259,6 +259,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             NumberFieldElement_absolute._maxima_init_(self, I)
 
+    def _polymake_init_(self):
+        """
+        EXAMPLES::
+
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: polymake(3+2*sqrt5)                 # optional - polymake
+            3+2r5
+            sage: K.<i> = QuadraticField(-1)
+            sage: polymake(i)                         # optional - polymake
+            Traceback (most recent call last):
+            ...
+            TypeError: Negative values for the root of the extension ... Bad Thing...
+        """
+        x0, x1 = self
+        return "new QuadraticExtension({}, {}, {})".format(x0, x1, self.D)
+
     def __copy__(self):
         r"""
         Returns a new copy of self.
@@ -316,9 +332,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: loads(dumps(a/3+5)) == a/3+5
             True
         """
-        cdef Integer a = <Integer>PY_NEW(Integer)
-        cdef Integer b = <Integer>PY_NEW(Integer)
-        cdef Integer denom = <Integer>PY_NEW(Integer)
+        cdef Integer a = Integer.__new__(Integer)
+        cdef Integer b = Integer.__new__(Integer)
+        cdef Integer denom = Integer.__new__(Integer)
         mpz_set(a.value, self.a)
         mpz_set(b.value, self.b)
         mpz_set(denom.value, self.denom)
@@ -758,8 +774,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             ....:         assert (a <= b) == (CC(a) <= CC(b))
 
         The following is tested because of the implementation of
-        func:`Q_to_quadratic_field_element` which was the cause of some problems
-        with :trac:`13213`::
+        :func:`Q_to_quadratic_field_element` which was the cause of
+        some problems with :trac:`13213`::
 
             sage: K.<sqrt2> = QuadraticField(2)
             sage: 1/2 + sqrt2 > 0
@@ -1177,8 +1193,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
-
-    cpdef _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
@@ -1193,8 +1208,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         res._reduce_c_()
         return res
 
-
-    cpdef _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
@@ -1383,7 +1397,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_cmp_ui(self.b, 0) != 0 or mpz_cmp_ui(self.denom, 1) != 0:
             raise TypeError("Unable to coerce %s to an integer" % self)
         else:
-            res = PY_NEW(Integer)
+            res = Integer.__new__(Integer)
             mpz_set(res.value, self.a)
             return res
 
@@ -1688,7 +1702,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic gen = self.number_field().gen()  # should this be cached?
         cdef Integer denom
         if gen.is_sqrt_disc():
-            denom = PY_NEW(Integer)
+            denom = Integer.__new__(Integer)
             mpz_set(denom.value, self.denom)
             return denom
         else:
@@ -1958,7 +1972,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_sgn(self.b) == 0:
             mpz_init_set(x,self.a)
             mpz_fdiv_q(x,x,self.denom)
-            result = PY_NEW(Integer)
+            result = Integer.__new__(Integer)
             mpz_set(result.value,x)
             mpz_clear(x)
             return result
@@ -1980,7 +1994,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         mpz_add(x,x,self.a)    # here x = a + floor(sqrt(b^2 D)) or a + floor(-sqrt(b^2 D))
         mpz_fdiv_q(x,x,self.denom)
-        result = PY_NEW(Integer)
+        result = Integer.__new__(Integer)
         mpz_set(result.value,x)
         mpz_clear(x)
         return result
@@ -2172,7 +2186,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         return self._parent.number_field()
 
     # We must override these since the basering is now ZZ not QQ.
-    cpdef _rmul_(self, RingElement _c):
+    cpdef _rmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2-27)
@@ -2190,8 +2204,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         res._reduce_c_()
         return res
 
-
-    cpdef _lmul_(self, RingElement _c):
+    cpdef _lmul_(self, Element _c):
         """
         EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)

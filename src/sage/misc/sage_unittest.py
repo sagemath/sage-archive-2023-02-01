@@ -165,7 +165,7 @@ class TestSuite(object):
         return "Test suite for %s"%self._instance
 
 
-    def run(self, category = None, skip = [], catch = True, raise_on_failure = False, **options):
+    def run(self, category = None, skip = [], catch = True, raise_on_failure = False, timings = False, threshold=None, **options):
         """
         Run all the tests from this test suite:
 
@@ -175,6 +175,8 @@ class TestSuite(object):
          - ``skip``             - a string or list (or iterable) of strings
          - ``raise_on_failure`` - a boolean (default: False)
          - ``catch``            - a boolean (default: True)
+         - ``timings``          - a boolean (default: False)
+         - ``threshold``        - a float (default: None)
 
         All other options are passed down to the individual tests.
 
@@ -271,11 +273,20 @@ class TestSuite(object):
 
         In conjunction with ``%pdb on``, this allows for the debbuger
         to jump directly to the first failure location.
+
+        The ``timings`` option displays how long each test took to run.
+        If you also include ``threshold``, only tests taking longer than the threshold
+        display the elapsed time::
+
+            sage: TestSuite(1).run(timings=True, threshold=0.001)
+            running ._test_category()...
         """
         if isinstance(skip, str):
             skip = [skip]
         else:
             skip = tuple(skip)
+        if timings:
+            options['verbose'] = True
 
         # The class of exceptions that will be catched and reported;
         # other exceptions will get trough. None catches nothing.
@@ -289,9 +300,28 @@ class TestSuite(object):
                 # could use the doc string of the test method?
                 tester.info(tester._prefix+"running .%s() . . ."%method_name, newline = False)
                 test_method = getattr(self._instance, method_name)
+                if timings:
+                    import time
+                    import math
+                    from sage.misc.functional import round
+                    units = ["s", "ms", "\xc2\xb5s", "ns"]
+                    scaling = [1, 1e3, 1e6, 1e9]
+                    start_time = time.time()
                 try:
                     test_method(tester = tester)
-                    tester.info(" pass")
+                    if timings:
+                        elapsed_time = time.time() - start_time
+                        if threshold is None or elapsed_time > threshold:
+                            if elapsed_time > 0.0:
+                                flog = math.floor(math.log10(elapsed_time))
+                                order = min(-int(flog // 3), 3)
+                            else:
+                                order = 3
+                            tester.info(" pass (%s%s)"%(round(elapsed_time * scaling[order], 2 - (int(flog) % 3)), units[order]))
+                        else:
+                            tester.info(" pass")
+                    else:
+                        tester.info(" pass")
                 except catch_exception as e:
                     failed.append(method_name)
                     if isinstance(e, TestSuiteFailure):

@@ -3694,13 +3694,24 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def sigma_invariants(self, n, formal=True, embedding=None):
         r"""
-        Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra
-        of this map.
+        Computes the values of the elementary symmetric polynomials of the formal
+        ``n`` multilpier spectra of this map.
 
-        Can specify to instead compute the values corresponding to the elementary symmetric
-        polynomials of the ``n`` multiplier spectra, which includes the multipliers of all periodic
-        points of period ``n``. The map must be defined over projective space of dimension 1 over
-        a number field.
+        Can specify to instead compute the values corresponding to the elementary
+        symmetric polynomials of the ``n`` multiplier spectra, which includes the
+        multipliers of all periodic points of period ``n``. The map must be defined
+        over projective space of dimension 1. The base ring should be over a
+        number field or a polynomial ring over a number field.
+
+        ALGORITHM: We use the Poisson product of the resultant of two polynomials.
+
+        .. MATH::
+
+            res(f,g) = \prod_{f(a) = 0}g(a)
+
+        Letting `f` be the polynomial defining the periodic or formal periodic points
+        and `g` the polynomial `w - f'` for an auxilarly variable `w`. Note that if
+        `f` is a rational function, we clear denominators for `g`.
 
         INPUT:
 
@@ -3711,7 +3722,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             the values corresponding to the ``n`` multiplier spectra of this map, which includes the multipliers
             of all periodic points of period ``n`` of this map. Default: True
 
-        - ``embedding`` - embedding of the base field into `\QQbar`
+        - ``embedding`` - Deprecated in ticket 23333
 
         OUTPUT: a list of elements in the base ring.
 
@@ -3735,7 +3746,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
-            sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
+            sage: f.sigma_invariants(2, False)
             [13, 11, -25, 0]
 
         ::
@@ -3747,18 +3758,117 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Traceback (most recent call last):
             ...
             NotImplementedError: only implemented for dimension 1
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 - w*y^2, (1-w)*x*y])
+            sage: f.sigma_invariants(2, False)
+            [2*w + 14, 8*w + 37, 6*w + 12]
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: Pc.<x,y> = ProjectiveSpace(FractionField(R), 1)
+            sage: Hc = End(Pc)
+            sage: f = Hc([x^2 + c*y^2, y^2])
+            sage: f.sigma_invariants(1)
+            [2, 4*c, 0]
+
+        doubled fixed point::
+
+            P.<x,y> = ProjectiveSpace(QQ, 1)
+            H = End(P)
+            f = H([x^2 - 3/4*y^2, y^2])
+            f.sigma_invariants(2, True)
+            [2, 1]
+
+        doubled 2 cycle::
+
+            P.<x,y> = ProjectiveSpace(QQ, 1)
+            H = End(P)
+            f = H([x^2 - 5/4*y^2, y^2])
+            f.sigma_invariants(4, False)
+            [171, 5365, 177895, 1141315, 2407681, 2077191, 638125, 0]
         """
-        polys = []
+        if (n < 1):
+            raise ValueError("period must be a positive integer")
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        dom = self.domain()
+        if not is_ProjectiveSpace(dom):
+            raise NotImplementedError("not implemented for subschemes")
+        if (dom.dimension_relative() > 1):
+            raise NotImplementedError("only implemented for dimension 1")
+        if not self.is_endomorphism():
+            raise TypeError("self must be an endomorphism")
+        if not embedding is None:
+            from sage.misc.superseded import deprecation
+            deprecation(23333, "embedding keyword no longer used")
+        if self.degree() <= 1:
+            raise TypeError("must have degree at least 2")
 
-        multipliers = self.multiplier_spectra(n, formal, embedding=embedding)
+        #check if infinity is an n-periodic point
+        if self.nth_iterate(dom(1,0), n) == dom(1,0):
+            #we need all n-periodic points to be affine for resultant
+            #so find a point that isn't n-periodic
+            new_fixed = ZZ(2)
+            while self.nth_iterate(dom(new_fixed), n) == dom(new_fixed):
+                new_fixed += 1
+            #get the conjugation (0,1,t) -> (0,1,infty)
+            m = matrix(FractionField(self.base_ring()), 2, 2, [(new_fixed - 1)/new_fixed, 0, -1/new_fixed, 1])
+            F = self.conjugate(m)
+        else:
+            F = self
+        #now we find the two polynomials for the resultant
+        Fn = F.nth_iterate_map(n)
+        fn = Fn.dehomogenize(1)
+        R = fn.domain().coordinate_ring()
+        S = PolynomialRing(FractionField(self.base_ring()), 'z', 2)
+        phi = R.hom([S.gen(0)], S)
+        dfn = fn[0].derivative(R.gen())
 
-        e = SymmetricFunctions(QQbar).e()
+        #polynomial to be evaluated at the periodic points
+        mult_poly = phi(dfn.denominator())*S.gen(1) - phi(dfn.numerator()) #w-f'(z)
 
-        N = len(multipliers)
-        R = self.base_ring()
-        for i in range(0,N):
-            polys.append(R(e([i+1]).expand(N)(multipliers)))
-        return polys
+        #polynomial defining the periodic points
+        if formal:
+            dyn = F.dehomogenize(1).dynatomic_polynomial(n)
+            fix_poly = phi(dyn)  #f(z)-z
+        else:
+            fix_poly = phi(fn[0].numerator() - R.gen()*fn[0].denominator()) #f(z) - z
+
+        #evaluate the resultant
+        res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
+
+        #now we need to deal with having the correct number of factors
+        #1 multiplier for each cycle. But we need to be careful about
+        #the length of the cycle and the mutliplicities
+        good_res = 1
+        L = dict(res.factor())
+        for p in L.keys():
+            e = L[p] #get exponent
+            #have to find cycle length
+            for d in n.divisors():
+                if formal:
+                    fd = F.nth_iterate_map(d).dehomogenize(1)
+                    resd = mult_poly.resultant(phi(fd[0].numerator() - fd.domain().gen()*fd[0].denominator()), S.gen(0))
+                else:
+                    fd = F.dehomogenize(1).dynatomic_polynomial(d)
+                    resd = mult_poly.resultant(phi(fd), S.gen(0))
+                if p.divides(resd):
+                    #this comes from a d-cycle
+                    good_res *= p**(e/d)
+                    break #done since we've found the period
+
+        #the sigmas are the coeficients
+        #need to fix the signs and the order
+        sig = good_res.coefficients(sparse=False)
+        den = sig.pop(-1)
+        sig.reverse()
+        sig = [sig[i]*(-1)**(i+1)/den for i in range(len(sig))]
+        return sig
 
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
         r"""

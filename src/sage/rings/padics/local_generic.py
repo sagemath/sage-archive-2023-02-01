@@ -310,17 +310,21 @@ class LocalGeneric(CommutativeRing):
             ...
             NotImplementedError: conversion between padic extensions not implemented
 
-        Moreover, you cannot currently increase the precision above the limit
-        imposed by the defining polynomial::
+        If the defining polynomial is exact, you can raise the precision at will::
 
             sage: R.<a> = Zq(5^3)
+            sage: S = R.change(prec=50)
+            sage: S.defining_polynomial()
+            (1 + O(5^50))*x^3 + (O(5^50))*x^2 + (3 + O(5^50))*x + (3 + O(5^50))
+
+        However, you cannot increase the precision above the limit imposed by
+        an inexact defining polynomial::
+
+            sage: R.<a> = Zp(5).extension(y^2 + 2)
             sage: S = R.change(prec=50)
             Traceback (most recent call last):
             ...
             ValueError: Not enough precision in defining polynomial
-
-        Both of these issues will be partially alleviated with a switch to exact
-        defining polynomials in `trac`:23331
         """
         # We support both print_* and * for *=mode, pos, sep, alphabet
         for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):

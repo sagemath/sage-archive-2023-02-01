@@ -182,6 +182,11 @@ REFERENCES:
                "Complexes of not i-connected graphs," Topology 38
                (1999), 271-299
 
+.. [BPPSST2017] Banik, Pandey, Peyrin, Sasaki, Sim, and Todo,
+                GIFT : A Small Present Towards Reaching the Limit of Lightweight
+                Encryption. *Cryptographic Hardware and Embedded Systems - CHES 2017*,
+                2017.
+
 .. [BBS1982] \L. Blum, M. Blum, and M. Shub. Comparison of Two
              Pseudo-Random Number Generators. *Advances in Cryptology:
              Proceedings of Crypto '82*, pp.61--78, 1982.

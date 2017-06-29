@@ -1184,11 +1184,6 @@ cdef class CRElement(pAdicTemplateElement):
         self in terms of the uniformizer `\pi`.  If this is a field element, they start at
         `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
 
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
         NOTES:
 
         For each lift mode, this function returns a list of `a_i` so
@@ -1219,6 +1214,9 @@ cdef class CRElement(pAdicTemplateElement):
 
         INPUT:
 
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
           ``'teichmuller'`` (default: ``'simple'``)
 
@@ -1229,10 +1227,14 @@ cdef class CRElement(pAdicTemplateElement):
 
         OUTPUT:
 
-        - the list of coefficients of this element.  For base elements
-          these will be integers if ``lift_mode`` is ``'simple'`` or
-          ``'smallest'``, and elements of ``self.parent()`` if
-          ``lift_mode`` is ``'teichmuller'``.
+        - If ``n`` is ``None``, the `\pi`-adic expansion of this
+          element.  For base elements these will be integers if
+          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
+          elements of ``self.parent()`` if ``lift_mode`` is
+          ``'teichmuller'``.
+
+        - If ``n`` is an integer, the coefficient of `\pi^n` in the
+          `\pi`-adic expansion of this element.
 
         .. NOTE::
 
@@ -1273,6 +1275,15 @@ cdef class CRElement(pAdicTemplateElement):
             3 + 4*7 + O(7^2),
             3 + O(7)]
 
+        You can ask for a specific entry in the expansion::
+
+            sage: a.expansion(1)
+            6
+            sage: a.expansion(1, lift_mode='smallest')
+            -1
+            sage: a.expansion(2, lift_mode='teichmuller')
+            2 + 4*7 + 6*7^2 + O(7^3)
+
         TESTS:
 
         Check to see that :trac:`10292` is resolved::
@@ -1308,7 +1319,7 @@ cdef class CRElement(pAdicTemplateElement):
             if n is None:
                 ulist = self.teichmuller_expansion()
             else:
-                return self.teichmuller_expansion(n)
+                return self.teichmuller_expansion(n - self.ordp)
         elif lift_mode == 'simple':
             ulist = clist(self.unit, self.relprec, True, self.prime_pow)
         elif lift_mode == 'smallest':
@@ -1343,8 +1354,8 @@ cdef class CRElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
+        - ``n`` -- integer (default ``None``).  If given, returns the
+          coefficient of `\pi^n` in the expansion (of the unit part).
 
         EXAMPLES::
 
@@ -1354,24 +1365,26 @@ cdef class CRElement(pAdicTemplateElement):
             2 + 5 + 2*5^2 + O(5^3),
             1 + O(5^2),
             4 + O(5)]
+            sage: R(70).teichmuller_expansion(1)
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
         """
         cdef CRElement list_elt
         if n is None:
             ans = PyList_New(0)
             if self.relprec == 0:
                 return ans
-        elif exactzero(self.ordp) or n < self.ordp:
+        elif exactzero(self.ordp) or n < 0:
             list_elt = self._new_c()
             list_elt._set_exact_zero()
             return list_elt
-        elif n >= self.ordp + self.relprec:
+        elif n >= self.relprec:
             raise PrecisionError
         else:
             # We only need one list_elt
             list_elt = self._new_c()
         cdef long curpower = self.relprec
         cdef long goal
-        if n is not None: goal = self.relprec - n + self.ordp
+        if n is not None: goal = self.relprec - n
         cdef CRElement tmp = self._new_c()
         ccopy(tmp.unit, self.unit, self.prime_pow)
         while not ciszero(tmp.unit, tmp.prime_pow) and curpower > 0:

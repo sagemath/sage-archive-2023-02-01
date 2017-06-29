@@ -583,17 +583,26 @@ cdef class FMElement(pAdicTemplateElement):
         return self
 
     def expansion(self, n = None, lift_mode = 'simple'):
-        r"""
-        Returns a list of coefficients of `\pi^i` starting with `\pi^0`.
+        r"""Returns a list of coefficients of `\pi^i` starting with `\pi^0`.
 
         INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
 
         - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or ``'teichmuller'``
           (default: ``'simple'``:)
 
         OUTPUT:
 
-        The list of coefficients of this element.
+        - If ``n`` is ``None``, the `\pi`-adic expansion of this
+          element.  For base elements these will be integers if
+          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
+          elements of ``self.parent()`` if ``lift_mode`` is
+          ``'teichmuller'``.
+
+        - If ``n`` is an integer, the coefficient of `\pi^n` in the
+          `\pi`-adic expansion of this element.
 
         .. NOTE::
 
@@ -629,6 +638,15 @@ cdef class FMElement(pAdicTemplateElement):
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6)]
             sage: sum([L[i] * 7^i for i in range(len(L))])
             3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+
+        You can ask for a specific entry in the expansion::
+
+            sage: a.expansion(1)
+            4
+            sage: a.expansion(1, lift_mode='smallest')
+            -3
+            sage: a.expansion(2, lift_mode='teichmuller')
+            5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6)
         """
         if n in ('simple', 'smallest', 'teichmuller'):
             deprecation(14825, "Interface to expansion has changed; first argument now n")
@@ -641,7 +659,10 @@ cdef class FMElement(pAdicTemplateElement):
         if ciszero(self.value, self.prime_pow):
             return []
         if lift_mode == 'teichmuller':
-            return self.teichmuller_expansion(n)
+            if n is None:
+                return self.teichmuller_expansion()
+            else:
+                return self.teichmuller_expansion(n - self.valuation_c())
         elif lift_mode == 'simple':
             vlist = clist(self.value, self.prime_pow.prec_cap, True, self.prime_pow)
         elif lift_mode == 'smallest':
@@ -668,17 +689,19 @@ cdef class FMElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
+        - ``n`` -- integer (default ``None``).  If given, returns the
+          coefficient of `\pi^n` in the expansion (of the unit part).
 
         EXAMPLES::
 
-            sage: R = ZpFM(5,5); R(14).expansion(lift_mode='teichmuller') #indirect doctest
+            sage: R = ZpFM(5,5); R(70).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5),
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5),
             1 + O(5^5),
             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)]
+            sage: R(70).teichmuller_expansion(1)
+            3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5)
         """
         cdef FMElement list_elt
         if n is None:
@@ -692,6 +715,7 @@ cdef class FMElement(pAdicTemplateElement):
         else:
             # We only need one list_elt
             list_elt = self._new_c()
+        self = self.unit_part()
         cdef long curpower = self.prime_pow.prec_cap
         cdef long prec_cap = self.prime_pow.prec_cap
         cdef long goal

@@ -902,11 +902,6 @@ cdef class FPElement(pAdicTemplateElement):
         this element in terms of `\pi`.  If this is a field element,
         they start at `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
 
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
         NOTES:
 
         For each lift mode, this function returns a list of `a_i` so
@@ -937,6 +932,9 @@ cdef class FPElement(pAdicTemplateElement):
 
         INPUT:
 
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
           ``'teichmuller'`` (default: ``'simple'``)
 
@@ -947,10 +945,14 @@ cdef class FPElement(pAdicTemplateElement):
 
         OUTPUT:
 
-        - the list of coefficients of this element.  For base elements
-          these will be integers if ``lift_mode`` is ``'simple'`` or
-          ``'smallest'``, and elements of ``self.parent()`` if
-          ``lift_mode`` is ``'teichmuller'``.
+        - If ``n`` is ``None``, the `\pi`-adic expansion of this
+          element.  For base elements these will be integers if
+          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
+          elements of ``self.parent()`` if ``lift_mode`` is
+          ``'teichmuller'``.
+
+        - If ``n`` is an integer, the coefficient of `\pi^n` in the
+          `\pi`-adic expansion of this element.
 
         .. NOTE::
 
@@ -990,6 +992,15 @@ cdef class FPElement(pAdicTemplateElement):
             2 + 4*7 + 6*7^2 + 3*7^3,
             3 + 4*7 + 6*7^2 + 3*7^3,
             3 + 4*7 + 6*7^2 + 3*7^3]
+
+        You can ask for a specific entry in the expansion::
+
+            sage: a.expansion(1)
+            6
+            sage: a.expansion(1, lift_mode='smallest')
+            -1
+            sage: a.expansion(2, lift_mode='teichmuller')
+            2 + 4*7 + 6*7^2 + 3*7^3
         """
         R = self.parent()
         if lift_mode == 'teichmuller':
@@ -1015,7 +1026,7 @@ cdef class FPElement(pAdicTemplateElement):
             if n is None:
                 ulist = self.teichmuller_expansion()
             else:
-                return self.teichmuller_expansion(n)
+                return self.teichmuller_expansion(n - self.ordp)
         elif lift_mode == 'simple':
             ulist = clist(self.unit, self.prime_pow.prec_cap, True, self.prime_pow)
         elif lift_mode == 'smallest':
@@ -1052,14 +1063,14 @@ cdef class FPElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpFP(5,5); R(14).expansion(lift_mode='teichmuller') #indirect doctest
+            sage: R = ZpFP(5,5); R(70).teichmuller_expansion()
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4,
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4,
             2 + 5 + 2*5^2 + 5^3 + 3*5^4,
             1,
             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4]
-            sage: R(14).teichmuller_expansion(3)
-            1
+            sage: R(70).teichmuller_expansion(2)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4
         """
         cdef FPElement list_elt
         if n is None:

@@ -741,11 +741,6 @@ cdef class CAElement(pAdicTemplateElement):
         """
         Returns a list of coefficients of `p` starting with `p^0`.
 
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
         NOTES:
 
         For each lift mode, this function returns a list of `a_i` so
@@ -775,6 +770,9 @@ cdef class CAElement(pAdicTemplateElement):
         this case the `a_i` will also be `p`-adic elements.
 
         INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
 
         - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
           ``'teichmuller'`` (default ``'simple'``)
@@ -816,6 +814,16 @@ cdef class CAElement(pAdicTemplateElement):
             sage: a = R(7^3 * 17)
             sage: a.expansion()
             [0, 0, 0, 3, 2]
+
+        You can ask for a specific entry in the expansion::
+
+            sage: a = R(7^2 * 11)
+            sage: a.expansion(2)
+            4
+            sage: a.expansion(2, lift_mode='smallest')
+            -3
+            sage: a.expansion(2, lift_mode='teichmuller')
+            4 + 2*7 + 3*7^3 + O(7^4)
         """
         if lift_mode == 'teichmuller':
             zero = self.parent()(0)
@@ -830,15 +838,18 @@ cdef class CAElement(pAdicTemplateElement):
             n = None
         elif isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
-        elif n is not None and (ciszero(self.value, self.prime_pow) or n < 0 or n >= self.absprec):
-            return _list_zero
+        elif n is not None:
+            if n >= self.absprec:
+                raise PrecisionError
+            elif ciszero(self.value, self.prime_pow) or n < 0:
+                return _list_zero
         if ciszero(self.value, self.prime_pow):
             return []
         if lift_mode == 'teichmuller':
             if n is None:
                 vlist = self.teichmuller_expansion()
             else:
-                return self.teichmuller_expansion(n)
+                return self.teichmuller_expansion(n - self.valuation_c())
         elif lift_mode == 'simple':
             vlist = clist(self.value, self.absprec, True, self.prime_pow)
         elif lift_mode == 'smallest':
@@ -867,36 +878,45 @@ cdef class CAElement(pAdicTemplateElement):
 
         - `a_i^q = a_i`, where `q` is the cardinality of the residue field,
 
-        - ``self`` equals `\sum_{i = 0}^n a_i \pi^i`, and
+        - ``self.unit_part()`` equals `\sum_{i = 0}^n a_i \pi^i`, and
 
         - if `a_i \ne 0`, the absolute precision of `a_i` is
           ``self.precision_relative() - i``
 
         INPUT:
 
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
+        - ``n`` -- integer (default ``None``).  If given, returns the
+          coefficient of `\pi^n` in the expansion (of the unit part).
 
         EXAMPLES::
 
-            sage: R = ZpCA(5,5); R(14).expansion(lift_mode='teichmuller') #indirect doctest
+            sage: R = ZpCA(5,6); R(70).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
             2 + 5 + 2*5^2 + O(5^3),
             1 + O(5^2),
             4 + O(5)]
+            sage: R(70).teichmuller_expansion(1)
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
         """
         cdef CAElement list_elt
+        cdef long ordp
         if n is None:
             ans = PyList_New(0)
             if ciszero(self.value, self.prime_pow):
                 return ans
-        elif ciszero(self.value, self.prime_pow) or n < 0 or n >= self.absprec:
+            self = self.unit_part()
+        elif n < 0:
             list_elt = self._new_c()
             csetzero(list_elt.value, self.prime_pow)
             list_elt.abspec = self.prime_pow.prec_cap
             return list_elt
+        elif ciszero(self.value, self.prime_pow):
+            raise PrecisionError
         else:
+            self = self.unit_part()
+            if n >= self.absprec:
+                raise PrecisionError
             # We only need one list_elt
             list_elt = self._new_c()
         cdef long curpower = self.absprec

@@ -4290,9 +4290,9 @@ class Polyhedron_base(Element):
 
         - ``measure`` -- string. The measure to use. Allowed values are:
 
-          * ``ambient``: Lebesgue measure of ambient space (volume)
-          * ``induced``: Lebesgue measure of affine hull (relative volume)
-          * ``induced_rational``: TODO: explanation (only makes sense for integer polytopes?!)
+          * ``ambient`` (default): Lebesgue measure of ambient space (volume)
+          * ``induced``: Lebesgue measure of the affine hull (relative volume)
+          * ``induced_rational``: Scaling of the Lebesgue measure for lattice polytopes
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
@@ -4340,21 +4340,45 @@ class Polyhedron_base(Element):
             sage: numerical_approx(_)
             2.18169499062491
 
-        Different engines may have different ideas on the definition
+        When considering lower-dimensional polytopes, we can ask for the
+        ambient (full-dimensional) or the induced measure (of the affine
+        hull). This is controlled by the parameter `measure`.Different engines may have different ideas on the definition
         of volume of a lower-dimensional object::
 
-            sage: I = Polyhedron([(0,0), (1,1)])
-            sage: I.volume()
+            sage: P.volume()
             0
-            sage: I.volume(engine='lrs') #optional - lrslib
-            1.0
-            sage: I.volume(engine='latte') # optional - latte_int
+            sage: P.volume(measure='induced')
+            sqrt(2)
+
+            sage: S = polytopes.regular_polygon(6); S
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 6 vertices
+            sage: edge = S.faces(1)[2].as_polyhedron()
+            sage: edge.vertices()
+            (A vertex at (0.866025403784439?, 1/2), A vertex at (0, 1))
+            sage: edge.volume()
+            0
+            sage: edge.volume(measure='induced')
             1
+
+            sage: Dexact = polytopes.dodecahedron()
+            sage: Dinexact = polytopes.dodecahedron(exact=False)
+            sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal')
+            sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); v
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
+            sage: v = Dexact.faces(2)[4].as_polyhedron().volume(measure='induced', engine='internal'); v
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
+            sage: v.n()
+            1.53406271079044
+            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); w
+            1.534062710738235
+
+            sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]
+            True
+
         """
-        if engine == 'auto':
-            if measure == 'induced':
-                engine = 'lrs'
-            elif measure == 'induced_rational':
+        if measure == 'induced_rational' and engine not in ['auto', 'latte']:
+            raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
+        if engine == 'auto' and measure == 'induced_rational':
                 engine = 'latte'
 
         if measure == 'ambient':
@@ -4368,9 +4392,13 @@ class Polyhedron_base(Element):
             pc = triangulation.point_configuration()
             return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
         elif measure == 'induced':
-            if self.dim() < self.ambient_dim() and engine != 'lrs':
-                raise TypeError("The induced measure can only be computed with the engine set to `auto` or `lrs`")
-            return self._volume_lrs(**kwds)
+            #if polyhedron is actually full-dimensional, return volume with ambient measuren
+            if self.dim() == self.ambient_dim():
+                return self.volume(measure='ambient', engine=engine, **kwds)
+            #use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
+            A,b = self.affine_hull(orthogonal=True, as_affine_map=True)
+            Adet = (A.matrix().transpose()*A.matrix()).det()
+            return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds)/sqrt(Adet)
         elif measure == 'induced_rational':
             if self.dim() < self.ambient_dim() and engine != 'latte':
                 raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")

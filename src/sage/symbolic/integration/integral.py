@@ -789,10 +789,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Check that :trac:`17968` is fixed::
 
-        sage: N(integrate(exp(x^3), (x, 1, 2)), prec=54).real_part()    # abs tol 1e-13
+        sage: a = N(integrate(exp(x^3), (x, 1, 2)), prec=54)
+        sage: a.real_part()    # abs tol 1e-13
         275.510983763312
-        sage: N(integrate(exp(x^3), (x, 1, 2)))    # known bug (non-zero imag part)
-        275.510983763312
+        sage: a.imag_part()    # abs tol 1e-13
+        0.0
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

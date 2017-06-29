@@ -10983,7 +10983,7 @@ cdef class Matrix(Matrix1):
             sage: p, S = A.cyclic_subspace(v, var='T'); p
             T^3 - 9*T^2 + 24*T - 16
             sage: gen = polygen(QQ, 'z')
-            sage: p, S = A.cyclic_subspace(v, var=gen); p
+            sage: p, S = A.cyclic_subspace(v, var='z'); p
             z^3 - 9*z^2 + 24*z - 16
             sage: p.degree() == E.dimension()
             True

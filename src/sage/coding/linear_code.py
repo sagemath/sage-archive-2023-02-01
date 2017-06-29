@@ -3555,7 +3555,7 @@ class AbstractLinearCode(Module):
             sage: C.weight_enumerator(names="var1, var2")
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator(names=(var1, var2))
+            sage: C.weight_enumerator(names=('var1', 'var2'))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: C.weight_enumerator(bivariate=False)
             x^7 + 7*x^4 + 7*x^3 + 1

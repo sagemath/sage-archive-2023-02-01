@@ -1305,6 +1305,7 @@ PRINTcipher = SBox([0x0, 0x1, 0x3, 0x6, 0x7, 0x4, 0x5, 0x2])
 # Dictionary of all available SBoxes
 sboxes = {}
 import sys
-for k, v in list(sys.modules[__name__].__dict__.iteritems()):
-      if isinstance(v, SBox):
-          sboxes[k] = v
+for k in dir(sys.modules[__name__]):
+    v = getattr(sys.modules[__name__], k)
+    if isinstance(v, SBox):
+        sboxes[k] = v

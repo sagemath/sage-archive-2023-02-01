@@ -158,20 +158,23 @@ class GrowthDiagram(SageObject):
     - ``self._zero``, the zero element of the vertices of the
       graphs.
 
+    - ``self._r`` (default: ``1``), the parameter in the equation
+      `DU-UD=rI`.
+
     - ``self._rank_function``, the rank function of the dual
       graded graphs.
 
-    - ``self._has_multiple_edges``, if the dual graded graph has
-      multiple edges and therefore edges are triples consisting of
-      two vertices and a label.  If not present, it is assumed to be
-      ``False``.
+    - ``self._has_multiple_edges`` (default: ``False``), if the dual
+      graded graph has multiple edges and therefore edges are triples
+      consisting of two vertices and a label.
 
-    - ``self._zero_edge``, the zero label of the edges of the graphs.
-      If not present, it is assumed to be the integer 0.
+    - ``self._zero_edge`` (default: ``0``), the zero label of the
+      edges of the graphs.
 
-    - ``self._is_Q_edge``, ``self._is_P_edge``, functions that take
-      two vertices as arguments and return ``True`` or ``False``, or,
-      if multiple edges are allowed, the list of edge labels of the
+    - ``self._is_Q_edge``, ``self._is_P_edge`` (default: always
+      ``True``, resp. ``[self._zero_edge]``), functions that take two
+      vertices as arguments and return ``True`` or ``False``, or, if
+      multiple edges are allowed, the list of edge labels of the
       edges from the second to the first in the respective graded
       graph.  These are only used for checking user input and
       providing the dual graded graph, and are therefore not
@@ -265,6 +268,7 @@ class GrowthDiagram(SageObject):
 
     _has_multiple_edges = False # override when necessary
     _zero_edge = 0              # override when necessary
+    _r = 1                      # override when necessary
     @classmethod
     def _is_P_edge(cls, a, b):
         """
@@ -286,7 +290,7 @@ class GrowthDiagram(SageObject):
             return True
 
     @classmethod
-    def _check_duality(cls, n, r=1):
+    def _check_duality(cls, n):
         """
         Raise an error if the graphs are not r-dual at level n.
 
@@ -294,20 +298,19 @@ class GrowthDiagram(SageObject):
 
         - ``n``, a positive integer specifying which rank of the graph to test.
 
-        - ``r``, a positive integer, corresponding to the number in the equation `UD-DU=rI`.
         """
         if cls._has_multiple_edges:
             def check_vertex(w, P, Q):
                 DUw = [v[0] for uw in P.outgoing_edges(w) for v in Q.incoming_edges(uw[1])]
                 UDw = [v[1] for lw in Q.incoming_edges(w) for v in P.outgoing_edges(lw[0])]
-                UDw.extend([w]*r)
-                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
+                UDw.extend([w]*cls._r)
+                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(cls._r, w)
         else:
             def check_vertex(w, P, Q):
                 DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
                 UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
-                UDw.extend([w]*r)
-                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(r, w)
+                UDw.extend([w]*cls._r)
+                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(cls._r, w)
 
         P = cls.P_graph(n+2)
         Q = cls.Q_graph(n+2)
@@ -2582,7 +2585,11 @@ class GrowthDiagramDomino(GrowthDiagram):
         1  2  4  1  3  3
         3  3     4  4
 
-    TESTS::
+    TESTS:
+
+    Check duality::
+
+        sage: GrowthDiagramDomino._check_duality(4)
 
         sage: G = GrowthDiagramDomino([[0,1,0],[0,0,-1],[1,0,0]]); G
         0  1  0
@@ -2598,24 +2605,24 @@ class GrowthDiagramDomino(GrowthDiagram):
         sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
         384
 
-        The spin of a domino tableau is half the number of vertical dominos:
+    The spin of a domino tableau is half the number of vertical dominos::
 
         sage: def spin(T):
         ....:     return sum(2*len(set(row)) - len(row) for row in T)/4
 
-        According to [Lam2004]_, the number of negative entries in
-        the signed permutation equals the sum of the spins of the two
-        associated tableaux:
+    According to [Lam2004]_, the number of negative entries in the
+    signed permutation equals the sum of the spins of the two
+    associated tableaux::
 
         sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
         True
 
-        Negating all signs transposes all the partitions:
+    Negating all signs transposes all the partitions::
 
         sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
         True
 
-        Check part of Theorem 4.2.3 in [Lee1996]_:
+    Check part of Theorem 4.2.3 in [Lee1996]_::
 
         sage: def to_permutation(pi):
         ....:     pi1 = list(pi)
@@ -2645,20 +2652,30 @@ class GrowthDiagramDomino(GrowthDiagram):
                  labels = None):
         if labels is not None:
             labels = [Partition(la) for la in labels]
-        self._zero = Partition([])
-        self._rank_function = lambda p: p.size()
-        def covering(w, v):
-            try:
-                (row_1, col_1), (row_2, col_2) = SkewPartition([w, v]).cells()
-                return row_1 == row_2 or col_1 == col_2
-            except ValueError:
-                return False
-
-        self._is_Q_edge = self._is_P_edge = lambda w, v: covering(w, v)
         super(GrowthDiagramDomino, self).__init__(filling = filling,
                                                   shape = shape,
                                                   labels = labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
+
+    _r = 2
+    @staticmethod
+    def vertices(n):
+        return [la for la in Partitions(2*n) if len(la.core(2)) == 0]
+
+    _zero = Partition([])
+    @staticmethod
+    def _rank_function(w):
+        return w.size()
+
+    @staticmethod
+    def _is_P_edge(w, v):
+        try:
+            (row_1, col_1), (row_2, col_2) = SkewPartition([w, v]).cells()
+            return row_1 == row_2 or col_1 == col_2
+        except ValueError:
+            return False
+
+    _is_Q_edge = _is_P_edge
 
     def P_symbol(self):
         r"""

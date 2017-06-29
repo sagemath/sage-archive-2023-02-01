@@ -10720,6 +10720,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = DiGraph(edgelist, loops=True, multiedges=True)
             sage: D.contract_edge(0,1,'b'); D.edges()
             [(0, 0, 'a'), (0, 0, 'c')]
+
+        With labeled edges::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
+            ....:
+            sage: G.contract_edge(0,1); G.edges()
+            [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
+            sage: G.contract_edge(0,2,4)
+            sage: G.contract_edge(0,2,4); G.edges()
+            [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
         """
         # standard code to allow 3 arguments or a single tuple:
         if label is None:
@@ -10801,6 +10814,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.contract_edges([(1,3),(1,4)]); G.edges()
             [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
 
+        ::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
+            ....:
+            sage: H = G.copy()
+            sage: G.contract_edges([(0,1), (0,2)]); G.edges()
+            [(0, 0, 3), (0, 3, 3), (0, 3, 4), (0, 3, 5)]
+
+
         With loops in a digraph::
 
             sage: D = DiGraph([(0,0), (0,1), (1,1)], loops=True, multiedges=True)
@@ -10817,6 +10842,19 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: edge tuples in input should have the same length
+
+        ::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
+            ....:
+            sage: H = G.copy()
+            sage: G.contract_edges([(0,1), (0,2)]); G.edges()
+            [(0, 0, 3), (0, 3, 3), (0, 3, 4), (0, 3, 5)]
+            sage: H.contract_edges([(0,1,1), (0,2,3)]); H.edges()
+            [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
         """
         if len(set([len(e) for e in edges])) > 1:
             raise ValueError("edge tuples in input should have the same length")

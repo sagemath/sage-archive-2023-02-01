@@ -294,10 +294,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 self._Karatsuba_threshold = 8
 
     def __reduce__(self):
-        import sage.rings.polynomial.polynomial_ring_constructor
-        return (sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing,
-                (self.base_ring(), self.variable_name(), None, self.is_sparse()))
-
+        from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
+        args = (self.base_ring(), self.variable_names(), None, self.is_sparse())
+        return unpickle_PolynomialRing, args
 
     def _element_constructor_(self, x=None, check=True, is_gen=False,
                               construct=False, **kwds):
@@ -1598,7 +1597,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
                     element_class = Polynomial_integer_dense_flint
                     self._implementation_names = (None, 'FLINT')
                 else:
-                    raise ValueError("Unknown implementation %s for ZZ[x]"%implementation)
+                    raise ValueError("unknown implementation %r for ZZ[%r]" % (implementation, name[0]))
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 

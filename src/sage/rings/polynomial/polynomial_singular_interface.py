@@ -78,7 +78,7 @@ class PolynomialRing_singular_repr:
 
         EXAMPLES::
 
-            sage: R.<x,y> = PolynomialRing(CC,'x',2)
+            sage: R.<x,y> = PolynomialRing(CC)
             sage: singular(R)
             polynomial ring, over a field, global ordering
             //   coefficients: float[I](complex:15 digits, additional 0 digits)/(I^2+1)
@@ -86,7 +86,7 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
-            sage: R.<x,y> = PolynomialRing(RealField(100),'x',2)
+            sage: R.<x,y> = PolynomialRing(RealField(100))
             sage: singular(R)
             polynomial ring, over a field, global ordering
             //   coefficients: float

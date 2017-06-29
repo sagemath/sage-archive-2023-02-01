@@ -363,6 +363,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             Polynomial base injection morphism:
               From: Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Integer Ring
+
+        Check some invalid input::
+
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: MPolynomialRing_libsingular(Zmod(1), 1, ["x"], "lex")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomials over Ring of integers modulo 1 are not supported in Singular
+            sage: MPolynomialRing_libsingular(SR, 1, ["x"], "lex")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomials over Symbolic Ring are not supported in Singular
+            sage: MPolynomialRing_libsingular(QQ, 0, [], "lex")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomials in 0 variables are not supported in Singular
+            sage: MPolynomialRing_libsingular(QQ, -1, [], "lex")
+            Traceback (most recent call last):
+            ...
+            ValueError: Multivariate Polynomial Rings must have more than 0 variables.
         """
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         self._has_singular = True
@@ -1947,7 +1967,7 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate
     # If libsingular would be replaced by a different implementation in future
     # sage version, the unpickled ring will belong the new implementation.
-    return _multi_variate(base_ring, tuple(names), len(names), False, term_order, None)
+    return _multi_variate(base_ring, tuple(names), False, term_order, None)
 
 cdef class MPolynomial_libsingular(MPolynomial):
     """

@@ -1,4 +1,4 @@
-#! /bin/dash
+#!/bin/dash
 
 # Authors:
 # * Gary Zablackis <gzabl@yahoo.com>

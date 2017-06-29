@@ -4345,6 +4345,7 @@ class Polyhedron_base(Element):
         hull). This is controlled by the parameter `measure`.Different engines may have different ideas on the definition
         of volume of a lower-dimensional object::
 
+            sage: P = Polyhedron([[0, 0], [1, 1]])
             sage: P.volume()
             0
             sage: P.volume(measure='induced')

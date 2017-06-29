@@ -1026,6 +1026,10 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             sage: f(ZpFM(5)(-1)) - 5^20
             -1
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
 cdef class pAdicConvert_FM_ZZ(RingMap):

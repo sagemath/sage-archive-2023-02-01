@@ -1247,6 +1247,10 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
             sage: f(ZpCA(5)(-1)) - 5^20
             -1
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
 cdef class pAdicConvert_CA_ZZ(RingMap):
@@ -1536,6 +1540,10 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
             sage: f(K.gen())
             a + O(3^20)
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
     cdef dict _extra_slots(self, dict _slots):

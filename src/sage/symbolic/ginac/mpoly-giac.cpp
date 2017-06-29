@@ -97,6 +97,31 @@ const giac::polynome basic::to_polynome(ex_int_map& map, exvector& revmap)
         throw std::runtime_error("basic::to_polynome: can't happen");
 }
 
+const giac::polynome num_to_polynome(const numeric& num,
+                ex_int_map& map, exvector& revmap)
+{
+        if (num.is_real()) {
+                if (num.is_integer() or num.is_rational())
+                        return gen2pol(num2gen(num));
+                else
+                        return replace_with_symbol(num, map, revmap);
+        } else { // complex
+                numeric re = num.real();
+                numeric im = num.imag();
+                giac::polynome re_p, im_p;
+                if (re.is_integer() or re.is_rational())
+                        re_p = gen2pol(num2gen(re));
+                else
+                        re_p = replace_with_symbol(re, map, revmap);
+                if (im.is_integer() or im.is_rational())
+                        im_p = gen2pol(num2gen(im));
+                else
+                        im_p = replace_with_symbol(im, map, revmap);
+                giac::polynome r = re_p + im_p * replace_with_symbol(I, map, revmap);
+                return std::move(r);
+        }
+}
+
 // Convert to giac polynomial over QQ, filling replacement dicts
 // TODO: special case numeric mpz_t, int instead of string interface
 const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
@@ -108,32 +133,12 @@ const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
                 for (const auto& termex : a.seq) {
                         p = p + a.recombine_pair_to_ex(termex).to_polynome(map, revmap);
                 }
-                p = p + a.overall_coeff.to_polynome(map, revmap);
+                p = p + num_to_polynome(a.overall_coeff, map, revmap);
                 return std::move(p);
         }
         else if (is_exactly_a<numeric>(*this))
         {
-                const numeric& num = ex_to<numeric>(*this);
-                if (num.is_real()) {
-                        if (num.is_integer() or num.is_rational())
-                                return gen2pol(num2gen(num));
-                        else
-                                return replace_with_symbol(num, map, revmap);
-                } else { // complex
-                        numeric re = num.real();
-                        numeric im = num.imag();
-                        giac::polynome re_p, im_p;
-                        if (re.is_integer() or re.is_rational())
-                                re_p = gen2pol(num2gen(re));
-                        else
-                                re_p = replace_with_symbol(re, map, revmap);
-                        if (im.is_integer() or im.is_rational())
-                                im_p = gen2pol(num2gen(im));
-                        else
-                                im_p = replace_with_symbol(im, map, revmap);
-                        giac::polynome r = re_p + im_p * replace_with_symbol(I, map, revmap);
-                        return std::move(r);
-                }
+                return num_to_polynome(ex_to<numeric>(*this), map, revmap);
         }
         else if (is_exactly_a<mul>(*this))
         {
@@ -142,7 +147,7 @@ const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
                 for (const auto& termex : m.seq) {
                         p *= m.recombine_pair_to_ex(termex).to_polynome(map, revmap);
                 }
-                p *= m.overall_coeff.to_polynome(map, revmap);
+                p *= num_to_polynome(m.overall_coeff, map, revmap);
                 return std::move(p);
         }
         else if (is_exactly_a<power>(*this))

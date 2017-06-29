@@ -1,5 +1,5 @@
 diff --git a/src/Makefile b/src/Makefile
-index 84e4e88..e807574 100644
+index 84e4e88..2256f2a 100644
 --- a/src/Makefile
 +++ b/src/Makefile
 @@ -13,7 +13,7 @@
@@ -192,7 +192,7 @@ index 84e4e88..e807574 100644
  
  cmdline.o: ../include/cmdline.h ../include/getopt.h
 -#$(CC) $(CCFLAGS) $(INCLUDEFILES) -DHAVE_LONG_LONG -c cmdline.c
-+#$(CC) $(CXXFLAGS) $(INCLUDEFILES) -DHAVE_LONG_LONG -c cmdline.c
++	$(CC) $(CFLAGS) $(INCLUDEFILES) -c cmdline.c
  
  
  Lcommandline.o: ../include/Lcommandline.h ../include/L.h

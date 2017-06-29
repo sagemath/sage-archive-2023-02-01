@@ -108,6 +108,24 @@ This module provides the following SBoxes:
     - SEA ([SPGQ2006]_)
     - PRINTcipher ([KLPR2010]_)
 
+Additionally this modules offers a dictionary `sboxes` of all implemented above S-boxes
+for the purpose of easy iteration over all available S-boxes.
+
+EXAMPLE:
+
+We can print the S-Boxes with differential uniformity 2 with the following code::
+
+    sage: from sage.crypto.sboxes import sboxes
+    sage: for name, s in sboxes.iteritems():
+    ....:     if s.differential_uniformity() == 2:
+    ....:         print(name)
+    Fides_6
+    Fides_5
+    APN_6
+    SC2000_5
+    PRINTcipher
+    SEA
+
 AUTHOR:
     - Leo Perrin: initial collection of sboxes
     - Friedrich Wiemer (2017-05-12): refactored list for inclusion in SAGE

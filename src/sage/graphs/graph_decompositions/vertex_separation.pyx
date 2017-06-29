@@ -324,7 +324,7 @@ def lower_bound(G):
         sage: lower_bound(g)
         1
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -669,7 +669,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
         sage: pw, L = path_decomposition(g, algorithm = "MILP"); pw
         2
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph::
 
@@ -918,7 +918,7 @@ def vertex_separation_exp(G, verbose = False):
         sage: vertex_separation_exp(g)
         (1, [0, 1, 2, 3, 4, 5])
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -1105,7 +1105,7 @@ def is_valid_ordering(G, L):
         sage: vertex_separation.is_valid_ordering(G, [1,2])
         False
 
-    TEST:
+    TESTS:
 
     Giving anything else than a Graph or a DiGraph::
 

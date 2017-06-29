@@ -348,7 +348,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __reduce__(self):
         """
-        TEST:
+        TESTS:
 
         Note the polynomial quotient rings are not unique parent structures::
 

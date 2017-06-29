@@ -353,7 +353,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(2^32-1)
             4294967295
 
-        TEST:
+        TESTS:
 
         Make sure that a faster coercion map from the base ring is used;
         see :trac:`9944`::

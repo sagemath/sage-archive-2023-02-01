@@ -324,7 +324,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         Used for pickling.
 
-        TEST:
+        TESTS:
 
             sage: K.<a> = NumberField(x^2-13)
             sage: loads(dumps(a)) == a

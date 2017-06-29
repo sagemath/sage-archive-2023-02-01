@@ -483,7 +483,7 @@ cdef class CategoryObject(SageObject):
         """
         This is used by the variable names context manager.
 
-        TEST:
+        TESTS:
 
         In an old version, it was impossible to temporarily change
         the names if no names were previously assigned. But if one

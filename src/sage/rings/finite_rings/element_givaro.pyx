@@ -1199,7 +1199,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: ~a*a
             1
 
-        TEST:
+        TESTS:
 
         Check that trying to invert zero raises an error
         (see :trac:`12217`)::

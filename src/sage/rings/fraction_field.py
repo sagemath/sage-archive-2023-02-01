@@ -338,7 +338,7 @@ class FractionField_generic(ring.Field):
 
         -  Element of ``self``
 
-        TEST:
+        TESTS:
 
         We demonstrate that :trac:`7958` is resolved in the case of
         number fields::

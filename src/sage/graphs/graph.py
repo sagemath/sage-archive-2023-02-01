@@ -1360,7 +1360,7 @@ class Graph(GenericGraph):
             sage: Graph(':?',data_structure="sparse") == G
             True
 
-        TEST:
+        TESTS:
 
         Check that :trac:`18445` is fixed::
 
@@ -3010,7 +3010,7 @@ class Graph(GenericGraph):
             sage: g.is_perfect(certificate = True)
             Subgraph of (Petersen graph): Graph on 5 vertices
 
-        TEST:
+        TESTS:
 
         Check that :trac:`13546` has been fixed::
 

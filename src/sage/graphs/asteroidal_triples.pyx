@@ -127,7 +127,7 @@ def is_asteroidal_triple_free(G, certificate=False):
         sage: is_asteroidal_triple_free(G, certificate=True)
         (False, [0, 2, 6])
 
-    TEST:
+    TESTS:
 
     Giving anything else than a Graph::
 

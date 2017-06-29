@@ -850,7 +850,7 @@ class FriCASElement(ExpectElement):
 
             - can we somehow implement negative arguments?
 
-        TEST:
+        TESTS:
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1

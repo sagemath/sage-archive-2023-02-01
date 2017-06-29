@@ -4328,7 +4328,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -4409,7 +4409,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
                 \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 

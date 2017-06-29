@@ -233,7 +233,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                         sparse=False,
                         implementation='flint'):
         """
-        TEST:
+        TESTS:
 
         We test that in the real or complex double dense case,
         conversion from the base ring is done by a call morphism.

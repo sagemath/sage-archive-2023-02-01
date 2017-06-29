@@ -386,6 +386,10 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         """
         Compute the characteristic polynomial of self, using maxima.
 
+        INPUT:
+
+        - ``var`` - (default: 'x') name of variable of charpoly
+
         EXAMPLES::
 
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))

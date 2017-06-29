@@ -1647,7 +1647,7 @@ cdef class Matrix(Matrix1):
         # resulted in further exceptions/ errors.
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
         try:
             c = self.charpoly(var, algorithm="df")[0]
         except ValueError:

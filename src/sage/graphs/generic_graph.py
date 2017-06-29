@@ -10730,7 +10730,6 @@ class GenericGraph(GenericGraph_pyx):
             ....:
             sage: G.contract_edge(0,1); G.edges()
             [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
-            sage: G.contract_edge(0,2,4)
             sage: G.contract_edge(0,2,4); G.edges()
             [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
         """
@@ -10815,16 +10814,6 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
 
         ::
-
-            sage: G = graphs.CompleteGraph(4)
-            sage: G.allow_loops(True); G.allow_multiple_edges(True)
-            sage: for e in G.edges():
-            ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
-            ....:
-            sage: H = G.copy()
-            sage: G.contract_edges([(0,1), (0,2)]); G.edges()
-            [(0, 0, 3), (0, 3, 3), (0, 3, 4), (0, 3, 5)]
-
 
         With loops in a digraph::
 

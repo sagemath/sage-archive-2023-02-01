@@ -194,7 +194,10 @@ class InformationSetAlgorithm(SageObject):
 
         Must be overridden by sub-classes.
 
-        Shall set ``self._parameters`` and ``self._time_estimate``.
+        If ``self._parameters_specified`` is ``False``, this method shall set
+        ``self._parameters`` to the best parameters estimated. It shall always
+        set ``self._time_estimate`` to the time estimate of using
+        ``self._parameters``.
 
         EXAMPLES::
 
@@ -541,21 +544,23 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
         T = mean([ time_information_set_steps() for s in range(5) ])
         P = [ time_search_loop(p) for p in range(tau+1) ]
 
-        estimates = []
-        for p in range(tau+1):
+        def compute_estimate(p):
             iters = 1.* binomial(n, k)/ \
                 sum( binomial(n-tau, k-i)*binomial(tau,i) for i in range(p+1) )
             estimate = iters*(T + \
                 sum(P[pi] * (q-1)**pi * binomial(k, pi) for pi in range(p+1) ))
-            estimates.append(estimate)
+            return estimate
 
-        search_size = 0
-        for p in range(1, len(estimates)):
-            if estimates[p] < estimates[search_size]:
-                search_size = p
-
-        self._parameters = { 'search_size': search_size }
-        self._time_estimate = estimates[search_size]
+        if self._parameters_specified:
+            self._time_estimate = compute_estimate(self._parameters['search_size'])
+        else:
+            estimates = [ compute_estimate(p) for p in range(tau+1) ]
+            search_size = 0
+            for p in range(1, len(estimates)):
+                if estimates[p] < estimates[search_size]:
+                    search_size = p
+            self._parameters = { 'search_size': search_size }
+            self._time_estimate = estimates[search_size]
 
 
 

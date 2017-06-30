@@ -368,7 +368,7 @@ def Matroid(*args, **kwds):
 
         ::
 
-            sage: M = Matroid(G)
+            sage: G = Graph([(0, 1), (0, 2), (1, 2)])
             sage: M = Matroid(G, regular=True); M
             Regular matroid of rank 2 on 3 elements with 3 bases
 

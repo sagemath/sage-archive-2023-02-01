@@ -4376,6 +4376,23 @@ class Polyhedron_base(Element):
             sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]
             True
 
+            sage: I = Polyhedron([[-3, 0], [0, 9]])
+            sage: I.volume(measure='induced')
+            3*sqrt(10)
+            sage: I.volume(measure='induced_rational')
+            3
+
+            sage: T = Polyhedron([[3, 0, 0], [0, 4, 0], [0, 0, 5]])
+            sage: T.volume(measure='induced')
+            1/2*sqrt(769)
+            sage: T.volume(measure='induced_rational')
+            1/2
+
+            sage: P = Polyhedron(vertices=[(0, 0, 1, 1), (0, 1, 1, 0), (1, 1, 0, 0)])
+            sage: P.volume(measure='induced')
+            1
+            sage: P.volume(measure='induced_rational')
+            1/2
         """
         if measure == 'induced_rational' and engine not in ['auto', 'latte']:
             raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
@@ -4393,18 +4410,17 @@ class Polyhedron_base(Element):
             pc = triangulation.point_configuration()
             return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
         elif measure == 'induced':
-            #if polyhedron is actually full-dimensional, return volume with ambient measuren
+            # if polyhedron is actually full-dimensional, return volume with ambient measuren
             if self.dim() == self.ambient_dim():
                 return self.volume(measure='ambient', engine=engine, **kwds)
-            #use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
-            A,b = self.affine_hull(orthogonal=True, as_affine_map=True)
-            Adet = (A.matrix().transpose()*A.matrix()).det()
-            return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds)/sqrt(Adet)
+            # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
+            A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
+            Adet = (A.matrix().transpose() * A.matrix()).det()
+            return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
         elif measure == 'induced_rational':
             if self.dim() < self.ambient_dim() and engine != 'latte':
                 raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
             return self._volume_latte(**kwds)
-
 
     def integrate(self, polynomial, **kwds):
         r"""

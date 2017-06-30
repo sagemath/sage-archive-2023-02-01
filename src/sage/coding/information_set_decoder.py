@@ -28,10 +28,14 @@ AUTHORS:
 """
 
 #******************************************************************************
-#       Copyright (C) 2017 William Stein <wstein@gmail.com>
+#       Copyright (C) 2017 David Lucas <david.lucas@inria.fr>
+#                          Johan Rosenkilde <jsrn@jsrn.dk>
+#                          Yann Laigle-Chapuy
 #
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or later (at your preference).
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
@@ -40,12 +44,8 @@ from __future__ import division, print_function, absolute_import
 from six.moves import range
 from six import iteritems
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer
-from sage.modules.free_module_element import vector
+from sage.all import ZZ, Integer, vector, SageObject, binomial
 from .decoder import Decoder, DecodingError
-from sage.structure.sage_object import SageObject
-from sage.arith.all import binomial
 
 
 def _format_decoding_interval(decoding_interval):
@@ -436,7 +436,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             True
         """
         import itertools
-        from sage.misc.prandom import sample
+        from sage.all import sample
         C = self.code()
         n, k = C.length(), C.dimension()
         tau = self.decoding_interval()
@@ -509,11 +509,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             sage: A.time_estimate() #random
             0.0008162108571427874
         """
-        from sage.misc.prandom import sample
-        from sage.stats.basic_stats import mean
-        from sage.modules.free_module_element import random_vector
-        from sage.matrix.special import random_matrix
-        from sage.misc.prandom import randint
+        from sage.all import sample, mean, random_vector, random_matrix, randint
         import time
         C = self.code()
         G = C.generator_matrix()

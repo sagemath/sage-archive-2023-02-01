@@ -816,7 +816,7 @@ cdef class IndexedFreeModuleElement(Element):
                           scal(scalar, self._monomial_coefficients,
                                factor_on_left=not self_on_left))
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         For backward compatibility.
 
@@ -828,7 +828,7 @@ cdef class IndexedFreeModuleElement(Element):
         """
         return self._acted_upon_(right, True)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         For backward compatibility.
 

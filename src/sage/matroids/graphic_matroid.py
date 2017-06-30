@@ -34,6 +34,17 @@ class GraphicMatroid(Matroid):
     INPUT:
     G -- a SageMath graph
     groundset (optional) -- a list in 1-1 correspondence with G.edges()
+
+    EXAMPLES::
+
+        sage: from sage.matroids.advanced import *
+        sage: edgelist = [('a','b'),('b','c'),('c','d'),('d','a')]
+        sage: M = GraphicMatroid(Graph(edgelist))
+        sage: M.graph().edges()
+        [(0, 1, 0), (0, 3, 1), (1, 2, 2), (2, 3, 3)]
+        sage: M.is_isomorphic(Matroid(graphs.CycleGraph(4)))
+        True
+
     """
 
     def __init__(self, G, groundset = None):
@@ -53,12 +64,15 @@ class GraphicMatroid(Matroid):
 
         self._groundset = groundset_set
 
-        #Map ground set elements to graph edges:
-        self._groundset_edge_map = {x: y for (x,y) in zip(groundset, G.edges(labels=False))}
-        #Construct a graph and assign edge labels corresponding to the ground set
+        # Force vertices to be integers
+        vertex_to_integer_map = {vertex: integer for (vertex, integer) in zip(
+            G.vertices(), range(len(G.vertices())))}
+
+        # Construct a graph and assign edge labels corresponding to the ground set
         edge_list = []
         for i, e in enumerate(G.edges()):
-            edge_list.append((e[0],e[1],groundset[i]))
+            edge_list.append((vertex_to_integer_map[e[0]],
+                vertex_to_integer_map[e[1]],groundset[i]))
         self._G = Graph(edge_list, loops=True, multiedges=True)
 
         # The graph should be connected to make computations easier
@@ -70,8 +84,12 @@ class GraphicMatroid(Matroid):
             v1 = random.choice(comps[0])
             v2 = random.choice(comps[1])
             self._G.add_edge((v1, v2, None))
-            self._G.add_edge((v1, v2, None))
             contract_edge(self._G, (v1, v2, None))
+
+        # Map ground set elements to graph edges:
+        # The the edge labels should already be the elements.
+        self._groundset_edge_map = ({l: (u, v) for
+            (u, v, l) in self._G.edges()})
 
     #COPYING, LOADING, SAVING
 
@@ -98,16 +116,37 @@ class GraphicMatroid(Matroid):
         OUTPUT:
 
         The rank of `X` in the matroid.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: edgelist = [(0,0,0), (0,1,1), (0,2,2), (0,3,3), (1,2,4), (1,3,5)]
+            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.rank([0])
+            0
+            sage: M.rank([1,2])
+            2
+            sage: M.rank([1,2,4])
+            2
+            sage: M.rank(M.groundset()) == M.full_rank()
+            True
+            sage: edgelist = [(0,0,0), (1,2,1), (1,2,2), (2,3,3)]
+            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.rank(M.groundset())
+            2
+            sage: M.rank([0,3])
+            1
+
         """
-        #we get ValueErrors if loops and multiedges are not enabled
-        self._H = Graph(loops=True, multiedges=True)
-
-        for x in X:
-            self._H.add_edge(self._groundset_edge_map[x])
-            if not self._H.is_forest():
-                self._H.delete_edge(self._groundset_edge_map[x])
-
-        return len(self._H.edges())
+        edges = self.groundset_to_edges(X)
+        vertices = set([u for (u, v, l) in edges]).union(
+            set([v for (u, v, l) in edges]))
+        # This counts components:
+        from sage.sets.disjoint_set import DisjointSet
+        DS_vertices = DisjointSet(vertices)
+        for (u, v, l) in edges:
+            DS_vertices.union(u,v)
+        return (len(vertices) - DS_vertices.number_of_subsets())
 
     def groundset(self):
         """
@@ -149,8 +188,8 @@ class GraphicMatroid(Matroid):
         while cont_edges != []:
             e = cont_edges.pop()
             contract_edge(g, e)
-            del_edges = self.update_edges(e, del_edges)
-            cont_edges = self.update_edges(e, cont_edges)
+            del_edges = update_edges(e, del_edges)
+            cont_edges = update_edges(e, cont_edges)
 
         g.delete_edges(del_edges)
         #for x in deletions:
@@ -275,7 +314,7 @@ class GraphicMatroid(Matroid):
             e = edgelist.pop()
             if e not in g.loops():
                 contract_edge(g,e)
-                edgelist = self.update_edges(e, edgelist)
+                edgelist = update_edges(e, edgelist)
                 res.add(e[2])
         return frozenset(res)
 
@@ -574,14 +613,78 @@ class GraphicMatroid(Matroid):
 
         return GraphicMatroid(deepcopy(G))
 
-    def twist(self, u, v):
+    def twist(self, X):
         """
-        Performs a Whitney twist on the graph
-        and rearranges vertex sums at ``u`` and ``v``
-        if ``(u,v)`` displays a 2-separation.
+        Performs a Whitney twist on the graph if `X` is part of a
+        2-separation.
+
+        INPUT:
+
+        - ``X`` - The set of elements to be twisted with respect
+          to the rest of the matroid. The connectivity of ``X`` must be 1,
+          and deletion of the edges corresponding to the elements of ``X``
+          must not create new nontrivial components.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: edgelist = [(0,1,0), (1,2,1), (1,2,2), (2,3,3), (2,3,4), (2,3,5), (3,0,6)]
+            sage: M = GraphicMatroid(Graph(edgelist, multiedges=True))
+            sage: M1 = M.twist([0,1,2]); M1.graph().edges()
+            [(0, 1, 1), (0, 1, 2), (0, 3, 6), (1, 2, 0), (2, 3, 3), (2, 3, 4), (2, 3, 5)]
+            sage: M2 = M.twist([0,1,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: the input must display a 2-separation and not a 1-separation
+
+
         """
-        #Idea: use G.blocks_and_cut_vertices()
-        #If u and v are in the same block, check if deleting them disconnects the block
-        #If so, throw an error. If not, we can twist.
-        #If u or v is a cut vertex, things will get moved to the other side.
+        # We require two things:
+        # The connectivity of X is less than 2,
+        # and the graph M is connected if we delete X
+        if not set(X).issubset(self.groundset()):
+            raise ValueError("X must be a subset of the ground set")
+        connectivity = self.connectivity(X)
+        if connectivity != 1:
+            raise ValueError("the input must display a 2-separation "
+                + "and not a 1-separation")
+        G = self.graph()
+        X_edges = self.groundset_to_edges(X)
+        G.delete_edges(X_edges)
+        isolated_vertices = [v for v in G if G.degree(v) == 0]
+        G.delete_vertices(isolated_vertices)
+        if not G.is_connected():
+            raise ValueError("the input must be a separation of the graph")
+
+        # Determine the vertices
+        X_vertices = set([e[0] for e in X_edges]).union(
+            set([e[1] for e in X_edges]))
+        Y_edges = self.groundset_to_edges(self.groundset().difference(set(X)))
+        Y_vertices = set([e[0] for e in Y_edges]).union(
+            set([e[1] for e in Y_edges]))
+        vertices = X_vertices.intersection(Y_vertices)
+        a = list(vertices)[0]
+        b = list(vertices)[1]
+
+        edges = [(u, v, l) for (u, v, l) in X_edges if (
+            u in vertices or v in vertices)]
+        G = self.graph()
+        for (u, v, l) in edges:
+            G.delete_edge(u, v, l)
+            if u == a:
+                u = b
+            elif u == b:
+                u = a
+            if v == a:
+                v = b
+            elif v == b:
+                v = a
+            G.add_edge(u, v, l)
+        return GraphicMatroid(G)
+
+
+    def one_sum(self, X, u, v):
+        """
+        Similar to above, except rearranging blocks
+        """
         pass

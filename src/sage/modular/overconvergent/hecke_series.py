@@ -788,7 +788,7 @@ def higher_level_UpGj(p, N, klist, m, modformsring, bound, extra_data=False):
 def compute_Wi(k,p,h,hj,E4,E6):
     r"""
     This function computes a list `W_i` of q-expansions, together with an
-    auxilliary quantity `h^j` (see below) which is to be used on the next
+    auxiliary quantity `h^j` (see below) which is to be used on the next
     call of this function. (The precision is that of input q-expansions.)
 
     The list `W_i` is a certain subset of a basis of the modular forms of

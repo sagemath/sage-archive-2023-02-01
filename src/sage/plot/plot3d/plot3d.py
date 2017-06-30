@@ -213,7 +213,7 @@ class _Coordinates(object):
          - ``func`` - A function in this coordinate space. Corresponds to the
            independent variable.
 
-         - ``params`` - The parameters of func. Corresponds to the dependent
+         - ``params`` - The parameters of ``func``. Corresponds to the dependent
            variables.
 
         EXAMPLES::
@@ -266,7 +266,7 @@ class _Coordinates(object):
             sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
             [3.0, -1.0, 2.0]
 
-        The output of the function `func` is coerced to a float when
+        The output of the function ``func`` is coerced to a float when
         it is evaluated if the function is something like a lambda or
         python callable. This takes care of situations like f returning a
         singleton numpy array, for example.

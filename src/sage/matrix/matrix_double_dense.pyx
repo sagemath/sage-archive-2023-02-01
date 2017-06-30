@@ -16,8 +16,8 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: b=Mat(RDF,2,3).basis()
-    sage: b[0]
+    sage: b = Mat(RDF,2,3).basis()
+    sage: b[0,0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
 

@@ -1342,7 +1342,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Px._miller_(2*Px,41)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         A small example of embedding degree 6::
 

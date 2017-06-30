@@ -716,6 +716,41 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return not self.killing_form_matrix().is_singular()
 
+        def as_finite_dimensional_algebra(self):
+            """
+            Return ``self`` as a :class:`FiniteDimensionalAlgebra`.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.cross_product(QQ)
+                sage: x,y,z = L.basis()
+                sage: F = L.as_finite_dimensional_algebra()
+                sage: X,Y,Z = F.basis()
+                sage: x.bracket(y)
+                Z
+                sage: X * Y
+                Z
+            """
+            K = self._basis_ordering
+            B = self.basis()
+            mats = []
+            R = self.base_ring()
+            S = dict(self.structure_coefficients())
+            V = self._dense_free_module()
+            zero_vec = V.zero()
+            for k in K:
+                M = []
+                for kp in K:
+                    if (k, kp) in S:
+                        M.append( -S[k,kp].to_vector() )
+                    elif (kp, k) in S:
+                        M.append( S[kp,k].to_vector() )
+                    else:
+                        M.append( zero_vec )
+                mats.append(matrix(R, M))
+            from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra
+            return FiniteDimensionalAlgebra(R, mats, names=self._names)
+
     class ElementMethods:
         def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a mophism
             """

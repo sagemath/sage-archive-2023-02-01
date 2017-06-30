@@ -116,6 +116,7 @@ from .rank_matroid import RankMatroid
 from .circuit_closures_matroid import CircuitClosuresMatroid
 from .basis_matroid import BasisMatroid
 from .linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from .graphic_matroid import GraphicMatroid
 import sage.matroids.utilities
 from networkx import NetworkXError
 
@@ -343,8 +344,33 @@ def Matroid(*args, **kwds):
 
             sage: G = graphs.PetersenGraph()
             sage: Matroid(G)
-            Regular matroid of rank 9 on 15 elements with 2000 bases
+            Graphic matroid of rank 9 on 15 elements.
 
+        If each edge has a unique label, then those are used as the ground set
+        labels::
+
+            sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')])
+            sage: M = Matroid(G)
+            sage: sorted(M.groundset())
+            ['a', 'b', 'c']
+
+        If there is not a complete list of labels, or the labels are not unique,
+        integers are used instead::
+
+            sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'b')])
+            sage: M = Matroid(G)
+            sage: sorted(M.groundset())
+            [0, 1, 2]
+
+
+        If the keyword ``regular`` is set to ``True``, the output will instead
+        be an instance of ``RegularMatroid.``
+
+        ::
+
+            sage: M = Matroid(G)
+            sage: M = Matroid(G, regular=True); M
+            Regular matroid of rank 2 on 3 elements with 3 bases
 
         Note: if a groundset is specified, we assume it is in the same order
         as
@@ -356,7 +382,7 @@ def Matroid(*args, **kwds):
             sage: M.rank(['b', 'c'])
             1
 
-        If no groundset is provided, we attempt to use the edge labels::
+        If no ground set is provided, we attempt to use the edge labels::
 
             sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')])
             sage: M = Matroid(G)
@@ -702,35 +728,41 @@ def Matroid(*args, **kwds):
         # 1) we would need to fix the loops anyway
         # 2) Sage will sort the columns, making it impossible to keep labels!
         G = kwds['graph']
-        if not isinstance(G, sage.graphs.generic_graph.GenericGraph):
-            try:
-                G = Graph(G)
-            except (ValueError, TypeError, NetworkXError):
-                raise ValueError("input does not seem to represent a graph.")
-        V = G.vertices()
-        E = G.edges()
-        n = G.num_verts()
-        m = G.num_edges()
-        A = Matrix(ZZ, n, m, 0)
-        mm = 0
-        for i, j, k in G.edge_iterator():
-            A[V.index(i), mm] = -1
-            A[V.index(j), mm] += 1  # So loops get 0
-            mm += 1
-        # Decide on the groundset
-        if 'groundset' not in kwds:
-            # 1. Attempt to use edge labels.
-            sl = G.edge_labels()
-            if len(sl) == len(set(sl)):
-                kwds['groundset'] = sl
-                # 2. If simple, use vertex tuples
-            elif not G.has_multiple_edges():
-                kwds['groundset'] = [(i, j) for i, j, k in G.edge_iterator()]
-            else:
-                # 3. Use numbers
-                kwds['groundset'] = list(range(m))
-        M = RegularMatroid(matrix=A, groundset=kwds['groundset'])
-        want_regular = False  # Save some time, since result is already regular
+        if want_regular:
+            V = G.vertices()
+            E = G.edges()
+            n = G.num_verts()
+            m = G.num_edges()
+            A = Matrix(ZZ, n, m, 0)
+            mm = 0
+            for i, j, k in G.edge_iterator():
+                A[V.index(i), mm] = -1
+                A[V.index(j), mm] += 1  # So loops get 0
+                mm += 1
+            # Decide on the groundset
+            if 'groundset' not in kwds:
+                # 1. Attempt to use edge labels.
+                sl = G.edge_labels()
+                if len(sl) == len(set(sl)):
+                    kwds['groundset'] = sl
+                    # 2. If simple, use vertex tuples
+                elif not G.has_multiple_edges():
+                    kwds['groundset'] = [(i, j) for i, j, k in G.edge_iterator()]
+                else:
+                    # 3. Use numbers
+                    kwds['groundset'] = list(range(m))
+            M = RegularMatroid(matrix=A, groundset=kwds['groundset'])
+            want_regular = False  # Save some time, since result is already regular
+        else:
+            if not isinstance(G, sage.graphs.generic_graph.GenericGraph):
+                try:
+                    G = Graph(G)
+                except (ValueError, TypeError, NetworkXError):
+                    raise ValueError("input does not seem to represent a graph.")
+            if 'groundset' not in kwds:
+                # Let GraphicMatroid.__init__() handle this for now
+                kwds['groundset'] = None
+            M = GraphicMatroid(G, groundset=kwds['groundset'])
 
     # Matrices:
     if 'matrix' in kwds or 'reduced_matrix' in kwds:

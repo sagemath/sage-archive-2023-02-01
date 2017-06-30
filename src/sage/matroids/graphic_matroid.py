@@ -42,7 +42,7 @@ class GraphicMatroid(Matroid):
         sage: M = GraphicMatroid(Graph(edgelist))
         sage: M.graph().edges()
         [(0, 1, 0), (0, 3, 1), (1, 2, 2), (2, 3, 3)]
-        sage: M.is_isomorphic(Matroid(graphs.CycleGraph(4)))
+        sage: M.is_isomorphic(matroids.Uniform(3,4))
         True
 
     """
@@ -57,8 +57,9 @@ class GraphicMatroid(Matroid):
 
         groundset_set = frozenset(groundset)
 
-        #if the provided ground set is incomplete, it gets overwriten
-        if len(groundset_set) != G.num_edges():
+        # if the provided ground set is incomplete, it gets overwriten
+        # invalidate `None` as label
+        if len(groundset_set) != G.num_edges() or None in groundset_set:
             groundset = range(G.num_edges())
             groundset_set = frozenset(groundset)
 
@@ -96,11 +97,17 @@ class GraphicMatroid(Matroid):
     def __copy__(self):
         """
         Create a shallow copy.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.RandomGNP(5,.5))
+            sage: N = copy(M)
+            sage: M == N
+            True
         """
         return GraphicMatroid(self._G)
-        # something about name wrangling?
-
-
+        if getattr(self, '__custom_name') is not None:  # because of name wrangling, this is not caught by the default copy
+            N.rename(getattr(self, '__custom_name'))
 
     def _rank(self, X):
         """
@@ -128,8 +135,8 @@ class GraphicMatroid(Matroid):
             2
             sage: M.rank([1,2,4])
             2
-            sage: M.rank(M.groundset()) == M.full_rank()
-            True
+            sage: M.rank(M.groundset())
+            3
             sage: edgelist = [(0,0,0), (1,2,1), (1,2,2), (2,3,3)]
             sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
             sage: M.rank(M.groundset())
@@ -158,7 +165,7 @@ class GraphicMatroid(Matroid):
         """
         Returns a graph that has a cycle matroid equal to the matroid.
         """
-        return copy(self._G)
+        return self._G.copy()
 
     def _repr_(self):
         """
@@ -167,7 +174,7 @@ class GraphicMatroid(Matroid):
         self._mrank = str(self._rank(self._groundset))
         self._elts = str(len(self._groundset))
 
-        return "A graphic matroid of rank " + self._mrank + " on " + self._elts + " elements."
+        return "Graphic matroid of rank " + self._mrank + " on " + self._elts + " elements."
 
     def _minor(self, contractions=frozenset([]), deletions=frozenset([])):
         """
@@ -197,7 +204,7 @@ class GraphicMatroid(Matroid):
 
             #self._new_G.delete_edge(self._edge)
 
-        return GraphicMatroid(deepcopy(g))
+        return GraphicMatroid(g)
 
     def _has_minor(self, N, certificate = False):
         """

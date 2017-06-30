@@ -54,6 +54,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 import sys
 import operator
+import fractions
 
 from sage.misc.mathml import mathml
 from sage.misc.long cimport pyobject_to_long
@@ -390,6 +391,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: QQ(RDF(1.2))
         6/5
 
+    Conversion from fractions::
+
+        sage: import fractions
+        sage: f = fractions.Fraction(1r, 2r)
+        sage: Rational(f)
+        1/2
+
     Conversion from PARI::
 
         sage: Rational(pari('-939082/3992923'))
@@ -541,6 +549,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
+
+        elif isinstance(x, fractions.Fraction):
+            mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
+            mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
 
         elif isinstance(x, sage.rings.real_mpfr.RealNumber):
 

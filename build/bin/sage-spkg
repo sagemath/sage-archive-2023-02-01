@@ -693,8 +693,17 @@ fi
 for script in build install check; do
     if [ -f "spkg-$script" ]; then
         if [ -x "spkg-$script" ]; then
-            echo >&2 "WARNING: spkg-$script should not be marked executable"
-            echo >&2 "in the build/pkgs directory."
+            msg="spkg-$script should not be marked executable in the \
+                build/pkgs directory"
+            if [ "$UNAME" = "CYGWIN" ]; then
+                # On Cygwin we can't neecessarily rely on file permissions
+                # being sane, so just issue a warning; on other platforms
+                # this should be enforsed as an error
+                echo >&2 "WARNING: $msg"
+            else
+                error_msg "$msg"
+                exit 1
+            fi
         fi
 
         write_script_wrapper $(pwd)/"spkg-$script"

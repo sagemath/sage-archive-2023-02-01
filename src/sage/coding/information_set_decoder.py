@@ -24,11 +24,11 @@ AUTHORS:
 
 - David Lucas, Johan Rosenkilde, Yann Laigle-Chapuy (2016-02, 2017-06): initial
   version
+
 """
 
 #******************************************************************************
-#       Copyright (C) 2005 David Joyner <wdjoyner@gmail.com>
-#                     2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2017 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your preference).
@@ -70,7 +70,7 @@ def _format_decoding_interval(decoding_interval):
     return "between {0} and {1}".format(decoding_interval[0], decoding_interval[1])
 
 class InformationSetAlgorithm(SageObject):
-    """
+    r"""
     Abstract class for algorithms for
     :class:`sage.coding.information_set_decoder.LinearCodeInformationSetDecoder`.
 
@@ -82,8 +82,8 @@ class InformationSetAlgorithm(SageObject):
     - ``code`` -- A linear code for which to decode.
 
     - ``number_errors`` -- an integer, the maximal number of errors to accept as
-    correct decoding. An interval can also be specified by giving a pair of
-    integers, where both end values are taken to be in the interval.
+      correct decoding. An interval can also be specified by giving a pair of
+      integers, where both end values are taken to be in the interval.
 
     - ``algorithm_name`` -- A name for the specific ISD algorithm used (used for
       printing).
@@ -91,31 +91,37 @@ class InformationSetAlgorithm(SageObject):
     - ``parameters`` -- (optional) A dictionary for setting the parameters of
       this ISD algorithm. Note that sanity checking this dictionary for the
       individual sub-classes should be done in the sub-class constructor.
+
+    EXAMPLES::
+
+        sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+        sage: LeeBrickellISDAlgorithm(codes.GolayCode(GF(2)), (0,4))
+        ISD Algorithm (Lee-Brickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 4 errors
+
+    A minimal working example of how to sub-class::
+
+        sage: from sage.coding.information_set_decoder import InformationSetAlgorithm
+        sage: from sage.coding.decoder import DecodingError
+        sage: class MinimalISD(InformationSetAlgorithm):
+        ....:     def __init__(self, code, decoding_interval):
+        ....:         super(MinimalISD, self).__init__(code, decoding_interval, "MinimalISD")
+        ....:     def calibrate(self):
+        ....:         self._parameters = { } # calibrate parameters here
+        ....:         self._time_estimate = 10.0  # calibrated time estimate
+        ....:     def decode(self, r):
+        ....:         # decoding algorithm here
+        ....:         raise DecodingError("I failed")
+        sage: MinimalISD(codes.GolayCode(GF(2)), (0,4))
+        ISD Algorithm (MinimalISD) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 4 errors
     """
 
     def __init__(self, code, decoding_interval, algorithm_name, parameters = None):
         r"""
-        EXAMPLES:
+        TESTS::
 
             sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
             sage: LeeBrickellISDAlgorithm(codes.GolayCode(GF(2)), (0,4))
             ISD Algorithm (Lee-Brickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 4 errors
-
-        A minimal working example of how to sub-class::
-
-            sage: from sage.coding.information_set_decoder import InformationSetAlgorithm
-            sage: from sage.coding.decoder import DecodingError
-            sage: class MinimalISD(InformationSetAlgorithm):
-            ....:     def __init__(self, code, decoding_interval):
-            ....:         super(MinimalISD, self).__init__(code, decoding_interval, "MinimalISD")
-            ....:     def calibrate(self):
-            ....:         self._parameters = { } # calibrate parameters here
-            ....:         self._time_estimate = 10.0  # calibrated time estimate
-            ....:     def decode(self, r):
-            ....:         # decoding algorithm here
-            ....:         raise DecodingError("I failed") 
-            sage: MinimalISD(codes.GolayCode(GF(2)), (0,4))
-            ISD Algorithm (MinimalISD) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 4 errors
         """
         self._code = code
         self._decoding_interval = decoding_interval
@@ -188,7 +194,7 @@ class InformationSetAlgorithm(SageObject):
 
         Must be overridden by sub-classes.
 
-        Shall set `self._parameters` and `self._time_estimate`.
+        Shall set ``self._parameters`` and ``self._time_estimate``.
 
         EXAMPLES::
 
@@ -322,12 +328,12 @@ class InformationSetAlgorithm(SageObject):
 
 class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
     r"""
-    The Lee--Brickell algorithm for information-set decoding
+    The Lee-Brickell algorithm for information-set decoding.
 
     For a description of the information-set decoding paradigm (ISD), see
-    :func:`sage.coding.LinearCodeInformationSetDecoder`.
+    :class:`sage.coding.information_set_decoder.LinearCodeInformationSetDecoder`.
 
-    This implements the Lee--Brickell variant of ISD, see [LB1988] for the
+    This implements the Lee-Brickell variant of ISD, see [LB1988] for the
     original binary case, and [Pet10] for the `q`-ary extension.
 
     Let `C` be a `[n, k]`-linear code over `GF(q)`, and let `r \in GF(q)^{n}` be
@@ -335,20 +341,20 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
     distance from `r` is minimal. Let `p` and `w` be integers, such that `0\leq
     p\leq w`, Let `G` be a generator matrix of `C`, and for any set of indices
     `I`, we write `G_{I}` for the matrix formed by the columns of `G` indexed by
-    `I`. The Lee--Brickell ISD loops the following until it is successful:
+    `I`. The Lee-Brickell ISD loops the following until it is successful:
 
         1. Choose an information set `I` of `C`.
         2. Compute `r' = r - r_{I}\times G_I^{-1} \times G`
         3. Consider every size-`p` subset of `I`, `\{a_1, \dots, a_p\}`.
            For each `m = (m_1, \dots, m_p) \in GF(q)^{p}`, compute
            the error vector `e = r' - \sum_{i=1}^{p} m_i\times g_{a_i}`,
-        4. If `e` has a Hamming weight at most `w`, return `y-e`.
+        4. If `e` has a Hamming weight at most `w`, return `r-e`.
 
     INPUT:
 
     - ``code`` -- A linear code for which to decode.
 
-    - ``decoding_interval`` -- an pair of integers specifying an interval of
+    - ``decoding_interval`` -- a pair of integers specifying an interval of
       number of errors to correct. Includes both end values.
 
     - ``search_size`` -- (optional) the size of subsets to use on step 3 of the
@@ -410,7 +416,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
         - `r` -- a received word, i.e. a vector in the ambient space of
           :meth:`decoder.Decoder.code`.
 
-        OUTPUT: A codeword whose distance to `r` satisfies `self.decoding_interval()`.
+        OUTPUT: A codeword whose distance to `r` satisfies ``self.decoding_interval()``.
 
         EXAMPLES::
 
@@ -468,9 +474,11 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
         average expected time is minimal. The algorithm succeeds when it chooses
         an information set with at least `k - p` correct positions, where `k` is
         the dimension of the code and `p` the search size. The expected number
-        of trials we need before this occurs is::
+        of trials we need before this occurs is:
 
-            binom{n}{k}/(\rho \sum_{i=0}^p \binom{n-\tau}{k-i}\binom{\tau}{i})
+        .. MATH::
+
+            \binom{n}{k}/(\rho \sum_{i=0}^p \binom{n-\tau}{k-i} \binom{\tau}{i})
 
         Here `\rho` is the fraction of `k` subsets of indices which are
         information sets. If `T` is the average time for steps 1 and 2
@@ -482,7 +490,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
 
         The values `T` and `P` are here estimated by running a few test
         computations similar to those done by the decoding algorithm.
-        We don't explicitly estimate `rho`.
+        We don't explicitly estimate `\rho`.
 
         OUTPUT: Does not output anything but sets private fields used by
         :meth:`sage.coding.information_set_decoder.InformationSetAlgorithm.parameters()`
@@ -583,7 +591,7 @@ class LinearCodeInformationSetDecoder(Decoder):
     parameters directly to this class' constructor. If you don't, efficient
     choices will be calibrated for you.
 
-    WARNING::
+    .. WARNING::
 
         If there is no codeword within the specified decoding distance, then the
         decoder may never terminate, or it may raise a
@@ -611,10 +619,10 @@ class LinearCodeInformationSetDecoder(Decoder):
       :meth:`sage.coding.information_set_decoder.LinearCodeInformationSetDecoder.algorithm`,
       and then reading the `?` help on the constructed object.
 
-    EXAMPLES::
+    EXAMPLES:
 
     The principal way to access this class is through the
-    :meth:`sage.code.linear_code.AbstractLinearCode.decoder` method:
+    :meth:`sage.code.linear_code.AbstractLinearCode.decoder` method::
 
         sage: C = codes.GolayCode(GF(3))
         sage: D = C.decoder("InformationSet", 2); D
@@ -737,9 +745,9 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
-        sage: sorted(LinearCodeInformationSetDecoder.known_algorithms())
-        ['Lee-Brickell']
+            sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+            sage: sorted(LinearCodeInformationSetDecoder.known_algorithms())
+            ['Lee-Brickell']
         """
         d = {
             "Lee-Brickell": LeeBrickellISDAlgorithm
@@ -754,6 +762,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         Return the ISD algorithm used by this ISD decoder.
 
         EXAMPLES::
+
             sage: C = codes.GolayCode(GF(2))
             sage: D = C.decoder("InformationSet", (2,4), "Lee-Brickell")
             sage: D.algorithm()
@@ -765,7 +774,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         r"""
         Decodes a received word with respect to the associated code of this decoder.
 
-        WARNING:
+        .. WARNING::
 
         If there is no codeword within the decoding radius of this decoder, this
         method may never terminate, or it may raise a
@@ -800,8 +809,8 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: D = C.decoder('InformationSet', 2, algorithm="Lee-Brickell")
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
-            sage: y = Chan(c)
-            sage: D.decode_to_code(y) in C
+            sage: r = Chan(c)
+            sage: D.decode_to_code(r) in C
             True
         """
         C = self.code()
@@ -824,11 +833,10 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     def decoding_interval(self):
         r"""
-         A pair of integers specifying the interval of number of errors this
-         decoder will attempt to correct.
+        A pair of integers specifying the interval of number of errors this
+        decoder will attempt to correct.
 
-         The interval includes both end values.
-
+        The interval includes both end values.
 
         EXAMPLES::
 

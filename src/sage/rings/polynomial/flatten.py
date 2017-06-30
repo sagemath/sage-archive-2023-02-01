@@ -426,15 +426,15 @@ class SpecializationMorphism(Morphism):
             raise ValueError("domain should be a polynomial ring")
 
         phi = FlatteningMorphism(domain)
+        base = phi.codomain().base_ring()
+        if not all(c in base for c in D.values()):
+            raise ValueError("values must be in base ring")
+
         newD = dict()
-        for k in D.keys():
+        for k in D:
             newD[phi(k)] = D[k]
         self._im_dict = newD
         self._flattening_morph = phi
-
-        base = phi.codomain().base_ring()
-        if not all([c in base for c in D.values()]):
-            raise ValueError("values must be in base ring")
 
         #make unflattened codomain
         old_vars = []
@@ -442,18 +442,20 @@ class SpecializationMorphism(Morphism):
         while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
             old_vars.append([ring.gens(), is_MPolynomialRing(ring)])
             ring = ring.base_ring()
-        new_vars = [[[t for t in v if t not in newD.keys()], b] for v,b in old_vars]
+        new_vars = [[[t for t in v if t not in newD], b] for v,b in old_vars]
         new_vars.reverse()
         old_vars.reverse()
         R = ring.base_ring()
-        new_gens=[]
-        for i in range(len(new_vars)):
-            if new_vars[i][0] != []:
+        new_gens = []
+        for i,v in enumerate(new_vars):
+            if v[0]:
+                # Pass in the names of the variables
+                var_names = [str(var) for var in v[0]]
                 #check to see if it should be multi or univariate
-                if not new_vars[i][1] or (len(new_vars[i][0])==1 and len(old_vars[i][0])>1):
-                    R = PolynomialRing(R, new_vars[i][0])
+                if not v[1] or (len(v[0]) == 1 and len(old_vars[i][0]) > 1):
+                    R = PolynomialRing(R, var_names)
                 else:
-                    R = PolynomialRing(R, new_vars[i][0], len(new_vars[i][0]))
+                    R = PolynomialRing(R, var_names, len(v[0]))
                 new_gens.extend(list(R.gens()))
         old_gens = [t for v in new_vars for t in v]
 
@@ -461,7 +463,7 @@ class SpecializationMorphism(Morphism):
         vals = []
         ind = 0
         for t in phi.codomain().gens():
-            if t in newD.keys():
+            if t in newD:
                 vals.append(newD[t])
             else:
                 vals.append(new_gens[ind])

@@ -5978,7 +5978,7 @@ class Polyhedron_base(Element):
             # check that translation didn't change the order of the vertices
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
             # switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly

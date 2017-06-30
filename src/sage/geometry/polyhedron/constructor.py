@@ -424,14 +424,16 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         setting of cdd.
 
 
-    .. TESTS:
+    TESTS:
 
-    Checking that giving float input gets converted to `\RDF`, see :trac:`22605`::
+    Check that giving ``float`` and ``int`` input gets converted to `\RDF`,
+    see :trac:`22605`::
 
         sage: f = float(1.1)
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
-
+        sage: Polyhedron(vertices=[[int(42)]])
+        A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)

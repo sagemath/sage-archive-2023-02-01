@@ -25,7 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 from __future__ import absolute_import, division
-from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
+from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandelbrot_plot
 from sagenb.notebook.interact import interact
 from sagenb.notebook.interact import slider
 from sagenb.notebook.interact import input_box
@@ -135,9 +135,9 @@ def mandelbrot_plot(**kwds):
             color_num=input_box(number_of_colors, 'Number of Colors'),
             image_color=color_selector(default=Color([j/255 for j in base_color]),
              label="Image Color", hide_box=True)):
-            return fast_mandel_plot(real_center, im_center, width, iterations,
+            return fast_mandelbrot_plot(real_center, im_center, width, iterations,
              pixel_count, level_sep, color_num, image_color).show()
 
     else:
-        return fast_mandel_plot(x_center, y_center, image_width, max_iteration,
+        return fast_mandelbrot_plot(x_center, y_center, image_width, max_iteration,
          pixel_count, iteration_level, number_of_colors, base_color)

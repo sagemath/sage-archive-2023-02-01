@@ -25,7 +25,7 @@ from sage.repl.image import Image
 from copy import copy
 from cysignals.signals cimport sig_check
 
-def fast_mandel_plot(double x_center, double y_center, double image_width,
+def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
  long max_iteration, long pixel_count, long level_sep, long color_num, base_color):
 
     r"""
@@ -57,14 +57,14 @@ def fast_mandel_plot(double x_center, double y_center, double image_width,
 
     Plot the Mandelbrot set with the center point `-1 + 0i`::
 
-        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
-        sage: fast_mandel_plot(-1, 0, 4, 500, 600, 1, 20, [40, 40, 40]) # long time
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandelbrot_plot
+        sage: fast_mandelbrot_plot(-1, 0, 4, 500, 600, 1, 20, [40, 40, 40]) # long time
         600x600px 24-bit RGB image
 
     We can focus on smaller parts of the set by adjusting image_width::
 
-        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandel_plot
-        sage: fast_mandel_plot(-1.11, 0.2283, 1/128, 2000, 500, 1, 500, [40, 100, 100]) # long time
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandelbrot_plot
+        sage: fast_mandelbrot_plot(-1.11, 0.2283, 1/128, 2000, 500, 1, 500, [40, 100, 100]) # long time
         500x500px 24-bit RGB image
     """
 

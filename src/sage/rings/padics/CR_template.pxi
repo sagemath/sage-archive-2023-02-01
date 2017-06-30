@@ -1452,7 +1452,7 @@ cdef class CRElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``x`` -- string, the variable name for the polynomial
+        - ``var`` -- string, the variable name for the polynomial
 
         EXAMPLES::
 

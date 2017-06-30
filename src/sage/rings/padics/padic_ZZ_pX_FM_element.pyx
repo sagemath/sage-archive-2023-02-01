@@ -1134,6 +1134,26 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ans.x = self.value
         return ans
 
+    def polynomial(self, var='x'):
+        """
+        Returns a polynomial over the base ring that yields this element
+        when evaluated at the generator of the parent.
+
+        INPUT:
+
+        - ``var`` -- string, the variable name for the polynomial
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = ZpFM(5).extension(x^2 - 5)
+            sage: (w + 5).polynomial()
+            (1 + O(5^20))*x + (5 + O(5^20))
+        """
+        R = self.base_ring()
+        S = R[var]
+        return S([Integer(c) for c in self._ntl_rep().list()])
+
     cdef ZZ_p_c _const_term(self):
         """
         Returns the constant term of ``self.unit``.

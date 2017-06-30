@@ -741,8 +741,6 @@ cdef class CAElement(pAdicTemplateElement):
         """
         Returns a list of coefficients of `p` starting with `p^0`.
 
-        NOTES:
-
         For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as
 
@@ -986,7 +984,7 @@ cdef class CAElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``x`` -- string, the variable name for the polynomial
+        - ``var`` -- string, the variable name for the polynomial
 
         EXAMPLES::
 

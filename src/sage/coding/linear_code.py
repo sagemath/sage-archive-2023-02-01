@@ -316,10 +316,10 @@ def _explain_constructor(cl):
     sage: _explain_constructor(cl)
     "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
 
-    sage: from sage.coding.isd_decoding import LinearCodeInformationSetDecoder
+    sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
     sage: cl = LinearCodeInformationSetDecoder
     sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.isd_decoding.LinearCodeInformationSetDecoder for more details."
+    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
     if inspect.isclass(cl):
@@ -539,7 +539,7 @@ class AbstractLinearCode(Module):
         self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
-        from sage.coding.isd_decoding import LinearCodeInformationSetDecoder
+        from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
         self._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 
         if not isinstance(length, (int, Integer)):
@@ -1481,7 +1481,7 @@ class AbstractLinearCode(Module):
             The constructor requires the arguments ['number_errors'].
             It takes the optional arguments ['algorithm'].
             It accepts unspecified arguments as well.
-            See the documentation of sage.coding.isd_decoding.LinearCodeInformationSetDecoder for more details.
+            See the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details.
 
         """
         if decoder_name is None:

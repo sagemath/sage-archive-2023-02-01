@@ -79,7 +79,7 @@ class AbstractInformationSetDecoder(Decoder):
 
     It is straightforward to define your own::
 
-        sage: from sage.coding.isd_decoding import AbstractInformationSetDecoder
+        sage: from sage.coding.information_set_decoder import AbstractInformationSetDecoder
         sage: class MinimalISD(AbstractInformationSetDecoder):
         ....:   def __init__(self, code, number_errors):
         ....:       super(MinimalISD, self).__init__(code, number_errors, "MyISD")
@@ -284,7 +284,7 @@ class LinearCodeISD_LeeBrickell(AbstractInformationSetDecoder):
         sage: D
         Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
 
-        sage: from sage.coding.isd_decoding import LinearCodeISD_LeeBrickell
+        sage: from sage.coding.information_set_decoder import LinearCodeISD_LeeBrickell
         sage: C = codes.GolayCode(GF(2))
         sage: D = LinearCodeISD_LeeBrickell(C, 3)
         sage: D
@@ -323,7 +323,7 @@ class LinearCodeISD_LeeBrickell(AbstractInformationSetDecoder):
         EXAMPLES::
 
             sage: C = codes.GolayCode(GF(2))
-            sage: from sage.coding.isd_decoding import LinearCodeISD_LeeBrickell
+            sage: from sage.coding.information_set_decoder import LinearCodeISD_LeeBrickell
             sage: D = LinearCodeISD_LeeBrickell(C, 4)
             sage: D == LinearCodeISD_LeeBrickell(C, 4)
             True
@@ -484,7 +484,7 @@ class LinearCodeISD_LeeBrickell(AbstractInformationSetDecoder):
 
         EXAMPLES::
 
-            sage: from sage.coding.isd_decoding import LinearCodeISD_LeeBrickell
+            sage: from sage.coding.information_set_decoder import LinearCodeISD_LeeBrickell
             sage: C = codes.GolayCode(GF(2))
             sage: D = LinearCodeISD_LeeBrickell(C, 3); D
             Information set decoder (LeeBrickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
@@ -630,7 +630,7 @@ def LinearCodeInformationSetDecoder(code, number_errors, algorithm=None, **kwarg
 
     If you specify an algorithm which is not known, you get a friendly error message::
 
-        sage: from sage.coding.isd_decoding import LinearCodeInformationSetDecoder
+        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
         sage: D = LinearCodeInformationSetDecoder(C, 2, algorithm="NoSuchThing"); D
         Traceback (most recent call last):
         ...
@@ -641,7 +641,7 @@ def LinearCodeInformationSetDecoder(code, number_errors, algorithm=None, **kwarg
         sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2); D
         Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
 
-        sage: from sage.coding.isd_decoding import LinearCodeInformationSetDecoder
+        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
         sage: D = LinearCodeInformationSetDecoder(C, 2); D
         Information set decoder (LeeBrickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
     """

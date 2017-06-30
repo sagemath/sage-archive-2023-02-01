@@ -1184,8 +1184,6 @@ cdef class CRElement(pAdicTemplateElement):
         self in terms of the uniformizer `\pi`.  If this is a field element, they start at
         `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
 
-        NOTES:
-
         For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as
 

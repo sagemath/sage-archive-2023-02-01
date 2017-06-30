@@ -96,7 +96,9 @@ from sage.categories.morphism import IdentityMorphism
 from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
 import traceback
+
 from fractions import Fraction
+cdef type FractionType = <type>Fraction
 
 cpdef py_scalar_parent(py_type):
     """
@@ -142,7 +144,7 @@ cpdef py_scalar_parent(py_type):
     if issubclass(py_type, int) or issubclass(py_type, long):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
-    if issubclass(py_type, Fraction):
+    if py_type is FractionType:
         import sage.rings.rational_field
         return sage.rings.rational_field.QQ
     elif issubclass(py_type, float):
@@ -228,7 +230,7 @@ cpdef py_scalar_to_element(x):
     elif isinstance(x, int):
         from sage.rings.integer import Integer
         return Integer(x)
-    elif isinstance(x, Fraction):
+    elif type(x) is FractionType:
         from sage.rings.rational import Rational
         return Rational(x)
     elif isinstance(x, float):

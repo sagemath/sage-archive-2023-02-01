@@ -19,31 +19,33 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, division
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from copy import copy
+from cysignals.signals cimport sig_check
 
-def fast_mandel_plot(float x_center, float y_center, float image_width,
- int max_iteration, int pixel_count, int level_sep, int color_num, base_color):
+def fast_mandel_plot(double x_center, double y_center, double image_width,
+ long max_iteration, long pixel_count, long level_sep, long color_num, base_color):
 
     r"""
     Plots the Mandelbrot set in the complex plane for the map `Q_c(z) = z^2 + c`.
 
     INPUT:
 
-    - ``x_center`` -- float, real part of the center point in the complex plane.
+    - ``x_center`` -- double, real part of the center point in the complex plane.
 
-    - ``y_center`` -- float, imaginary part of the center point in the complex plane.
+    - ``y_center`` -- double, imaginary part of the center point in the complex plane.
 
-    - ``image_width`` -- float, width of the image in the complex plane.
+    - ``image_width`` -- double, width of the image in the complex plane.
 
-    - ``max_iteration`` -- int, maximum number of iterations the map `f(z)` considered.
+    - ``max_iteration`` -- long, maximum number of iterations the map `f(z)` considered.
 
-    - ``pixel_count`` -- int, side length of image in number of pixels.
+    - ``pixel_count`` -- long, side length of image in number of pixels.
 
-    - ``level_sep`` -- int, number of iterations between each color level
+    - ``level_sep`` -- long, number of iterations between each color level
 
-    - ``color_num`` -- int, number of colors used to plot image
+    - ``color_num`` -- long, number of colors used to plot image
 
     - ``base_color`` -- list, RGB color used to determine the coloring of set.
 
@@ -66,9 +68,9 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
         500x500px 24-bit RGB image
     """
 
-    cdef int color_value, row, col, iteration, i, j
-    cdef float new_x, new_y, x_coor, y_coor
-    cdef color_list, M, pixel
+    cdef long i, j, row, col, level, color_value, iteration
+    cdef double k, x_step, y_step, scale_factor, x_coor, y_coor, new_x, new_y
+    cdef M, pixel, color_list
 
     # Make sure image_width is positive
     image_width = abs(image_width)
@@ -80,11 +82,15 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
     # Take the given base color and create a list of evenly spaced
     # colors between the given base color and white. The number of
     # colors in the list depends on the variable color_num.
+    if type(base_color) == Color:
+        # Convert Color to RGB list
+        base_color = [int(k*255) for k in base_color]
     color_list = []
     for i in range(color_num):
+        sig_check()
         color_list.append(copy(base_color))
         for j in range(3):
-            color_list[i][j] += i * (255 - color_list[i][j]) / color_num
+            color_list[i][j] += i * (255 - color_list[i][j]) // color_num
         color_list[i] = tuple(color_list[i])
 
     # Loop through each pixel in the image and convert it to a point
@@ -93,8 +99,10 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
     x_step = x_center - image_width/2
     y_step = - y_center - image_width/2
     for row in range(pixel_count):
+        sig_check()
         x_coor = row*scale_factor + x_step
         for col in range(pixel_count):
+            sig_check()
             y_coor = col*scale_factor + y_step
 
             # We compute the orbit of 0 under the map Q(z) = z^2 + c
@@ -103,18 +111,19 @@ def fast_mandel_plot(float x_center, float y_center, float image_width,
             new_x, new_y = 0.0, 0.0
             iteration = 0
             while (new_x**2 + new_y**2 <= 4.0 and iteration < max_iteration):
+                sig_check()
                 new_x, new_y = new_x**2 - new_y**2 + x_coor, \
                  2*new_x*new_y + y_coor
                 iteration += 1
 
             # If the point escapes to infinity, assign the point a color
-            # based on how fast it escapes. The faster the point escapes
-            # to infinity, the darker its color will be. Otherwise, assume
-            # the point is in the Mandelbrot set and leave it black.
+            # based on how fast it escapes. The more iterations it takes for
+            # a point to escape to infinity, the lighter its color will be.
+            # Otherwise, assume the point is in the Mandelbrot set and leave
+            # it black.
             if iteration != max_iteration:
                 # Assign each point a level based on its number of iterations.
-                level = iteration / level_sep
-
+                level = iteration // level_sep
                 # Assign the pixel a color based on it's level. If we run out
                 # of colors, assign it the last color in the list.
                 if level < color_num:

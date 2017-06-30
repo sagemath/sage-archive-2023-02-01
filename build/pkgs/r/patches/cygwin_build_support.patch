@@ -23,8 +23,8 @@ index 5d80a54..805aa0f 100755
  : ${CPICFLAGS="${cpicflags}"}
  if test -z "${CPICFLAGS}"; then
    case "${host_os}" in
--    aix*|irix*|mingw*|osf*)
-+    aix*|cygwin*|irix*|mingw*|osf*)
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
        ;;
      *)
        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I could not determine CPICFLAGS." >&5
@@ -32,8 +32,8 @@ index 5d80a54..805aa0f 100755
  : ${FPICFLAGS="${fpicflags}"}
  if test -z "${FPICFLAGS}"; then
    case "${host_os}" in
--    aix*|irix*|mingw*|osf*)
-+    aix*|cygwin*|irix*|mingw*|osf*)
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
        ;;
      *)
        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I could not determine FPICFLAGS." >&5
@@ -41,8 +41,8 @@ index 5d80a54..805aa0f 100755
  : ${CXXPICFLAGS="${cxxpicflags}"}
  if test -z "${CXXPICFLAGS}"; then
    case "${host_os}" in
--    aix*|irix*|mingw*|osf*)
-+    aix*|cygwin*|irix*|mingw*|osf*)
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
        ;;
      *)
        warn_cxxpicflags="I could not determine CXXPICFLAGS."
@@ -70,8 +70,8 @@ index 4c6d7f1..005e940 100644
  : ${CPICFLAGS="${cpicflags}"}
  if test -z "${CPICFLAGS}"; then
    case "${host_os}" in
--    aix*|irix*|mingw*|osf*)
-+    aix*|cygwin*|irix*|mingw*|osf*)
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
        ;;
      *)
        AC_MSG_WARN([I could not determine CPICFLAGS.])
@@ -79,8 +79,8 @@ index 4c6d7f1..005e940 100644
  : ${FPICFLAGS="${fpicflags}"}
  if test -z "${FPICFLAGS}"; then
    case "${host_os}" in
--    aix*|irix*|mingw*|osf*)
-+    aix*|cygwin*|irix*|mingw*|osf*)
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
        ;;
      *)
        AC_MSG_WARN([I could not determine FPICFLAGS.])
@@ -88,8 +88,8 @@ index 4c6d7f1..005e940 100644
  : ${CXXPICFLAGS="${cxxpicflags}"}
  if test -z "${CXXPICFLAGS}"; then
    case "${host_os}" in
--    aix*|irix*|mingw*|osf*)
-+    aix*|cygwin*|irix*|mingw*|osf*)
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
        ;;
      *)
        warn_cxxpicflags="I could not determine CXXPICFLAGS."

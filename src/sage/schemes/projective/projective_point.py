@@ -1027,6 +1027,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         Specify either the number of terms of the series to evaluate or
         the error bound required.
 
+        # will put in N, error bound, or both, if error bound we comput our own N
+
         ALGORITHM:
 
             The sum of the Green's function at the archimedean places and the places of bad reduction.
@@ -1091,6 +1093,56 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
+
+        if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
+
+            P = self
+            e = P[0].denominator()
+            x = P[0]
+            y = P[1]
+            x = x*e
+            y = y*e
+            g = gcd(x, y)
+            Q_0 = (x/g, y/g)
+            Height_I = 0
+            f = F
+            A_0 = f[0]
+            B_0 = f[1]
+            coeffs = A_0.coefficients() + B_0.coefficients()
+            t = 1
+            for c in coeffs:
+                t = lcm(t, c.denominator())
+            A = t*f[0]
+            B = t*f[1]
+            Res = f.resultant(normalize=True)
+            H = 0
+            x_i = x
+            y_i = y
+            d = f.degree()
+            prec = kwds.get('prec', 53)
+            R = RealField(prec)
+            N = kwds.get('N', 10)
+            err = kwds.get('error_bound', None)
+            if Res > 1:
+                if not err == None:
+                    err = err/2
+                    N = ceil((R(abs(Res)).log().log() - RR((d-1)).log() - err.log())/(RR(d).log()))
+                    if N < 1:
+                        N = 1
+                    kwds.update({'error_bound': err})
+                    kwds.update({'N': N})
+                for n in range(0, N):
+                    x = A(x_i,y_i) % Res**(N-n)
+                    y = B(x_i,y_i) % Res**(N-n)
+                    g = gcd([x, y, Res])
+                    H = H + R(P[1]).abs().log()/(d**(n+1))
+                    x_i = x/g
+                    y_i = y/g
+            # want archedmedian greens function
+            v = QQ.places()[0] # changes rationals to reals
+            h = P.green_function(f, 0 , **kwds) - R(P[1]).abs().log()
+            can_height = R(Q_0[1].abs()).log() + h - H + R(t).log()
+            return can_height
 
         if not K in _NumberFields:
             if not K is QQbar:

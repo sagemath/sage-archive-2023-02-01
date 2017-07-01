@@ -42,7 +42,7 @@ def frobenius_unram(self, arithmetic=True):
     """
     R = self.parent()
     if self.is_zero(): return self
-    L = self.teichmuller_list()
+    L = self.teichmuller_expansion()
     ppow = R.uniformizer_pow(self.valuation())
     if arithmetic:
         exp = R.prime()

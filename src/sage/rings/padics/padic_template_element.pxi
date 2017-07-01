@@ -388,7 +388,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             zero = self.parent()(0,0)
         else:
             raise ValueError("%s not a recognized lift mode"%lift_mode)
-        L = self.list(lift_mode)
+        L = self.expansion(lift_mode=lift_mode)
         if self.prime_pow.in_field == 1:
             if self._is_exact_zero():
                 n = 0
@@ -397,10 +397,20 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         return L[:n] + [zero] * (n - len(L))
 
     def _ext_p_list(self, pos):
+        """
+        Returns the p-adic expansion of the unit part.  Used in printing.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(125)
+            sage: b = a^2 + 5*a + 1
+            sage: b._ext_p_list(True)
+            [[1, 0, 1], [0, 1]]
+        """
         if pos:
-            return self.unit_part().list('simple')
+            return self.unit_part().expansion(lift_mode='simple')
         else:
-            return self.unit_part().list('smallest')
+            return self.unit_part().expansion(lift_mode='smallest')
 
     cpdef pAdicTemplateElement unit_part(self):
         """

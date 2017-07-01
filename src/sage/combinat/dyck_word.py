@@ -1098,6 +1098,47 @@ class DyckWord(CombinatorialElement):
                 height -= 1
         return pos
 
+    def prime_decomposition(self):
+        r"""
+        Decompose a Dyck word into a sequence of ascents and prime
+        Dyck paths.
+
+        The result is a sequence of odd length, the words with even
+        indices consist of up steps only and the words with odd
+        indices are complete Dyck paths without touch points.  The
+        concatenation of the result is the original word.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,1,1,0,1,0,1,1,1,1,0,1])
+            sage: D.prime_decomposition()
+            [[1, 1], [1, 0], [], [1, 0], [1, 1, 1], [1, 0], [1]]
+
+        """
+        n = self.length()
+        H = self.heights()
+        result = []
+        i = 0
+        height = 0
+        up = 0
+        while i < n:
+            j = i+1
+            while H[j] != height:
+                if j == n:
+                    i += 1
+                    height += 1
+                    up += 1
+                    break
+                j += 1
+            else:
+                result.extend([DyckWord([open_symbol]*up),
+                               DyckWord(self[i:j])])
+                i = j
+                up = 0
+
+        result.append(DyckWord([open_symbol]*up))
+        return result
+
     def number_of_initial_rises(self):
         r"""
         Return the length of the initial run of ``self``

@@ -27,7 +27,7 @@ REFERENCES:
    *The algebra of binary search trees*,
    :arxiv:`math/0401089v2`.
 
-.. [CP12] Gregory Chatel, Viviane Pons.
+.. [CP12] Grégory Châtel, Viviane Pons.
    *Counting smaller trees in the Tamari order*,
    :arxiv:`1212.0751v1`.
 """
@@ -53,6 +53,7 @@ from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -3618,6 +3619,132 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return False
         return self[0].is_full() and self[1].is_full()
 
+    def to_full(self):
+        r"""
+        Return the full binary tree constructed from ``self``.
+
+        Let `T` be a binary tree with `n` nodes. We construct a full
+        binary tree `F` from `T` by attaching a leaf to each node of
+        `T` which does not have 2 children. The resulting tree will
+        have `2n + 1` nodes.
+
+        OUTPUT:
+
+        A full binary tree. See :meth: `is_full` for the definition of full.
+
+        .. SEEALSO::
+
+            :meth:`prune`
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[None,[]],None])
+            sage: bt.to_full().is_full()
+            True
+            sage: ascii_art(bt)
+              o
+             /
+            o
+             \
+              o
+            sage: ascii_art(bt.to_full())
+                 __o___
+                /      \
+              _o_       o
+             /   \
+            o     o
+                 / \
+                o   o
+
+            sage: bt = BinaryTree([[],[]])
+            sage: ascii_art(bt)
+              o
+             / \
+            o   o
+            sage: ascii_art(bt.to_full())
+                __o__
+               /     \
+              o       o
+             / \     / \
+            o   o   o   o
+
+            sage: BinaryTree(None).to_full()
+            [., .]
+
+        """
+        if self.is_empty():
+            return BinaryTree("[.,.]")
+
+        return BinaryTree([self[0].to_full(), self[1].to_full()])
+
+    def prune(self):
+        r"""
+        Return the binary tree obtained by deleting each leaf of ``self``.
+
+        The operation of pruning is the left inverse of attaching as
+        many leaves as possible to each node of a binary tree.
+        That is to say, for all binary trees ``bt``, we have::
+
+            bt == bt.to_full().prune()
+
+        However, it is only a right inverse if and only if ``bt``
+        is a full binary tree::
+
+            bt == bt.prune().to_full()
+
+        OUTPUT:
+
+        A binary tree.
+
+        .. SEEALSO::
+
+            :meth:`to_full`
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[[None, []], [[], []]], None])
+            sage: ascii_art(bt)
+                  o
+                 /
+              __o__
+             /     \
+            o       o
+             \     / \
+              o   o   o
+            sage: ascii_art(bt.prune())
+                o
+               /
+              o
+             / \
+            o   o
+
+        We check the relationship with :meth:`to_full`::
+
+            sage: bt = BinaryTree([[[], [[None, []], []]], [[],[]]])
+            sage: bt == bt.to_full().prune()
+            True
+            sage: bt == bt.prune().to_full()
+            False
+
+            sage: bt = BinaryTree([[[], []], [[], [[[], []], []]]])
+            sage: bt.is_full()
+            True
+            sage: bt == bt.prune().to_full()
+            True
+
+        Pruning the empty tree is again the empty tree::
+
+            sage: bt = BinaryTree(None)
+            sage: bt.prune()
+            .
+        """
+        if self.is_empty():
+            return self
+
+        if self == BinaryTree([]):
+            return BinaryTree()
+        return BinaryTree([self[0].prune(), self[1].prune()])
+
     def is_perfect(self):
         r"""
         Return ``True`` if ``self`` is perfect, else return ``False``.
@@ -3755,13 +3882,25 @@ class BinaryTrees(UniqueRepresentation, Parent):
     """
     Factory for binary trees.
 
+    A binary tree is a tree with at most 2 children. The binary
+    trees considered here are also ordered (a.k.a. planar), that is
+    to say, their children are ordered.
+
+    A full binary tree is a binary tree with no nodes with 1 child.
+
     INPUT:
 
     - ``size`` -- (optional) an integer
+    - ``full`` -- (optional) a boolean
 
     OUTPUT:
 
-    - the set of all binary trees (of the given ``size`` if specified)
+    The set of all (full if ``full=True``) binary trees (of the given
+    ``size`` if specified).
+
+    .. SEEALSO::
+
+        :class:`BinaryTree`, :meth:`BinaryTree.is_full`
 
     EXAMPLES::
 
@@ -3771,22 +3910,42 @@ class BinaryTrees(UniqueRepresentation, Parent):
         sage: BinaryTrees(2)
         Binary trees of size 2
 
-    .. NOTE:: this is a factory class whose constructor returns instances of
-              subclasses.
+        sage: BinaryTrees(full=True)
+        Full binary trees
 
-    .. NOTE:: the fact that BinaryTrees is a class instead of a simple callable
-              is an implementation detail. It could be changed in the future
-              and one should not rely on it.
+        sage: BinaryTrees(3, full=True)
+        Full binary trees of size 3
+
+        sage: BinaryTrees(4, full=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be 0 or odd
+
+    .. NOTE::
+
+        This is a factory class whose constructor returns instances of
+        subclasses.
+
+    .. NOTE::
+
+        The fact that BinaryTrees is a class instead of a simple callable
+        is an implementation detail. It could be changed in the future
+        and one should not rely on it.
     """
     @staticmethod
-    def __classcall_private__(cls, n=None):
+    def __classcall_private__(cls, n=None, full=False):
         """
         TESTS::
 
-            sage: from sage.combinat.binary_tree import BinaryTrees_all, BinaryTrees_size
+            sage: from sage.combinat.binary_tree import (BinaryTrees_all,
+            ....:  BinaryTrees_size, FullBinaryTrees_all, FullBinaryTrees_size)
             sage: isinstance(BinaryTrees(2), BinaryTrees)
             True
             sage: isinstance(BinaryTrees(), BinaryTrees)
+            True
+            sage: isinstance(BinaryTrees(3, full=True), BinaryTrees)
+            True
+            sage: isinstance(BinaryTrees(full=True), BinaryTrees)
             True
             sage: BinaryTrees(2) is BinaryTrees_size(2)
             True
@@ -3794,13 +3953,28 @@ class BinaryTrees(UniqueRepresentation, Parent):
             42
             sage: BinaryTrees() is BinaryTrees_all()
             True
+            sage: BinaryTrees(3, full=True) is FullBinaryTrees_size(3)
+            True
+            sage: BinaryTrees(5, full=True).cardinality()
+            2
+            sage: BinaryTrees(full=True) is FullBinaryTrees_all()
+            True
         """
         if n is None:
-            return BinaryTrees_all()
+            if full:
+                return FullBinaryTrees_all()
+            else:
+                return BinaryTrees_all()
         else:
             if not (isinstance(n, (Integer, int)) and n >= 0):
                 raise ValueError("n must be a nonnegative integer")
-            return BinaryTrees_size(Integer(n))
+            if not full:
+                return BinaryTrees_size(Integer(n))
+            else:
+                if n % 2 == 1 or n == 0:
+                    return FullBinaryTrees_size(Integer(n))
+                else:
+                    raise ValueError("n must be 0 or odd")
 
     @cached_method
     def leaf(self):
@@ -3931,7 +4105,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
 class BinaryTrees_size(BinaryTrees):
     """
-    The enumerated sets of binary trees of given size
+    The enumerated sets of binary trees of given size.
 
     TESTS::
 
@@ -3949,7 +4123,8 @@ class BinaryTrees_size(BinaryTrees):
             sage: S is BinaryTrees(3)
             True
         """
-        super(BinaryTrees_size, self).__init__(category=FiniteEnumeratedSets())
+        super(BinaryTrees_size, self).__init__(facade=BinaryTrees_all(),
+                                               category=FiniteEnumeratedSets())
         self._size = size
 
     def _repr_(self):
@@ -3971,7 +4146,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: S([[],[]]) in S
             True
         """
-        return isinstance(x, self.element_class) and x.node_number() == self._size
+        return isinstance(x, BinaryTree) and x.node_number() == self._size
 
     def _an_element_(self):
         """
@@ -4045,32 +4220,6 @@ class BinaryTrees_size(BinaryTrees):
                     for rgt in self.__class__(self._size - 1 - i):
                         yield self._element_constructor_([lft, rgt])
 
-    @lazy_attribute
-    def _parent_for(self):
-        """
-        The parent of the elements generated by ``self``.
-
-        TESTS::
-
-            sage: S = BinaryTrees(3)
-            sage: S._parent_for
-            Binary trees
-        """
-        return BinaryTrees_all()
-
-    @lazy_attribute
-    def element_class(self):
-        """
-        TESTS::
-
-            sage: S = BinaryTrees(3)
-            sage: S.element_class
-            <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
-            sage: S.first().__class__ == BinaryTrees().first().__class__
-            True
-        """
-        return self._parent_for.element_class
-
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
@@ -4087,9 +4236,276 @@ class BinaryTrees_size(BinaryTrees):
             sage: S([])
             [., .]
         """
-        res = self.element_class(self._parent_for, *args, **keywords)
+        res = BinaryTree(*args, **keywords)
         if res.node_number() != self._size:
             raise ValueError("wrong number of nodes")
+        return res
+
+
+#################################################################
+# Enumerated set of all full binary trees
+#################################################################
+
+class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
+    """
+    All full binary trees.
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.binary_tree import FullBinaryTrees_all
+            sage: FB = FullBinaryTrees_all()
+            sage: FB.cardinality()
+            +Infinity
+
+            sage: it = iter(FB)
+            sage: (next(it), next(it), next(it), next(it), next(it))
+            (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]]) 
+            sage: next(it).parent()
+            Binary trees
+            sage: FB([])
+            [., .]
+
+            sage: FB is FullBinaryTrees_all()
+            True
+            sage: TestSuite(FB).run() # long time
+        """
+        DisjointUnionEnumeratedSets.__init__(
+            self, Family(NonNegativeIntegers(), _full_construction),
+            facade=True, keepkey=False)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: BinaryTrees(full=True)
+            Full binary trees
+        """
+        return "Full binary trees"
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: FB = BinaryTrees(full=True)
+            sage: 1 in FB
+            False
+            sage: FB([]) in FB
+            True
+        """
+        return isinstance(x, BinaryTree) and x.is_full()
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: FB = BinaryTrees(full=True)
+            sage: FB._element_constructor_([])
+            [., .]
+            sage: FB([[],[]]) # indirect doctest
+            [[., .], [., .]]
+            sage: FB(None)    # indirect doctest
+            .
+            sage: FB([None, []]) #indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: not full
+        """
+        res = BinaryTree(*args, **keywords)
+        if not res.is_full():
+            raise ValueError("not full")
+        return res
+
+#################################################################
+# Enumerated set of full binary trees of a given size
+#################################################################
+
+def _full_construction(n):
+    """
+    Helper function for the disjoint union construction.
+
+    TESTS::
+
+        sage: from sage.combinat.binary_tree import _full_construction
+        sage: _full_construction(0)
+        Full binary trees of size 0
+        sage: _full_construction(1)
+        Full binary trees of size 1
+        sage: _full_construction(2)
+        Full binary trees of size 3
+        sage: _full_construction(3)
+        Full binary trees of size 5
+    """
+    if n == 0:
+        return FullBinaryTrees_size(0)
+    return FullBinaryTrees_size(2*n-1)
+
+class FullBinaryTrees_size(BinaryTrees):
+    """
+    Full binary trees of a fixed size (number of nodes).
+    """
+    def __init__(self, size):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.binary_tree import FullBinaryTrees_size
+            sage: for i in range(1,6):
+            ....:     TestSuite(BinaryTrees(2*i-1, full=True)).run()
+        """
+        super(FullBinaryTrees_size, self).__init__(facade=BinaryTrees_all(),
+                                                   category=FiniteEnumeratedSets())
+        self._size = size
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: BinaryTrees(3, full=True)
+            Full binary trees of size 3
+        """
+        return "Full binary trees of size %s" % self._size
+
+    def __contains__(self, x):
+        r"""
+        TESTS::
+
+            sage: FB3 = BinaryTrees(3, full=True)
+            sage: 1 in FB3
+            False
+            sage: FB3([[], []]) in FB3
+            True
+            sage: BinaryTree([[], []]) in FB3
+            True
+            sage: BinaryTree([None, []]) in FB3
+            False
+        """
+        return (isinstance(x, BinaryTree)
+                and x.node_number() == self._size
+                and x.is_full())
+
+    def _an_element_(self):
+        r"""
+        TESTS::
+
+            sage: BinaryTrees(0, full=True).an_element()
+            .
+
+            sage: ascii_art(BinaryTrees(5, full=True).an_element())
+              _o_
+             /   \
+            o     o
+                 / \
+                o   o
+        """
+        return self.first()
+
+    def cardinality(self):
+        r"""
+        The cardinality of ``self``
+
+        This is a Catalan number.
+
+        TESTS::
+
+            sage: BinaryTrees(0, full=True).cardinality()
+            1
+            sage: BinaryTrees(5, full=True).cardinality()
+            2
+            sage: BinaryTrees(11, full=True).cardinality()
+            42
+        """
+        if self._size == 0:
+            return Integer(1)
+        from sage.combinat.combinat import catalan_number
+        return catalan_number((self._size-1) // 2)
+
+    def random_element(self):
+        r"""
+        Return a random ``FullBinaryTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` of size `(s-1) / 2`,
+        where `s` is the size of ``self``, which uses a bijection between
+        Dyck words and binary trees to get a binary tree, and convert it
+        to a full binary tree.
+
+        EXAMPLES::
+
+            sage: BinaryTrees(5, full=True).random_element() # random
+            [[], [[], []]]
+            sage: BinaryTrees(0, full=True).random_element()
+            .
+            sage: BinaryTrees(1, full=True).random_element()
+            [., .]
+
+        TESTS::
+
+            sage: B = BinaryTrees(19, full=True)
+            sage: all([B.random_element() in B for i in range(20)])
+            True
+        """
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        if self._size == 0:
+            return BinaryTree(None)
+        return CompleteDyckWords_size((self._size-1) // 2).random_element().to_binary_tree().to_full()
+
+    def __iter__(self):
+        """
+        A basic generator.
+
+        .. TODO:: could be optimized.
+
+        TESTS::
+
+            sage: BinaryTrees(0, full=True).list()
+            [.]
+            sage: BinaryTrees(1, full=True).list()
+            [[., .]]
+            sage: BinaryTrees(7, full=True).list()
+            [[[., .], [[., .], [[., .], [., .]]]],
+             [[., .], [[[., .], [., .]], [., .]]],
+             [[[., .], [., .]], [[., .], [., .]]],
+             [[[., .], [[., .], [., .]]], [., .]],
+             [[[[., .], [., .]], [., .]], [., .]]]
+        """
+        if self._size == 0:
+            yield self._element_constructor_()
+        if self._size == 1:
+            yield self._element_constructor_("[.,.]")
+        else:
+            k = (self._size - 1) // 2 # number of internal nodes
+            for i in range(k):
+                for lft in FullBinaryTrees_size(2*i+1):
+                    for rgt in FullBinaryTrees_size(2*(k-1-i)+1):
+                        yield self._element_constructor_([lft, rgt])
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: FB0 = BinaryTrees(0, full=True)
+            sage: FB0(None)
+            .
+            sage: FB0([])
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of nodes
+
+            sage: FB1 = BinaryTrees(1, full=True)
+            sage: FB1([])
+            [., .]
+
+            sage: FB5 = BinaryTrees(5, full=True)
+            sage: FB5([[], [None, [None, []]]])
+            Traceback (most recent call last):
+            ...
+            ValueError: not full
+        """
+        res = BinaryTree(*args, **keywords)
+        if res.node_number() != self._size:
+            raise ValueError("wrong number of nodes")
+        if not res.is_full():
+            raise ValueError("not full")
         return res
 
 

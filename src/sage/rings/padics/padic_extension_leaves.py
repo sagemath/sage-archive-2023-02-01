@@ -413,7 +413,7 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
 
         Check that :trac:`23228` has been resolved::
 
-            sage: a % 3
+            sage: a % R.prime()
             a
 
         """

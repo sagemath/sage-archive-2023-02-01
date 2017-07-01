@@ -36,6 +36,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef _mul_(self, right)
     cpdef _floordiv_(self, right)
 
+    cdef public dict __cached_methods
+
 cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)
     cdef list __coeffs

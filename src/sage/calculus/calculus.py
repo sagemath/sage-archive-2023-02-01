@@ -825,9 +825,11 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
 
       - ``'maxima'`` - use Maxima (the default)
 
-      - ``'giac'`` - (optional) use Giac
+      - ``'giac'`` - use Giac
 
       - ``'sympy'`` - use SymPy
+
+      - ``'mathematica'`` - (optional) use Mathematica
 
     - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
@@ -862,7 +864,7 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
         raise ValueError("product limits must not depend on the multiplication variable")
 
     if hold == True:
-        from sage.functions.other import symbolic_prod as sprod
+        from sage.functions.other import symbolic_product as sprod
         return sprod(expression, v, a, b)
 
     if algorithm == 'maxima':

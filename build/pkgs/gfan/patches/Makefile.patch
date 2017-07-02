@@ -1,8 +1,8 @@
 diff --git a/Makefile b/Makefile
-index 0892969..c626eb9 100644
+index 9556cf4..24250f6 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -26,7 +26,7 @@ sage_link.so: sage_link.pyx setup.py
+@@ -35,7 +35,7 @@ sage_link.so: sage_link.pyx setup.py
  endif
  
  ifeq ($(gmppath),)
@@ -11,7 +11,7 @@ index 0892969..c626eb9 100644
  GMP_INCLUDEOPTIONS =
  else
  GMP_LINKOPTIONS = $(gmppath)/lib/libgmp.a
-@@ -34,7 +34,7 @@ GMP_INCLUDEOPTIONS = -I $(gmppath)/include
+@@ -49,7 +49,7 @@ CDDDEFINE_PREFIX = -DNOCDDPREFIX
  endif
  
  ifeq ($(cddpath),)
@@ -20,47 +20,52 @@ index 0892969..c626eb9 100644
  CDD_INCLUDEOPTIONS =
  else
  CDD_LINKOPTIONS = $(cddpath)/lib/libcddgmp.a
-@@ -75,18 +75,11 @@ ADDITIONALINCLUDEOPTIONS = $(CDD_INCLUDEOPTIONS) $(GMP_INCLUDEOPTIONS) $(SOPLEX_
- MKDIR=mkdir -p
+@@ -108,12 +108,6 @@ MKDIR=mkdir -p
  
- 
+ # PREFIX = /usr/local/gcc/6.2.0/bin/
+ PREFIX =
 -SHELL       = /bin/sh
 -#ARCH        = LINUX
--CC          = gcc
+-CC          = $(PREFIX)gcc
 -CLINKER     = $(CC)
--CXX         = g++
+-CXX         = $(PREFIX)g++
 -CCLINKER    = $(CXX)
  #OPTFLAGS    = -O2 -DGMPRATIONAL -DNDEBUG
- OPTFLAGS    = -O2 -DGMPRATIONAL -Wuninitialized
+ # Note that gcc produces wrong code with -O3
+ OPTFLAGS    =  -DGMPRATIONAL -Wuninitialized -fno-omit-frame-pointer -O2	 #-O3 -fno-guess-branch-probability #-DNDEBUG
+@@ -125,10 +119,9 @@ OPTFLAGS    =  -DGMPRATIONAL -Wuninitialized -fno-omit-frame-pointer -O2	 #-O3 -
+ #OPTFLAGS    =  -DGMPRATIONAL -Wuninitialized -fno-omit-frame-pointer -O3 -msse2 -ftree-vectorizer-verbose=2 -ffast-math #-DNDEBUG
+ #OPTFLAGS    =  -DGMPRATIONAL -Wuninitialized -fno-omit-frame-pointer -O3 -mavx -msse2 -ftree-vectorizer-verbose=2 -ffast-math #-DNDEBUG
  
--CFLAGS	  = $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
+-CFLAGS	  = $(OPTFLAGS) $(GPROFFLAG) $(STACTDUMP_OPTIONS) $(ADDITIONALINCLUDEOPTIONS) -std=c++0x -g $(CDDDEFINE_PREFIX) #-pedantic
+ #CFLAGS	  = $(OPTFLAGS) $(GPROFFLAG) $(STACTDUMP_OPTIONS) $(ADDITIONALINCLUDEOPTIONS) -D_GLIBCXX_DEBUG -std=c++0x -g $(CDDDEFINE_PREFIX) #-pedantic
 -CCFLAGS	  = $(CFLAGS)
 -FFLAGS	  = $(OPTFLAGS)
 +CFLAGS_LOCAL  = $(CFLAGS) $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
 +CXXFLAGS_LOCAL= $(CXXFLAGS) $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
  
- CATSOBJECTS =	$(GCATSPATH)lp_cdd.o \
- 		$(SOPLEX_OBJECTS) \
-@@ -317,7 +310,7 @@ $(PREFIX):
- default: $(OBJECTS) $(ADDITIONALOBJECTS) $(EXECS)
+ CATSOBJECTS =	lp_cdd.o \
+ 		parser.o \
+@@ -420,7 +413,7 @@ default: $(OBJECTS) $(ADDITIONALOBJECTS) $(EXECS)
  
  $(MAIN): $(OBJECTS)
--	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -o $(MAIN)
-+	$(CXX) $(CXXFLAGS) -o $(MAIN) $(LDFLAGS) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG)
+ #	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -lpthread  -o $(MAIN)
+-	$(CCLINKER) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG) -lpthread -rdynamic -o $(MAIN)
++	$(CXX) $(CXXFLAGS_LOCAL) -lpthread -o $(MAIN) $(LDFLAGS) $(OBJECTS) $(ADDITIONALLINKOPTIONS) $(GPROFFLAG)
  
  release:
  	rm -f -r $(RELEASEDIR)/*
-@@ -431,11 +424,11 @@ library:
- 	cp gfanlib_* gfanlib/
- 	tar zcf -  gfanlib > gfanlib.tar.gz
+@@ -544,9 +537,11 @@ library:
+ check:
+ 	./gfan _test
  .c.o:
--	$(CC) $(CFLAGS) -c $<
-+	$(CC) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $<
- .cc.o:
- 	$(CXX) -c $<
+-	$(CC) $(CFLAGS) -c $< -o $(patsubst %.c,%.o,$<)
++#	$(CC) $(CFLAGS) -c $< -o $(patsubst %.c,%.o,$<)
++	$(CC) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $< -o $(patsubst %.c,%.o,$<)
  .cpp.o:
--	$(CXX) $(CFLAGS) -c $<
-+	$(CXX) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $<
- .C.o:
- 	$(CXX) -c $<
+-	$(CXX) $(CFLAGS) -c $< -o $(patsubst %.cpp,%.o,$<)
++#	$(CXX) $(CFLAGS) -c $< -o $(patsubst %.cpp,%.o,$<)
++	$(CXX) $(CXXFLAGS_LOCAL) $(CPPFLAGS) -c $< -o $(patsubst %.cpp,%.o,$<)
+ 
  # wget http://ftp.sunet.se/pub/gnu/gmp/gmp-4.2.2.tar.gz
+ # tar -xzvf gmp-4.2.2.tar.gz

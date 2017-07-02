@@ -495,6 +495,7 @@ cdef list ccoefficients(celement x, long valshift, PowComputer_class prime_pow):
 
     - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
     - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
+    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
     - ``prime_pow`` -- the Powcomputer of the ring
     """
     pass

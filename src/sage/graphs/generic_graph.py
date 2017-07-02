@@ -66,8 +66,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subdivide_edges` | Subdivide k times edges from an iterable container.
     :meth:`~GenericGraph.delete_edge` | Delete the edge from u to v
     :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
-    :meth:`~GenericGraph.contract_edge` | Contracts the specified edge.
-    :meth:`~GenericGraph.contract_edges` | Contracts edges from an iterable container.
+    :meth:`~GenericGraph.contract_edge` | Contract an edge from 'u' to 'v'.
+    :meth:`~GenericGraph.contract_edges` | Contract edges from an iterable container.
     :meth:`~GenericGraph.delete_multiedge` | Delete all edges from u and v.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
     :meth:`~GenericGraph.has_edge` | Return True if (u, v) is an edge, False otherwise.
@@ -10672,8 +10672,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def contract_edge(self, u, v=None, label=None):
         """
-        Contract an edge from u to v, returning silently if vertices or edge
-        does not exist.
+        Contract an edge from 'u' to 'v'.
+
+        This method returns silently if the edge  does not exist.
 
         INPUT: The following forms are all accepted:
 
@@ -10763,13 +10764,13 @@ class GenericGraph(GenericGraph_pyx):
         """
         Contract edges from an iterable container.
 
-        If `e` is an edge that is
-        not contracted but the vertices of `e` are merged by contraction of other
-        edges, then `e` will become a loop.
+        If `e` is an edge that is not contracted but the vertices of `e` are
+        merged by contraction of other edges, then `e` will become a loop.
 
         INPUT:
 
-        - ``edges`` - a list containing 2-tuples or 3-tuples that represent edges
+        - ``edges`` -- a list containing 2-tuples or 3-tuples that represent
+          edges
 
         EXAMPLES::
 
@@ -10813,8 +10814,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.contract_edges([(1,3),(1,4)]); G.edges()
             [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
 
-        ::
-
         With loops in a digraph::
 
             sage: D = DiGraph([(0,0), (0,1), (1,1)], loops=True, multiedges=True)
@@ -10838,7 +10837,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.allow_loops(True); G.allow_multiple_edges(True)
             sage: for e in G.edges():
             ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
-            ....:
             sage: H = G.copy()
             sage: G.contract_edges([(0,1), (0,2)]); G.edges()
             [(0, 0, 3), (0, 3, 3), (0, 3, 4), (0, 3, 5)]

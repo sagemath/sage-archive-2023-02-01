@@ -1583,6 +1583,10 @@ REFERENCES:
              group*. Mathematische Zeitschrift 264(4) (2010) 765-811
              (:arxiv:`0710.2720`)
 
+.. [LS2017] Xuan Liu and Travis Scrimshaw. *A uniform approach to soliton
+            cellular automata using rigged configurations*.
+            Preprint (2017) :arxiv:`1706.02443`
+
 .. [LT1998] \B. Leclerc, J.-Y. Thibon, Littlewood-Richardson
             coefficients and Kazhdan-Lusztig polynomials,
             http://front.math.ucdavis.edu/9809.5122
@@ -2358,6 +2362,10 @@ REFERENCES:
 .. _ref-Y:
 
 **Y**
+
+.. [Yamada2007] Daisuke Yamada. *Scattering rule in soliton cellular automaton
+                associated with crystal base of* `U_q(D_4^{(3)})`.
+                \J. Math. Phys., **48** (4):043509, 28, (2007).
 
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              college de France

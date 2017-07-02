@@ -23,6 +23,9 @@ cd src   # Now we are in src/src.
 if [ "$UNAME" = "Darwin" ]; then
     export LDFLAGS="$LDFLAGS -Wl,-headerpad_max_install_names"
 fi
+
+export CXXFLAGS="$CXXFLAGS -std=c++11"
+$MAKE
 $MAKE install INSTALL_DIR="$SAGE_LOCAL"
 success "$MAKE install"
 

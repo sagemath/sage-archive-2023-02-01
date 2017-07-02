@@ -3152,12 +3152,31 @@ const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
                 return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
-const numeric numeric::lgamma() const {
-        PY_RETURN(py_funcs.py_lgamma);
+const numeric numeric::lgamma(PyObject* parent) const {
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("log_gamma"), *this);
+        PyObject* ret = CoerceBall(ball, prec);
+        Py_DECREF(field);
+        Py_DECREF(ball);
+
+        numeric rnum(ret);
+        return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::tgamma(PyObject* parent) const {
-        PY_RETURN(py_funcs.py_tgamma);
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("gamma"), *this);
+        PyObject* ret = CoerceBall(ball, prec);
+        Py_DECREF(field);
+        Py_DECREF(ball);
+
+        numeric rnum(ret);
+        if (is_real())
+                return ex_to<numeric>(rnum.real().evalf(0, parent));
+        else
+                return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::rgamma(PyObject* parent) const {
@@ -3824,9 +3843,8 @@ const numeric stieltjes(const numeric &x) {
         return x.stieltjes();
 }
 
-/** Apparently calls log_gamma in Sage's pynac.pyx */
-const numeric lgamma(const numeric &x) {
-        return x.lgamma();
+const numeric lgamma(const numeric &x, PyObject* parent) {
+        return x.lgamma(parent);
 }
 
 /** The Gamma function. */

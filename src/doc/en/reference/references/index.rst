@@ -343,8 +343,8 @@ REFERENCES:
             LNCS 4887. See also http://eprint.iacr.org/2006/402/.
 
 .. [CC1982] Chottin and R. Cori, *Une preuve combinatoire de la
-            rationalit\'e d'une s\'erie g\'en\'eratrice associ\'ee
-            aux arbres*, RAIRO, Inf. Th\'eor. 16, 113--128 (1982)
+            rationalité d'une série génératrice associée
+            aux arbres*, RAIRO, Inf. Théor. 16, 113--128 (1982)
 
 .. [CDL2015] \A. Canteaut, Sebastien Duval, Gaetan Leurent
              *Construction of Lightweight S-Boxes using Feistel and

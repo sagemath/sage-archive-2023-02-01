@@ -1098,21 +1098,34 @@ class DyckWord(CombinatorialElement):
                 height -= 1
         return pos
 
-    def prime_decomposition(self):
+    def ascent_prime_decomposition(self):
         r"""
         Decompose a Dyck word into a sequence of ascents and prime
         Dyck paths.
 
-        The result is a sequence of odd length, the words with even
-        indices consist of up steps only and the words with odd
-        indices are complete Dyck paths without touch points.  The
-        concatenation of the result is the original word.
+        A Dyck path is prime if it has precisely one return - the
+        final step.  In particular, the empty Dyck path is not prime.
+        Thus, the factorization is unique.
+
+        It is a sequence of odd length: the words with even indices
+        consist of up steps only, the words with odd indices are
+        prime Dyck paths.  The concatenation of the result is the
+        original word.
 
         EXAMPLES::
 
             sage: D = DyckWord([1,1,1,0,1,0,1,1,1,1,0,1])
-            sage: D.prime_decomposition()
+            sage: D.ascent_prime_decomposition()
             [[1, 1], [1, 0], [], [1, 0], [1, 1, 1], [1, 0], [1]]
+
+            sage: DyckWord([]).ascent_prime_decomposition()
+            [[]]
+
+            sage: DyckWord([1,1]).ascent_prime_decomposition()
+            [[1, 1]]
+
+            sage: DyckWord([1,0,1,0]).ascent_prime_decomposition()
+            [[], [1, 0], [], [1, 0], []]
 
         """
         n = self.length()

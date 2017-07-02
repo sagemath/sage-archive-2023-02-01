@@ -10674,7 +10674,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Contract an edge from 'u' to 'v'.
 
-        This method returns silently if the edge  does not exist.
+        This method returns silently if the edge does not exist.
 
         INPUT: The following forms are all accepted:
 

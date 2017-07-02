@@ -1154,7 +1154,8 @@ class DyckWord(CombinatorialElement):
 
     def catalan_factorization(self):
         r"""
-        Decompose a Dyck word into a sequence of complete Dyck words.
+        Decompose this Dyck word into a sequence of complete Dyck
+        words.
 
         Each element of the list returned is a (possibly empty)
         complete Dyck word.  The original word is obtained by placing

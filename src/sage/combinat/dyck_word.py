@@ -1100,17 +1100,17 @@ class DyckWord(CombinatorialElement):
 
     def ascent_prime_decomposition(self):
         r"""
-        Decompose a Dyck word into a sequence of ascents and prime
+        Decompose this Dyck word into a sequence of ascents and prime
         Dyck paths.
 
-        A Dyck path is prime if it has precisely one return - the
-        final step.  In particular, the empty Dyck path is not prime.
-        Thus, the factorization is unique.
+        A Dyck word is *prime* if it is complete and has precisely
+        one return - the final step.  In particular, the empty Dyck
+        path is not prime.  Thus, the factorization is unique.
 
-        It is a sequence of odd length: the words with even indices
-        consist of up steps only, the words with odd indices are
-        prime Dyck paths.  The concatenation of the result is the
-        original word.
+        This decomposition yields a sequence of odd length: the words
+        with even indices consist of up steps only, the words with
+        odd indices are prime Dyck paths.  The concatenation of the
+        result is the original word.
 
         EXAMPLES::
 
@@ -1150,6 +1150,48 @@ class DyckWord(CombinatorialElement):
                 up = 0
 
         result.append(DyckWord([open_symbol]*up))
+        return result
+
+    def catalan_factorization(self):
+        r"""
+        Decompose a Dyck word into a sequence of complete Dyck words.
+
+        Each element of the list returned is a (possibly empty)
+        complete Dyck word.  The original word is obtained by placing
+        an up step between each of these complete Dyck words.  Thus,
+        the number of words returned is one more than the final
+        height.
+
+        See Section 1.2 of [CC1982]_ or Lemma 9.1.1 of [Lot2005]_.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,1,1,0,1,0,1,1,1,1,0,1])
+            sage: D.catalan_factorization()
+            [[], [], [1, 0, 1, 0], [], [], [1, 0], []]
+
+            sage: DyckWord([]).catalan_factorization()
+            [[]]
+
+            sage: DyckWord([1,1]).catalan_factorization()
+            [[], [], []]
+
+            sage: DyckWord([1,0,1,0]).catalan_factorization()
+            [[1, 0, 1, 0]]
+        """
+        H = self.heights()
+        h = 0
+        i = 0
+        j = n = self.length()
+        result = []
+        while i <= n:
+            if H[j] == h or j == i:
+                result.append(DyckWord(self[i:j]))
+                h += 1
+                i = j+1
+                j = n
+            else:
+                j -= 1
         return result
 
     def number_of_initial_rises(self):

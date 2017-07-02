@@ -342,6 +342,10 @@ REFERENCES:
             Cirencester, UK, 18-20 December 2007, Springer
             LNCS 4887. See also http://eprint.iacr.org/2006/402/.
 
+.. [CC1982] Chottin and R. Cori, *Une preuve combinatoire de la
+            rationalit\'e d'une s\'erie g\'en\'eratrice associ\'ee
+            aux arbres*, RAIRO, Inf. Th\'eor. 16, 113--128 (1982)
+
 .. [CDL2015] \A. Canteaut, Sebastien Duval, Gaetan Leurent
              *Construction of Lightweight S-Boxes using Feistel and
              MISTY Structures*; in Proceedings of SAC 2015; LNCS 9566;
@@ -1170,6 +1174,9 @@ REFERENCES:
 .. [Loe2007] David Loeffler, *Spectral expansions of overconvergent
              modular functions*, Int. Math. Res. Not 2007 (050).
              `Arxiv preprint <http://uk.arxiv.org/abs/math/0701168>`_.
+
+.. [Lot2005] M. Lothaire, *Applied combinatorics on
+             words*. Cambridge University Press (2005).
 
 .. [LP2011] Richard Lindner and Chris Peikert. Better key sizes (and
             attacks) for LWE-based encryption. in Proceeding of the

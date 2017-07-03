@@ -158,18 +158,52 @@ class GraphicMatroid(Matroid):
     def groundset(self):
         """
         Returns the ground set of the matroid as a frozenset.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: G = graphs.CompleteGraph(3).disjoint_union(graphs.CompleteGraph(4))
+            sage: M = Matroid(G); M.groundset()
+            frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8})
+            sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
+            sage: M.groundset()
+            frozenset({'a', 'b', 'c'})
         """
         return self._groundset
 
     def graph(self):
         """
         Returns a graph that has a cycle matroid equal to the matroid.
+
+        The graph will always have loops and multiedges enabled.
+
+        EXAMPLES::
+
+            sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
+            sage: M.groundset()
+            frozenset({'a', 'b', 'c'})
+            sage: M.graph().edges()
+            [(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]
+            sage: M = Matroid(graphs.CompleteGraph(5))
+            sage: M.graph()
+            Looped multi-graph on 5 vertices
         """
         return self._G.copy()
 
     def _repr_(self):
         """
         Returns a string representation of the matroid.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(5))
+            sage: M
+            Graphic matroid of rank 4 on 10 elements.
+            sage: M = Matroid(Graph([(0,0),(0,1),(0,2),(1,1),(2,2)], loops=True))
+            sage: M
+            Graphic matroid of rank 2 on 5 elements.
         """
         self._mrank = str(self._rank(self._groundset))
         self._elts = str(len(self._groundset))
@@ -179,12 +213,22 @@ class GraphicMatroid(Matroid):
     def _minor(self, contractions=frozenset([]), deletions=frozenset([])):
         """
         Return a minor.
+
         INPUT:
-        contractions -- frozenset, subset of self.groundset() to be contracted
-        deletions -- frozenset, subset of self.groundset() to be deleted
+
+        - ``contractions`` -- frozenset, subset of ``self.groundset()`` to be contracted
+        -  ``deletions`` -- frozenset, subset of ``self.groundset()`` to be deleted
 
         Assumptions: contractions are independent, deletions are coindependent,
         contractions and deletions are disjoint.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(5))
+            sage: M._minor(deletions=frozenset([0,1,2]))
+            Graphic matroid of rank 4 on 7 elements.
+            sage: M._minor(contractions=frozenset([0,1,2]))
+            Graphic matroid of rank 1 on 7 elements.
         """
         g = self.graph()
 

@@ -59,7 +59,7 @@ def mandelbrot_plot(**kwds):
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image in the complex plane.
 
-    - ``max_iteration`` -- long (optional - default: ``500``), maximum number of iterations the map ``f(z)``.
+    - ``max_iteration`` -- long (optional - default: ``500``), maximum number of iterations the map ``Q_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of image in number of pixels.
 
@@ -69,49 +69,40 @@ def mandelbrot_plot(**kwds):
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors used to plot image
 
-    - ``interact`` -- boolean (optional - default: ``True``), controls whether plot will have interactive functionality.
+    - ``interact`` -- boolean (optional - default: ``False``), controls whether plot will have interactive functionality.
 
     OUTPUT:
 
-    Interactive 24-bit RGB image of the Mandelbrot set in the complex plane.
+    24-bit RGB image of the Mandelbrot set in the complex plane.
 
     EXAMPLES:
 
-    When this function is called in the command line without setting
-    ``interact`` to False it will return the underlying HTML and Sage code
-    for the interactive mathlet.
-
     ::
 
-        sage: mandelbrot_plot()
-        <html>...</html>
-
-    ::
-
-        sage: mandelbrot_plot(pixel_count=1000)
-        <html>...</html>
-
-
-    ::
-
-        sage: mandelbrot_plot(base_color=[70, 40, 240])
-        <html>...</html>
-
-    ::
-
-        sage: mandelbrot_plot(x_center=-0.75, y_center=0.25, image_width=1/2, number_of_colors=75)
-        <html>...</html>
-
-    To use the function outside of the notebook, you must set ``interact`` to False::
-
-        sage: mandelbrot_plot(interact=False)
+        sage: mandelbrot_plot() # long time
         500x500px 24-bit RGB image
 
     ::
 
-        sage: mandelbrot_plot(interact=False, x_center=-1.11, y_center=0.2283, image_width=1/128, # long time
+        sage: mandelbrot_plot(pixel_count=1000) # long time
+        1000x1000px 24-bit RGB image
+
+    ::
+
+        sage: mandelbrot_plot(x_center=-1.11, y_center=0.2283, image_width=1/128, # long time
         ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100])
         500x500px 24-bit RGB image
+
+    To display an interactive plot of the Mandelbrot set in the Notebook, set ``interact`` to ``True``::
+
+        sage: mandelbrot_plot(interact=True)
+        <html>...</html>
+
+    ::
+
+        sage: mandelbrot_plot(interact=True, x_center=-0.75, y_center=0.25,
+        ....: image_width=1/2, number_of_colors=75)
+        <html>...</html>
     """
 
     x_center = kwds.pop("x_center", -1.0)
@@ -122,7 +113,7 @@ def mandelbrot_plot(**kwds):
     base_color = kwds.pop("base_color", [40, 40, 40])
     iteration_level = kwds.pop("iteration_level", 1)
     number_of_colors = kwds.pop("number_of_colors", 30)
-    interacts = kwds.pop("interact", True)
+    interacts = kwds.pop("interact", False)
 
     if interacts:
         @interact(layout={'bottom':[['real_center'], ['im_center'], ['width']],

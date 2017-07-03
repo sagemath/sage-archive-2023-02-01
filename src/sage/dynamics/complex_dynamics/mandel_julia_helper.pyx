@@ -39,7 +39,7 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
 
     - ``image_width`` -- double, width of the image in the complex plane.
 
-    - ``max_iteration`` -- long, maximum number of iterations the map `f(z)` considered.
+    - ``max_iteration`` -- long, maximum number of iterations the map `Q_c(z)` considered.
 
     - ``pixel_count`` -- long, side length of image in number of pixels.
 
@@ -69,13 +69,13 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
     """
 
     cdef long i, j, row, col, level, color_value, iteration
-    cdef double k, x_step, y_step, scale_factor, x_coor, y_coor, new_x, new_y
+    cdef double k, x_corner, y_corner, step_size, x_coor, y_coor, new_x, new_y
     cdef M, pixel, color_list
 
     # Make sure image_width is positive
     image_width = abs(image_width)
 
-    # Intialize an image to the color black and access the pixels
+    # Initialize an image to the color black and access the pixels
     M = Image("RGB", (pixel_count,pixel_count), 'black')
     pixel = M.pixels()
 
@@ -93,17 +93,17 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
             color_list[i][j] += i * (255 - color_list[i][j]) // color_num
         color_list[i] = tuple(color_list[i])
 
-    # Loop through each pixel in the image and convert it to a point
-    # in the complex plane.
-    scale_factor = image_width / pixel_count
-    x_step = x_center - image_width/2
-    y_step = - y_center - image_width/2
+    # First, we determine the complex coordinates of the point in the top left
+    # corner of the image. Then, we loop through each pixel in the image and
+    # assign it complex coordinates relative to the image's top left corner.
+    x_corner = x_center - image_width/2
+    y_corner = y_center + image_width/2
+    step_size = image_width / pixel_count
     for row in range(pixel_count):
-        sig_check()
-        x_coor = row*scale_factor + x_step
+        x_coor = x_corner + row*step_size
         for col in range(pixel_count):
             sig_check()
-            y_coor = col*scale_factor + y_step
+            y_coor = y_corner - col*step_size
 
             # We compute the orbit of 0 under the map Q(z) = z^2 + c
             # until we either reach the maximum number of iterations

@@ -248,12 +248,18 @@ class GraphicMatroid(Matroid):
             Graphic matroid of rank 4 on 7 elements.
             sage: M._minor(contractions=frozenset([0,1,2]))
             Graphic matroid of rank 1 on 7 elements.
+            sage: M = Matroid(graphs.PetersenGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14})
+            sage: N = M._minor(deletions = frozenset([0, 3, 5, 9]), contractions =
+            ....: frozenset([1, 2, 11])); N
+            Graphic matroid of rank 6 on 8 elements.
         """
         g = self.graph()
         cont_edges = self._groundset_to_edges(contractions)
         del_edges = self._groundset_to_edges(deletions)
-        g.contract_edges(cont_edges)
+        # deletions first so contractions don't mess up the vertices
         g.delete_edges(del_edges)
+        g.contract_edges(cont_edges)
 
         return GraphicMatroid(g)
 

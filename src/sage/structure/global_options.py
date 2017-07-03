@@ -233,53 +233,51 @@ The documentation for a :class:`GlobalOptions` is automatically generated from
 the supplied options. For example, the generated documentation for the options
 ``menu`` defined in :ref:`construction_section` is the following::
 
-    sage: print(Menu.options.__doc__)
     Fancy documentation
     -------------------
-    <BLANKLINE>
+
     OPTIONS:
-    <BLANKLINE>
+
     - ``appetizer`` -- alternative name for ``entree``
     - ``dessert`` -- (default: ``espresso``)
       Dessert
-    <BLANKLINE>
+
       - ``cake``     -- waist begins again
       - ``cream``    -- fluffy, white stuff
       - ``espresso`` -- life begins again
-    <BLANKLINE>
+
     - ``entree`` -- (default: ``soup``)
       The first course of a meal
-    <BLANKLINE>
+
       - ``bread`` -- oven baked
       - ``rye``   -- alias for ``bread``
       - ``soup``  -- soup of the day
-    <BLANKLINE>
+
     - ``main`` -- (default: ``pizza``)
       Main meal
-    <BLANKLINE>
+
       - ``pasta`` -- penne arrabiata
       - ``pizza`` -- thick crust
-    <BLANKLINE>
+
     - ``tip`` -- (default: ``10``)
       Reward for good service
-    <BLANKLINE>
-    <BLANKLINE>
-    <BLANKLINE>
+
+
+
     The END!
-    <BLANKLINE>
+
     See :class:`~sage.structure.global_options.GlobalOptions` for more features of these options.
 
 In addition, help on each option, and its list of possible values, can be
 obtained by (trying to) set the option equal to '?'::
 
-    sage: print(Menu.options.dessert.__doc__)
+    sage: Menu.options.dessert?                # not tested
     - ``dessert`` -- (default: ``espresso``)
       Dessert
-    <BLANKLINE>
+
       - ``cake``     -- waist begins again
       - ``cream``    -- fluffy, white stuff
       - ``espresso`` -- life begins again
-    <BLANKLINE>
 
 .. _dispatcher:
 
@@ -409,6 +407,55 @@ Check that the old call syntax still works::
       - entree:  soup
       - main:    pizza
       - tip:     10
+
+Test the documentation examples above::
+
+    sage: print(Menu.options.__doc__)
+    Fancy documentation
+    -------------------
+    <BLANKLINE>
+    OPTIONS:
+    <BLANKLINE>
+    - ``appetizer`` -- alternative name for ``entree``
+    - ``dessert`` -- (default: ``espresso``)
+      Dessert
+    <BLANKLINE>
+      - ``cake``     -- waist begins again
+      - ``cream``    -- fluffy, white stuff
+      - ``espresso`` -- life begins again
+    <BLANKLINE>
+    - ``entree`` -- (default: ``soup``)
+      The first course of a meal
+    <BLANKLINE>
+      - ``bread`` -- oven baked
+      - ``rye``   -- alias for ``bread``
+      - ``soup``  -- soup of the day
+    <BLANKLINE>
+    - ``main`` -- (default: ``pizza``)
+      Main meal
+    <BLANKLINE>
+      - ``pasta`` -- penne arrabiata
+      - ``pizza`` -- thick crust
+    <BLANKLINE>
+    - ``tip`` -- (default: ``10``)
+      Reward for good service
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
+    The END!
+    See :class:`~sage.structure.global_options.GlobalOptions` for more features of these options.
+
+::
+
+    sage: print(Menu.options.dessert.__doc__)
+    - ``dessert`` -- (default: ``espresso``)
+      Dessert
+    <BLANKLINE>
+      - ``cake``     -- waist begins again
+      - ``cream``    -- fluffy, white stuff
+      - ``espresso`` -- life begins again
+    <BLANKLINE>
 
 AUTHORS:
 

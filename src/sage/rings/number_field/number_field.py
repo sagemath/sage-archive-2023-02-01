@@ -1685,12 +1685,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
     def _convert_non_number_field_element(self, x):
         """
-        Convert a non-number field element x into this number field.
+        Convert a non-number field element ``x`` into this number field.
 
         INPUT:
 
-        - ``x`` -- a non number field element x, e.g., a list, integer,
-          rational, or polynomial.
+        - ``x`` -- a non number field element, e.g., a list, integer,
+          rational, or polynomial
 
         EXAMPLES::
 

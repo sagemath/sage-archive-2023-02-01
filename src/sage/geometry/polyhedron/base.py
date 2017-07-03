@@ -5959,6 +5959,15 @@ class Polyhedron_base(Element):
 
         TESTS::
 
+            sage: P = Polyhedron([[7]]); P
+            A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
+            sage: P.affine_hull()
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull(orthonormal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull(orthogonal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """

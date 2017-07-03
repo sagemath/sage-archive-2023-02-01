@@ -49,6 +49,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import RealField, RR, is_RealField
 from sage.arith.all import gcd, lcm, is_prime, binomial
+from sage.functions.other import ceil
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
@@ -1095,7 +1096,6 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         K = FractionField(self.codomain().base_ring())
 
         if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
-
             P = self
             e = P[0].denominator()
             x = P[0]
@@ -1119,14 +1119,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             x_i = x
             y_i = y
             d = f.degree()
-            prec = kwds.get('prec', 53)
             R = RealField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
             if Res > 1:
                 if not err == None:
                     err = err/2
-                    N = ceil((R(abs(Res)).log().log() - RR((d-1)).log() - err.log())/(RR(d).log()))
+                    N = ceil((R(abs(Res)).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
                         N = 1
                     kwds.update({'error_bound': err})
@@ -1135,11 +1134,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     x = A(x_i,y_i) % Res**(N-n)
                     y = B(x_i,y_i) % Res**(N-n)
                     g = gcd([x, y, Res])
-                    H = H + R(P[1]).abs().log()/(d**(n+1))
+                    H = H + R(g).abs().log()/(d**(n+1))
                     x_i = x/g
                     y_i = y/g
             # want archedmedian greens function
-            v = QQ.places()[0] # changes rationals to reals
             h = P.green_function(f, 0 , **kwds) - R(P[1]).abs().log()
             can_height = R(Q_0[1].abs()).log() + h - H + R(t).log()
             return can_height

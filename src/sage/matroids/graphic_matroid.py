@@ -23,7 +23,7 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
-from .utilities import newlabel, contract_edge, update_edges
+from .utilities import newlabel
 from itertools import combinations
 import random
 from sage.rings.integer import Integer
@@ -517,7 +517,8 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- An object with Python's ``frozenset`` interface containing
+          a subset of ``self.groundset()``.
 
         OUTPUT:
 
@@ -528,25 +529,26 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(graphs.DiamondGraph())
             sage: M._max_independent(M.groundset())
             frozenset({1, 3, 4})
-            sage: M._max_independent([0,1,2])
+            sage: M._max_independent(frozenset([0,1,2]))
             frozenset({1, 2})
-            sage: M._max_independent([3,4])
+            sage: M._max_independent(frozenset([3,4]))
             frozenset({3, 4})
             sage: N = M.graphic_extension(0, element='a')
-            sage: N._max_independent(['a'])
+            sage: N._max_independent(frozenset(['a']))
             frozenset()
         """
-        res = set()
-        g = self.graph()
+        if self._is_independent(X):
+            return X
+
         edgelist = self._groundset_to_edges(X)
-        #for e in edgelist:
-        while edgelist != []:
-            e = edgelist.pop()
-            if e not in g.loops():
-                contract_edge(g,e)
-                edgelist = update_edges(e, edgelist)
-                res.add(e[2])
-        return frozenset(res)
+        G = self._subgraph_from_set(X)
+        ind_list = []
+        for (u, v, l) in edgelist:
+            if G.is_cut_edge(u, v, l):
+                ind_list.append(l)
+            else:
+                G.delete_edge(u, v, l)
+        return frozenset(ind_list)
 
     def _max_coindependent(self, X):
         """

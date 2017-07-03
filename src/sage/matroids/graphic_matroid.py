@@ -26,6 +26,7 @@ from copy import copy, deepcopy
 from .utilities import newlabel, contract_edge, update_edges
 from itertools import combinations
 import random
+from sage.rings.integer import Integer
 
 class GraphicMatroid(Matroid):
     """
@@ -48,7 +49,25 @@ class GraphicMatroid(Matroid):
     """
 
     def __init__(self, G, groundset = None):
+        """
+        See class definition for full documentation.
 
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: G1 = graphs.CycleGraph(3); G2 = graphs.DiamondGraph()
+            sage: G = G1.disjoint_union(G2)
+            sage: M = GraphicMatroid(G)
+            sage: M
+            Graphic matroid of rank 5 on 8 elements.
+            sage: M.graph()
+            Looped multi-graph on 6 vertices
+            sage: M.graph().is_connected()
+            True
+            sage: M.is_connected()
+            False
+
+        """
 
         if groundset is None:
             #Try to construct a ground set based on the edge labels.
@@ -84,8 +103,7 @@ class GraphicMatroid(Matroid):
             # as bouquets
             v1 = random.choice(comps[0])
             v2 = random.choice(comps[1])
-            self._G.add_edge((v1, v2, None))
-            contract_edge(self._G, (v1, v2, None))
+            self._G.merge_vertices([v1, v2])
 
         # Map ground set elements to graph edges:
         # The the edge labels should already be the elements.
@@ -201,7 +219,8 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(graphs.CompleteGraph(5))
             sage: M
             Graphic matroid of rank 4 on 10 elements.
-            sage: M = Matroid(Graph([(0,0),(0,1),(0,2),(1,1),(2,2)], loops=True))
+            sage: G = Graph([(0, 0), (0, 1), (0, 2), (1, 1), (2, 2)], loops=True)
+            sage: M = Matroid(G)
             sage: M
             Graphic matroid of rank 2 on 5 elements.
         """
@@ -231,29 +250,24 @@ class GraphicMatroid(Matroid):
             Graphic matroid of rank 1 on 7 elements.
         """
         g = self.graph()
-
-        #self._new_groundset_edge_map = copy(self._groundset_edge_map)
         cont_edges = self._groundset_to_edges(contractions)
         del_edges = self._groundset_to_edges(deletions)
-        #for e in cont_edges:
-        while cont_edges != []:
-            e = cont_edges.pop()
-            contract_edge(g, e)
-            del_edges = update_edges(e, del_edges)
-            cont_edges = update_edges(e, cont_edges)
-
+        g.contract_edges(cont_edges)
         g.delete_edges(del_edges)
-        #for x in deletions:
-            #e = (self._new_groundset_edge_map[x][0], self._new_groundset_edge_map[x][1], x)
-
-            #self._new_G.delete_edge(self._edge)
 
         return GraphicMatroid(g)
 
     def _has_minor(self, N, certificate = False):
         """
-        Checks if the matroid has a minor isomoprhic to M(H).
+        Check if the matroid has a minor isomoprhic to M(H).
+
+        INPUT:
+
+        - ``N`` - A matroid.
+        - ``certificate`` - (default: ``False``)
         """
+        # This method needs work...
+
         # The graph minor algorithm is faster but it doesn't make sense
         # to use it if M(H) is not 3-connected, because of all the possible
         # Whitney switches or 1-sums that will give the same matroid.
@@ -282,8 +296,26 @@ class GraphicMatroid(Matroid):
 
     def groundset_to_edges(self, X):
         """
-        Given a subset of the ground set, this will return the corresponding
-        set of edges.
+        Return a list of edges corresponding to a set of ground set elements.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A list of graph edges.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M.groundset_to_edges([2,3,4])
+            [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            sage: M.groundset_to_edges([2,3,4,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be a subset of the ground set
         """
         for x in X:
             if x not in self._groundset:
@@ -292,8 +324,22 @@ class GraphicMatroid(Matroid):
 
     def _groundset_to_edges(self, X):
         """
-        Given a subset of the ground set, this will return the corresponding
-        set of edges.
+        Return a list of edges corresponding to a set of ground set elements.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A list of graph edges.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M._groundset_to_edges([2,3,4])
+            [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
         """
         edge_list = []
         for x in X:
@@ -302,39 +348,151 @@ class GraphicMatroid(Matroid):
             edge_list.append((v0, v1, x))
         return edge_list
 
-    def _subgraph_from_set(self,X):
+    def subgraph_from_set(self, X):
         """
-        Returns the subgraph induced by the edges corresponding to the elements of X.
+        Return the subgraph corresponding to M restricted to X.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A SageMath graph.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M.subgraph_from_set([0,1,2])
+            Looped multi-graph on 3 vertices
+            sage: M.subgraph_from_set([3,4,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be a subset of the ground set
+        """
+        for x in X:
+            if x not in self._groundset:
+                raise ValueError("input must be a subset of the ground set")
+        return self._subgraph_from_set(X)
+
+    def _subgraph_from_set(self, X):
+        """
+        Return the subgraph corresponding to M restricted to X.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A SageMath graph.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M._subgraph_from_set([0,1,2])
+            Looped multi-graph on 3 vertices
         """
         edge_list = self._groundset_to_edges(X)
         return Graph(edge_list, loops=True, multiedges=True)
 
     def _corank(self, X):
         """
-        Returns the corank of the set X in the matroid.
+        Return the corank of the set `X` in the matroid.
+
+        Internal version that does no input checking.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteBipartiteGraph(3,3))
+            sage: M._corank([0,1,2])
+            2
+            sage: M._corank([1,2,3])
+            3
         """
-        components = self._G.connected_components_number()
         g = self.graph()
         g.delete_edges(self._groundset_to_edges(X))
-        return (len(X) - (g.connected_components_number() - components))
+        return (len(X) - (g.connected_components_number() - Integer(1)))
 
     def _is_independent(self, X):
         """
-        Tests if the set is an independent set of the matroid.
+        Test if a set is an independent set of the matroid.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+        sage: M = Matroid(graphs.DiamondGraph())
+        sage: M._is_independent([0,1,2])
+        False
+        sage: M._is_independent([0,1,3])
+        True
         """
         g = self._subgraph_from_set(X)
         return g.is_forest()
 
     def _is_circuit(self, X):
         """
-        Tests if the given set is a circuit.
+        Test if input is a circuit.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._is_circuit([0,1,2])
+            True
+            sage: M._is_circuit([0,1,2,3])
+            False
+            sage: M._is_circuit([0,1,3])
+            False
         """
         g = self._subgraph_from_set(X)
         return g.is_cycle()
 
     def _closure(self, X):
         """
-        Returns the closure of a set.
+        Return the closure of a set.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        ``frozenset`` instance containing a subset of the ground set.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._closure([0])
+            frozenset({0})
+            sage: M._closure([0,1])
+            frozenset({0, 1, 2})
+            sage: M._closure(M.groundset())
+            frozenset({0, 1, 2, 3, 4})
         """
         X = set(X)
         Y = self.groundset().difference(X)
@@ -353,9 +511,30 @@ class GraphicMatroid(Matroid):
                     g.delete_edge(e)
         return frozenset(X)
 
-    def _max_independent(self,X):
+    def _max_independent(self, X):
         """
-        Returns a maximum independent subset of a set.
+        Compute a maximal independent subset.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        ``frozenset`` instance containing a subset of the ground set.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._max_independent(M.groundset())
+            frozenset({1, 3, 4})
+            sage: M._max_independent([0,1,2])
+            frozenset({1, 2})
+            sage: M._max_independent([3,4])
+            frozenset({3, 4})
+            sage: N = M.graphic_extension(0, element='a')
+            sage: N._max_independent(['a'])
+            frozenset()
         """
         res = set()
         g = self.graph()
@@ -369,17 +548,35 @@ class GraphicMatroid(Matroid):
                 res.add(e[2])
         return frozenset(res)
 
-    def _max_coindependent(self,X):
+    def _max_coindependent(self, X):
         """
-        Returns a maximum coindependent subset of a set.
+        Compute a maximal coindependent subset.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        ``frozenset`` instance containing a subset of the ground set.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._max_coindependent(M.groundset())
+            frozenset({0, 2})
+            sage: M._max_coindependent([2,3,4])
+            frozenset({2, 3})
+            sage: N = M.graphic_extension(0, element='a')
+            sage: N.max_coindependent([0,1,2,'a'])
+            frozenset({0, 2, 'a'})
         """
         res = set()
-        components = self._G.connected_components_number()
         g = self.graph()
         edgelist = self._groundset_to_edges(X)
         for e in edgelist:
             g.delete_edge(e)
-            if g.connected_components_number() > components:
+            if g.connected_components_number() > 1:
                 g.add_edge(e)
             else:
                 res.add(e[2])
@@ -387,10 +584,34 @@ class GraphicMatroid(Matroid):
 
     def _circuit(self, X):
         """
-        Returns a minimal dependent subset.
+        Return a minimal dependent subset.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        ``frozenset`` instance containing a subset of the groundset.
+        A ``ValueError`` is raised if the set contains no circuit.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._circuit(M.groundset())
+            frozenset({2, 3, 4})
+            sage: N = Matroid(graphs.CompleteBipartiteGraph(3,3))
+            sage: N._circuit([0, 1, 2, 6, 7, 8])
+            frozenset({1, 2, 7, 8})
+            sage: N._circuit([0,1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: no circuit in independent set
         """
         circuit = set()
         g = self._subgraph_from_set(X)
+        if g.is_forest():
+            raise ValueError("no circuit in independent set")
         for e in g.edges():
             g.delete_edge(e)
             if g.is_forest():
@@ -400,7 +621,28 @@ class GraphicMatroid(Matroid):
 
     def _coclosure(self, X):
         """
-        Returns the coclosure of a set.
+        Return the coclosure of a set.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+        OUTPUT:
+
+        ``frozenset`` instance containing a subset of the groundset.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._coclosure([0])
+            frozenset({0, 1})
+            sage: M._coclosure([0,1])
+            frozenset({0, 1})
+            sage: N = M.graphic_extension(0, element='a')
+            sage: N._coclosure([3])
+            frozenset({3, 4})
+            sage: N = M.graphic_coextension(0, element='a')
+            sage: N._coclosure([3])
+            frozenset({3, 4, 'a'})
         """
         g = self.graph()
         g.delete_edges(self._groundset_to_edges(X))
@@ -416,7 +658,29 @@ class GraphicMatroid(Matroid):
 
     def _is_coindependent(self, X):
         """
-        Tests if input is coindependent.
+        Test if input is coindependent.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._is_coindependent([0])
+            True
+            sage: M._is_coindependent([0,1])
+            False
+            sage: N = M.graphic_coextension(3, element='a')
+            sage: N._is_coindependent([0,'a'])
+            False
+            sage: N1 = N.graphic_extension(3, element='b')
+            sage: N1._is_coindependent([0,'b'])
+            True
         """
         g = self.graph()
         components = g.connected_components_number()
@@ -538,11 +802,33 @@ class GraphicMatroid(Matroid):
 
     def graphic_extension(self, u, v=None, element=None):
         """
-        Returns a graphic matroid with a specified element added.
+        Return a graphic matroid extended by a new element.
+
+        INPUT:
+
+        - ``u`` -- a vertex in the matroid's graph.
+        - ``v`` -- (default: ``None``) another vertex. If not specified or if ``v`` is
+          ``u``, then, the new element will be a loop.
+        - ``element`` -- (default: ``None``) the label of the new element. If
+          not specified, a new label will be generated automatically.
+
+        OUTPUT:
+
+        A GraphicMatroid with the specified element added.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(4))
+            sage: M1 = M.graphic_extension(0,1,'a'); M1
+            Graphic matroid of rank 3 on 7 elements.
+            sage: M1.graph().edges()
+            [(0, 1, 0), (0, 1, 'a'), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
+            sage: M2 = M1.graphic_extension(3); M2
+            Graphic matroid of rank 3 on 8 elements.
+
         """
-        # TODO: Coloops should be handled in a more logical way
-        # Perhaps make a new method to connect/disconnect matroid components
-        # in the graph
+        # __init()__ forces the graph to be connected, so this should
+        # never make a coloop
         if element is None:
             element = newlabel(self.groundset())
         elif element in self.groundset():
@@ -555,12 +841,11 @@ class GraphicMatroid(Matroid):
             v = u
         G = self.graph()
         G.add_edge(u,v,element)
-        return GraphicMatroid(deepcopy(G))
+        return GraphicMatroid(G)
 
     def graphic_extensions(self, element=None, vertices=None):
         """
-        Returns an iterable containing the graphic extensions of self
-        by an element.
+        Return an iterable containing the graphic extensions.
 
         INPUT:
 
@@ -571,12 +856,27 @@ class GraphicMatroid(Matroid):
 
         OUTPUT:
 
-        An iterable containing matroids.
+        An iterable containing instances of GraphicMatroid.
 
         .. NOTE::
 
             The extension by a loop will always occur.
             The extension by a coloop will never occur.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: I = M.graphic_extensions('a')
+            sage: for N in I:
+            ....:     N.graph().edges()
+            [(0, 0, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 1, 'a'), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (0, 2, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (0, 3, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 2, 'a'), (1, 3, 3), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (1, 3, 'a'), (2, 3, 4)]
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (2, 3, 'a')]
+
         """
         matroid_list = []
         G = self.graph()
@@ -589,22 +889,21 @@ class GraphicMatroid(Matroid):
             vertices = self._G.vertices()
 
         # First extend by a loop, then consider every pair of vertices.
-        # We'll make the loop a new component.
-        v = G.add_vertex()
-        G.add_edge(v,v,element)
-        matroid_list.append(GraphicMatroid(deepcopy(G)))
-        G.delete_vertex(v)
+        # Put the loop on the first vertex.
+        G.add_edge(vertices[0], vertices[0], element)
+        matroid_list.append(GraphicMatroid(G))
+        G.delete_edge(vertices[0], vertices[0], element)
 
         pairs = combinations(vertices, 2)
         for p in pairs:
             G.add_edge(p[0], p[1], element)
-            matroid_list.append(GraphicMatroid(deepcopy(G)))
+            matroid_list.append(GraphicMatroid(G))
             G.delete_edge(p[0], p[1], element)
         return iter(matroid_list)
 
     def graphic_coextension(self, u, v=None, X=None, element=None):
         """
-        Returns a matroid coextended by a new element.
+        Return a matroid coextended by a new element.
 
         INPUT:
 
@@ -662,7 +961,7 @@ class GraphicMatroid(Matroid):
             G.delete_edge(e)
         G.add_edge(u, v, element)
 
-        return GraphicMatroid(deepcopy(G))
+        return GraphicMatroid(G)
 
     def twist(self, X):
         """

@@ -60,8 +60,6 @@ from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 
-import six
-
 class ExtPowerFreeModule(FiniteRankFreeModule):
     r"""
     Exterior power of a free module of finite rank over a commutative
@@ -683,7 +681,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                                          tensor.base_module() is self._fmodule:
                 resu = self.element_class(self._fmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
-                for basis, comp in six.iteritems(tensor._components):
+                for basis, comp in tensor._components.items():
                     resu._components[basis] = comp.copy()
                 return resu
             else:

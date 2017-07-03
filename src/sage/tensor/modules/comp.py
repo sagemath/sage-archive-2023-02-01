@@ -247,9 +247,7 @@ In case of symmetries, only non-redundant components are stored::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
 from six.moves import range
-from six import itervalues
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -1345,7 +1343,7 @@ class Components(SageObject):
         # any zero value
         # In other words, the full method should be
         #   return self.comp == {}
-        for val in itervalues(self._comp):
+        for val in self._comp.values():
             if not (val == 0):
                 return False
         return True

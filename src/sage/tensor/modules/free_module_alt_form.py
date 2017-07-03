@@ -42,9 +42,6 @@ from __future__ import absolute_import
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.comp import Components, CompFullyAntiSym
 
-import six
-
-
 class FreeModuleAltForm(FreeModuleTensor):
     r"""
     Alternating form on a free module of finite rank over a commutative ring.
@@ -650,8 +647,8 @@ class FreeModuleAltForm(FreeModuleTensor):
         cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,
                                  start_index=fmodule._sindex,
                                  output_formatter=fmodule._output_formatter)
-        for ind_s, val_s in six.iteritems(cmp_s._comp):
-            for ind_o, val_o in six.iteritems(cmp_o._comp):
+        for ind_s, val_s in cmp_s._comp.items():
+            for ind_o, val_o in cmp_o._comp.items():
                 ind_r = ind_s + ind_o
                 if len(ind_r) == len(set(ind_r)): # all indices are different
                     cmp_r[[ind_r]] += val_s * val_o

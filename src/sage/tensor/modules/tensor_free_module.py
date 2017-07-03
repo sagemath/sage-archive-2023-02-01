@@ -67,9 +67,6 @@ from sage.tensor.modules.free_module_morphism import \
                                                    FiniteRankFreeModuleMorphism
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
 
-import six
-
-
 class TensorFreeModule(FiniteRankFreeModule):
     r"""
     Class for the free modules over a commutative ring `R` that are
@@ -449,7 +446,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                 resu = self.element_class(self._fmodule, (1,1),
                                           name=endo._name,
                                           latex_name=endo._latex_name)
-                for basis, mat in six.iteritems(endo._matrices):
+                for basis, mat in endo._matrices.items():
                     resu.add_comp(basis[0])[:] = mat
             else:
                 raise TypeError("cannot coerce the {}".format(endo) +
@@ -471,7 +468,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                                       name=tensor._name,
                                       latex_name=tensor._latex_name,
                                       antisym=asym)
-            for basis, comp in six.iteritems(tensor._components):
+            for basis, comp in tensor._components.items():
                 resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleAltForm):
             # coercion of an alternating form to a type-(0,p) tensor:
@@ -488,7 +485,7 @@ class TensorFreeModule(FiniteRankFreeModule):
             resu = self.element_class(self._fmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
-            for basis, comp in six.iteritems(form._components):
+            for basis, comp in form._components.items():
                 resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleAutomorphism):
             # coercion of an automorphism to a type-(1,1) tensor:
@@ -499,7 +496,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                                 " to an element of {}".format(self))
             resu = self.element_class(self._fmodule, (1,1), name=autom._name,
                                       latex_name=autom._latex_name)
-            for basis, comp in six.iteritems(autom._components):
+            for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
         else:
             # Standard construction:

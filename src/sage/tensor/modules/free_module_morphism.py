@@ -23,15 +23,11 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-
-import six
-
 
 class FiniteRankFreeModuleMorphism(Morphism):
     r"""
@@ -716,7 +712,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             True
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in six.iteritems(self._matrices):
+        for bases, mat in self._matrices.items():
             resu._matrices[bases] = scalar * mat
         return resu
 
@@ -754,7 +750,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         resu = self.__class__(self.parent(), 0, is_identity=self._is_identity)
                                            # 0 = provisory value
-        for bases, mat in six.iteritems(self._matrices):
+        for bases, mat in self._matrices.items():
             resu._matrices[bases] = +mat
         if self._name is not None:
             resu._name = '+' + self._name
@@ -791,7 +787,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in six.iteritems(self._matrices):
+        for bases, mat in self._matrices.items():
             resu._matrices[bases] = -mat
         if self._name is not None:
             resu._name = '-' + self._name

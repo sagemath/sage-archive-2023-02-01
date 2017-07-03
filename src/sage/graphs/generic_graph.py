@@ -66,7 +66,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subdivide_edges` | Subdivide k times edges from an iterable container.
     :meth:`~GenericGraph.delete_edge` | Delete the edge from u to v
     :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
-    :meth:`~GenericGraph.contract_edge` | Contract an edge from 'u' to 'v'.
+    :meth:`~GenericGraph.contract_edge` | Contract an edge from `u` to `v`.
     :meth:`~GenericGraph.contract_edges` | Contract edges from an iterable container.
     :meth:`~GenericGraph.delete_multiedge` | Delete all edges from u and v.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
@@ -10672,7 +10672,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def contract_edge(self, u, v=None, label=None):
         """
-        Contract an edge from 'u' to 'v'.
+        Contract an edge from `u` to `v`.
 
         This method returns silently if the edge does not exist.
 

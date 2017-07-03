@@ -381,8 +381,8 @@ AC_SUBST(FC)
 # On darwin, also set the objective C/C++ compilers
 # Checking on all platforms doesn't hurt and stops
 # configure from sending an error when run on non-darwin.
-AC_PROG_OBJC([clang])
-AC_PROG_OBJCXX([clang++])],
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
 AC_SUBST(OBJC)
 AC_SUBST(OBJCXX)
 

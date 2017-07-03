@@ -30,22 +30,33 @@ if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = "Darwin" ] && [ "$MACOSX_VE
     CC=`which clang 2>/dev/null`
     CXX=`which clang++ 2>/dev/null`
 else
-# Override CC, CXX, FC if the GCC spkg was installed.
-# Use value from configure otherwise
-    if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
-        CC=gcc
-    else
-        CC="@CC@"
+# The compilers are set in order of priority by
+# 1) environment variables
+# 2) compiler installed by sage
+# 3) compiler set at configuration time
+    if [ -z "$CC" ]; then
+        if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
+            CC=gcc
+        else
+            CC="@CC@"
+        fi
+        export CC
     fi
-    if [ -x "$SAGE_LOCAL/bin/g++" ]; then
-        CXX=g++
-    else
-        CXX="@CXX@"
+    if [ -z "$CXX" ]; then
+        if [ -x "$SAGE_LOCAL/bin/g++" ]; then
+            CXX=g++
+        else
+            CXX="@CXX@"
+        fi
+        export CXX
     fi
-    if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
-        FC=gfortran
-    else
-        FC="@FC@"
+    if [ -z "$FC" ]; then
+        if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
+            FC=gfortran
+        else
+            FC="@FC@"
+        fi
+        export FC
     fi
     if [ "$UNAME" = "Darwin" ]; then
         OBJC="@OBJC@"
@@ -53,7 +64,6 @@ else
         export OBJC OBJCXX
     fi
 fi
-export CC CPP CXX FC
 
 # Set other Fortran-related compiler variables
 export F77="$FC"

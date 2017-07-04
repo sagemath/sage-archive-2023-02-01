@@ -3,7 +3,7 @@ from sage.structure.element_wrapper cimport ElementWrapper
 from sage.modules.with_basis.indexed_element cimport IndexedFreeModuleElement
 
 cdef class LieAlgebraElement(IndexedFreeModuleElement):
-    pass
+    cpdef lift(self)
 
 cdef class LieAlgebraElementWrapper(ElementWrapper):
     cpdef _add_(self, right)

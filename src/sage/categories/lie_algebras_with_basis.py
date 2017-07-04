@@ -214,3 +214,40 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             B = M.basis()
             return M.sum(self[i] * B[i] for i in self.support())
 
+        def lift(self):
+            """
+            Lift ``self`` to the universal enveloping algebra.
+
+            EXAMPLES::
+
+                sage: S = SymmetricGroup(3).algebra(QQ)
+                sage: L = LieAlgebra(associative=S)
+                sage: x = L.gen(2)
+                sage: y = L.gen(1)
+                sage: x.lift()
+                b2
+                sage: y.lift()
+                b1
+                sage: x * y
+                b1*b2 + b4 - b5
+            """
+            P = self.parent()
+            UEA = P.universal_enveloping_algebra()
+            try:
+                gen_dict = UEA.algebra_generators()
+            except (TypeError, AttributeError):
+                gen_dict = UEA.gens_dict()
+            s = UEA.zero()
+            if not self:
+                return s
+            # Special hook for when the index set of the parent of ``self``
+            #   does not match the generators index set of the UEA.
+            if hasattr(P, '_UEA_names_map'):
+                names_map = P._UEA_names_map
+                for t, c in self.monomial_coefficients(copy=False).items():
+                    s += c * gen_dict[names_map[t]]
+            else:
+                for t, c in self.monomial_coefficients(copy=False).items():
+                    s += c * gen_dict[t]
+            return s
+

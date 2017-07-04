@@ -22,8 +22,7 @@ from cpython.object cimport Py_EQ, Py_NE
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport (have_same_parent, classify_elements,
-                                     HAVE_SAME_PARENT, BOTH_ARE_ELEMENT,
+from sage.structure.element cimport (have_same_parent,
                                      coercion_model, parent)
 from sage.structure.element_wrapper cimport ElementWrapper
 from sage.structure.richcmp cimport richcmp
@@ -36,7 +35,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
     A Lie algebra element.
     """
     # Need to bypass the coercion model
-    def __mul__(self, y):
+    def __mul__(left, right):
         """
         If we are multiplying two non-zero elements, automatically
         lift up to the universal enveloping algebra.
@@ -54,22 +53,29 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: x * int(3)
             3*x
         """
-        if isinstance(self, (int, long)):
-            try:
-                return super(LieAlgebraElement, y).__mul__(self)
-            except TypeError:
-                return NotImplemented
+        cdef LieAlgebraElement self
+        # Make sure ``self`` is a LieAlgebraElement
+        if isinstance(left, LieAlgebraElement):
+            self = <LieAlgebraElement> left
+            y = right
+        else:
+            self = <LieAlgebraElement> right
+            y = left
 
         try:
-            # First try to see if it is in the base ring using the usual
-            #   coercion. This will also try for the universal enveloping
-            #   algebra.
+            # First try to see if it is in the base ring using
+            #   the usual coercion model.
             return super(LieAlgebraElement, self).__mul__(y)
         except TypeError:
             pass
 
-        # We are going to lift ``self`` the the UEA and use that coercion.
-        return coercion_model.bin_op(self.lift(), y, mul)
+        # We will eventually have y be an element in its UEA, so we
+        #   should just lift it here.
+        if isinstance(y, LieAlgebraElement):
+            y = y.lift()
+        # We are going to lift ``self`` the the UEA and use that
+        #   coercion (if necessary).
+        return self.lift() * y
 
     #def _im_gens_(self, codomain, im_gens):
     #    """
@@ -86,7 +92,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
     #    return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
     #                        for t, c in self._monomial_coefficients.iteritems())
 
-    def lift(self):
+    cpdef lift(self):
         """
         Lift ``self`` to the universal enveloping algebra.
 
@@ -304,24 +310,24 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         """
         return type(self)(self._parent, self.value - right.value)
 
-    # We need to bypass the coercion framework
-    # We let the universal enveloping algebra handle the rest if both
-    #   arguments are non-zero
-    def __mul__(self, x):
+    # Need to bypass the coercion model
+    def __mul__(left, right):
         """
         If we are multiplying two non-zero elements, automatically
         lift up to the universal enveloping algebra.
 
         .. TODO::
 
-            Write tests for this method once :trac:`16822` is
-            implemented.
+            Write more tests for this method.
 
         EXAMPLES::
 
-            sage: G = SymmetricGroup(3)
-            sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(associative=S.gens())
+            sage: S = SymmetricGroup(3).algebra(QQ)
+            sage: L = LieAlgebra(associative=S)
+            sage: x = L.gen(2); x
+            (1,2,3)
+            sage: y = L.gen(1); y
+            (1,2)
             sage: u = x*3; u
             3*(1,2,3)
             sage: parent(u) == L
@@ -330,18 +336,48 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             3/2*(1,2,3)
             sage: parent(u) == L
             True
-            sage: elt = x*y - y*x; elt  # not tested: needs #16822
-            sage: S(elt)  # not tested: needs #16822
+            sage: elt = x*y - y*x; elt
+            b4 - b5
+            sage: xp, yp = x.lift_associative(), y.lift_associative()
+            sage: eltp = xp*yp - yp*xp; eltp
             (2,3) - (1,3)
+            sage: G = list(S.basis())
+            sage: G[4] - G[5]
+            (2,3) - (1,3)
+
+        TESTS::
+
+            sage: G = SymmetricGroup(3)
+            sage: S = GroupAlgebra(G, QQ)
+            sage: L.<x,y> = LieAlgebra(associative=S.gens())
+            sage: int(3) * x
+            3*(1,2,3)
+            sage: y * int(3)
+            3*(1,2)
         """
-        if not isinstance(self, LieAlgebraElementWrapper):
-            x, self = self, x
-        if not self or not x:
-            return parent(self).zero()
-        if x in parent(self).base_ring():
-            return self._acted_upon_(x, True)
-        # Otherwise we lift to the UEA
-        return self.lift() * x
+        cdef LieAlgebraElementWrapper self
+        # Make sure ``self`` is a LieAlgebraElementWrapper
+        if isinstance(left, LieAlgebraElementWrapper):
+            self = <LieAlgebraElementWrapper> left
+            y = right
+        else:
+            self = <LieAlgebraElementWrapper> right
+            y = left
+
+        try:
+            # First try to see if it is in the base ring using
+            #   the usual coercion model.
+            return super(LieAlgebraElementWrapper, self).__mul__(y)
+        except TypeError:
+            pass
+
+        # We will eventually have y be an element in its UEA, so we
+        #   should just lift it here.
+        if isinstance(y, LieAlgebraElementWrapper):
+            y = y.lift()
+        # We are going to lift ``self`` the the UEA and use that
+        #   coercion (if necessary).
+        return self.lift() * y
 
     def __div__(self, x):
         """
@@ -385,9 +421,10 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         # enough information to detect apriori that this method only
         # accepts scalars; so it tries on some elements(), and we need
         # to make sure to report an error.
-        if hasattr( scalar, 'parent' ) and scalar.parent() != self._parent.base_ring():
+        scalar_parent = parent(scalar)
+        if scalar_parent != self._parent.base_ring():
             # Temporary needed by coercion (see Polynomial/FractionField tests).
-            if self._parent.base_ring().has_coerce_map_from(scalar.parent()):
+            if self._parent.base_ring().has_coerce_map_from(scalar_parent):
                 scalar = self._parent.base_ring()( scalar )
             else:
                 return None
@@ -422,6 +459,24 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             1
         """
         return self.value.__getitem__(i)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: S = G.algebra(QQ)
+            sage: L = LieAlgebra(associative=S)
+            sage: x = L.an_element() + L.basis()[G.one()]
+            sage: x
+            2*() + (2,3) + (1,2) + (1,2,3) + (1,3,2) + (1,3)
+            sage: list(x)
+            [((2,3), 1), ((1,2), 1), ((1,3), 1),
+             ((1,2,3), 1), ((1,3,2), 1), ((), 2)]
+        """
+        return iter(self.value.monomial_coefficients(copy=False).iteritems())
 
 # TODO: Also used for vectors, find a better name
 cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
@@ -542,8 +597,8 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: list(elt)
             [('x', 1), ('y', -3/2)]
         """
-        zero = self.parent().base_ring().zero()
-        I = self.parent()._indices
+        zero = self._parent.base_ring().zero()
+        I = self._parent._indices
         cdef int i
         for i,v in enumerate(self.value):
             if v != zero:
@@ -576,7 +631,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             Noncommutative Multivariate Polynomial Ring in x, y
              over Rational Field, nc-relations: {y*x: x*y - x}
         """
-        UEA = self.parent().universal_enveloping_algebra()
+        UEA = self._parent.universal_enveloping_algebra()
         gens = UEA.gens()
         return UEA.sum(c * gens[i] for i, c in self.value.iteritems())
 
@@ -642,7 +697,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             True
         """
         return (_build_untwisted_affine_element,
-                (self.parent(), self._t_dict, self._c_coeff, self._d_coeff))
+                (self._parent, self._t_dict, self._c_coeff, self._d_coeff))
 
     def _repr_(self):
         """
@@ -1065,7 +1120,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
         """
         cdef dict d = {tl: tl * gl for tl,gl in self._t_dict.iteritems() if tl != 0}
         zero = self._parent.base_ring().zero()
-        return type(self)(self.parent(), d, zero, zero)
+        return type(self)(self._parent, d, zero, zero)
 
 def _build_untwisted_affine_element(P, t_dict, c, d):
     """

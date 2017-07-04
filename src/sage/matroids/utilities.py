@@ -724,3 +724,35 @@ def lift_map(target):
             R(-5)**(-1): G(-t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
 
     raise NotImplementedError(target)
+
+def split_vertex(G, u, v = None, edgelist = None):
+    """
+    Split a vertex in a graph.
+
+    This amounts to a graphic coextension.
+    """
+    if v is None:
+        v = G.add_vertex()
+    if edgelist is None:
+        edgelist = []
+
+    edges_on_u = G.edges_incident(u)
+
+    for e in edgelist:
+        if e not in edges_on_u:
+            # if e is a loop, put it on u and v
+            # otherwise raise an error
+            if e[0] == e[1]:
+                G.add_edge(u, v, e[2])
+                G.delete_edge(e)
+            else:
+                raise ValueError("the edges are not all incident with u")
+
+        elif e[0] == u:
+            G.add_edge(v, e[1], e[2])
+        elif e[1] == u:
+            G.add_edge(e[0], v, e[2])
+        G.delete_edge(e)
+
+    # This modifies the graph without needing to return anything
+    return

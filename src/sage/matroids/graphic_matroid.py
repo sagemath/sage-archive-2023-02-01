@@ -23,7 +23,7 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
-from .utilities import newlabel
+from .utilities import newlabel, split_vertex
 from itertools import combinations
 import random
 from sage.rings.integer import Integer
@@ -956,12 +956,26 @@ class GraphicMatroid(Matroid):
             sage: M2 = M.graphic_coextension(0, X=[1, 'a'], element='b')
             sage: M2.graph().edges()
             [(0, 1, 0), (0, 3, 'a'), (0, 3, 'b'), (1, 2, 2), (2, 3, 1)]
+
+        ::
+
+            sage: M = Matroid(graphs.CycleGraph(3))
+            sage: M = M.graphic_coextension(u=4, element='a')
+            sage: M.graph()
+            Looped multi-graph on 4 vertices
+            sage: M.graph().loops()
+            []
+            sage: M = M.graphic_coextension(u=4, element='a')
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot extend by element already in ground set
+
         """
         if element is None:
             element = newlabel(self.groundset())
         else:
             if element in self.groundset():
-                raise ValueError("cannot extend by element already in groundset")
+                raise ValueError("cannot extend by element already in ground set")
         # To prevent an error for iterating over None:
         if X is None:
             X = []
@@ -972,23 +986,9 @@ class GraphicMatroid(Matroid):
             vertices.append(u)
             G.add_vertex(u)
         edgelist = self._groundset_to_edges(X)
-        edges_on_u = G.edges_incident(u)
         v = G.add_vertex()
-        for e in edgelist:
-            if e not in edges_on_u:
-                # if e is a loop, put it on u and v
-                # otherwise raise an error
-                if e[0] == e[1]:
-                    G.add_edge(u, v, e[2])
-                    G.delete_edge(e)
-                else:
-                    raise ValueError("the edges are not all incident with u")
 
-            elif e[0] == u:
-                G.add_edge(v, e[1], e[2])
-            elif e[1] == u:
-                G.add_edge(e[0], v, e[2])
-            G.delete_edge(e)
+        split_vertex(G = G, u = u, v = v, edgelist=edgelist)
         G.add_edge(u, v, element)
 
         return GraphicMatroid(G)
@@ -1014,9 +1014,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: from sage.matroids.advanced import *
             sage: edgelist = [(0,1,0), (1,2,1), (1,2,2), (2,3,3), (2,3,4), (2,3,5), (3,0,6)]
-            sage: M = GraphicMatroid(Graph(edgelist, multiedges=True))
+            sage: M = Matroid(Graph(edgelist, multiedges=True))
             sage: M1 = M.twist([0,1,2]); M1.graph().edges()
             [(0, 1, 1), (0, 1, 2), (0, 3, 6), (1, 2, 0), (2, 3, 3), (2, 3, 4), (2, 3, 5)]
             sage: M2 = M.twist([0,1,3])

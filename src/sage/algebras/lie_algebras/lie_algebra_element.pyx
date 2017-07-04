@@ -22,14 +22,16 @@ from cpython.object cimport Py_EQ, Py_NE
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport have_same_parent, coercion_model, parent
+from sage.structure.element cimport (have_same_parent, classify_elements,
+                                     HAVE_SAME_PARENT, BOTH_ARE_ELEMENT,
+                                     coercion_model, parent)
 from sage.structure.element_wrapper cimport ElementWrapper
 from sage.structure.richcmp cimport richcmp
 from sage.data_structures.blas_dict cimport axpy, negate, scal
+from operator import mul
 
-# TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
 # TODO: Do we want a dense version?
-class LieAlgebraElement(CombinatorialFreeModule.Element):
+cdef class LieAlgebraElement(IndexedFreeModuleElement):
     """
     A Lie algebra element.
     """
@@ -44,13 +46,30 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
             sage: y*x
             x*y - z
+
+        TESTS::
+
+            sage: int(3) * x
+            3*x
+            sage: x * int(3)
+            3*x
         """
-        if self.is_zero() or y.is_zero():
-            return parent(self).zero()
-        if y in parent(self).base_ring():
-            return y * self
-        # Otherwise we lift to the UEA
-        return self.lift() * y
+        if isinstance(self, (int, long)):
+            try:
+                return super(LieAlgebraElement, y).__mul__(self)
+            except TypeError:
+                return NotImplemented
+
+        try:
+            # First try to see if it is in the base ring using the usual
+            #   coercion. This will also try for the universal enveloping
+            #   algebra.
+            return super(LieAlgebraElement, self).__mul__(y)
+        except TypeError:
+            pass
+
+        # We are going to lift ``self`` the the UEA and use that coercion.
+        return coercion_model.bin_op(self.lift(), y, mul)
 
     #def _im_gens_(self, codomain, im_gens):
     #    """
@@ -76,14 +95,45 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
             sage: x.lift().parent() == L.universal_enveloping_algebra()
             True
+
+        TESTS::
+
+            sage: L = lie_algebras.pwitt(GF(5), 5); L
+            The 5-Witt Lie algebra over Finite Field of size 5
+            sage: x = L.basis()[2]
+            sage: y = L.basis()[3]
+            sage: x.lift()
+            b2
+            sage: y.lift()
+            b3
+            sage: x * y
+            b2*b3
+            sage: y * x
+            b2*b3 - b0
+
+            sage: L = lie_algebras.regular_vector_fields(QQ)
+            sage: L.an_element()
+            d[-1] + d[0] - 3*d[1]
+            sage: L.an_element().lift()
+            PBW[-1] + PBW[0] - 3*PBW[1]
         """
-        UEA = self.parent().universal_enveloping_algebra()
-        gen_dict = UEA.gens_dict()
+        UEA = self._parent.universal_enveloping_algebra()
+        try:
+            gen_dict = UEA.algebra_generators()
+        except (TypeError, AttributeError):
+            gen_dict = UEA.gens_dict()
         s = UEA.zero()
         if not self:
             return s
-        for t, c in self._monomial_coefficients.iteritems():
-            s += c * gen_dict[t]
+        # Special hook for when the index set of the parent of ``self``
+        #   does not match the generators index set of the UEA.
+        if hasattr(self._parent, '_UEA_names_map'):
+            names_map = self._parent._UEA_names_map
+            for t, c in self._monomial_coefficients.iteritems():
+                s += c * gen_dict[names_map[t]]
+        else:
+            for t, c in self._monomial_coefficients.iteritems():
+                s += c * gen_dict[t]
         return s
 
 cdef class LieAlgebraElementWrapper(ElementWrapper):

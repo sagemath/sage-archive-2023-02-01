@@ -656,21 +656,6 @@ cd ..
 write_script_wrapper() {
     local script="$1"
     local pkgdir="$(dirname "$script")"
-    local header="\
-#!/usr/bin/env bash
-
-source \"$SAGE_SRC/bin/sage-env\"
-if [ $? -ne 0 ]; then
-    echo >&2 \"Error: failed to source sage-env; is $SAGE_ROOT the correct SAGE_ROOT?\"
-    exit 1
-fi
-
-cd \"$pkgdir\"
-if [ $? -ne 0 ]; then
-    echo >&2 \"Error: could not cd to the package build directory $pkgdir\"
-    exit 1
-fi
-"
 
     trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
 
@@ -681,7 +666,23 @@ fi
 
     local tmpscript="$(dirname "$script")/.tmp-${script##*/}"
 
-    echo "$header" > "$tmpscript"
+    cat > "$tmpscript" <<__EOF__
+#!/usr/bin/env bash
+
+source "$SAGE_SRC/bin/sage-env"
+if [ \$? -ne 0 ]; then
+    echo >&2 "Error: failed to source sage-env; is $SAGE_ROOT the correct SAGE_ROOT?"
+    exit 1
+fi
+
+cd "$pkgdir"
+if [ \$? -ne 0 ]; then
+    echo >&2 "Error: could not cd to the package build directory $pkgdir"
+    exit 1
+fi
+
+__EOF__
+
     cat "$script" >> "$tmpscript"
     mv "$tmpscript" "$script"
     chmod +x "$script"
@@ -691,22 +692,29 @@ fi
 
 
 for script in build install check; do
-    if [ -f "spkg-$script" ]; then
-        if [ -x "spkg-$script" ]; then
-            msg="spkg-$script should not be marked executable in the \
-                build/pkgs directory"
-            if [ "$UNAME" = "CYGWIN" ]; then
-                # On Cygwin we can't neecessarily rely on file permissions
-                # being sane, so just issue a warning; on other platforms
-                # this should be enforsed as an error
-                echo >&2 "WARNING: $msg"
-            else
-                error_msg "$msg"
-                exit 1
+    script="spkg-$script"
+    if [ -f "$script" ]; then
+        if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
+            if [ -x "$script" ]; then
+                msg="$script should not be marked executable in the build/pkgs directory"
+                if [ "$UNAME" = "CYGWIN" ]; then
+                    # On Cygwin we can't neecessarily rely on file permissions
+                    # being sane, so just issue a warning; on other platforms
+                    # this should be enforsed as an error
+                    echo >&2 "WARNING: $msg"
+                else
+                    error_msg "$msg"
+                    exit 1
+                fi
+            fi
+
+            write_script_wrapper $(pwd)/"$script"
+        else
+            if [ ! -x "$script" ]; then
+                echo >&2 "WARNING: $script is not executable, making it executable"
+                chmod +x "$script"
             fi
         fi
-
-        write_script_wrapper $(pwd)/"spkg-$script"
     fi
 done
 

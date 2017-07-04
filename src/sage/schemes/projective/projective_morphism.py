@@ -2027,7 +2027,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            2.9868196689972114460185071428e-7
+            2.5736717542538205822320127617e-7
 
         ::
 

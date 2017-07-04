@@ -1028,7 +1028,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         Specify either the number of terms of the series to evaluate or
         the error bound required.
 
-        # will put in N, error bound, or both, if error bound we comput our own N
+        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to not have to factor the resultant.
 
         ALGORITHM:
 
@@ -1051,6 +1051,17 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT: a real number.
 
+        AUTHORS:
+
+        - Original algorithm written by Elliot Wells
+
+        - Implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+
+        REFERENCES:
+
+        .. [WELLS] Elliot Wells. Computing the Canonical Height of a Point in Projective Space.
+        arXiv:1602.04920v1 (2016).
+
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
@@ -1069,7 +1080,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: Q = P(5, 4)
             sage: f.canonical_height(Q, N=30)
-            1.4989058602918874235833076226e-9
+            4.0810803274380803222440295326e-9
 
         ::
 
@@ -1088,13 +1099,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([1000*x^2-29*y^2, 1000*y^2])
             sage: Q = P(-1/4, 1)
             sage: Q.canonical_height(f, error_bound=0.01)
-            3.8004512297710411807356032428
+            3.7996079979254623065837411853
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
 
+        #Well's Algorithm
         if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
             P = self
             e = P[0].denominator()
@@ -1103,11 +1115,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             x = x*e
             y = y*e
             g = gcd(x, y)
+            # write our point with coordinates whose gcd is 1
             Q_0 = (x/g, y/g)
             Height_I = 0
             f = F
             A_0 = f[0]
             B_0 = f[1]
+            #assures integer coeffcients
             coeffs = A_0.coefficients() + B_0.coefficients()
             t = 1
             for c in coeffs:
@@ -1122,6 +1136,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             R = RealField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
+            #computes the error bound as defined in Algorithm 3.1 of [WELLS]
             if Res > 1:
                 if not err == None:
                     err = err/2
@@ -1137,10 +1152,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     H = H + R(g).abs().log()/(d**(n+1))
                     x_i = x/g
                     y_i = y/g
-            # want archedmedian greens function
             h = P.green_function(f, 0 , **kwds) - R(P[1]).abs().log()
-            can_height = R(Q_0[1].abs()).log() + h - H + R(t).log()
-            return can_height
+            h = R(Q_0[1].abs()).log() + h - H + R(t).log()
+            return h
 
         if not K in _NumberFields:
             if not K is QQbar:

@@ -11,7 +11,7 @@ AUTHORS:
 
 - David Joyner (2005-12-20): More Examples
 """
-# ****************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-# ****************************************************************************
+#*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range, builtins
 from six import integer_types
@@ -174,7 +174,7 @@ charpoly = characteristic_polynomial
 
 def coerce(P, x):
     """
-    Attempts to coerce `x` to type `P` if possible.
+    Coerce `x` to type `P` if possible.
 
     EXAMPLES::
 

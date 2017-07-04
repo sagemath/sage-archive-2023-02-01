@@ -909,7 +909,7 @@ class GraphicMatroid(Matroid):
             G.delete_edge(p[0], p[1], element)
         return iter(matroid_list)
 
-    def graphic_coextension(self, u, v=None, X=None, element=None):
+    def graphic_coextension(self, u, X=None, element=None):
         """
         Return a matroid coextended by a new element.
 
@@ -917,11 +917,8 @@ class GraphicMatroid(Matroid):
 
         - ``u`` -- The vertex to be split. If u is not a vertex of the
           matroid's graph, then the new element will be a coloop.
-        - ``v`` -- (optional) The name of the new vertex resulting
-          from the splitting.
-        - ``X`` -- (optional) A list of the matroid elements
-          corresponding to
-          edges of ``u`` that move to ``v`` after splitting.
+        - ``X`` -- (optional) A list of the matroid elements corresponding to
+          edges of ``u`` that move to the new vertex after splitting.
         - ``element`` -- (optional) The name of the newly added element.
 
         OUTPUT:
@@ -931,6 +928,34 @@ class GraphicMatroid(Matroid):
         .. NOTE::
 
             A loop on ``u`` will stay a loop unless it is in ``X``.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.WheelGraph(5))
+            sage: M1 = M.graphic_coextension(0, X=[1,2], element='a')
+            sage: M1.graph().edges()
+            [(0, 1, 0),
+             (0, 4, 3),
+             (0, 5, 'a'),
+             (1, 2, 4),
+             (1, 4, 5),
+             (2, 3, 6),
+             (2, 5, 1),
+             (3, 4, 7),
+             (3, 5, 2)]
+
+        TESTS::
+
+            sage: M = Matroid(graphs.CycleGraph(3))
+            sage: M = M.graphic_extension(0, element='a')
+            sage: M.graph().edges()
+            [(0, 0, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2)]
+            sage: M1 = M.graphic_coextension(0, X=[1], element='b')
+            sage: M1.graph().edges()
+            [(0, 0, 'a'), (0, 1, 0), (0, 3, 'b'), (1, 2, 2), (2, 3, 1)]
+            sage: M2 = M.graphic_coextension(0, X=[1, 'a'], element='b')
+            sage: M2.graph().edges()
+            [(0, 1, 0), (0, 3, 'a'), (0, 3, 'b'), (1, 2, 2), (2, 3, 1)]
         """
         if element is None:
             element = newlabel(self.groundset())
@@ -948,10 +973,7 @@ class GraphicMatroid(Matroid):
             G.add_vertex(u)
         edgelist = self._groundset_to_edges(X)
         edges_on_u = G.edges_incident(u)
-        if u == v or v in vertices:
-            raise ValueError("v must be a distinct vertex")
-        elif v is None:
-            v = G.add_vertex()
+        v = G.add_vertex()
         for e in edgelist:
             if e not in edges_on_u:
                 # if e is a loop, put it on u and v
@@ -1044,8 +1066,6 @@ class GraphicMatroid(Matroid):
             Traceback (most recent call last):
             ...
             ValueError: too many vertices in the intersection
-
-
         """
         # We require two things:
         # (1) The connectivity of X is 1,

@@ -1659,7 +1659,7 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
 
     ::
 
-        sage: Q.<x> = PolynomialRing(QQ,1)
+        sage: Q.<x> = PolynomialRing(QQ, implementation="singular")
         sage: J = sage.rings.ideal.Katsura(Q,1); J
         Ideal (x - 1) of Multivariate Polynomial Ring in x over Rational Field
     """

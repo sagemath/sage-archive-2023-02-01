@@ -105,7 +105,7 @@ class PolynomialRing_singular_repr:
             //                  : names    x
             //        block   2 : ordering C
 
-            sage: R = PolynomialRing(GF(127),1,'x')
+            sage: R = PolynomialRing(GF(127), 'x', implementation="singular")
             sage: singular(R)
             polynomial ring, over a field, global ordering
             //   coefficients: ZZ/127
@@ -114,7 +114,7 @@ class PolynomialRing_singular_repr:
             //                  : names    x
             //        block   2 : ordering C
 
-            sage: R = PolynomialRing(QQ,1,'x')
+            sage: R = PolynomialRing(QQ, 'x', implementation="singular")
             sage: singular(R)
             polynomial ring, over a field, global ordering
             //   coefficients: QQ

@@ -120,7 +120,7 @@ TESTS::
 
 Check that :trac:`5562` has been fixed::
 
-    sage: R.<u> = PolynomialRing(RDF, 1, 'u')
+    sage: R.<u> = PolynomialRing(RDF, 1)
     sage: v1 = vector([u])
     sage: v2 = vector([CDF(2)])
     sage: v1 * v2
@@ -210,9 +210,7 @@ def is_PolynomialRing(x):
 
     ::
 
-        sage: is_PolynomialRing(PolynomialRing(ZZ,1,'w'))
-        False
-        sage: R = PolynomialRing(ZZ,1,'w'); R
+        sage: R.<w> = PolynomialRing(ZZ, implementation="singular"); R
         Multivariate Polynomial Ring in w over Integer Ring
         sage: is_PolynomialRing(R)
         False

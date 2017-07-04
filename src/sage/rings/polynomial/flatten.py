@@ -449,14 +449,14 @@ class SpecializationMorphism(Morphism):
         while is_PolynomialRing(R) or is_MPolynomialRing(R):
             old = R.gens()
             new = [t for t in old if t not in D]
-            force_multivariate = (len(old) == 1) and is_MPolynomialRing(R)
-            new_vars.insert(0, (new, force_multivariate))
+            force_multivariate = ((len(old) == 1) and is_MPolynomialRing(R))
+            new_vars.append((new, force_multivariate))
             R = R.base_ring()
 
         # Construct unflattening map psi (only defined on the variables
         # of "flat" which are not involved in D)
         psi = dict()
-        for new, force_multivariate in new_vars:
+        for new, force_multivariate in reversed(new_vars):
             if not new:
                 continue
             # Pass in the names of the variables

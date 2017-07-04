@@ -973,15 +973,22 @@ class GraphicMatroid(Matroid):
 
     def twist(self, X):
         """
-        Performs a Whitney twist on the graph if `X` is part of a
-        2-separation.
+        Performs a Whitney twist on the graph.
+
+        `X` must be part of a 2-separation.
+        The connectivity of ``X`` must be 1, and the subgraph induced by X must
+        intersect the subgraph induced by the rest of the elements on exactly
+        two vertices.
 
         INPUT:
 
-        - ``X`` - The set of elements to be twisted with respect
-          to the rest of the matroid. The connectivity of ``X`` must be 1,
-          and deletion of the edges corresponding to the elements of ``X``
-          must not create new nontrivial components.
+        - ``X`` -- The set of elements to be twisted with respect
+          to the rest of the matroid.
+
+        OUTPUT:
+
+        An instance of ``GraphicMatroid`` isomorphic to this matroid but with
+        a graph that is not necessarily isomorphic.
 
         EXAMPLES::
 
@@ -993,34 +1000,74 @@ class GraphicMatroid(Matroid):
             sage: M2 = M.twist([0,1,3])
             Traceback (most recent call last):
             ...
-            ValueError: the input must display a 2-separation and not a 1-separation
+            ValueError: the input must display a 2-separation that is not a 1-separation
+
+        TESTS::
+
+            sage: G1 = graphs.DiamondGraph()
+            sage: G2 = graphs.CompleteGraph(3)
+            sage: G = G1.disjoint_union(G2)
+            sage: G.merge_vertices([(0,0), (1,0)])
+            sage: M = Matroid(G)
+            sage: M.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (0, 4, 2),
+             (0, 5, 3),
+             (1, 2, 4),
+             (1, 3, 5),
+             (2, 3, 6),
+             (4, 5, 7)]
+            sage: M1 = M.twist([5,6]); M1.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (0, 4, 2),
+             (0, 5, 3),
+             (1, 2, 4),
+             (1, 3, 6),
+             (2, 3, 5),
+             (4, 5, 7)]
+            sage: M2 = M1.twist([4,5,6]); M2.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (0, 4, 2),
+             (0, 5, 3),
+             (1, 2, 4),
+             (1, 3, 5),
+             (2, 3, 6),
+             (4, 5, 7)]
+            sage: M1 == M
+            False
+            sage: M2 == M
+            True
+            sage: M2.twist([0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: too many vertices in the intersection
 
 
         """
         # We require two things:
-        # The connectivity of X is less than 2,
-        # and the graph M is connected if we delete X
+        # (1) The connectivity of X is 1,
+        # (2) X intersects the rest of the graph on 2 vertices
         if not set(X).issubset(self.groundset()):
             raise ValueError("X must be a subset of the ground set")
         connectivity = self.connectivity(X)
         if connectivity != 1:
             raise ValueError("the input must display a 2-separation "
-                + "and not a 1-separation")
+                + "that is not a 1-separation")
         G = self.graph()
-        X_edges = self.groundset_to_edges(X)
-        G.delete_edges(X_edges)
-        isolated_vertices = [v for v in G if G.degree(v) == 0]
-        G.delete_vertices(isolated_vertices)
-        if not G.is_connected():
-            raise ValueError("the input must be a separation of the graph")
 
         # Determine the vertices
+        X_edges = self.groundset_to_edges(X)
         X_vertices = set([e[0] for e in X_edges]).union(
             set([e[1] for e in X_edges]))
         Y_edges = self.groundset_to_edges(self.groundset().difference(set(X)))
         Y_vertices = set([e[0] for e in Y_edges]).union(
             set([e[1] for e in Y_edges]))
         vertices = X_vertices.intersection(Y_vertices)
+        if len(vertices) != 2:
+            raise ValueError("too many vertices in the intersection")
         a = list(vertices)[0]
         b = list(vertices)[1]
 

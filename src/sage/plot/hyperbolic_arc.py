@@ -1,9 +1,57 @@
-"""
+r"""
 Arcs in hyperbolic geometry
 
 AUTHORS:
 
 - Hartmut Monien (2011 - 08)
+
+Two models of the hyperbolic plane are implemented: Upper Half Plane and Poincare Disc, each with
+its different domain and metric tensor.
+
+UPPER HALF PLANE (UHP)
+
+In this model, hyperbolic points are described by two coordinates, which we will represent
+by a complex number in the domain
+
+.. MATH::
+
+    H = \{z \in \CC \colon \Im(z)>0\}
+
+with the corresponding metric tensor
+
+.. MATH::
+
+   ds^2=\frac{dzd\bar{z}}{\Im(z)^2}
+
+POINCARE DISC (PD)
+
+In this model, hyperbolic points are described by two coordinates, which we will represent
+by a complex number within the unit circle, having therefore the following domain
+
+.. MATH::
+
+    D = \{ z \in \CC \colon \vert z \vert < 1\}
+
+with the corresponding metric tensor
+
+.. MATH::
+
+   ds^2 = 4 \frac{dzd\bar{z}}{(1-\vert z \vert^2)^2}
+
+.. SEEALSO::
+
+   :mod:`link to the geodesics in hyperbolic geometry module <sage.geometry.hyperbolic_space.hyperbolic_geodesic>`
+
+REFERENCES:
+
+For additional models of the hyperbolic plane and its relationship see
+
+[CFKP1997]_
+
+And for a more detailed explanation on hyperbolic arcs see
+
+[Sta1993]_
+
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
@@ -44,6 +92,7 @@ class HyperbolicArcCore(BezierPath):
 
     - ``model`` -- (default: 'UHP') hyperbolic model used, which
       is one of 'UHP' (Upper half plane), or 'PD' (Poincare disc)
+
     """
     def __init__(self, A, B, model, options):
         A, B = (CC(A), CC(B))
@@ -119,6 +168,34 @@ class HyperbolicArcCore(BezierPath):
                               (z2.real(), z2.imag()),
                               (z3.real(), z3.imag())])
 
+    def _PD_hyperbolic_arc(self, z0, z3, first=False):
+        """
+        Construct a hyperbolic arc between the complez numbers z0
+        and z3 in the Poincare Disc model
+        """
+        z0, z3 = (CC(z0), CC(z3))
+        phi0 = z0.arg()
+        phi3 = z3.arg()
+        if abs(phi0 - phi3) == 0 or abs(phi0 - phi3) == pi:
+            # The points lie in a geodesic of the first kind
+            self.path.append([(z0.real(),z0.imag()), (z3.real(),z3.imag())])
+            return
+        else:
+            # The points lie in a geodesic of the second kind
+            T = self._CenterAndRadiusOrthogonalcirclegiven2points(z0, z3)
+            a1 = (z0 - T[0]).arg()
+            a2 = (z3 - T[0]).arg()
+            if (T[0]).real() > 0:
+                if a1 < 0:
+                    a1 = a1 + 2*pi
+                if a2 < 0:
+                    a2 = a2 + 2*pi
+            pic = arc((T[0].real(), T[0].imag()), T[1], sector=(a1,a2))[0]
+
+            # Transform arc into a bezier path
+            self._bezier_path(pic, z0, first)
+            return
+
     def _CenterAndRadiusOrthogonalcirclegiven2points(self, z1, z2):
         """
         Calculate center and radius of an orthogonal circle to the
@@ -160,34 +237,6 @@ class HyperbolicArcCore(BezierPath):
             r = (z1 - c).abs()
         return c, r
 
-    def _PD_hyperbolic_arc(self, z0, z3, first=False):
-        """
-        Construct a hyperbolic arc between the complez numbers z0
-        and z3 in the Poincare Disc model
-        """
-        z0, z3 = (CC(z0), CC(z3))
-        phi0 = z0.arg()
-        phi3 = z3.arg()
-        if abs(phi0 - phi3) == 0 or abs(phi0 - phi3) == pi:
-            # The points lie in a geodesic of the first kind
-            self.path.append([(z0.real(),z0.imag()), (z3.real(),z3.imag())])
-            return
-        else:
-            # The points lie in a geodesic of the second kind
-            T = self._CenterAndRadiusOrthogonalcirclegiven2points(z0, z3)
-            a1 = (z0 - T[0]).arg()
-            a2 = (z3 - T[0]).arg()
-            if (T[0]).real() > 0:
-                if a1 < 0:
-                    a1 = a1 + 2*pi
-                if a2 < 0:
-                    a2 = a2 + 2*pi
-            pic = arc((T[0].real(), T[0].imag()), T[1], sector=(a1,a2))[0]
-
-            # Transform arc into a bezier path
-            self._bezier_path(pic, z0, first)
-            return
-
 
 class HyperbolicArc(HyperbolicArcCore):
     """
@@ -198,6 +247,8 @@ class HyperbolicArc(HyperbolicArcCore):
 
     - ``a, b`` - coordinates of the hyperbolic arc in the complex plane
     - ``options`` - dict of valid plot options to pass to constructor
+    - ``model`` -- (default: 'UHP') hyperbolic model used, which
+      is one of 'UHP' (Upper half plane), or 'PD' (Poincare disc)
 
     EXAMPLES:
 

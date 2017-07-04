@@ -369,6 +369,10 @@ REFERENCES:
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
+.. [CFKP1997] James W. Cannon, William J. Floyd, Richard Kenyon and Walter R. Parry.
+              *Hyperbolic Geometry*. Flavors of Geometry, MSRI Publications,
+              Volume 31, 1997.
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
@@ -1624,6 +1628,9 @@ REFERENCES:
             Kirillov-Reshetikhin crystals, and the energy function*.
             Electronic Journal of Combinatorics. **19(2)**. 2012.
             :arXiv:`1104.2359`
+
+.. [Sta1993] Stahl, Saul: *The Poincaré Half-plane: A Gateway to Modern Geometry*
+             Jones & Bartlett Learning, 1993. ISBN 086720298X, 9780867202984
 
 .. [Sta2007] Stanley, Richard: *Hyperplane Arrangements*, Geometric
              Combinatorics (E. Miller, V. Reiner, and B. Sturmfels,

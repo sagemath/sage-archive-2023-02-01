@@ -546,6 +546,14 @@ The differences are:
 * ``make ptestlong`` --- Similar to the command ``make ptest``, but
   using the optional argument ``--long`` for doctesting.
 
+The underlying command for running these tests is ``sage -t --all``. For
+example, ``make ptestlong`` executes the command
+``sage -t -p --all --long --logfile=logs/ptestlong.log``. So if you want
+to add extra flags when you run these tests, for example ``--verbose``,
+you can execute
+``sage -t -p --all --long --verbose --logfile=path/to/logfile``.
+Some of the extra testing options are discussed here; run
+``sage -t -h`` for a complete list.
 
 Beyond the Sage Library
 =======================

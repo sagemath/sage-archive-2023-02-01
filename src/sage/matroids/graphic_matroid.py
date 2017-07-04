@@ -123,9 +123,11 @@ class GraphicMatroid(Matroid):
             sage: M == N
             True
         """
-        return GraphicMatroid(self._G)
+        N = GraphicMatroid(self._G)
         if getattr(self, '__custom_name') is not None:  # because of name wrangling, this is not caught by the default copy
             N.rename(getattr(self, '__custom_name'))
+        return N
+
 
     def _rank(self, X):
         """

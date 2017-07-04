@@ -93,7 +93,7 @@ class GraphicMatroid(Matroid):
         for i, e in enumerate(G.edges()):
             edge_list.append((vertex_to_integer_map[e[0]],
                 vertex_to_integer_map[e[1]],groundset[i]))
-        self._G = Graph(edge_list, loops=True, multiedges=True)
+        self._G = Graph(edge_list, loops=True, multiedges=True, weighted=True)
 
         # The graph should be connected to make computations easier
         while self._G.connected_components_number() > 1:
@@ -1046,3 +1046,133 @@ class GraphicMatroid(Matroid):
         Similar to above, except rearranging blocks
         """
         pass
+
+    # Comparison:
+
+    def _vertex_stars(self):
+        """
+        Computes the set of edge labels around each vertex.
+
+        Internal method for hashing purposes.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A ``frozenset`` of ``frozenset``s containing the edge labels around
+        each vertex.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._vertex_stars()
+            frozenset({frozenset({0, 2, 3}),
+                       frozenset({1, 2, 4}),
+                       frozenset({3, 4}),
+                       frozenset({0, 1})})
+
+            sage: N = Matroid(graphs.BullGraph()); N._vertex_stars()
+            frozenset({frozenset({0, 2, 3}),
+                       frozenset({4}),
+                       frozenset({1, 2, 4}),
+                       frozenset({3}),
+                       frozenset({0, 1})})
+
+        """
+        star_list = []
+        for v in self._G.vertices():
+            star = [l for (u, v, l) in self._G.edges_incident(v)]
+            star_list.append(frozenset(star))
+        return frozenset(star_list)
+
+    def __hash__(self):
+        r"""
+        Return an invariant of the matroid.
+
+        This function is called when matroids are added to a set. It is very
+        desirable to override it so it can distinguish matroids on the same
+        groundset, which is a very typical use case!
+
+        .. WARNING::
+
+            This method is linked to __richcmp__ (in Cython) and __cmp__ or
+            __eq__/__ne__ (in Python). If you override one, you should (and in
+            Cython: MUST) override the other!
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(3))
+            sage: N = Matroid(graphs.CycleGraph(3))
+            sage: O = Matroid(graphs.ButterflyGraph())
+            sage: hash(M) == hash(N)
+            True
+            sage: hash(O) == hash(N)
+            False
+            sage: P = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]))
+            sage: hash(P) == hash(M)
+            False
+        """
+        return hash(self._vertex_stars())
+
+    def __eq__(self, other):
+        """
+        Compare two matroids.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        ``True`` if ``self`` and ``other`` have the same graph; ``False``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(3))
+            sage: N = Matroid(graphs.CycleGraph(3))
+            sage: O = Matroid(graphs.ButterflyGraph())
+            sage: P = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]))
+            sage: M == N
+            True
+            sage: M == O
+            False
+            sage: M == P
+            False
+
+        """
+        # Graph.__eq__() will ignore edge labels unless we turn on weighted()
+        # This will be done in __init__()
+        if not isinstance(other, GraphicMatroid):
+            return False
+        return (self._G == other._G)
+
+    def __ne__(self, other):
+        """
+        Compare two matroids.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        ``False`` if ``self`` and ``other`` have the same graph; ``True``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CycleGraph(4))
+            sage: N = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: O = Matroid(graphs.PetersenGraph())
+            sage: M != N
+            True
+            sage: M.equals(N)
+            True
+            sage: M != O
+            True
+
+        """
+        return (not self == other)

@@ -37,7 +37,7 @@ from sage.modular.modsym.apply import apply_to_monomial
 from sage.modular.modsym.manin_symbol import ManinSymbol
 from sage.structure.sage_object import SageObject
 import sage.structure.formal_sum as formal_sum
-from sage.structure.richcmp import richcmp_method, op_NE, richcmp
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import latex
 
@@ -158,7 +158,7 @@ class ModularSymbol(SageObject):
             True
         """
         if not isinstance(other, ModularSymbol):
-            return (op == op_NE)
+            return NotImplemented
         return richcmp((self.__space, -self.__i, self.__alpha, self.__beta),
                        (other.__space,-other.__i,other.__alpha,other.__beta),
                        op)

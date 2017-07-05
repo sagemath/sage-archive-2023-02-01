@@ -76,7 +76,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.arithgroup.all import Gamma0
 from sage.libs.pari.all import pari
 from sage.misc.misc import verbose
-from sage.structure.richcmp import richcmp_method, richcmp, op_NE
+from sage.structure.richcmp import richcmp_method, richcmp
 
 ZZy = rings.PolynomialRing(rings.ZZ, 'y')
 
@@ -437,7 +437,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             True
         """
         if not isinstance(other, SupersingularModule):
-            return (op == op_NE)
+            return NotImplemented
         return richcmp((self.__level, self.__prime, self.base_ring()),
                        (other.__level, other.__prime, other.base_ring()), op)
 

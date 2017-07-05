@@ -34,7 +34,7 @@ import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
 from   sage.structure.all import Sequence, SageObject
-from sage.structure.richcmp import (richcmp_method, richcmp, op_NE,
+from sage.structure.richcmp import (richcmp_method, richcmp,
                                     rich_to_bool, richcmp_not_equal)
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
@@ -102,7 +102,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             False
         """
         if not isinstance(other, ModularSymbolsSpace):
-            return (op == op_NE)
+            return NotImplemented
 
         lx = self.__group
         rx = other.__group

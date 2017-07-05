@@ -207,7 +207,7 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeMod
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.misc.mrange import cartesian_product_iterator
-from sage.structure.richcmp import richcmp, richcmp_method, op_NE
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.cachefunc import cached_method
 
 from copy import copy
@@ -562,7 +562,7 @@ class BrandtModule_class(AmbientHeckeModule):
             True
         """
         if not isinstance(other, BrandtModule_class):
-            return (op == op_NE)
+            return NotImplemented
 
         return richcmp((self.__M, self.__N, self.weight(), self.base_ring()),
                        (other.__M, other.__N, other.weight(), other.base_ring()),

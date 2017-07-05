@@ -41,7 +41,7 @@ import sage.modular.modsym.ghlist as ghlist
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
 from sage.structure.sage_object import register_unpickle_override
-from sage.structure.richcmp import richcmp_method, richcmp, op_NE
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from .apply import apply_to_monomial
@@ -122,7 +122,7 @@ class ManinSymbolList(Parent):
             False
         """
         if not isinstance(right, ManinSymbolList):
-            return (op == op_NE)
+            return NotImplemented
         return richcmp((self._weight, self._symbol_list),
                        (right._weight, right._symbol_list), op)
 

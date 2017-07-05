@@ -92,7 +92,7 @@ from __future__ import absolute_import
 from six.moves import range
 
 from sage.misc.misc import repr_lincomb
-from sage.structure.richcmp import richcmp_method, richcmp, op_NE
+from sage.structure.richcmp import richcmp_method, richcmp
 
 import sage.modules.free_module as free_module
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -343,7 +343,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             False
         """
         if type(self) is not type(other):
-            return (op == op_NE)
+            return NotImplemented
 
         return richcmp((self.group(), self.weight(), self.character()),
                        (other.group(), other.weight(), other.character()),

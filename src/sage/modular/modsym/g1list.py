@@ -20,7 +20,7 @@ List of coset representatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`
 #*****************************************************************************
 from six.moves import range
 from sage.arith.all import GCD
-from sage.structure.richcmp import richcmp_method, richcmp, op_NE
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.structure.sage_object import SageObject
 
 @richcmp_method
@@ -61,7 +61,7 @@ class G1list(SageObject):
             False
         """
         if not isinstance(other, G1list):
-            return (op == op_NE)
+            return NotImplemented
         else:
             return richcmp(self.__N, other.__N, op)
 

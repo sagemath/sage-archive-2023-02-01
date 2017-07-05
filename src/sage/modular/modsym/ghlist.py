@@ -18,7 +18,7 @@ List of coset representatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import absolute_import
-from sage.structure.richcmp import richcmp_method, richcmp, op_NE
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.structure.sage_object import SageObject
 
 from . import p1list
@@ -76,7 +76,7 @@ class GHlist(SageObject):
             False
         """
         if not isinstance(other, GHlist):
-            return (op == op_NE)
+            return NotImplemented
         else:
             return richcmp(self.__group, other.__group, op)
 

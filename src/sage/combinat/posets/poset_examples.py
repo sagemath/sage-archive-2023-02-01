@@ -349,8 +349,8 @@ class Posets(object):
         """
         Return the crown poset of `2n` elements.
 
-        In this poset every element from 0 to `n-1` is
-        covered by elements `i+n` and `i+n+1`, except that
+        In this poset every element `i` for `0 \leq i \leq n-1`
+        is covered by elements `i+n` and `i+n+1`, except that
         `n-1` is covered by `n` and `n+1`.
 
         INPUT:
@@ -364,8 +364,8 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.crown(3)
-            Finite lattice containing 6 elements
+            sage: Posets.Crown(3)
+            Finite poset containing 6 elements
         """
         try:
             n = Integer(n)

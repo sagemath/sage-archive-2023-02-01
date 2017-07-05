@@ -96,7 +96,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 from sage.structure.unique_representation import CachedRepresentation
 from sage.structure.parent import Parent
-from sage.structure.richcmp import op_EQ, richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -147,7 +147,7 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
 
             The hash currently is broken for this comparison.
         """
-        return self.__richcmp__(other, op_EQ)
+        return super(UniqueRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):

@@ -41,7 +41,6 @@ EXAMPLES::
 ##############################################################################
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.richcmp import op_EQ
 from sage.groups.matrix_gps.matrix_group import (
     MatrixGroup_generic, MatrixGroup_gap )
 
@@ -209,7 +208,7 @@ class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
             sage: G == MatrixGroup(G.gens())
             True
         """
-        return self.__richcmp__(other, op_EQ)
+        return super(UniqueRepresentation, self).__eq__(other)
 
 
 class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):

@@ -68,7 +68,7 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
         500x500px 24-bit RGB image
     """
 
-    cdef long i, j, row, col, level, color_value, iteration
+    cdef long i, j, col, row, level, color_value, iteration
     cdef double k, x_corner, y_corner, step_size, x_coor, y_coor, new_x, new_y
     cdef M, pixel, color_list
 
@@ -99,11 +99,11 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
     x_corner = x_center - image_width/2
     y_corner = y_center + image_width/2
     step_size = image_width / pixel_count
-    for row in range(pixel_count):
-        x_coor = x_corner + row*step_size
-        for col in range(pixel_count):
+    for col in range(pixel_count):
+        x_coor = x_corner + col*step_size
+        for row in range(pixel_count):
             sig_check()
-            y_coor = y_corner - col*step_size
+            y_coor = y_corner - row*step_size
 
             # We compute the orbit of 0 under the map Q(z) = z^2 + c
             # until we either reach the maximum number of iterations
@@ -127,7 +127,7 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
                 # Assign the pixel a color based on it's level. If we run out
                 # of colors, assign it the last color in the list.
                 if level < color_num:
-                    pixel[row,col] = color_list[level]
+                    pixel[col,row] = color_list[level]
                 else:
-                    pixel[row,col] = color_list[-1]
+                    pixel[col,row] = color_list[-1]
     return M

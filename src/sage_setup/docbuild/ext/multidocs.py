@@ -147,7 +147,7 @@ def merge_js_index(app):
             # merge the filenames
             filenames = app.builder.indexer._filenames
             for (res, filename) in six.iteritems(index._filenames):
-                filenames[fixpath(res)] = filename
+                filenames[fixpath(res)] = fixpath(filename)
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
             # Setup source symbolic links

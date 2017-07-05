@@ -73,7 +73,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
         #   should just lift it here.
         if isinstance(y, LieAlgebraElement):
             y = y.lift()
-        # We are going to lift ``self`` the the UEA and use that
+        # We are going to lift ``self`` to the UEA and use that
         #   coercion (if necessary).
         return self.lift() * y
 
@@ -375,7 +375,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         #   should just lift it here.
         if isinstance(y, LieAlgebraElementWrapper):
             y = y.lift()
-        # We are going to lift ``self`` the the UEA and use that
+        # We are going to lift ``self`` to the UEA and use that
         #   coercion (if necessary).
         return self.lift() * y
 

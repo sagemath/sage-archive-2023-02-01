@@ -42,6 +42,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from sage.calculus.functions import jacobian
+from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -61,9 +62,12 @@ from sage.categories.finite_fields import FiniteFields
 from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field import FractionField
+from sage.rings.fraction_field import is_FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
@@ -86,6 +90,7 @@ from sage.combinat.subset import Subsets
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.number_field.number_field import NumberField
+
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     r"""
@@ -3562,7 +3567,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         projective space of dimension 1 over a number field.
 
         The parameter ``type`` determines if the multipliers are computed one per cycle
-        (with multiplicity) or one per point (with multiplcity). Note that in the
+        (with multiplicity) or one per point (with multiplicity). Note that in the
         ``cycle`` case, a map with a cycle which collapses into multiple smaller cycles
         will have more multipliers than one that does not.
 
@@ -3576,7 +3581,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``embedding`` - embedding of the base field into `\QQbar`
 
-        - ``type``- string - either ``point`` or ``cycle`` depending on whether you
+        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
             compute one multiplier per point or one per cycle. Default : ``point``
 
         OUTPUT:
@@ -3651,6 +3656,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             raise TypeError("self must be an endomorphism")
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
             raise NotImplementedError("self must be a map over a number field")
+        if not type in ['point', 'cycle']:
+            raise ValueError("type must be either point or cycle")
+
 
         if embedding is None:
             f = self.change_ring(QQbar)
@@ -3702,8 +3710,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         pass
                     Q = f(Q)
             points = newpoints
-        elif type != 'point':
-            raise ValueError("type must be either point or cycle")
 
         multipliers = [f.multiplier(P,n)[0,0] for P in points]
 
@@ -3718,11 +3724,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         symmetric polynomials of the ``n`` multiplier spectra, which includes the
         multipliers of all periodic points of period ``n``. The map must be defined
         over projective space of dimension 1. The base ring should be over a
-        number field or a polynomial ring over a number field.
+        number field, number field order, or a finite field or a polynomial ring or
+        function field over a number field, number field order, or finite field.
 
         The parameter ``type`` determines if the sigma are computed from the multipliers
         calculated at one per cycle (with multiplicity) or one per point (with
-        multiplcity). Note that in the ``cycle`` case, a map with a cycle which collapses
+        multiplicity). Note that in the ``cycle`` case, a map with a cycle which collapses
         into multiple smaller cycles will have more multipliers than one that does not.
 
         ALGORITHM: We use the Poisson product of the resultant of two polynomials.
@@ -3747,7 +3754,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``embedding`` - Deprecated in ticket 23333
 
-        - ``type``- string - either ``point`` or ``cycle`` depending on whether you
+        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
             compute one multiplier per point or one per cycle. Default : ``point``
 
         OUTPUT: a list of elements in the base ring.
@@ -3776,7 +3783,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [13, 11, -25, 0]
             sage: f.sigma_invariants(2, formal=False, type='point')
             [12, -2, -36, 25, 0]
-
 
         ::
 
@@ -3807,6 +3813,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = Hc([x^2 + c*y^2, y^2])
             sage: f.sigma_invariants(1)
             [2, 4*c, 0]
+            sage: f.sigma_invariants(2, formal=True, type='point')
+            [8*c + 8, 16*c^2 + 32*c + 16]
+            sage: f.sigma_invariants(2, formal=True, type='cycle')
+            [4*c + 4]
 
         doubled fixed point::
 
@@ -3839,6 +3849,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             deprecation(23333, "embedding keyword no longer used")
         if self.degree() <= 1:
             raise TypeError("must have degree at least 2")
+        if not type in ['point', 'cycle']:
+            raise ValueError("type must be either point or cycle")
+
+        base_ring = dom.base_ring()
+        if is_FractionField(base_ring):
+            base_ring = base_ring.ring()
+        if is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)\
+            or base_ring in FunctionFields():
+            base_ring = base_ring.base_ring()
+        if not (base_ring in NumberFields() or is_NumberFieldOrder(base_ring)\
+                or (base_ring in FiniteFields())):
+            raise NotImplementedError("incompatible base field, see documentation")
 
         #check if infinity is an n-periodic point
         if self.nth_iterate(dom(1,0), n) == dom(1,0):
@@ -3894,8 +3916,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         good_res *= p**(e/d)
                         break #done since we've found the period
             res = good_res
-        elif type != 'point':
-            raise ValueError("type must be either point or cycle")
 
         #the sigmas are the coeficients
         #need to fix the signs and the order

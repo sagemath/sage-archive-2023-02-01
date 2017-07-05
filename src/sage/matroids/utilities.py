@@ -725,20 +725,47 @@ def lift_map(target):
 
     raise NotImplementedError(target)
 
-def split_vertex(G, u, v = None, edgelist = None):
+def split_vertex(G, u, v = None, edges = None):
     """
     Split a vertex in a graph.
 
-    This amounts to a graphic coextension.
+    This corresponds to a graphic coextension of a matroid.
+
+    INPUT:
+
+    - ``G`` -- A SageMath Graph.
+    - ``u`` -- A vertex in ``G``.
+    - ``v`` -- (optional) the name of the new vertex after the splitting. If
+      ``v`` is specified and already in the graph, it must be an isolated vertex.
+    - ``edges`` -- (optional) An iterable container of edges on ``u`` that
+      move to ``v`` after the splitting. If ``None``, ``v`` will be an isolated
+      vertex. The edge labels must be specified.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.utilities import split_vertex
+        sage: G = graphs.BullGraph()
+        sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the edges are not all incident with u
+        sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3, None)])
+        sage: G.edges()
+        [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), (3, 'a', None)]
+
     """
     if v is None:
         v = G.add_vertex()
-    if edgelist is None:
-        edgelist = []
+    elif v not in G:
+        G.add_vertex(v)
+    elif G.degree(v) != 0:
+        raise ValueError("v must be a new vertex or an isolated vertex")
+    if edges is None:
+        edges = []
 
     edges_on_u = G.edges_incident(u)
 
-    for e in edgelist:
+    for e in edges:
         if e not in edges_on_u:
             # if e is a loop, put it on u and v
             # otherwise raise an error

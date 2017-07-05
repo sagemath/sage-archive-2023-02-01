@@ -990,7 +990,7 @@ class GraphicMatroid(Matroid):
         edgelist = self._groundset_to_edges(X)
         v = G.add_vertex()
 
-        split_vertex(G = G, u = u, v = v, edgelist=edgelist)
+        split_vertex(G = G, u = u, v = v, edges=edgelist)
         G.add_edge(u, v, element)
 
         return GraphicMatroid(G)
@@ -1111,9 +1111,130 @@ class GraphicMatroid(Matroid):
 
     def one_sum(self, X, u, v):
         """
-        Similar to above, except rearranging blocks
+        Arrange matroid components in the graph.
+
+        The matroid's graph must be connected even if the matroid is not
+        connected, but if there are multiple matroid components, the user may
+        choose how they are arranged in the graph. This method will take the
+        block of the graph that represents `X` and attach it by vertex `u` to
+        another vertex `v` in the graph.
+
+        INPUT:
+
+        - ``X`` -- A subset of the ground set.
+        - ``u`` -- A vertex spanned by the edges of the elements in ``X``.
+        - ``v`` -- A vertex spanned by the edges of the elements not in ``X``.
+
+        EXAMPLES::
+
+            sage: edgedict = {0:[1,2], 1:[2,3], 2:[3], 3:[4,5], 6:[4,5]}
+            sage: M = Matroid(Graph(edgedict))
+            sage: M.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (1, 2, 2),
+             (1, 3, 3),
+             (2, 3, 4),
+             (3, 4, 5),
+             (3, 5, 6),
+             (4, 6, 7),
+             (5, 6, 8)]
+            sage: M1 = M.one_sum(u = 3, v = 1, X = [5, 6, 7, 8])
+            sage: M1.graph().edges()
+            [(0, 1, 1),
+             (0, 6, 0),
+             (1, 2, 4),
+             (1, 6, 2),
+             (2, 6, 3),
+             (3, 5, 7),
+             (3, 6, 5),
+             (4, 5, 8),
+             (4, 6, 6)]
+            sage: M2 = M.one_sum(u = 4, v = 3, X = [5, 6, 7, 8])
+            sage: M2.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (1, 2, 2),
+             (1, 3, 3),
+             (2, 3, 4),
+             (3, 5, 7),
+             (3, 6, 5),
+             (4, 5, 8),
+             (4, 6, 6)]
+
+        TESTS::
+
+            sage: M = Matroid(graphs.CompleteGraph(4))
+            sage: M.one_sum(u = 1, v = 2, X = [0,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: the input must display a 1-separation
+
+        ::
+            sage: M = Matroid(graphs.BullGraph())
+            sage: M1 = M.one_sum(u = 3, v = 0, X = [3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: too many vertices in the intersection
+
+            sage: M1 = M.one_sum(u = 3, v = 2, X = [3])
+            sage: M1.graph().edges()
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (2, 3, 4), (2, 4, 3)]
+            sage: M2 = M1.one_sum(u = 3, v = 0, X = [3,4])
+            sage: M2.graph().edges()
+            [(0, 1, 2), (0, 2, 0), (1, 2, 1), (2, 4, 4), (3, 4, 3)]
+
+            sage: M = Matroid(graphs.BullGraph())
+            sage: M.one_sum(u = 0, v = 1, X = [3])
+            Traceback (most recent call last):
+            ...
+            ValueError: first vertex must be spanned by the input
+
+            sage: M.one_sum(u = 1, v = 3, X = [3])
+            Traceback (most recent call last):
+            ...
+            ValueError: second vertex must be spanned by the rest of the graph
         """
-        pass
+        # We require two things:
+        # (1) The connectivity of X is 0,
+        # (2) X intersects the rest of the graph on 1
+        if not set(X).issubset(self.groundset()):
+            raise ValueError("X must be a subset of the ground set")
+        connectivity = self.connectivity(X)
+        if connectivity != 0:
+            raise ValueError("the input must display a 1-separation")
+        G = self.graph()
+        if u not in G or v not in G:
+            raise ValueError("the vertices must already be in the graph")
+
+        # Determine the vertex
+        X_edges = self.groundset_to_edges(X)
+        X_vertices = set([e[0] for e in X_edges]).union(
+            set([e[1] for e in X_edges]))
+        if u not in X_vertices:
+            raise ValueError("first vertex must be spanned by the input")
+        Y_edges = self.groundset_to_edges(self.groundset().difference(set(X)))
+        Y_vertices = set([e[0] for e in Y_edges]).union(
+            set([e[1] for e in Y_edges]))
+        if v not in Y_vertices:
+            raise ValueError("second vertex must be spanned by " +
+                "the rest of the graph")
+        vertices = X_vertices.intersection(Y_vertices)
+        if len(vertices) != 1:
+            raise ValueError("too many vertices in the intersection")
+        a = list(vertices)[0]
+        b = G.add_vertex()
+
+        edgeset = set(X_edges).intersection(set(G.edges_incident(a)))
+        split_vertex(G, u = a, v = b, edges = edgeset)
+        # If u was the cut vertex, u is now detached from our component
+        # so we merge the new vertex. Otherwise we can merge u
+        if u == a:
+            G.merge_vertices([b, v])
+        else:
+            G.merge_vertices([u, v])
+
+        return GraphicMatroid(G)
 
     # Comparison:
 

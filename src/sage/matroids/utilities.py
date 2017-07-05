@@ -729,7 +729,8 @@ def split_vertex(G, u, v = None, edges = None):
     """
     Split a vertex in a graph.
 
-    This corresponds to a graphic coextension of a matroid.
+    If an edge is inserted between the vertices after splitting, this
+    corresponds to a graphic coextension of a matroid.
 
     INPUT:
 

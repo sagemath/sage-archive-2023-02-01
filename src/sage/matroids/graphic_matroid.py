@@ -1125,6 +1125,10 @@ class GraphicMatroid(Matroid):
         - ``u`` -- A vertex spanned by the edges of the elements in ``X``.
         - ``v`` -- A vertex spanned by the edges of the elements not in ``X``.
 
+        .. WARNING::
+
+            The vertex labels may be changed after using this method.
+
         EXAMPLES::
 
             sage: edgedict = {0:[1,2], 1:[2,3], 2:[3], 3:[4,5], 6:[4,5]}
@@ -1222,7 +1226,7 @@ class GraphicMatroid(Matroid):
         vertices = X_vertices.intersection(Y_vertices)
         if len(vertices) != 1:
             raise ValueError("too many vertices in the intersection")
-        a = list(vertices)[0]
+        a = vertices.pop()
         b = G.add_vertex()
 
         edgeset = set(X_edges).intersection(set(G.edges_incident(a)))

@@ -38,7 +38,7 @@ from sage.rings.integer import Integer
 
 def additive_order(x):
     """
-    Return the additive order of `x`.
+    Return the additive order of ``x``.
 
     EXAMPLES::
 
@@ -54,7 +54,7 @@ def additive_order(x):
 
 def base_ring(x):
     """
-    Return the base ring over which `x` is defined.
+    Return the base ring over which ``x`` is defined.
 
     EXAMPLES::
 
@@ -67,7 +67,7 @@ def base_ring(x):
 
 def base_field(x):
     """
-    Return the base field over which `x` is defined.
+    Return the base field over which ``x`` is defined.
 
     EXAMPLES::
 
@@ -98,7 +98,7 @@ def base_field(x):
 
 def basis(x):
     """
-    Return the fixed basis of `x`.
+    Return the fixed basis of ``x``.
 
     EXAMPLES::
 
@@ -115,7 +115,7 @@ def basis(x):
 
 def category(x):
     """
-    Return the category of `x`.
+    Return the category of ``x``.
 
     EXAMPLES::
 
@@ -133,7 +133,7 @@ def category(x):
 
 def characteristic_polynomial(x, var='x'):
     """
-    Return the characteristic polynomial of `x` in the given variable.
+    Return the characteristic polynomial of ``x`` in the given variable.
 
     EXAMPLES::
 
@@ -174,7 +174,7 @@ charpoly = characteristic_polynomial
 
 def coerce(P, x):
     """
-    Coerce `x` to type `P` if possible.
+    Coerce ``x`` to type ``P`` if possible.
 
     EXAMPLES::
 
@@ -211,7 +211,7 @@ def cyclotomic_polynomial(n, var='x'):
 
 def decomposition(x):
     """
-    Return the decomposition of `x`.
+    Return the decomposition of ``x``.
 
     EXAMPLES::
 
@@ -234,7 +234,7 @@ def decomposition(x):
 
 def denominator(x):
     """
-    Return the denominator of `x`.
+    Return the denominator of ``x``.
 
     EXAMPLES::
 
@@ -253,7 +253,7 @@ def denominator(x):
 
 def det(x):
     """
-    Return the determinant of `x`.
+    Return the determinant of ``x``.
 
     EXAMPLES::
 
@@ -267,7 +267,7 @@ def det(x):
 
 def dimension(x):
     """
-    Return the dimension of `x`.
+    Return the dimension of ``x``.
 
     EXAMPLES::
 
@@ -284,7 +284,7 @@ dim = dimension
 
 def discriminant(x):
     """
-    Return the discriminant of `x`.
+    Return the discriminant of ``x``.
 
     EXAMPLES::
 
@@ -302,7 +302,7 @@ disc = discriminant
 
 def eta(x):
     r"""
-    Return the value of the `\eta` function at `x`, which must be
+    Return the value of the `\eta` function at ``x``, which must be
     in the upper half plane.
 
     The `\eta` function is
@@ -324,7 +324,7 @@ def eta(x):
 
 def fcp(x, var='x'):
     """
-    Return the factorization of the characteristic polynomial of `x`.
+    Return the factorization of the characteristic polynomial of ``x``.
 
     EXAMPLES::
 
@@ -341,7 +341,7 @@ def fcp(x, var='x'):
 
 def gen(x):
     """
-    Return the generator of `x`.
+    Return the generator of ``x``.
 
     EXAMPLES::
 
@@ -360,7 +360,7 @@ def gen(x):
 
 def gens(x):
     """
-    Return the generators of `x`.
+    Return the generators of ``x``.
 
     EXAMPLES::
 
@@ -378,7 +378,7 @@ def gens(x):
 
 def hecke_operator(x, n):
     r"""
-    Return the `n`-th Hecke operator `T_n` acting on `x`.
+    Return the `n`-th Hecke operator `T_n` acting on ``x``.
 
     EXAMPLES::
 
@@ -391,7 +391,7 @@ def hecke_operator(x, n):
 
 def image(x):
     """
-    Return the image of `x`.
+    Return the image of ``x``.
 
     EXAMPLES::
 
@@ -637,7 +637,7 @@ def symbolic_prod(expression, *args, **kwds):
 
 def integral(x, *args, **kwds):
     """
-    Return an indefinite or definite integral of an object `x`.
+    Return an indefinite or definite integral of an object ``x``.
 
     First call ``x.integral()`` and if that fails make an object and
     integrate it using Maxima, maple, etc, as specified by algorithm.
@@ -739,7 +739,7 @@ integrate = integral
 
 def integral_closure(x):
     """
-    Return the integral closure of `x`.
+    Return the integral closure of ``x``.
 
     EXAMPLES::
 
@@ -789,7 +789,7 @@ def xinterval(a, b):
 
 def is_commutative(x):
     """
-    Return whether or not `x` is commutative.
+    Return whether or not ``x`` is commutative.
 
     EXAMPLES::
 
@@ -802,7 +802,7 @@ def is_commutative(x):
 
 def is_even(x):
     """
-    Return whether or not an integer `x` is even, e.g., divisible by 2.
+    Return whether or not an integer ``x`` is even, e.g., divisible by 2.
 
     EXAMPLES::
 
@@ -821,7 +821,7 @@ def is_even(x):
 
 def is_integrally_closed(x):
     """
-    Return whether `x` is integrally closed.
+    Return whether ``x`` is integrally closed.
 
     EXAMPLES::
 
@@ -837,7 +837,7 @@ def is_integrally_closed(x):
 
 def is_field(x):
     """
-    Return whether or not `x` is a field.
+    Return whether or not ``x`` is a field.
 
     Alternatively, one can use ``x in Fields()``.
 
@@ -853,7 +853,7 @@ def is_field(x):
 
 def is_odd(x):
     """
-    Return whether or not `x` is odd.
+    Return whether or not ``x`` is odd.
 
     This is by definition the complement of :func:`is_even`.
 
@@ -873,7 +873,7 @@ def is_odd(x):
 
 def kernel(x):
     """
-    Return the left kernel of `x`.
+    Return the left kernel of ``x``.
 
     EXAMPLES::
 
@@ -908,7 +908,7 @@ def kernel(x):
 
 def krull_dimension(x):
     """
-    Return the Krull dimension of `x`.
+    Return the Krull dimension of ``x``.
 
     EXAMPLES::
 
@@ -952,12 +952,11 @@ def lift(x):
 
 def log(x, b=None):
     r"""
-    Return the log of `x` to the base `b`. The default base is `e`.
+    Return the log of ``x`` to the base `b`. The default base is `e`.
 
     INPUT:
 
-
-    - `x` -- number
+    - ``x`` -- number
 
     - `b` -- base (default: ``None``, which means natural log)
 
@@ -990,7 +989,7 @@ def log(x, b=None):
 
 def minimal_polynomial(x, var='x'):
     """
-    Return the minimal polynomial of `x`.
+    Return the minimal polynomial of ``x``.
 
     EXAMPLES::
 
@@ -1015,7 +1014,7 @@ minpoly = minimal_polynomial
 
 def multiplicative_order(x):
     r"""
-    Return the multiplicative order of `x`, if `x` is a unit, or
+    Return the multiplicative order of ``x``, if ``x`` is a unit, or
     raise ``ArithmeticError`` otherwise.
 
     EXAMPLES::
@@ -1035,7 +1034,7 @@ def multiplicative_order(x):
 
 def ngens(x):
     """
-    Return the number of generators of `x`.
+    Return the number of generators of ``x``.
 
     EXAMPLES::
 
@@ -1054,7 +1053,7 @@ def ngens(x):
 
 def norm(x):
     r"""
-    Return the norm of `x`.
+    Return the norm of ``x``.
 
     For matrices and vectors, this returns the L2-norm. The L2-norm of a
     vector `\textbf{v} = (v_1, v_2, \dots, v_n)`, also called the Euclidean
@@ -1160,7 +1159,7 @@ def norm(x):
 
 def numerator(x):
     """
-    Return the numerator of `x`.
+    Return the numerator of ``x``.
 
     EXAMPLES::
 
@@ -1409,10 +1408,10 @@ def objgen(x):
 
 def order(x):
     """
-    Return the order of `x`.
+    Return the order of ``x``.
 
-    If `x` is a ring or module element, this is
-    the additive order of `x`.
+    If ``x`` is a ring or module element, this is
+    the additive order of ``x``.
 
     EXAMPLES::
 
@@ -1428,7 +1427,7 @@ def order(x):
 
 def rank(x):
     """
-    Return the rank of `x`.
+    Return the rank of ``x``.
 
     EXAMPLES:
 
@@ -1450,7 +1449,7 @@ def rank(x):
 
 def regulator(x):
     """
-    Return the regulator of `x`.
+    Return the regulator of ``x``.
 
     EXAMPLES::
 
@@ -1570,7 +1569,7 @@ def isqrt(x):
 
 def squarefree_part(x):
     """
-    Return the square free part of `x`, i.e., a divisor
+    Return the square free part of ``x``, i.e., a divisor
     `z` such that `x = z y^2`, for a perfect square
     `y^2`.
 
@@ -1618,7 +1617,7 @@ def squarefree_part(x):
 
 def transpose(x):
     """
-    Return the transpose of `x`.
+    Return the transpose of ``x``.
 
     EXAMPLES::
 

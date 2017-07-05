@@ -147,7 +147,7 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
 
             The hash currently is broken for this comparison.
         """
-        return super(UniqueRepresentation, self).__eq__(other)
+        return super(CachedRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):

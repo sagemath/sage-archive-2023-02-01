@@ -15,7 +15,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.richcmp import richcmp, richcmp_method
+from sage.structure.richcmp import richcmp
 from sage.categories.all import CoxeterGroups
 from sage.structure.parent import Parent
 
@@ -402,7 +402,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v, constant_term_one=False).shift(z.length())
                      for z in WOI if (u*z).bruhat_le(v))
 
-    @richcmp_method
     class Element(ElementWrapper):
         wrapped_class = CoxGroupElement
 
@@ -445,7 +444,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             W = self.parent()
             return [W(w) for w in self.value.coatoms()]
 
-        def __richcmp__(self, other, op):
+        def _richcmp_(self, other, op):
             """
             Return lexicographic comparison of ``self`` and ``other``.
 
@@ -467,8 +466,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 sage: W([1,2,1]) == W([2,1])                                   # optional - coxeter3
                 False
             """
-            if not isinstance(other, self.parent().element_class):
-                return NotImplemented
             return richcmp(list(self), list(other), op)
 
         def reduced_word(self):

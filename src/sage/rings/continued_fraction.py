@@ -1177,7 +1177,6 @@ class ContinuedFraction_base(SageObject):
     n = numerical_approx
 
 
-@richcmp_method
 class ContinuedFraction_periodic(ContinuedFraction_base):
     r"""
     Continued fraction associated with rational or quadratic number.
@@ -1648,7 +1647,6 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         return self.__class__(xx1,xx2)
 
 
-@richcmp_method
 class ContinuedFraction_real(ContinuedFraction_base):
     r"""
     Continued fraction of a real (exact) number.

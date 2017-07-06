@@ -90,7 +90,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             I = self._basis_ordering
             try:
                 names = [str(x) for x in I]
-                names_map = lambda x: x
+                def names_map(x): return x
                 F = FreeAlgebra(self.base_ring(), names)
             except ValueError:
                 names = ['b{}'.format(i) for i in range(self.dimension())]
@@ -104,7 +104,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             rels = {}
             S = self.structure_coefficients(True)
             # Construct the map from indices to names of the UEA
-            get_var = lambda g: d[names_map(g)]
+            def get_var(g): return d[names_map(g)]
             # The function ``get_var`` sends an element of the basis of
             # ``self`` to the corresponding element of ``F``.
             for k in S.keys():

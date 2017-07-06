@@ -22,7 +22,8 @@ from cpython.object cimport Py_EQ, Py_NE
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport (have_same_parent,
+from sage.structure.element cimport (have_same_parent, classify_elements,
+                                     HAVE_SAME_PARENT, BOTH_ARE_ELEMENT,
                                      coercion_model, parent)
 from sage.structure.element_wrapper cimport ElementWrapper
 from sage.structure.richcmp cimport richcmp
@@ -48,34 +49,45 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
 
         TESTS::
 
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
             sage: int(3) * x
             3*x
             sage: x * int(3)
             3*x
+            sage: y * x.lift()
+            x*y - z
+            sage: y.lift() * x
+            x*y - z
         """
-        cdef LieAlgebraElement self
-        # Make sure ``self`` is a LieAlgebraElement
-        if isinstance(left, LieAlgebraElement):
-            self = <LieAlgebraElement> left
-            y = right
-        else:
-            self = <LieAlgebraElement> right
-            y = left
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return ((<LieAlgebraElement>left).lift()
+                    * (<LieAlgebraElement>right).lift())
+        cdef LieAlgebraElement self 
+        if not BOTH_ARE_ELEMENT(cl):
+            # In this case, one of them must be a scalar
+            if isinstance(left, LieAlgebraElement):
+                self = (<LieAlgebraElement> left)
+                return self._acted_upon_(self._parent.base_ring()(right),
+                                         self_on_left=True)
+            else:
+                self = (<LieAlgebraElement> right)
+                return self._acted_upon_(self._parent.base_ring()(left),
+                                         self_on_left=False)
 
+        # Try the normal coercion first
         try:
-            # First try to see if it is in the base ring using
-            #   the usual coercion model.
-            return super(LieAlgebraElement, self).__mul__(y)
+            return coercion_model.bin_op(left, right, mul)
         except TypeError:
             pass
 
-        # We will eventually have y be an element in its UEA, so we
-        #   should just lift it here.
-        if isinstance(y, LieAlgebraElement):
-            y = y.lift()
-        # We are going to lift ``self`` to the UEA and use that
-        #   coercion (if necessary).
-        return self.lift() * y
+        # We will eventually want to lift stuff up anyways,
+        #   so just do it here.
+        if isinstance(left, LieAlgebraElement):
+            left = (<LieAlgebraElement> left).lift()
+        if isinstance(right, LieAlgebraElement):
+            left = (<LieAlgebraElement> right).lift()
+        return left * right
 
     #def _im_gens_(self, codomain, im_gens):
     #    """
@@ -355,29 +367,35 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: y * int(3)
             3*(1,2)
         """
-        cdef LieAlgebraElementWrapper self
-        # Make sure ``self`` is a LieAlgebraElementWrapper
-        if isinstance(left, LieAlgebraElementWrapper):
-            self = <LieAlgebraElementWrapper> left
-            y = right
-        else:
-            self = <LieAlgebraElementWrapper> right
-            y = left
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return ((<LieAlgebraElementWrapper>left).lift()
+                    * (<LieAlgebraElementWrapper>right).lift())
+        cdef LieAlgebraElementWrapper self 
+        if not BOTH_ARE_ELEMENT(cl):
+            # In this case, one of them must be a scalar
+            if isinstance(left, LieAlgebraElementWrapper):
+                self = (<LieAlgebraElementWrapper> left)
+                return self._acted_upon_(self._parent.base_ring()(right),
+                                         self_on_left=True)
+            else:
+                self = (<LieAlgebraElementWrapper> right)
+                return self._acted_upon_(self._parent.base_ring()(left),
+                                         self_on_left=False)
 
+        # Try the normal coercion first
         try:
-            # First try to see if it is in the base ring using
-            #   the usual coercion model.
-            return super(LieAlgebraElementWrapper, self).__mul__(y)
+            return coercion_model.bin_op(left, right, mul)
         except TypeError:
             pass
 
-        # We will eventually have y be an element in its UEA, so we
-        #   should just lift it here.
-        if isinstance(y, LieAlgebraElementWrapper):
-            y = y.lift()
-        # We are going to lift ``self`` to the UEA and use that
-        #   coercion (if necessary).
-        return self.lift() * y
+        # We will eventually want to lift stuff up anyways,
+        #   so just do it here.
+        if isinstance(left, LieAlgebraElementWrapper):
+            left = (<LieAlgebraElementWrapper> left).lift()
+        if isinstance(right, LieAlgebraElementWrapper):
+            left = (<LieAlgebraElementWrapper> right).lift()
+        return left * right
 
     def __div__(self, x):
         """
@@ -476,7 +494,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             [((2,3), 1), ((1,2), 1), ((1,3), 1),
              ((1,2,3), 1), ((1,3,2), 1), ((), 2)]
         """
-        return iter(self.value.monomial_coefficients(copy=False).iteritems())
+        return self.value.monomial_coefficients(copy=False).iteritems()
 
 # TODO: Also used for vectors, find a better name
 cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):

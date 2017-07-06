@@ -1392,7 +1392,7 @@ class AbstractLinearCode(Module):
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
-        D = self.decoder(decoder_name, **kwargs)
+        D = self.decoder(decoder_name, *args, **kwargs)
         return D.decode_to_code(word)
 
     def decode_to_message(self, word, decoder_name=None, *args, **kwargs):
@@ -1429,7 +1429,7 @@ class AbstractLinearCode(Module):
             sage: C.decode_to_message(word, 'NearestNeighbor')
             (0, 1, 1, 0)
         """
-        return self.unencode(self.decode_to_code(word, decoder_name, **kwargs), **kwargs)
+        return self.unencode(self.decode_to_code(word, decoder_name, *args, **kwargs), **kwargs)
 
     @cached_method
     def decoder(self, decoder_name=None, *args, **kwargs):

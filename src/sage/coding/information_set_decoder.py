@@ -690,7 +690,6 @@ class LinearCodeInformationSetDecoder(Decoder):
         sage: D = LinearCodeInformationSetDecoder(C, 2); D
         Information-set decoder (Lee-Brickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
     """
-
     def __init__(self, code, number_errors, algorithm=None, **kwargs):
         r"""
         TESTS:
@@ -777,6 +776,9 @@ class LinearCodeInformationSetDecoder(Decoder):
                             " The known algorithms are {}."\
                             .format(algorithm, algorithm_names.keys()))
 
+    _known_algorithms = {
+        "Lee-Brickell": LeeBrickellISDAlgorithm
+        }
 
     @staticmethod
     def known_algorithms(dictionary=False):
@@ -800,13 +802,10 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: sorted(LinearCodeInformationSetDecoder.known_algorithms())
             ['Lee-Brickell']
         """
-        d = {
-            "Lee-Brickell": LeeBrickellISDAlgorithm
-            }
         if dictionary:
-            return d
+            return LinearCodeInformationSetDecoder._known_algorithms
         else:
-            return d.keys()
+            return LinearCodeInformationSetDecoder._known_algorithms.keys()
 
     def algorithm(self):
         r"""

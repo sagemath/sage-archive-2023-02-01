@@ -274,6 +274,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         if groundset is None:
             groundset = list(xrange(self._A.nrows() + self._A.ncols()))
         else:
+            groundset = list(groundset)
             if len(groundset) != self._A.nrows() + self._A.ncols():
                 raise ValueError("size of groundset does not match size of matrix")
         BasisExchangeMatroid.__init__(self, groundset, [groundset[i] for i in basis])

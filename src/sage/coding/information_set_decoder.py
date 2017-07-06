@@ -527,15 +527,15 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             sage: C = codes.QuadraticResidueCode(37, GF(3))
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 4)
             sage: A = LeeBrickellISDAlgorithm(C, (0,4))
-            sage: A.calibrate()
-            sage: def time_100():
-            ....:     import time
+            sage: import time
+            sage: def time_50():
+            ....:     A.calibrate()
             ....:     zero = C.ambient_space().zero()
             ....:     before = time.clock()
-            ....:     for i in range(100): A.decode(Chan(zero)); None
+            ....:     for i in range(50): A.decode(Chan(zero)); None
             ....:     return time.clock() - before
-            sage: elapsed = time_100() # long time
-            sage: elapsed/100 > A.time_estimate()/5 and elapsed/100 < A.time_estimate() * 5 # long time
+            sage: avg = (time_50() + time_50() + time_50())/150 # long time (1 s)
+            sage: A.time_estimate()/5 < avg and avg < A.time_estimate() * 5 # long time
             True
         """
         from sage.all import sample, mean, random_vector, random_matrix, randint

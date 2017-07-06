@@ -3579,10 +3579,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             of this map. False specifies to find the ``n`` multiplier spectra
             of this map. Default: False
 
-        - ``embedding`` - embedding of the base field into `\QQbar`
+        - ``embedding`` - embedding of the base field into `\QQbar`.
 
         - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
-            compute one multiplier per point or one per cycle. Default : ``point``
+            compute one multiplier per point or one per cycle. Default : ``point``.
 
         OUTPUT:
 
@@ -3717,20 +3717,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
-        Computes the values of the elementary symmetric polynomials of the formal
-        ``n`` multilpier spectra of this map.
+        Computes the values of the elementary symmetric polynomials of the
+        ``n`` multiplier spectra of this map.
 
         Can specify to instead compute the values corresponding to the elementary
-        symmetric polynomials of the ``n`` multiplier spectra, which includes the
-        multipliers of all periodic points of period ``n``. The map must be defined
-        over projective space of dimension 1. The base ring should be over a
+        symmetric polynomials of the formal ``n`` multiplier spectra. The map must
+        be defined over projective space of dimension 1. The base ring should be a
         number field, number field order, or a finite field or a polynomial ring or
         function field over a number field, number field order, or finite field.
 
         The parameter ``type`` determines if the sigma are computed from the multipliers
         calculated at one per cycle (with multiplicity) or one per point (with
         multiplicity). Note that in the ``cycle`` case, a map with a cycle which collapses
-        into multiple smaller cycles will have more multipliers than one that does not.
+        into multiple smaller cycles, this is still considered one cycle. In other words,
+        if a 4-cycle collapses into a 2-cycle with multiplicity 2, there is only one
+        multiplier used for the doubled 2-cycle when computing ``n=4``.
 
         ALGORITHM: We use the Poisson product of the resultant of two polynomials.
 
@@ -3752,16 +3753,16 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             the ``n`` multiplier spectra of this map, which includes the multipliers
             of all periodic points of period ``n`` of this map. Default: False
 
-        - ``embedding`` - Deprecated in ticket 23333
+        - ``embedding`` - Deprecated in ticket 23333.
 
         - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
-            compute one multiplier per point or one per cycle. Default : ``point``
+            compute with one multiplier per point or one per cycle. Default : ``point``.
 
         OUTPUT: a list of elements in the base ring.
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3\
              - 2630045017*x*y^4 + 28193217129*y^5, 512*y^5])
@@ -3775,8 +3776,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: set_verbose(None)
             sage: z = QQ['z'].0
-            sage: K = NumberField(z^4 - 4*z^2 + 1,'z')
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: K = NumberField(z^4 - 4*z^2 + 1, 'z')
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(2, formal=False, type='cycle')
@@ -3788,7 +3789,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
-            sage: f = H([y^2,x^2])
+            sage: f = H([y^2, x^2])
             sage: f.sigma_invariants(2, type='cycle')
             [12, 48, 64, 0]
             sage: f.sigma_invariants(2, type='point')
@@ -3822,7 +3823,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ::
 
             sage: R.<c> = QQ[]
-            sage: Pc.<x,y> = ProjectiveSpace(FractionField(R), 1)
+            sage: Pc.<x,y> = ProjectiveSpace(R, 1)
             sage: Hc = End(Pc)
             sage: f = Hc([x^2 + c*y^2, y^2])
             sage: f.sigma_invariants(1)
@@ -3846,7 +3847,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2, y^2])
             sage: f.sigma_invariants(4, formal=False, type='cycle')
-            [171, 5365, 177895, 1141315, 2407681, 2077191, 638125, 0]
+            [170, 5195, 172700, 968615, 1439066, 638125, 0]
         """
         n = ZZ(n)
         if n < 1:
@@ -3898,7 +3899,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         #check infinity
         inf = dom(1,0)
-        inf_per = 1
+        inf_per = ZZ(1)
         Q = self(inf)
         while Q != inf and inf_per <= n:
             inf_per += 1
@@ -3910,29 +3911,32 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 e_inf += 1
             e_inf -= 1
 
-        #evaluate the resultant
-        fix_poly = psi(fix_poly)
-        res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
-        #take infinty into consideration
-        if inf_per <= n:
-            res = res*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
-            res = res.univariate_polynomial()
-
         if type == 'cycle':
             #now we need to deal with having the correct number of factors
             #1 multiplier for each cycle. But we need to be careful about
             #the length of the cycle and the mutliplicities
             good_res = 1
-            L = dict(res.factor())
-            periods = {} #keep track of periods for factors
-            for p in L.keys():
-                #have to find cycle length
+            if formal:
+                #then we are working with the n-th dynatomic and just need
+                #to take one multiplier per cycle
+
+                #evaluate the resultant
+                fix_poly = psi(fix_poly)
+                res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
+                #take infinty into consideration
+                if inf_per.divides(n):
+                    res = res*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
+                    res = res.univariate_polynomial()
+                #adjust multiplicities
+                L = res.factor()
+                for p,e in L:
+                    good_res *= p**(e/n)
+            else:
+                #For each d-th dynatomic for d dividing n, take
+                #one multiplier per cycle; e.g., this treats a double 2
+                #cycle as a single 4 cycle for n=4
                 for d in n.divisors():
-                    if formal:
-                        Fd = self.nth_iterate_map(d)
-                        fix_poly_d = y*Fd[0] - x*Fd[1]
-                    else:
-                        fix_poly_d = self.dynatomic_polynomial(d)
+                    fix_poly_d = self.dynatomic_polynomial(d)
                     resd = mult_poly.resultant(psi(fix_poly_d), S.gen(0))
                     #check infinity
                     if inf_per == d:
@@ -3941,23 +3945,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                             e_inf_d += 1
                         e_inf_d -= 1
                         resd = resd*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
-                        resd = resd.univariate_polynomial()
-                    #get exponent, since we can have the same
-                    #multiplier for different cycles
-                    e = 0
-                    while (p**e).divides(resd):
-                        e += 1
-                    e -= 1
-                    if e > 0:
-                        #get minimal period
-                        if p in periods.keys():
-                            m = periods[p]
-                        else:
-                            periods.update({p:d})
-                            m = d
-                        #this comes from an m-cycle
-                        good_res *= p**(e/m)
-                res = good_res
+                    resd = resd.univariate_polynomial()
+                    Ld = resd.factor()
+                    for pd,ed in Ld:
+                        good_res *= pd**(ed/d)
+            res = good_res
+        else: #type is 'point'
+            #evaluate the resultant
+            fix_poly = psi(fix_poly)
+            res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
+            #take infinty into consideration
+            if inf_per.divides(n):
+                res = res*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
+                res = res.univariate_polynomial()
+
 
         #the sigmas are the coeficients
         #need to fix the signs and the order

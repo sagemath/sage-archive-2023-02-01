@@ -719,16 +719,41 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: D = C.decoder("InformationSet", "aa")
             Traceback (most recent call last):
             ...
-            ValueError: number_errors must be an integer or a pair of integers
+            ValueError: number_errors should be an integer or a pair of integers
 
-        If ``number_errors`` is passed as a list/tuple, it has to contain only two values,
-        the first one being at most the second one::
+        If ``number_errors`` is passed as a list/tuple, it has to contain only
+        two values, the first one being at most the second one::
 
             sage: C = codes.GolayCode(GF(2))
             sage: D = C.decoder("InformationSet", (4, 2))
             Traceback (most recent call last):
             ...
             ValueError: number_errors should be a positive integer or a valid interval within the positive integers
+
+        You cannot ask the decoder to correct more errors than the code length::
+
+            sage: D = C.decoder("InformationSet", 25)
+            Traceback (most recent call last):
+            ...
+            ValueError: The provided number of errors should be at most the code's length
+
+        If ``algorithm`` is not set, additional parameters cannot be passed to
+        the ISD algorithm::
+
+            sage: D = C.decoder("InformationSet", 2, search_size=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Additional arguments to an information-set decoder algorithm are only allowed if a specific algorithm is selected by setting the algorithm keyword
+
+        If ``algorithm`` is set to a constructed ISD algorithm, additional
+        parameters cannot be passed to the ISD algorithm::
+
+            sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+            sage: A = LeeBrickellISDAlgorithm(C, (0, 2))
+            sage: D = C.decoder("InformationSet", 2, A, search_size=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: ISD algorithm arguments are not allowed when supplying a constructed ISD algorithm
 
         If ``algorithm`` is set to a constructed
         :class:`sage.coding.information_set_decoder.InformationSetAlgorithm`,
@@ -748,13 +773,8 @@ class LinearCodeInformationSetDecoder(Decoder):
         """
         if isinstance(number_errors, (Integer, int)):
             number_errors = (0, number_errors)
-        if isinstance(number_errors, (tuple, list)):
-            if not len(number_errors) == 2:
-                raise ValueError("number_errors should be either an integer"
-                                 " or a pair of integers")
-            if not (number_errors[0] in ZZ and number_errors[1] in ZZ):
-                raise ValueError("All elements of number_errors have to be"
-                                 " positive integers")
+        if isinstance(number_errors, (tuple, list)) and len(number_errors) == 2 \
+            and number_errors[0] in ZZ and number_errors[1] in ZZ:
             if 0 > number_errors[0] or number_errors[0] > number_errors[1]:
                 raise ValueError(
                         "number_errors should be a positive integer or"
@@ -763,7 +783,7 @@ class LinearCodeInformationSetDecoder(Decoder):
                 raise ValueError("The provided number of errors should be at"
                                  " most the code's length")
         else:
-            raise ValueError("number_errors must be an integer or a pair of integers")
+            raise ValueError("number_errors should be an integer or a pair of integers")
 
         self._number_errors = number_errors
 

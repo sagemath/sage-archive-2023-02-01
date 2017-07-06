@@ -9,11 +9,12 @@
 #    an error if any are undefined or empty. Variable names should be given
 #    without the '$' to prevent unwanted expansion.
 #
-# - sdh_check_common_vars
+# - sdh_guard
 #
 #    Wrapper for `sdh_check_vars` that checks some common variables without
 #    which many/most packages won't build correctly (SAGE_ROOT, SAGE_LOCAL,
-#    SAGE_SHARE).
+#    SAGE_SHARE). This is important to prevent installation to unintended
+#    locations.
 #
 # - sdh_configure [...]
 #
@@ -45,7 +46,7 @@ sdh_check_vars() {
 }
 
 
-sdh_check_common_vars() {
+sdh_guard() {
     sdh_check_vars SAGE_ROOT SAGE_LOCAL SAGE_SHARE
 }
 

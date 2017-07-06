@@ -687,6 +687,12 @@ for lib in env dist-helpers; do
     fi
 done
 
+sdh_guard
+if [ \$? -ne 0 ]; then
+    echo >&2 "Error: sdh_guard not found; Sage environment was not set up properly"
+    exit 1
+fi
+
 cd "\$SAGE_PKG_DIR"
 if [ \$? -ne 0 ]; then
     echo >&2 "Error: could not cd to the package build directory \$SAGE_PKG_DIR"

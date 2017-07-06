@@ -1,5 +1,3 @@
-sdh_check_common_vars
-
 # Let the user define the environment variable CFLAG64 to
 # something if their C compiler needs a compiler flag other than
 # -m64 to build 64-bit objects. This would be the case with IBM's

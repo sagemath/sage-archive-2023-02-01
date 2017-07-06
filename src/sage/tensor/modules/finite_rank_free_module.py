@@ -535,6 +535,7 @@ from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
+from sage.rings.integer import Integer
 from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 
 class FiniteRankFreeModule(UniqueRepresentation, Parent):
@@ -1360,6 +1361,10 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         elif tensor_type == (0,1):
             return self.linear_form(name=name, latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
+            if isinstance(antisym[0], (int, Integer)):
+                # a single antisymmetry is provided as a tuple or a range
+                # object; it is converted to a 1-item list:
+                antisym = [tuple(antisym)]
             if isinstance(antisym, list):
                 antisym0 = antisym[0]
             else:
@@ -1368,6 +1373,10 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
+            if isinstance(antisym[0], (int, Integer)):
+                # a single antisymmetry is provided as a tuple or a range
+                # object; it is converted to a 1-item list:
+                antisym = [tuple(antisym)]
             if isinstance(antisym, list):
                 antisym0 = antisym[0]
             else:

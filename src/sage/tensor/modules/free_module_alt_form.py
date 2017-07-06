@@ -239,7 +239,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         """
         FreeModuleTensor.__init__(self, fmodule, (0,degree), name=name,
                                   latex_name=latex_name,
-                                  antisym=list(range(degree)),
+                                  antisym=range(degree),
                                   parent=fmodule.dual_exterior_power(degree))
         FreeModuleAltForm._init_derived(self) # initialization of derived
                                               # quantities

@@ -2,7 +2,7 @@ r"""
 Exterior powers of free modules
 
 Given a free module `M` of finite rank over a commutative ring `R`
-and a positive integer `p`, the *p-th exterior power of* `M`
+and a positive integer `p`, the `p`-*th exterior power of* `M`
 is the set `\Lambda^p(M)` of all alternating contravariant tensors of
 degree `p` on `M`, i.e. of all multilinear maps
 
@@ -17,7 +17,7 @@ Note that `\Lambda^1(M) = M`. The exterior power
 `\Lambda^p(M)` is a free module of rank `\binom{n}{p}` over `R`,
 where `n` is the rank of `M`.
 
-Similarly, the *p-th exterior power of the dual of* `M`
+Similarly, the `p`-*th exterior power of the dual of* `M`
 is the set `\Lambda^p(M^*)` of all alternating forms of degree `p` on
 `M`, i.e. of all multilinear maps
 
@@ -66,7 +66,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
     ring.
 
     Given a free module `M` of finite rank over a commutative ring `R`
-    and a positive integer `p`, the *p-th exterior power of* `M` is
+    and a positive integer `p`, the `p`-*th exterior power of* `M` is
     the set `\Lambda^p(M)` of all alternating contravariant tensors of
     degree `p` on `M`, i.e. of all multilinear maps
 
@@ -408,7 +408,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
     over a commutative ring.
 
     Given a free module `M` of finite rank over a commutative ring `R`
-    and a positive integer `p`, the *p-th exterior power of the dual of*
+    and a positive integer `p`, the `p`-*th exterior power of the dual of*
     `M` is the set `\Lambda^p(M^*)` of all alternating forms of degree
     `p` on `M`, i.e. of all multilinear maps
 

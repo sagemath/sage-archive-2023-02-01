@@ -40,9 +40,10 @@ class FiniteRankFreeModuleElement(AlternatingContrTensor):
     :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`.
 
     The class :class:`FiniteRankFreeModuleElement` inherits from
-    :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor` because the elements of a free module `M` of
-    finite rank over a commutative ring `R` are identified with tensors of
-    type `(1,0)` on `M` via the canonical map
+    :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`
+    because the elements of a free module `M` of finite rank over a commutative
+    ring `R` are identified with tensors of type `(1,0)` on `M` via the
+    canonical map
 
     .. MATH::
 
@@ -274,12 +275,3 @@ class FiniteRankFreeModuleElement(AlternatingContrTensor):
 
         """
         return self.__class__(self._fmodule)
-
-
-# From sage/modules/module.pyx:
-#-----------------------------
-### The Element should also implement _rmul_ (or _lmul_)
-#
-# class MyElement(sage.structure.element.ModuleElement):
-#     def _rmul_(self, c):
-#         ...

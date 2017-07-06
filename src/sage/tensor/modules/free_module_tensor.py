@@ -2778,7 +2778,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         if not pos:
-            pos = list(range(self._tensor_rank))
+            pos = range(self._tensor_rank)
         # check whether the symmetrization is possible:
         pos_cov = self._tensor_type[0]   # first covariant position
         pos0 = pos[0]
@@ -3019,7 +3019,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         if not pos:
-            pos = list(range(self._tensor_rank))
+            pos = range(self._tensor_rank)
         # check whether the antisymmetrization is possible:
         pos_cov = self._tensor_type[0]   # first covariant position
         pos0 = pos[0]

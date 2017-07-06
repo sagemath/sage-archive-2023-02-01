@@ -2529,7 +2529,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2680,7 +2680,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2953,7 +2953,8 @@ class CompWithSym(Components):
         self._sym = []
         if sym is not None and sym != []:
             if isinstance(sym[0], (int, Integer)):
-                # a single symmetry is provided as a tuple -> 1-item list:
+                # a single symmetry is provided as a tuple or a range object;
+                # it is converted to a 1-item list:
                 sym = [tuple(sym)]
             for isym in sym:
                 if len(isym) < 2:
@@ -2967,7 +2968,8 @@ class CompWithSym(Components):
         self._antisym = []
         if antisym is not None and antisym != []:
             if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple -> 1-item list:
+                # a single antisymmetry is provided as a tuple or a range
+                # object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
             for isym in antisym:
                 if len(isym) < 2:
@@ -4140,14 +4142,14 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
             if len(pos) > self._nid:
                 raise ValueError("number of index positions larger than the " \
                                  "total number of indices")
-        pos = tuple(pos)
+            pos = tuple(pos)
         pos_set = set(pos)
         # If the symmetry is already present, there is nothing to do:
         for isym in self._sym:
@@ -4402,14 +4404,14 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = list(range(self._nid))
+            pos = tuple(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
             if len(pos) > self._nid:
                 raise ValueError("number of index positions larger than the " \
                                  "total number of indices")
-        pos = tuple(pos)
+            pos = tuple(pos)
         pos_set = set(pos)
         # If the antisymmetry is already present, there is nothing to do:
         for iasym in self._antisym:
@@ -4643,7 +4645,7 @@ class CompFullySym(CompWithSym):
 
         """
         CompWithSym.__init__(self, ring, frame, nb_indices, start_index,
-                             output_formatter, sym=list(range(nb_indices)))
+                             output_formatter, sym=range(nb_indices))
 
     def _repr_(self):
         r"""
@@ -5093,7 +5095,7 @@ class CompFullyAntiSym(CompWithSym):
 
         """
         CompWithSym.__init__(self, ring, frame, nb_indices, start_index,
-                             output_formatter, antisym=list(range(nb_indices)))
+                             output_formatter, antisym=range(nb_indices))
 
     def _repr_(self):
         r"""

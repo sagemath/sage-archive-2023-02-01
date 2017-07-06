@@ -205,7 +205,7 @@ class AlternatingContrTensor(FreeModuleTensor):
         """
         FreeModuleTensor.__init__(self, fmodule, (degree,0), name=name,
                                   latex_name=latex_name,
-                                  antisym=list(range(degree)),
+                                  antisym=range(degree),
                                   parent=fmodule.exterior_power(degree))
         AlternatingContrTensor._init_derived(self) # initialization of derived
                                                    # quantities

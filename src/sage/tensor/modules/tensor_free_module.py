@@ -215,7 +215,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         True
 
     Of course, for `p\geq 2`, there is no coercion in the reverse direction,
-    since not every tensor of type (0,p) is alternating::
+    since not every tensor of type `(0,p)` is alternating::
 
         sage: L2.has_coerce_map_from(T02)
         False
@@ -272,7 +272,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         sage: lta == a
         True
 
-    There is a canonical identification between tensors of type (1,1) and
+    There is a canonical identification between tensors of type `(1,1)` and
     endomorphisms of module `M`. Accordingly, coercion maps have been
     implemented between `T^{(1,1)}(M)` and `\mathrm{End}(M)` (the module of
     all endomorphisms of `M`, see
@@ -331,7 +331,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         [ 1  1 -2]
 
     There is a coercion `\mathrm{GL}(M)\rightarrow T^{(1,1)}(M)`, i.e. from
-    automorphisms of `M` to type-(1,1) tensors on `M`::
+    automorphisms of `M` to type-`(1,1)` tensors on `M`::
 
         sage: GL = M.general_linear_group() ; GL
         General linear group of the Rank-3 free module M over the Integer Ring
@@ -354,7 +354,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         e_0*e^0 - e_1*e^1 + e_2*e^2
 
     Of course, there is no coercion in the reverse direction, since not
-    every type-(1,1) tensor is invertible::
+    every type-`(1,1)` tensor is invertible::
 
         sage: GL.has_coerce_map_from(T11)
         False
@@ -540,7 +540,7 @@ class TensorFreeModule(FiniteRankFreeModule):
 
         EXAMPLES:
 
-        Sets of module endomorphisms coerce to type-(1,1) tensor modules::
+        Sets of module endomorphisms coerce to type-`(1,1)` tensor modules::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -552,7 +552,7 @@ class TensorFreeModule(FiniteRankFreeModule):
             sage: M.tensor_module(0,1)._coerce_map_from_(End(M))
             False
 
-        and not to type-(1,1) tensor modules defined on another free module::
+        and not to type-`(1,1)` tensor modules defined on another free module::
 
             sage: N = FiniteRankFreeModule(ZZ, 3, name='N')
             sage: f = N.basis('f')
@@ -643,7 +643,7 @@ class TensorFreeModule(FiniteRankFreeModule):
 
         EXAMPLES:
 
-        Base module of a type-(1,2) tensor module::
+        Base module of a type-`(1,2)` tensor module::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: T = M.tensor_module(1,2)

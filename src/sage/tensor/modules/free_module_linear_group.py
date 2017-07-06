@@ -113,7 +113,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         sage: a(v).display()
         e_0 - e_1 + e_2
 
-    An automorphism can also be viewed as a tensor of type (1,1) on `M`::
+    An automorphism can also be viewed as a tensor of type `(1,1)` on `M`::
 
         sage: a.tensor_type()
         (1, 1)
@@ -209,19 +209,19 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
          Integer Ring is not invertible
 
     Similarly, there is a coercion `\mathrm{GL}(M)\rightarrow T^{(1,1)}(M)`
-    (module of type-(1,1) tensors)::
+    (module of type-`(1,1)` tensors)::
 
         sage: M.tensor_module(1,1).has_coerce_map_from(GL)
         True
 
     (see :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule` for
-    details), but not in the reverse direction, since not every type-(1,1)
+    details), but not in the reverse direction, since not every type-`(1,1)`
     tensor can be considered as an automorphism::
 
         sage: GL.has_coerce_map_from(M.tensor_module(1,1))
         False
 
-    Invertible type-(1,1) tensors can be converted to automorphisms::
+    Invertible type-`(1,1)` tensors can be converted to automorphisms::
 
         sage: t = M.tensor((1,1), name='t')
         sage: t[e,:] = [[-1,0,0], [0,1,2], [0,1,3]]
@@ -349,7 +349,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
             sage: a.matrix(e) == phi.matrix(e)
             True
 
-        Construction from an invertible tensor of type (1,1)::
+        Construction from an invertible tensor of type `(1,1)`::
 
             sage: t = M.tensor((1,1), name='t')
             sage: t[e,:] = [[1,1], [2,3]]

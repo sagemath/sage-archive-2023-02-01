@@ -25,15 +25,15 @@ tensors:
   tensors)*;
 
   - :class:`~sage.tensor.modules.free_module_element.FiniteRankFreeModuleElement`
-    for elements of `M`, considered as type-(1,0) tensors thanks to the canonical
-    identification `M^{**}=M` (which holds since `M` is a free module of finite
-    rank);
+    for elements of `M`, considered as type-`(1,0)` tensors thanks to the
+    canonical identification `M^{**}=M` (which holds since `M` is a free module
+    of finite rank);
 
 * :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm` for
   fully antisymmetric type-`(0, l)` tensors *(alternating forms)*;
 
 * :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
-  for type-(1,1) tensors representing invertible endomorphisms.
+  for type-`(1,1)` tensors representing invertible endomorphisms.
 
 Each of these classes is a Sage *element* class, the corresponding *parent*
 class being:
@@ -1211,7 +1211,7 @@ class FreeModuleTensor(ModuleElement):
 
         EXAMPLES:
 
-        Setting components of a type-(1,1) tensor::
+        Setting components of a type-`(1,1)` tensor::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -2004,7 +2004,7 @@ class FreeModuleTensor(ModuleElement):
 
         EXAMPLES:
 
-        Action of a type-(2,1) tensor::
+        Action of a type-`(2,1)` tensor::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: e = M.basis('e')
@@ -2379,8 +2379,8 @@ class FreeModuleTensor(ModuleElement):
             sage: a.contract(b) == a(b)
             True
 
-        or to applying the module element, considered as a tensor of type (1,0),
-        to the linear form::
+        or to applying the module element, considered as a tensor of type
+        `(1,0)`, to the linear form::
 
             sage: a.contract(b) == b(a)
             True
@@ -2901,7 +2901,7 @@ class FreeModuleTensor(ModuleElement):
             sage: t['_[..].'] == s
             True
 
-        Antisymmetrization of a tensor of type (0,3) over the first and last
+        Antisymmetrization of a tensor of type `(0,3)` over the first and last
         arguments::
 
             sage: s = t.antisymmetrize(0,2) ; s  # (0,2) = first and last arguments
@@ -2949,7 +2949,7 @@ class FreeModuleTensor(ModuleElement):
             sage: t['_i[jk]'] == t.antisymmetrize(1,2)
             True
 
-        Full antisymmetrization of a tensor of type (0,3)::
+        Full antisymmetrization of a tensor of type `(0,3)`::
 
             sage: s = t.antisymmetrize() ; s
             Alternating form of degree 3 on the 3-dimensional vector space M

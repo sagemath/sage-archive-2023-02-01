@@ -95,7 +95,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         Linear form b on the Rank-3 free module M over the Integer Ring
         sage: b[:] = [2,-1,3]  # components w.r.t. the module's default basis (e)
 
-    A linear form is a tensor of type (0,1)::
+    A linear form is a tensor of type `(0,1)`::
 
         sage: b.tensor_type()
         (0, 1)

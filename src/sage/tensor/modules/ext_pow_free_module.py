@@ -737,7 +737,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
 
         EXAMPLES:
 
-        Sets of type-(0,1) tensors coerce to ``self`` if the degree is 1::
+        Sets of type-`(0,1)` tensors coerce to ``self`` if the degree is 1::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: L1 = M.dual_exterior_power(1) ; L1

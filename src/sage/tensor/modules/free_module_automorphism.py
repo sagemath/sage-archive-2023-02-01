@@ -229,7 +229,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         sage: (-a).matrix(e) == - (a.matrix(e))
         True
 
-    Adding two automorphisms results in a generic type-(1,1) tensor::
+    Adding two automorphisms results in a generic type-`(1,1)` tensor::
 
         sage: s = a + b ; s
         Type-(1,1) tensor a+b on the Rank-2 free module M over the Integer Ring

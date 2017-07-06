@@ -1715,7 +1715,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             a = e_0*e^0 + 2 e_0*e^1 + e_1*e^0 + 3 e_1*e^1
 
         The automorphism components can be specified in a second step, as
-        components of a type-(1,1) tensor::
+        components of a type-`(1,1)` tensor::
 
             sage: a1 = M.automorphism(name='a')
             sage: a1[e,:] = [[1,2],[1,3]]
@@ -1778,7 +1778,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Symmetric bilinear form A on the
              Rank-3 free module M over the Integer Ring
 
-        A symmetric bilinear form is a type-(0,2) tensor that is symmetric::
+        A symmetric bilinear form is a type-`(0,2)` tensor that is symmetric::
 
             sage: a.parent()
             Free module of type-(0,2) tensors on the
@@ -2587,7 +2587,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: Id is M.general_linear_group().one()
             True
 
-        It is also a tensor of type-(1,1) on M::
+        It is also a tensor of type-`(1,1)` on M::
 
             sage: Id.tensor_type()
             (1, 1)

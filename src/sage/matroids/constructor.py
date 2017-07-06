@@ -723,12 +723,17 @@ def Matroid(*args, **kwds):
 
     # Graphs:
     if 'graph' in kwds:
+        G = kwds['graph']
+        if not isinstance(G, sage.graphs.generic_graph.GenericGraph):
+            try:
+                G = Graph(G)
+            except (ValueError, TypeError, NetworkXError):
+                raise ValueError("input does not seem to represent a graph.")
+        if want_regular:
         # Construct the incidence matrix
         # NOTE: we are not using Sage's built-in method because
         # 1) we would need to fix the loops anyway
         # 2) Sage will sort the columns, making it impossible to keep labels!
-        G = kwds['graph']
-        if want_regular:
             V = G.vertices()
             E = G.edges()
             n = G.num_verts()
@@ -754,14 +759,11 @@ def Matroid(*args, **kwds):
             M = RegularMatroid(matrix=A, groundset=kwds['groundset'])
             want_regular = False  # Save some time, since result is already regular
         else:
-            if not isinstance(G, sage.graphs.generic_graph.GenericGraph):
-                try:
-                    G = Graph(G)
-                except (ValueError, TypeError, NetworkXError):
-                    raise ValueError("input does not seem to represent a graph.")
             if 'groundset' not in kwds:
-                # Let GraphicMatroid.__init__() handle this for now
-                kwds['groundset'] = None
+                if len(set(G.edge_labels())) == len(G.edge_labels()):
+                    kwds['groundset'] = G.edge_labels()
+                else:
+                    kwds['groundset'] = None
             M = GraphicMatroid(G, groundset=kwds['groundset'])
 
     # Matrices:

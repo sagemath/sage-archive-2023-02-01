@@ -40,9 +40,9 @@ class GraphicMatroid(Matroid):
 
         sage: from sage.matroids.advanced import *
         sage: M = GraphicMatroid(graphs.BullGraph()); M
-        Graphic matroid of rank 4 on 5 elements.
+        Graphic matroid of rank 4 on 5 elements
         sage: N = GraphicMatroid(graphs.CompleteBipartiteGraph(3,3)); N
-        Graphic matroid of rank 5 on 9 elements.
+        Graphic matroid of rank 5 on 9 elements
     """
 
     def __init__(self, G, groundset = None):
@@ -56,7 +56,7 @@ class GraphicMatroid(Matroid):
             sage: G = G1.disjoint_union(G2)
             sage: M = GraphicMatroid(G)
             sage: M
-            Graphic matroid of rank 5 on 8 elements.
+            Graphic matroid of rank 5 on 8 elements
             sage: M.graph()
             Looped multi-graph on 6 vertices
             sage: M.graph().is_connected()
@@ -273,14 +273,14 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.CompleteGraph(5))
             sage: M._minor(deletions=frozenset([0,1,2]))
-            Graphic matroid of rank 4 on 7 elements.
+            Graphic matroid of rank 4 on 7 elements
             sage: M._minor(contractions=frozenset([0,1,2]))
-            Graphic matroid of rank 1 on 7 elements.
+            Graphic matroid of rank 1 on 7 elements
             sage: M = Matroid(graphs.PetersenGraph()); M.groundset()
             frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14})
             sage: N = M._minor(deletions = frozenset([0, 3, 5, 9]), contractions =
             ....: frozenset([1, 2, 11])); N
-            Graphic matroid of rank 6 on 8 elements.
+            Graphic matroid of rank 6 on 8 elements
         """
         g = self.graph()
         cont_edges = self._groundset_to_edges(contractions)
@@ -856,11 +856,11 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.CompleteGraph(4))
             sage: M1 = M.graphic_extension(0,1,'a'); M1
-            Graphic matroid of rank 3 on 7 elements.
+            Graphic matroid of rank 3 on 7 elements
             sage: M1.graph().edges()
             [(0, 1, 0), (0, 1, 'a'), (0, 2, 1), (0, 3, 2), (1, 2, 3), (1, 3, 4), (2, 3, 5)]
             sage: M2 = M1.graphic_extension(3); M2
-            Graphic matroid of rank 3 on 8 elements.
+            Graphic matroid of rank 3 on 8 elements
 
         """
         # __init()__ forces the graph to be connected, so this should

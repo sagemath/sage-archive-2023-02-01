@@ -839,28 +839,41 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: M = matrix(GF(2), [[1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],\
-                                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],\
-                                     [0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0],\
-                                     [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
-                                     [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
-            sage: C = codes.LinearCode(M)
-            sage: D = C.decoder('InformationSet', 2, algorithm="Lee-Brickell")
+            sage: M = matrix(GF(2), [[1,0,0,0,0,0,1,0,1,0,1,1,0,0,1],\
+                                     [0,1,0,0,0,1,1,1,1,0,0,0,0,1,1],\
+                                     [0,0,1,0,0,0,0,1,0,1,1,1,1,1,0],\
+                                     [0,0,0,1,0,0,1,0,1,0,0,0,1,1,0],\
+                                     [0,0,0,0,1,0,0,0,1,0,1,1,0,1,0]])
+            sage: C = LinearCode(M)
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
-            sage: y = Chan(c)
-            sage: D.decode_to_code(y) in C
+            sage: r = Chan(c)
+            sage: D = C.decoder('InformationSet', 2)
+            sage: c == D.decode_to_code(r)
             True
 
         Information-set decoding a non-binary code::
 
             sage: C = codes.GolayCode(GF(3)); C
             [12, 6, 6] Extended Golay code over GF(3)
-            sage: D = C.decoder('InformationSet', 2, algorithm="Lee-Brickell")
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: r = Chan(c)
-            sage: D.decode_to_code(r) in C
+            sage: D = C.decoder('InformationSet', 2)
+            sage: c == D.decode_to_code(r)
+            True
+
+        Let's take a bigger example, for which syndrome decoding or
+        nearest-neighbor decoding would be infeasible: the `[59, 30]` Quadratic
+        Residue code over `\GF{3}` has true minimum distance 17, so we can
+        correct 8 errors::
+
+            sage: C = codes.QuadraticResidueCode(59, GF(3))
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: r = Chan(c)
+            sage: D = C.decoder('InformationSet', 8)
+            sage: c == D.decode_to_code(r) # long time
             True
         """
         C = self.code()

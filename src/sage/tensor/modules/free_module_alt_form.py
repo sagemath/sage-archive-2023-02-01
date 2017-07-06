@@ -241,8 +241,6 @@ class FreeModuleAltForm(FreeModuleTensor):
                                   latex_name=latex_name,
                                   antisym=range(degree),
                                   parent=fmodule.dual_exterior_power(degree))
-        FreeModuleAltForm._init_derived(self) # initialization of derived
-                                              # quantities
 
     def _repr_(self):
         r"""
@@ -273,32 +271,6 @@ class FreeModuleAltForm(FreeModuleTensor):
             description += "of degree {} ".format(self._tensor_rank)
         description += "on the {}".format(self._fmodule)
         return description
-
-    def _init_derived(self):
-        r"""
-        Initialize the derived quantities.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: a = M.alternating_form(2)
-            sage: a._init_derived()
-
-        """
-        FreeModuleTensor._init_derived(self)
-
-    def _del_derived(self):
-        r"""
-        Delete the derived quantities.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: a = M.alternating_form(2)
-            sage: a._del_derived()
-
-        """
-        FreeModuleTensor._del_derived(self)
 
     def _new_instance(self):
         r"""

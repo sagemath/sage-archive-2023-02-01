@@ -3784,6 +3784,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.sigma_invariants(2, formal=False, type='point')
             [12, -2, -36, 25, 0]
 
+        check that infinity as part of a longer cycle is handled correctly::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([y^2,x^2])
+            sage: f.sigma_invariants(2, type='cycle')
+            [12, 48, 64, 0]
+            sage: f.sigma_invariants(2, type='point')
+            [12, 48, 64, 0, 0]
+            sage: f.sigma_invariants(2, type='cycle', formal=True)
+            [0]
+            sage: f.sigma_invariants(2, type='point', formal=True)
+            [0, 0]
+
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
@@ -3801,9 +3815,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2 - w*y^2, (1-w)*x*y])
             sage: f.sigma_invariants(2, formal=False, type='cycle')
-            [2*w + 14, 8*w + 37, 6*w + 12]
+            [6*w + 21, 78*w + 159, 210*w + 367, 90*w + 156]
             sage: f.sigma_invariants(2, formal=False, type='point')
-            [2*w + 17, 14*w + 79, 30*w + 123, 18*w + 36]
+            [6*w + 24, 96*w + 222, 444*w + 844, 720*w + 1257, 270*w + 468]
 
         ::
 
@@ -3834,13 +3848,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.sigma_invariants(4, formal=False, type='cycle')
             [171, 5365, 177895, 1141315, 2407681, 2077191, 638125, 0]
         """
-        if (n < 1):
+        n = ZZ(n)
+        if n < 1:
             raise ValueError("period must be a positive integer")
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         dom = self.domain()
         if not is_ProjectiveSpace(dom):
             raise NotImplementedError("not implemented for subschemes")
-        if (dom.dimension_relative() > 1):
+        if dom.dimension_relative() > 1:
             raise NotImplementedError("only implemented for dimension 1")
         if not self.is_endomorphism():
             raise TypeError("self must be an endomorphism")
@@ -3862,38 +3877,46 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 or (base_ring in FiniteFields())):
             raise NotImplementedError("incompatible base field, see documentation")
 
-        #check if infinity is an n-periodic point
-        if self.nth_iterate(dom(1,0), n) == dom(1,0):
-            #we need all n-periodic points to be affine for resultant
-            #so find a point that isn't n-periodic
-            new_fixed = ZZ(2)
-            while self.nth_iterate(dom(new_fixed), n) == dom(new_fixed):
-                new_fixed += 1
-            #get the conjugation (0,1,t) -> (0,1,infty)
-            m = matrix(FractionField(self.base_ring()), 2, 2, [(new_fixed - 1)/new_fixed, 0, -1/new_fixed, 1])
-            F = self.conjugate(m)
-        else:
-            F = self
         #now we find the two polynomials for the resultant
-        Fn = F.nth_iterate_map(n)
+        Fn = self.nth_iterate_map(n)
         fn = Fn.dehomogenize(1)
         R = fn.domain().coordinate_ring()
         S = PolynomialRing(FractionField(self.base_ring()), 'z', 2)
         phi = R.hom([S.gen(0)], S)
+        psi = dom.coordinate_ring().hom([S.gen(0), 1], S)  #dehomogenize
         dfn = fn[0].derivative(R.gen())
 
         #polynomial to be evaluated at the periodic points
         mult_poly = phi(dfn.denominator())*S.gen(1) - phi(dfn.numerator()) #w-f'(z)
 
         #polynomial defining the periodic points
+        x,y = dom.gens()
         if formal:
-            dyn = F.dehomogenize(1).dynatomic_polynomial(n)
-            fix_poly = phi(dyn)  #f(z)-z
+            fix_poly = self.dynatomic_polynomial(n)  #f(z)-z
         else:
-            fix_poly = phi(fn[0].numerator() - R.gen()*fn[0].denominator()) #f(z) - z
+            fix_poly = Fn[0]*y - Fn[1]*x #f(z) - z
+
+        #check infinity
+        inf = dom(1,0)
+        inf_per = 1
+        Q = self(inf)
+        while Q != inf and inf_per <= n:
+            inf_per += 1
+            Q = self(Q)
+        #get multiplicity
+        if inf_per <= n:
+            e_inf = 1
+            while (y**e_inf).divides(fix_poly):
+                e_inf += 1
+            e_inf -= 1
 
         #evaluate the resultant
+        fix_poly = psi(fix_poly)
         res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
+        #take infinty into consideration
+        if inf_per <= n:
+            res = res*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
+            res = res.univariate_polynomial()
 
         if type == 'cycle':
             #now we need to deal with having the correct number of factors
@@ -3901,21 +3924,40 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             #the length of the cycle and the mutliplicities
             good_res = 1
             L = dict(res.factor())
+            periods = {} #keep track of periods for factors
             for p in L.keys():
-                e = L[p] #get exponent
                 #have to find cycle length
                 for d in n.divisors():
                     if formal:
-                        fd = F.nth_iterate_map(d).dehomogenize(1)
-                        resd = mult_poly.resultant(phi(fd[0].numerator() - fd.domain().gen()*fd[0].denominator()), S.gen(0))
+                        Fd = self.nth_iterate_map(d)
+                        fix_poly_d = y*Fd[0] - x*Fd[1]
                     else:
-                        fd = F.dehomogenize(1).dynatomic_polynomial(d)
-                        resd = mult_poly.resultant(phi(fd), S.gen(0))
-                    if p.divides(resd):
-                        #this comes from a d-cycle
-                        good_res *= p**(e/d)
-                        break #done since we've found the period
-            res = good_res
+                        fix_poly_d = self.dynatomic_polynomial(d)
+                    resd = mult_poly.resultant(psi(fix_poly_d), S.gen(0))
+                    #check infinity
+                    if inf_per == d:
+                        e_inf_d = 1
+                        while (y**e_inf_d).divides(fix_poly_d):
+                            e_inf_d += 1
+                        e_inf_d -= 1
+                        resd = resd*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
+                        resd = resd.univariate_polynomial()
+                    #get exponent, since we can have the same
+                    #multiplier for different cycles
+                    e = 0
+                    while (p**e).divides(resd):
+                        e += 1
+                    e -= 1
+                    if e > 0:
+                        #get minimal period
+                        if p in periods.keys():
+                            m = periods[p]
+                        else:
+                            periods.update({p:d})
+                            m = d
+                        #this comes from an m-cycle
+                        good_res *= p**(e/m)
+                res = good_res
 
         #the sigmas are the coeficients
         #need to fix the signs and the order

@@ -27,8 +27,8 @@
 #
 # - sdh_make_install [...]
 #
-#    Runs `$MAKE install`.  Additional arguments to `make` may be given as
-#    arguments.
+#    Runs `$SAGE_SUDO $MAKE install`.  Additional arguments to `make` may be
+#    given as arguments.
 
 set -o allexport
 
@@ -74,7 +74,7 @@ sdh_make() {
 
 sdh_make_install() {
     local ret
-    sdh_make install "$@"
+    $SAGE_SUDO ${MAKE:-make} install "$@"
     ret=$?
     if [ $ret -ne 0 ]; then
         echo >&2 "Error installing $PKG_NAME"

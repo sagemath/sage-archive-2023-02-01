@@ -297,6 +297,9 @@ class InformationSetAlgorithm(SageObject):
                 and self.decoding_interval() == other.decoding_interval()\
                 and self._parameters_specified == other._parameters_specified\
                 and (not self._parameters_specified or self.parameters() == other.parameters())
+
+    def __hash__(self):
+        return hash(str(self))
         
     def _repr_(self):
         r"""
@@ -382,17 +385,22 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
         r"""
         TESTS:
 
-        If ``search_size`` is bigger than a possible value for ``decoding_interval``, an error
-        will be raised::
+        If ``search_size`` is not a positive integer, or is bigger than the
+        decoding radius, an error will be raised::
 
             sage: C = codes.GolayCode(GF(2))
             sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
-            sage: A = LeeBrickellISDAlgorithm(C, (1, 3), search_size=4)
+            sage: LeeBrickellISDAlgorithm(C, (1, 3), search_size=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The search size parameter has to be a positive integer
+
+            sage: LeeBrickellISDAlgorithm(C, (1, 3), search_size=4)
             Traceback (most recent call last):
             ...
             ValueError: The search size parameter has to be at most the maximal number of allowed errors
         """
-        if not search_size is None:
+        if search_size is not None:
             if not isinstance(search_size, (Integer, int)) or search_size < 0:
                 raise ValueError("The search size parameter has to be a positive integer")
             if search_size > decoding_interval[1]:
@@ -584,7 +592,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     This simple algorithm is not very efficient in itself, but there are numerous
     refinements to the strategy. Specifying which strategy to use among those
-    that Sage knows is done using the `algorithm` keyword. If this is not set,
+    that Sage knows is done using the ``algorithm`` keyword. If this is not set,
     an efficient choice will be made for you.
 
     The various ISD algorithms all need to select a number of parameters. If you
@@ -607,8 +615,12 @@ class LinearCodeInformationSetDecoder(Decoder):
       correct decoding. An interval can also be specified by giving a pair of
       integers, where both end values are taken to be in the interval.
 
-    - ``algorithm`` -- (optional) the ISD algorithm to employ. If this is not
-      set, an appropriate one will be chosen.
+    - ``algorithm`` -- (optional) the string name of the ISD algorithm to
+      employ. If this is not set, an appropriate one will be chosen.
+      A constructed
+      :class:`sage.coding.information_set_decoder.InformationSetAlgorithm`
+      object may also be given. In this case ``number_errors`` must match that
+      of the passed algorithm.
 
     - ``**kwargs`` -- (optional) any number of named arguments passed on to the
       ISD algorithm. Such are usually not required, and they can only be set if
@@ -637,8 +649,8 @@ class LinearCodeInformationSetDecoder(Decoder):
         Information-set decoder (Lee-Brickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
         sage: D2.algorithm()
         ISD Algorithm (Lee-Brickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
-        sage: D2.algorithm().parameters() #random
-        {'search_size': 1}
+        sage: D2.algorithm().parameters()
+        {'search_size': 2}
 
     If you specify an algorithm which is not known, you get a friendly error message::
 
@@ -646,6 +658,22 @@ class LinearCodeInformationSetDecoder(Decoder):
         Traceback (most recent call last):
         ...
         ValueError: Unknown ISD algorithm 'NoSuchThing'. The known algorithms are ['Lee-Brickell'].
+
+    You can also construct an ISD algorithm separately and pass that. This is
+    mostly useful if you write your own ISD algorithms::
+
+        sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+        sage: A = LeeBrickellISDAlgorithm(C, (0, 2))
+        sage: D = C.decoder("InformationSet", 2, algorithm=A); D
+        Information-set decoder (Lee-Brickell) for [12, 6, 6] Extended Golay code over GF(3) decoding up to 2 errors
+
+    When passing an already constructed ISD algorithm, you can't also pass
+    parameters to the ISD algorithm when constructing the decoder::
+
+        sage: C.decoder("InformationSet", 2, algorithm=A, search_size=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: ISD algorithm arguments are not allowed when supplying a constructed ISD algorithm
 
     We can also information-set decode non-binary codes::
 
@@ -684,6 +712,22 @@ class LinearCodeInformationSetDecoder(Decoder):
             Traceback (most recent call last):
             ...
             ValueError: number_errors should be a positive integer or a valid interval within the positive integers
+
+        If ``algorithm`` is set to a constructed
+        :class:`sage.coding.information_set_decoder.InformationSetAlgorithm`,
+        then ``number_errors`` must match that of the algorithm::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+            sage: A = LeeBrickellISDAlgorithm(C, (0, 2))
+            sage: D = C.decoder("InformationSet", 2, A); D
+            Information-set decoder (Lee-Brickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
+            sage: D = C.decoder("InformationSet", (0,2), A); D
+            Information-set decoder (Lee-Brickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
+            sage: D = C.decoder("InformationSet", 3, A); D
+            Traceback (most recent call last):
+            ...
+            ValueError: number_errors must match that of the passed ISD algorithm
         """
         if isinstance(number_errors, (Integer, int)):
             number_errors = (0, number_errors)
@@ -718,10 +762,16 @@ class LinearCodeInformationSetDecoder(Decoder):
             algorithm = "Lee-Brickell"
         algorithm_names = LinearCodeInformationSetDecoder.known_algorithms(dictionary=True)
 
-        if algorithm in algorithm_names:
-            self._algorithm = algorithm_names[algorithm](code, number_errors, **kwargs)
-        elif isinstance(algorithm, InformationSetAlgorithm):
+        if isinstance(algorithm, InformationSetAlgorithm):
+            if kwargs:
+                raise ValueError("ISD algorithm arguments are not allowed when"
+                                " supplying a constructed ISD algorithm")
+            if number_errors != algorithm.decoding_interval():
+                raise ValueError("number_errors must match that of the passed"
+                                " ISD algorithm")
             self._algorithm = algorithm
+        elif algorithm in algorithm_names:
+            self._algorithm = algorithm_names[algorithm](code, number_errors, **kwargs)
         else:
             raise ValueError("Unknown ISD algorithm '{}'."
                             " The known algorithms are {}."\
@@ -777,10 +827,10 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         .. WARNING::
 
-        If there is no codeword within the decoding radius of this decoder, this
-        method may never terminate, or it may raise a
-        :exc:`sage.coding.decoder.DecodingError` exception, depending on the ISD
-        algorithm used.
+            If there is no codeword within the decoding radius of this decoder, this
+            method may never terminate, or it may raise a
+            :exc:`sage.coding.decoder.DecodingError` exception, depending on the ISD
+            algorithm used.
 
         INPUT:
 

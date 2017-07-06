@@ -344,7 +344,7 @@ def Matroid(*args, **kwds):
 
             sage: G = graphs.PetersenGraph()
             sage: Matroid(G)
-            Graphic matroid of rank 9 on 15 elements.
+            Graphic matroid of rank 9 on 15 elements
 
         If each edge has a unique label, then those are used as the ground set
         labels::

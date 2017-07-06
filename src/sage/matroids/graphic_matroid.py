@@ -246,16 +246,16 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.CompleteGraph(5))
             sage: M
-            Graphic matroid of rank 4 on 10 elements.
+            Graphic matroid of rank 4 on 10 elements
             sage: G = Graph([(0, 0), (0, 1), (0, 2), (1, 1), (2, 2)], loops=True)
             sage: M = Matroid(G)
             sage: M
-            Graphic matroid of rank 2 on 5 elements.
+            Graphic matroid of rank 2 on 5 elements
         """
         self._mrank = str(self._rank(self._groundset))
         self._elts = str(len(self._groundset))
 
-        return "Graphic matroid of rank " + self._mrank + " on " + self._elts + " elements."
+        return "Graphic matroid of rank " + self._mrank + " on " + self._elts + " elements"
 
     def _minor(self, contractions=frozenset([]), deletions=frozenset([])):
         """

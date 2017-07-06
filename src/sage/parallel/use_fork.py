@@ -31,6 +31,14 @@ class WorkerData(object):
     - ``starttime``: the walltime when this worker started
 
     - ``failure``: an optional message indicating the kind of failure
+
+    EXAMPLES::
+
+        sage: from sage.parallel.use_fork import WorkerData
+        sage: W = WorkerData(42); W
+        <sage.parallel.use_fork.WorkerData object at ...>
+        sage: W.starttime  # random
+        1499330252.463206
     """
     def __init__(self, input, starttime=None, failure=""):
         self.input = input
@@ -59,15 +67,15 @@ class p_iter_fork(object):
 
         INPUT:
 
-            - ``ncpus`` -- the maximal number of simultaneous
-              subprocesses to spawn
-            - ``timeout`` -- (float, default: 0) wall time in seconds until
-              a subprocess is automatically killed
-            - ``verbose`` -- (default: False) whether to print
-              anything about what the iterator does (e.g., killing
-              subprocesses)
-            - ``reset_interfaces`` -- (default: True) whether to reset
-              all pexpect interfaces
+        - ``ncpus`` -- the maximal number of simultaneous
+          subprocesses to spawn
+        - ``timeout`` -- (float, default: 0) wall time in seconds until
+          a subprocess is automatically killed
+        - ``verbose`` -- (default: False) whether to print
+          anything about what the iterator does (e.g., killing
+          subprocesses)
+        - ``reset_interfaces`` -- (default: True) whether to reset
+          all pexpect interfaces
 
         EXAMPLES::
 
@@ -93,10 +101,11 @@ class p_iter_fork(object):
 
         INPUT:
 
-        - ``f`` -- a Python function that need not be pickleable or anything else!
+        - ``f`` -- a function (or more general, any callable)
 
-        - ``inputs`` -- a list of pickleable pairs ``(args, kwds)``, where
-          ``args`` is a tuple and ``kwds`` is a dictionary.
+        - ``inputs`` -- a list of pairs ``(args, kwds)`` to be used as
+          arguments to ``f``, where ``args`` is a tuple and ``kwds`` is
+          a dictionary.
 
         OUTPUT:
 
@@ -153,7 +162,7 @@ class p_iter_fork(object):
                         # process and returns 0 for the subprocess.
                         if not pid:
                             # This is the subprocess.
-                            self._subprocess(f, dir, v0)
+                            self._subprocess(f, dir, *v0)
 
                     workers[pid] = WorkerData(v0)
 
@@ -229,11 +238,12 @@ class p_iter_fork(object):
                         if self.verbose:
                             print(msg)
 
-    def _subprocess(self, f, dir, x):
+    def _subprocess(self, f, dir, args, kwds={}):
         """
-        Setup and run evaluation of ``f(*x[0], **x[1])``, storing the
-        result in the given directory ``dir``.  This method is called by each
-        forked subprocess.
+        Setup and run evaluation of ``f(*args, **kwds)``, storing the
+        result in the given directory ``dir``.
+
+        This method is called by each forked subprocess.
 
         INPUT:
 
@@ -241,15 +251,21 @@ class p_iter_fork(object):
 
         - ``dir`` -- name of a directory
 
-        - ``x`` -- 2-tuple, with args and kwds
+        - ``args`` -- a tuple with positional arguments for ``f``
 
-        EXAMPLES:
+        - ``kwds`` -- (optional) a dict with keyword arguments for ``f``
 
-        We have only this indirect test, since a direct test would terminate the Sage session.
+        TESTS:
 
+        The method ``_subprocess`` is really meant to be run only in a
+        subprocess. It doesn't print not return anything, the output is
+        saved in pickles. It redirects stdout, so we save and later
+        restore stdout in order not to break the doctester::
+
+            sage: saved_stdout = sys.stdout
             sage: F = sage.parallel.use_fork.p_iter_fork(2,3)
-            sage: sorted(list( F( (lambda x: x^2), [([10],{}), ([20],{})])))
-            [(([10], {}), 100), (([20], {}), 400)]
+            sage: F._subprocess(operator.add, tmp_dir(), (1, 2))
+            sage: sys.stdout = saved_stdout
         """
         import imp, os, sys
         from sage.structure.sage_object import save
@@ -271,7 +287,7 @@ class p_iter_fork(object):
             sage.interfaces.quit.invalidate_all()
 
         # Now evaluate the function f.
-        value = f(*x[0], **x[1])
+        value = f(*args, **kwds)
 
         # And save the result to disk.
         sobj = os.path.join(dir, '%s.sobj'%os.getpid())

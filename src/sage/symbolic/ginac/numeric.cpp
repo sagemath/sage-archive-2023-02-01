@@ -1379,8 +1379,15 @@ bool numeric::integer_rational_power(numeric& res,
 void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 numeric& c, numeric& d, bool& c_unit)
 {
+        if (b_orig.t == MPZ) {
+                c = a_orig.pow_intexp(b_orig);
+                d = *_num1_p;
+                c_unit = c.is_one();
+                return;
+        }
         if ((a_orig.t != MPZ and a_orig.t != MPQ) or b_orig.t != MPQ) {
                 d = a_orig;
+                c = *_num1_p;
                 c_unit = true;
                 return;
         }

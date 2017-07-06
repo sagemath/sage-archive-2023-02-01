@@ -331,6 +331,22 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return self.element_class(self, self._M.basis()[self._index_to_pos[k]])
 
+    def term(self, k, c=None):
+        """
+        Return the term indexed by ``i`` with coefficient ``c``.
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+            sage: L.term('x', 4)
+            4*x
+        """
+        if c is None:
+            c = self.base_ring().one()
+        else:
+            c = self.base_ring()(c)
+        return self.element_class(self, c * self._M.basis()[self._index_to_pos[k]])
+
     def from_vector(self, v):
         """
         Return an element of ``self`` from the vector ``v``.

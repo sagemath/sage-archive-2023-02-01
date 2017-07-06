@@ -25,7 +25,6 @@ from sage.graphs.graph import Graph
 from copy import copy, deepcopy
 from .utilities import newlabel, split_vertex
 from itertools import combinations
-import random
 from sage.rings.integer import Integer
 
 class GraphicMatroid(Matroid):
@@ -35,16 +34,6 @@ class GraphicMatroid(Matroid):
     INPUT:
     G -- a SageMath graph
     groundset (optional) -- a list in 1-1 correspondence with G.edges()
-
-    EXAMPLES::
-
-        sage: from sage.matroids.advanced import *
-        sage: edgelist = [('a','b'),('b','c'),('c','d'),('d','a')]
-        sage: M = GraphicMatroid(Graph(edgelist))
-        sage: M.graph().edges()
-        [(0, 1, 0), (0, 3, 1), (1, 2, 2), (2, 3, 3)]
-        sage: M.is_isomorphic(matroids.Uniform(3,4))
-        True
 
     """
 
@@ -84,27 +73,23 @@ class GraphicMatroid(Matroid):
 
         self._groundset = groundset_set
 
-        # Force vertices to be integers
-        vertex_to_integer_map = {vertex: integer for (vertex, integer) in zip(
-            G.vertices(), range(len(G.vertices())))}
+        # Map vertices on input graph to vertices in self._G
+        self._vertex_map = {v: v for v in G.vertices()}
+        comps = G.connected_components()
+        while len(comps) > 1:
+            comp = comps.pop()
+            v1 = comps[-1][-1]
+            v2 = comp[0]
+            self._vertex_map[v2] = v1
+            comps[-1].extend(comp)
 
         # Construct a graph and assign edge labels corresponding to the ground set
         edge_list = []
         for i, e in enumerate(G.edges()):
-            edge_list.append((vertex_to_integer_map[e[0]],
-                vertex_to_integer_map[e[1]],groundset[i]))
-        self._G = Graph(edge_list, loops=True, multiedges=True, weighted=True)
-
-        # The graph should be connected to make computations easier
-        while self._G.connected_components_number() > 1:
-            # This will give a list containing lists of vertices
-            comps = self._G.connected_components()
-            # Choose random vertices to avoid the graphs being plotted
-            # as bouquets
-            v1 = random.choice(comps[0])
-            v2 = random.choice(comps[1])
-            self._G.merge_vertices([v1, v2])
-
+            edge_list.append((self._vertex_map[e[0]],
+                self._vertex_map[e[1]], groundset[i]))
+        self._G = Graph(edge_list, loops=True, multiedges=True, weighted=True,
+            data_structure='static_sparse')
         # Map ground set elements to graph edges:
         # The the edge labels should already be the elements.
         self._groundset_edge_map = ({l: (u, v) for
@@ -210,7 +195,8 @@ class GraphicMatroid(Matroid):
             sage: M.graph()
             Looped multi-graph on 5 vertices
         """
-        return self._G.copy()
+        # Return a mutable graph
+        return self._G.copy(data_structure='sparse')
 
     def _repr_(self):
         """
@@ -1027,43 +1013,40 @@ class GraphicMatroid(Matroid):
 
         TESTS::
 
-            sage: G1 = graphs.DiamondGraph()
-            sage: G2 = graphs.CompleteGraph(3)
-            sage: G = G1.disjoint_union(G2)
-            sage: G.merge_vertices([(0,0), (1,0)])
-            sage: M = Matroid(G)
+            sage: edgedict = {0: [1, 2], 1: [2, 3], 2: [3], 3: [4, 5], 4: [5]}
+            sage: M = Matroid(Graph(edgedict))
             sage: M.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
-             (0, 4, 2),
-             (0, 5, 3),
-             (1, 2, 4),
-             (1, 3, 5),
-             (2, 3, 6),
+             (1, 2, 2),
+             (1, 3, 3),
+             (2, 3, 4),
+             (3, 4, 5),
+             (3, 5, 6),
              (4, 5, 7)]
-            sage: M1 = M.twist([5,6]); M1.graph().edges()
+            sage: M1 = M.twist([0, 1]); M1.graph().edges()
+            [(0, 1, 1),
+             (0, 2, 0),
+             (1, 2, 2),
+             (1, 3, 3),
+             (2, 3, 4),
+             (3, 4, 5),
+             (3, 5, 6),
+             (4, 5, 7)]
+            sage: M2 = M1.twist([0, 1, 2]); M2.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
-             (0, 4, 2),
-             (0, 5, 3),
-             (1, 2, 4),
-             (1, 3, 6),
-             (2, 3, 5),
-             (4, 5, 7)]
-            sage: M2 = M1.twist([4,5,6]); M2.graph().edges()
-            [(0, 1, 0),
-             (0, 2, 1),
-             (0, 4, 2),
-             (0, 5, 3),
-             (1, 2, 4),
-             (1, 3, 5),
-             (2, 3, 6),
+             (1, 2, 2),
+             (1, 3, 3),
+             (2, 3, 4),
+             (3, 4, 5),
+             (3, 5, 6),
              (4, 5, 7)]
             sage: M1 == M
             False
             sage: M2 == M
             True
-            sage: M2.twist([0,1])
+            sage: M2.twist([3, 4])
             Traceback (most recent call last):
             ...
             ValueError: too many vertices in the intersection
@@ -1125,13 +1108,9 @@ class GraphicMatroid(Matroid):
         - ``u`` -- A vertex spanned by the edges of the elements in ``X``.
         - ``v`` -- A vertex spanned by the edges of the elements not in ``X``.
 
-        .. WARNING::
-
-            The vertex labels may be changed after using this method.
-
         EXAMPLES::
 
-            sage: edgedict = {0:[1,2], 1:[2,3], 2:[3], 3:[4,5], 6:[4,5]}
+            sage: edgedict = {0:[1, 2], 1:[2, 3], 2:[3], 3:[4, 5], 6:[4, 5]}
             sage: M = Matroid(Graph(edgedict))
             sage: M.graph().edges()
             [(0, 1, 0),
@@ -1145,15 +1124,15 @@ class GraphicMatroid(Matroid):
              (5, 6, 8)]
             sage: M1 = M.one_sum(u = 3, v = 1, X = [5, 6, 7, 8])
             sage: M1.graph().edges()
-            [(0, 1, 1),
-             (0, 6, 0),
-             (1, 2, 4),
-             (1, 6, 2),
-             (2, 6, 3),
-             (3, 5, 7),
-             (3, 6, 5),
-             (4, 5, 8),
-             (4, 6, 6)]
+            [(0, 1, 0),
+             (0, 2, 1),
+             (1, 2, 2),
+             (1, 3, 3),
+             (1, 4, 5),
+             (1, 5, 6),
+             (2, 3, 4),
+             (4, 6, 7),
+             (5, 6, 8)]
             sage: M2 = M.one_sum(u = 4, v = 3, X = [5, 6, 7, 8])
             sage: M2.graph().edges()
             [(0, 1, 0),
@@ -1161,10 +1140,11 @@ class GraphicMatroid(Matroid):
              (1, 2, 2),
              (1, 3, 3),
              (2, 3, 4),
-             (3, 5, 7),
-             (3, 6, 5),
-             (4, 5, 8),
-             (4, 6, 6)]
+             (3, 6, 7),
+             (3, 7, 5),
+             (5, 6, 8),
+             (5, 7, 6)]
+
 
         TESTS::
 
@@ -1175,7 +1155,10 @@ class GraphicMatroid(Matroid):
             ValueError: the input must display a 1-separation
 
         ::
+
             sage: M = Matroid(graphs.BullGraph())
+            sage: M.graph().edges()
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 4, 4)]
             sage: M1 = M.one_sum(u = 3, v = 0, X = [3,4])
             Traceback (most recent call last):
             ...
@@ -1183,10 +1166,11 @@ class GraphicMatroid(Matroid):
 
             sage: M1 = M.one_sum(u = 3, v = 2, X = [3])
             sage: M1.graph().edges()
-            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (2, 3, 4), (2, 4, 3)]
-            sage: M2 = M1.one_sum(u = 3, v = 0, X = [3,4])
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (2, 4, 4), (2, 5, 3)]
+
+            sage: M2 = M1.one_sum(u = 5, v = 0, X = [3,4])
             sage: M2.graph().edges()
-            [(0, 1, 2), (0, 2, 0), (1, 2, 1), (2, 4, 4), (3, 4, 3)]
+            [(0, 1, 0), (0, 2, 1), (0, 3, 3), (1, 2, 2), (3, 4, 4)]
 
             sage: M = Matroid(graphs.BullGraph())
             sage: M.one_sum(u = 0, v = 1, X = [3])
@@ -1234,9 +1218,9 @@ class GraphicMatroid(Matroid):
         # If u was the cut vertex, u is now detached from our component
         # so we merge the new vertex. Otherwise we can merge u
         if u == a:
-            G.merge_vertices([b, v])
+            G.merge_vertices([v, b])
         else:
-            G.merge_vertices([u, v])
+            G.merge_vertices([v, u])
 
         return GraphicMatroid(G)
 

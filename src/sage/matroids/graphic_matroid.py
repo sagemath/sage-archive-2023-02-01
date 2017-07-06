@@ -32,9 +32,17 @@ class GraphicMatroid(Matroid):
     The graphic matroid class.
 
     INPUT:
-    G -- a SageMath graph
-    groundset (optional) -- a list in 1-1 correspondence with G.edges()
+    - ``G`` -- a SageMath graph
+    - ``groundset`` -- (optional) a list in 1-1 correspondence with
+      ``G.edges()``
 
+    EXAMPLES::
+
+        sage: from sage.matroids.advanced import *
+        sage: M = GraphicMatroid(graphs.BullGraph()); M
+        Graphic matroid of rank 4 on 5 elements.
+        sage: N = GraphicMatroid(graphs.CompleteBipartiteGraph(3,3)); N
+        Graphic matroid of rank 5 on 9 elements.
     """
 
     def __init__(self, G, groundset = None):
@@ -180,7 +188,7 @@ class GraphicMatroid(Matroid):
 
     def graph(self):
         """
-        Returns a graph that has a cycle matroid equal to the matroid.
+        Return a graph that has a cycle matroid equal to the matroid.
 
         The graph will always have loops and multiedges enabled.
 
@@ -197,6 +205,38 @@ class GraphicMatroid(Matroid):
         """
         # Return a mutable graph
         return self._G.copy(data_structure='sparse')
+
+    def vertex_map(self):
+        """
+        Return a dictionary mapping the input vertices to the current vertices.
+
+        The graph for the matroid is alway connected. If the constructor is
+        given a graph with multiple components, it will connect them. The
+        Python dictionary given by this method has the vertices from the
+        input graph as keys, and the corresponding vertex label after any
+        merging as values.
+
+        EXAMPLES::
+
+            sage: G = Graph([(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5),
+            ....: (6, 7), (6, 8), (7, 8), (8, 8), (7, 8)], multiedges=True, loops=True)
+            sage: M = Matroid(G)
+            sage: M.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (1, 2, 2),
+             (2, 4, 3),
+             (2, 5, 4),
+             (4, 5, 5),
+             (5, 7, 6),
+             (5, 8, 7),
+             (7, 8, 8),
+             (7, 8, 9),
+             (8, 8, 10)]
+            sage: M.vertex_map()
+            {0: 0, 1: 1, 2: 2, 3: 2, 4: 4, 5: 5, 6: 5, 7: 7, 8: 8}
+        """
+        return copy(self._vertex_map)
 
     def _repr_(self):
         """

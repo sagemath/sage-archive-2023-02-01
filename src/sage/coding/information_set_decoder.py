@@ -519,6 +519,24 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             {'search_size': 1}
             sage: A.time_estimate() #random
             0.0008162108571427874
+
+        A long test which verifies that the calibration is not too far from
+        reality. The constructed code has minimum distance 10::
+
+            sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+            sage: C = codes.QuadraticResidueCode(37, GF(3))
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 4)
+            sage: A = LeeBrickellISDAlgorithm(C, (0,4))
+            sage: A.calibrate()
+            sage: def time_100():
+            ....:     import time
+            ....:     zero = C.ambient_space().zero()
+            ....:     before = time.clock()
+            ....:     for i in range(100): A.decode(Chan(zero)); None
+            ....:     return time.clock() - before
+            sage: elapsed = time_100() # long time
+            sage: elapsed/100 > A.time_estimate()/5 and elapsed/100 < A.time_estimate() * 5 # long time
+            True
         """
         from sage.all import sample, mean, random_vector, random_matrix, randint
         import time

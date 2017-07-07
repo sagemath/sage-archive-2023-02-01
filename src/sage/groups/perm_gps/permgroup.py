@@ -153,7 +153,7 @@ from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.functions.other import factorial
 from sage.groups.generic import structure_description
 from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
-                                    richcmp, rich_to_bool)
+                                    richcmp, rich_to_bool, op_EQ)
 
 
 def load_hap():
@@ -595,15 +595,15 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         gSelf = self._gap_()
         gRight = right._gap_()
-        c = gSelf.__cmp__(gRight)
-        if not c:
+        gapcmp = gSelf.__cmp__(gRight)
+        if not gapcmp:
             return rich_to_bool(op, 0)
 
         if gSelf.IsSubgroup(gRight):
             return rich_to_bool(op, 1)
         if gRight.IsSubgroup(gSelf):
             return rich_to_bool(op, -1)
-        return rich_to_bool(op, c)
+        return rich_to_bool(op, gapcmp)
 
     def _element_class(self):
         r"""
@@ -4196,7 +4196,6 @@ class PermutationGroup_generic(group.FiniteGroup):
 PermutationGroup_generic.structure_description = types.MethodType(structure_description, None, PermutationGroup_generic)
 
 
-@richcmp_method
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """
     Subgroup subclass of ``PermutationGroup_generic``, so instance methods
@@ -4348,7 +4347,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         if not isinstance(other, PermutationGroup_generic):
             return NotImplemented
 
-        c = PermutationGroup_generic.__eq__(self, other)
+        c = PermutationGroup_generic.__richcmp__(self, other, op_EQ)
         if not c:
             return PermutationGroup_generic.__richcmp__(self, other, op)
 

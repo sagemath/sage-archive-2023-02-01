@@ -326,7 +326,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         if isinstance(x, SymmetricGroup):
             return richcmp((self._deg, self._domain), (x._deg, x._domain), op)
-        return PermutationGroup_generic.__richcmp__(self, x, op)
+        return super(SymmetricGroup, self).__richcmp__(x, op)
 
     def _repr_(self):
         """

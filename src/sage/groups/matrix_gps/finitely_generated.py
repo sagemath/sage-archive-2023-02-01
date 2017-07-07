@@ -1274,6 +1274,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             3*izeta3^2 + 8*izeta3 + 3)*z^2,
              x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 -
             3*izeta3^2 - 8*izeta3 - 4)*y*z]
+
+        ::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: chi = S3.character(S3.character_table()[0])
+            sage: S3.invariants_of_degree(5, chi=chi)
+            [x0^4*x1 - x0*x1^4 - x0^4*x2 + x1^4*x2 + x0*x2^4 - x1*x2^4,
+             x0^3*x1^2 - x0^2*x1^3 - x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 - x1^2*x2^3]
         """
         D = self.degree()
         deg = int(deg)
@@ -1288,13 +1296,11 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         if ms[deg].is_zero():
             return []
         inv = set()
-        count = 0
         for e in IntegerVectors(deg, D):
             F = self.reynolds_operator(R.monomial(*e), chi=chi)
             if not F.is_zero():
                 F = F/F.lc()
                 inv.add(F)
-                count += 1
-                if count == ms[deg]:
+                if len(inv) == ms[deg]:
                     break
         return list(inv)

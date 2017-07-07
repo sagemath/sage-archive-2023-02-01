@@ -75,7 +75,7 @@ class GraphicMatroid(Matroid):
 
         # if the provided ground set is incomplete, it gets overwriten
         # invalidate `None` as label
-        if len(groundset_set) != G.num_edges() or None in groundset_set:
+        if None in groundset_set or len(groundset_set) != G.num_edges():
             groundset = range(G.num_edges())
             groundset_set = frozenset(groundset)
 
@@ -109,18 +109,60 @@ class GraphicMatroid(Matroid):
         """
         Create a shallow copy.
 
+        Creating a ``GraphicMatroid`` instance will build a new graph, so
+        the copies have no attributes in common.
+
         EXAMPLES::
 
-            sage: M = Matroid(graphs.RandomGNP(5,.5))
+            sage: M = Matroid(graphs.RandomGNP(5, .5))
             sage: N = copy(M)
             sage: M == N
             True
+            sage: M._G is N._G
+            False
         """
         N = GraphicMatroid(self._G)
         if getattr(self, '__custom_name') is not None:  # because of name wrangling, this is not caught by the default copy
             N.rename(getattr(self, '__custom_name'))
         return N
 
+    def __deepcopy__(self, memo={}):
+        """
+        Create a deep copy.
+
+        .. NOTE::
+
+            Since matroids are immutable, a shallow copy normally suffices.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.PetersenGraph())
+            sage: N = deepcopy(M)
+            sage: N == M
+            True
+        """
+        # The only real difference between this and __copy__() is the memo
+        N = GraphicMatroid(deepcopy(self._G, memo))
+        if getattr(self, '__custom_name') is not None:  # because of name wrangling, this is not caught by the default deepcopy
+            N.rename(deepcopy(getattr(self, '__custom_name'), memo))
+        return N
+
+    def __reduce__(self):
+        """
+        Save the matroid for later reloading.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.PetersenGraph())
+            sage: M == loads(dumps(M))
+            True
+            sage: loads(dumps(M))
+            Graphic matroid of rank 9 on 15 elements
+        """
+        from .unpickling import unpickle_graphic_matroid
+        data = (self._G, getattr(self, '__custom_name'))
+        version = 0
+        return unpickle_graphic_matroid, (version, data)
 
     def _rank(self, X):
         """

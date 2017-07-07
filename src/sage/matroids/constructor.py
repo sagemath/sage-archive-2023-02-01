@@ -364,7 +364,7 @@ def Matroid(*args, **kwds):
 
 
         If the keyword ``regular`` is set to ``True``, the output will instead
-        be an instance of ``RegularMatroid.``
+        be an instance of ``RegularMatroid``.
 
         ::
 
@@ -382,24 +382,18 @@ def Matroid(*args, **kwds):
             sage: M.rank(['b', 'c'])
             1
 
-        If no ground set is provided, we attempt to use the edge labels::
-
-            sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')])
-            sage: M = Matroid(G)
-            sage: sorted(M.groundset())
-            ['a', 'b', 'c']
-
-        If no edge labels are present and the graph is simple, we use the
+        When then ``regular`` keyword is used along with a graph as input,
+        if no edge labels are present and the graph is simple, we use the
         tuples ``(i, j)`` of endpoints. If that fails, we simply use a list
         ``[0..m-1]`` ::
 
             sage: G = Graph([(0, 1), (0, 2), (1, 2)])
-            sage: M = Matroid(G)
+            sage: M = Matroid(G, regular = True)
             sage: sorted(M.groundset())
             [(0, 1), (0, 2), (1, 2)]
 
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)],multiedges=True)
-            sage: M = Matroid(G)
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges = True)
+            sage: M = Matroid(G, regular = True)
             sage: sorted(M.groundset())
             [0, 1, 2, 3]
 
@@ -409,7 +403,7 @@ def Matroid(*args, **kwds):
         documentation)::
 
             sage: Matroid(graph=':I`AKGsaOs`cI]Gb~')
-            Regular matroid of rank 9 on 17 elements with 4004 bases
+            Graphic matroid of rank 9 on 17 elements
 
         However, this method is no more clever than ``Graph()``::
 

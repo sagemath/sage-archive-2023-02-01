@@ -2657,11 +2657,14 @@ class DifferentiableManifold(TopologicalManifold):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1.3, verbose=True)
+            sage: p = c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            [0.9635581155730744, -0.7325010457963622, 1.3]
+            sage: p
+            Point on the 3-dimensional differentiable manifold M
+            sage: p.coordinates()
+            (0.9635581155730744, -0.7325010457963622, 1.3)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
@@ -2685,8 +2688,8 @@ class DifferentiableManifold(TopologicalManifold):
         integrated_curve_set = IntegratedCurveSet(interval, self) # not
         # possible to use Hom(interval, self)
         return integrated_curve_set(equations_rhs, velocities, t,
-                initial_tangent_vector, chart=chart, name=name,
-                latex_name=latex_name, verbose=verbose)
+                         initial_tangent_vector, chart=chart, name=name,
+                         latex_name=latex_name, verbose=verbose)
 
     def integrated_autoparallel_curve(self, affine_connection,
                         curve_param, initial_tangent_vector, chart=None,
@@ -2794,11 +2797,14 @@ class DifferentiableManifold(TopologicalManifold):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1.3, verbose=True)
+            sage: p = c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            [2.085398163397449, 1.4203172015958863]
+            sage: p
+            Point on the 2-dimensional differentiable manifold S^2
+            sage: p.coordinates()
+            (2.085398163397449, 1.4203172015958863)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
@@ -2822,8 +2828,8 @@ class DifferentiableManifold(TopologicalManifold):
         autoparallel_curve_set=IntegratedAutoparallelCurveSet(interval,self)
         # not possible to use Hom(interval, self)
         return autoparallel_curve_set(affine_connection, t,
-                initial_tangent_vector, chart=chart,
-                name=name, latex_name=latex_name, verbose=verbose)
+                         initial_tangent_vector, chart=chart, name=name,
+                         latex_name=latex_name, verbose=verbose)
 
     def integrated_geodesic(self, metric, curve_param,
                             initial_tangent_vector, chart=None,
@@ -2917,11 +2923,14 @@ class DifferentiableManifold(TopologicalManifold):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1.3, verbose=True)
+            sage: p = c(1.3, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            [2.2047444794514663, 0.7986609561213334]
+            sage: p
+            Point on the 2-dimensional differentiable manifold S^2
+            sage: p.coordinates()
+            (2.2047444794514663, 0.7986609561213334)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'

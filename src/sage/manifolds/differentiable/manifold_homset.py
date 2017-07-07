@@ -10,6 +10,17 @@ The subclass :class:`DifferentiableCurveSet` is devoted to the specific case of
 differential curves, i.e. morphisms whose domain is an open interval of
 `\RR`.
 
+The subclass :class:`IntegratedCurveSet` is devoted to differentiable
+curves that are defined as a solution to a system of second order
+differential equations.
+
+The subclass :class:`IntegratedAutoparallelCurveSet` is devoted to
+differentiable curves that are defined as autoparallel curves w.r.t a
+certain affine connection.
+
+The subclass :class:`IntegratedGeodesicSet` is devoted to differentiable
+curves that are defined as geodesics w.r.t to a certain metric.
+
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
@@ -543,8 +554,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: H = IntegratedCurveSet(R, M)
         Traceback (most recent call last):
         ...
-        ValueError: Both boundaries of the interval defining the domain
-         of a Homset of integrated curves need to be finite.
+        ValueError: both boundaries of the interval defining the domain
+         of a Homset of integrated curves need to be finite
 
     An instance whose domain is an interval with finite bounds allows to
     build an integrated curve defined on the interval::
@@ -629,7 +640,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: f.solve(parameters_values={a:-1, b:+oo})
         Traceback (most recent call last):
         ...
-        ValueError: Both boundaries of the interval need to be finite.
+        ValueError: both boundaries of the interval need to be finite
 
     The set of integrated curves `J \longrightarrow J` is a set of
     numerical (manifold) endomorphisms::
@@ -646,29 +657,41 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: H in Monoids()
         True
 
-    The identity element of the monoid is a numerical version of the
-    identity map of `J`::
+    Although it is a monoid, no identity map is implemented via the
+    'one' method of this class or any of its subclasses.
+    This is justified by the lack of relevance of the identity map
+    within the framework of this parent class and its subclasses, whose
+    purpose is mainly devoted to numerical issues (therefore, the user
+    is left free to set a numerical version of the identity if needed)::
 
-        sage: e = H.one() ; e
-        Integrated curve Id_(a, b) in the Real interval (a, b)
+        sage: H.one()
+        Traceback (most recent call last):
+        ...
+        ValueError: the identity is not implemented for integrated
+         curves and associated subclasses
 
     A "typical" element of the monoid::
 
         sage: g = H.an_element() ; g
         Integrated curve in the Real interval (a, b)
         sage: sys = g.system(verbose=True)
-        Curve in the Real interval (a, b) integrated over the Real interval (a, b) as a solution to the following system, written w.r.t. Chart ((a, b), (t,)):
+        Curve in the Real interval (a, b) integrated over the Real
+         interval (a, b) as a solution to the following system, written
+         w.r.t. Chart ((a, b), (t,)):
         <BLANKLINE>
-        Initial point: Point on the Real number line R with coordinates [0] w.r.t. Chart ((a, b), (t,))
-        Initial tangent vector: Tangent vector at Point on the Real number line R with components [1/4] w.r.t. Chart ((a, b), (t,))
+        Initial point: Point on the Real number line R with coordinates
+         [0] w.r.t. Chart ((a, b), (t,))
+        Initial tangent vector: Tangent vector at Point on the Real
+         number line R with components [1/4] w.r.t. Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
         d(Dt)/ds = -1/4*sin(-a + s)
         <BLANKLINE>
 
-    The test suite is passed::
+    The test suite is passed, tests '_test_one' and '_test_prod' being
+    skipped for reasons mentioned above::
 
-        sage: TestSuite(H).run()
+        sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
     """
 
@@ -687,8 +710,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: H = IntegratedCurveSet(R, M)
             Traceback (most recent call last):
             ...
-            ValueError: Both boundaries of the interval defining the
-             domain of a Homset of integrated curves need to be finite.
+            ValueError: both boundaries of the interval defining the
+             domain of a Homset of integrated curves need to be finite
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
@@ -700,7 +723,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             Set of Morphisms from Real interval (-1, 2) to Real interval
              (-1, 2) in Category of endsets of subobjects of sets and
              topological spaces which actually are integrated curves
-            sage: TestSuite(H).run()
+            sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
         """
 
@@ -714,9 +737,9 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         t_min = domain.lower_bound()
         t_max = domain.upper_bound()
         if t_min == -Infinity or t_max == +Infinity:
-            raise ValueError("Both boundaries of the interval " +
+            raise ValueError("both boundaries of the interval " +
                              "defining the domain of a Homset of " +
-                             "integrated curves need to be finite.")
+                             "integrated curves need to be finite")
 
         if name is None:
             self._name = "Hom_integrated({},{})".format(domain._name,
@@ -757,8 +780,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
     def _element_constructor_(self, equations_rhs, velocities,
                  curve_parameter, initial_tangent_vector, chart=None,
-                 name=None, latex_name=None, is_isomorphism=False,
-                 is_identity=False, verbose=False):
+                 name=None, latex_name=None, verbose=False):
         r"""
         Construct an element of ``self``, i.e. an integrated curve
         `I \to M`, where `I` is a real interval and `M` some
@@ -790,9 +812,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         # Standard construction
         return self.element_class(self, equations_rhs, velocities,
                 curve_parameter, initial_tangent_vector, chart=chart,
-                name=name, latex_name=latex_name,
-                is_isomorphism=is_isomorphism, is_identity=is_identity,
-                verbose=verbose)
+                name=name, latex_name=latex_name, verbose=verbose)
 
     def _an_element_(self):
         r"""
@@ -831,8 +851,10 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1)
-            [0.22732435599328793, 0.0]
+            sage: p = c(1) ; p
+            Point on the 2-dimensional differentiable manifold M
+            sage: p.coordinates()
+            (0.22732435599328793, 0.0)
             sage: H = IntegratedCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated curve in the Real interval (-1, 2)
@@ -851,8 +873,10 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             d(Dt)/ds = -3/8*sin(s + 1)
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1)
-            [0.840986533989932]
+            sage: p = c(1) ; p
+            Point on the Real number line R
+            sage: p.coordinates()
+            (0.840986533989932,)
 
         """
 
@@ -923,63 +947,44 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
         return self.element_class(self,eqns_rhs,vels,param,v)
 
-    @cached_method
     def one(self):
         r"""
-        Return the identity element of ``self`` considered as a monoid
-        (case of a set of endomorphisms).
+        Raise an error refusing to provide the identity element.
+        This overrides the 'one' method of class
+        'TopologicalManifoldHomset', which would actually raise an error
+        as well due to lack of option 'is_identity' in
+        'element_constructor' method of 'self'.
 
-        This applies only when the codomain of the homset is equal to its
-        domain, i.e. when the homset is of the type `\mathrm{Hom}(M,M)`.
-        Indeed, `\mathrm{Hom}(M,M)` equipped with the law of morphisms
-        composition is a monoid, whose identity element is nothing but the
-        identity map of `M`.
-
-        OUTPUT:
-
-        - the identity map of `M`, as an instance of
-          :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`
-
-        EXAMPLE::
+        TESTS::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: R.<t> = RealLine()
             sage: I = R.open_interval(-1, 2)
-            sage: H = IntegratedCurveSet(I, I); H
-            Set of Morphisms from Real interval (-1, 2) to Real interval
-             (-1, 2) in Category of endsets of subobjects of sets and
-             topological spaces which actually are integrated curves
-            sage: e = H.one() ; e
-            Integrated curve Id_(-1, 2) in the Real interval (-1, 2)
+            sage: H = IntegratedCurveSet(I, M)
+            sage: H.one()
+            Traceback (most recent call last):
+            ...
+            TypeError: Set of Morphisms from Real interval (-1, 2) to
+             3-dimensional differentiable manifold M in Category of
+             homsets of subobjects of sets and topological spaces which
+             actually are integrated curves is not a monoid
+            sage: H = IntegratedCurveSet(I, I)
+            sage: H.one()
+            Traceback (most recent call last):
+            ...
+            ValueError: the identity is not implemented for integrated
+             curves and associated subclasses
 
         """
 
-        from sage.symbolic.ring import var
-
         if self.codomain() != self.domain():
             raise TypeError("{} is not a monoid".format(self))
-
-        t = self.domain().canonical_coordinate()
-        # It is important to distinguish between the canonical
-        # coordinate, and the curve parameter since, in such a
-        # situation, the coordinate should not be used to denote the
-        # curve parameter, since it actually becomes a function of the
-        # curve parameter, and such a function is an unknown of the
-        # system defining the curve.
-        param = var('s')
-        if t == param: # the canonical coordinate of the domain
-        # might be the expression 's' even though it was affected
-        # above to the variable 't'
-            param = var('u')
-
-        vel = [var("D{}".format(t))]
-
-        # Below, set argument to 'None' where the value does not have
-        # any influence since argument 'is_identity' is set to 'True'
-        return self.element_class(self, None, vel, param, None,
-                                                       is_identity=True)
+        else:
+            raise ValueError("the identity is not implemented for " +
+                            "integrated curves and associated " +
+                            "subclasses")
 
 #******************************************************************************
 
@@ -1020,8 +1025,8 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         sage: H = IntegratedAutoparallelCurveSet(R, M)
         Traceback (most recent call last):
         ...
-        ValueError: Both boundaries of the interval defining the domain
-         of a Homset of integrated autoparallel curves need to be finite.
+        ValueError: both boundaries of the interval defining the domain
+         of a Homset of integrated autoparallel curves need to be finite
 
     An instance whose domain is an interval with finite bounds allows to
     build a curve that is autoparallel w.r.t a connection defined on the
@@ -1076,9 +1081,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
     For any open interval `J` with finite bounds `(a,b)`, all curves are
     autoparallel w.r.t any connection.
-    Therefore, the set of autoparallel curves `J \longrightarrow J` is a set of
-    numerical (manifold) endomorphisms that is a monoid for the law of
-    morphism composition::
+    Therefore, the set of autoparallel curves `J \longrightarrow J` is a
+    set of numerical (manifold) endomorphisms that is a monoid for the
+    law of morphism composition::
 
         sage: [a,b] = var('a b')
         sage: J = R.open_interval(a, b)
@@ -1091,27 +1096,45 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         Category of endsets of subobjects of sets and topological spaces
         sage: H in Monoids()
         True
-        sage: e = H.one() ; e
-        Integrated autoparallel curve Id_(a, b) in the Real
-         interval (a, b)
+
+    Although it is a monoid, no identity map is implemented via the
+    'one' method of this class or its subclass devoted to geodesics.
+    This is justified by the lack of relevance of the identity map
+    within the framework of this parent class and its subclass, whose
+    purpose is mainly devoted to numerical issues (therefore, the user
+    is left free to set a numerical version of the identity if needed)::
+
+        sage: H.one()
+        Traceback (most recent call last):
+        ...
+        ValueError: the identity is not implemented for integrated
+         curves and associated subclasses
 
     A "typical" element of the monoid::
 
         sage: g = H.an_element() ; g
         Integrated autoparallel curve in the Real interval (a, b)
         sage: sys = g.system(verbose=True)
-        Autoparallel curve in the Real interval (a, b) equipped with Affine connection nab on the Open subset U of the Real number line R, and integrated over the Real interval (a, b) as a solution to the following equations, written w.r.t. Chart ((a, b), (t,)):
+        Autoparallel curve in the Real interval (a, b) equipped with
+         Affine connection nab on the Open subset U of the Real number
+         line R, and integrated over the Real interval (a, b) as a
+         solution to the following equations, written w.r.t.
+         Chart ((a, b), (t,)):
         <BLANKLINE>
-        Initial point: Point on the Real number line R with coordinates [1/200] w.r.t. Chart ((a, b), (t,))
-        Initial tangent vector: Tangent vector at Point on the Real number line R with components [-9999/400/(a - b)] w.r.t. Chart ((a, b), (t,))
+        Initial point: Point on the Real number line R with coordinates
+         [1/200] w.r.t. Chart ((a, b), (t,))
+        Initial tangent vector: Tangent vector at Point on the Real
+         number line R with components [-9999/400/(a - b)] w.r.t.
+         Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
         d(Dt)/ds = -Dt^2/t
         <BLANKLINE>
 
-    The test suite is passed::
+    The test suite is passed, tests '_test_one' and '_test_prod' being
+    skipped for reasons mentioned above::
 
-        sage: TestSuite(H).run()
+        sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
     """
 
@@ -1130,9 +1153,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: H = IntegratedAutoparallelCurveSet(R, M)
             Traceback (most recent call last):
             ...
-            ValueError: Both boundaries of the interval defining the
+            ValueError: both boundaries of the interval defining the
              domain of a Homset of integrated autoparallel curves need
-             to be finite.
+             to be finite
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
@@ -1145,7 +1168,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
              (-1, 2) in Category of endsets of subobjects of sets and
              topological spaces which actually are integrated
              autoparallel curves w.r.t a certain affine connection
-            sage: TestSuite(H).run()
+            sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
         """
 
@@ -1158,10 +1181,10 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         t_min = domain.lower_bound()
         t_max = domain.upper_bound()
         if t_min == -Infinity or t_max == +Infinity:
-            raise ValueError("Both boundaries of the interval " +
+            raise ValueError("both boundaries of the interval " +
                              "defining the domain of a Homset of " +
                              "integrated autoparallel curves need to " +
-                             "be finite.")
+                             "be finite")
 
         if name is None:
             self._name = "Hom_autoparallel"
@@ -1205,8 +1228,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
     def _element_constructor_(self, affine_connection, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, is_isomorphism=False,
-                    is_identity=False, verbose=False):
+                    latex_name=None, verbose=False):
         r"""
         Construct an element of ``self``, i.e. an integrated
         autoparallel curve `I \to M`, where `I` is a real interval and
@@ -1240,9 +1262,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         # Standard construction
         return self.element_class(self, affine_connection,
                  curve_parameter, initial_tangent_vector, chart=chart,
-                 name=name,latex_name=latex_name,
-                 is_isomorphism=is_isomorphism, is_identity=is_identity,
-                 verbose=verbose)
+                 name=name,latex_name=latex_name, verbose=verbose)
 
     def _an_element_(self):
         r"""
@@ -1286,8 +1306,10 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1)
-            [0.34375000000000056, 0.49999813529956155]
+            sage: p = c(1) ; p
+            Point on the 2-dimensional differentiable manifold M
+            sage: p.coordinates()
+            (0.34375000000000056, 0.49999813529956155)
             sage: H = IntegratedAutoparallelCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated autoparallel curve in the Real interval (-1, 2)
@@ -1309,8 +1331,10 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1)
-            [1.0606601601128764]
+            sage: p = c(1) ; p
+            Point on the Real number line R
+            sage: p.coordinates()
+            (1.0606601601128764,)
 
         """
 
@@ -1477,77 +1501,6 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
         return self.element_class(self, nab, param, v)
 
-    @cached_method
-    def one(self):
-        r"""
-        Return the identity element of ``self`` considered as a monoid
-        (case of a set of endomorphisms).
-
-        This applies only when the codomain of the homset is equal to its
-        domain, i.e. when the homset is of the type `\mathrm{Hom}(M,M)`.
-        Indeed, `\mathrm{Hom}(M,M)` equipped with the law of morphisms
-        composition is a monoid, whose identity element is nothing but the
-        identity map of `M`.
-
-        OUTPUT:
-
-        - the identity map of `M`, as an instance of
-          :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`
-
-        EXAMPLE::
-
-            sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
-            sage: M = Manifold(3, 'M')
-            sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
-            sage: I = R.open_interval(-1, 2)
-            sage: H = IntegratedAutoparallelCurveSet(I, I); H
-            Set of Morphisms from Real interval (-1, 2) to Real interval
-             (-1, 2) in Category of endsets of subobjects of sets and
-             topological spaces which actually are integrated
-             autoparallel curves w.r.t a certain affine connection
-            sage: e = H.one() ; e
-            Integrated autoparallel curve Id_(-1, 2) in the Real
-             interval (-1, 2)
-
-        """
-
-        from sage.symbolic.ring import var
-
-        if self.codomain() != self.domain():
-            raise TypeError("{} is not a monoid".format(self))
-
-        t = self.domain().canonical_coordinate()
-        # It is important to distinguish between the canonical
-        # coordinate, and the curve parameter since, in such a
-        # situation, the coordinate should not be used to denote the
-        # curve parameter, since it actually becomes a function of the
-        # curve parameter, and such a function is an unknown of the
-        # system defining the curve.
-        param = var('s')
-        if t == param: # the canonical coordinate of the domain
-        # might be the expression 's' even though it was affected
-        # above to the variable 't'
-            param = var('u')
-
-        vel = [var("D{}".format(t))]
-
-        # Below, set argument to 'None' where the value does not have any
-        # influence since argument 'is_identity' is set to 'True'
-        # As a result, it does not need to be overriden in
-        # IntegratedGeodesicSet since the signature of the 'init'
-        # methods of the classes IntegratedAutoparallelCurve and
-        # IntegratedGeodesic are the same, except argument
-        # 'affine_connection' of the first one is replaced by 'metric'
-        # in the second one.
-        # Since both do not have any influence on the definition of the
-        # curve when argument 'is_identity' is set to 'True', the class
-        # IntegratedGeodesicSet may use this method 'one' with arguments
-        # set to 'None' in the same places.
-        return self.element_class(self, None, param, None,
-                                                       is_identity=True)
-
-
 #******************************************************************************
 
 class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
@@ -1586,8 +1539,8 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         sage: H = IntegratedGeodesicSet(R, M)
         Traceback (most recent call last):
         ...
-        ValueError: Both boundaries of the interval defining the domain
-         of a Homset of integrated geodesics need to be finite.
+        ValueError: both boundaries of the interval defining the domain
+         of a Homset of integrated geodesics need to be finite
 
     An instance whose domain is an interval with finite bounds allows to
     build a geodesic w.r.t. a metric defined on the codomain::
@@ -1653,8 +1606,19 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         Category of endsets of subobjects of sets and topological spaces
         sage: H in Monoids()
         True
-        sage: e = H.one() ; e
-        Integrated geodesic Id_(a, b) in the Real interval (a, b)
+
+    Although it is a monoid, no identity map is implemented via the
+    'one' method of this class.
+    This is justified by the lack of relevance of the identity map
+    within the framework of this parent class, whose purpose is mainly
+    devoted to numerical issues (therefore, the user is left free to set
+    a numerical version of the identity if needed)::
+
+        sage: H.one()
+        Traceback (most recent call last):
+        ...
+        ValueError: the identity is not implemented for integrated
+         curves and associated subclasses
 
     A "typical" element of the monoid::
 
@@ -1677,9 +1641,10 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         d(Dt)/ds = -4*Dt^2/t
         <BLANKLINE>
 
-    The test suite is passed::
+    The test suite is passed, tests '_test_one' and '_test_prod' being
+    skipped for reasons mentioned above::
 
-        sage: TestSuite(H).run()
+        sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
     """
 
@@ -1698,9 +1663,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: H = IntegratedGeodesicSet(R, M)
             Traceback (most recent call last):
             ...
-            ValueError: Both boundaries of the interval defining the
+            ValueError: both boundaries of the interval defining the
              domain of a Homset of integrated geodesics need to be
-             finite.
+             finite
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
@@ -1713,7 +1678,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
              (-1, 2) in Category of endsets of subobjects of sets and
              topological spaces which actually are integrated geodesics
              w.r.t a certain metric
-            sage: TestSuite(H).run()
+            sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
         """
 
@@ -1726,9 +1691,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         t_min = domain.lower_bound()
         t_max = domain.upper_bound()
         if t_min == -Infinity or t_max == +Infinity:
-            raise ValueError("Both boundaries of the interval " +
+            raise ValueError("both boundaries of the interval " +
                              "defining the domain of a Homset of " +
-                             "integrated geodesics need to be finite.")
+                             "integrated geodesics need to be finite")
 
         if name is None:
             self._name = "Hom_geodesic"
@@ -1769,8 +1734,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
     def _element_constructor_(self, metric, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, is_isomorphism=False,
-                    is_identity=False, verbose=False):
+                    latex_name=None, verbose=False):
         r"""
         Construct an element of ``self``, i.e. an integrated geodesic
         `I \to M`, where `I` is a real interval and
@@ -1802,8 +1766,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         # Standard construction
         return self.element_class(self, metric, curve_parameter,
                  initial_tangent_vector, chart=chart, name=name,
-                 latex_name=latex_name, is_isomorphism=is_isomorphism,
-                 is_identity=is_identity, verbose=verbose)
+                 latex_name=latex_name, verbose=verbose)
 
     def _an_element_(self):
         r"""
@@ -1849,8 +1812,10 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1)
-            [0.34375000000000056, 0.0, 0.0, 0.0]
+            sage: p = c(1) ; p
+            Point on the 4-dimensional differentiable manifold M
+            sage: p.coordinates()
+            (0.34375000000000056, 0.0, 0.0, 0.0)
             sage: H = IntegratedGeodesicSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated geodesic in the Real interval (-1, 2)
@@ -1872,8 +1837,10 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
-            sage: c(1)
-            [1.1495758053215723]
+            sage: p = c(1) ; p
+            Point on the Real number line R
+            sage: p.coordinates()
+            (1.1495758053215723,)
 
         """
 

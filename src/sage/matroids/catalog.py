@@ -700,7 +700,7 @@ def K33dual():
     """
     E = 'abcdefghi'
     G = graphs.CompleteBipartiteGraph(3, 3)
-    M = Matroid(groundset=E, graph=G)
+    M = Matroid(groundset=E, graph=G, regular=True)
     M = M.dual()
     M.rename('M*(K3, 3): ' + repr(M))
     return M
@@ -759,7 +759,7 @@ def CompleteGraphic(n):
 
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.CompleteGraphic(5); M
-        M(K5): Regular matroid of rank 4 on 10 elements with 125 bases
+        M(K5): Graphic matroid of rank 4 on 10 elements
         sage: M.has_minor(matroids.Uniform(2, 4))
         False
         sage: simplify(M.contract(randrange(0,

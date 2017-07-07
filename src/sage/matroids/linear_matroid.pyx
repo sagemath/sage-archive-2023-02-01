@@ -5791,7 +5791,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         EXAMPLES::
 
-            sage: M = matroids.CompleteGraphic(5)
+            sage: M = Matroid(graphs.CompleteGraph(5), regular = True)
             sage: M.bases_count()
             125
 
@@ -6000,7 +6000,8 @@ cdef class RegularMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: M1 = matroids.Wheel(3)
-            sage: M2 = matroids.CompleteGraphic(4)
+            sage: M2 = Matroid(groundset = list(range(6)),
+            ....: graph = graphs.CompleteGraph(4), regular = True)
             sage: M1._is_isomorphic(M2)
             True
             sage: M1._is_isomorphic(M2, certificate=True)
@@ -6226,7 +6227,7 @@ cdef class RegularMatroid(LinearMatroid):
             sage: M = matroids.named_matroids.R10()
             sage: M.is_graphic()
             False
-            sage: M = matroids.CompleteGraphic(5)
+            sage: M = Matroid(graphs.CompleteGraph(5), regular = True)
             sage: M.is_graphic()
             True
             sage: M.dual().is_graphic()

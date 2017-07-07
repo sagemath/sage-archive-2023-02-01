@@ -14,7 +14,9 @@ Parallel iterator built using the ``fork()`` system call
 
 from __future__ import absolute_import, print_function
 
+from shutil import rmtree
 from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
+
 from sage.interfaces.process import ContainChildren
 from sage.misc.misc import walltime
 
@@ -216,27 +218,27 @@ class p_iter_fork(object):
 
                         yield (W.input, answer)
         finally:
-            # Clean up all temporary files.
-            try:
-                for X in os.listdir(dir):
-                    os.unlink(os.path.join(dir, X))
-                os.rmdir(dir)
-            except OSError as msg:
-                if self.verbose:
-                    print(msg)
-
             # Send SIGKILL signal to workers that are left.
-            if len(workers) > 0:
+            if workers:
                 if self.verbose:
                     print("Killing any remaining workers...")
                 sys.stdout.flush()
                 for pid in workers:
                     try:
                         os.kill(pid, signal.SIGKILL)
-                        os.waitpid(pid, 0)
-                    except OSError as msg:
-                        if self.verbose:
-                            print(msg)
+                    except OSError:
+                        # If kill() failed, it is most likely because
+                        # the process already exited.
+                        pass
+                    else:
+                        try:
+                            os.waitpid(pid, 0)
+                        except OSError as msg:
+                            if self.verbose:
+                                print(msg)
+
+            # Clean up all temporary files.
+            rmtree(dir)
 
     def _subprocess(self, f, dir, args, kwds={}):
         """

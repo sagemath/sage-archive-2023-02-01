@@ -18,6 +18,7 @@ AUTHORS:
 from sage.schemes.generic.divisor import Divisor_generic, Divisor_curve
 from sage.structure.formal_sum import FormalSums
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import richcmp, richcmp_method, richcmp_not_equal
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
@@ -82,6 +83,7 @@ def is_DivisorGroup(x):
     return isinstance(x, DivisorGroup_generic)
 
 
+@richcmp_method
 class DivisorGroup_generic(FormalSums):
     r"""
     The divisor group on a variety.
@@ -169,7 +171,7 @@ class DivisorGroup_generic(FormalSums):
         else:
             return Divisor_generic([(self.base_ring()(1), x)], check=False, reduce=False, parent=self)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare the divisor group.
 
@@ -179,34 +181,36 @@ class DivisorGroup_generic(FormalSums):
 
         OUTPUT:
 
-        ``+1``, ``0``, or ``-1`` depending on how ``self`` and
-        ``right`` compare.
+        boolean
 
         EXAMPLES::
 
             sage: from sage.schemes.generic.divisor_group import DivisorGroup
-            sage: D1 = DivisorGroup(Spec(ZZ));
-            sage: D2 = DivisorGroup(Spec(ZZ),base_ring=QQ);
-            sage: D3 = DivisorGroup(Spec(QQ));
-            sage: abs(cmp(D1,D1))
-            0
-            sage: abs(cmp(D1,D2))
-            1
-            sage: abs(cmp(D1,D3))
-            1
-            sage: abs(cmp(D2,D2))
-            0
-            sage: abs(cmp(D2,D3))
-            1
-            sage: abs(cmp(D3,D3))
-            0
-            sage: abs(cmp(D1, 'something'))
-            1
+            sage: D1 = DivisorGroup(Spec(ZZ))
+            sage: D2 = DivisorGroup(Spec(ZZ), base_ring=QQ)
+            sage: D3 = DivisorGroup(Spec(QQ))
+            sage: D1 == D1
+            True
+            sage: D1 == D2
+            False
+            sage: D1 != D3
+            True
+            sage: D2 == D2
+            True
+            sage: D2 == D3
+            False
+            sage: D3 != D3
+            False
+            sage: D1 == 'something'
+            False
         """
-        if not is_DivisorGroup(right): return -1
-        c = cmp(self.base_ring(), right.base_ring())
-        if c!=0: return c
-        return cmp(self._scheme, right._scheme)
+        if not is_DivisorGroup(right):
+            return NotImplemented
+        lx = self.base_ring()
+        rx = right.base_ring()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+        return richcmp(self._scheme, right._scheme, op)
 
     def scheme(self):
         r"""

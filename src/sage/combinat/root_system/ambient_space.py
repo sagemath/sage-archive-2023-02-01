@@ -67,6 +67,11 @@ class AmbientSpace(CombinatorialFreeModule):
         True
         sage: e1 == e2
         False
+
+        sage: e1 = RootSystem(['A',3]).ambient_space(QQ)
+        sage: e2 = RootSystem(['A',3]).ambient_space(RR)
+        sage: e1 == e2
+        False
     """
     def __init__(self, root_system, base_ring):
         """

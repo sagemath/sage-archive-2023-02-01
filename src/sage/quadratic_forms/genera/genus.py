@@ -17,7 +17,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-
+import copy
 
 def Genus(A):
     r"""
@@ -101,6 +101,14 @@ def is_GlobalGenus(G):
         sage: G = Genus(A)
         sage: is_GlobalGenus(G)
         True
+      
+        sage: from sage.quadratic_forms.genera.genus import Genus,is_GlobalGenus
+        sage: G=Genus(matrix.diagonal([2,2,2,2]))
+        sage: G._local_symbols[0]._symbol=[[0,2,3,0,0],[1,2,5,1,0]]
+        sage: G._representative=None
+        sage: is_GlobalGenus(G)
+        False
+ 
     """
     D = G.determinant()
     r, s = G.signature_pair_of_matrix()
@@ -112,7 +120,7 @@ def is_GlobalGenus(G):
         a = D // (p**v)
         b = Integer(prod([ s[2] for s in sym ]))
         if p == 2:
-            if not is_2_adic_genus(sym):
+            if not is_2_adic_genus(loc.canonical_symbol()):
                 # print "False in is_2_adic_genus(sym)"
                 return False
             if (a*b).kronecker(p) != 1:
@@ -133,7 +141,7 @@ def is_GlobalGenus(G):
 
 def is_2_adic_genus(genus_symbol_quintuple_list):
     """
-    Given a 2-adic local symbol (as the underlying list of quintuples)
+    Given a canonical 2-adic local symbol (as the underlying list of quintuples)
     check whether it is the 2-adic symbol of a 2-adic form.
 
     INPUT:
@@ -423,6 +431,8 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
         Add an example where sign walking occurs!
     """
+    # Protect the input from unwanted modification
+    genus_symbol_quintuple_list = copy.deepcopy(genus_symbol_quintuple_list)
     canonical_symbol = genus_symbol_quintuple_list
     # Canonical determinants:
     for i in range(len(genus_symbol_quintuple_list)):
@@ -1597,7 +1607,16 @@ class GenusSymbol_global_ring(object):
 
             sage: GS2 == GS2
             True
-
+            
+        TESTS::
+            sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
+            sage: G=D4.global_genus_symbol()
+            sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)
+            True
+            sage: G==deepcopy(G)
+            True
+            sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)
+            True
         """
         if self is other:
             return True

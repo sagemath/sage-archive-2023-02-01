@@ -14,10 +14,13 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.categories.homset import End
+from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
+                                    rich_to_bool)
 
 import six
 
 
+@richcmp_method
 class AmbientSpace(CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
@@ -276,8 +279,10 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         return self.fundamental_weights()[i]
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
+        Rich comparison.
+
         EXAMPLES::
 
             sage: e1 = RootSystem(['A',3]).ambient_lattice()
@@ -287,11 +292,11 @@ class AmbientSpace(CombinatorialFreeModule):
             sage: e1 == e2
             False
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
+        if not isinstance(other, AmbientSpace):
+            return NotImplemented
         if self.root_system != other.root_system:
-            return cmp(self.root_system, other.root_system)
-        return 0
+            return richcmp_not_equal(self.root_system, other.root_system, op)
+        return rich_to_bool(op, 0)
 
     def from_vector_notation(self, weight, style="lattice"):
         """

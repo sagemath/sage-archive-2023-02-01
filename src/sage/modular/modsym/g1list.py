@@ -22,9 +22,11 @@ from six.moves import range
 from sage.arith.all import GCD
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.structure.sage_object import SageObject
+from sage.structure.sage_object import register_unpickle_override
+
 
 @richcmp_method
-class G1list(SageObject):
+class G1list_new(SageObject):
     r"""
     A class representing a list of coset representatives for `\Gamma_1(N)` in
     `{\rm SL}_2(\ZZ)`. What we actually calculate is a list of elements of
@@ -129,7 +131,70 @@ class G1list(SageObject):
         return u % self.__N,   v % self.__N
 
 
+G1list = G1list_new
 
 
+class G1list_old:
+    r"""
+    Deprecated, kept only for pickling old pickles.
+
+    TESTS::
+
+        sage: L = sage.modular.modsym.g1list.G1list_old(18)
+        sage: loads(dumps(L)) == L
+        True
+    """
+    def __init__(self, N):
+        """
+        Deprecated, kept only for pickling old pickles.
+
+        TESTS::
+
+            sage: L = sage.modular.modsym.g1list.G1list_old(18)
+            sage: loads(dumps(L)) == L
+            True
+        """
+        self.__N = N
+        self.__list = [(u, v) for u in range(N) for v in range(N)
+                       if GCD(GCD(u, v), N) == 1]
+
+    def __eq__(self, other):
+        """
+        Test for equality.
+
+        EXAMPLES::
+
+            sage: L = sage.modular.modsym.g1list.G1list_old(18)
+            sage: L == L
+            True
+        """
+        if not isinstance(other, G1list_old):
+            return False
+        return self.__N == other.__N
+
+    def __ne__(self, other):
+        """
+        Test for not equality.
+
+        EXAMPLES::
+
+            sage: L = sage.modular.modsym.g1list.G1list_old(18)
+            sage: L != L
+            False
+        """
+        return not (self == other)
+
+    def convert(self):
+        """
+        Conversion to the new-style class :class:`G1list_new`.
+
+        EXAMPLES::
+
+            sage: L = sage.modular.modsym.g1list.G1list_old(18)
+            sage: L.convert()
+            List of coset representatives for Gamma_1(18) in SL_2(Z)
+        """
+        return G1list_new(self.__N)
 
 
+register_unpickle_override('sage.modular.modsym.g1list', 'G1list', G1list_old)

@@ -1142,7 +1142,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
             False
         """
         # Check if the top row matches (if applicable)
-        if tuple(gt[0]) != self._row:
+        if gt and tuple(gt[0]) != self._row:
             return False
         return GelfandTsetlinPatterns.__contains__(self, gt)
 

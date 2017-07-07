@@ -208,7 +208,7 @@ class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
             sage: G == MatrixGroup(G.gens())
             True
         """
-        return self.__cmp__(other) == 0
+        return super(UniqueRepresentation, self).__eq__(other)
 
 
 class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):

@@ -341,9 +341,13 @@ class GraphicMatroid(Matroid):
 
         - ``N`` - A matroid.
         - ``certificate`` - (default: ``False``)
-        """
-        # This method needs work...
 
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteBipartiteGraph(3, 3))
+            sage: N = Matroid(graphs.CycleGraph(3))
+            sage: M.has_minor(N, certificate=True)
+        """
         # The graph minor algorithm is faster but it doesn't make sense
         # to use it if M(H) is not 3-connected, because of all the possible
         # Whitney switches or 1-sums that will give the same matroid.
@@ -360,15 +364,39 @@ class GraphicMatroid(Matroid):
                 # Graph.minor() returns a certificate if there is one
                 # and a ValueError if there isn't.
                 cert = G.minor(H)
-                if certificate:
-                    return cert
-                else:
-                    return True
             except ValueError:
-                return False
+                if certificate:
+                    return (False, None)
+                else:
+                    return False
+
+            if certificate:
+            # This is where it gets complicated.
+            # The Graph.minor() method gives a dictionary of vertices
+            # as its certificate. There is currently no easy way to
+            # determine the edges.
+            # From the dictionary, we can get an idea of what the
+            # contractions are, and what vertices are not used.
+            # So we'll merge the appropriate vertices, delete the
+            # unused vertices, and pass to Matroid._has_minor().
+                vertices_for_minor = cert.values()
+                for vertex_list in vertices_for_minor:
+                    G.merge_vertices(vertex_list)
+                from itertools import chain
+                big_vertex_list = chain.from_iterable(vertices_for_minor)
+                for v in G.vertices():
+                    if v not in big_vertex_list:
+                        G.delete_vertex(v)
+                # Casting G as a regular matroid should force it
+                # to use Matroid._has_minor()
+                M = Matroid(G, regular = True)
+                return Matroid._has_minor(M, N, certificate = True)
+
+            else:
+                return True
         else:
             # otherwise use the default method for abstract matroids
-            return Matroid._has_minor(self,N)
+            return Matroid._has_minor(self, N, certificate = certificate)
 
     def groundset_to_edges(self, X):
         """
@@ -1183,8 +1211,9 @@ class GraphicMatroid(Matroid):
         for u in vertices:
             if G.degree(u) > 2:
                 elts_incident = [l for (u0, v0, l) in G.edges_incident(u)]
-                for i in range(2, (len(elts_incident)/Integer(2) + Integer(1))):
-                    if i == len(elts_incident)/Integer(2):
+                half_elts = len(elts_incident) // Integer(2)
+                for i in range(2, (half_elts + Integer(1))):
+                    if i == half_elts:
                     # This is so we don't get two of the same coextensions
                     # If this happens, it will be after the else: part
                         x = elts_incident.pop()

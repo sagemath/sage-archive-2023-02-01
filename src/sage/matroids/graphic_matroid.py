@@ -904,6 +904,12 @@ class GraphicMatroid(Matroid):
             sage: M2 = M1.graphic_extension(3); M2
             Graphic matroid of rank 3 on 8 elements
 
+        TESTS::
+
+            sage: M = Matroid(graphs.EmptyGraph())
+            sage: M.graphic_extension('a')
+            Graphic matroid of rank 0 on 1 elements
+
         """
         # __init()__ forces the graph to be connected, so this should
         # never make a coloop
@@ -918,7 +924,7 @@ class GraphicMatroid(Matroid):
         if v is None:
             v = u
         G = self.graph()
-        G.add_edge(u,v,element)
+        G.add_edge(u, v, element)
         return GraphicMatroid(G)
 
     def graphic_extensions(self, element=None, vertices=None):
@@ -960,23 +966,29 @@ class GraphicMatroid(Matroid):
         G = self.graph()
         if element is None:
             element = newlabel(self.groundset())
-        else:
-            if element in self.groundset():
-                raise ValueError("cannot extend by element already in groundset")
+        elif element in self.groundset():
+            raise ValueError("cannot extend by element already in groundset")
         if vertices is None:
             vertices = self._G.vertices()
-
-        # First extend by a loop, then consider every pair of vertices.
-        # Put the loop on the first vertex.
-        G.add_edge(vertices[0], vertices[0], element)
-        matroid_list.append(GraphicMatroid(G))
-        G.delete_edge(vertices[0], vertices[0], element)
-
-        pairs = combinations(vertices, 2)
-        for p in pairs:
-            G.add_edge(p[0], p[1], element)
+        elif not set(vertices).issubset(set(self._G.vertices())):
+            raise ValueError("vertices are not all in the graph")
+        # if there are no vertices, return a single loop
+        if not vertices:
+            G.add_edge(0, 0, element)
             matroid_list.append(GraphicMatroid(G))
-            G.delete_edge(p[0], p[1], element)
+        else:
+
+            # First extend by a loop, then consider every pair of vertices.
+            # Put the loop on the first vertex.
+            G.add_edge(vertices[0], vertices[0], element)
+            matroid_list.append(GraphicMatroid(G))
+            G.delete_edge(vertices[0], vertices[0], element)
+
+            pairs = combinations(vertices, 2)
+            for p in pairs:
+                G.add_edge(p[0], p[1], element)
+                matroid_list.append(GraphicMatroid(G))
+                G.delete_edge(p[0], p[1], element)
         return iter(matroid_list)
 
     def graphic_coextension(self, u, X=None, element=None):
@@ -1040,6 +1052,12 @@ class GraphicMatroid(Matroid):
             ...
             ValueError: cannot extend by element already in ground set
 
+        TESTS::
+
+            sage: M = Matroid(graphs.EmptyGraph())
+            sage: M.graphic_coextension('a')
+            Graphic matroid of rank 1 on 1 elements
+
         """
         if element is None:
             element = newlabel(self.groundset())
@@ -1053,9 +1071,13 @@ class GraphicMatroid(Matroid):
         G = self.graph()
         vertices = G.vertices()
         if u not in vertices:
-            vertices.append(u)
-            G.add_vertex(u)
-        edgelist = self._groundset_to_edges(X)
+            if vertices:
+                G.add_edge(vertices[0], u, element)
+            else:
+                G.add_edge(0, u, element)
+            return GraphicMatroid(G)
+
+        edgelist = self.groundset_to_edges(X)
         v = G.add_vertex()
 
         split_vertex(G = G, u = u, v = v, edges=edgelist)
@@ -1063,9 +1085,144 @@ class GraphicMatroid(Matroid):
 
         return GraphicMatroid(G)
 
+    def graphic_coextensions(self, vertices = None, element = None):
+        """
+        Return an iterator of graphic coextensions.
+
+        INPUT:
+
+        - ``vertices`` -- (optional) the vertices to be split. If not
+          specified, the coextensions will be taken over all vertices.
+        - ``element`` -- (optional) the name of the new element.
+
+        OUTPUT:
+
+        An iterable containing instances of GraphicMatroid.
+
+        .. NOTE::
+
+            This method will put an edge in series with every edge specified
+            by the input, without checking if it is already part of a
+            nontrivial series class.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.WheelGraph(5))
+            sage: I = M.graphic_coextensions(vertices = [0], element = 'a')
+            sage: for N in I:
+            ....:     N.graph().edges_incident(0)
+            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
+            [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 0)]
+            [(0, 1, 0), (0, 3, 2), (0, 4, 3), (0, 5, 1)]
+            [(0, 1, 0), (0, 2, 1), (0, 4, 3), (0, 5, 2)]
+            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 3)]
+            [(0, 2, 1), (0, 3, 2), (0, 5, 'a')]
+            [(0, 1, 0), (0, 3, 2), (0, 5, 'a')]
+            [(0, 1, 0), (0, 2, 1), (0, 5, 'a')]
+
+        ::
+
+            sage: N = Matroid(graphs.CycleGraph(4))
+            sage: I = N.graphic_coextensions(element='a')
+            sage: for N1 in I:
+            ....:     N1.graph().edges()
+            ....:
+            [(0, 1, 0), (0, 3, 1), (0, 4, 'a'), (1, 2, 2), (2, 3, 3)]
+            [(0, 3, 1), (0, 4, 0), (1, 2, 2), (1, 4, 'a'), (2, 3, 3)]
+            [(0, 1, 0), (0, 4, 1), (1, 2, 2), (2, 3, 3), (3, 4, 'a')]
+            [(0, 1, 0), (0, 3, 1), (1, 4, 2), (2, 3, 3), (2, 4, 'a')]
+            [(0, 1, 0), (0, 3, 1), (1, 2, 2), (2, 4, 3), (3, 4, 'a')]
+
+        TESTS::
+
+            sage: M = Matroid(graphs.EmptyGraph())
+            sage: M.graphic_coextension('a')
+            Graphic matroid of rank 1 on 1 elements
+            sage: I = M.graphic_coextensions(element='a')
+            sage: for m in I:
+            ....:     m.graph().edges()
+            [(0, 1, 'a')]
+            sage: N.graphic_coextensions(vertices = [3,4], element = 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: vertices are not all in the graph
+        """
+        matroid_list = []
+        G = self.graph()
+        if element is None:
+            element = newlabel(self.groundset())
+        elif element in self.groundset():
+            raise ValueError("cannot extend by element already in groundset")
+        if vertices is None:
+            vertices = self._G.vertices()
+        elif not set(vertices).issubset(set(self._G.vertices())):
+            raise ValueError("vertices are not all in the graph")
+        # if there are no vertices, return a single coloop
+        if not vertices:
+            G.add_edge(0, 1, element)
+            matroid_list.append(GraphicMatroid(G))
+            return iter(matroid_list)
+
+        # First extend by a coloop on the first vertex.
+        v = G.add_vertex()
+        G.add_edge(vertices[0], v, element)
+        matroid_list.append(GraphicMatroid(G))
+        G.delete_vertex(v)
+
+        # Next do a series extension on every edge incident with the vertices
+        for (u, v, l) in G.edges_incident(vertices):
+            G.delete_edge(u, v, l)
+            new_vertex = G.add_vertex()
+            G.add_edge(u, new_vertex, l)
+            G.add_edge(new_vertex, v, element)
+            matroid_list.append(GraphicMatroid(G))
+            G.delete_vertex(new_vertex)
+            G.add_edge(u, v, l)
+
+        # If a vertex has degree 1 or 2, we already handled it.
+        for u in vertices:
+            if G.degree(u) > 2:
+                elts_incident = [l for (u0, v0, l) in G.edges_incident(u)]
+                for i in range(2, (len(elts_incident)/Integer(2) + Integer(1))):
+                    if i == len(elts_incident)/Integer(2):
+                    # This is so we don't get two of the same coextensions
+                    # If this happens, it will be after the else: part
+                        x = elts_incident.pop()
+                        groups = combinations(elts_incident, (i - 1))
+                        for g in groups:
+                            g = list(g)
+                            g.append(x)
+                            matroid_list.append(self.graphic_coextension(
+                                X = g, u = u, element = element))
+                    else:
+                        groups = combinations(elts_incident, i)
+                        for g in groups:
+                            matroid_list.append(self.graphic_coextension(
+                                X = g, u = u, element = element))
+        return iter(matroid_list)
+
+    def is_valid(self):
+        """
+        Test if the data obey the matroid axioms.
+
+        Since a graph is used for the data, this is always the case.
+
+        OUTPUT:
+
+        ``True``.
+
+        EXAMPLES::
+
+            sage: M = matroids.CompleteGraphic(4); M
+            M(K4): Graphic matroid of rank 3 on 6 elements
+            sage: M.is_valid()
+            True
+        """
+        return True
+
     def twist(self, X):
         """
-        Performs a Whitney twist on the graph.
+        Perform a Whitney twist on the graph.
 
         `X` must be part of a 2-separation.
         The connectivity of ``X`` must be 1, and the subgraph induced by X must

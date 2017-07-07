@@ -61,8 +61,8 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
-            return ((<LieAlgebraElement>left).lift()
-                    * (<LieAlgebraElement>right).lift())
+            return ((<LieAlgebraElement> left).lift()
+                    * (<LieAlgebraElement> right).lift())
         cdef LieAlgebraElement self 
         if not BOTH_ARE_ELEMENT(cl):
             # In this case, one of them must be a scalar
@@ -86,7 +86,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
         if isinstance(left, LieAlgebraElement):
             left = (<LieAlgebraElement> left).lift()
         if isinstance(right, LieAlgebraElement):
-            left = (<LieAlgebraElement> right).lift()
+            right = (<LieAlgebraElement> right).lift()
         return left * right
 
     #def _im_gens_(self, codomain, im_gens):
@@ -369,8 +369,8 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         """
         cdef int cl = classify_elements(left, right)
         if HAVE_SAME_PARENT(cl):
-            return ((<LieAlgebraElementWrapper>left).lift()
-                    * (<LieAlgebraElementWrapper>right).lift())
+            return ((<LieAlgebraElementWrapper> left).lift()
+                    * (<LieAlgebraElementWrapper> right).lift())
         cdef LieAlgebraElementWrapper self 
         if not BOTH_ARE_ELEMENT(cl):
             # In this case, one of them must be a scalar
@@ -394,7 +394,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         if isinstance(left, LieAlgebraElementWrapper):
             left = (<LieAlgebraElementWrapper> left).lift()
         if isinstance(right, LieAlgebraElementWrapper):
-            left = (<LieAlgebraElementWrapper> right).lift()
+            right = (<LieAlgebraElementWrapper> right).lift()
         return left * right
 
     def __div__(self, x):

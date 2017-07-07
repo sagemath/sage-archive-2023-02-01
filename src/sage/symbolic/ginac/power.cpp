@@ -628,7 +628,7 @@ ex power::eval(int level) const
 				}
 				if (q.is_zero()) {  // the exponent was in the allowed range 0<(n/m)<1
 					if (num_basis.is_rational()) {
-						bool ppower_equals_one; // = PyObject_IsTrue(PyTuple_GetItem(restuple, 2)) != 0;
+						bool ppower_equals_one;
                                                 numeric newbasis, ppower;
                                                 rational_power_parts(num_basis,
                                                                 num_exponent, 
@@ -684,8 +684,11 @@ ex power::eval(int level) const
                         if (is_exactly_a<mul>(ebasis)) {
                                 return expand_mul(ex_to<mul>(ebasis), num_exponent, 0);
                         }
+                }
 
+		if (num_exponent.is_rational()) {
                         // (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
+                        // (4*x + 12*y)^(3/2) -> 8*(x + 3*y)^(3/2)
                         if (is_exactly_a<add>(ebasis)) {
                                 numeric icont = ebasis.integer_content();
                                 const numeric lead_coeff = 
@@ -693,12 +696,28 @@ ex power::eval(int level) const
                                                         lead_coeff()).div(icont);
 
                                 const bool canonicalizable = lead_coeff.is_integer();
-                                const bool unit_normal = lead_coeff.is_pos_integer() || lead_coeff.is_parent_pos_char();
-                                if (canonicalizable && (! unit_normal))
-                                        icont = icont.mul(*_num_1_p);
+                                const add& addref = ex_to<add>(ebasis);
+                                const bool unit_normal = lead_coeff.is_positive() || lead_coeff.is_parent_pos_char();
+                                if (canonicalizable
+                                    and (! unit_normal)
+                                    and num_exponent.denom().is_one())
+                                        icont = icont.negative();
 
-                                if (canonicalizable and not icont.is_one()) {
-                                        const add& addref = ex_to<add>(ebasis);
+                                if (canonicalizable
+                                    and not icont.is_one()) {
+                                        bool ppower_equals_one;
+                                        numeric newbasis, ppower;
+                                        rational_power_parts(icont,
+                                                        num_exponent, 
+                                                        ppower, 
+                                                        newbasis, 
+                                                        ppower_equals_one);
+                                        if (ppower_equals_one
+                                            and not newbasis.is_one())
+	                                        return (new power(ebasis,
+                                                                  eexponent))->setflag(status_flags::dynallocated |
+	                                               status_flags::evaluated);
+                                        icont = icont / newbasis;
                                         auto  addp = new add(addref);
                                         addp->setflag(status_flags::dynallocated);
                                         addp->clearflag(status_flags::hash_calculated);
@@ -706,12 +725,12 @@ ex power::eval(int level) const
                                         addp->seq_sorted.resize(0);
                                         for (auto & elem : addp->seq)
                                                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
-
-                                        const numeric c = icont.pow_intexp(num_exponent);
-                                        if (likely(not c.is_one()))
-                                                return (new mul(power(*addp, num_exponent), c))->setflag(status_flags::dynallocated);
-                                        else
-                                                return power(*addp, num_exponent);
+                                        if (ppower_equals_one)
+                                                return (new power(*addp,
+                                                              num_exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
+                                        return (new mul(power(*addp,
+                                                              num_exponent),
+                                                        ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
                                 }
                         }
                 }

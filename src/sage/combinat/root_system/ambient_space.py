@@ -14,13 +14,10 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.categories.homset import End
-from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
-                                    rich_to_bool)
 
 import six
 
 
-@richcmp_method
 class AmbientSpace(CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
@@ -63,6 +60,13 @@ class AmbientSpace(CombinatorialFreeModule):
         sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
         ....:          TestSuite(e).run()
+
+        sage: e1 = RootSystem(['A',3]).ambient_lattice()
+        sage: e2 = RootSystem(['B',3]).ambient_lattice()
+        sage: e1 == e1
+        True
+        sage: e1 == e2
+        False
     """
     def __init__(self, root_system, base_ring):
         """
@@ -278,25 +282,6 @@ class AmbientSpace(CombinatorialFreeModule):
             (-1/2, 1/2, 1/2, 1/2, 1/2, -5/6, -5/6, 5/6)
         """
         return self.fundamental_weights()[i]
-
-    def __richcmp__(self, other, op):
-        """
-        Rich comparison.
-
-        EXAMPLES::
-
-            sage: e1 = RootSystem(['A',3]).ambient_lattice()
-            sage: e2 = RootSystem(['B',3]).ambient_lattice()
-            sage: e1 == e1
-            True
-            sage: e1 == e2
-            False
-        """
-        if not isinstance(other, AmbientSpace):
-            return NotImplemented
-        if self.root_system != other.root_system:
-            return richcmp_not_equal(self.root_system, other.root_system, op)
-        return rich_to_bool(op, 0)
 
     def from_vector_notation(self, weight, style="lattice"):
         """

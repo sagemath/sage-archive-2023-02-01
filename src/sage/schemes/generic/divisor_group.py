@@ -18,7 +18,6 @@ AUTHORS:
 from sage.schemes.generic.divisor import Divisor_generic, Divisor_curve
 from sage.structure.formal_sum import FormalSums
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.richcmp import richcmp, richcmp_method, richcmp_not_equal
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
@@ -83,7 +82,6 @@ def is_DivisorGroup(x):
     return isinstance(x, DivisorGroup_generic)
 
 
-@richcmp_method
 class DivisorGroup_generic(FormalSums):
     r"""
     The divisor group on a variety.
@@ -122,6 +120,27 @@ class DivisorGroup_generic(FormalSums):
             sage: from sage.schemes.generic.divisor_group import DivisorGroup_generic
             sage: DivisorGroup_generic(Spec(ZZ), QQ)
             Group of QQ-Divisors on Spectrum of Integer Ring
+
+        TESTS::
+
+            sage: from sage.schemes.generic.divisor_group import DivisorGroup
+            sage: D1 = DivisorGroup(Spec(ZZ))
+            sage: D2 = DivisorGroup(Spec(ZZ), base_ring=QQ)
+            sage: D3 = DivisorGroup(Spec(QQ))
+            sage: D1 == D1
+            True
+            sage: D1 == D2
+            False
+            sage: D1 != D3
+            True
+            sage: D2 == D2
+            True
+            sage: D2 == D3
+            False
+            sage: D3 != D3
+            False
+            sage: D1 == 'something'
+            False
         """
         super(DivisorGroup_generic,self).__init__(base_ring)
         self._scheme = scheme
@@ -170,47 +189,6 @@ class DivisorGroup_generic(FormalSums):
             return Divisor_generic([], check=False, reduce=False, parent=self)
         else:
             return Divisor_generic([(self.base_ring()(1), x)], check=False, reduce=False, parent=self)
-
-    def __richcmp__(self, right, op):
-        r"""
-        Compare the divisor group.
-
-        INPUT:
-
-        - ``right`` -- anything.
-
-        OUTPUT:
-
-        boolean
-
-        EXAMPLES::
-
-            sage: from sage.schemes.generic.divisor_group import DivisorGroup
-            sage: D1 = DivisorGroup(Spec(ZZ))
-            sage: D2 = DivisorGroup(Spec(ZZ), base_ring=QQ)
-            sage: D3 = DivisorGroup(Spec(QQ))
-            sage: D1 == D1
-            True
-            sage: D1 == D2
-            False
-            sage: D1 != D3
-            True
-            sage: D2 == D2
-            True
-            sage: D2 == D3
-            False
-            sage: D3 != D3
-            False
-            sage: D1 == 'something'
-            False
-        """
-        if not is_DivisorGroup(right):
-            return NotImplemented
-        lx = self.base_ring()
-        rx = right.base_ring()
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
-        return richcmp(self._scheme, right._scheme, op)
 
     def scheme(self):
         r"""

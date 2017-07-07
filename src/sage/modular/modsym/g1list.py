@@ -20,9 +20,11 @@ List of coset representatives for `\Gamma_1(N)` in `{\rm SL}_2(\ZZ)`
 #*****************************************************************************
 from six.moves import range
 from sage.arith.all import GCD
+from sage.structure.richcmp import richcmp_method, richcmp
+from sage.structure.sage_object import SageObject
 
-
-class G1list:
+@richcmp_method
+class G1list(SageObject):
     r"""
     A class representing a list of coset representatives for `\Gamma_1(N)` in
     `{\rm SL}_2(\ZZ)`. What we actually calculate is a list of elements of
@@ -45,7 +47,7 @@ class G1list:
         self.__list = [(u, v) for u in range(N) for v in range(N)
                        if GCD(GCD(u, v), N) == 1]
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self to other.
 
@@ -58,11 +60,10 @@ class G1list:
             sage: L1 == QQ
             False
         """
-
         if not isinstance(other, G1list):
-            return cmp(type(self), type(other))
+            return NotImplemented
         else:
-            return cmp(self.__N, other.__N)
+            return richcmp(self.__N, other.__N, op)
 
     def __getitem__(self, i):
         """

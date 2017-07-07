@@ -558,9 +558,14 @@ class ContinuedFraction_base(SageObject):
             False
             sage: d == d
             True
-        """
-        i = 0
 
+            sage: a == 'nothing'
+            False
+        """
+        if not isinstance(other, ContinuedFraction_base):
+            return NotImplemented
+
+        i = 0
         while True:
             a = self.quotient(i)
             b = other.quotient(i)

@@ -461,6 +461,28 @@ class HasseDiagram(DiGraph):
         H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
         return HasseDiagram(H)
 
+    def _precompute_intervals(self):
+        """
+        Precompute all intervals of the poset.
+        """
+        n = self.order()
+        self._intervals = {u: {v: [] for v in range(n)} for u in range(n)}
+        v_up = [None] * n
+        v_down = [None] * n
+        for v in range(n):
+            v_up[v] = frozenset(self.depth_first_search(v))
+            v_down[v] = frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
+        for u in range(n):
+            for v in range(n):
+                self._intervals[u][v] = v_up[u].intersection(v_down[v])
+        self.interval = self._alt_interval
+
+    def _alt_interval(self, x, y):
+        """
+        Alternate interval function.
+        """
+        return self._intervals[x][y]
+
     def interval(self, x, y):
         """
         Return a list of the elements `z` of ``self`` such that

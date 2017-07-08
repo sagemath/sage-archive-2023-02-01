@@ -299,6 +299,21 @@ class InformationSetAlgorithm(SageObject):
                 and (not self._parameters_specified or self.parameters() == other.parameters())
 
     def __hash__(self):
+        r"""
+        Returns the hash value of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+            sage: A = LeeBrickellISDAlgorithm(C, (0,4))
+            sage: hash(A) #random
+            5884357732955478461
+            sage: C2 = codes.GolayCode(GF(3))
+            sage: A2 = LeeBrickellISDAlgorithm(C2, (0,4))
+            sage: hash(A) != hash(A2)
+            True
+        """
         return hash(str(self))
         
     def _repr_(self):

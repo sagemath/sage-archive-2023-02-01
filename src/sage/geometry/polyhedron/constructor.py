@@ -434,6 +434,14 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
         sage: Polyhedron(vertices=[[int(42)]])
         A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
+
+    Check that giving ``Fraction`` input gets converted to `\QQ`, see
+    ticket :trac:`22605`::
+
+        sage: from fractions import Fraction
+        sage: f = Fraction(int(6), int(8))
+        sage: Polyhedron(vertices=[[f]])
+        A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)

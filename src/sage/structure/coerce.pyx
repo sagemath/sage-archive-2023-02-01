@@ -198,7 +198,7 @@ cpdef py_scalar_to_element(x):
         'hello'
 
         sage: from fractions import Fraction
-        sage: f = Fraction((2r)**(100r), (3r)**(100r))
+        sage: f = Fraction(int(2^100), int(3^100))
         sage: py_scalar_to_element(f)
         1267650600228229401496703205376/515377520732011331036461129765621272702107522001
 

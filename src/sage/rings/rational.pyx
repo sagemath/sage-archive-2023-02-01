@@ -550,10 +550,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
 
-        elif isinstance(x, fractions.Fraction):
-            mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
-            mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
-
         elif isinstance(x, sage.rings.real_mpfr.RealNumber):
 
             if x == 0:
@@ -633,6 +629,10 @@ cdef class Rational(sage.structure.element.FieldElement):
                 self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
+
+        elif isinstance(x, fractions.Fraction):
+            mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
+            mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
 
         else:
             raise TypeError("unable to convert {!r} to a rational".format(x))

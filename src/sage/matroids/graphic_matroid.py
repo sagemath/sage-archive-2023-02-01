@@ -346,7 +346,6 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.CompleteBipartiteGraph(3, 3))
             sage: N = Matroid(graphs.CycleGraph(3))
-            sage: M.has_minor(N, certificate=True)
         """
         # The graph minor algorithm is faster but it doesn't make sense
         # to use it if M(H) is not 3-connected, because of all the possible
@@ -597,6 +596,18 @@ class GraphicMatroid(Matroid):
             frozenset({0, 1, 2})
             sage: M._closure(M.groundset())
             frozenset({0, 1, 2, 3, 4})
+
+        TESTS:
+
+        Make sure the closure gets loops::
+
+            sage: edgelist = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 2), (1, 2)]
+            sage: M = Matroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.graph().edges()
+            [(0, 0, 0), (0, 1, 1), (0, 2, 2), (0, 3, 3), (1, 2, 4), (1, 2, 5)]
+            sage: M._closure([4])
+            frozenset({0, 4, 5})
+
         """
         X = set(X)
         Y = self.groundset().difference(X)
@@ -605,7 +616,7 @@ class GraphicMatroid(Matroid):
         V = g.vertices()
         components = g.connected_components_number()
         for e in edgelist:
-            # an edge is in the closure iff both its vertices are
+            # a non-loop edge is in the closure iff both its vertices are
             # in the induced subgraph, and the edge doesn't connect components
             if e[0] in V and e[1] in V:
                 g.add_edge(e)
@@ -613,6 +624,8 @@ class GraphicMatroid(Matroid):
                     X.add(e[2])
                 else:
                     g.delete_edge(e)
+        # add all loops
+        X.update(set([l for (u, v, l) in self._G.loops()]))
         return frozenset(X)
 
     def _max_independent(self, X):
@@ -798,8 +811,39 @@ class GraphicMatroid(Matroid):
 
     def _cocircuit(self, X):
         """
-        Returns a minimal codependent subset.
+        Return a minimal codependent subset.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        ``frozenset`` instance containing a subset of the groundset.
+        A ``ValueError`` is raised if the set contains no cocircuit.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteBipartiteGraph(3,3))
+            sage: M._cocircuit(M.groundset())
+            frozenset({0, 1, 2})
+            sage: M._cocircuit([0,1,3,4,5])
+            frozenset({3, 4, 5})
+            sage: M._cocircuit([0,1,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: no cocircuit in coindependent set
+
+        TESTS:
+
+        A corciruit that's not a vertex star::
+
+            sage: N = Matroid(graphs.CycleGraph(4))
+            sage: N._cocircuit([0, 2])
+            frozenset({0, 2})
         """
+        if self._is_coindependent(X):
+            raise ValueError("no cocircuit in coindependent set")
         cocircuit = set()
         codependent_edges = []
         g = self.graph()
@@ -821,6 +865,29 @@ class GraphicMatroid(Matroid):
     def _is_cocircuit(self, X):
         """
         Tests if the input is a cocircuit.
+
+        INPUT:
+
+        - ``X`` -- An iterable container of ground set elements.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteBipartiteGraph(3,3))
+            sage: M._is_cocircuit([3,4,5])
+            True
+            sage: M._is_cocircuit([3,4,5,6])
+            False
+            sage: M._is_cocircuit([3,4])
+            False
+            sage: N = Matroid(graphs.BullGraph())
+            sage: N._is_cocircuit([0])
+            False
+            sage: N._is_cocircuit([4])
+            True
         """
         edges = self._groundset_to_edges(X)
         g = self.graph()
@@ -849,15 +916,31 @@ class GraphicMatroid(Matroid):
         OUTPUT:
 
         Boolean.
+
+        EXAMPLES::
+
+            sage: edgelist = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 2), (1, 2)]
+            sage: M = Matroid(Graph(edgelist, loops = True, multiedges = True))
+            sage: M._is_closed(frozenset([0,4,5]))
+            True
+            sage: M._is_closed(frozenset([0,4]))
+            False
+            sage: M._is_closed(frozenset([1, 2, 3, 4 ,5]))
+            False
         """
         # Take the set of vertices of the edges corresponding to the elements,
         # and check if there are other edges incident with two of those vertices.
         # Also, the must not be loops outside of X.
-        vertex_set = set()
-        edge_list = self._groundset_to_edges(X)
-        if not set(self._G.loops()).issubset(set(edge_list)):
+        X = set(X)
+        loop_labels = set([l for (u, v, l) in self._G.loops()])
+        if not loop_labels.issubset(X):
             return False
 
+        # Remove loops from input since we don't want to count them as components
+        X.difference_update(loop_labels)
+        edge_list = self._groundset_to_edges(X)
+
+        vertex_set = set()
         Y = self.groundset().difference(X)
         edge_list2 = self._groundset_to_edges(Y)
         for e in edge_list:
@@ -882,31 +965,107 @@ class GraphicMatroid(Matroid):
         - If ``certificate`` is ``False``, Boolean.
         - If ``certificate`` is ``True``, a tuple containing a boolean and a dictionary
           giving the isomorphism or None.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: N = Matroid(graphs.DiamondGraph(), regular = True)
+            sage: M._is_isomorphic(N, certificate = True)
+            (True, {0: (0, 1), 1: (0, 2), 2: (1, 2), 3: (1, 3), 4: (2, 3)})
+            sage: O = Matroid(graphs.WheelGraph(5))
+            sage: M._is_isomorphic(O, certificate = True)
+            (False, None)
+
+        ::
+
+            sage: M1 = Matroid(graphs.CycleGraph(4))
+            sage: M2 = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: M3 = matroids.Uniform(3,4)
+            sage: M1._is_isomorphic(M2)
+            True
+            sage: M1._is_isomorphic(M3)
+            True
+
+        ::
+
+            sage: edgelist = [(0,1,'a'),(0,2,'b'),(0,3,'c'),(1,2,'d'),(1,3,'e'),(2,3,'f')]
+            sage: M = Matroid(Graph(edgelist))
+            sage: N = Matroid(graphs.WheelGraph(4))
+            sage: M._is_isomorphic(N, certificate = True)
+            (True, {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5})
+            sage: N._is_isomorphic(M, certificate = True)
+            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
+            sage: O = Matroid(graphs.CycleGraph(6))
+            sage: M._is_isomorphic(O)
+            False
         """
+        # Check for 3-connectivity so we don't have to worry about Whitney twists
         if isinstance(other,GraphicMatroid) and other.is_3connected():
-            # Graph.is_isomorphic() supports multigraphs
-            # This could be made faster by using self._G instead of self.graph()
             G = self.graph()
             H = other.graph()
-            return G.is_isomorphic(H, certificate=certificate)
+            G.allow_loops(False)
+            G.allow_multiple_edges(False)
+            H.allow_loops(False)
+            H.allow_multiple_edges(False)
+
+            result = G.is_isomorphic(H, certificate = certificate)
+            if not certificate or result[0] is False:
+                return result
+            # If they are isomorphic and the user wants a certificate,
+            # result[1] is a dictionary of vertices.
+            # We need to translate this to edge labels.
+            vertex_certif = result[1]
+            elt_certif = {}
+            for (u, v, l) in G.edge_iterator():
+                l_maps_to = H.edge_label(vertex_certif[u], vertex_certif[v])
+                elt_certif[l] = l_maps_to
+            return (True, elt_certif)
+
         else:
-            return Matroid._is_isomorphic(self, other, certificate=certificate)
+            return Matroid._is_isomorphic(self, other, certificate = certificate)
 
     def _isomorphism(self, other):
         """
         Return isomorphism from ``self`` to ``other``, if such an isomorphism exists.
+
+        Internal version that performs no checks on input.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``.
+
+        EXAMPLES::
+
+            sage: M1 = Matroid(graphs.CycleGraph(4))
+            sage: M2 = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: M1._isomorphism(matroids.named_matroids.BetsyRoss())
+            sage: M1._isomorphism(M2)
+            {0: 0, 1: 1, 2: 2, 3: 3}
+            sage: M3 = matroids.Uniform(3,4)
+            sage: M1._isomorphism(M3)
+            {0: 0, 1: 1, 2: 2, 3: 3}
+
+        ::
+
+            sage: edgelist = [(0,1,'a'),(0,2,'b'),(0,3,'c'),(1,2,'d'),(1,3,'e'),(2,3,'f')]
+            sage: M = Matroid(Graph(edgelist))
+            sage: N = Matroid(graphs.WheelGraph(4))
+            sage: M._isomorphism(N)
+            {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5}
+            sage: O = Matroid(Graph(edgelist), regular = True)
+            sage: M._isomorphism(O)
+            {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
         """
-        # TODO: If M is M(K_4) and N is M(W_3), then M._isomorphism(N) = True
-        # but N._isomorphism(M) gives ImportError: No module named basis_matroid
-        # from basis_exchange_matroid.pyx
         if isinstance(other,GraphicMatroid) and other.is_3connected():
-            G = self.graph()
-            H = other.graph()
-            return G.is_isomorphic(H, certificate=True)[1]
+            return self.is_isomorphic(other, certificate = True)[1]
         else:
             return Matroid._isomorphism(self, other)
 
-    def graphic_extension(self, u, v=None, element=None):
+    def graphic_extension(self, u, v = None, element = None):
         """
         Return a graphic matroid extended by a new element.
 
@@ -1170,7 +1329,8 @@ class GraphicMatroid(Matroid):
             sage: for m in I:
             ....:     m.graph().edges()
             [(0, 1, 'a')]
-            sage: N.graphic_coextensions(vertices = [3,4], element = 'a')
+            sage: N = Matroid(graphs.CycleGraph(4))
+            sage: N.graphic_coextensions(vertices = [3, 4], element = 'a')
             Traceback (most recent call last):
             ...
             ValueError: vertices are not all in the graph

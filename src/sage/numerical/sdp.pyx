@@ -187,13 +187,13 @@ also implements the :class:`SDPSolverException` exception, as well as the
     :meth:`~SemidefiniteProgram.linear_constraints_parent` | Return the parent for all linear constraints
     :meth:`~SemidefiniteProgram.linear_function`           | Construct a new linear function
     :meth:`~SemidefiniteProgram.linear_functions_parent`   | Return the parent for all linear functions
-    :meth:`~SemidefiniteProgram.new_variable`              | Return an instance of ``SDPVariable`` associated
+    :meth:`~SemidefiniteProgram.new_variable`              | Return an instance of ``SDPVariable`` associated to the ``SemidefiniteProgram``
     :meth:`~SemidefiniteProgram.number_of_constraints`     | Return the number of constraints assigned so far
     :meth:`~SemidefiniteProgram.number_of_variables`       | Return the number of variables used so far
     :meth:`~SemidefiniteProgram.set_objective`             | Set the objective of the ``SemidefiniteProgram``
     :meth:`~SemidefiniteProgram.set_problem_name`          | Set the name of the ``SemidefiniteProgram``
     :meth:`~SemidefiniteProgram.slack`                     | Return the slack variable block at the optimum
-    :meth:`~SemidefiniteProgram.show`                      | Display the ``SemidefiniteProgram`` in a human-readable
+    :meth:`~SemidefiniteProgram.show`                      | Display the ``SemidefiniteProgram`` in a human-readable way
     :meth:`~SemidefiniteProgram.solve`                     | Solve the ``SemidefiniteProgram``
     :meth:`~SemidefiniteProgram.solver_parameter`          | Return or define a solver parameter
     :meth:`~SemidefiniteProgram.sum`                       | Efficiently compute the sum of a sequence of LinearFunction elements
@@ -242,7 +242,7 @@ cdef class SemidefiniteProgram(SageObject):
     - ``solver`` -- selects a solver:
 
       - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
-          web site.
+        website.
 
       - If ``solver=None`` (default), the default solver is used (see
         :func:`default_sdp_solver`)
@@ -544,7 +544,7 @@ cdef class SemidefiniteProgram(SageObject):
         """
         Return the linear variable `x_i`.
 
-        OUTPUT:
+        EXAMPLES::
 
             sage: sdp = SemidefiniteProgram()
             sage: sdp.gen(0)
@@ -770,14 +770,15 @@ cdef class SemidefiniteProgram(SageObject):
 
         EXAMPLES:
 
-        Let's solve the following semidefinite program::
+        Let's solve the following semidefinite program:
 
-            Maximize:
-              x + 5 * y
-            Constraints:
-              [1,2][2,3]x + [1,1][1,1] y       <= [1,-1][-1,1]
-            Variables:
-              x, y
+        .. MATH::
+            \begin{aligned}
+                \text{maximize} &\qquad x + 5y  \qquad \\
+                \text{subject to} &\qquad \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x +
+                \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right) y \preceq
+                \left( \begin{array}{cc} 1 & -1  \\ -1 & 1  \end{array} \right)
+            \end{aligned}
 
         This SDP can be solved as follows::
 
@@ -827,14 +828,15 @@ cdef class SemidefiniteProgram(SageObject):
 
         EXAMPLES:
 
-        Let's solve the following semidefinite program::
+        Let's solve the following semidefinite program:
 
-            Maximize:
-              x + 5 * y
-            Constraints:
-              [1,2][2,3]x + [1,1][1,1] y       <= [1,-1][-1,1]
-            Variables:
-              x, y
+        .. MATH::
+            \begin{aligned}
+                \text{maximize} &\qquad x + 5y  \qquad \\
+                \text{subject to} &\qquad \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x +
+                \left( \begin{array}{cc} 1 & 1  \\ 1 & 1  \end{array} \right) y \preceq
+                \left( \begin{array}{cc} 1 & -1  \\ -1 & 1  \end{array} \right)
+            \end{aligned}
 
         This SDP can be solved as follows::
 
@@ -953,19 +955,21 @@ cdef class SemidefiniteProgram(SageObject):
 
     cpdef dual_variable(self, int i, sparse=False):
         """
-        The `i`-th dual variable
+        The `i`-th dual variable.
 
-        Available after self.solve() is called, otherwise the result is undefined
+        Available after self.solve() is called, otherwise the result is undefined.
 
-        - ``index`` (integer) -- the constraint's id.
+        INPUT:
+
+        - ``index`` (integer) -- the constraint's id
 
         OUTPUT:
 
-        The matrix of the `i`-th dual variable
+        The matrix of the `i`-th dual variable.
 
         EXAMPLES:
 
-        Dual objective value is the same as the primal one ::
+        Dual objective value is the same as the primal one::
 
             sage: p = SemidefiniteProgram(maximization = False)
             sage: x = p.new_variable()
@@ -1054,7 +1058,7 @@ cdef class SemidefiniteProgram(SageObject):
         means their meaning heavily depends on the solver used.
 
         (If you do not know which solver you are using, then you are
-        using cvxopt).
+        using CVXOPT).
 
 
         INPUT:
@@ -1104,7 +1108,7 @@ cdef class SemidefiniteProgram(SageObject):
         .. NOTE::
 
             The use of the regular ``sum`` function is not recommended
-            as it is much less efficient than this one
+            as it is much less efficient than this one.
 
         EXAMPLES::
 

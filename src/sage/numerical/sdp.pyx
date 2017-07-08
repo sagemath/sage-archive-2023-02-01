@@ -326,7 +326,7 @@ cdef class SemidefiniteProgram(SageObject):
 
     def linear_functions_parent(self):
         """
-        Return the parent for all linear functions
+        Return the parent for all linear functions.
 
         EXAMPLES::
 
@@ -342,7 +342,7 @@ cdef class SemidefiniteProgram(SageObject):
 
     def linear_constraints_parent(self):
         """
-        Return the parent for all linear constraints
+        Return the parent for all linear constraints.
 
         See :mod:`~sage.numerical.linear_functions` for more
         details.
@@ -361,7 +361,7 @@ cdef class SemidefiniteProgram(SageObject):
 
     def __call__(self, x):
         """
-        Construct a new linear function
+        Construct a new linear function.
 
         EXAMPLES::
 
@@ -1009,6 +1009,8 @@ cdef class SemidefiniteProgram(SageObject):
 
         Available after self.solve() is called, otherwise the result is undefined
 
+        INPUT:
+
         - ``index`` (integer) -- the constraint's id.
 
         OUTPUT:
@@ -1052,7 +1054,7 @@ cdef class SemidefiniteProgram(SageObject):
 
     def solver_parameter(self, name, value = None):
         """
-        Return or define a solver parameter
+        Return or define a solver parameter.
 
         The solver parameters are by essence solver-specific, which
         means their meaning heavily depends on the solver used.
@@ -1098,7 +1100,7 @@ cdef class SemidefiniteProgram(SageObject):
     cpdef sum(self, L):
         r"""
         Efficiently computes the sum of a sequence of
-        :class:`~sage.numerical.linear_functions.LinearFunction` elements
+        :class:`~sage.numerical.linear_functions.LinearFunction` elements.
 
         INPUT:
 

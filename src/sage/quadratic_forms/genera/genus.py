@@ -120,7 +120,7 @@ def is_GlobalGenus(G):
         a = D // (p**v)
         b = Integer(prod([ s[2] for s in sym ]))
         if p == 2:
-            if not is_2_adic_genus(loc.canonical_symbol()):
+            if not is_2_adic_genus(sym):
                 # print "False in is_2_adic_genus(sym)"
                 return False
             if (a*b).kronecker(p) != 1:
@@ -141,7 +141,7 @@ def is_GlobalGenus(G):
 
 def is_2_adic_genus(genus_symbol_quintuple_list):
     """
-    Given a canonical 2-adic local symbol (as the underlying list of quintuples)
+    Given a 2-adic local symbol (as the underlying list of quintuples)
     check whether it is the 2-adic symbol of a 2-adic form.
 
     INPUT:
@@ -187,10 +187,10 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
             if s[3] == 0 or s[2] != s[4]:
                 return False
         if s[1] == 2 and s[3] == 1:
-            if s[2] in (1,-1):
+            if s[2]%8 in (1,7):
                if not s[4] in (0,2,6):
                   return False
-            if s[2] in (3,-3):
+            if s[2]%8 in (3,5):
                if not s[4] in (2,4,6):
                   return False
         if (s[1] - s[4])% 2 == 1:

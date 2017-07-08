@@ -735,11 +735,22 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             .. MATH::
 
                 d(m \otimes g_1 \wedge \cdots \wedge g_p) =
-                \sum_{i=1}^p (m g_i) \otimes g_1 \wedge \cdots \wedge
+                \sum_{i=1}^p (-1)^{i+1}
+                  (m g_i) \otimes g_1 \wedge \cdots \wedge
                   \hat{g}_i \wedge \cdots \wedge g_p +
-                \sum_{1 \leq i < j \leq p} m \otimes [g_i, g_j] \wedge
-                  \cdots \wedge \hat{g}_i \wedge \cdots \wedge \hat{g}_j
+                \sum_{1 \leq i < j \leq p} (-1)^{i+j}
+                  m \otimes [g_i, g_j] \wedge
+                  g_1 \wedge \cdots \wedge \hat{g}_i
+                  \wedge \cdots \wedge \hat{g}_j
                   \wedge \cdots \wedge g_p.
+
+            INPUT:
+
+            - ``M`` -- (default: the trivial 1-dimensional module)
+              the module `M`.
+
+            - ``dual`` -- (default: ``False``) if ``True``, causes
+              the dual of the complex to be computed.
 
             EXAMPLES::
 
@@ -785,6 +796,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Ind = list(range(len(K)))
 
             def sgn(k, X):
+                # Insert a new entry ``k`` into a strictly increasing
+                # list ``X`` in such a way that the resulting list is
+                # still strictly increasing.
+                # The return value is the pair ``(s, Y)``, where ``Y``
+                # is the resulting list (as tuple) and ``s`` is the
+                # Koszul sign incurred by the insertion (with the
+                # understanding that ``k`` originally stood to the
+                # left of the list).
+                # If ``k`` is already in ``X``, then the return value
+                # is ``(zero, None)``.
                 Y = list(X)
                 for i in range(len(X)-1, -1, -1):
                     val = X[i]
@@ -812,7 +833,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                         #ret[indices[tuple(Y)]] += mone**i * zero
                         for j in range(i+1,k):
                             # We shift j by 1 because we already removed
-                            #   an element from X.
+                            #   an earlier element from X.
                             Z = tuple(Y[:j-1] + Y[j:])
                             elt = mone**(i+j) * B[X[i]].bracket(B[X[j]])
                             for key, coeff in elt.to_vector().iteritems():
@@ -862,7 +883,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Return the Lie algebra cohomology of ``self``.
 
             The Lie algebra cohomology is the cohomology of the
-            Chevalley-Eilenberg chain complex.
+            Chevalley-Eilenberg cochain complex (which is the dual
+            of the Chevalley-Eilenberg chain complex).
 
             Let `\mathfrak{g}` be a Lie algebra and `M` a left
             `\mathfrak{g}`-module. It is known that `H^0(\mathfrak{g}; M)`
@@ -875,7 +897,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     \text{ for all } g \in \mathfrak{g} \}.
 
             Additionally, `H^1(\mathfrak{g}; M)` is the space of
-            derivations modulo the space of inner derivations and
+            derivations `\mathfrak{g} \to M`
+            modulo the space of inner derivations and
             `H^2(\mathfrak{g}; M)` is the equivalence classes of
             Lie algebra extensions of `\mathfrak{g}` by `M`.
 

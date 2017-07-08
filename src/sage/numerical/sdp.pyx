@@ -3,31 +3,31 @@ SemiDefinite Programming
 
 A semidefinite program (`SDP <http://en.wikipedia.org/wiki/Semidefinite_programming>`_)
 is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
-in the following form
+of the following form
 
 .. MATH::
     \min \sum_{i,j=1}^n C_{ij}X_{ij} & \qquad \text{(Dual problem)}\\
     \text{Subject to:} & \sum_{i,j=1}^n A_{ijk}X_{ij} = b_k, \qquad k=1\dots m\\
     &X \succeq 0
 
-where the `X_{ij}`, `i \leq i,j \leq n` are `n^2` variables satisfying the symmetry
+where the `X_{ij}`, `1 \leq i,j \leq n` are `n^2` variables satisfying the symmetry
 conditions `x_{ij} = x_{ji}` for all `i,j`, the `C_{ij}=C_{ji}`, `A_{ijk}=A_{kji}` and `b_k`
 are real coefficients, and `X` is positive semidefinite, i.e., all the eigenvalues of `X` are nonnegative.
-A closely related problem is a dual of this one is the following, where we denote by
-`A_k` the matrix `(A_{kij})` and by `C` the matrix `(C_{ij})`.
+The closely related dual problem of this one is the following, where we denote by
+`A_k` the matrix `(A_{kij})` and by `C` the matrix `(C_{ij})`,
 
 .. MATH::
     \max \sum_k b_k x_k & \qquad \text{(Primal problem)}\\
     \text{Subject to:} & \sum_k x_k A_k \preceq C.
 
-Here `(x_1,...,x_m)` is a vector of scaral variables.
+Here `(x_1,...,x_m)` is a vector of scalar variables.
 A wide variety of problems in optimization can be formulated in one of these two standard
 forms. Then, solvers are able to calculate an approximation to a solution.
 Here we refer to the latter problem as primal, and to the former problem as dual.
 The optimal value of the dual is always at least the
 optimal value of the primal, and usually (although not always) they are equal.
 
-For instance, you want to maximize `x_1 - x_0` subject to
+For instance, suppose you want to maximize `x_1 - x_0` subject to
 
 .. MATH::
  \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x_0 +
@@ -41,8 +41,8 @@ For instance, you want to maximize `x_1 - x_0` subject to
 An SDP can give you an answer to the problem above. Here is how it's done:
 
   #. You have to create an instance of :class:`SemidefiniteProgram`.
-  #. Create an dictionary ``x`` of integer variables ``x`` via ``x =
-     p.new_variable()``.
+  #. Create a dictionary `x` of integer variables via :meth:`~SemidefiniteProgram.new_variable`,
+     for example doing ``x = p.new_variable()`` if ``p`` is the name of the SDP instance.
   #. Add those two matrix inequalities as inequality constraints via
      :meth:`~SemidefiniteProgram.add_constraint`.
   #. Add another matrix inequality to specify nonnegativity of `x`.

@@ -1,12 +1,80 @@
 r"""
 Graphic Matroids
 
-Theory
-======
-
 Let `G = (V,E)` be a graph and let `C` be the collection of the edge sets
 of cycles in `G`. The corresponding graphic matroid `M(G)` has ground set `E`
 and circuits `C`.
+
+Construction
+============
+
+The recommended way to create a graphic matroid is by using the
+:func:`Matroid() <sage.matroids.constructor.Matroid>` function, with a
+graph `G` as input. This function can accept many different kinds of input
+to get a graphic matroid is the ``graph`` keyword is used, similar to the
+:func:`Graph() <sage.graphs.graph.Graph>` constructor. However,
+invoking the classes directly is possible too. To get access to them, type::
+
+    sage: from sage.matroids.advanced import *
+
+See also :mod:`sage.matroids.advanced`.
+
+SageMath graphic matroids do not have a representation matrix or any of the
+functionality of regular matroids. It is possible to get an instance of the
+:mod:`RegularMatroid <sage.matroids.linear_matroid.RegularMatroid>` class
+by using the ``regular`` keyword when constructing the matroid::
+
+    sage: M = Matroid(graphs.DiamondGraph(), regular = True)
+
+Below are some examples of constructing a graphic matroid.
+
+::
+
+    sage: from sage.matroids.advanced import *
+    sage: edgelist = [(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]
+    sage: G = Graph(edgelist)
+    sage: M1 = Matroid(G)
+    sage: M2 = Matroid(graph = edgelist)
+    sage: M3 = Matroid(graphs.CycleGraph(3))
+    sage: M1 == M3
+    False
+    sage: M1.is_isomorphic(M3)
+    True
+    sage: M1.equals(M2)
+    True
+    sage: M1 == M2
+    True
+    sage: isinstance(M1, GraphicMatroid)
+    True
+    sage: isinstance(M1, RegularMatroid)
+    False
+
+Class methods
+=============
+
+The ``GraphicMatroid`` class inherits all methods from the
+:mod:`Matroid <sage.matroids.matroid>` class.
+See its documentation for an overview. In addition, the
+following methods are available:
+
+
+    - :func:`graph() <sage.matroids.graphic_matroid.GraphicMatroid.graph_ring>`
+    - :func:`vertex_map() <sage.matroids.graphic_matroid.GraphicMatroid.vertex_map>`
+    - :func:`groundset_to_edges() <sage.matroids.graphic_matroid.GraphicMatroid.groundset_to_edges>`
+    - :func:`subgraph_from_set() <sage.matroids.graphic_matroid.GraphicMatroid.subgraph_from_set>`
+    - :func:`graphic_extension() <sage.matroids.graphic_matroid.GraphicMatroid.extension>`
+    - :func:`graphic_extensions() <sage.matroids.graphic_matroid.GraphicMatroid.extensions>`
+    - :func:`graphic_coextension() <sage.matroids.graphic_matroid.GraphicMatroid.coextension>`
+    - :func:`graphic_coextensions() <sage.matroids.graphic_matroid.GraphicMatroid.coextensions>`
+    - :func:`twist() <sage.matroids.graphic_matroid.GraphicMatroid.twist>`
+    - :func:`one_sum() <sage.matroids.graphic_matroid.GraphicMatroid.one_sum>`
+
+AUTHORS:
+
+- Zach Gershkoff (2017-07-07): initial version
+
+Methods
+=======
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -44,6 +112,8 @@ class GraphicMatroid(Matroid):
         sage: N = GraphicMatroid(graphs.CompleteBipartiteGraph(3,3)); N
         Graphic matroid of rank 5 on 9 elements
     """
+
+    # Necessary:
 
     def __init__(self, G, groundset = None):
         """
@@ -103,7 +173,222 @@ class GraphicMatroid(Matroid):
         self._groundset_edge_map = ({l: (u, v) for
             (u, v, l) in self._G.edges()})
 
-    #COPYING, LOADING, SAVING
+    def groundset(self):
+        """
+        Returns the ground set of the matroid as a frozenset.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: G = graphs.CompleteGraph(3).disjoint_union(graphs.CompleteGraph(4))
+            sage: M = Matroid(G); M.groundset()
+            frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8})
+            sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
+            sage: M.groundset()
+            frozenset({'a', 'b', 'c'})
+        """
+        return self._groundset
+
+    def _rank(self, X):
+        """
+        Return the rank of a set `X`.
+
+        This method does no checking on `X`, and
+        `X` may be assumed to have the same interface as `frozenset`.
+
+        INPUT:
+
+        - `X` -- an object with Python's `frozenset` interface.
+
+        OUTPUT:
+
+        The rank of `X` in the matroid.
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: edgelist = [(0,0,0), (0,1,1), (0,2,2), (0,3,3), (1,2,4), (1,3,5)]
+            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.rank([0])
+            0
+            sage: M.rank([1,2])
+            2
+            sage: M.rank([1,2,4])
+            2
+            sage: M.rank(M.groundset())
+            3
+            sage: edgelist = [(0,0,0), (1,2,1), (1,2,2), (2,3,3)]
+            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M.rank(M.groundset())
+            2
+            sage: M.rank([0,3])
+            1
+
+        """
+        edges = self.groundset_to_edges(X)
+        vertices = set([u for (u, v, l) in edges]).union(
+            set([v for (u, v, l) in edges]))
+        # This counts components:
+        from sage.sets.disjoint_set import DisjointSet
+        DS_vertices = DisjointSet(vertices)
+        for (u, v, l) in edges:
+            DS_vertices.union(u,v)
+        return (len(vertices) - DS_vertices.number_of_subsets())
+
+    # Representation:
+
+    def _repr_(self):
+        """
+        Returns a string representation of the matroid.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(5))
+            sage: M
+            Graphic matroid of rank 4 on 10 elements
+            sage: G = Graph([(0, 0), (0, 1), (0, 2), (1, 1), (2, 2)], loops=True)
+            sage: M = Matroid(G)
+            sage: M
+            Graphic matroid of rank 2 on 5 elements
+        """
+        self._mrank = str(self._rank(self._groundset))
+        self._elts = str(len(self._groundset))
+
+        return "Graphic matroid of rank " + self._mrank + " on " + self._elts + " elements"
+
+    # Comparison:
+
+    def _vertex_stars(self):
+        """
+        Computes the set of edge labels around each vertex.
+
+        Internal method for hashing purposes.
+
+        INPUT:
+
+        None.
+
+        OUTPUT:
+
+        A ``frozenset`` of ``frozenset``s containing the edge labels around
+        each vertex.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M._vertex_stars()
+            frozenset({frozenset({0, 2, 3}),
+                       frozenset({1, 2, 4}),
+                       frozenset({3, 4}),
+                       frozenset({0, 1})})
+
+            sage: N = Matroid(graphs.BullGraph()); N._vertex_stars()
+            frozenset({frozenset({0, 2, 3}),
+                       frozenset({4}),
+                       frozenset({1, 2, 4}),
+                       frozenset({3}),
+                       frozenset({0, 1})})
+
+        """
+        star_list = []
+        for v in self._G.vertices():
+            star = [l for (u, v, l) in self._G.edges_incident(v)]
+            star_list.append(frozenset(star))
+        return frozenset(star_list)
+
+    def __hash__(self):
+        r"""
+        Return an invariant of the matroid.
+
+        This function is called when matroids are added to a set. It is very
+        desirable to override it so it can distinguish matroids on the same
+        groundset, which is a very typical use case!
+
+        .. WARNING::
+
+            This method is linked to __richcmp__ (in Cython) and __cmp__ or
+            __eq__/__ne__ (in Python). If you override one, you should (and in
+            Cython: MUST) override the other!
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(3))
+            sage: N = Matroid(graphs.CycleGraph(3))
+            sage: O = Matroid(graphs.ButterflyGraph())
+            sage: hash(M) == hash(N)
+            True
+            sage: hash(O) == hash(N)
+            False
+            sage: P = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]))
+            sage: hash(P) == hash(M)
+            False
+        """
+        return hash(self._vertex_stars())
+
+    def __eq__(self, other):
+        """
+        Compare two matroids.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        ``True`` if ``self`` and ``other`` have the same graph; ``False``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CompleteGraph(3))
+            sage: N = Matroid(graphs.CycleGraph(3))
+            sage: O = Matroid(graphs.ButterflyGraph())
+            sage: P = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]))
+            sage: M == N
+            True
+            sage: M == O
+            False
+            sage: M == P
+            False
+
+        """
+        # Graph.__eq__() will ignore edge labels unless we turn on weighted()
+        # This will be done in __init__()
+        if not isinstance(other, GraphicMatroid):
+            return False
+        return (self._G == other._G)
+
+    def __ne__(self, other):
+        """
+        Compare two matroids.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        ``False`` if ``self`` and ``other`` have the same graph; ``True``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.CycleGraph(4))
+            sage: N = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: O = Matroid(graphs.PetersenGraph())
+            sage: M != N
+            True
+            sage: M.equals(N)
+            True
+            sage: M != O
+            True
+
+        """
+        return (not self == other)
+
+    # Copying, loading, saving:
 
     def __copy__(self):
         """
@@ -164,140 +449,7 @@ class GraphicMatroid(Matroid):
         version = 0
         return unpickle_graphic_matroid, (version, data)
 
-    def _rank(self, X):
-        """
-        Return the rank of a set `X`.
-
-        This method does no checking on `X`, and
-        `X` may be assumed to have the same interface as `frozenset`.
-
-        INPUT:
-
-        - `X` -- an object with Python's `frozenset` interface.
-
-        OUTPUT:
-
-        The rank of `X` in the matroid.
-
-        EXAMPLES::
-
-            sage: from sage.matroids.advanced import *
-            sage: edgelist = [(0,0,0), (0,1,1), (0,2,2), (0,3,3), (1,2,4), (1,3,5)]
-            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
-            sage: M.rank([0])
-            0
-            sage: M.rank([1,2])
-            2
-            sage: M.rank([1,2,4])
-            2
-            sage: M.rank(M.groundset())
-            3
-            sage: edgelist = [(0,0,0), (1,2,1), (1,2,2), (2,3,3)]
-            sage: M = GraphicMatroid(Graph(edgelist, loops=True, multiedges=True))
-            sage: M.rank(M.groundset())
-            2
-            sage: M.rank([0,3])
-            1
-
-        """
-        edges = self.groundset_to_edges(X)
-        vertices = set([u for (u, v, l) in edges]).union(
-            set([v for (u, v, l) in edges]))
-        # This counts components:
-        from sage.sets.disjoint_set import DisjointSet
-        DS_vertices = DisjointSet(vertices)
-        for (u, v, l) in edges:
-            DS_vertices.union(u,v)
-        return (len(vertices) - DS_vertices.number_of_subsets())
-
-    def groundset(self):
-        """
-        Returns the ground set of the matroid as a frozenset.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph())
-            sage: M.groundset()
-            frozenset({0, 1, 2, 3, 4})
-            sage: G = graphs.CompleteGraph(3).disjoint_union(graphs.CompleteGraph(4))
-            sage: M = Matroid(G); M.groundset()
-            frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8})
-            sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
-            sage: M.groundset()
-            frozenset({'a', 'b', 'c'})
-        """
-        return self._groundset
-
-    def graph(self):
-        """
-        Return a graph that has a cycle matroid equal to the matroid.
-
-        The graph will always have loops and multiedges enabled.
-
-        EXAMPLES::
-
-            sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
-            sage: M.groundset()
-            frozenset({'a', 'b', 'c'})
-            sage: M.graph().edges()
-            [(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]
-            sage: M = Matroid(graphs.CompleteGraph(5))
-            sage: M.graph()
-            Looped multi-graph on 5 vertices
-        """
-        # Return a mutable graph
-        return self._G.copy(data_structure='sparse')
-
-    def vertex_map(self):
-        """
-        Return a dictionary mapping the input vertices to the current vertices.
-
-        The graph for the matroid is alway connected. If the constructor is
-        given a graph with multiple components, it will connect them. The
-        Python dictionary given by this method has the vertices from the
-        input graph as keys, and the corresponding vertex label after any
-        merging as values.
-
-        EXAMPLES::
-
-            sage: G = Graph([(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5),
-            ....: (6, 7), (6, 8), (7, 8), (8, 8), (7, 8)], multiedges=True, loops=True)
-            sage: M = Matroid(G)
-            sage: M.graph().edges()
-            [(0, 1, 0),
-             (0, 2, 1),
-             (1, 2, 2),
-             (2, 4, 3),
-             (2, 5, 4),
-             (4, 5, 5),
-             (5, 7, 6),
-             (5, 8, 7),
-             (7, 8, 8),
-             (7, 8, 9),
-             (8, 8, 10)]
-            sage: M.vertex_map()
-            {0: 0, 1: 1, 2: 2, 3: 2, 4: 4, 5: 5, 6: 5, 7: 7, 8: 8}
-        """
-        return copy(self._vertex_map)
-
-    def _repr_(self):
-        """
-        Returns a string representation of the matroid.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.CompleteGraph(5))
-            sage: M
-            Graphic matroid of rank 4 on 10 elements
-            sage: G = Graph([(0, 0), (0, 1), (0, 2), (1, 1), (2, 2)], loops=True)
-            sage: M = Matroid(G)
-            sage: M
-            Graphic matroid of rank 2 on 5 elements
-        """
-        self._mrank = str(self._rank(self._groundset))
-        self._elts = str(len(self._groundset))
-
-        return "Graphic matroid of rank " + self._mrank + " on " + self._elts + " elements"
+    # Overrides:
 
     def _minor(self, contractions=frozenset([]), deletions=frozenset([])):
         """
@@ -396,110 +548,6 @@ class GraphicMatroid(Matroid):
         else:
             # otherwise use the default method for abstract matroids
             return Matroid._has_minor(self, N, certificate = certificate)
-
-    def groundset_to_edges(self, X):
-        """
-        Return a list of edges corresponding to a set of ground set elements.
-
-        INPUT:
-
-        - ``X`` -- a subset of the ground set.
-
-        OUTPUT:
-
-        A list of graph edges.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
-            sage: M.groundset_to_edges([2,3,4])
-            [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
-            sage: M.groundset_to_edges([2,3,4,5])
-            Traceback (most recent call last):
-            ...
-            ValueError: input must be a subset of the ground set
-        """
-        for x in X:
-            if x not in self._groundset:
-                raise ValueError("input must be a subset of the ground set")
-        return self._groundset_to_edges(X)
-
-    def _groundset_to_edges(self, X):
-        """
-        Return a list of edges corresponding to a set of ground set elements.
-
-        INPUT:
-
-        - ``X`` -- a subset of the ground set.
-
-        OUTPUT:
-
-        A list of graph edges.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
-            sage: M._groundset_to_edges([2,3,4])
-            [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
-        """
-        edge_list = []
-        for x in X:
-            v0 = self._groundset_edge_map[x][0]
-            v1 = self._groundset_edge_map[x][1]
-            edge_list.append((v0, v1, x))
-        return edge_list
-
-    def subgraph_from_set(self, X):
-        """
-        Return the subgraph corresponding to M restricted to X.
-
-        INPUT:
-
-        - ``X`` -- a subset of the ground set.
-
-        OUTPUT:
-
-        A SageMath graph.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
-            sage: M.subgraph_from_set([0,1,2])
-            Looped multi-graph on 3 vertices
-            sage: M.subgraph_from_set([3,4,5])
-            Traceback (most recent call last):
-            ...
-            ValueError: input must be a subset of the ground set
-        """
-        for x in X:
-            if x not in self._groundset:
-                raise ValueError("input must be a subset of the ground set")
-        return self._subgraph_from_set(X)
-
-    def _subgraph_from_set(self, X):
-        """
-        Return the subgraph corresponding to M restricted to X.
-
-        INPUT:
-
-        - ``X`` -- a subset of the ground set.
-
-        OUTPUT:
-
-        A SageMath graph.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
-            sage: M._subgraph_from_set([0,1,2])
-            Looped multi-graph on 3 vertices
-        """
-        edge_list = self._groundset_to_edges(X)
-        return Graph(edge_list, loops=True, multiedges=True)
 
     def _corank(self, X):
         """
@@ -1065,6 +1113,183 @@ class GraphicMatroid(Matroid):
         else:
             return Matroid._isomorphism(self, other)
 
+    def is_valid(self):
+        """
+        Test if the data obey the matroid axioms.
+
+        Since a graph is used for the data, this is always the case.
+
+        OUTPUT:
+
+        ``True``.
+
+        EXAMPLES::
+
+            sage: M = matroids.CompleteGraphic(4); M
+            M(K4): Graphic matroid of rank 3 on 6 elements
+            sage: M.is_valid()
+            True
+        """
+        return True
+
+    # Graphic methods:
+
+    def graph(self):
+        """
+        Return a graph that has a cycle matroid equal to the matroid.
+
+        The graph will always have loops and multiedges enabled.
+
+        EXAMPLES::
+
+            sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
+            sage: M.groundset()
+            frozenset({'a', 'b', 'c'})
+            sage: M.graph().edges()
+            [(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]
+            sage: M = Matroid(graphs.CompleteGraph(5))
+            sage: M.graph()
+            Looped multi-graph on 5 vertices
+        """
+        # Return a mutable graph
+        return self._G.copy(data_structure='sparse')
+
+    def vertex_map(self):
+        """
+        Return a dictionary mapping the input vertices to the current vertices.
+
+        The graph for the matroid is alway connected. If the constructor is
+        given a graph with multiple components, it will connect them. The
+        Python dictionary given by this method has the vertices from the
+        input graph as keys, and the corresponding vertex label after any
+        merging as values.
+
+        EXAMPLES::
+
+            sage: G = Graph([(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5),
+            ....: (6, 7), (6, 8), (7, 8), (8, 8), (7, 8)], multiedges=True, loops=True)
+            sage: M = Matroid(G)
+            sage: M.graph().edges()
+            [(0, 1, 0),
+             (0, 2, 1),
+             (1, 2, 2),
+             (2, 4, 3),
+             (2, 5, 4),
+             (4, 5, 5),
+             (5, 7, 6),
+             (5, 8, 7),
+             (7, 8, 8),
+             (7, 8, 9),
+             (8, 8, 10)]
+            sage: M.vertex_map()
+            {0: 0, 1: 1, 2: 2, 3: 2, 4: 4, 5: 5, 6: 5, 7: 7, 8: 8}
+        """
+        return copy(self._vertex_map)
+
+    def groundset_to_edges(self, X):
+        """
+        Return a list of edges corresponding to a set of ground set elements.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A list of graph edges.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M.groundset_to_edges([2,3,4])
+            [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            sage: M.groundset_to_edges([2,3,4,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be a subset of the ground set
+        """
+        for x in X:
+            if x not in self._groundset:
+                raise ValueError("input must be a subset of the ground set")
+        return self._groundset_to_edges(X)
+
+    def _groundset_to_edges(self, X):
+        """
+        Return a list of edges corresponding to a set of ground set elements.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A list of graph edges.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M._groundset_to_edges([2,3,4])
+            [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
+        """
+        edge_list = []
+        for x in X:
+            v0 = self._groundset_edge_map[x][0]
+            v1 = self._groundset_edge_map[x][1]
+            edge_list.append((v0, v1, x))
+        return edge_list
+
+    def subgraph_from_set(self, X):
+        """
+        Return the subgraph corresponding to M restricted to X.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A SageMath graph.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M.subgraph_from_set([0,1,2])
+            Looped multi-graph on 3 vertices
+            sage: M.subgraph_from_set([3,4,5])
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be a subset of the ground set
+        """
+        for x in X:
+            if x not in self._groundset:
+                raise ValueError("input must be a subset of the ground set")
+        return self._subgraph_from_set(X)
+
+    def _subgraph_from_set(self, X):
+        """
+        Return the subgraph corresponding to M restricted to X.
+
+        INPUT:
+
+        - ``X`` -- a subset of the ground set.
+
+        OUTPUT:
+
+        A SageMath graph.
+
+        EXAMPLES::
+
+            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
+            frozenset({0, 1, 2, 3, 4})
+            sage: M._subgraph_from_set([0,1,2])
+            Looped multi-graph on 3 vertices
+        """
+        edge_list = self._groundset_to_edges(X)
+        return Graph(edge_list, loops=True, multiedges=True)
+
     def graphic_extension(self, u, v = None, element = None):
         """
         Return a graphic matroid extended by a new element.
@@ -1390,25 +1615,6 @@ class GraphicMatroid(Matroid):
                                 X = g, u = u, element = element))
         return iter(matroid_list)
 
-    def is_valid(self):
-        """
-        Test if the data obey the matroid axioms.
-
-        Since a graph is used for the data, this is always the case.
-
-        OUTPUT:
-
-        ``True``.
-
-        EXAMPLES::
-
-            sage: M = matroids.CompleteGraphic(4); M
-            M(K4): Graphic matroid of rank 3 on 6 elements
-            sage: M.is_valid()
-            True
-        """
-        return True
-
     def twist(self, X):
         """
         Perform a Whitney twist on the graph.
@@ -1651,133 +1857,3 @@ class GraphicMatroid(Matroid):
             G.merge_vertices([v, u])
 
         return GraphicMatroid(G)
-
-    # Comparison:
-
-    def _vertex_stars(self):
-        """
-        Computes the set of edge labels around each vertex.
-
-        Internal method for hashing purposes.
-
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        A ``frozenset`` of ``frozenset``s containing the edge labels around
-        each vertex.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._vertex_stars()
-            frozenset({frozenset({0, 2, 3}),
-                       frozenset({1, 2, 4}),
-                       frozenset({3, 4}),
-                       frozenset({0, 1})})
-
-            sage: N = Matroid(graphs.BullGraph()); N._vertex_stars()
-            frozenset({frozenset({0, 2, 3}),
-                       frozenset({4}),
-                       frozenset({1, 2, 4}),
-                       frozenset({3}),
-                       frozenset({0, 1})})
-
-        """
-        star_list = []
-        for v in self._G.vertices():
-            star = [l for (u, v, l) in self._G.edges_incident(v)]
-            star_list.append(frozenset(star))
-        return frozenset(star_list)
-
-    def __hash__(self):
-        r"""
-        Return an invariant of the matroid.
-
-        This function is called when matroids are added to a set. It is very
-        desirable to override it so it can distinguish matroids on the same
-        groundset, which is a very typical use case!
-
-        .. WARNING::
-
-            This method is linked to __richcmp__ (in Cython) and __cmp__ or
-            __eq__/__ne__ (in Python). If you override one, you should (and in
-            Cython: MUST) override the other!
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.CompleteGraph(3))
-            sage: N = Matroid(graphs.CycleGraph(3))
-            sage: O = Matroid(graphs.ButterflyGraph())
-            sage: hash(M) == hash(N)
-            True
-            sage: hash(O) == hash(N)
-            False
-            sage: P = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]))
-            sage: hash(P) == hash(M)
-            False
-        """
-        return hash(self._vertex_stars())
-
-    def __eq__(self, other):
-        """
-        Compare two matroids.
-
-        INPUT:
-
-        - ``other`` -- A matroid.
-
-        OUTPUT:
-
-        ``True`` if ``self`` and ``other`` have the same graph; ``False``
-        otherwise.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.CompleteGraph(3))
-            sage: N = Matroid(graphs.CycleGraph(3))
-            sage: O = Matroid(graphs.ButterflyGraph())
-            sage: P = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]))
-            sage: M == N
-            True
-            sage: M == O
-            False
-            sage: M == P
-            False
-
-        """
-        # Graph.__eq__() will ignore edge labels unless we turn on weighted()
-        # This will be done in __init__()
-        if not isinstance(other, GraphicMatroid):
-            return False
-        return (self._G == other._G)
-
-    def __ne__(self, other):
-        """
-        Compare two matroids.
-
-        INPUT:
-
-        - ``other`` -- A matroid.
-
-        OUTPUT:
-
-        ``False`` if ``self`` and ``other`` have the same graph; ``True``
-        otherwise.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.CycleGraph(4))
-            sage: N = Matroid(graphs.CompleteBipartiteGraph(2,2))
-            sage: O = Matroid(graphs.PetersenGraph())
-            sage: M != N
-            True
-            sage: M.equals(N)
-            True
-            sage: M != O
-            True
-
-        """
-        return (not self == other)

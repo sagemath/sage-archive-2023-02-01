@@ -3577,7 +3577,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
             of this map. False specifies to find the ``n`` multiplier spectra
-            of this map. Default: False
+            of this map. Default: False.
 
         - ``embedding`` - embedding of the base field into `\QQbar`.
 
@@ -3751,7 +3751,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             symmetric polynomials corresponding to the formal ``n`` multiplier spectra
             of this map. False specifies to instead find the values corresponding to
             the ``n`` multiplier spectra of this map, which includes the multipliers
-            of all periodic points of period ``n`` of this map. Default: False
+            of all periodic points of period ``n`` of this map. Default: False.
 
         - ``embedding`` - Deprecated in ticket 23333.
 
@@ -3819,6 +3819,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [6*w + 21, 78*w + 159, 210*w + 367, 90*w + 156]
             sage: f.sigma_invariants(2, formal=False, type='point')
             [6*w + 24, 96*w + 222, 444*w + 844, 720*w + 1257, 270*w + 468]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + x*y + y^2, y^2 + x*y])
+            sage: f.sigma_invariants(1)
+            [3, 3, 1]
 
         ::
 
@@ -3906,10 +3914,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Q = self(Q)
         #get multiplicity
         if inf_per <= n:
-            e_inf = 1
-            while (y**e_inf).divides(fix_poly):
+            e_inf = 0
+            while (y**(e_inf + 1)).divides(fix_poly):
                 e_inf += 1
-            e_inf -= 1
 
         if type == 'cycle':
             #now we need to deal with having the correct number of factors
@@ -3922,11 +3929,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
                 #evaluate the resultant
                 fix_poly = psi(fix_poly)
-                res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
+                res = fix_poly.resultant(mult_poly, S.gen(0))
                 #take infinty into consideration
                 if inf_per.divides(n):
-                    res = res*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
-                    res = res.univariate_polynomial()
+                    res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
+                res = res.univariate_polynomial()
                 #adjust multiplicities
                 L = res.factor()
                 for p,e in L:
@@ -3940,11 +3947,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     resd = mult_poly.resultant(psi(fix_poly_d), S.gen(0))
                     #check infinity
                     if inf_per == d:
-                        e_inf_d = 1
-                        while (y**e_inf_d).divides(fix_poly_d):
+                        e_inf_d = 0
+                        while (y**(e_inf_d + 1)).divides(fix_poly_d):
                             e_inf_d += 1
-                        e_inf_d -= 1
-                        resd = resd*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
+                        resd *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
                     resd = resd.univariate_polynomial()
                     Ld = resd.factor()
                     for pd,ed in Ld:
@@ -3953,12 +3959,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else: #type is 'point'
             #evaluate the resultant
             fix_poly = psi(fix_poly)
-            res = fix_poly.resultant(mult_poly, S.gen(0)).univariate_polynomial()
+            res = fix_poly.resultant(mult_poly, S.gen(0))
             #take infinty into consideration
             if inf_per.divides(n):
-                res = res*((S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf)
-                res = res.univariate_polynomial()
-
+                res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
+            res = res.univariate_polynomial()
 
         #the sigmas are the coeficients
         #need to fix the signs and the order

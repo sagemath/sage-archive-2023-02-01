@@ -218,6 +218,23 @@ all constituents coerce.
     sage: x[2]/2+(5/3)*a[3]*x[4] + 1
     5/3*a_3*x_4 + 1/2*x_2 + 1
 
+Check that :trac:`22514` is fixed
+::
+sage: R.<x> = InfinitePolynomialRing(ZZ)
+sage: a = R(3)
+sage: a.is_constant()
+True
+sage: a.constant_coefficient()
+3
+sage: a.degree()
+0
+sage: S.<y> = ZZ[]
+sage: Q.<z> = InfinitePolynomialRing(S)
+sage: a = Q(1+y)
+sage: a.is_constant()
+True
+sage: a.constant_coefficient()
+y + 1
 """
 # ****************************************************************************
 #       Copyright (C) 2009 Simon King <simon.king@nuigalway.ie> and
@@ -700,12 +717,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         else:
             self._underlying_ring = R.base_ring()
 
-        # some basic data
-        self._order = order
-        self._name_dict = dict([(names[i], i) for i in range(len(names))])
-        from sage.categories.commutative_algebras import CommutativeAlgebras
-        CommutativeRing.__init__(self, R, category=CommutativeAlgebras(R))
-
         # some tools to analyse polynomial string representations.
         self._identify_variable = lambda x, y: (-self._names.index(x), int(y))
         self._find_maxshift = re.compile('_([0-9]+)')  # findall yields stringrep of the shifts
@@ -723,6 +734,13 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             VarList = [X + '_0' for X in names]
         VarList.sort(key=self.varname_key, reverse=True)
         self._minP = PolynomialRing(R, len(VarList), VarList)
+
+        # some basic data
+        self._order = order
+        self._name_dict = dict([(names[i], i) for i in range(len(names))])
+        from sage.categories.commutative_algebras import CommutativeAlgebras
+        CommutativeRing.__init__(self, R, category=CommutativeAlgebras(R))
+
         self._populate_coercion_lists_()
 
     def __repr__(self):

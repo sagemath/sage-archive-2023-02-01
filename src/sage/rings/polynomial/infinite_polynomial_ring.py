@@ -228,6 +228,9 @@ sage: a.constant_coefficient()
 3
 sage: a.degree()
 0
+sage: b = R("2")
+sage: b.parent() is R
+True
 sage: S.<y> = ZZ[]
 sage: Q.<z> = InfinitePolynomialRing(S)
 sage: a = Q(1+y)
@@ -891,9 +894,12 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         from sage.misc.sage_eval import sage_eval
         if isinstance(x, six.string_types):
             try:
-                return sage_eval(x, self.gens_dict())
+                x = sage_eval(x, self.gens_dict())
             except Exception:
                 raise ValueError("Can't convert %s into an element of %s" % (x, self))
+            if parent(x) is self:
+                return x
+            # if parent(x) is still wrong, continue on with the revised x
 
         if isinstance(parent(x), InfinitePolynomialRing_sparse):
             # the easy case - parent == self - is already past

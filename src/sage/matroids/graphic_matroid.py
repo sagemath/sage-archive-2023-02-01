@@ -1538,7 +1538,6 @@ class GraphicMatroid(Matroid):
             sage: I = N.graphic_coextensions(element='a')
             sage: for N1 in I:
             ....:     N1.graph().edges()
-            ....:
             [(0, 1, 0), (0, 3, 1), (0, 4, 'a'), (1, 2, 2), (2, 3, 3)]
             [(0, 3, 1), (0, 4, 0), (1, 2, 2), (1, 4, 'a'), (2, 3, 3)]
             [(0, 1, 0), (0, 4, 1), (1, 2, 2), (2, 3, 3), (3, 4, 'a')]
@@ -1559,6 +1558,16 @@ class GraphicMatroid(Matroid):
             Traceback (most recent call last):
             ...
             ValueError: vertices are not all in the graph
+
+        We expect 136 graphic coextensions of an 8-spoked wheel: 128 extensions
+        from the center vertex because there are (256/2) ways to put the 8
+        center edges into 2 sets, and then 8 more for series extensions of the
+        rims::
+
+            sage: M = Matroid(graphs.WheelGraph(9))
+            sage: I = M.graphic_coextensions()
+            sage: sum(1 for N in I)
+            136
         """
         matroid_list = []
         G = self.graph()
@@ -1592,9 +1601,9 @@ class GraphicMatroid(Matroid):
             G.delete_vertex(new_vertex)
             G.add_edge(u, v, l)
 
-        # If a vertex has degree 1 or 2, we already handled it.
+        # If a vertex has degree 1, or 2, or 3, we already handled it.
         for u in vertices:
-            if G.degree(u) > 2:
+            if G.degree(u) > 3:
                 elts_incident = [l for (u0, v0, l) in G.edges_incident(u)]
                 half_elts = len(elts_incident) // Integer(2)
                 for i in range(2, (half_elts + Integer(1))):

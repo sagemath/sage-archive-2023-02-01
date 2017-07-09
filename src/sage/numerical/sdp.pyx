@@ -6,6 +6,7 @@ is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathem
 of the following form
 
 .. MATH::
+
     \min \sum_{i,j=1}^n C_{ij}X_{ij} & \qquad \text{(Dual problem)}\\
     \text{Subject to:} & \sum_{i,j=1}^n A_{ijk}X_{ij} = b_k, \qquad k=1\dots m\\
     &X \succeq 0
@@ -17,6 +18,7 @@ The closely related dual problem of this one is the following, where we denote b
 `A_k` the matrix `(A_{kij})` and by `C` the matrix `(C_{ij})`,
 
 .. MATH::
+
     \max \sum_k b_k x_k & \qquad \text{(Primal problem)}\\
     \text{Subject to:} & \sum_k x_k A_k \preceq C.
 
@@ -30,6 +32,7 @@ optimal value of the primal, and usually (although not always) they are equal.
 For instance, suppose you want to maximize `x_1 - x_0` subject to
 
 .. MATH::
+
  \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x_0 +
  \left( \begin{array}{cc} 3 & 4  \\ 4 & 5  \end{array} \right) x_1 \preceq
  \left( \begin{array}{cc} 5 & 6  \\ 6 & 7  \end{array} \right),\quad
@@ -773,6 +776,7 @@ cdef class SemidefiniteProgram(SageObject):
         Let's solve the following semidefinite program:
 
         .. MATH::
+
             \begin{aligned}
                 \text{maximize} &\qquad x + 5y  \qquad \\
                 \text{subject to} &\qquad \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x +
@@ -831,6 +835,7 @@ cdef class SemidefiniteProgram(SageObject):
         Let's solve the following semidefinite program:
 
         .. MATH::
+
             \begin{aligned}
                 \text{maximize} &\qquad x + 5y  \qquad \\
                 \text{subject to} &\qquad \left( \begin{array}{cc} 1 & 2  \\ 2 & 3  \end{array} \right) x +

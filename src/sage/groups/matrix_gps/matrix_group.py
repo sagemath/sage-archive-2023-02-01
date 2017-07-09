@@ -49,28 +49,23 @@ from __future__ import absolute_import
 ##############################################################################
 
 import types
-from sage.rings.all import ZZ
+
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
-from sage.interfaces.gap import gap
-from sage.matrix.matrix import is_Matrix
-from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
+from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
-from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import (richcmp_not_equal, rich_to_bool,
                                     richcmp_method, richcmp)
-from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.groups.generic import structure_description
-
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
 
 from sage.groups.matrix_gps.group_element import (
-    is_MatrixGroupElement, MatrixGroupElement_generic, MatrixGroupElement_gap)
+    MatrixGroupElement_generic, MatrixGroupElement_gap)
 
 #################################################################
 
@@ -347,10 +342,22 @@ class MatrixGroup_generic(MatrixGroup_base):
             True
             sage: G == MatrixGroup(G.gens())
             True
+
+        TESTS::
+
+            sage: G = groups.matrix.GL(4,2)
+            sage: H = MatrixGroup(G.gens())
+            sage: G == H
+            True
+            sage: G != H
+            False
         """
         if not is_MatrixGroup(other):
             return NotImplemented
 
+        if self is other:
+            return rich_to_bool(op, 0)
+        
         lx = self.matrix_space()
         rx = other.matrix_space()
         if lx != rx:

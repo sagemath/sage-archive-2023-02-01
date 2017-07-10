@@ -3,7 +3,7 @@ Differential Forms
 
 Let `U` and `M` be two differentiable manifolds.
 Given a positive integer `p` and a differentiable map `\Phi: U \rightarrow M`,
-a *differential form of degree* `p`, or *p-form*,
+a *differential form of degree* `p`, or `p`-*form*,
 *along* `U` *with values on* `M` is a field along `U` of alternating
 multilinear forms of degree `p` in the tangent spaces to `M`.
 The standard case of a differential form *on* a differentiable manifold
@@ -72,15 +72,14 @@ class DiffForm(TensorField):
 
     Given a differentiable manifold `U`, a differentiable map
     `\Phi: U \rightarrow M` to a differentiable manifold `M` and a positive
-    integer `p`, a *differential form of degree* `p` (or *p-form*)
+    integer `p`, a *differential form of degree* `p` (or `p`-*form*)
     *along* `U` *with values on* `M\supset\Phi(U)` is a differentiable map
 
     .. MATH::
 
         a:\ U  \longrightarrow T^{(0,p)}M
 
-    (`T^{(0,p)}M` being the tensor bundle of type `(0,p)` over `M`) such
-    that
+    (`T^{(0,p)}M` being the tensor bundle of type `(0,p)` over `M`) such that
 
     .. MATH::
 
@@ -608,15 +607,14 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     Given a differentiable manifold `U`,  a differentiable map
     `\Phi: U \rightarrow M` to a parallelizable manifold `M` and a positive
-    integer `p`, a *differential form of degree* `p` (or *p-form*)
+    integer `p`, a *differential form of degree* `p` (or `p`-*form*)
     *along* `U` *with values on* `M\supset\Phi(U)` is a differentiable map
 
     .. MATH::
 
         a:\ U  \longrightarrow T^{(0,p)}M
 
-    (`T^{(0,p)}M` being the tensor bundle of type `(0,p)` over `M`) such
-    that
+    (`T^{(0,p)}M` being the tensor bundle of type `(0,p)` over `M`) such that
 
     .. MATH::
 
@@ -1198,10 +1196,12 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise ValueError("incompatible ambient domains for exterior product")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise ValueError("incompatible ambient domains for exterior product")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         dom_resu = self._domain.intersection(other._domain)
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)

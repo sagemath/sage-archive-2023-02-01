@@ -94,6 +94,7 @@ from copy import copy, deepcopy
 from .utilities import newlabel, split_vertex, sanitize_contractions_deletions
 from itertools import combinations
 from sage.rings.integer import Integer
+from sage.sets.disjoint_set import DisjointSet
 
 class GraphicMatroid(Matroid):
     r"""
@@ -232,7 +233,6 @@ class GraphicMatroid(Matroid):
         vertices = set([u for (u, v, l) in edges]).union(
             set([v for (u, v, l) in edges]))
         # This counts components:
-        from sage.sets.disjoint_set import DisjointSet
         DS_vertices = DisjointSet(vertices)
         for (u, v, l) in edges:
             DS_vertices.union(u,v)
@@ -508,7 +508,7 @@ class GraphicMatroid(Matroid):
             sage: M._has_minor(N1)
             True
             sage: M._has_minor(N, certificate = True)
-            (True, (frozenset({4, 5, 6}), frozenset({2, 3, 8}), {0: 1, 1: 0, 2: 7}))
+            (True, (frozenset({3, 6, 8}), frozenset({2, 4, 5}), {0: 0, 1: 1, 2: 7}))
 
         ::
 
@@ -518,8 +518,8 @@ class GraphicMatroid(Matroid):
             True
             sage: M.has_minor(N, certificate = True)
             (True,
-             (frozenset({14}),
-              frozenset({0, 4, 8, 9, 11, 13}),
+             (frozenset({8}),
+              frozenset({0, 4, 9, 11, 13, 14}),
               {0: 3, 1: 10, 2: 7, 3: 12, 4: 1, 5: 2, 6: 5, 7: 6}))
             sage: N.has_minor(M)
             False
@@ -614,32 +614,15 @@ class GraphicMatroid(Matroid):
             sage: M._corank([1,2,3])
             3
         """
-        g = self.graph()
-        g.delete_edges(self._groundset_to_edges(X))
-        return (len(X) - (g.connected_components_number() - Integer(1)))
+        edges = self.groundset_to_edges(X)
+        all_vertices = self._G.vertices()
+        not_our_edges = self.groundset_to_edges(self._groundset.difference(X))
 
-    def _is_independent(self, X):
-        """
-        Test if a set is an independent set of the matroid.
-
-        INPUT:
-
-        - ``X`` -- An iterable container of ground set elements.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-        sage: M = Matroid(graphs.DiamondGraph())
-        sage: M._is_independent([0,1,2])
-        False
-        sage: M._is_independent([0,1,3])
-        True
-        """
-        g = self._subgraph_from_set(X)
-        return g.is_forest()
+        our_set = set()
+        DS_vertices = DisjointSet(all_vertices)
+        for (u, v, l) in not_our_edges:
+            DS_vertices.union(u, v)
+        return (len(X) - (DS_vertices.number_of_subsets() - Integer(1)))
 
     def _is_circuit(self, X):
         """
@@ -736,27 +719,28 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.DiamondGraph())
             sage: M._max_independent(M.groundset())
-            frozenset({1, 3, 4})
+            frozenset({0, 1, 3})
             sage: M._max_independent(frozenset([0,1,2]))
-            frozenset({1, 2})
+            frozenset({0, 1})
             sage: M._max_independent(frozenset([3,4]))
             frozenset({3, 4})
+            sage: M._max_independent(frozenset([3]))
+            frozenset({3})
             sage: N = M.graphic_extension(0, element='a')
             sage: N._max_independent(frozenset(['a']))
             frozenset()
         """
-        if self._is_independent(X):
-            return X
+        edges = self.groundset_to_edges(X)
+        vertices = set([u for (u, v, l) in edges]).union(
+            set([v for (u, v, l) in edges]))
 
-        edgelist = self._groundset_to_edges(X)
-        G = self._subgraph_from_set(X)
-        ind_list = []
-        for (u, v, l) in edgelist:
-            if G.is_cut_edge(u, v, l):
-                ind_list.append(l)
-            else:
-                G.delete_edge(u, v, l)
-        return frozenset(ind_list)
+        our_set = set()
+        DS_vertices = DisjointSet(vertices)
+        for (u, v, l) in edges:
+            if DS_vertices.find(u) != DS_vertices.find(v):
+                DS_vertices.union(u,v)
+                our_set.add(l)
+        return frozenset(our_set)
 
     def _max_coindependent(self, X):
         """
@@ -774,23 +758,28 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.DiamondGraph())
             sage: M._max_coindependent(M.groundset())
-            frozenset({0, 2})
+            frozenset({2, 4})
             sage: M._max_coindependent([2,3,4])
-            frozenset({2, 3})
+            frozenset({2, 4})
             sage: N = M.graphic_extension(0, element='a')
             sage: N.max_coindependent([0,1,2,'a'])
-            frozenset({0, 2, 'a'})
+            frozenset({1, 2, 'a'})
         """
-        res = set()
-        g = self.graph()
-        edgelist = self._groundset_to_edges(X)
-        for e in edgelist:
-            g.delete_edge(e)
-            if g.connected_components_number() > 1:
-                g.add_edge(e)
+        edges = self.groundset_to_edges(X)
+        all_vertices = self._G.vertices()
+        not_our_edges = self.groundset_to_edges(self._groundset.difference(X))
+
+        our_set = set()
+        DS_vertices = DisjointSet(all_vertices)
+        for (u, v, l) in not_our_edges:
+            DS_vertices.union(u, v)
+
+        for (u, v, l) in edges:
+            if DS_vertices.find(u) == DS_vertices.find(v):
+                our_set.add(l)
             else:
-                res.add(e[2])
-        return frozenset(res)
+                DS_vertices.union(u, v)
+        return frozenset(our_set)
 
     def _circuit(self, X):
         """
@@ -809,25 +798,65 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.DiamondGraph())
             sage: M._circuit(M.groundset())
-            frozenset({2, 3, 4})
+            frozenset({0, 1, 2})
             sage: N = Matroid(graphs.CompleteBipartiteGraph(3,3))
             sage: N._circuit([0, 1, 2, 6, 7, 8])
-            frozenset({1, 2, 7, 8})
+            frozenset({0, 1, 6, 7})
             sage: N._circuit([0,1,2])
             Traceback (most recent call last):
             ...
             ValueError: no circuit in independent set
+
+        TESTS:
+
+        With two disjoint cycles in the graph::
+
+            sage: edgelist = [(5,6), (0,1), (3,4), (1,2), (4,5), (2,0), (5,3)]
+            sage: M = Matroid(Graph(edgelist))
+            sage: M
+            Graphic matroid of rank 5 on 7 elements
+            sage: M._circuit(M.groundset())
+            frozenset({0, 1, 2})
+
+        Giving it a long path before it finds a cycle::
+
+            sage: edgelist = [(0,1), (1,2), (2,3), (3,4), (4,5), (4,5)]
+            sage: M = Matroid(Graph(edgelist, multiedges=True))
+            sage: M.graph().edges()
+            [(0, 1, 0), (1, 2, 1), (2, 3, 2), (3, 4, 3), (4, 5, 4), (4, 5, 5)]
+            sage: M._circuit(M.groundset())
+            frozenset({4, 5})
+
         """
-        circuit = set()
-        g = self._subgraph_from_set(X)
-        if g.is_forest():
+        if self._is_independent(X):
             raise ValueError("no circuit in independent set")
-        for e in g.edges():
-            g.delete_edge(e)
-            if g.is_forest():
-                g.add_edge(e)
-                circuit.add(e[2])
-        return frozenset(circuit)
+
+        edges = self.groundset_to_edges(X)
+        vertices = set([u for (u, v, l) in edges]).union(
+            set([v for (u, v, l) in edges]))
+        edge_set = set()
+        DS_vertices = DisjointSet(vertices)
+        for (u, v, l) in edges:
+            edge_set.add((u, v, l))
+            if DS_vertices.find(u) != DS_vertices.find(v):
+                DS_vertices.union(u, v)
+            else:
+                last_edge = (u, v, l)
+                break
+
+        vertex_list = ([u for (u, v, l) in edge_set]
+            + [v for (u, v, l) in edge_set])
+        leaves = [(u, v, l) for (u, v, l) in edge_set if (vertex_list.count(u) == 1
+            or vertex_list.count(v) == 1)]
+        while leaves:
+            for leaf in leaves:
+                edge_set.remove(leaf)
+                vertex_list.remove(leaf[0])
+                vertex_list.remove(leaf[1])
+            leaves = [(u, v, l) for (u, v, l) in edge_set if (vertex_list.count(u) == 1
+                or vertex_list.count(v) == 1)]
+
+        return frozenset([l for (u, v, l) in edge_set])
 
     def _coclosure(self, X):
         """
@@ -865,40 +894,6 @@ class GraphicMatroid(Matroid):
                 X.add(e[2])
             g.add_edge(e)
         return frozenset(X)
-
-    def _is_coindependent(self, X):
-        """
-        Test if input is coindependent.
-
-        INPUT:
-
-        - ``X`` -- An iterable container of ground set elements.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._is_coindependent([0])
-            True
-            sage: M._is_coindependent([0,1])
-            False
-            sage: N = M.graphic_coextension(3, element='a')
-            sage: N._is_coindependent([0,'a'])
-            False
-            sage: N1 = N.graphic_extension(3, element='b')
-            sage: N1._is_coindependent([0,'b'])
-            True
-        """
-        g = self.graph()
-        components = g.connected_components_number()
-        g.delete_edges(self._groundset_to_edges(X))
-        if g.connected_components_number() == components:
-            return True
-        else:
-            return False
 
     def _cocircuit(self, X):
         """

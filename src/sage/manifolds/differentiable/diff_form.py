@@ -84,10 +84,13 @@ class DiffForm(TensorField):
 
     .. MATH::
 
-        a(x) \in \Lambda^p(T_{\Phi(x)} M)
+        \forall x \in U,\quad a(x) \in \Lambda^p(T_{\Phi(x)}^* M) ,
 
-    for all `x \in U`, i.e. `a(x)` is an alternating multilinear form
-    of degree `p` of the tangent space to `M` at the point `\Phi(x)`.
+    where `T_{\Phi(x)}^* M` is the dual of the tangent space to `M` at
+    `\Phi(x)` and `\Lambda^p` stands for the exterior power of degree `p` (cf.
+    :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`).
+    In other words, `a(x)` is an alternating multilinear form of degree `p` of
+    the tangent vector space `T_{\Phi(x)} M`.
 
     The standard case of a differential form *on* a
     manifold `M` corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other
@@ -126,7 +129,7 @@ class DiffForm(TensorField):
         sage: a = M.diff_form(2, name='a') ; a
         2-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^2(M) of 2-forms on the 2-dimensional differentiable
+        Module Omega^2(M) of 2-forms on the 2-dimensional differentiable
          manifold M
         sage: a.degree()
         2
@@ -146,7 +149,7 @@ class DiffForm(TensorField):
         sage: a = M.one_form('a') ; a
         1-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^1(M) of 1-forms on the 2-dimensional differentiable
+        Module Omega^1(M) of 1-forms on the 2-dimensional differentiable
          manifold M
         sage: a.degree()
         1
@@ -617,10 +620,13 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     .. MATH::
 
-        a(x) \in \Lambda^p(T_{\Phi(x)} M)
+        \forall x \in U,\quad a(x) \in \Lambda^p(T_{\Phi(x)}^* M) ,
 
-    for all `x \in U`, i.e. `a(x)` is an alternating multilinear form
-    of degree `p` of the tangent space to `M` at the point `\Phi(x)`.
+    where `T_{\Phi(x)}^* M` is the dual of the tangent space to `M` at
+    `\Phi(x)` and `\Lambda^p` stands for the exterior power of degree `p` (cf.
+    :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`).
+    In other words, `a(x)` is an alternating multilinear form of degree `p` of
+    the tangent vector space `T_{\Phi(x)} M`.
 
     The standard case of a differential form *on* a manifold `M` corresponds
     to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
@@ -651,7 +657,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: a = M.diff_form(2, 'a') ; a
         2-form a on the 4-dimensional differentiable manifold M
         sage: a.parent()
-        Free module /\^2(M) of 2-forms on the 4-dimensional differentiable
+        Free module Omega^2(M) of 2-forms on the 4-dimensional differentiable
          manifold M
 
     A differential form is a tensor field of purely covariant type::
@@ -825,7 +831,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: isinstance(om, sage.manifolds.differentiable.diff_form.DiffFormParal)
         True
         sage: om.parent()
-        Free module /\^1(R3) of 1-forms on the 3-dimensional differentiable
+        Free module Omega^1(R3) of 1-forms on the 3-dimensional differentiable
          manifold R3
         sage: om.tensor_type()
         (0, 1)

@@ -531,7 +531,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         module.
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the
-        `p`-th exterior power of its dual is the set `\Lambda^p(U, \Phi)`
+        `p`-th exterior power of its dual is the set `\Omega^p(U, \Phi)`
         of `p`-forms along `U` with values on `\Phi(U)`. It is a module
         over `C^k(U)`, the ring (algebra) of differentiable scalar
         fields on `U`.
@@ -544,7 +544,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         - for `p \geq 1`, instance of
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
-          representing the module `\Lambda^p(U,\Phi)`; for `p=0`, the
+          representing the module `\Omega^p(U,\Phi)`; for `p=0`, the
           base ring, i.e. `C^k(U)`, is returned instead
 
         EXAMPLES::
@@ -552,10 +552,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.dual_exterior_power(2)
-            Module /\^2(M) of 2-forms on the 2-dimensional differentiable
+            Module Omega^2(M) of 2-forms on the 2-dimensional differentiable
              manifold M
             sage: XM.dual_exterior_power(1)
-            Module /\^1(M) of 1-forms on the 2-dimensional differentiable
+            Module Omega^1(M) of 1-forms on the 2-dimensional differentiable
              manifold M
             sage: XM.dual_exterior_power(1) is XM.dual()
             True
@@ -587,7 +587,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.dual()
-            Module /\^1(M) of 1-forms on the 2-dimensional differentiable
+            Module Omega^1(M) of 1-forms on the 2-dimensional differentiable
              manifold M
 
         """
@@ -1484,7 +1484,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         Return the `p`-th exterior power of the dual of ``self``.
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the
-        `p`-th exterior power of its dual is the set `\Lambda^p(U, \Phi)`
+        `p`-th exterior power of its dual is the set `\Omega^p(U, \Phi)`
         of `p`-forms along `U` with values on `\Phi(U)`. It is a module
         over `C^k(U)`, the ring (algebra) of differentiable scalar
         fields on `U`.
@@ -1497,7 +1497,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         - for `p \geq 1`, a
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`
-          representing the module `\Lambda^p(U,\Phi)`; for `p=0`, the
+          representing the module `\Omega^p(U,\Phi)`; for `p=0`, the
           base ring, i.e. `C^k(U)`, is returned instead
 
         EXAMPLES::
@@ -1506,11 +1506,11 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.dual_exterior_power(2)
-            Free module /\^2(M) of 2-forms on the 2-dimensional differentiable
-             manifold M
+            Free module Omega^2(M) of 2-forms on the 2-dimensional
+             differentiable manifold M
             sage: XM.dual_exterior_power(1)
-            Free module /\^1(M) of 1-forms on the 2-dimensional differentiable
-             manifold M
+            Free module Omega^1(M) of 1-forms on the 2-dimensional
+             differentiable manifold M
             sage: XM.dual_exterior_power(1) is XM.dual()
             True
             sage: XM.dual_exterior_power(0)

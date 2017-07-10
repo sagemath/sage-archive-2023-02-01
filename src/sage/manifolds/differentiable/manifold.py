@@ -253,7 +253,8 @@ A 1-form on the sphere::
     sage: df.display(stereoS.frame())
     df = -2*u/(u^4 + 2*u^2*v^2 + v^4 + 1) du - 2*v/(u^4 + 2*u^2*v^2 + v^4 + 1) dv
     sage: df.parent()
-    Module /\^1(S^2) of 1-forms on the 2-dimensional differentiable manifold S^2
+    Module Omega^1(S^2) of 1-forms on the 2-dimensional differentiable
+     manifold S^2
     sage: df.parent().category()
     Category of modules over Algebra of differentiable scalar fields on the
      2-dimensional differentiable manifold S^2
@@ -1266,7 +1267,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`)
-          representing the module `\Lambda^p(M,\Phi)` of `p`-forms on `M`
+          representing the module `\Omega^p(M,\Phi)` of `p`-forms on `M`
           taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
@@ -1276,7 +1277,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: M.diff_form_module(2)
-            Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
+            Free module Omega^2(M) of 2-forms on the 3-dimensional differentiable
              manifold M
             sage: M.diff_form_module(2).category()
             Category of finite dimensional modules over Algebra of
@@ -1709,10 +1710,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. MATH::
 
-            \forall p \in M,\ t(p) \in \Lambda^p(T^*_{\Phi(p)} N),
+            \forall x \in M,\ t(x) \in \Lambda^p(T^*_{\Phi(x)} N),
 
-        where `\Lambda^p(T^*_{\Phi(p)} N)` is the `p`-th exterior power
-        of the dual of the tangent space `T_{\Phi(p)} N`.
+        where `\Lambda^p(T^*_{\Phi(x)} N)` is the `p`-th exterior power
+        of the dual of the tangent space `T_{\Phi(x)} N`.
 
         The standard case of a differential form *on* `M` corresponds
         to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
@@ -1831,7 +1832,7 @@ class DifferentiableManifold(TopologicalManifold):
             1-form omega on the Open subset A of the 3-dimensional
              differentiable manifold M
             sage: om.parent()
-            Free module /\^1(A) of 1-forms on the Open subset A of the
+            Free module Omega^1(A) of 1-forms on the Open subset A of the
              3-dimensional differentiable manifold M
 
         .. SEEALSO::

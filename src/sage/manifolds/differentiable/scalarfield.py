@@ -725,8 +725,8 @@ class DiffScalarField(ScalarField):
             sage: latex(df)
             \mathrm{d}f
             sage: df.parent()
-            Free module /\^1(M) of 1-forms on the 3-dimensional differentiable
-             manifold M
+            Free module Omega^1(M) of 1-forms on the 3-dimensional
+             differentiable manifold M
 
         The result is cached, i.e. is not recomputed unless ``f`` is changed::
 

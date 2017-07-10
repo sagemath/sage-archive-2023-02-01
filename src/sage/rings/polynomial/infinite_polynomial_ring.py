@@ -218,26 +218,26 @@ all constituents coerce.
     sage: x[2]/2+(5/3)*a[3]*x[4] + 1
     5/3*a_3*x_4 + 1/2*x_2 + 1
 
-Check that :trac:`22514` is fixed
-::
-sage: R.<x> = InfinitePolynomialRing(ZZ)
-sage: a = R(3)
-sage: a.is_constant()
-True
-sage: a.constant_coefficient()
-3
-sage: a.degree()
-0
-sage: b = R("2")
-sage: b.parent() is R
-True
-sage: S.<y> = ZZ[]
-sage: Q.<z> = InfinitePolynomialRing(S)
-sage: a = Q(1+y)
-sage: a.is_constant()
-True
-sage: a.constant_coefficient()
-y + 1
+Check that :trac:`22514` is fixed::
+
+    sage: R.<x> = InfinitePolynomialRing(ZZ)
+    sage: a = R(3)
+    sage: a.is_constant()
+    True
+    sage: a.constant_coefficient()
+    3
+    sage: a.degree()
+    0
+    sage: b = R("2")
+    sage: b.parent() is R
+    True
+    sage: S.<y> = ZZ[]
+    sage: Q.<z> = InfinitePolynomialRing(S)
+    sage: a = Q(1+y)
+    sage: a.is_constant()
+    True
+    sage: a.constant_coefficient()
+    y + 1
 """
 # ****************************************************************************
 #       Copyright (C) 2009 Simon King <simon.king@nuigalway.ie> and

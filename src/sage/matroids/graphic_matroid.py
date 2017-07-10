@@ -91,7 +91,7 @@ from .matroid import Matroid
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
-from .utilities import newlabel, split_vertex
+from .utilities import newlabel, split_vertex, sanitize_contractions_deletions
 from itertools import combinations
 from sage.rings.integer import Integer
 
@@ -498,6 +498,32 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.CompleteBipartiteGraph(3, 3))
             sage: N = Matroid(graphs.CycleGraph(3))
+            sage: N1 = Matroid(groundset = range(3), graph = graphs.CycleGraph(3),
+            ....: regular = True)
+            sage: M._has_minor(N1, certificate = True)
+            (True, (frozenset({0, 1, 3}), frozenset({2, 4, 6}), {0: 5, 1: 7, 2: 8}))
+            sage: M._has_minor(N)
+            True
+            sage: M._has_minor(N1)
+            True
+            sage: M._has_minor(N, certificate = True)
+            (True, (frozenset({4, 5, 6}), frozenset({2, 3, 8}), {0: 0, 1: 1, 2: 7}))
+
+        ::
+
+            sage: M = matroids.CompleteGraphic(6)
+            sage: N = Matroid(graphs.WheelGraph(5))
+            sage: M.has_minor(N)
+            True
+            sage: M.has_minor(N, certificate = True)
+            (True,
+             (frozenset({14}),
+              frozenset({4, 7, 8, 9, 11, 13}),
+              {0: 3, 1: 1, 2: 0, 3: 2, 4: 10, 5: 12, 6: 5, 7: 6}))
+            sage: N.has_minor(M)
+            False
+            sage: N.has_minor(M, certificate = True)
+            (False, None)
         """
         # The graph minor algorithm is faster but it doesn't make sense
         # to use it if M(H) is not 3-connected, because of all the possible
@@ -530,18 +556,37 @@ class GraphicMatroid(Matroid):
             # contractions are, and what vertices are not used.
             # So we'll merge the appropriate vertices, delete the
             # unused vertices, and pass to Matroid._has_minor().
+
+                # Determine contractions:
+                M = self
                 vertices_for_minor = cert.values()
+                contractions = []
                 for vertex_list in vertices_for_minor:
-                    G.merge_vertices(vertex_list)
+                    S = G.subgraph(vertex_list)
+                    X = S.edge_labels()
+                    contractions.extend(self.max_independent(X))
+
+                # determine deletions:
                 from itertools import chain
-                big_vertex_list = chain.from_iterable(vertices_for_minor)
+                deletions = []
+                big_vertex_list = list(chain.from_iterable(vertices_for_minor))
                 for v in G.vertices():
                     if v not in big_vertex_list:
-                        G.delete_vertex(v)
-                # Casting G as a regular matroid should force it
-                # to use Matroid._has_minor()
-                M = Matroid(G, regular = True)
-                return Matroid._has_minor(M, N, certificate = True)
+                        deletions.extend([l for (u0, v0, l) in G.edges_incident(v)])
+
+                # take contractions and deletions with what we have so far
+                # cast as regular matroid to avoid infinite recursion on this method
+                conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
+                M = M.minor(contractions = conset, deletions = delset)
+                from .constructor import Matroid as ConstructorMatroid
+                M = ConstructorMatroid(graph = M._G, regular = True)
+                (should_be_true, elements) =  M._has_minor(N, certificate = True)
+
+                # elements is a tuple (contractions, deletions, dict)
+                # There should be no more contractions
+                delset = set(delset)
+                delset.update(elements[1])
+                return (True, (conset, frozenset(delset), elements[2]))
 
             else:
                 return True

@@ -175,7 +175,7 @@ class GraphicMatroid(Matroid):
 
     def groundset(self):
         """
-        Returns the ground set of the matroid as a frozenset.
+        Return the ground set of the matroid as a frozenset.
 
         EXAMPLES::
 

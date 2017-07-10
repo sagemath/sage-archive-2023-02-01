@@ -464,22 +464,47 @@ class HasseDiagram(DiGraph):
     def _precompute_intervals(self):
         """
         Precompute all intervals of the poset.
+
+        This will significantly speed up computing congruences. On the
+        other hand it will cost much more memory. Currently this is
+        "hidden" feature. See example below of using.
+
+        EXAMPLES::
+
+            sage: B4 = Posets.BooleanLattice(4)
+            sage: B4.is_isoform()  # Slow
+            True
+            sage: B4._hasse_diagram._precompute_intervals()
+            sage: B4 = Posets.BooleanLattice(4)
+            sage: B4.is_isoform()  # Faster now
+            True
         """
         n = self.order()
-        self._intervals = {u: {v: [] for v in range(n)} for u in range(n)}
+
         v_up = [None] * n
         v_down = [None] * n
         for v in range(n):
             v_up[v] = frozenset(self.depth_first_search(v))
             v_down[v] = frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
+
+        self._intervals = [[None] * n for _ in range(n)]
         for u in range(n):
             for v in range(n):
-                self._intervals[u][v] = v_up[u].intersection(v_down[v])
+                self._intervals[u][v] = sorted(v_up[u].intersection(v_down[v]))
         self.interval = self._alt_interval
 
     def _alt_interval(self, x, y):
         """
         Alternate interval function.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(3)
+            sage: P.interval(1, 7)
+            [1, 3, 5, 7]
+            sage: P._hasse_diagram._precompute_intervals()
+            sage: P.interval(1, 7)  # Uses this function
+            [1, 3, 5, 7]
         """
         return self._intervals[x][y]
 

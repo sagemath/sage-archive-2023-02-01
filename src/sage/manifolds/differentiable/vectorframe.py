@@ -39,7 +39,7 @@ Setting a vector frame on a 3-dimensional manifold::
     sage: e = M.vector_frame('e') ; e
     Vector frame (M, (e_0,e_1,e_2))
     sage: latex(e)
-    \left(M, \left(e_0,e_1,e_2\right)\right)
+    \left(M, \left(e_{0},e_{1},e_{2}\right)\right)
 
 The first frame defined on a manifold is its default frame; in the present
 case it is the coordinate frame defined when introducing the chart
@@ -106,7 +106,7 @@ Each element of the coframe is a 1-form::
     1-form e^2 on the 3-dimensional differentiable manifold M,
     1-form e^3 on the 3-dimensional differentiable manifold M)
     sage: latex(f[1]), latex(f[2]), latex(f[3])
-    (e^1, e^2, e^3)
+    (e^{1}, e^{2}, e^{3})
 
 Let us check that the coframe `(e^i)` is indeed the dual of the vector
 frame `(e_i)`::
@@ -219,13 +219,13 @@ class VectorFrame(FreeModuleBasis):
         sage: e = M.vector_frame('e') ; e
         Vector frame (M, (e_0,e_1,e_2))
         sage: latex(e)
-        \left(M, \left(e_0,e_1,e_2\right)\right)
+        \left(M, \left(e_{0},e_{1},e_{2}\right)\right)
 
     The LaTeX symbol can be specified::
 
         sage: e = M.vector_frame('E', r"\epsilon")
         sage: latex(e)
-        \left(M, \left(\epsilon_0,\epsilon_1,\epsilon_2\right)\right)
+        \left(M, \left(\epsilon_{0},\epsilon_{1},\epsilon_{2}\right)\right)
 
     Example with a non-trivial map `\Phi`; a vector frame along a curve::
 

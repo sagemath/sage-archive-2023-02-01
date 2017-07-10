@@ -677,6 +677,10 @@ export SAGE_ROOT="$SAGE_ROOT"
 export SAGE_SRC="$SAGE_SRC"
 export SAGE_PKG_DIR="$pkgdir"
 
+export PKG_NAME="$PKG_NAME"
+export PKG_BASE="$PKG_BASE"
+export PKG_VER="$PKG_VER"
+
 for lib in env dist-helpers; do
     lib="sage-\$lib"
     source "\$SAGE_SRC/bin/\$lib"
@@ -799,9 +803,6 @@ export rsync_proxy=$http_proxy
 ##################################################################
 # Actually install
 ##################################################################
-
-# Export package information for use from within the scripts.
-export PKG_NAME PKG_BASE PKG_VER
 
 
 if [ -f spkg-build ]; then

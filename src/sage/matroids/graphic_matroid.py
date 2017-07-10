@@ -193,14 +193,14 @@ class GraphicMatroid(Matroid):
 
     def _rank(self, X):
         """
-        Return the rank of a set `X`.
+        Return the rank of a set ``X``.
 
-        This method does no checking on `X`, and
-        `X` may be assumed to have the same interface as `frozenset`.
+        This method does no checking on ``X``, and
+        ``X`` may be assumed to have the same interface as ``frozenset``.
 
         INPUT:
 
-        - `X` -- an object with Python's `frozenset` interface.
+        - `X` -- an object with Python's ``frozenset`` interface.
 
         OUTPUT:
 

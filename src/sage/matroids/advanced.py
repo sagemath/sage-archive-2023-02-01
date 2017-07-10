@@ -20,7 +20,6 @@ This adds the following to the main namespace:
         - :class:`BinaryMatroid <sage.matroids.linear_matroid.BinaryMatroid>`
         - :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`
         - :class:`QuaternaryMatroid <sage.matroids.linear_matroid.QuaternaryMatroid>`
-        - :class:`GraphicMatroid <sage.matroids.graphic_matroid.GraphicMatroid>`
 
     Note that you can construct all of these through the
     :func:`Matroid() <sage.matroids.constructor.Matroid>` function, which is
@@ -40,8 +39,8 @@ This adds the following to the main namespace:
         - :func:`setprint() <sage.matroids.utilities.setprint>`
         - :func:`newlabel() <sage.matroids.utilities.newlabel>`
         - :func:`get_nonisomorphic_matroids() <sage.matroids.utilities.get_nonisomorphic_matroids>`
-        - :func:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
-        - :func:`lift_map() <sage.matroids.utilities.lift_map>`
+        - :func:`lift_cross_ratios() <sage.matroids.linear_matroid.lift_cross_ratios>`
+        - :func:`lift_map() <sage.matroids.linear_matroid.lift_map>`
 
 AUTHORS:
 
@@ -59,6 +58,5 @@ from .linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, Ternar
 from .utilities import setprint, newlabel, get_nonisomorphic_matroids, lift_cross_ratios, lift_map
 from . import lean_matrix
 from .extension import LinearSubclasses, MatroidExtensions
-from .graphic_matroid import GraphicMatroid
 from .union_matroid import MatroidUnion, MatroidSum, PartitionMatroid
-
+from .graphic_matroid import GraphicMatroid

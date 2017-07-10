@@ -558,7 +558,6 @@ class GraphicMatroid(Matroid):
             # unused vertices, and pass to Matroid._has_minor().
 
                 # Determine contractions:
-                M = self
                 vertices_for_minor = cert.values()
                 contractions = []
                 for vertex_list in vertices_for_minor:
@@ -577,7 +576,7 @@ class GraphicMatroid(Matroid):
                 # take contractions and deletions with what we have so far
                 # then use method from abstract matroid class
                 conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
-                M = M.minor(contractions = conset, deletions = delset)
+                M = self.minor(contractions = conset, deletions = delset)
                 (should_be_true, elements) =  Matroid._has_minor(M, N, certificate = True)
 
                 # elements is a tuple (contractions, deletions, dict)

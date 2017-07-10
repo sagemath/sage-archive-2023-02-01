@@ -57,17 +57,17 @@ The ``GraphicMatroid`` class inherits all methods from the
 See its documentation for an overview. In addition, the
 following methods are available:
 
-
-    - :func:`graph() <sage.matroids.graphic_matroid.GraphicMatroid.graph_ring>`
+    - :func:`graph() <sage.matroids.graphic_matroid.GraphicMatroid.graph>`
     - :func:`vertex_map() <sage.matroids.graphic_matroid.GraphicMatroid.vertex_map>`
     - :func:`groundset_to_edges() <sage.matroids.graphic_matroid.GraphicMatroid.groundset_to_edges>`
     - :func:`subgraph_from_set() <sage.matroids.graphic_matroid.GraphicMatroid.subgraph_from_set>`
-    - :func:`graphic_extension() <sage.matroids.graphic_matroid.GraphicMatroid.extension>`
-    - :func:`graphic_extensions() <sage.matroids.graphic_matroid.GraphicMatroid.extensions>`
-    - :func:`graphic_coextension() <sage.matroids.graphic_matroid.GraphicMatroid.coextension>`
-    - :func:`graphic_coextensions() <sage.matroids.graphic_matroid.GraphicMatroid.coextensions>`
+    - :func:`graphic_extension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extension>`
+    - :func:`graphic_extensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extensions>`
+    - :func:`graphic_coextension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextension>`
+    - :func:`graphic_coextensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextensions>`
     - :func:`twist() <sage.matroids.graphic_matroid.GraphicMatroid.twist>`
     - :func:`one_sum() <sage.matroids.graphic_matroid.GraphicMatroid.one_sum>`
+
 
 AUTHORS:
 
@@ -96,10 +96,11 @@ from itertools import combinations
 from sage.rings.integer import Integer
 
 class GraphicMatroid(Matroid):
-    """
+    r"""
     The graphic matroid class.
 
     INPUT:
+
     - ``G`` -- a SageMath graph
     - ``groundset`` -- (optional) a list in 1-1 correspondence with
       ``G.edges()``
@@ -1178,15 +1179,13 @@ class GraphicMatroid(Matroid):
 
     def graph(self):
         """
-        Return a graph that has a cycle matroid equal to the matroid.
+        Return the graph that represents the matroid.
 
         The graph will always have loops and multiedges enabled.
 
         EXAMPLES::
 
             sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
-            sage: M.groundset()
-            frozenset({'a', 'b', 'c'})
             sage: M.graph().edges()
             [(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]
             sage: M = Matroid(graphs.CompleteGraph(5))
@@ -1284,7 +1283,7 @@ class GraphicMatroid(Matroid):
 
     def subgraph_from_set(self, X):
         """
-        Return the subgraph corresponding to M restricted to X.
+        Return the subgraph corresponding to the matroid restricted to `X`.
 
         INPUT:
 
@@ -1451,7 +1450,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``u`` -- The vertex to be split. If u is not a vertex of the
+        - ``u`` -- The vertex to be split. If ``u`` is not a vertex of the
           matroid's graph, then the new element will be a coloop.
         - ``X`` -- (optional) A list of the matroid elements corresponding to
           edges of ``u`` that move to the new vertex after splitting.
@@ -1671,7 +1670,7 @@ class GraphicMatroid(Matroid):
         Perform a Whitney twist on the graph.
 
         `X` must be part of a 2-separation.
-        The connectivity of ``X`` must be 1, and the subgraph induced by X must
+        The connectivity of `X` must be 1, and the subgraph induced by `X` must
         intersect the subgraph induced by the rest of the elements on exactly
         two vertices.
 

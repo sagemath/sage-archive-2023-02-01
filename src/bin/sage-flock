@@ -1,0 +1,73 @@
+#!/usr/bin/env sage-python23
+# vim: set filetype=python:
+"""
+This script runs the given command under a file lock (similar to the flock
+command on some systems).
+
+The command may also be a Python module in which case it is run in the same
+Python interpreter as this script (a small optimization to avoid restarting the
+Python interpreter).
+"""
+
+# This is originally motivated by pip, but has since been generalized.  We
+# should avoid running pip while uninstalling a package because that is prone
+# to race conditions. This script runs pip under a lock.  For details, see
+# https://trac.sagemath.org/ticket/21672
+
+from __future__ import print_function
+
+
+import argparse
+import fcntl
+import os
+import pipes
+import sys
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-s', '--shared', action='store_true',
+                       help='create a shared lock')
+
+    # Note: A exclusive lock is created by default if no other flags are given,
+    # but supplying the --exclusive flag explicitly may help clarity
+    group.add_argument('-x', '--exclusive', action='store_true',
+                       help='create an exclusive lock (the default)')
+    parser.add_argument('lock', metavar='LOCK', type=argparse.FileType('w+'),
+                        help='filename of the lock')
+    parser.add_argument('command', metavar='COMMAND', nargs=argparse.REMAINDER,
+                        help='command to run with the lock including any '
+                             'arguments to that command')
+
+    args = parser.parse_args(argv)
+
+    if args.shared:
+        locktype = fcntl.LOCK_SH
+    else:
+        locktype = fcntl.LOCK_EX
+
+    lock = args.lock
+    command = args.command
+
+    # First try a non-blocking lock such that we can give an informative
+    # message while the user is waiting.
+    try:
+        fcntl.flock(lock, locktype | fcntl.LOCK_NB)
+    except IOError:
+        if locktype == fcntl.LOCK_SH:
+            kind = "shared"
+        else:
+            kind = "exclusive"
+
+        print("Waiting for {0} lock to run {1} ... ".format(
+            kind, ' '.join(pipes.quote(arg) for arg in command)), end='',
+            file=sys.stderr)
+        fcntl.flock(lock, locktype)
+        print("ok", file=sys.stderr)
+
+    os.execvp(command[0], command)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

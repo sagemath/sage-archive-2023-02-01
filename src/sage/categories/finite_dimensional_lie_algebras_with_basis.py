@@ -716,8 +716,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return not self.killing_form_matrix().is_singular()
 
-        @cached_method
-        def chevalley_eilenberg_complex(self, M=None, dual=False, sparse=True):
+        @cached_method(key=lambda self,M,d,s,n: (M,d,s))
+        def chevalley_eilenberg_complex(self, M=None, dual=False, sparse=True, ncpus=None):
             r"""
             Return the Chevalley-Eilenberg complex of ``self``.
 
@@ -748,12 +748,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - ``M`` -- (default: the trivial 1-dimensional module)
               the module `M`
-
             - ``dual`` -- (default: ``False``) if ``True``, causes
               the dual of the complex to be computed
-
             - ``sparse`` -- (default: ``True``) whether to use sparse
               or dense matrices
+            - ``ncpus`` -- (optional) how many cpus to use
 
             EXAMPLES::
 
@@ -774,6 +773,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             REFERENCES:
 
             - :wikipedia:`Lie_algebra_cohomology#Chevalley-Eilenberg_complex`
+            - [Wei1994]_ Chapter 7
 
             .. TODO::
 
@@ -781,13 +781,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 given by the trivial module `R`, where `R` is the
                 base ring and `g R = 0` for all `g \in \mathfrak{g}`.
                 Allow generic coefficient modules `M`.
-
-            .. TODO::
-
-                Allow an optional sparse version
             """
             if dual:
-                return self.chevalley_eilenberg_complex(M).dual()
+                return self.chevalley_eilenberg_complex(M, dual=False,
+                                                        sparse=sparse,
+                                                        ncpus=ncpus).dual()
 
             if M is not None:
                 raise NotImplementedError("only implemented for the default"
@@ -795,6 +793,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             from itertools import combinations
             from sage.functions.other import binomial
+            from sage.matrix.matrix_space import MatrixSpace
             R = self.base_ring()
             zero = R.zero()
             mone = -R.one()
@@ -808,16 +807,18 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Ind = list(range(len(K)))
 
             def sgn(k, X):
-                # Insert a new entry ``k`` into a strictly increasing
-                # list ``X`` in such a way that the resulting list is
-                # still strictly increasing.
-                # The return value is the pair ``(s, Y)``, where ``Y``
-                # is the resulting list (as tuple) and ``s`` is the
-                # Koszul sign incurred by the insertion (with the
-                # understanding that ``k`` originally stood to the
-                # left of the list).
-                # If ``k`` is already in ``X``, then the return value
-                # is ``(zero, None)``.
+                """
+                Insert a new entry ``k`` into a strictly increasing
+                list ``X`` in such a way that the resulting list is
+                still strictly increasing.
+                The return value is the pair ``(s, Y)``, where ``Y``
+                is the resulting list (as tuple) and ``s`` is the
+                Koszul sign incurred by the insertion (with the
+                understanding that ``k`` originally stood to the
+                left of the list).
+                If ``k`` is already in ``X``, then the return value
+                is ``(zero, None)``.
+                """
                 Y = list(X)
                 for i in range(len(X)-1, -1, -1):
                     val = X[i]
@@ -829,9 +830,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Y.insert(0, k)
                 return R.one(), tuple(Y)
 
-            chain_data = {}
-            for k in range(1,len(Ind)+1):
-                # Build the k-th differential
+            from sage.parallel.decorate import parallel
+            @parallel(ncpus=ncpus)
+            def compute_diff(k):
+                """
+                Build the ``k``-th differential (in parallel).
+                """
                 indices = {tuple(X): i for i,X in enumerate(combinations(Ind, k-1))}
                 if sparse:
                     data = {}
@@ -872,8 +876,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 nrows = binomial(len(Ind), k)
                 ncols = binomial(len(Ind), k-1)
                 MS = MatrixSpace(R, nrows, ncols, sparse=sparse)
-                chain_data[k] = MS(data).transpose()
-                chain_data[k].set_immutable()
+                ret = MS(data).transpose()
+                ret.set_immutable()
+                return ret
+
+            chain_data = {X[0][0]: M for X, M in compute_diff(list( range(1,len(Ind)+1) ))}
 
             from sage.homology.chain_complex import ChainComplex
             try:
@@ -881,12 +888,22 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             except TypeError:
                 return chain_data
 
-        def homology(self, deg=None, M=None):
+        def homology(self, deg=None, M=None, sparse=True, ncpus=None):
             r"""
             Return the Lie algebra homology of ``self``.
 
             The Lie algebra homology is the homology of the
             Chevalley-Eilenberg chain complex.
+
+            INPUT:
+
+            - ``deg`` -- the degree of the homology (optional)
+            - ``M`` -- (default: the trivial module) a right module
+              of ``self``
+            - ``sparse`` -- (default: ``True``) whether to use sparse
+              matrices for the Chevalley-Eilenberg chain complex
+            - ``ncpus`` -- (optional) how many cpus to use when
+              computing the Chevalley-Eilenberg chain complex
 
             EXAMPLES::
 
@@ -910,9 +927,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 :meth:`chevalley_eilenberg_complex`
             """
-            return self.chevalley_eilenberg_complex(M=M).homology(deg=deg)
+            C = self.chevalley_eilenberg_complex(M=M, sparse=sparse,
+                                                 ncpus=ncpus)
+            return C.homology(deg=deg)
 
-        def cohomology(self, deg=None, M=None):
+        def cohomology(self, deg=None, M=None, sparse=True, ncpus=None):
             r"""
             Return the Lie algebra cohomology of ``self``.
 
@@ -935,6 +954,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             modulo the space of inner derivations and
             `H^2(\mathfrak{g}; M)` is the equivalence classes of
             Lie algebra extensions of `\mathfrak{g}` by `M`.
+
+            INPUT:
+
+            - ``deg`` -- the degree of the homology (optional)
+            - ``M`` -- (default: the trivial module) a right module
+              of ``self``
+            - ``sparse`` -- (default: ``True``) whether to use sparse
+              matrices for the Chevalley-Eilenberg chain complex
+            - ``ncpus`` -- (optional) how many cpus to use when
+              computing the Chevalley-Eilenberg chain complex
 
             EXAMPLES::
 
@@ -965,7 +994,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             - :wikipedia:`Lie_algebra_cohomology`
             """
-            return self.chevalley_eilenberg_complex(M=M, dual=True).homology(deg=deg)
+            C = self.chevalley_eilenberg_complex(M=M, dual=True, sparse=sparse,
+                                                 ncpus=ncpus)
+            return C.homology(deg=deg)
 
         def as_finite_dimensional_algebra(self):
             """

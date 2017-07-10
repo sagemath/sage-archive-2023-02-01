@@ -717,7 +717,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return not self.killing_form_matrix().is_singular()
 
         @cached_method
-        def chevalley_eilenberg_complex(self, M=None, dual=False):
+        def chevalley_eilenberg_complex(self, M=None, dual=False, sparse=True):
             r"""
             Return the Chevalley-Eilenberg complex of ``self``.
 
@@ -747,10 +747,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             INPUT:
 
             - ``M`` -- (default: the trivial 1-dimensional module)
-              the module `M`.
+              the module `M`
 
             - ``dual`` -- (default: ``False``) if ``True``, causes
-              the dual of the complex to be computed.
+              the dual of the complex to be computed
+
+            - ``sparse`` -- (default: ``True``) whether to use sparse
+              or dense matrices
 
             EXAMPLES::
 
@@ -778,11 +781,20 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 given by the trivial module `R`, where `R` is the
                 base ring and `g R = 0` for all `g \in \mathfrak{g}`.
                 Allow generic coefficient modules `M`.
+
+            .. TODO::
+
+                Allow an optional sparse version
             """
             if dual:
                 return self.chevalley_eilenberg_complex(M).dual()
 
+            if M is not None:
+                raise NotImplementedError("only implemented for the default"
+                                          " (the trivial module)")
+
             from itertools import combinations
+            from sage.functions.other import binomial
             R = self.base_ring()
             zero = R.zero()
             mone = -R.one()
@@ -821,9 +833,14 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             for k in range(1,len(Ind)+1):
                 # Build the k-th differential
                 indices = {tuple(X): i for i,X in enumerate(combinations(Ind, k-1))}
-                data = []
+                if sparse:
+                    data = {}
+                    row = 0
+                else:
+                    data = []
                 for X in combinations(Ind, k):
-                    ret = [zero] * len(indices)
+                    if not sparse:
+                        ret = [zero] * len(indices)
                     for i in range(k):
                         Y = list(X)
                         Y.pop(i)
@@ -840,12 +857,29 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                 s, A = sgn(key, Z)
                                 if A is None:
                                     continue
-                                ret[indices[A]] += s * coeff
-                    data.append(ret)
-                chain_data[k] = matrix(R, data).transpose()
+                                if sparse:
+                                    coords = (row,indices[A])
+                                    if coords in data:
+                                        data[coords] += s * coeff
+                                    else:
+                                        data[coords] = s * coeff
+                                else:
+                                    ret[indices[A]] += s * coeff
+                    if sparse:
+                        row += 1
+                    else:
+                        data.append(ret)
+                nrows = binomial(len(Ind), k)
+                ncols = binomial(len(Ind), k-1)
+                MS = MatrixSpace(R, nrows, ncols, sparse=sparse)
+                chain_data[k] = MS(data).transpose()
+                chain_data[k].set_immutable()
 
             from sage.homology.chain_complex import ChainComplex
-            return ChainComplex(chain_data, degree_of_differential=-1)
+            try:
+                return ChainComplex(chain_data, degree_of_differential=-1)
+            except TypeError:
+                return chain_data
 
         def homology(self, deg=None, M=None):
             r"""

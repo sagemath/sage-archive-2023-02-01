@@ -704,15 +704,15 @@ def Matroid(groundset=None, data=None, **kwds):
     # Graphs:
 
     elif key == 'graph':
+        if isinstance(data, sage.graphs.generic_graph.GenericGraph):
+            G = data
+        else:
+            G = Graph(data)
         if want_regular:
         # Construct the incidence matrix
         # NOTE: we are not using Sage's built-in method because
         # 1) we would need to fix the loops anyway
         # 2) Sage will sort the columns, making it impossible to keep labels!
-            if isinstance(data, sage.graphs.generic_graph.GenericGraph):
-                G = data
-            else:
-                G = Graph(data)
             V = G.vertices()
             n = G.num_verts()
             m = G.num_edges()

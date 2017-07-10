@@ -1611,7 +1611,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         from sage.all import PolynomialRing
         # Meanwhile Singulars quotient rings are also of 'ring' type, not 'qring' as it was in the past.
         # To find out if a singular ring is a quotient ring or not checking for ring type does not help
-        # and instead of that we we check if the quotient ring is zero or not:
+        # and instead of that we check if the quotient ring is zero or not:
         if (singular.eval('ideal(basering)==0')=='1'):
             return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))

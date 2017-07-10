@@ -790,7 +790,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         for assignment.
 
         The components with respect to other frames on the same domain are
-        kept. To delete them them, use the method :meth:`set_comp` instead.
+        kept. To delete them, use the method :meth:`set_comp` instead.
 
         INPUT:
 

@@ -457,8 +457,8 @@ def is_comparability_MILP(g, certificate = False):
                     p.add_constraint(o[u,v] + o[vv,u] - o[vv,v] <= 1)
                     p.add_constraint(o[u,vv] + o[v,u] - o[v,vv] <= 1)
 
-                # If there is no edge there there are only two
-                # orientation possible (see the module's documentation
+                # If there is no edge, there are only two
+                # orientations possible (see the module's documentation
                 # about edges which imply each other)
                 else:
                     p.add_constraint(o[u,v] + o[vv,u] <= 1)

@@ -1116,7 +1116,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     A = (-X.a1()/2 - A) * f
 
     # Convert to a power series and remove the -1/x term.
-    # Also we artificially bump up the accuracy from N-2 to to N-1 digits;
+    # Also we artificially bump up the accuracy from N-2 to N-1 digits;
     # the constant term needs to be known to N-1 digits, so we compute
     # it directly
     assert A.valuation() == -1 and A[-1] == 1

@@ -1042,7 +1042,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
           the group to be returned. If ``False``, the group to be returned
           keeps the generator names of the two groups forming the direct
           product. Note that one cannot ask to reduce the output and ask
-          to keep the old variable names, as they they may change meaning
+          to keep the old variable names, as they may change meaning
           in the output group if its presentation is reduced.
 
         OUTPUT:

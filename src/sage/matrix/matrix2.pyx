@@ -7239,7 +7239,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``check`` -- (default: ``False``) If ``True`` return a tuple of
-            the maximal matrix and the permutations taking taking ``self``
+            the maximal matrix and the permutations taking ``self``
             to the maximal matrix.
             If ``False``, return only the maximal matrix.
 

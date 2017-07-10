@@ -94,7 +94,7 @@ class QuiverHomSpace(Homset):
         # and N to the vertices of the quiver.  Each coordinate represents a
         # single entry in one of those matrices.
 
-        # Get the quiver and base ring and check they they are the same for
+        # Get the quiver and base ring and check that they are the same for
         # both modules
         if domain._semigroup != codomain._semigroup:
             raise ValueError("representations are not over the same quiver")

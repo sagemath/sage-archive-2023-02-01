@@ -587,8 +587,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
     def new_from(self, type, value):
         """
-        Returns a new Macaulay2Element of type type constructed from
-        value.
+        Return a new ``Macaulay2Element`` of type ``type`` constructed from
+        ``value``.
 
         EXAMPLES::
 

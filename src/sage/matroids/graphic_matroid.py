@@ -507,7 +507,7 @@ class GraphicMatroid(Matroid):
             sage: M._has_minor(N1)
             True
             sage: M._has_minor(N, certificate = True)
-            (True, (frozenset({4, 5, 6}), frozenset({2, 3, 8}), {0: 0, 1: 1, 2: 7}))
+            (True, (frozenset({4, 5, 6}), frozenset({2, 3, 8}), {0: 1, 1: 0, 2: 7}))
 
         ::
 
@@ -518,8 +518,8 @@ class GraphicMatroid(Matroid):
             sage: M.has_minor(N, certificate = True)
             (True,
              (frozenset({14}),
-              frozenset({4, 7, 8, 9, 11, 13}),
-              {0: 3, 1: 1, 2: 0, 3: 2, 4: 10, 5: 12, 6: 5, 7: 6}))
+              frozenset({0, 4, 8, 9, 11, 13}),
+              {0: 3, 1: 10, 2: 7, 3: 12, 4: 1, 5: 2, 6: 5, 7: 6}))
             sage: N.has_minor(M)
             False
             sage: N.has_minor(M, certificate = True)
@@ -575,12 +575,10 @@ class GraphicMatroid(Matroid):
                         deletions.extend([l for (u0, v0, l) in G.edges_incident(v)])
 
                 # take contractions and deletions with what we have so far
-                # cast as regular matroid to avoid infinite recursion on this method
+                # then use method from abstract matroid class
                 conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
                 M = M.minor(contractions = conset, deletions = delset)
-                from .constructor import Matroid as ConstructorMatroid
-                M = ConstructorMatroid(graph = M._G, regular = True)
-                (should_be_true, elements) =  M._has_minor(N, certificate = True)
+                (should_be_true, elements) =  Matroid._has_minor(M, N, certificate = True)
 
                 # elements is a tuple (contractions, deletions, dict)
                 # There should be no more contractions

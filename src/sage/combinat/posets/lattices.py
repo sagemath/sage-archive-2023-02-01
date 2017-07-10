@@ -1626,6 +1626,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset(Poset(G).with_bounds())
             sage: L.is_relatively_complemented()
             False
+
+        Confirm that :trac:`22292` is fixed::
+
+            sage: L = LatticePoset(DiGraph('IYOS`G?CE?@?C?_@??'))
+            sage: L.is_relatively_complemented(certificate=True)
+            (False, (7, 8, 9))
         """
         from sage.misc.flatten import flatten
         from collections import Counter
@@ -1649,8 +1655,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
-                    e2 = H.neighbors_in(e3)[0]
-                    e1 = H.neighbors_in(e2)[0]
+                    for e2 in H.neighbors_in(e3):
+                        if e2 in H.neighbors_out(e1):
+                            break
                     return (False, (self._vertex_to_element(e1),
                                     self._vertex_to_element(e2),
                                     self._vertex_to_element(e3)))

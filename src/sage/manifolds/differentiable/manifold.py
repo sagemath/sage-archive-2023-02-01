@@ -1097,12 +1097,12 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`)
-          representing the module `\mathcal{X}(M,\Phi)` of vector fields on
+          representing the module `\mathfrak{X}(M,\Phi)` of vector fields on
           `M` taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
 
-        Vector field module `\mathcal{X}(U) := \mathcal{X}(U,\mathrm{Id}_U)`
+        Vector field module `\mathfrak{X}(U) := \mathfrak{X}(U,\mathrm{Id}_U)`
         of the complement `U` of the two poles on the sphere `\mathbb{S}^2`::
 
             sage: S2 = Manifold(2, 'S^2')
@@ -1121,7 +1121,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: XU.base_ring() is U.scalar_field_algebra()
             True
 
-        `\mathcal{X}(U)` is a free module because `U` is parallelizable
+        `\mathfrak{X}(U)` is a free module because `U` is parallelizable
         (being a chart domain)::
 
             sage: U.is_manifestly_parallelizable()
@@ -1132,7 +1132,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: XU.rank()
             2
 
-        The elements of `\mathcal{X}(U)` are vector fields on `U`::
+        The elements of `\mathfrak{X}(U)` are vector fields on `U`::
 
             sage: XU.an_element()
             Vector field on the Open subset U of the 2-dimensional
@@ -1140,7 +1140,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: XU.an_element().display()
             2 d/dth + 2 d/dph
 
-        Vector field module `\mathcal{X}(U,\Phi)` of the
+        Vector field module `\mathfrak{X}(U,\Phi)` of the
         `\RR^3`-valued vector fields along `U`, associated with the
         embedding `\Phi` of `\mathbb{S}^2` into `\RR^3`::
 
@@ -1156,7 +1156,7 @@ class DifferentiableManifold(TopologicalManifold):
             Algebra of differentiable scalar fields on the Open subset U of the
              2-dimensional differentiable manifold S^2
 
-        `\mathcal{X}(U,\Phi)` is a free module because `\RR^3`
+        `\mathfrak{X}(U,\Phi)` is a free module because `\RR^3`
         is parallelizable and its rank is 3::
 
             sage: XU_R3.rank()
@@ -1366,8 +1366,8 @@ class DifferentiableManifold(TopologicalManifold):
         If `M` is the current manifold and `\Phi` a differentiable map
         `\Phi: M \rightarrow N`, where `N` is a differentiable manifold,
         this method called with ``dest_map`` being `\Phi` returns the
-        general linear group `\mathrm{GL}(\mathcal{X}(M, \Phi))` of the module
-        `\mathcal{X}(M, \Phi)` of vector fields along `M` with values in
+        general linear group `\mathrm{GL}(\mathfrak{X}(M, \Phi))` of the module
+        `\mathfrak{X}(M, \Phi)` of vector fields along `M` with values in
         `\Phi(M) \subset N`.
 
         INPUT:
@@ -1386,7 +1386,7 @@ class DifferentiableManifold(TopologicalManifold):
           (if `N` is parallelizable) or a
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
           (if `N` is not parallelizable) representing
-          `\mathrm{GL}(\mathcal{X}(U, \Phi))`
+          `\mathrm{GL}(\mathfrak{X}(U, \Phi))`
 
         EXAMPLES:
 
@@ -1472,7 +1472,7 @@ class DifferentiableManifold(TopologicalManifold):
             Vector field v on the Open subset U of the 3-dimensional
              differentiable manifold M
 
-        The vector fields on `U` form the set `\mathcal{X}(U)`, which is a
+        The vector fields on `U` form the set `\mathfrak{X}(U)`, which is a
         module over the algebra `C^k(U)` of differentiable scalar fields
         on `U`::
 

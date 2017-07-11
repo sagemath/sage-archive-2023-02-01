@@ -58,7 +58,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         \Phi:\  U \longrightarrow M,
 
-    the *vector field module* `\mathcal{X}(U,\Phi)` is the set of
+    the *vector field module* `\mathfrak{X}(U,\Phi)` is the set of
     all vector fields of the type
 
     .. MATH::
@@ -73,7 +73,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
 
-    The set `\mathcal{X}(U,\Phi)` is a module over `C^k(U)`, the ring
+    The set `\mathfrak{X}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     Furthermore, it is a Lie algebroid under the Lie bracket (cf.
@@ -89,7 +89,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U = M` and `\Phi = \mathrm{Id}_M`; we then denote
-    `\mathcal{X}(M,\mathrm{Id}_M)` by merely `\mathcal{X}(M)`. Other common
+    `\mathfrak{X}(M,\mathrm{Id}_M)` by merely `\mathfrak{X}(M)`. Other common
     cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
@@ -126,7 +126,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Module X(M) of vector fields on the 2-dimensional differentiable
          manifold M
 
-    `\mathcal{X}(M)` is a module over the algebra `C^k(M)`::
+    `\mathfrak{X}(M)` is a module over the algebra `C^k(M)`::
 
         sage: XM.category()
         Category of modules over Algebra of differentiable scalar fields on the
@@ -134,7 +134,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
-    `\mathcal{X}(M)` is not a free module::
+    `\mathfrak{X}(M)` is not a free module::
 
         sage: isinstance(XM, FiniteRankFreeModule)
         False
@@ -162,8 +162,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         sage: z.display(c_uv.frame())
         zero = 0
 
-    The module `\mathcal{X}(M)` coerces to any module of vector fields defined
-    on a subdomain of `M`, for instance `\mathcal{X}(U)`::
+    The module `\mathfrak{X}(M)` coerces to any module of vector fields defined
+    on a subdomain of `M`, for instance `\mathfrak{X}(U)`::
 
         sage: XU.has_coerce_map_from(XM)
         True
@@ -209,7 +209,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         self._domain = domain
         name = "X(" + domain._name
-        latex_name = r"\mathcal{X}\left(" + domain._latex_name
+        latex_name = r"\mathfrak{X}\left(" + domain._latex_name
         if dest_map is None:
             dest_map = domain.identity_map()
         self._dest_map = dest_map
@@ -362,9 +362,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM._latex_()
-            '\\mathcal{X}\\left(M\\right)'
+            '\\mathfrak{X}\\left(M\\right)'
             sage: latex(XM)  # indirect doctest
-            \mathcal{X}\left(M\right)
+            \mathfrak{X}\left(M\right)
 
         """
         if self._latex_name is None:
@@ -376,7 +376,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Return the domain of the vector fields in this module.
 
-        If the module is `\mathcal{X}(U,\Phi)`, returns the domain `U` of
+        If the module is `\mathfrak{X}(U,\Phi)`, returns the domain `U` of
         `\Phi`.
 
         OUTPUT:
@@ -406,7 +406,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Return the manifold in which the vector fields of this module take
         their values.
 
-        If the module is `\mathcal{X}(U,\Phi)`, returns the codomain `M` of
+        If the module is `\mathfrak{X}(U,\Phi)`, returns the codomain `M` of
         `\Phi`.
 
         OUTPUT:
@@ -441,7 +441,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
             \Phi:\  U \longrightarrow M
 
-        such that this module is the set `\mathcal{X}(U,\Phi)` of all
+        such that this module is the set `\mathfrak{X}(U,\Phi)` of all
         vector fields of the type
 
         .. MATH::
@@ -534,7 +534,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Return the `p`-th exterior power of ``self``.
 
-        If the vector field module ``self`` is `\mathcal{X}(U,\Phi)`,
+        If the vector field module ``self`` is `\mathfrak{X}(U,\Phi)`,
         its `p`-th exterior power is the set `A^p(U, \Phi)` of
         `p`-vector fields along `U` with values on `\Phi(U)`. It is a
         module over `C^k(U)`, the ring (algebra) of differentiable
@@ -548,7 +548,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         - for `p=0`, the base ring, i.e. `C^k(U)`
         - for `p=1`, the vector field module ``self``, since
-          `A^1(U, \Phi) = \mathcal{X}(U,\Phi)`
+          `A^1(U, \Phi) = \mathfrak{X}(U,\Phi)`
         - for `p \geq 2`, instance of
           :class:`~sage.manifolds.differentiable.multivector_module.MultivectorModule`
           representing the module `A^p(U,\Phi)`
@@ -592,7 +592,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Return the `p`-th exterior power of the dual of the vector field
         module.
 
-        If the vector field module is `\mathcal{X}(U,\Phi)`, the
+        If the vector field module is `\mathfrak{X}(U,\Phi)`, the
         `p`-th exterior power of its dual is the set `\Omega^p(U, \Phi)`
         of `p`-forms along `U` with values on `\Phi(U)`. It is a module
         over `C^k(U)`, the ring (algebra) of differentiable scalar
@@ -659,17 +659,17 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Return the general linear group of ``self``.
 
-        If the vector field module is `\mathcal{X}(U,\Phi)`, the *general
-        linear group* is the group `\mathrm{GL}(\mathcal{X}(U,\Phi))` of
-        automorphisms of `\mathcal{X}(U, \Phi)`. Note that an automorphism
-        of `\mathcal{X}(U,\Phi)` can also be viewed as a *field* along `U`
+        If the vector field module is `\mathfrak{X}(U,\Phi)`, the *general
+        linear group* is the group `\mathrm{GL}(\mathfrak{X}(U,\Phi))` of
+        automorphisms of `\mathfrak{X}(U, \Phi)`. Note that an automorphism
+        of `\mathfrak{X}(U,\Phi)` can also be viewed as a *field* along `U`
         of automorphisms of the tangent spaces of `M \supset \Phi(U)`.
 
         OUTPUT:
 
         - instance of class
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
-          representing `\mathrm{GL}(\mathcal{X}(U,\Phi))`
+          representing `\mathrm{GL}(\mathfrak{X}(U,\Phi))`
 
         EXAMPLES::
 
@@ -837,6 +837,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
+        if degree == 0:
+            return self._domain.scalar_field(name=name, latex_name=latex_name)
         if degree == 1:
             return self.element_class(self, name=name,
                                       latex_name=latex_name)
@@ -1084,7 +1086,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         \Phi:\ U \longrightarrow M
 
-    the *vector field module* `\mathcal{X}(U,\Phi)` is the set of all vector
+    the *vector field module* `\mathfrak{X}(U,\Phi)` is the set of all vector
     fields of the type
 
     .. MATH::
@@ -1099,7 +1101,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     where `T_{\Phi(p)} M` is the tangent space to `M` at the point `\Phi(p)`.
 
-    Since `M` is parallelizable, the set `\mathcal{X}(U,\Phi)` is a
+    Since `M` is parallelizable, the set `\mathfrak{X}(U,\Phi)` is a
     free module over `C^k(U)`, the ring (algebra) of differentiable
     scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
@@ -1108,14 +1110,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     The standard case of vector fields *on* a differentiable manifold
     corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
-    `\mathcal{X}(M,\mathrm{Id}_M)` by merely `\mathcal{X}(M)`. Other common
+    `\mathfrak{X}(M,\mathrm{Id}_M)` by merely `\mathfrak{X}(M)`. Other common
     cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
     then an open interval of `\RR`).
 
     .. NOTE::
 
         If `M` is not parallelizable, the class :class:`VectorFieldModule`
-        should be used instead, for `\mathcal{X}(U,\Phi)` is no longer a
+        should be used instead, for `\mathfrak{X}(U,\Phi)` is no longer a
         free module.
 
     INPUT:
@@ -1182,7 +1184,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
          over Algebra of differentiable scalar fields
          on the 1-dimensional differentiable manifold I
 
-    The rank of the free module `\mathcal{X}(I,\Phi)` is the dimension
+    The rank of the free module `\mathfrak{X}(I,\Phi)` is the dimension
     of the manifold `\RR^2`, namely two::
 
         sage: XIM.rank()
@@ -1274,8 +1276,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: z.display(c_t.frame())
         zero = 0
 
-    The module `\mathcal{X}(S^1)` coerces to any module of vector fields
-    defined on a subdomain of `S^1`, for instance `\mathcal{X}(U)`::
+    The module `\mathfrak{X}(S^1)` coerces to any module of vector fields
+    defined on a subdomain of `S^1`, for instance `\mathfrak{X}(U)`::
 
         sage: XU = U.vector_field_module() ; XU
         Free module X(U) of vector fields on the Open subset U of the
@@ -1324,7 +1326,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         self._dest_map = dest_map
         self._ambient_domain = self._dest_map._codomain
         name = "X(" + domain._name
-        latex_name = r"\mathcal{X}\left(" + domain._latex_name
+        latex_name = r"\mathfrak{X}\left(" + domain._latex_name
         if self._dest_map == domain.identity_map():
             name += ")"
             latex_name += r"\right)"
@@ -1451,7 +1453,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Return the domain of the vector fields in ``self``.
 
-        If the module is `\mathcal{X}(U, \Phi)`, returns the domain `U`
+        If the module is `\mathfrak{X}(U, \Phi)`, returns the domain `U`
         of `\Phi`.
 
         OUTPUT:
@@ -1483,7 +1485,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         Return the manifold in which the vector fields of ``self``
         take their values.
 
-        If the module is `\mathcal{X}(U, \Phi)`, returns the codomain `M`
+        If the module is `\mathfrak{X}(U, \Phi)`, returns the codomain `M`
         of `\Phi`.
 
         OUTPUT:
@@ -1520,7 +1522,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
             \Phi:\  U \longrightarrow M
 
-        such that this module is the set `\mathcal{X}(U,\Phi)` of all vector
+        such that this module is the set `\mathfrak{X}(U,\Phi)` of all vector
         fields of the type
 
         .. MATH::
@@ -1617,7 +1619,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Return the `p`-th exterior power of ``self``.
 
-        If the vector field module ``self`` is `\mathcal{X}(U,\Phi)`,
+        If the vector field module ``self`` is `\mathfrak{X}(U,\Phi)`,
         its `p`-th exterior power is the set `A^p(U, \Phi)` of
         `p`-vector fields along `U` with values on `\Phi(U)`. It is a
         free module over `C^k(U)`, the ring (algebra) of differentiable
@@ -1631,7 +1633,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         - for `p=0`, the base ring, i.e. `C^k(U)`
         - for `p=1`, the vector field free module ``self``, since
-          `A^1(U, \Phi) = \mathcal{X}(U,\Phi)`
+          `A^1(U, \Phi) = \mathfrak{X}(U,\Phi)`
         - for `p \geq 2`, instance of
           :class:`~sage.manifolds.differentiable.multivector_module.MultivectorFreeModule`
           representing the module `A^p(U,\Phi)`
@@ -1675,7 +1677,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Return the `p`-th exterior power of the dual of ``self``.
 
-        If the vector field module ``self`` is `\mathcal{X}(U,\Phi)`,
+        If the vector field module ``self`` is `\mathfrak{X}(U,\Phi)`,
         the `p`-th exterior power of its dual is the set
         `\Omega^p(U, \Phi)` of `p`-forms along `U` with values on
         `\Phi(U)`. It is a free module over `C^k(U)`, the ring (algebra)
@@ -1729,17 +1731,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Return the general linear group of ``self``.
 
-        If the vector field module is `\mathcal{X}(U,\Phi)`, the *general
-        linear group* is the group `\mathrm{GL}(\mathcal{X}(U,\Phi))` of
-        automorphisms of `\mathcal{X}(U,\Phi)`. Note that an automorphism of
-        `\mathcal{X}(U,\Phi)` can also be viewed as a *field* along `U` of
+        If the vector field module is `\mathfrak{X}(U,\Phi)`, the *general
+        linear group* is the group `\mathrm{GL}(\mathfrak{X}(U,\Phi))` of
+        automorphisms of `\mathfrak{X}(U,\Phi)`. Note that an automorphism of
+        `\mathfrak{X}(U,\Phi)` can also be viewed as a *field* along `U` of
         automorphisms of the tangent spaces of `V=\Phi(U)`.
 
         OUTPUT:
 
         - a
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
-          representing `\mathrm{GL}(\mathcal{X}(U,\Phi))`
+          representing `\mathrm{GL}(\mathfrak{X}(U,\Phi))`
 
         EXAMPLES::
 

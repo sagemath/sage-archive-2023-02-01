@@ -103,7 +103,7 @@ class DiffForm(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
@@ -598,6 +598,155 @@ class DiffForm(TensorField):
         """
         return metric.hodge_star(self)
 
+    def interior_product(self, qvect):
+        r"""
+        Interior product with a multivector field.
+
+        If ``self`` is a differential form `A` of degree `p` and `B` is a
+        multivector field of degree `q\geq p` on the same manifold, the
+        interior product of `A` by `B` is the multivector field `\iota_A B` of
+        degree `q-p` defined by
+
+        .. MATH::
+
+            (\iota_A B)^{i_1\ldots i_{q-p}} = A_{k_1\ldots k_p}
+                            B^{k_1\ldots k_p i_1\ldots i_{q-p}}
+
+        .. NOTE::
+
+            ``A.interior_product(B)`` yields the same result as
+            ``A.contract(0,..., p-1, B, 0,..., p-1)`` (cf.
+            :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.contract`),
+            but ``interior_product`` is more efficient, the alternating
+            character of `A` being not used to reduce the computation in
+            :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.contract`
+
+        INPUT:
+
+        - ``qvect`` -- multivector field `B` (instance of
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`);
+          the degree of `B` must be at least equal to the degree of ``self``
+
+        OUTPUT:
+
+        - scalar field (case `p=q`) or
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+          (case `p<q`) representing the interior product `\iota_A B`, where
+          `A` is ``self``
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.multivectorfield.MultivectorField.interior_product`
+            for the interior product of a multivector field with a differential
+            form
+
+        EXAMPLES:
+
+        Interior product of a 1-form with a 2-vector field on the 2-sphere::
+
+            sage: M = Manifold(2, 'S^2', start_index=1) # the sphere S^2
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: c_xy.<x,y> = U.chart() # stereographic coord. North
+            sage: c_uv.<u,v> = V.chart() # stereographic coord. South
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V) # The complement of the two poles
+            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
+            sage: a = M.one_form(name='a')
+            sage: a[e_xy,:] = y, x
+            sage: a.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: b = M.multivector_field(2, name='b')
+            sage: b[e_xy,1,2] = x*y
+            sage: b.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: s = a.interior_product(b); s
+            Vector field i_a b on the 2-dimensional differentiable manifold S^2
+            sage: s.display(e_xy)
+            i_a b = -x^2*y d/dx + x*y^2 d/dy
+            sage: s.display(e_uv)
+            i_a b = (u^4*v - 3*u^2*v^3)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) d/du
+             + (3*u^3*v^2 - u*v^4)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) d/dv
+            sage: s == a.contract(b)
+            True
+
+        Interior product of a 2-form with a 2-vector field::
+
+            sage: a = M.diff_form(2, name='a')
+            sage: a[e_xy,1,2] = 4/(x^2+y^2+1)^2   # the standard area 2-form
+            sage: a.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: s = a.interior_product(b); s
+            Scalar field i_a b on the 2-dimensional differentiable manifold S^2
+            sage: s.display()
+            i_a b: S^2 --> R
+            on U: (x, y) |--> 8*x*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
+            on V: (u, v) |--> 8*u*v/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
+
+        Some checks::
+
+            sage: s == a.contract(0, 1, b, 0, 1)
+            True
+            sage: s.restrict(U) == 2 * a[[e_xy,1,2]] * b[[e_xy,1,2]]
+            True
+            sage: s.restrict(V) == 2 * a[[e_uv,1,2]] * b[[e_uv,1,2]]
+            True
+
+        """
+        from sage.tensor.modules.format_utilities import is_atomic
+        if self._domain.is_subset(qvect._domain):
+            if not self._ambient_domain.is_subset(qvect._ambient_domain):
+                raise ValueError("incompatible ambient domains for interior " +
+                                 "product")
+        elif qvect._domain.is_subset(self._domain):
+            if not qvect._ambient_domain.is_subset(self._ambient_domain):
+                raise ValueError("incompatible ambient domains for interior " +
+                                 "product")
+        dom_resu = self._domain.intersection(qvect._domain)
+        ambient_dom_resu = self._ambient_domain.intersection(qvect._ambient_domain)
+        self_r = self.restrict(dom_resu)
+        qvect_r = qvect.restrict(dom_resu)
+        if ambient_dom_resu.is_manifestly_parallelizable():
+            # call of the AlternatingContrTensor version:
+            return AlternatingContrTensor.interior_product(self_r, qvect_r)
+        # Otherwise, the result is created here:
+        # Name of the result
+        resu_name = None
+        if self._name is not None and qvect._name is not None:
+            sname = self._name
+            oname = qvect._name
+            if not is_atomic(sname):
+                sname = '(' + sname + ')'
+            if not is_atomic(oname):
+                oname = '(' + oname + ')'
+            resu_name = 'i_' + sname + ' ' + oname
+        resu_latex_name = None
+        if self._latex_name is not None and qvect._latex_name is not None:
+            slname = self._latex_name
+            olname = qvect._latex_name
+            if not is_atomic(olname):
+                olname = r'\left(' + olname + r'\right)'
+            resu_latex_name = r'\iota_{' + slname + '} ' + olname
+        # Domain and computation of the result
+        dest_map = self._vmodule._dest_map
+        dest_map_resu = dest_map.restrict(dom_resu,
+                                          subcodomain=ambient_dom_resu)
+        vmodule = dom_resu.vector_field_module(dest_map=dest_map_resu)
+        resu_degree = qvect._tensor_rank - self._tensor_rank
+        resu = vmodule.alternating_contravariant_tensor(resu_degree,
+                                    name=resu_name, latex_name=resu_latex_name)
+        for dom in self_r._restrictions:
+            if dom in qvect_r._restrictions:
+                resu._restrictions[dom] = \
+                    self_r._restrictions[dom].interior_product(
+                                                    qvect_r._restrictions[dom])
+        if resu_degree == 0:
+            if not resu._express: # only the restrictions to subdomains have
+                                  # been initialized
+                for chart in dom_resu.top_charts():
+                    resu._express[chart] = \
+                            resu.restrict(chart.domain()).coord_function(chart)
+        return resu
 
 #******************************************************************************
 
@@ -638,7 +787,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
@@ -1288,23 +1437,54 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         INPUT:
 
         - ``qvect`` -- multivector field `B` (instance of
-          :class:`~sage.manifolds.differentiable.multivectorfield.MultiVectorFieldParal`);
-          the degree of `B` must be at least equal to the degree of ``self``
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal`);
+          the degree of `B` must be at least equal to the degree of
+          ``self``
 
         OUTPUT:
 
         - scalar field (case `p=q`) or
-          :class:`~sage.manifolds.differentiable.multivectorfield.MultiVectorFieldParal`
-          (case `p<q`) representing the interior product `\iota_A B`, where `A`
-          is ``self``
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal`
+          (case `p<q`) representing the interior product `\iota_A B`,
+          where `A` is ``self``
 
         .. SEEALSO::
 
-            :meth:`~sage.manifolds.differentiable.multivectorfield.MultiVectorFieldParal.interior_product`
-            for the interior product of a multivector field by a differential
-            form
+            :meth:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal.interior_product`
+            for the interior product of a multivector field with a
+            differential form
 
         EXAMPLES:
+
+        Interior product of a 1-form with a 2-vector field on a
+        3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: a = M.one_form(name='a')
+            sage: a[:] = [2, 1+x, y*z]
+            sage: b = M.multivector_field(2, name='b')
+            sage: b[1,2], b[1,3], b[2,3] = y^2, z+x, -z^2
+            sage: s = a.interior_product(b); s
+            Vector field i_a b on the 3-dimensional differentiable
+             manifold M
+            sage: s.display()
+            i_a b = (-(x + 1)*y^2 - x*y*z - y*z^2) d/dx
+             + (y*z^3 + 2*y^2) d/dy + (-(x + 1)*z^2 + 2*x + 2*z) d/dz
+            sage: s == a.contract(b)
+            True
+
+        Interior product of a 2-form with a 2-vector field::
+
+            sage: a = M.diff_form(2, name='a')
+            sage: a[1,2], a[1,3], a[2,3] = x*y, -3, z
+            sage: s = a.interior_product(b); s
+            Scalar field i_a b on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            i_a b: M --> R
+               (x, y, z) |--> 2*x*y^3 - 2*z^3 - 6*x - 6*z
+            sage: s == a.contract(0,1,b,0,1)
+            True
 
         """
         if self._domain.is_subset(qvect._domain):

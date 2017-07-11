@@ -102,7 +102,7 @@ class VectorField(MultivectorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M\supset\Phi(U)`
     - ``name`` -- (default: ``None``) name given to the vector field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
@@ -976,7 +976,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M\supset\Phi(U)`
     - ``name`` -- (default: ``None``) name given to the vector field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector

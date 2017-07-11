@@ -79,7 +79,7 @@ class MultivectorField(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector fields
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector fields
       along `U` with values on `M` via the map `\Phi`
     - ``degree`` -- the degree of the multivector field (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the multivector field
@@ -364,12 +364,12 @@ class MultivectorField(TensorField):
         .. SEEALSO::
 
             :meth:`~sage.manifolds.differentiable.diff_form.DiffForm.interior_product`
-            for the interior product of an differential form by a multivector
+            for the interior product of a differential form with a multivector
             field
 
         EXAMPLES:
 
-        Interior product of a vector field (`p=1`) by a 2-form (`q=2`) on the
+        Interior product of a vector field (`p=1`) with a 2-form (`q=2`) on the
         2-sphere::
 
             sage: M = Manifold(2, 'S^2', start_index=1) # the sphere S^2
@@ -550,7 +550,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``degree`` -- the degree of the multivector field (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the multivector field
@@ -865,8 +865,8 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         OUTPUT:
 
-        - instance of :class:`MultivectorFieldParal` representing the exterior
-          product ``self/\other``
+        - instance of :class:`MultivectorFieldParal` representing the
+          exterior product ``self/\other``
 
         EXAMPLES:
 
@@ -884,7 +884,8 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             sage: b.display()
             b = y^2 d/dx/\d/dy + (x + z) d/dx/\d/dz + z^2 d/dy/\d/dz
             sage: s = a.wedge(b); s
-            3-vector field a/\b on the 3-dimensional differentiable manifold M
+            3-vector field a/\b on the 3-dimensional differentiable
+             manifold M
             sage: s.display()
             a/\b = (-x^2 + (y^3 - x - 1)*z + 2*z^2 - x) d/dx/\d/dy/\d/dz
 
@@ -946,8 +947,8 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         .. SEEALSO::
 
             :meth:`~sage.manifolds.differentiable.diff_form.DiffFormParal.interior_product`
-            for the interior product of an differential form by a multivector
-            field
+            for the interior product of a differential form with a
+            multivector field
 
         EXAMPLES:
 
@@ -963,7 +964,8 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             Scalar field i_a b on the 4-dimensional differentiable manifold M
             sage: s.display()
             i_a b: M --> R
-               (t, x, y, z) |--> x^2*y*z - x*z^2 + 2*t^2 + (x + 3)*y - y^2 - 3*x + 2
+               (t, x, y, z) |--> x^2*y*z - x*z^2 + 2*t^2 + (x + 3)*y - y^2
+                - 3*x + 2
 
         In this case, we have `\iota_a b = a^i b_i = a(b) = b(a)`::
 

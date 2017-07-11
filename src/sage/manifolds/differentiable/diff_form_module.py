@@ -68,7 +68,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U, \Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U, \Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi: U \rightarrow M`
     - ``degree`` -- positive integer; the degree `p` of the differential forms
 
@@ -95,7 +95,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         \Omega^{2}\left(M\right)
 
     ``A`` is nothing but the second exterior power of the dual of ``XM``, i.e.
-    we have `\Omega^{2}(M) = \Lambda^2(\mathcal{X}(M)^*)`::
+    we have `\Omega^{2}(M) = \Lambda^2(\mathfrak{X}(M)^*)`::
 
         sage: A is XM.dual_exterior_power(2)
         True
@@ -158,7 +158,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         sage: a.display(eV)
         a = (-3/4*u - 3/4*v) du/\dv
 
-    The module `\Omega^1(M)` is nothing but the dual of `\mathcal{X}(M)`
+    The module `\Omega^1(M)` is nothing but the dual of `\mathfrak{X}(M)`
     (the module of vector fields on `M`)::
 
         sage: L1 = M.diff_form_module(1) ; L1
@@ -568,7 +568,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow V`
     - ``degree`` -- positive integer; the degree `p` of the differential forms
 
@@ -588,7 +588,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         \Omega^{2}\left(M\right)
 
     ``A`` is nothing but the second exterior power of the dual of ``XM``, i.e.
-    we have `\Omega^{2}(M) = \Lambda^2(\mathcal{X}(M)^*)` (see
+    we have `\Omega^{2}(M) = \Lambda^2(\mathfrak{X}(M)^*)` (see
     :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`)::
 
         sage: A is XM.dual_exterior_power(2)
@@ -643,7 +643,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         sage: a.display()
         a = 3*x dx/\dy - z dx/\dz + 4 dy/\dz
 
-    The module `\Omega^1(M)` is nothing but the dual of `\mathcal{X}(M)`
+    The module `\Omega^1(M)` is nothing but the dual of `\mathfrak{X}(M)`
     (the free module of vector fields on `M`)::
 
         sage: L1 = M.diff_form_module(1) ; L1

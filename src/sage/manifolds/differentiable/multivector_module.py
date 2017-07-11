@@ -67,7 +67,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U, \Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U, \Phi)` of vector
       fields along `U` with values on `M` via the map
       `\Phi: U \rightarrow M`
     - ``degree`` -- positive integer; the degree `p` of the multivector
@@ -98,7 +98,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         A^{2}\left(M\right)
 
     ``A`` is nothing but the second exterior power of of ``XM``, i.e.
-    we have `A^{2}(M) = \Lambda^2(\mathcal{X}(M))`::
+    we have `A^{2}(M) = \Lambda^2(\mathfrak{X}(M))`::
 
         sage: A is XM.exterior_power(2)
         True
@@ -163,7 +163,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         sage: a.display(eV)
         a = (-3*u - 3*v) d/du/\d/dv
 
-    The module `A^1(M)` is nothing but the dual of `\mathcal{X}(M)`
+    The module `A^1(M)` is nothing but the dual of `\mathfrak{X}(M)`
     (the module of vector fields on `M`)::
 
         sage: A1 = M.multivector_module(1) ; A1
@@ -520,7 +520,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of
       vector fields along `U` associated with the map
       `\Phi: U \rightarrow V`
     - ``degree`` -- positive integer; the degree `p` of the multivector
@@ -543,7 +543,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         A^{2}\left(M\right)
 
     ``A`` is nothing but the second exterior power of ``XM``, i.e. we
-    have `A^{2}(M) = \Lambda^2(\mathcal{X}(M))` (see
+    have `A^{2}(M) = \Lambda^2(\mathfrak{X}(M))` (see
     :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`)::
 
         sage: A is XM.exterior_power(2)
@@ -601,7 +601,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         sage: a.display()
         a = 3*x d/dx/\d/dy - z d/dx/\d/dz + 4 d/dy/\d/dz
 
-    The module `A^1(M)` is nothing but `\mathcal{X}(M)` (the free module
+    The module `A^1(M)` is nothing but `\mathfrak{X}(M)` (the free module
     of vector fields on `M`)::
 
         sage: A1 = M.multivector_module(1) ; A1

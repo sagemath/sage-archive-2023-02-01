@@ -96,7 +96,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M`
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant
       rank and `l` the covariant rank
@@ -628,7 +628,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M`
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
       and `l` the covariant rank

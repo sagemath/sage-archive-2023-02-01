@@ -199,7 +199,7 @@ class VectorFrame(FreeModuleBasis):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U, \Phi)`
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U, \Phi)`
       of vector fields along `U` with values on `M \supset \Phi(U)`
     - ``symbol`` -- a letter (of a few letters) to denote a
       generic vector of the frame; can be set to None if the parameter

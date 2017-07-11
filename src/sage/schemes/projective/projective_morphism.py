@@ -1992,6 +1992,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         The sum of the Green's function at the archimedean places and the places of bad reduction.
 
+        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
+        not have to factor the resultant.
+
         INPUT:
 
         - ``P`` -- a projective point.
@@ -2027,7 +2030,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            2.5736717542538205822320127617e-7
+            2.5736717542538205822319812073e-7
 
         ::
 

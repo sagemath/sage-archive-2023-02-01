@@ -1028,7 +1028,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         Specify either the number of terms of the series to evaluate or
         the error bound required.
 
-        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to not have to factor the resultant.
+        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
+        not have to factor the resultant.
 
         ALGORITHM:
 
@@ -1053,14 +1054,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         AUTHORS:
 
-        - Original algorithm written by Elliot Wells
+        - Original algorithm written by Elliot Wells [WELLS]_
 
         - Implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
-        REFERENCES:
-
-        .. [WELLS] Elliot Wells. Computing the Canonical Height of a Point in Projective Space.
-        arXiv:1602.04920v1 (2016).
 
         EXAMPLES::
 
@@ -1080,7 +1077,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: Q = P(5, 4)
             sage: f.canonical_height(Q, N=30)
-            4.0810803274380803222440295326e-9
+            4.0810803274380803222471849762e-9
 
         ::
 
@@ -1100,6 +1097,20 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P(-1/4, 1)
             sage: Q.canonical_height(f, error_bound=0.01)
             3.7996079979254623065837411853
+
+        ::
+
+        sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
+            1726400507263657518745202199786469389956474942774063845925192557326303453731548\
+            2685079170261221429134616704292143116022212404792747377940806653514195974598569\
+            02143413
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: H = End(P)
+        sage: f = H([RSA768*x^2 + y^2, x*y])
+        sage: Q = P(RSA768,1)
+        sage: Q.canonical_height(f, error_bound=0.00000000000000001)
+        931.18256422718241278672729195
+
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
@@ -1108,37 +1119,27 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         #Well's Algorithm
         if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
-            P = self
-            e = P[0].denominator()
-            x = P[0]
-            y = P[1]
-            x = x*e
-            y = y*e
-            g = gcd(x, y)
             # write our point with coordinates whose gcd is 1
-            Q_0 = (x/g, y/g)
-            Height_I = 0
-            f = F
-            A_0 = f[0]
-            B_0 = f[1]
+            self.normalize_coordinates()
+            self.clear_denominators()
             #assures integer coeffcients
-            coeffs = A_0.coefficients() + B_0.coefficients()
+            coeffs = F[0].coefficients() + F[1].coefficients()
             t = 1
             for c in coeffs:
                 t = lcm(t, c.denominator())
-            A = t*f[0]
-            B = t*f[1]
-            Res = f.resultant(normalize=True)
+            A = t*F[0]
+            B = t*F[1]
+            Res = F.resultant(normalize=True)
             H = 0
-            x_i = x
-            y_i = y
-            d = f.degree()
+            x_i = self[0]
+            y_i = self[1]
+            d = F.degree()
             R = RealField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
             #computes the error bound as defined in Algorithm 3.1 of [WELLS]
             if Res > 1:
-                if not err == None:
+                if not err is None:
                     err = err/2
                     N = ceil((R(abs(Res)).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
@@ -1152,8 +1153,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     H = H + R(g).abs().log()/(d**(n+1))
                     x_i = x/g
                     y_i = y/g
-            h = P.green_function(f, 0 , **kwds) - R(P[1]).abs().log()
-            h = R(Q_0[1].abs()).log() + h - H + R(t).log()
+            h = self.green_function(F, 0 , **kwds) - R(self[1]).abs().log()
+            h = R(self[1].abs()).log() + h - H + R(t).log()
             return h
 
         if not K in _NumberFields:

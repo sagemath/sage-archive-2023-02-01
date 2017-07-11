@@ -324,6 +324,11 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             This workaround prevents conversions or coercions from
             facade parents over plain Python objects into ``self``.
 
+        If the :meth:`Parent.__call__` fails, then we try
+        :meth:`_element_constuctor_` directly as the element returned
+        may not be a subclass of :class:`Element`, which is currently
+        not supported (see :trac:`19553`).
+
         EXAMPLES::
 
             sage: F = FiniteEnumeratedSet([1, 2, 'a', 'b'])
@@ -363,9 +368,9 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         if not isinstance(el, Element):
             return self._element_constructor_(el)
         try:
-            return self._element_constructor_(el)
-        except ValueError:
             return Parent.__call__(self, el)
+        except TypeError:
+            return self._element_constructor_(el)
 
     def _element_constructor_(self, el):
         """

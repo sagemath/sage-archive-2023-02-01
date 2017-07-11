@@ -484,14 +484,22 @@ class HasseDiagram(DiGraph):
         v_up = [frozenset(self.depth_first_search(v)) for v in range(n)]
         v_down = [frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
                   for v in range(n)]
-
         self._intervals = [[sorted(up.intersection(down)) for down in v_down]
                            for up in v_up]
-        self.interval = self._alt_interval
 
-    def _alt_interval(self, x, y):
+        self.interval = self._alternate_interval
+
+    def _alternate_interval(self, x, y):
         """
-        Alternate interval function.
+        Return the list of the elements greater than or equal to `x`
+        and less than or equal to `y`.
+
+        The list is sorted by numerical value, which is one linear
+        extension for the elements of the interval, but not necessary
+        the same as returned by ``interval()``.
+
+        This will be taken to use when ``_precompute_intervals()``
+        is called.
 
         EXAMPLES::
 
@@ -501,6 +509,7 @@ class HasseDiagram(DiGraph):
             sage: P._hasse_diagram._precompute_intervals()
             sage: P.interval(1, 7)  # Uses this function
             [1, 3, 5, 7]
+
         """
         return self._intervals[x][y]
 

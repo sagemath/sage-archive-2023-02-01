@@ -145,6 +145,17 @@ class _GHlist_old_pickle(GHlist):
     nothing here and let the (default) ``__setstate__`` do the real work.
     """
     def __init__(self, group=None):
+        """
+        TESTS::
+
+            sage: from sage.modular.modsym.ghlist import GHlist
+            sage: L = GHlist(GammaH(4,[]))
+            sage: Lp = loads(dumps(L))
+            sage: L == Lp
+            True
+            sage: type(Lp) == GHlist
+            True
+        """
         self.__class__ = GHlist
 
 register_unpickle_override('sage.modular.modsym.ghlist', 'GHlist',

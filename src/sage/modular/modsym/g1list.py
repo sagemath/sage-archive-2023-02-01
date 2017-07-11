@@ -141,6 +141,17 @@ class _G1list_old_pickle(G1list):
     nothing here and let the (default) ``__setstate__`` do the real work.
     """
     def __init__(self, N=None):
+        """
+        TESTS::
+
+            sage: from sage.modular.modsym.g1list import G1list
+            sage: L = G1list(6)
+            sage: Lp = loads(dumps(L))
+            sage: L == Lp
+            True
+            sage: type(Lp) == G1list
+            True
+        """
         self.__class__ = G1list
 
 register_unpickle_override('sage.modular.modsym.g1list', 'G1list',

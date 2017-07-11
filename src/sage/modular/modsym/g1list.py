@@ -130,14 +130,18 @@ class G1list(SageObject):
         """
         return u % self.__N,   v % self.__N
 
-# This class is exists only for dealing with old pickles.
-# This needs to handle both old-style class pickles, where there is
-#   no input to the class on the initial __init__ call, and the
-#   new class pickles, where N is passed. In both cases, we just do
-#   nothing here and let the (default) __setstate__ do the real work.
+
 class _G1list_old_pickle(G1list):
+    """
+    This class exists only for dealing with old pickles.
+
+    This needs to handle both old-style class pickles, where there is
+    no input to the class on the initial ``__init__`` call, and the
+    new class pickles, where ``N`` is passed. In both cases, we just do
+    nothing here and let the (default) ``__setstate__`` do the real work.
+    """
     def __init__(self, N=None):
         self.__class__ = G1list
 
-register_unpickle_override('sage.modular.modsym.g1list', 'G1list', _G1list_old_pickle)
-
+register_unpickle_override('sage.modular.modsym.g1list', 'G1list',
+                           _G1list_old_pickle)

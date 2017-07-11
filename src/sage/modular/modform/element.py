@@ -534,7 +534,7 @@ class ModularForm_abstract(ModuleElement):
         If ``self`` is not an eigenform for `W_d`, a ``ValueError`` is
         raised.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`atkin_lehner_action` (especially for the
             conventions used to define the operator `W_d`).

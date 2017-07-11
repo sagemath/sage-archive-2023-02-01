@@ -141,11 +141,25 @@ class _GHlist_old_pickle(GHlist):
 
     This needs to handle both old-style class pickles, where there is
     no input to the class on the initial ``__init__`` call, and the
-    new class pickles, where ``group`` is passed. In both cases, we just do
-    nothing here and let the (default) ``__setstate__`` do the real work.
+    new class pickles, we need to have ``__setstate__`` handle it.
     """
-    def __init__(self, group=None):
+    def __init__(self):
         """
+        For unpickling old pickles.
+
+        TESTS::
+
+            sage: from sage.modular.modsym.ghlist import _GHlist_old_pickle
+            sage: L = _GHlist_old_pickle()
+            sage: type(L) == GHlist
+            True
+        """
+        self.__class__ = GHlist
+
+    def __setstate__(self, state):
+        """
+        For unpickling new pickles.
+
         TESTS::
 
             sage: from sage.modular.modsym.ghlist import GHlist
@@ -156,7 +170,11 @@ class _GHlist_old_pickle(GHlist):
             sage: type(Lp) == GHlist
             True
         """
+        # We don't really want this class, but we want to handle new
+        #   pickles without creating a new class
         self.__class__ = GHlist
+        self.__dict__ = state # Default pickling is ``state = self.__dict__``
 
 register_unpickle_override('sage.modular.modsym.ghlist', 'GHlist',
                            _GHlist_old_pickle)
+

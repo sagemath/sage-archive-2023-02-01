@@ -137,11 +137,25 @@ class _G1list_old_pickle(G1list):
 
     This needs to handle both old-style class pickles, where there is
     no input to the class on the initial ``__init__`` call, and the
-    new class pickles, where ``N`` is passed. In both cases, we just do
-    nothing here and let the (default) ``__setstate__`` do the real work.
+    new class pickles, we need to have ``__setstate__`` handle it.
     """
-    def __init__(self, N=None):
+    def __init__(self):
         """
+        For unpickling old pickles.
+
+        TESTS::
+
+            sage: from sage.modular.modsym.g1list import _G1list_old_pickle
+            sage: L = _G1list_old_pickle()
+            sage: type(L) == G1list
+            True
+        """
+        self.__class__ = G1list
+
+    def __setstate__(self, state):
+        """
+        For unpickling new pickles.
+
         TESTS::
 
             sage: from sage.modular.modsym.g1list import G1list
@@ -152,7 +166,11 @@ class _G1list_old_pickle(G1list):
             sage: type(Lp) == G1list
             True
         """
+        # We don't really want this class, but we want to handle new
+        #   pickles without creating a new class
         self.__class__ = G1list
+        self.__dict__ = state # Default pickling is ``state = self.__dict__``
 
 register_unpickle_override('sage.modular.modsym.g1list', 'G1list',
                            _G1list_old_pickle)
+

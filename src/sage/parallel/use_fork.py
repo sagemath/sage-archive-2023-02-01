@@ -41,6 +41,14 @@ class WorkerData(object):
         1499330252.463206
     """
     def __init__(self, input, starttime=None, failure=""):
+        r"""
+        See the class documentation for description of the inputs.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.use_fork import WorkerData
+            sage: W = WorkerData(42)
+        """
         self.input = input
         self.starttime = starttime or walltime()
         self.failure = failure
@@ -49,6 +57,18 @@ class WorkerData(object):
 class p_iter_fork(object):
     """
     A parallel iterator implemented using ``fork()``.
+
+    INPUT:
+
+    - ``ncpus`` -- the maximal number of simultaneous
+        subprocesses to spawn
+    - ``timeout`` -- (float, default: 0) wall time in seconds until
+        a subprocess is automatically killed
+    - ``verbose`` -- (default: False) whether to print
+        anything about what the iterator does (e.g., killing
+        subprocesses)
+    - ``reset_interfaces`` -- (default: True) whether to reset
+        all pexpect interfaces
 
     EXAMPLES::
 
@@ -65,17 +85,7 @@ class p_iter_fork(object):
         """
         Create a ``fork()``-based parallel iterator.
 
-        INPUT:
-
-        - ``ncpus`` -- the maximal number of simultaneous
-          subprocesses to spawn
-        - ``timeout`` -- (float, default: 0) wall time in seconds until
-          a subprocess is automatically killed
-        - ``verbose`` -- (default: False) whether to print
-          anything about what the iterator does (e.g., killing
-          subprocesses)
-        - ``reset_interfaces`` -- (default: True) whether to reset
-          all pexpect interfaces
+        See the class documentation for description of the inputs.
 
         EXAMPLES::
 

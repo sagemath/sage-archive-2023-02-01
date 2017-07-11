@@ -1121,7 +1121,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
             # write our point with coordinates whose gcd is 1
             self.normalize_coordinates()
-            self.clear_denominators()
+            if self.parent().value_ring() is QQ:
+                self.clear_denominators()
             #assures integer coeffcients
             coeffs = F[0].coefficients() + F[1].coefficients()
             t = 1

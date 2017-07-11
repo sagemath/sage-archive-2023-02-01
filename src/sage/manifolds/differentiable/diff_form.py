@@ -400,7 +400,8 @@ class DiffForm(TensorField):
 
         OUTPUT:
 
-        - a :class:`DiffForm` of the exterior product ``self/\other``
+        - instance of :class:`DiffForm` representing the exterior product
+          ``self/\other``
 
         EXAMPLES:
 
@@ -431,7 +432,6 @@ class DiffForm(TensorField):
             a/\b = -(v^2 - u)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du/\dv
 
         """
-        from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
@@ -766,18 +766,24 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         A/\B = (x*y*z*sin(x) + x*z*cos(z)) dx/\dy + (x*y*z*cos(y) - y*z*cos(z)) dx/\dz
          - (x*cos(y) + y*sin(x))*z dy/\dz
 
+    Let us check the formula relating the exterior product to the tensor
+    product for 1-forms::
+
+        sage: a.wedge(b) == a*b - b*a
+        True
+
     The tensor product of a 1-form and a 2-form is not a 3-form but a tensor
     field of type `(0,3)` with less symmetries::
 
         sage: c = a*ab ; c
         Tensor field A*(A/\B) of type (0,3) on the 3-dimensional differentiable
          manifold R3
-        sage: c.symmetries()  #  the antisymmetry is only w.r.t. the last two arguments:
+        sage: c.symmetries()  # the antisymmetry is only w.r.t. the last 2 arguments:
         no symmetry;  antisymmetry: (1, 2)
         sage: d = ab*a ; d
         Tensor field (A/\B)*A of type (0,3) on the 3-dimensional differentiable
          manifold R3
-        sage: d.symmetries()  #  the antisymmetry is only w.r.t. the first two arguments:
+        sage: d.symmetries()  # the antisymmetry is only w.r.t. the first 2 arguments:
         no symmetry;  antisymmetry: (0, 1)
 
     The exterior derivative of a differential form is obtained by means
@@ -871,23 +877,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         [18 15 12]
         sage: c.symmetries()    # c has no symmetries:
         no symmetry;  no antisymmetry
-
-    The exterior product of two 1-forms is a 2-form::
-
-        sage: d = a.wedge(b) ; d
-        2-form A/\B on the 3-dimensional differentiable manifold R3
-        sage: d[:]
-        [  0  -7 -14]
-        [  7   0  -7]
-        [ 14   7   0]
-        sage: d.symmetries()
-        no symmetry;  antisymmetry: (0, 1)
-
-    We can check the standard formula relating the exterior product to the
-    tensor product::
-
-        sage: a.wedge(b) == a*b - b*a
-        True
 
     """
     def __init__(self, vector_field_module, degree, name=None,
@@ -1031,7 +1020,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: s.display()
             a(u,v): M --> R
                (x, y) |--> -x*y^3 + 2*x*y^2 + (x^3 + x^2)*y
-            sage: s == a[[0,1]]*(u[[0]]*v[[1]] -u[[1]]*v[[0]])
+            sage: s == a[[0,1]]*(u[[0]]*v[[1]] - u[[1]]*v[[0]])
             True
             sage: s == a(u,v)  # indirect doctest
             True
@@ -1193,7 +1182,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         """
-        from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
                 raise ValueError("incompatible ambient domains for exterior " +
@@ -1273,3 +1261,61 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         """
         return metric.hodge_star(self)
+
+    def interior_product(self, qvect):
+        r"""
+        Interior product with a multivector field.
+
+        If ``self`` is a differential form `A` of degree `p` and `B` is a
+        multivector field of degree `q\geq p` on the same manifold, the
+        interior product of `A` by `B` is the multivector field `\iota_A B` of
+        degree `q-p` defined by
+
+        .. MATH::
+
+            (\iota_A B)^{i_1\ldots i_{q-p}} = A_{k_1\ldots k_p}
+                            B^{k_1\ldots k_p i_1\ldots i_{q-p}}
+
+        .. NOTE::
+
+            ``A.interior_product(B)`` yields the same result as
+            ``A.contract(0,..., p-1, B, 0,..., p-1)`` (cf.
+            :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.contract`),
+            but ``interior_product`` is more efficient, the alternating
+            character of `A` being not used to reduce the computation in
+            :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.contract`
+
+        INPUT:
+
+        - ``qvect`` -- multivector field `B` (instance of
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultiVectorFieldParal`);
+          the degree of `B` must be at least equal to the degree of ``self``
+
+        OUTPUT:
+
+        - scalar field (case `p=q`) or
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultiVectorFieldParal`
+          (case `p<q`) representing the interior product `\iota_A B`, where `A`
+          is ``self``
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.multivectorfield.MultiVectorFieldParal.interior_product`
+            for the interior product of a multivector field by a differential
+            form
+
+        EXAMPLES:
+
+        """
+        if self._domain.is_subset(qvect._domain):
+            if not self._ambient_domain.is_subset(qvect._ambient_domain):
+                raise ValueError("incompatible ambient domains for interior " +
+                                 "product")
+        elif qvect._domain.is_subset(self._domain):
+            if not qvect._ambient_domain.is_subset(self._ambient_domain):
+                raise ValueError("incompatible ambient domains for interior " +
+                                 "product")
+        dom_resu = self._domain.intersection(qvect._domain)
+        self_r = self.restrict(dom_resu)
+        qvect_r = qvect.restrict(dom_resu)
+        return FreeModuleAltForm.interior_product(self_r, qvect_r)

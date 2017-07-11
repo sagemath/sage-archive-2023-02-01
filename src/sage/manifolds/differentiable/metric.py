@@ -1597,7 +1597,6 @@ class PseudoRiemannianMetric(TensorField):
             sage: latex(eps)
             \epsilon_{g}
 
-
         The tensor field of components `\epsilon^i_{\ \, jk}` (``contra=1``)::
 
             sage: eps1 = g.volume_form(1) ; eps1
@@ -1625,8 +1624,10 @@ class PseudoRiemannianMetric(TensorField):
         The tensor field of components `\epsilon^{ijk}` (``contra=3``)::
 
             sage: eps3 = g.volume_form(3) ; eps3
-            Tensor field of type (3,0) on the Open subset U of the
-             3-dimensional differentiable manifold M
+            3-vector field on the Open subset U of the 3-dimensional
+             differentiable manifold M
+            sage: eps3.tensor_type()
+            (3, 0)
             sage: eps3.symmetries()
             no symmetry;  antisymmetry: (0, 1, 2)
             sage: eps3[:]

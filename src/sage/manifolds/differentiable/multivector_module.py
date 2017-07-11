@@ -38,7 +38,7 @@ from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
 from sage.manifolds.differentiable.multivectorfield import (
-                                MultivectorField, MultivectorFieldParal)
+                                       MultivectorField, MultivectorFieldParal)
 
 class MultivectorModule(UniqueRepresentation, Parent):
     r"""
@@ -172,8 +172,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         sage: A1 is XM
         True
 
-    For a degree `p \geq 2`, there is a coercion map
-    `A^p(M)\rightarrow T^{(p,0)}(M)`::
+    There is a coercion map `A^p(M)\rightarrow T^{(p,0)}(M)`::
 
         sage: T20 = M.tensor_field_module((2,0)) ; T20
         Module T^(2,0)(M) of type-(2,0) tensors fields on the
@@ -181,7 +180,8 @@ class MultivectorModule(UniqueRepresentation, Parent):
         sage: T20.has_coerce_map_from(A)
         True
 
-    but of course not in the reverse direction::
+    but of course not in the reverse direction, since not all contravariant
+    tensor field is alternating::
 
         sage: A.has_coerce_map_from(T20)
         False
@@ -212,7 +212,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
         2-vector field a on the Open subset U of the 2-dimensional
          differentiable manifold M
         sage: a_U.display(eU)
-        a = 3*x dx/\dy
+        a = 3*x d/dx/\d/dy
 
     """
     Element = MultivectorField
@@ -291,7 +291,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
             2-vector field a on the 2-dimensional differentiable
              manifold M
             sage: a.display(c_xy.frame())
-            a = x*y dx/\dy
+            a = x*y d/dx/\d/dy
             sage: A(0) is A.zero()
             True
 
@@ -429,7 +429,7 @@ class MultivectorModule(UniqueRepresentation, Parent):
             sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
             sage: A2 = M.multivector_module(2)
             sage: A2._latex_()
-            '\A^{2}\\left(\\mathcal{M}\\right)'
+            'A^{2}\\left(\\mathcal{M}\\right)'
             sage: latex(A2)  # indirect doctest
             A^{2}\left(\mathcal{M}\right)
 
@@ -442,14 +442,13 @@ class MultivectorModule(UniqueRepresentation, Parent):
     def base_module(self):
         r"""
         Return the vector field module on which the multivector field
-         module is constructed.
+        module ``self`` is constructed.
 
         OUTPUT:
 
         - a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
-          representing the module on which the multivector field module
-          is defined
+          representing the module on which ``self`` is defined
 
         EXAMPLES::
 
@@ -475,17 +474,15 @@ class MultivectorModule(UniqueRepresentation, Parent):
 
     def degree(self):
         r"""
-        Return the degree of the multivector fields in the module.
+        Return the degree of the multivector fields in ``self``.
 
         OUTPUT:
 
-        - integer `p` such that the module is a set of `p`-vector fields
+        - integer `p` such that ``self`` is a set of `p`-vector fields
 
         EXAMPLES::
 
             sage: M = Manifold(3, 'M')
-            sage: M.multivector_module(1).degree()
-            1
             sage: M.multivector_module(2).degree()
             2
             sage: M.multivector_module(3).degree()
@@ -503,11 +500,11 @@ class MultivectorFreeModule(ExtPowerFreeModule):
     parallelizable manifold `M`.
 
     Given a differentiable manifold `U` and a differentiable map
-    `\Phi:\; U \rightarrow M` to a parallelizable manifold `M`, the set
-    `A^p(U, \Phi)` of `p`-vector fields (i.e. alternating tensor fields
-    of type `(p,0)`) along `U` with values on `M` is a module over
-    `C^k(U)`, the commutative algebra of differentiable scalar fields
-    on `U` (see
+    `\Phi:\; U \rightarrow M` to a parallelizable manifold `M` of dimension
+    `n`, the set `A^p(U, \Phi)` of `p`-vector fields (i.e. alternating tensor
+    fields of type `(p,0)`) along `U` with values on `M` is a free module
+    of rank `\binom{n}{p}` over `C^k(U)`, the commutative algebra of
+    differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     The standard case of `p`-vector fields *on* a differentiable
     manifold `M` corresponds to `U = M` and `\Phi = \mathrm{Id}_M`.
@@ -546,7 +543,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         A^{2}\left(M\right)
 
     ``A`` is nothing but the second exterior power of ``XM``, i.e. we
-     have `A^{2}(M) = \Lambda^2(\mathcal{X}(M))` (see
+    have `A^{2}(M) = \Lambda^2(\mathcal{X}(M))` (see
     :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`)::
 
         sage: A is XM.exterior_power(2)
@@ -591,7 +588,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         sage: a = A(comp, frame=X.frame(), name='a') ; a
         2-vector field a on the 3-dimensional differentiable manifold M
         sage: a.display()
-        a = 3*x dx/\dy - z dx/\dz + 4 dy/\dz
+        a = 3*x d/dx/\d/dy - z d/dx/\d/dz + 4 d/dy/\d/dz
 
     An alternative is to construct the 2-vector field from an empty list
     of components and to set the nonzero nonredundant components
@@ -602,7 +599,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         sage: a[0,2] = -z
         sage: a[1,2] = 4
         sage: a.display()
-        a = 3*x dx/\dy - z dx/\dz + 4 dy/\dz
+        a = 3*x d/dx/\d/dy - z d/dx/\d/dz + 4 d/dy/\d/dz
 
     The module `A^1(M)` is nothing but `\mathcal{X}(M)` (the free module
     of vector fields on `M`)::
@@ -613,8 +610,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         sage: A1 is XM
         True
 
-    For a degree `p \geq 2`, there is a coercion map
-    `A^p(M) \rightarrow T^{(p,0)}(M)`::
+    There is a coercion map `A^p(M) \rightarrow T^{(p,0)}(M)`::
 
         sage: T20 = M.tensor_field_module((2,0)); T20
         Free module T^(2,0)(M) of type-(2,0) tensors fields on the
@@ -622,7 +618,8 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         sage: T20.has_coerce_map_from(A)
         True
 
-    but of course not in the reverse direction::
+    but of course not in the reverse direction, since not all contravariant
+    tensor field is alternating::
 
         sage: A.has_coerce_map_from(T20)
         False
@@ -636,9 +633,10 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         Tensor field a of type (2,0) on the 3-dimensional differentiable
          manifold M
         sage: ta.display()
-        a = 3*x dx*dy - z dx*dz - 3*x dy*dx + 4 dy*dz + z dz*dx - 4 dz*dy
+        a = 3*x d/dx*d/dy - z d/dx*d/dz - 3*x d/dy*d/dx + 4 d/dy*d/dz
+         + z d/dz*d/dx - 4 d/dz*d/dy
         sage: a.display()
-        a = 3*x dx/\dy - z dx/\dz + 4 dy/\dz
+        a = 3*x d/dx/\d/dy - z d/dx/\d/dz + 4 d/dy/\d/dz
         sage: ta.symmetries()  # the antisymmetry is preserved
         no symmetry;  antisymmetry: (0, 1)
 
@@ -655,7 +653,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
         2-vector field a on the Open subset U of the 3-dimensional
          differentiable manifold M
         sage: a_U.display()
-        a = 3*x dx/\dy - z dx/\dz + 4 dy/\dz
+        a = 3*x d/dx/\d/dy - z d/dx/\d/dz + 4 d/dy/\d/dz
 
     """
 
@@ -711,7 +709,7 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             2-vector field a on the 2-dimensional differentiable
              manifold M
             sage: a.display()
-            a = x dx/\dy
+            a = x d/dx/\d/dy
             sage: A(0) is A.zero()
             True
 
@@ -755,8 +753,6 @@ class MultivectorFreeModule(ExtPowerFreeModule):
             sage: A1 = M.multivector_module(1)
             sage: A2U._coerce_map_from_(A1)
             False
-            sage: A2._coerce_map_from_(M.tensor_field_module((2,0)))
-            True
             sage: A2._coerce_map_from_(M.tensor_field_module((2,0)))
             False
 

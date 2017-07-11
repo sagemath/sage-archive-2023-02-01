@@ -36,6 +36,7 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Marco Mancini (2015): parallelization of vector field plots
 - Travis Scrimshaw (2016): review tweaks
+- Eric Gourgoulhon (2017): vector fields inherit from multivector fields
 
 REFERENCES:
 
@@ -47,7 +48,7 @@ REFERENCES:
 """
 
 #******************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015, 2017 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2015 Marco Mancini <marco.mancini@obspm.fr>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -59,11 +60,11 @@ REFERENCES:
 #******************************************************************************
 
 from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
-from sage.manifolds.differentiable.tensorfield import TensorField
-from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+from sage.manifolds.differentiable.multivectorfield import (
+                                       MultivectorField, MultivectorFieldParal)
 from sage.misc.decorators import options
 
-class VectorField(TensorField):
+class VectorField(MultivectorField):
     r"""
     Vector field along a differentiable manifold.
 
@@ -229,10 +230,10 @@ class VectorField(TensorField):
             Fix ``_test_pickling`` (in the superclass :class:`TensorField`).
 
         """
-        TensorField.__init__(self, vector_field_module, (1,0), name=name,
-                             latex_name=latex_name)
+        MultivectorField.__init__(self, vector_field_module, 1, name=name,
+                                  latex_name=latex_name)
         # Initialization of derived quantities:
-        TensorField._init_derived(self)
+        MultivectorField._init_derived(self)
         # Initialization of list of quantities depending on self:
         self._init_dependencies()
 
@@ -360,7 +361,8 @@ class VectorField(TensorField):
         else:
             resu_name = None
         if self._latex_name is not None and scalar._latex_name is not None:
-            resu_latex = r"{}\left({}\right)".format(self._latex_name , scalar._latex_name)
+            resu_latex = r"{}\left({}\right)".format(self._latex_name ,
+                                                     scalar._latex_name)
         else:
             resu_latex = None
         resu = dom_resu.scalar_field(name=resu_name, latex_name=resu_latex)
@@ -934,7 +936,8 @@ class VectorField(TensorField):
 
 #******************************************************************************
 
-class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorField):
+class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
+                       VectorField):
     r"""
     Vector field along a differentiable manifold, with values on a
     parallelizable manifold.
@@ -1146,13 +1149,13 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorFiel
         """
         FiniteRankFreeModuleElement.__init__(self, vector_field_module,
                                              name=name, latex_name=latex_name)
-        # TensorFieldParal attributes:
+        # MultivectorFieldParal attributes:
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
         # VectorField attributes:
         self._vmodule = vector_field_module
         # Initialization of derived quantities:
-        TensorFieldParal._init_derived(self)
+        MultivectorFieldParal._init_derived(self)
         VectorField._init_derived(self)
         # Initialization of list of quantities depending on self:
         self._init_dependencies()
@@ -1210,7 +1213,8 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorFiel
             sage: v._del_derived()
 
         """
-        TensorFieldParal._del_derived(self, del_restrictions=del_restrictions)
+        MultivectorFieldParal._del_derived(self,
+                                           del_restrictions=del_restrictions)
         VectorField._del_derived(self)
         self._del_dependencies()
 

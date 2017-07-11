@@ -1822,7 +1822,7 @@ class DifferentiableManifold(TopologicalManifold):
             Open subset A of the 4-dimensional differentiable manifold M
             sage: c_xyzt.<x,y,z,t> = A.chart()
             sage: h = A.multivector_field(2, 'H'); h
-            2-vector field h on the Open subset A of the 4-dimensional
+            2-vector field H on the Open subset A of the 4-dimensional
              differentiable manifold M
 
         See the documentation of class

@@ -882,6 +882,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
+        if degree == 0:
+            return self._domain.scalar_field(name=name, latex_name=latex_name)
         return self.dual_exterior_power(degree).element_class(self,
                                degree, name=name, latex_name=latex_name)
 

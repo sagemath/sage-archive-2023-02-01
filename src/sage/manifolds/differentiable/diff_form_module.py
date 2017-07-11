@@ -490,14 +490,13 @@ class DiffFormModule(UniqueRepresentation, Parent):
     def base_module(self):
         r"""
         Return the vector field module on which the differential form module
-        is constructed.
+        ``self`` is constructed.
 
         OUTPUT:
 
         - a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
-          representing the module on which the differential form module is
-          defined
+          representing the module on which ``self`` is defined
 
         EXAMPLES::
 
@@ -523,11 +522,11 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     def degree(self):
         r"""
-        Return the degree of the differential forms in the module.
+        Return the degree of the differential forms in ``self``.
 
         OUTPUT:
 
-        - integer `p` such that the module is a set of `p`-forms
+        - integer `p` such that ``self`` is a set of `p`-forms
 
         EXAMPLES::
 
@@ -550,22 +549,22 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
     a differentiable manifold `U` with values on a parallelizable manifold `M`.
 
     Given a differentiable manifold `U` and a differentiable map
-    `\Phi:\; U \rightarrow M` to a parallelizable manifold `M`, the set
-    `\Omega^p(U, \Phi)` of `p`-forms along `U` with values on `M` is a
-    free module over `C^k(U)`, the commutative algebra of differentiable
-    scalar fields on `U` (see
+    `\Phi:\; U \rightarrow M` to a parallelizable manifold `M` of dimension
+    `n`, the set `\Omega^p(U, \Phi)` of `p`-forms along `U` with values on `M`
+    is a free module of rank `\binom{n}{p}` over `C^k(U)`, the commutative
+    algebra of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a differentiable manifold `M`
     corresponds to `U = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
     `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
     open interval of `\RR`).
 
-    This class implements `\Omega^p(U, \Phi)` in the case where `M` is
-    parallelizable; `\Omega^p(U, \Phi)` is then a *free* module. If `M` is not
-    parallelizable, the class :class:`DiffFormModule` must be used instead.
+    .. NOTE::
 
-    This is a Sage *parent* class, whose *element* class is
-    :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`.
+        This class implements `\Omega^p(U, \Phi)` in the case where `M` is
+        parallelizable; `\Omega^p(U, \Phi)` is then a *free* module. If `M`
+        is not parallelizable, the class :class:`DiffFormModule` must be used
+        instead.
 
     INPUT:
 

@@ -194,6 +194,7 @@ public:
 	const numeric & operator=(unsigned long i);
 	const numeric & operator=(double d);
 	const numeric & operator=(const numeric& x);
+        void swap(numeric& other);
 	const numeric negative() const;
 	const numeric inverse() const;
 	const numeric step() const;

@@ -724,7 +724,7 @@ ex power::eval(int level) const
                                         addp->overall_coeff = addp->overall_coeff.div_dyn(icont);
                                         addp->seq_sorted.resize(0);
                                         for (auto & elem : addp->seq)
-                                                elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
+                                                elem.coeff = elem.coeff.div_dyn(icont);
                                         if (ppower_equals_one)
                                                 return (new power(*addp,
                                                               num_exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
@@ -954,10 +954,11 @@ ex power::derivative(const symbol & s) const
 	if (is_a<numeric>(exponent)) {
 		// D(b^r) = r * b^(r-1) * D(b) (faster than the formula below)
 		epvector newseq;
+                const numeric& nexp = ex_to<numeric>(exponent);
 		newseq.reserve(2);
-		newseq.push_back(expair(basis, exponent - _ex1));
-		newseq.push_back(expair(basis.diff(s), _ex1));
-		return mul(newseq, ex_to<numeric>(exponent));
+		newseq.push_back(expair(basis, nexp + *_num_1_p));
+		newseq.push_back(expair(basis.diff(s), *_num1_p));
+		return mul(newseq, nexp);
 	} else {
 	    // If the exponent is not a function of s, we have the following nice
 	    // looking formula.  We use this to avoid getting ugly and hard to
@@ -1428,13 +1429,12 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 						     !is_exactly_a<add>(ex_to<power>(r).basis) ||
 						     !is_exactly_a<mul>(ex_to<power>(r).basis) ||
 						     !is_exactly_a<power>(ex_to<power>(r).basis));
-					GINAC_ASSERT(is_exactly_a<numeric>(a.seq[i].coeff));
-					const numeric & c = ex_to<numeric>(a.seq[i].coeff);
+					const numeric & c = a.seq[i].coeff;
 					if (the_exponent[i] == 0) {
 						// optimize away
 					} else if (the_exponent[i] == 1) {
 						// optimized
-						monomial.push_back(expair(r, _ex1));
+						monomial.push_back(expair(r, *_num1_p));
 						if (not c.is_one())
 							factor = factor.mul(c);
 					} else { // general case exponent[i] > 1
@@ -1476,7 +1476,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	// first part: ignore overall_coeff and expand other terms
 	for (auto cit0=a.seq.begin(); cit0!=last; ++cit0) {
 		const ex & r = cit0->rest;
-		const ex & c = cit0->coeff;
+		const numeric & c = cit0->coeff;
 		
 		GINAC_ASSERT(!is_exactly_a<add>(r));
 		GINAC_ASSERT(!is_exactly_a<power>(r) ||
@@ -1486,29 +1486,29 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		             !is_exactly_a<mul>(ex_to<power>(r).basis) ||
 		             !is_exactly_a<power>(ex_to<power>(r).basis));
 		
-		if (c.is_equal(_ex1)) {
+		if (c.is_one()) {
 			if (is_exactly_a<mul>(r)) {
 				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                        _ex1));
+				                        *_num1_p));
 			} else {
 				result.push_back(expair(dynallocate<power>(r, _ex2),
-				                        _ex1));
+				                        *_num1_p));
 			}
 		} else {
 			if (is_exactly_a<mul>(r)) {
 				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                        ex_to<numeric>(c).power_dyn(*_num2_p)));
+				                        c.pow_intexp(*_num2_p)));
 			} else {
 				result.push_back(expair(dynallocate<power>(r, _ex2),
-				                        ex_to<numeric>(c).power_dyn(*_num2_p)));
+				                        c.pow_intexp(*_num2_p)));
 			}
 		}
 
 		for (auto cit1=cit0+1; cit1!=last; ++cit1) {
 			const ex & r1 = cit1->rest;
-			const ex & c1 = cit1->coeff;
+			const numeric & c1 = cit1->coeff;
 			result.push_back(expair(mul(r,r1).expand(options),
-			                        _num2_p->mul(ex_to<numeric>(c)).mul_dyn(ex_to<numeric>(c1))));
+			                        _num2_p->mul(c).mul_dyn(c1)));
 		}
 	}
 	
@@ -1523,7 +1523,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	if (a.overall_coeff.is_zero()) {
 		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
 	} else {
-		return dynallocate<add>(std::move(result), a.overall_coeff.power(2)).setflag(status_flags::expanded);
+		return dynallocate<add>(std::move(result), a.overall_coeff.pow_intexp(*_num2_p)).setflag(status_flags::expanded);
 	}
 }
 
@@ -1559,7 +1559,9 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 
         for (const auto & elem : m.seq) {
 		expair p = m.combine_pair_with_coeff_to_pair(elem, n);
-		if (from_expand && is_exactly_a<add>(elem.rest) && ex_to<numeric>(p.coeff).is_pos_integer()) {
+		if (from_expand
+                    and is_exactly_a<add>(elem.rest)
+                    and p.coeff.is_pos_integer()) {
 			// this happens when e.g. (a+b)^(1/2) gets squared and
 			// the resulting product needs to be reexpanded
 			need_reexpand = true;
@@ -1567,7 +1569,7 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 		distrseq.push_back(p);
 	}
 
-	const mul & result = static_cast<const mul &>((new mul(distrseq, m.overall_coeff.power_dyn(n)))->setflag(status_flags::dynallocated));
+	const mul & result = static_cast<const mul &>((new mul(distrseq, m.overall_coeff.pow_intexp(n)))->setflag(status_flags::dynallocated));
 	if (need_reexpand)
 		return ex(result).expand(options);
 	if (from_expand)

@@ -12,7 +12,7 @@
  * 
  *      GiNaC-SAGE Copyright (C) 2008 William Stein
  *      Copyright (C) 2009 Burcin Erocal <burcin@erocal.org>
- *                (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>
+ *                (C) 2015-2017 Ralf Stephan <ralf@ark.in-berlin.de>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@
 #include "flint/fmpz_factor.h"
 
 #include <cmath>
+#include <utility>
 
 #include "numeric.h"
 #include "operators.h"
@@ -487,10 +488,13 @@ const numeric& numeric::operator=(const numeric& x) {
         return *this;
 }
 
-//numeric numeric::operator()(const int& x) {
-//        verbose("operator()(const int)");
-//        return numeric(x);
-//}
+void numeric::swap(numeric& other)
+{
+        std::swap(t, other.t);
+        std::swap(v, other.v);
+        std::swap(hash, other.hash);
+        std::swap(is_hashable, other.is_hashable);
+}
 
 int numeric::compare_same_type(const numeric& right) const {
         verbose("compare_same_type");

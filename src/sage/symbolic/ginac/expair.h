@@ -37,13 +37,11 @@ namespace GiNaC {
 class expair
 {
 public:
-	expair() : rest(0), coeff(1) { }
+	expair() : rest(0), coeff(1) {}
+        expair(const expair& other) : rest(other.rest), coeff(other.coeff) {}
 
 	/** Construct an expair from two ex. */
-	expair(ex  r, ex  c) : rest(std::move(r)), coeff(std::move(c))
-	{
-		GINAC_ASSERT(is_exactly_a<numeric>(coeff));
-	}
+	expair(ex  r, const numeric& c) : rest(std::move(r)), coeff(c) {}
 	
 	/** Member-wise check for canonical ordering equality. */
 	bool is_equal(const expair & other) const
@@ -74,8 +72,7 @@ public:
 	/** True if this is of the form (numeric,ex(1)). */
 	bool is_canonical_numeric() const
 	{
-		GINAC_ASSERT(is_exactly_a<numeric>(coeff));
-		return (is_exactly_a<numeric>(rest) && (coeff.is_equal(1)));
+		return (is_exactly_a<numeric>(rest) and coeff.is_one());
 	}
 
 	/** Swap contents with other expair. */
@@ -88,7 +85,7 @@ public:
 	const expair conjugate() const;
 
 	ex rest;    ///< first member of pair, an arbitrary expression
-	ex coeff;   ///< second member of pair, must be numeric
+	numeric coeff;   ///< second member of pair
 };
 
 /** Function object for insertion into third argument of STL's sort() etc. */

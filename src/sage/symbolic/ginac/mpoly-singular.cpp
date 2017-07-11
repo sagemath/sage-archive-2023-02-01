@@ -101,7 +101,7 @@ void ex::collect_powers(power_ocvector_map& pomap) const
                 }
                 if (is_exactly_a<mul>(the_pow.op(1))) {
                         mul m = ex_to<mul>(the_pow.op(1));
-                        numeric oc = ex_to<numeric>(m.overall_coeff);
+                        numeric oc = m.overall_coeff;
                         if (oc.is_rational()) {
                                 m.overall_coeff = *_num1_p;
                                 ex mm = m.eval();
@@ -221,7 +221,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 }
                 if (is_exactly_a<mul>(pow.exponent)) {
                         mul m = ex_to<mul>(pow.exponent);
-                        numeric oc = ex_to<numeric>(m.overall_coeff);
+                        numeric oc = m.overall_coeff;
                         if (oc.is_rational()) {
                                 m.overall_coeff = *_num1_p;
                                 ex mm = m.eval();

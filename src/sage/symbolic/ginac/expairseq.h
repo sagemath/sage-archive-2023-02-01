@@ -201,27 +201,7 @@ class make_flat_inserter
 			for (const auto & elem : v)
 				combine_indices(elem.get_free_indices());
 		}
-		ex handle_factor(const ex &x, const ex &coeff)
-		{
-			if (is_exactly_a<numeric>(coeff) and coeff.is_zero())
-				return coeff;
-			if (!do_renaming)
-				return x;
-			exvector dummies_of_factor;
-			if (is_exactly_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(1)))
-				dummies_of_factor = get_all_dummy_indices_safely(x);
-			else if (is_exactly_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(2)))
-				dummies_of_factor = x.get_free_indices();
-			else
-				return x;
-			if (dummies_of_factor.size() == 0)
-				return x;
-			sort(dummies_of_factor.begin(), dummies_of_factor.end(), ex_is_less());
-			ex new_factor = rename_dummy_indices_uniquely(used_indices,
-				dummies_of_factor, x);
-			combine_indices(dummies_of_factor);
-			return new_factor;
-		}
+		ex handle_factor(const ex &x, const numeric &coeff);
 	private:
 		void combine_indices(const exvector &dummies_of_factor)
 		{

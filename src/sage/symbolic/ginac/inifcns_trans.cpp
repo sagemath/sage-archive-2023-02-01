@@ -324,9 +324,9 @@ static ex log_series(const ex &arg,
 		// expand the log, but only if coeff is real and > 0, since otherwise
 		// it would make the branch cut run into the wrong direction
 		if (coeff.info(info_flags::positive))
-			seq.push_back(expair(n*log(s-point)+log(coeff), _ex0));
+			seq.push_back(expair(n*log(s-point)+log(coeff), *_num0_p));
 		else
-			seq.push_back(expair(log(coeff*pow(s-point, n)), _ex0));
+			seq.push_back(expair(log(coeff*pow(s-point, n)), *_num0_p));
 
 		if (!argser.is_terminating() || argser.nops()!=1) {
 			// in this case n more (or less) terms are needed
@@ -335,13 +335,13 @@ static ex log_series(const ex &arg,
 				epvector epv;
 				ex acc = (new pseries(rel, epv))->setflag(status_flags::dynallocated);
 				epv.reserve(2);
-				epv.push_back(expair(-1, _ex0));
-				epv.push_back(expair(Order(_ex1), order));
+				epv.push_back(expair(-1, *_num0_p));
+				epv.push_back(expair(Order(_ex1), numeric(order)));
 				ex rest = pseries(rel, epv).add_series(argser);
 				for (int i = order-1; i>0; --i) {
 					epvector cterm;
 					cterm.reserve(1);
-					cterm.push_back(expair((i%2) != 0 ? _ex1/i : _ex_1/i, _ex0));
+					cterm.push_back(expair((i%2) != 0 ? _ex1/i : _ex_1/i, *_num0_p));
 					acc = pseries(rel, cterm).add_series(ex_to<pseries>(acc));
 					acc = (ex_to<pseries>(rest)).mul_series(ex_to<pseries>(acc));
 				}
@@ -362,8 +362,8 @@ static ex log_series(const ex &arg,
 		const symbol foo;
 		const ex replarg = series(log(arg), s==foo, order).subs(foo==point, subs_options::no_pattern);
 		epvector seq;
-		seq.push_back(expair(-I*csgn(arg*I)*Pi, _ex0));
-		seq.push_back(expair(Order(_ex1), order));
+		seq.push_back(expair(-I*csgn(arg*I)*Pi, *_num0_p));
+		seq.push_back(expair(Order(_ex1), numeric(order)));
 		return series(replarg - I*Pi + pseries(rel, seq), rel, order);
 	}
 	throw do_taylor();  // caught by function::series()
@@ -591,7 +591,7 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 			const symbol foo;
 			epvector seq;
 			// zeroth order term:
-			seq.push_back(expair(Li2(x_pt), _ex0));
+			seq.push_back(expair(Li2(x_pt), *_num0_p));
 			// compute the intermediate terms:
 			ex replarg = series(Li2(x), s==foo, order);
 			for (size_t i=1; i<replarg.nops()-1; ++i)

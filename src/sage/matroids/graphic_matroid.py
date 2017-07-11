@@ -617,8 +617,6 @@ class GraphicMatroid(Matroid):
         edges = self.groundset_to_edges(X)
         all_vertices = self._G.vertices()
         not_our_edges = self.groundset_to_edges(self._groundset.difference(X))
-
-        our_set = set()
         DS_vertices = DisjointSet(all_vertices)
         for (u, v, l) in not_our_edges:
             DS_vertices.union(u, v)

@@ -481,16 +481,12 @@ class HasseDiagram(DiGraph):
         """
         n = self.order()
 
-        v_up = [None] * n
-        v_down = [None] * n
-        for v in range(n):
-            v_up[v] = frozenset(self.depth_first_search(v))
-            v_down[v] = frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
+        v_up = [frozenset(self.depth_first_search(v)) for v in range(n)]
+        v_down = [frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
+                  for v in range(n)]
 
-        self._intervals = [[None] * n for _ in range(n)]
-        for u in range(n):
-            for v in range(n):
-                self._intervals[u][v] = sorted(v_up[u].intersection(v_down[v]))
+        self._intervals = [[sorted(up.intersection(down)) for down in v_down]
+                           for up in v_up]
         self.interval = self._alt_interval
 
     def _alt_interval(self, x, y):

@@ -1509,6 +1509,8 @@ class GraphicMatroid(Matroid):
             sage: I = M.graphic_coextensions()
             sage: sum(1 for N in I)
             136
+            sage: sum(1 for N in Matroid(graphs.WheelGraph(8)).graphic_coextensions())
+            71
         """
         matroid_list = []
         G = self.graph()
@@ -1546,7 +1548,7 @@ class GraphicMatroid(Matroid):
         for u in vertices:
             if G.degree(u) > 3:
                 elts_incident = [l for (u0, v0, l) in G.edges_incident(u)]
-                half_elts = len(elts_incident) // Integer(2)
+                half_elts = len(elts_incident) / Integer(2)
                 for i in range(2, (half_elts + Integer(1))):
                     if i == half_elts:
                     # This is so we don't get two of the same coextensions
@@ -1644,7 +1646,6 @@ class GraphicMatroid(Matroid):
         if connectivity != 1:
             raise ValueError("the input must display a 2-separation "
                 + "that is not a 1-separation")
-        G = self.graph()
 
         # Determine the vertices
         X_edges = self.groundset_to_edges(X)
@@ -1768,7 +1769,7 @@ class GraphicMatroid(Matroid):
         """
         # We require two things:
         # (1) The connectivity of X is 0,
-        # (2) X intersects the rest of the graph on 1
+        # (2) X intersects the rest of the graph on 1 vertex
         if not set(X).issubset(self.groundset()):
             raise ValueError("X must be a subset of the ground set")
         connectivity = self.connectivity(X)

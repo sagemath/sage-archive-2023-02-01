@@ -25,6 +25,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport (have_same_parent, classify_elements,
                                      HAVE_SAME_PARENT, BOTH_ARE_ELEMENT,
                                      coercion_model, parent)
+from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 from sage.structure.element_wrapper cimport ElementWrapper
 from sage.structure.richcmp cimport richcmp
 from sage.data_structures.blas_dict cimport axpy, negate, scal
@@ -59,28 +60,14 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: y.lift() * x
             x*y - z
         """
-        cdef int cl = classify_elements(left, right)
-        if HAVE_SAME_PARENT(cl):
-            return ((<LieAlgebraElement> left).lift()
-                    * (<LieAlgebraElement> right).lift())
-        cdef LieAlgebraElement self 
-        if not BOTH_ARE_ELEMENT(cl):
-            # In this case, one of them must be a scalar
-            if isinstance(left, LieAlgebraElement):
-                self = (<LieAlgebraElement> left)
-                return self._acted_upon_(self._parent.base_ring()(right),
-                                         self_on_left=True)
-            else:
-                self = (<LieAlgebraElement> right)
-                return self._acted_upon_(self._parent.base_ring()(left),
-                                         self_on_left=False)
-
-        # Try the normal coercion first
         try:
-            return coercion_model.bin_op(left, right, mul)
+            # Try the normal coercion first
+            return wrapperdescr_fastcall(IndexedFreeModuleElement.__mul__,
+                                         left, (right,), {})
         except TypeError:
             pass
 
+        # Lift up to the UEA and try multiplication there
         # We will eventually want to lift stuff up anyways,
         #   so just do it here.
         if isinstance(left, LieAlgebraElement):
@@ -367,28 +354,14 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: y * int(3)
             3*(1,2)
         """
-        cdef int cl = classify_elements(left, right)
-        if HAVE_SAME_PARENT(cl):
-            return ((<LieAlgebraElementWrapper> left).lift()
-                    * (<LieAlgebraElementWrapper> right).lift())
-        cdef LieAlgebraElementWrapper self 
-        if not BOTH_ARE_ELEMENT(cl):
-            # In this case, one of them must be a scalar
-            if isinstance(left, LieAlgebraElementWrapper):
-                self = (<LieAlgebraElementWrapper> left)
-                return self._acted_upon_(self._parent.base_ring()(right),
-                                         self_on_left=True)
-            else:
-                self = (<LieAlgebraElementWrapper> right)
-                return self._acted_upon_(self._parent.base_ring()(left),
-                                         self_on_left=False)
-
-        # Try the normal coercion first
         try:
-            return coercion_model.bin_op(left, right, mul)
+            # Try the normal coercion first
+            return wrapperdescr_fastcall(ElementWrapper.__mul__,
+                                         left, (right,), {})
         except TypeError:
             pass
 
+        # Lift up to the UEA and try multiplication there
         # We will eventually want to lift stuff up anyways,
         #   so just do it here.
         if isinstance(left, LieAlgebraElementWrapper):

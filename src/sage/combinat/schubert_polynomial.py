@@ -129,13 +129,13 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             ...
             ValueError: cannot apply \delta_{5} to a (= X[3, 2, 1])
 
-        For convienence, we define the divided difference of `0`
+        For convenience, we define the divided difference of `0`
         to be `0`::
 
             sage: X.zero().divided_difference(2)
             0
 
-        This is compatibile when a permutation is given as input::
+        This is compatible when a permutation is given as input::
 
             sage: a = X([3,2,4,1])
             sage: a.divided_difference([2,3,1])

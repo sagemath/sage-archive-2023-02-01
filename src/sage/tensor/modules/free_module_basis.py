@@ -266,15 +266,17 @@ class FreeModuleBasis(Basis_abstract):
         # Initialization of the components w.r.t the current basis of the zero
         # elements of all tensor modules constructed up to now (including the
         # base module itself, since it is considered as a type-(1,0) tensor
-        # module)
+        # module):
         for t in fmodule._tensor_modules.values():
             t._zero_element._components[self] = t._zero_element._new_comp(self)
                                # (since new components are initialized to zero)
         # Initialization of the components w.r.t the current basis of the zero
-        # elements of all exterior powers constructed up to now
+        # elements of all exterior powers of the module and its dual
+        # constructed up to now:
+        for t in fmodule._exterior_powers.values():
+            t._zero_element._components[self] = t._zero_element._new_comp(self)
         for t in fmodule._dual_exterior_powers.values():
             t._zero_element._components[self] = t._zero_element._new_comp(self)
-                               # (since new components are initialized to zero)
         # The dual basis:
         self._dual_basis = self._init_dual_basis()
 

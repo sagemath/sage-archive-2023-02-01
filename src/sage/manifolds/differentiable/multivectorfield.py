@@ -1016,3 +1016,130 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         self_r = self.restrict(dom_resu)
         form_r = form.restrict(dom_resu)
         return AlternatingContrTensor.interior_product(self_r, form_r)
+
+    def bracket(self, other):
+        r"""
+        Schouten-Nijenhuis bracket of ``self`` with another multivector field.
+
+        INPUT:
+
+        - ``other`` -- another multivector field
+
+        OUTPUT:
+
+        - instance of :class:`MultivectorFieldParal` representing the
+          Schouten-Nijenhuis bracket ``[self,other]``
+
+        EXAMPLES:
+
+        On a 3-dimensional manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: a = M.vector_field('a')
+            sage: a[:] = x, -x*y, z*x
+            sage: b = M.vector_field('b')
+            sage: b[:] = x*z^2, x*y*z, x+y
+            sage: s = a.bracket(b) ; s
+
+        """
+        from sage.tensor.modules.comp import (Components, CompWithSym,
+                                              CompFullyAntiSym)
+        from sage.manifolds.differentiable.scalarfield import DiffScalarField
+        pp = self._tensor_rank
+        mp1 = (-1)**(pp+1)
+        if isinstance(other, DiffScalarField):
+            resu = other.differential().interior_product(self)
+            if mp1 == 1:
+                return resu
+            return - resu
+        # Some checks:
+        if not isinstance(other, (MultivectorField, MultivectorFieldParal)):
+            raise TypeError("{} is not a multivector field".format(other))
+        if (self._vmodule.destination_map() is not self._domain.identity_map()
+            or other._vmodule.destination_map() is not
+            other._domain.identity_map()):
+            raise ValueError("the Schouten-Nijenhuis bracket is defined " +
+                             "only for fields with a trivial destination map")
+        # Search for a common domain
+        dom_resu = self._domain.intersection(other._domain)
+        self_r = self.restrict(dom_resu)
+        other_r = other.restrict(dom_resu)
+        # Search for a common coordinate frame:
+        coord_frame = self_r._common_coord_frame(other_r)
+        if coord_frame is None:
+            raise ValueError("no common coordinate frame found")
+        chart = coord_frame.chart()
+        print "chart: ", chart
+        dom_resu = chart.domain()
+        fmodule = dom_resu.vector_field_module()
+        print "fmodule: ", fmodule
+        ring = fmodule.base_ring() # same as dom_resu.scalar_field_algebra()
+        aa = self_r.comp(coord_frame)  # components A^{i_1...i_p}
+        bb = other_r.comp(coord_frame) # components B^{j_1...j_q}
+        qq = other._tensor_rank
+        deg_resu = pp + qq - 1  # degree of the result
+        nn = dom_resu.dim()
+        print "aa : ", aa
+        print "bb : ", bb
+        if deg_resu == 1:
+            resuc = Components(ring, coord_frame, 1,
+                               start_index=fmodule._sindex,
+                               output_formatter=fmodule._output_formatter)
+        else:
+            resuc = CompFullyAntiSym(ring, coord_frame, deg_resu,
+                                     start_index=fmodule._sindex,
+                                     output_formatter=fmodule._output_formatter)
+        # Partial derivatives of the components of self:
+        if pp == 1:
+            daa = Components(ring, coord_frame, 2,
+                             start_index=fmodule._sindex,
+                             output_formatter=fmodule._output_formatter)
+        else:
+            daa = CompWithSym(ring, coord_frame, pp+1,
+                              start_index=fmodule._sindex,
+                              output_formatter=fmodule._output_formatter,
+                              antisym=range(pp))
+        for ind, val in aa._comp.items():
+            for k in fmodule.irange():
+                daa[[ind+(k,)]] = val.coord_function(chart).diff(k)
+        # Partial derivatives of the components of other:
+        if qq == 1:
+            dbb = Components(ring, coord_frame, 2,
+                             start_index=fmodule._sindex,
+                             output_formatter=fmodule._output_formatter)
+        else:
+            dbb = CompWithSym(ring, coord_frame, qq+1,
+                              start_index=fmodule._sindex,
+                              output_formatter=fmodule._output_formatter,
+                              antisym=range(qq))
+        for ind, val in bb._comp.items():
+            for k in fmodule.irange():
+                dbb[[ind+(k,)]] = val.coord_function(chart).diff(k)
+        # Computation
+        print "mp1 : ", mp1
+        for ind_a, val_a in aa._comp.items():
+            for ind_b in bb._comp:
+                ind_db = ind_b + (ind_a[0],)
+                ind = ind_a[1:] + ind_b
+                print "ind_a, ind_b, ind_db, ind : ", ind_a, ind_b, ind_db, ind
+                if len(ind) == len(set(ind)): # all indices are different
+                    resuc[[ind]] += mp1 * val_a * dbb[[ind_db]]
+        for ind_b, val_b in bb._comp.items():
+            for ind_a in aa._comp:
+                ind_da = ind_a + (ind_b[0],)
+                ind = ind_a + ind_b[1:]
+                print "ind_a, ind_b, ind_da, ind : ", ind_a, ind_b, ind_da, ind
+                if len(ind) == len(set(ind)): # all indices are different
+                    resuc[[ind]] -= val_b * daa[[ind_da]]
+        # Name of the result:
+        resu_name = None ; resu_latex_name = None
+        if self._name is not None and other._name is not None:
+            resu_name = '[' + self._name + ',' + other._name + ']'
+        if self._latex_name is not None and other._latex_name is not None:
+            resu_latex_name = r'\left[' + self._latex_name + ',' + \
+                              other._latex_name + r'\right]'
+        # Creation of the multivector with the components obtained above:
+        resu = fmodule.tensor_from_comp((deg_resu, 0), resuc, name=resu_name,
+                                        latex_name=resu_latex_name)
+        return resu

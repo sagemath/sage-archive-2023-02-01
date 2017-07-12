@@ -44,7 +44,8 @@ from sage.categories.modules import Modules
 from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-from sage.manifolds.differentiable.vectorfield import (VectorField, VectorFieldParal)
+from sage.manifolds.differentiable.vectorfield import (VectorField,
+                                                       VectorFieldParal)
 
 class VectorFieldModule(UniqueRepresentation, Parent):
     r"""
@@ -114,9 +115,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
-        sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+        sage: c_xy.<x,y> = U.chart() # stereographic coordinates from North pole
         sage: V = M.open_subset('V') # complement of the South pole
-        sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+        sage: c_uv.<u,v> = V.chart() # stereographic coordinates from South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
         sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
         ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
@@ -169,8 +170,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         True
         sage: XU.coerce_map_from(XM)
         Coercion map:
-          From: Module X(M) of vector fields on the 2-dimensional differentiable manifold M
-          To:   Free module X(U) of vector fields on the Open subset U of the 2-dimensional differentiable manifold M
+          From: Module X(M) of vector fields on the 2-dimensional
+           differentiable manifold M
+          To:   Free module X(U) of vector fields on the Open subset U of the
+           2-dimensional differentiable manifold M
 
     The conversion map is actually the restriction of vector fields defined
     on `M` to `U`.
@@ -187,9 +190,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from North pole
             sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
             ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
@@ -222,20 +225,21 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         self._ambient_domain = self._dest_map._codomain
         self._name = name
         self._latex_name = latex_name
-        # the member self._ring is created for efficiency (to avoid
+        # The member self._ring is created for efficiency (to avoid
         # calls to self.base_ring()):
         self._ring = domain.scalar_field_algebra()
         Parent.__init__(self, base=self._ring,
                         category=Modules(self._ring))
         # Dictionary of the tensor modules built on self
         #   (keys = (k,l) --the tensor type)
-        self._tensor_modules = {(1,0): self} # self is considered as the
-                                             # set of tensors of type (1,0)
-        # Dictionary of exterior powers of self
-        #   (keys = p --the power degree) :
-        self._exterior_powers = {}
-        # Dictionary of exterior powers of the dual of self
-        #   (keys = p --the power degree) :
+        # This dictionary is to be extended on need by the method tensor_module
+        self._tensor_modules = {(1,0): self} # self is considered as the set
+                                             # of tensors of type (1,0)
+        # Dictionaries of exterior powers of self and of its dual
+        #   (keys = p --the power degree)
+        # These dictionaries are to be extended on need by the methods
+        # exterior_power and dual_exterior_power
+        self._exterior_powers = {1: self}
         self._dual_exterior_powers = {}
 
     #### Parent methods
@@ -525,7 +529,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.tensorfield_module import TensorFieldModule
+        from sage.manifolds.differentiable.tensorfield_module import \
+                                                              TensorFieldModule
         if (k,l) not in self._tensor_modules:
             self._tensor_modules[(k,l)] = TensorFieldModule(self, (k,l))
         return self._tensor_modules[(k,l)]
@@ -578,11 +583,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         """
         from sage.manifolds.differentiable.multivector_module import \
-                                                       MultivectorModule
+                                                              MultivectorModule
         if p == 0:
             return self._ring
-        if p == 1:
-            return self
         if p not in self._exterior_powers:
             self._exterior_powers[p] = MultivectorModule(self, p)
         return self._exterior_powers[p]
@@ -633,7 +636,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.diff_form_module import DiffFormModule
+        from sage.manifolds.differentiable.diff_form_module import \
+                                                                 DiffFormModule
         if p == 0:
             return self._ring
         if p not in self._dual_exterior_powers:
@@ -685,7 +689,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.automorphismfield_group import AutomorphismFieldGroup
+        from sage.manifolds.differentiable.automorphismfield_group import \
+                                                         AutomorphismFieldGroup
         return AutomorphismFieldGroup(self)
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
@@ -1286,8 +1291,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         True
         sage: XU.coerce_map_from(XM)
         Coercion map:
-          From: Free module X(S^1) of vector fields on the 1-dimensional differentiable manifold S^1
-          To:   Free module X(U) of vector fields on the Open subset U of the 1-dimensional differentiable manifold S^1
+          From: Free module X(S^1) of vector fields on the 1-dimensional
+           differentiable manifold S^1
+          To:   Free module X(U) of vector fields on the Open subset U of the
+           1-dimensional differentiable manifold S^1
 
     The conversion map is actually the restriction of vector fields defined
     on `S^1` to `U`.
@@ -1610,7 +1617,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.tensorfield_module import TensorFieldFreeModule
+        from sage.manifolds.differentiable.tensorfield_module import \
+                                                          TensorFieldFreeModule
         if (k,l) not in self._tensor_modules:
             self._tensor_modules[(k,l)] = TensorFieldFreeModule(self, (k,l))
         return self._tensor_modules[(k,l)]
@@ -1664,11 +1672,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         """
         from sage.manifolds.differentiable.multivector_module import \
-                                                   MultivectorFreeModule
+                                                          MultivectorFreeModule
         if p == 0:
             return self._ring
-        if p == 1:
-            return self
         if p not in self._exterior_powers:
             self._exterior_powers[p] = MultivectorFreeModule(self, p)
         return self._exterior_powers[p]
@@ -1758,7 +1764,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.automorphismfield_group import AutomorphismFieldParalGroup
+        from sage.manifolds.differentiable.automorphismfield_group import \
+                                                    AutomorphismFieldParalGroup
         return AutomorphismFieldParalGroup(self)
 
     def basis(self, symbol=None, latex_symbol=None, from_frame=None):
@@ -2103,6 +2110,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more documentation.
 
         """
-        from sage.manifolds.differentiable.metric import PseudoRiemannianMetricParal
+        from sage.manifolds.differentiable.metric import \
+                                                    PseudoRiemannianMetricParal
         return PseudoRiemannianMetricParal(self, name, signature=signature,
                                            latex_name=latex_name)

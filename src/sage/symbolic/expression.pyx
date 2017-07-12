@@ -12641,7 +12641,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
             # callable methods need to be wrapped to extract the operands
             # and pass them as arguments
             from sage.symbolic.function_factory import eval_on_operands
-            from sage.structure.misc import getattr_from_other_class
+            from sage.cpython.getattr import getattr_from_other_class
             for name in dir(eval_methods):
                 if ismethod(getattr(eval_methods, name)):
                     new_m = eval_on_operands(getattr_from_other_class(

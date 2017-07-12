@@ -790,12 +790,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: cmp(CDF(1.2), CDF(i))
-            1
-            sage: cmp(CDF(1), CDF(2))
-            -1
-            sage: cmp(CDF(1 + i), CDF(-1 - i))
-            1
+            sage: CDF(1.2) > CDF(i)
+            True
+            sage: CDF(1) < CDF(2)
+            True
+            sage: CDF(1 + i) > CDF(-1 - i)
+            True
 
         ::
 

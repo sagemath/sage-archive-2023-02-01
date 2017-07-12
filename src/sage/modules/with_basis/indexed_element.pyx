@@ -494,8 +494,8 @@ cdef class IndexedFreeModuleElement(Element):
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a = s([2,1])
             sage: b = s([1,1,1])
-            sage: cmp(a,b) #indirect doctest
-            1
+            sage: a == b
+            False
 
         .. TODO::
 

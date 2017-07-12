@@ -305,14 +305,11 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, x, y):
         """
-        Return the GL product of two trees.
+        Return the product of two forests.
 
-        This is the sum over all graftings of the root of `y` over a vertex
-        of `x`. The root of the resulting trees is the root of `x`.
-
-        Sum over the list of rooted trees obtained from a rooted tree `x`
-        and a rooted tree `y` by the composition `x o_i y` where `i` is the root
-        of `x`.
+        This is the sum over all possible ways for the the components
+        of the forest `y` to either fall side-by-side with components
+        of `x` or be grafted on a vertex of `x`.
 
         EXAMPLES::
 

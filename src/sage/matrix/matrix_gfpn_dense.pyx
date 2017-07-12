@@ -703,6 +703,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [2*z^2 + 2*z + 2               0               0   2*z^2 + z + 2               0         2*z + 1]
             [              0       2*z^2 + z               0               1               0   2*z^2 + z + 1]
 
+        The following tests against a bug that was fixed in :trac:`23352`::
+
+            sage: MS = MatrixSpace(GF(9,'x'),1,5)
+            sage: MS.random_element()     # optional: meataxe
+            [x + 1     x     2 x + 2 x + 2]
+
         """
         self.check_mutability()
         cdef int fl = self.Data.Field
@@ -741,7 +747,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                         y = <unsigned char*>x
                         for j from 0 <= j < FfCurrentRowSizeIo-1:
                             y[j] = randint()%O
-                        y[FfCurrentRowSizeIo-1] = randint()%(fl**(nc%MPB))
+                        for j from nc-(nc%MPB) <= j < nc:
+                            FfInsert(x, j, FfFromInt( (randint()%fl) ))
                         FfStepPtr(&(x))
                 else:
                     for i from 0 <= i < nr:

@@ -702,9 +702,9 @@ for script in build install check; do
             if [ -x "$script" ]; then
                 msg="$script should not be marked executable in the build/pkgs directory"
                 if [ "$UNAME" = "CYGWIN" ]; then
-                    # On Cygwin we can't neecessarily rely on file permissions
+                    # On Cygwin we can't necessarily rely on file permissions
                     # being sane, so just issue a warning; on other platforms
-                    # this should be enforsed as an error
+                    # this should be enforced as an error
                     echo >&2 "WARNING: $msg"
                 else
                     error_msg "$msg"

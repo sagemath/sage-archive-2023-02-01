@@ -45,17 +45,19 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
     explicit description using rooted forests. The underlying vector
     space has a basis indexed by finite rooted forests endowed with a
     map from their vertices to `E`. In this basis, the product of two
-    (decorated) rooted forests `S * T` is the sum over all maps from
+    (decorated) rooted forests `S * T` is a sum over all maps from
     the set of roots of `T` to the union of a singleton `\{\#\}` and
     the set of vertices of `S`. Given such a map, one defines a new
-    forest as follows. Starting from the disjoint union of all trees
+    forest as follows. Starting from the disjoint union of all rooted trees
     of `S` and `T`, one adds an edge from every root of `T` to its
     image when this image is not the fake vertex labelled ``#``.
 
-    .. NOTE::
+    .. WARNING::
 
-        Instead of using forests as labels for the basis, we use rooted trees
-        and ignore their root (labelled ``#`` when labels are present).
+        For technical reasons, instead of using forests as labels for
+        the basis, we use rooted trees. Their root vertex should be
+        considered as a fake vertex. This fake root vertex is labelled
+        `\#` when labels are present.
 
     EXAMPLES::
 
@@ -85,7 +87,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         sage: x * (y * z) == (x * y) * z
         True
 
-    When there is only one generator, unlabelled trees are used instead::
+    When there is only one generator, unlabelled forests are used instead::
 
         sage: G = algebras.GrossmanLarson(QQ, 1)
         sage: x = G.gens()[0]
@@ -215,8 +217,6 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         Return the generators of this algebra.
 
         These are the rooted forests with just one vertex.
-        In our representation, this means a rooted tree with 2 vertices,
-        including the fake root ``#``.
 
         EXAMPLES::
 
@@ -248,9 +248,9 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     def degree_on_basis(self, t):
         """
-        Return the degree of a rooted tree in the free GL algebra.
+        Return the degree of a rooted forest in the Grossman-Larson algebra.
 
-        This is the number of vertices minus one.
+        This is the total number of vertices of the forest.
 
         EXAMPLES::
 
@@ -342,7 +342,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     def coproduct_on_basis(self, x):
         """
-        Return the coproduct of a tree.
+        Return the coproduct of a forest.
 
         EXAMPLES::
 
@@ -442,8 +442,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - Grossman-Larson Hopf algebras in the same variables over a base with
-          a coercion map into ``self.base_ring()``
+        - Grossman-Larson Hopf algebras in a subset of variables over
+          a base with a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 
@@ -457,8 +457,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: F.coerce(x+y) == x+y
             True
 
-        The Grossman-Larson Hopf algebra over `\ZZ` on `x, y, z` coerces in, since
-        `\ZZ` coerces to `\GF{7}`::
+        The Grossman-Larson Hopf algebra over `\ZZ` on `x, y, z`
+        coerces in, since `\ZZ` coerces to `\GF{7}`::
 
             sage: G = algebras.GrossmanLarson(ZZ, 'xyz')
             sage: Gx,Gy,Gz = G.gens()
@@ -496,10 +496,10 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # Grossman-Larson algebras in the same variables
+        # Grossman-Larson algebras containing the same variables
         # over any base that coerces in:
         if isinstance(R, GrossmanLarsonAlgebra):
-            if R.variable_names() == self.variable_names():
+            if all(x in self.variable_names() for x in R.variable_names()):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False

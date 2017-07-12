@@ -1036,13 +1036,73 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: a = M.vector_field('a')
-            sage: a[:] = x, -x*y, z*x
-            sage: b = M.vector_field('b')
-            sage: b[:] = x*z^2, x*y*z, x+y
-            sage: s = a.bracket(b) ; s
+            sage: a = M.vector_field(name='a')
+            sage: a[:] = x*y+z, x^2+y-z, z^2-2*x+y
+            sage: b = M.vector_field(name='b')
+            sage: b[:] = y*z-x, x^2-y+z, z*x-1
+            sage: s = a.bracket(b); s
+            Vector field [a,b] on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            [a,b] = (-x^3 + (y - 1)*z^2 - x*y + y^2 + (x^2 - y^2 - 2*x + y - 1)*z + 1) d/dx
+             + ((2*x^2 + 1)*y - (2*x*y - 3*x)*z + z^2 - 2*x - 1) d/dy
+             + (-(x - 1)*z^2 - 3*x^2 + (x + 1)*y + ((x + 2)*y + 1)*z - 2*x) d/dz
+            sage: s == b.lie_derivative(a)
+            True
+            sage: c = M.multivector_field(2, name='c')
+            sage: c[0,1], c[0,2], c[1,2] = x+y^2+z, x*y*z, z*x-y
+            sage: s = a.bracket(c); s
+            2-vector field [a,c] on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            [a,c] = (2*x^2*y - y^3 + y^2 + ((x - 3)*y + x)*z + z^2 - 3*x)
+             d/dx/\d/dy  + ((x - 1)*y^2 - ((x - 1)*y + x)*z^2 - (2*x^2 - x)*y
+             + (x^3 - x^2 + x*y - 1)*z - x) d/dx/\d/dz + (-(x - 1)*z^2 - 3*x^2
+             + x*y - 2*y^2 - ((2*x^2 - x - 2)*y + x + 1)*z - 2*x) d/dy/\d/dz
+            sage: s == c.lie_derivative(a)
+            True
+            sage: d = M.multivector_field(2, name='d')
+            sage: d[0,1], d[0,2], d[1,2] = x^2-z, y*z+x, z-x+y^2-1
+            sage: s = c.bracket(d); s
+            3-vector field [c,d] on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            [c,d] = (-x*y^3 - y*z^2 + (x^2 + 5*x + 2)*y + 2*y^2
+                     - ((x^2 + 1)*y - 2)*z) d/dx/\d/dy/\d/dz
+            sage: s[0,1,2] == - sum(c[i,0]*d[1,2].diff(i)
+            ....:                 + c[i,1]*d[2,0].diff(i) + c[i,2]*d[0,1].diff(i)
+            ....:                 + d[i,0]*c[1,2].diff(i) + d[i,1]*c[2,0].diff(i)
+            ....:                 + d[i,2]*c[0,1].diff(i) for i in M.irange())
+            True
+            sage: e = M.multivector_field(3, name='e')
+            sage: e[0,1,2] = x^2+y*z-z+2
+            sage: s = a.bracket(e); s
+            3-vector field [a,e] on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            [a,e] = (-y*z^2 - x^2 + (x^2 - 2*x - 3)*y + y^2 - (x^2 + y^2 - 2*x - y + 3)*z + 2*x - 2) d/dx/\d/dy/\d/dz
+            sage: s == e.lie_derivative(a)
+            True
+            sage: s = c.bracket(e); s
+            4-vector field [c,e] on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            [c,e] = 0
+            sage: a.bracket(b) == - b.bracket(a)
+            True
+            sage: a.bracket(c) == - c.bracket(a)
+            True
+            sage: c.bracket(d) == d.bracket(c)
+            True
+            sage: a.bracket(b.wedge(c)) == a.bracket(b).wedge(c) + b.wedge(a.bracket(c))
+            True
+            sage: c.bracket(a.wedge(b)) == c.bracket(a).wedge(b) - a.wedge(c.bracket(b))
+            True
+            sage: a.bracket(b.bracket(c)) + b.bracket(c.bracket(a)) \
+            ....: + c.bracket(a.bracket(b)) == 0
+            True
+            sage: a.bracket(c.bracket(d)) + c.bracket(d.bracket(a)) \
+            ....: - d.bracket(a.bracket(c)) == 0
+            True
 
         """
+        from sage.sets.set import Set
+        from sage.combinat.permutation import Permutation
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullyAntiSym)
         from sage.manifolds.differentiable.scalarfield import DiffScalarField
@@ -1070,18 +1130,14 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         if coord_frame is None:
             raise ValueError("no common coordinate frame found")
         chart = coord_frame.chart()
-        print "chart: ", chart
         dom_resu = chart.domain()
         fmodule = dom_resu.vector_field_module()
-        print "fmodule: ", fmodule
         ring = fmodule.base_ring() # same as dom_resu.scalar_field_algebra()
         aa = self_r.comp(coord_frame)  # components A^{i_1...i_p}
         bb = other_r.comp(coord_frame) # components B^{j_1...j_q}
         qq = other._tensor_rank
         deg_resu = pp + qq - 1  # degree of the result
         nn = dom_resu.dim()
-        print "aa : ", aa
-        print "bb : ", bb
         if deg_resu == 1:
             resuc = Components(ring, coord_frame, 1,
                                start_index=fmodule._sindex,
@@ -1117,21 +1173,44 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             for k in fmodule.irange():
                 dbb[[ind+(k,)]] = val.coord_function(chart).diff(k)
         # Computation
-        print "mp1 : ", mp1
-        for ind_a, val_a in aa._comp.items():
-            for ind_b in bb._comp:
-                ind_db = ind_b + (ind_a[0],)
-                ind = ind_a[1:] + ind_b
-                print "ind_a, ind_b, ind_db, ind : ", ind_a, ind_b, ind_db, ind
-                if len(ind) == len(set(ind)): # all indices are different
-                    resuc[[ind]] += mp1 * val_a * dbb[[ind_db]]
-        for ind_b, val_b in bb._comp.items():
-            for ind_a in aa._comp:
-                ind_da = ind_a + (ind_b[0],)
-                ind = ind_a + ind_b[1:]
-                print "ind_a, ind_b, ind_da, ind : ", ind_a, ind_b, ind_da, ind
-                if len(ind) == len(set(ind)): # all indices are different
-                    resuc[[ind]] -= val_b * daa[[ind_da]]
+        for ind in resuc.non_redundant_index_generator():
+            sind = Set(ind)  # {i_1, i_2, ..., i_{p+q-1}}
+            # Term a^{l j_2 ... j_p} \partial_l b^{k_1 ... k_q}
+            # with (j_2,...,j_p,k_1,...,k_q) spanning all permutations of
+            # (i_1, i_2, ..., i_{p+q-1})
+            sub_sind_p = sind.subsets(pp-1)
+            for sind_a in sub_sind_p:
+                sind_b = sind.difference(sind_a)
+                ind_a = tuple(sorted(sind_a))
+                ind_b = tuple(sorted(sind_b))
+                ## print 'ind, ind_a, ind_b:', ind, ind_a, ind_b
+                sum = 0
+                for l in fmodule.irange():
+                    sum += aa[[(l,) + ind_a]] * dbb[[ind_b + (l,)]]
+                ind_ab = ind_a + ind_b
+                sign = Permutation([ind_ab.index(i) + 1 for i in ind]).signature()
+                if mp1*sign == 1:
+                    resuc[[ind]] += sum
+                else:
+                    resuc[[ind]] -= sum
+            # Term b^{l k_2 ... k_q} \partial_l a^{j_1 ... j_p}
+            # with (j_1,...,j_p,k_2,...,k_q) spanning all permutations of
+            # (i_1, i_2, ..., i_{p+q-1})
+            sub_sind_q = sind.subsets(qq-1)
+            for sind_b in sub_sind_q:
+                sind_a = sind.difference(sind_b)
+                ind_a = tuple(sorted(sind_a))
+                ind_b = tuple(sorted(sind_b))
+                ## print 'ind, ind_a, ind_b:', ind, ind_a, ind_b
+                sum = 0
+                for l in fmodule.irange():
+                    sum += bb[[(l,) + ind_b]] * daa[[ind_a + (l,)]]
+                ind_ab = ind_a + ind_b
+                sign = Permutation([ind_ab.index(i) + 1 for i in ind]).signature()
+                if sign == 1:
+                    resuc[[ind]] -= sum
+                else:
+                    resuc[[ind]] += sum
         # Name of the result:
         resu_name = None ; resu_latex_name = None
         if self._name is not None and other._name is not None:

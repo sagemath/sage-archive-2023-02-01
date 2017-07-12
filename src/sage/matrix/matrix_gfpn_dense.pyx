@@ -31,15 +31,12 @@ from __future__ import print_function
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
-## Define an environment variable that enables MeatAxe to find
-## its multiplication tables.
-
-from sage.env import DOT_SAGE
 import os
 cdef extern from "Python.h":
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
     char* PyString_AsString(object string)
-MtxLibDir = PyString_AsString(os.path.join(DOT_SAGE,'meataxe'))
+
+meataxe_init()
 
 ####################
 #
@@ -256,36 +253,6 @@ cdef FieldConverter_class FieldConverter(field):
         if field.is_prime_field():
             return _converter_cache.setdefault(field, PrimeFieldConverter_class(field))
         return _converter_cache.setdefault(field, FieldConverter_class(field))
-
-######################################
-## Error handling for MeatAxe, to prevent immediate exit of the program
-
-cdef dict ErrMsg = {
-    "Not enough memory": MemoryError,
-    "Time limit exceeded": RuntimeError,
-    "Division by zero": ZeroDivisionError,
-    "Bad file format": IOError,
-    "Bad argument": ValueError,
-    "Argument out of range": IndexError,
-
-    "Matrix not in echelon form": ValueError,
-    "Matrix not square": ArithmeticError,
-    "Incompatible objects": TypeError,
-
-    "Bad syntax, try `-help'": SyntaxError,
-    "Bad usage of option, try `-help'": ValueError,
-    "Bad number of arguments, try `-help'": ValueError,
-
-    "Not a matrix": TypeError,
-    "Not a permutation": TypeError
-}
-
-from cpython.exc cimport PyErr_SetObject
-
-cdef void ErrorHandler(MtxErrorRecord_t *err):
-    PyErr_SetObject(ErrMsg.get(err.Text, SystemError), "{} in file {} (line {})".format(err.Text, err.FileInfo.BaseName, err.LineNo))
-
-MtxSetErrorHandler(ErrorHandler)
 
 ######################################
 ##

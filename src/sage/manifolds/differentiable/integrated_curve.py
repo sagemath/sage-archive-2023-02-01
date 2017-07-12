@@ -10,14 +10,14 @@ Integrated curves are implemented by :class:`IntegratedCurve`, which the
 classes :class:`IntegratedAutoparallelCurve` and
 :class:`IntegratedGeodesic` inherit.
 
-.. RUBRIC:: Example: A geodesic in hyperbolic Poincaré half-plane
+.. RUBRIC:: Examples: A geodesic in hyperbolic Poincaré half-plane
 
 First declare a chart over the Poincaré half-plane::
 
     sage: M = Manifold(2, 'M')
     sage: X.<x,y> = M.chart('x y:(0,+oo)')
 
-Then declare the hyperbolic Poicaré metric::
+Then declare the hyperbolic Poincaré metric::
 
     sage: g = M.metric('g')
     sage: g[0,0], g[1,1] = 1/y^2, 1/y^2
@@ -27,9 +27,9 @@ Then declare the hyperbolic Poicaré metric::
 Pick an initial point and an initial tangent vector::
 
     sage: p = M((0,1), name='p')
-    sage: v = M.tangent_space(p)((1,3/2))
+    sage: v = M.tangent_space(p)((1,3/2), name='v')
     sage: v.display()
-    d/dx + 3/2 d/dy
+    v = d/dx + 3/2 d/dy
 
 Declare a geodesic with such initial conditions, denoting ``t`` the
 corresponding affine parameter::
@@ -46,7 +46,26 @@ required to plot::
 
     sage: interp = c.interpolate()
     sage: graph = c.plot_integrated()
-    sage: graph.show()
+    sage: p_plot = p.plot(size=30, label_offset=0.07, fontsize=20)
+    sage: v_plot = v.plot(label_offset=0.05, fontsize=20)
+    sage: (graph + p_plot + v_plot).show()
+
+.. PLOT::
+
+    M = Manifold(2, 'M')
+    X = M.chart('x y')
+    var('x y t')
+    g = M.metric('g')
+    g[0,0], g[1,1] = 1/y**2, 1/y**2
+    p = M((0,1), name='p')
+    v = M.tangent_space(p)((1,3/2), name='v')
+    c = M.integrated_geodesic(g, (t, 0, 10), v, name='c')
+    sol = c.solve()
+    interp = c.interpolate()
+    graph = c.plot_integrated()
+    p_plot = p.plot(size=30, label_offset=0.07, fontsize=20)
+    v_plot = v.plot(label_offset=0.05, fontsize=20)
+    sphinx_plot(graph + p_plot + v_plot)
 
 AUTHORS:
 
@@ -108,7 +127,7 @@ class IntegratedCurve(DifferentiableCurve):
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the curve; if none is provided, ``name`` will be used
 
-    EXAMPLE:
+    EXAMPLES:
 
     Motion of a charged particle in an axial magnetic field linearly
     increasing in time and exponentially decreasing in space:
@@ -618,7 +637,7 @@ class IntegratedCurve(DifferentiableCurve):
         - list containing the attributes :attr:`equations_rhs`,
           :attr:`initial_tangent_vector` and :attr:`chart`
 
-        EXAMPLE:
+        EXAMPLES:
 
         System defining an integrated curve::
 
@@ -730,7 +749,7 @@ class IntegratedCurve(DifferentiableCurve):
           or boolean 'False' (in case the differential system could not
           be solved analytically)
 
-        EXAMPLE:
+        EXAMPLES:
 
         Analytical expression of the trajectory of a charged particle in
         a uniform, stationnary magnetic field::
@@ -889,7 +908,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         - list of the numerical points of the solution computed
 
-        EXAMPLE:
+        EXAMPLES:
 
         Computing a numerical solution::
 
@@ -1269,7 +1288,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         - list of the numerical points of the solution requested
 
-        EXAMPLE:
+        EXAMPLES:
 
         Requesting a numerical solution previously computed::
 
@@ -1343,7 +1362,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         - built interpolation object
 
-        EXAMPLE:
+        EXAMPLES:
 
         Interpolating a numerical solution previously computed::
 
@@ -1457,7 +1476,7 @@ class IntegratedCurve(DifferentiableCurve):
 
         - requested interpolation object
 
-        EXAMPLE:
+        EXAMPLES:
 
         Requesting an interpolation object previously computed::
 
@@ -1611,7 +1630,7 @@ class IntegratedCurve(DifferentiableCurve):
         - :class:`~sage.manifolds.differentiable.tangent_vector.TangentVector`
           tangent vector with numerical components
 
-        EXAMPLE:
+        EXAMPLES:
 
         Evaluating a vector tangent to the curve::
 
@@ -1683,8 +1702,7 @@ class IntegratedCurve(DifferentiableCurve):
                     for coordinate_curve_spline in interpolation] # by
             # default, order=1 in method 'derivative' of a class Spline
             basis = self._chart.frame().at(p)
-            v = Tp(evaluated_tgt_vec_comp, basis=basis)
-            return v
+            return Tp(evaluated_tgt_vec_comp, basis=basis)
 
         raise TypeError("unexpected type of interpolation object")
 
@@ -1717,14 +1735,14 @@ class IntegratedCurve(DifferentiableCurve):
           some tangent vectors should also be plotted
         - ``color_tangent`` -- (default: ``blue``) color of the tangent
           vectors when these are plotted
-        - ``plot_points_tangent`` -- (default: 75) number of tangent
+        - ``plot_points_tangent`` -- (default: 10) number of tangent
           vectors to display when these are plotted
         - ``width_tangent`` -- (default: 1) sets the width of the arrows
           representing the tangent vectors
         - ``scale`` -- (default: 1) scale applied to the tangent vectors
           before displaying them
 
-        EXAMPLE:
+        EXAMPLES:
 
         Trajectory of a particle of unit mass and unit charge in an
         unit, axial, uniform, stationnary magnetic field::
@@ -2279,7 +2297,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the curve; if none is provided, ``name`` will be used
 
-    EXAMPLE:
+    EXAMPLES:
 
     Autoparallel curves associated with the Mercator projection of the
     unit 2-sphere :MATH:`\mathbb{S}^{2}`.
@@ -2324,7 +2342,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     zero w.r.t. this frame::
 
         sage: nab = S2.affine_connection('nab')
-        sage: nab.set_coef(epolar_ON)[:]
+        sage: nab.set_coef(frame=epolar_ON)[:]
         [[[0, 0], [0, 0]], [[0, 0], [0, 0]]]
 
     This connection is such that two vectors are parallel if their
@@ -2443,7 +2461,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
         epolar_ON = epolar.new_frame(ch_basis, 'epolar_ON')
         nab = S2.affine_connection('nab')
-        nab.set_coef(epolar_ON)[:]
+        nab.set_coef(frame=epolar_ON)[:]
         [t,tmin,tmax,th0,ph0,v_th0,v_ph0]=var('t tmin tmax th0 ph0 v_th0 v_ph0')
         p = S2.point((th0, ph0), name='p')
         Tp = S2.tangent_space(p)
@@ -2505,7 +2523,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
         epolar_ON = epolar.new_frame(ch_basis, 'epolar_ON')
         nab = S2.affine_connection('nab')
-        nab.set_coef(epolar_ON)[:]
+        nab.set_coef(frame=epolar_ON)[:]
         [t,tmin,tmax,th0,ph0,v_th0,v_ph0]=var('t tmin tmax th0 ph0 v_th0 v_ph0')
         p = S2.point((th0, ph0), name='p')
         Tp = S2.tangent_space(p)
@@ -2564,7 +2582,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
         epolar_ON = epolar.new_frame(ch_basis, 'epolar_ON')
         nab = S2.affine_connection('nab')
-        nab.set_coef(epolar_ON)[:]
+        nab.set_coef(frame=epolar_ON)[:]
         [t,tmin,tmax,th0,ph0,v_th0,v_ph0]=var('t tmin tmax th0 ph0 v_th0 v_ph0')
         p = S2.point((th0, ph0), name='p')
         Tp = S2.tangent_space(p)
@@ -2604,7 +2622,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
         epolar_ON = epolar.new_frame(ch_basis, 'epolar_ON')
         nab = S2.affine_connection('nab')
-        nab.set_coef(epolar_ON)[:]
+        nab.set_coef(frame=epolar_ON)[:]
         [t,tmin,tmax,th0,ph0,v_th0,v_ph0]=var('t tmin tmax th0 ph0 v_th0 v_ph0')
         p = S2.point((th0, ph0), name='p')
         Tp = S2.tangent_space(p)
@@ -2695,7 +2713,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
         epolar_ON = epolar.new_frame(ch_basis, 'epolar_ON')
         nab = S2.affine_connection('nab')
-        nab.set_coef(epolar_ON)[:]
+        nab.set_coef(frame=epolar_ON)[:]
         [t, tmin, tmax, th0, ph0] = var('t tmin tmax th0 ph0')
         [v_th0, v_ph0, alpha] = var('v_th0 v_ph0 alpha')
         p = S2.point((th0, ph0), name='p')
@@ -2745,7 +2763,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
         epolar_ON = epolar.new_frame(ch_basis, 'epolar_ON')
         nab = S2.affine_connection('nab')
-        nab.set_coef(epolar_ON)[:]
+        nab.set_coef(frame=epolar_ON)[:]
         [t, tmin, tmax, th0, ph0] = var('t tmin tmax th0 ph0')
         [v_th0, v_ph0, alpha] = var('v_th0 v_ph0 alpha')
         p = S2.point((th0, ph0), name='p')
@@ -2815,7 +2833,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         i0 = parent.codomain().start_index()
         equations_rhs = []
 
-        gamma = affine_connection.coef()
+        gamma = affine_connection.coef(frame=chart.frame())
 
         for alpha in range(dim):
             rhs = 0
@@ -2923,7 +2941,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         - list containing the attributes :attr:`equations_rhs`,
           :attr:`initial_tangent_vector` and :attr:`chart`
 
-        EXAMPLE:
+        EXAMPLES:
 
         System defining an autoparallel curve::
 
@@ -3045,7 +3063,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
       the curve; if none is provided, ``name`` will be used
 
-    EXAMPLE:
+    EXAMPLES:
 
     Geodesics of the unit 2-sphere :MATH:`\mathbb{S}^{2}`.
     Start with declaring the standard polar coordinates
@@ -3299,7 +3317,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
         - list containing the attributes :attr:`equations_rhs`,
           :attr:`initial_tangent_vector` and :attr:`chart`
 
-        EXAMPLE:
+        EXAMPLES:
 
         System defining a geodesic::
 

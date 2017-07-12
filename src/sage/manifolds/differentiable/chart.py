@@ -570,7 +570,7 @@ class DiffChart(Chart):
 
         - a list of symbolic expressions with the desired names
 
-        EXAMPLE:
+        EXAMPLES:
 
         Symbolic derivatives of the Cartesian coordinates of the
         3-dimensional Euclidean space::

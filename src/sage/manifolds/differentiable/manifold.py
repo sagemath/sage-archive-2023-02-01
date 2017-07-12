@@ -2608,18 +2608,12 @@ class DifferentiableManifold(TopologicalManifold):
         - ``name`` -- (default: ``None``) string; symbol given to the curve
         - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
           the curve; if none is provided, ``name`` will be used
-        - ``is_isomorphism`` -- (default: ``False``) determines whether the
-          constructed object is a diffeomorphism; if set to ``True``,
-          then `M` must have dimension one
-        - ``is_identity`` -- (default: ``False``) determines whether the
-          constructed object is the identity map; if set to ``True``,
-          then `M` must coincide with the domain of the curve
 
         OUTPUT:
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Trajectory of a particle of unit mass and unit charge in a
         unit, uniform, stationnary magnetic field::
@@ -2730,18 +2724,12 @@ class DifferentiableManifold(TopologicalManifold):
         - ``name`` -- (default: ``None``) string; symbol given to the curve
         - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
           the curve; if none is provided, ``name`` will be used
-        - ``is_isomorphism`` -- (default: ``False``) determines whether the
-          constructed object is a diffeomorphism; if set to ``True``,
-          then `M` must have dimension one
-        - ``is_identity`` -- (default: ``False``) determines whether the
-          constructed object is the identity map; if set to ``True``,
-          then `M` must coincide with the domain of the curve
 
         OUTPUT:
 
         - :class:`~sage.manifolds.differentiable.curve.IntegratedAutoparallelCurve`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Autoparallel curves associated with the Mercator projection of
         the unit 2-sphere :MATH:`\mathbb{S}^{2}`::
@@ -2869,18 +2857,12 @@ class DifferentiableManifold(TopologicalManifold):
         - ``name`` -- (default: ``None``) string; symbol given to the curve
         - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
           the curve; if none is provided, ``name`` will be used
-        - ``is_isomorphism`` -- (default: ``False``) determines whether the
-          constructed object is a diffeomorphism; if set to ``True``,
-          then `M` must have dimension one
-        - ``is_identity`` -- (default: ``False``) determines whether the
-          constructed object is the identity map; if set to ``True``,
-          then `M` must coincide with the domain of the curve
 
         OUTPUT:
 
         - :class:`~sage.manifolds.differentiable.curve.IntegratedGeodesic`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Geodesics of the unit 2-sphere :MATH:`\mathbb{S}^{2}`::
 

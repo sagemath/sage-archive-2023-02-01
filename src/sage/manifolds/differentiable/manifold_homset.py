@@ -537,7 +537,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
       denote the set of integrated curves; if ``None``,
       `\mathrm{Hom_{integrated}}(I,M)` will be used
 
-    EXAMPLE:
+    EXAMPLES:
 
     This parent class needs to be imported::
 
@@ -790,7 +790,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(2, 'M')
@@ -822,7 +822,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(2, 'M')
@@ -882,9 +882,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
         from sage.categories.homset import Hom
         from sage.functions.trig import sin
-        from sage.functions.trig import cos
         from sage.symbolic.ring import var
-        from sage.symbolic.expression import Expression
 
         dom = self.domain()
         t = dom.canonical_coordinate()
@@ -1008,7 +1006,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
       the set of integrated autoparallel curves; if ``None``,
       `\mathrm{Hom_{autoparallel}}(I,M)` will be used
 
-    EXAMPLE:
+    EXAMPLES:
 
     This parent class needs to be imported::
 
@@ -1057,22 +1055,22 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
          differentiable manifold M
         sage: sys = d.system(verbose=True)
         Autoparallel curve in the 2-dimensional differentiable manifold
-         M equipped with Affine connection nab on the Open subset U of
-         the 2-dimensional differentiable manifold M, and integrated
-         over the Real interval (-1, 2) as a solution to the following
-         equations, written w.r.t. Chart (M, (x, y)):
+         M equipped with Affine connection nab on the 2-dimensional
+         differentiable manifold M, and integrated over the Real
+         interval (-1, 2) as a solution to the following equations,
+         written w.r.t. Chart (M, (x, y)):
         <BLANKLINE>
         Initial point: Point on the 2-dimensional differentiable
-         manifold M with coordinates [0.0312500000000000, -1/2] w.r.t.
+         manifold M with coordinates [0, -1/2] w.r.t.
          Chart (M, (x, y))
         Initial tangent vector: Tangent vector at Point on the
          2-dimensional differentiable manifold M with components
-         [0.156250000000000, 2.07698341289763] w.r.t. Chart (M, (x, y))
+         [-1/6/(e^(-1) - 1), 1/3] w.r.t. Chart (M, (x, y))
         <BLANKLINE>
         d(x)/dt = Dx
         d(y)/dt = Dy
-        d(Dx)/dt = 0
-        d(Dy)/dt = -Dx*Dy*cos(x)/sin(x)
+        d(Dx)/dt = -Dx*Dy
+        d(Dy)/dt = 0
         <BLANKLINE>
 
     The test suite is passed::
@@ -1116,19 +1114,19 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         Integrated autoparallel curve in the Real interval (a, b)
         sage: sys = g.system(verbose=True)
         Autoparallel curve in the Real interval (a, b) equipped with
-         Affine connection nab on the Open subset U of the Real number
-         line R, and integrated over the Real interval (a, b) as a
-         solution to the following equations, written w.r.t.
-         Chart ((a, b), (t,)):
+         Affine connection nab on the Real interval (a, b), and
+         integrated over the Real interval (a, b) as a solution to the
+         following equations, written w.r.t. Chart ((a, b), (t,)):
         <BLANKLINE>
         Initial point: Point on the Real number line R with coordinates
-         [1/200] w.r.t. Chart ((a, b), (t,))
+         [0] w.r.t. Chart ((a, b), (t,))
         Initial tangent vector: Tangent vector at Point on the Real
-         number line R with components [-9999/400/(a - b)] w.r.t.
+         number line R with components
+         [-(e^(1/2) - 1)/(a - b)] w.r.t.
          Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
-        d(Dt)/ds = -Dt^2/t
+        d(Dt)/ds = -Dt^2
         <BLANKLINE>
 
     The test suite is passed, tests '_test_one' and '_test_prod' being
@@ -1238,7 +1236,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(2, 'M')
@@ -1272,80 +1270,78 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
-            sage: I = R.open_interval(-1, 2)
-            sage: H = IntegratedAutoparallelCurveSet(I, M)
+            sage: [a,b] = var('a b')
+            sage: J = R.open_interval(a, b)
+            sage: H = IntegratedAutoparallelCurveSet(J, M)
             sage: c = H._an_element_() ; c
             Integrated autoparallel curve in the 2-dimensional
              differentiable manifold M
             sage: sys = c.system(verbose=True)
             Autoparallel curve in the 2-dimensional differentiable
-             manifold M equipped with Affine connection nab on the Open
-             subset U of the 2-dimensional differentiable manifold M,
-             and integrated over the Real interval (-1, 2) as a solution
-             to the following equations, written w.r.t.
-             Chart (M, (x, y)):
+             manifold M equipped with Affine connection nab on the
+             2-dimensional differentiable manifold M, and integrated
+             over the Real interval (a, b) as a solution to the
+             following equations, written w.r.t. Chart (M, (x, y)):
             <BLANKLINE>
             Initial point: Point on the 2-dimensional differentiable
-             manifold M with coordinates [0.0312500000000000, -1/2]
+             manifold M with coordinates [0, -1/2]
              w.r.t. Chart (M, (x, y))
             Initial tangent vector: Tangent vector at Point on the
              2-dimensional differentiable manifold M with components
-             [0.156250000000000, 2.07698341289763]
-             w.r.t. Chart (M, (x, y))
+             [1/2/((a - b)*(e^(-1) - 1)), -1/(a - b)] w.r.t.
+             Chart (M, (x, y))
             <BLANKLINE>
             d(x)/dt = Dx
             d(y)/dt = Dy
-            d(Dx)/dt = 0
-            d(Dy)/dt = -Dx*Dy*cos(x)/sin(x)
+            d(Dx)/dt = -Dx*Dy
+            d(Dy)/dt = 0
             <BLANKLINE>
-            sage: sol = c.solve()
+            sage: sol = c.solve(parameters_values={a:0,b:4})
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()
-            (0.34375000000000056, 0.49999813529956155)
+            (0.1749660043664451, -0.2499999999999998)
+            sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated autoparallel curve in the Real interval (-1, 2)
             sage: sys = c.system(verbose=True)
             Autoparallel curve in the Real interval (-1, 2) equipped
-             with Affine connection nab on the Open subset U of the Real
-             number line R, and integrated over the Real
-             interval (-1, 2) as a solution to the following equations,
-             written w.r.t. Chart ((-1, 2), (t,)):
+             with Affine connection nab on the Real interval (-1, 2),
+             and integrated over the Real interval (-1, 2) as a solution
+             to the following equations, written w.r.t.
+             Chart ((-1, 2), (t,)):
             <BLANKLINE>
             Initial point: Point on the Real number line R with
              coordinates [1/2] w.r.t. Chart ((-1, 2), (t,))
             Initial tangent vector: Tangent vector at Point on the Real
-             number line R with components [7/16] w.r.t.
+             number line R with components [1/3*e^(3/4) - 1/3] w.r.t.
              Chart ((-1, 2), (t,))
             <BLANKLINE>
             d(t)/ds = Dt
-            d(Dt)/ds = -Dt^2/t
+            d(Dt)/ds = -Dt^2
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()
-            (1.0606601601128764,)
+            (1.0565635215890166,)
 
         """
 
-        from sage.categories.homset import Hom
-        from sage.symbolic.ring import var
-        from sage.functions.trig import sin
-        from sage.functions.trig import tan
-        from sage.functions.log import ln
-        from sage.symbolic.constants import pi
         from sage.rings.infinity import Infinity
         from sage.rings.rational_field import QQ
+        from sage.categories.homset import Hom
+        from sage.symbolic.ring import var
+        from sage.functions.log import exp
 
         dom = self.domain()
         t = dom.canonical_coordinate()
@@ -1357,7 +1353,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         dim = codom.dim()
         i0 = codom.start_index()
         chart2 = codom.default_chart()
-        th = chart2[:][0]
+        x = chart2[:][0]
         # In case the codomain coincides with the domain,
         # it is important to distinguish between the canonical
         # coordinate, and the curve parameter since, in such a
@@ -1383,123 +1379,75 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         # where a certain integrated autoparallel curve may be defined:
         H = Hom(dom, codom)
         c = H.an_element()
-        th_A = c.expr()[0].substitute({t:1})
-        th_B = c.expr()[0].substitute({t:0}) # necessarily, th_A < th_B
+        x_A = c.expr()[0].substitute({t:1})
+        x_B = c.expr()[0].substitute({t:0}) # necessarily, x_A < x_B
 
         if dim == 1:
-            # Redefine 'th_A' and 'th_B' so that they are of the same
-            # sign and such that th_A < th_B still holds.
-            # This will avoid division by zero in the equations
-            # defining autoparallel curves w.r.t. the connection defined
-            # below
-            if th_A.numerical_approx().sign() != th_B.numerical_approx().sign():
-            # knowing that th_A < th_B
-                if th_B > 0:
-                    th_A = th_B/100
-                else: # th_A is necessarily strictly less than 0
-                    th_B = th_A/100
+            nab = codom.affine_connection('nab')
+            nab.set_coef()[i0,i0,i0] = 1
 
             # The initial point:
-            p = codom.point([th_A])
+            p = codom.point([x_A])
 
             # The initial tangent vector:
-            th_dot_A = (th_B**2-th_A**2)/(2*th_A*(t_max-t_min))
-            v = codom.tangent_space(p)([th_dot_A])
+            x_dot_A = (exp(x_B - x_A) - 1)/(t_max - t_min)
+            v = codom.tangent_space(p)([x_dot_A])
 
-            U = codom.open_subset('U')
-            chart2_U = chart2.restrict(U, [th > th_A, th < th_B]) # this
-            # is to prevent from problems arising from a division by
-            # zero in the equations defining autoparallel curves w.r.t.
-            # the connection defined below
-            nab = U.affine_connection('nab')
-            nab.set_coef()[i0,i0,i0] = 1/th
-            return self.element_class(self, nab, param, v) # the
-            # autoparallel curve returned will correspond to the
+            return self.element_class(self, nab, param, v)
+            # the autoparallel curve returned will correspond to the
             # following analytical solution:
-            # th(t) = (th_A*(th_A + 2*th_dot_A*(t-t_min)))^(1/2)
+            # x(t) = ln( x_dot_A*(t-t_min) + 1 ) + x_A, which is such
+            # that x(t_min) = x_A and x(t_max) = x_B due to x_dot_A
+            # set to the value above
 
         # else: (i.e. dim >= 2)
 
-        # in dimension greater than 1, the idea is to consider the first
-        # two coordinates of the chart to be the polar coordinates on the
-        # unit 2-sphere, in order to reproduce autoparallel curves on
-        # the sphere with respect to the Mercator connection (which is
-        # described in the example introducing the class
-        # IntegratedAutoparallelCurve)
+        nab = codom.affine_connection('nab')
+        nab.set_coef()[i0,i0,i0+1] = 1
 
-        # Redefine 'th_A' and 'th_B' so that [th_A, th_B] is contained
-        # within an interval (k*pi, (k+1)*pi), k being an integer.
-        # This is needed to take the inverse of the sine on [th_A, th_B]
-        # and to avoid problems from evaluating the tangent of 'th/2',
-        # which appear in the equations:
-
-        # th_A = k_A*pi + r_A, k_A integer, 0 <= r_A < pi
-        # idem for th_B
-        r_A = th_A.numerical_approx()%pi.numerical_approx()
-        r_B = th_B.numerical_approx()%pi.numerical_approx()
-        k_A = (th_A-r_A)/pi
-        k_B = (th_B-r_B)/pi
-        if k_A == k_B and r_A == 0:
-            th_A = k_A*pi + (th_B-th_A)/16
-        elif k_A != k_B:
-            th_B = (k_A+1)*pi - 1/16*((k_A+1)*pi - th_A)
-            if r_A == 0:
-                th_A = k_A*pi + (th_B-th_A)/16
-
-        bounds = chart2._bounds[1]  # bounds of second coordinate
-        # Determination of an interval (x1, x2) arround target_point:
-        ph_min = bounds[0][0]
-        ph_max = bounds[1][0]
+        y_bounds = chart2._bounds[1]  # bounds of second coordinate
+        # Determination of an interval (y_A, y_B) arround target_point:
+        y_min = y_bounds[0][0]
+        y_max = y_bounds[1][0]
         one_half = QQ(1) / QQ(2)
-        if ph_min == -Infinity:
-            if ph_max == Infinity:
-                ph_A = - one_half
-                ph_B = one_half
+        if y_min == -Infinity:
+            if y_max == Infinity:
+                y_A = - one_half
+                y_B = one_half
             else:
-                ph_A = ph_max - 3*one_half
-                ph_B = ph_max - one_half
+                y_A = y_max - 3*one_half
+                y_B = y_max - one_half
         else:
-            if ph_max == Infinity:
-                ph_A = ph_min + one_half
-                ph_B = ph_min + 3*one_half
+            if y_max == Infinity:
+                y_A = y_min + one_half
+                y_B = y_min + 3*one_half
             else:
-                dph = (ph_max - ph_min) / 4
-                ph_A = ph_min + dph
-                ph_B = ph_max - dph
+                dy = (y_max - y_min) / 4
+                y_A = y_min + dy
+                y_B = y_max - dy
 
         # The initial point:
-        p_coords = [th_A] + [ph_A] + list(c.expr()[2:dim])
+        p_coords = [x_A] + [y_A] + list(c.expr()[2:dim])
         p = codom.point(p_coords)
 
         # The initial tangent vector:
-        th_dot_A = (th_B - th_A)/(t_max - t_min)
-        num_tan_alpha = ln(tan(th_A/2))-ln(tan((th_dot_A*t_max+th_A)/2))
-        denom_tan_alpha = ph_B - ph_A
-        tan_alpha = num_tan_alpha/denom_tan_alpha
-        ph_dot_A = - th_dot_A/(tan_alpha * sin(th_A))
-        v_comps = [th_dot_A] + [ph_dot_A] + [0 for i in range(dim-2)]
+        y_dot_A = (y_B - y_A) / (t_max - t_min)
+        x_dot_A = y_dot_A*(x_B - x_A) / (1-exp(-y_dot_A*(t_max-t_min)))
+        v_comps = [x_dot_A] + [y_dot_A] + [0 for i in range(dim-2)]
         v = codom.tangent_space(p)(v_comps)
 
-        # The Mercator connection is reproduced on the first two
-        # coordinates
-        U = codom.open_subset('U')
-        chart2_U = chart2.restrict(U, [th > th_A, th < th_B]) # this is
-        # to prevent from problems arising from defining the orhtonormal
-        # basis 'epolar_ON' with the inverse of a sine
-        epolar_U = chart2_U.frame()
-        ch_basis = U.automorphism_field()
-        ch_basis[i0,i0], ch_basis[i0+1,i0+1] = 1, 1/sin(th)
-        if dim > 2:
-            for i in range(2,dim):
-                ch_basis[i0+i,i0+i] = 1
-        epolar_ON_U = epolar_U.new_frame(ch_basis, 'epolar_ON')
-        nab = U.affine_connection('nab') # the connection is only
-        # defined on U since it was defined with respect to epolar_ON_U,
-        # which was defined on U only
-        nab.set_coef(epolar_ON_U)[:] # this sets all the coefficients to
-        # zero w.r.t. 'epolar_ON'
-
         return self.element_class(self, nab, param, v)
+        # the autoparallel curve returned will correspond to the
+        # following analytical solution:
+        # all coordinates other than the first two coordinates are
+        # constant, and
+        # x(t) = x_dot_A/y_dot_A*(1 - exp(-y_dot_A*(t-t_min))) + x_A
+        # y(t) = y_dot_A*(t-t_min) + y_A
+        # This solution is such that
+        # x(t_min) = x_A and x(t_max) = x_B due to x_dot_A set to the
+        # value above, and
+        # y(t_min) = y_A and y(t_max) = y_B due to y_dot_A set to the
+        # value above
 
 #******************************************************************************
 
@@ -1522,7 +1470,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
       the set of integrated geodesics; if ``None``,
       `\mathrm{Hom_{geodesic}}(I,M)` will be used
 
-    EXAMPLE:
+    EXAMPLES:
 
     This parent class needs to be imported::
 
@@ -1574,16 +1522,16 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
          Chart (M, (x, y)):
         <BLANKLINE>
         Initial point: Point on the 2-dimensional differentiable
-         manifold M with coordinates [0.0312500000000000, 0] w.r.t.
+         manifold M with coordinates [0, 0] w.r.t.
          Chart (M, (x, y))
         Initial tangent vector: Tangent vector at Point on the
          2-dimensional differentiable manifold M with components
-         [0.156250000000000, 0] w.r.t. Chart (M, (x, y))
+         [1/3*e^(1/2) - 1/3, 0] w.r.t. Chart (M, (x, y))
         <BLANKLINE>
         d(x)/dt = Dx
         d(y)/dt = Dy
-        d(Dx)/dt = Dy^2*cos(x)*sin(x)
-        d(Dy)/dt = -2*Dx*Dy*cos(x)/sin(x)
+        d(Dx)/dt = -Dx^2
+        d(Dy)/dt = 0
 
     The test suite is passed::
 
@@ -1626,19 +1574,18 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         Integrated geodesic in the Real interval (a, b)
         sage: sys = g.system(verbose=True)
         Geodesic in the Real interval (a, b) equipped with Riemannian
-         metric g on the Open subset U of the Real number line R, and
-         integrated over the Real interval (a, b) as a solution to the
-         following geodesic equations, written w.r.t.
-         Chart ((a, b), (t,)):
+         metric g on the Real interval (a, b), and integrated over the
+         Real interval (a, b) as a solution to the following geodesic
+         equations, written w.r.t. Chart ((a, b), (t,)):
         <BLANKLINE>
         Initial point: Point on the Real number line R with coordinates
-         [1/200] w.r.t. Chart ((a, b), (t,))
+         [0] w.r.t. Chart ((a, b), (t,))
         Initial tangent vector: Tangent vector at Point on the Real
-         number line R with components [-9999999999/1000/(a - b)] w.r.t.
+         number line R with components [-(e^(1/2) - 1)/(a - b)] w.r.t.
          Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
-        d(Dt)/ds = -4*Dt^2/t
+        d(Dt)/ds = -Dt^2
         <BLANKLINE>
 
     The test suite is passed, tests '_test_one' and '_test_prod' being
@@ -1744,7 +1691,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedGeodesic`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
             sage: M = Manifold(2, 'M')
@@ -1776,14 +1723,15 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
         - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedGeodesic`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
             sage: M = Manifold(4, 'M', start_index=1)
             sage: X.<w,x,y,z> = M.chart()
             sage: R.<t> = RealLine()
-            sage: I = R.open_interval(-1, 2)
-            sage: H = IntegratedGeodesicSet(I, M)
+            sage: [a,b] = var('a b')
+            sage: J = R.open_interval(a, b)
+            sage: H = IntegratedGeodesicSet(J, M)
             sage: c = H._an_element_() ; c
             Integrated geodesic in the 4-dimensional differentiable
              manifold M
@@ -1791,63 +1739,64 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             Geodesic in the 4-dimensional differentiable manifold M
              equipped with Riemannian metric g on the 4-dimensional
              differentiable manifold M, and integrated over the Real
-             interval (-1, 2) as a solution to the following geodesic
+             interval (a, b) as a solution to the following geodesic
              equations, written w.r.t. Chart (M, (w, x, y, z)):
             <BLANKLINE>
             Initial point: Point on the 4-dimensional differentiable
-             manifold M with coordinates [0.0312500000000000, 0, 0, 0]
-             w.r.t. Chart (M, (w, x, y, z))
+             manifold M with coordinates [0, 0, 0, 0] w.r.t.
+             Chart (M, (w, x, y, z))
             Initial tangent vector: Tangent vector at Point on the
              4-dimensional differentiable manifold M with components
-             [0.156250000000000, 0, 0, 0] w.r.t. Chart (M, (w, x, y, z))
+             [-(e^(1/2) - 1)/(a - b), 0, 0, 0] w.r.t.
+             Chart (M, (w, x, y, z))
             <BLANKLINE>
             d(w)/dt = Dw
             d(x)/dt = Dx
             d(y)/dt = Dy
             d(z)/dt = Dz
-            d(Dw)/dt = Dx^2*cos(w)*sin(w)
-            d(Dx)/dt = -2*Dw*Dx*cos(w)/sin(w)
+            d(Dw)/dt = -Dw^2
+            d(Dx)/dt = 0
             d(Dy)/dt = 0
             d(Dz)/dt = 0
             <BLANKLINE>
-            sage: sol = c.solve()
+            sage: sol = c.solve(parameters_values={a:1,b:6})
             sage: interp = c.interpolate()
-            sage: p = c(1) ; p
+            sage: p = c(3) ; p
             Point on the 4-dimensional differentiable manifold M
             sage: p.coordinates()
-            (0.34375000000000056, 0.0, 0.0, 0.0)
+            (0.2307056927167852, 0.0, 0.0, 0.0)
+            sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated geodesic in the Real interval (-1, 2)
             sage: sys = c.system(verbose=True)
             Geodesic in the Real interval (-1, 2) equipped with
-             Riemannian metric g on the Open subset U of the Real number
-             line R, and integrated over the Real interval (-1, 2) as a
-             solution to the following geodesic equations, written
-             w.r.t. Chart ((-1, 2), (t,)):
+             Riemannian metric g on the Real interval (-1, 2), and
+             integrated over the Real interval (-1, 2) as a solution to
+             the following geodesic equations, written w.r.t.
+             Chart ((-1, 2), (t,)):
             <BLANKLINE>
             Initial point: Point on the Real number line R with
              coordinates [1/2] w.r.t. Chart ((-1, 2), (t,))
             Initial tangent vector: Tangent vector at Point on the Real
-             number line R with components [1031/320] w.r.t.
+             number line R with components [1/3*e^(3/4) - 1/3] w.r.t.
              Chart ((-1, 2), (t,))
             <BLANKLINE>
             d(t)/ds = Dt
-            d(Dt)/ds = -4*Dt^2/t
+            d(Dt)/ds = -Dt^2
             <BLANKLINE>
             sage: sol = c.solve()
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()
-            (1.1495758053215723,)
+            (1.0565635215890166,)
 
         """
 
         from sage.categories.homset import Hom
         from sage.symbolic.ring import var
-        from sage.functions.trig import sin
-        from sage.symbolic.constants import pi
+        from sage.functions.log import exp
 
         dom = self.domain()
         t = dom.canonical_coordinate()
@@ -1859,7 +1808,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         dim = codom.dim()
         i0 = codom.start_index()
         chart2 = codom.default_chart()
-        th = chart2[:][0]
+        x = chart2[:][0]
         # In case the codomain coincides with the domain,
         # it is important to distinguish between the canonical
         # coordinate, and the curve parameter since, in such a
@@ -1885,82 +1834,28 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         # where a certain integrated autoparallel curve may be defined:
         H = Hom(dom, codom)
         c = H.an_element()
-        th_A = c.expr()[0].substitute({t:1})
-        th_B = c.expr()[0].substitute({t:0}) # necessarily, th_A < th_B
+        x_A = c.expr()[0].substitute({t:1})
+        x_B = c.expr()[0].substitute({t:0}) # necessarily, x_A < x_B
 
-        if dim == 1:
-            # Redefine 'th_A' and 'th_B' so that they are of the same
-            # sign and such that th_A < th_B still holds.
-            # This will avoid division by zero in the equations
-            # defining geodesics w.r.t. the metric defined below.
-            if th_A.numerical_approx().sign() != th_B.numerical_approx().sign():
-            # knowing that th_A < th_B
-                if th_B > 0:
-                    th_A = th_B/100
-                else: # th_A is necessarily strictly less than 0
-                    th_B = th_A/100
-
-            # The initial point:
-            p = codom.point([th_A])
-
-            # The initial tangent vector:
-            th_dot_A = (th_B**5-th_A**5)/(5*(th_A**4)*(t_max-t_min))
-            v = codom.tangent_space(p)([th_dot_A])
-
-            U = codom.open_subset('U')
-            chart2_U = chart2.restrict(U, [th > th_A, th < th_B]) # this
-            # is to prevent from problems arising from a division by
-            # zero in the equations defining autoparallel curves w.r.t.
-            # the connection defined below
-            g = U.metric('g')
-            g[i0,i0] = th**8
-            return self.element_class(self, g, param, v) # the
-            # autoparallel curve returned will correspond to the
-            # following analytical solution:
-            # th(t) = (th_A^4*(th_A + 5*th_dot_A*(t-t_min)))^(1/5)
-
-        # else: (i.e. dim >= 2)
-
-        # in dimension greater than 1, the idea is to consider the first
-        # two coordinates of the chart to be the polar coordinates on
-        # the unit 2-sphere, in order to reproduce a line of longitude,
-        # which is a geodesic on the sphere w.r.t. the standard metric
-        # induced by the 3D Euclidean metric on the sphere.
-
-        # Redefine 'th_A' and 'th_B' so that [th_A, th_B] is contained
-        # within an interval (k*pi, (k+1)*pi), k being an integer.
-        # This is needed to take the inverse of the tangent function on
-        # [th_A, th_B] in the geodesic equations:
-
-        # th_A = k_A*pi + r_A, k_A integer, 0 <= r_A < pi
-        # idem for th_B
-        r_A = th_A.numerical_approx()%pi.numerical_approx()
-        r_B = th_B.numerical_approx()%pi.numerical_approx()
-        k_A = (th_A-r_A)/pi
-        k_B = (th_B-r_B)/pi
-        if k_A == k_B and r_A == 0:
-            th_A = k_A*pi + (th_B-th_A)/16
-        elif k_A != k_B:
-            th_B = (k_A+1)*pi - 1/16*((k_A+1)*pi - th_A)
-            if r_A == 0:
-                th_A = k_A*pi + (th_B-th_A)/16
+        g = codom.metric('g')
+        g[i0,i0] = exp(2*x)
+        if dim > 1:
+            for i in range(1,dim):
+                g[i0+i,i0+i] = 1
 
         # The initial point:
-        p_coords = [th_A] + list(c.expr()[1:dim])
+        p_coords = [x_A] + list(c.expr()[1:dim])
         p = codom.point(p_coords)
 
         # The initial tangent vector:
-        th_dot_A = (th_B - th_A)/(t_max - t_min)
-        v_comps = [th_dot_A] + [0 for i in range(dim-1)]
+        x_dot_A = (exp(x_B - x_A) - 1)/(t_max - t_min)
+        v_comps = [x_dot_A] + [0 for i in range(dim-1)]
         v = codom.tangent_space(p)(v_comps)
 
-        # The metric of the unit 2-sphere is reproduced on the first two
-        # coordinates
-        g = codom.metric('g')
-        g[i0,i0] = 1
-        g[i0+1,i0+1] = sin(th)**2
-        if dim > 2:
-            for i in range(2,dim):
-                g[i0+i,i0+i] = 1
-
         return self.element_class(self, g, param, v)
+        # the geodesic returned will correspond to the following
+        # analytical solution:
+        # all coordinates other than the first one are constant, and
+        # x(t) = ln( x_dot_A*(t-t_min) + 1 ) + x_A, which is such that
+        # x(t_min) = x_A and x(t_max) = x_B due to x_dot_A set to the
+        # value above

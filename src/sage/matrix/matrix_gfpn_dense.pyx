@@ -28,7 +28,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-from cysignals.memory cimport check_realloc
+from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
 ## Define an environment variable that enables MeatAxe to find
@@ -424,9 +424,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 2 0]
             [0 0 0 0 2]
 
-        5. Creating a matrix from a file in MeatAxe format.
+        5. Creating a matrix from a file in MeatAxe format. We demonstrate, that it doesn't
+           crash if the file doesn't exist::
 
-           This is not tested.
+            sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')
+            []
+
 
         TESTS::
 
@@ -597,7 +600,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
             pickle_size = FfCurrentRowSizeIo*self.Data.Nor
-            d = <char*>sig_malloc(pickle_size)
+            d = <char*>check_malloc(pickle_size)
             p = self.Data.Data
             x = d
             for i from 0<=i<self.Data.Nor:

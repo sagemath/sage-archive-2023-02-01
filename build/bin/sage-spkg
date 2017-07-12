@@ -669,15 +669,19 @@ write_script_wrapper() {
     cat > "$tmpscript" <<__EOF__
 #!/usr/bin/env bash
 
-source "$SAGE_SRC/bin/sage-env"
+export SAGE_ROOT="$SAGE_ROOT"
+export SAGE_SRC="$SAGE_SRC"
+export SAGE_PKG_DIR="$pkgdir"
+
+source "\$SAGE_SRC/bin/sage-env"
 if [ \$? -ne 0 ]; then
-    echo >&2 "Error: failed to source sage-env; is $SAGE_ROOT the correct SAGE_ROOT?"
+    echo >&2 "Error: failed to source sage-env; is \$SAGE_ROOT the correct SAGE_ROOT?"
     exit 1
 fi
 
-cd "$pkgdir"
+cd "\$SAGE_PKG_DIR"
 if [ \$? -ne 0 ]; then
-    echo >&2 "Error: could not cd to the package build directory $pkgdir"
+    echo >&2 "Error: could not cd to the package build directory \$SAGE_PKG_DIR"
     exit 1
 fi
 

@@ -63,7 +63,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
         try:
             # Try the normal coercion first
             return wrapperdescr_fastcall(IndexedFreeModuleElement.__mul__,
-                                         left, (right,), {})
+                                         left, (right,), <object>NULL)
         except TypeError:
             pass
 
@@ -357,7 +357,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         try:
             # Try the normal coercion first
             return wrapperdescr_fastcall(ElementWrapper.__mul__,
-                                         left, (right,), {})
+                                         left, (right,), <object>NULL)
         except TypeError:
             pass
 

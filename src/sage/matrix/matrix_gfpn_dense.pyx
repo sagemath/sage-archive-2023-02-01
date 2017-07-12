@@ -28,7 +28,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-from cysignals.memory cimport check_realloc
+from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
 ## Define an environment variable that enables MeatAxe to find
@@ -424,9 +424,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 2 0]
             [0 0 0 0 2]
 
-        5. Creating a matrix from a file in MeatAxe format.
+        5. Creating a matrix from a file in MeatAxe format. We demonstrate, that it doesn't
+           crash if the file doesn't exist::
 
-           This is not tested.
+            sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')
+            []
+
 
         TESTS::
 
@@ -456,6 +459,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 fsock = open(FILE,"rb",0)
                 fsock.close()
             except (OSError,IOError):
+                self.Data = NULL
                 return
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)
@@ -587,13 +591,26 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             False
         """
         cdef char* d
-        cdef int i,NR
+        cdef char* x
+        cdef size_t i
         cdef PTR p
+        cdef size_t pickle_size
+        cdef str pickle_str
         if self.Data:
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
+            pickle_size = FfCurrentRowSizeIo*self.Data.Nor
+            d = <char*>check_malloc(pickle_size)
+            p = self.Data.Data
+            x = d
+            for i from 0<=i<self.Data.Nor:
+                memcpy(x, p, FfCurrentRowSizeIo)
+                x += FfCurrentRowSizeIo
+                FfStepPtr(&p)
+            pickle_str = PyString_FromStringAndSize(d, pickle_size)
+            sig_free(d)
             return mtx_unpickle, (self._parent, self.Data.Nor, self.Data.Noc,
-                        PyString_FromStringAndSize(<char*>self.Data.Data,self.Data.RowSize * self.Data.Nor),
+                        pickle_str,
                         not self._is_immutable) # for backward compatibility with the group cohomology package
         else:
             return mtx_unpickle, (0, 0, 0, '', not self._is_immutable)
@@ -1582,6 +1599,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache('pivots', tuple(self.Data.PivotTable[i] for i in range(r)))
         self.cache('in_echelon_form',True)
 
+from sage.misc.superseded import deprecation
+
 def mtx_unpickle(f, int nr, int nc, str Data, bint m):
     """
     Helper function for unpickling.
@@ -1606,7 +1625,19 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
     OUT._is_immutable = not m
     OUT._converter = FieldConverter(OUT._base_ring)
     cdef char *x
+    cdef PTR pt
+    cdef size_t pickled_rowsize = len(Data)/nr
+    cdef size_t i
     if Data:
-        x = PyString_AsString(Data)
-        memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+        if pickled_rowsize != FfCurrentRowSizeIo:
+            deprecation(23411, "Reading this pickle may be machine dependent")
+            x = PyString_AsString(Data)
+            memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+        else:
+            pt = OUT.Data.Data
+            x = PyString_AsString(Data)
+            for i from 0 <= i < nr:
+                memcpy(pt,x,FfCurrentRowSizeIo)
+                x += FfCurrentRowSizeIo
+                FfStepPtr(&(pt))
     return OUT

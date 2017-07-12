@@ -51,7 +51,7 @@ def wrapperdescr_call(slotwrapper, self, *args, **kwds):
     .. WARNING::
 
         Since this skips type checks, it can easily crash Python if
-        used wrongly.
+        used incorrectly.
 
     EXAMPLES::
 

@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/dash
 
 # Author:
 # * Jean-Pierre Flori <jean-pierre.flori@ssi.gouv.fr>

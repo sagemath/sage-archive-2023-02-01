@@ -165,7 +165,8 @@ class GraphicMatroid(Matroid):
 
         # Construct a graph and assign edge labels corresponding to the ground set
         edge_list = []
-        for i, e in enumerate(G.edges()):
+        for i, e in enumerate(G.edge_iterator()):
+            # the ordering from edge_labels() respects edge_iterator() and not edges()
             edge_list.append((self._vertex_map[e[0]],
                 self._vertex_map[e[1]], groundset[i]))
         self._G = Graph(edge_list, loops=True, multiedges=True, weighted=True,

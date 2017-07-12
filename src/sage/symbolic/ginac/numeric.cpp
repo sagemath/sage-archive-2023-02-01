@@ -2450,6 +2450,8 @@ bool numeric::operator==(const numeric &right) const {
                 case MPQ:
                         return mpq_equal(v._bigrat, right.v._bigrat) !=0;
                 case PYOBJECT:
+                        if (v._pyobject == right.v._pyobject)
+                                return true;
                         return py_funcs.py_is_equal(v._pyobject, right.v._pyobject) != 0;
                 default:
                         stub("invalid type: operator== type not handled");

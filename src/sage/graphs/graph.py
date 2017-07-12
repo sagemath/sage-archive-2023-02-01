@@ -3960,17 +3960,6 @@ class Graph(GenericGraph):
         The chromatic index is the minimal number of colors needed to properly
         color the edges of the graph.
 
-        This method is a frontend for method
-        :meth:`sage.graphs.graph_coloring.edge_coloring` that uses a mixed
-        integer-linear programming formulation to compute the chromatic index.
-
-        .. SEEALSO::
-
-            - :wikipedia:`Edge_coloring` for further details on edge coloring
-            - :meth:`sage.graphs.graph_coloring.edge_coloring`
-            - :meth:`~Graph.fractional_chromatic_index`
-            - :meth:`~Graph.chromatic_number`
-
         INPUT:
 
         - ``solver`` (default: ``None``) Specify the Linear Program (LP) solver
@@ -3984,21 +3973,40 @@ class Graph(GenericGraph):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
+        This method is a frontend for method
+        :meth:`sage.graphs.graph_coloring.edge_coloring` that uses a mixed
+        integer-linear programming formulation to compute the chromatic index.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Edge_coloring` for further details on edge coloring
+            - :meth:`sage.graphs.graph_coloring.edge_coloring`
+            - :meth:`~Graph.fractional_chromatic_index`
+            - :meth:`~Graph.chromatic_number`
+
         EXAMPLES:
 
-        The clique `K_n` has chromatic index `n`::
+        The clique `K_n` has chromatic index `n` when `n` is odd and `n-1` when
+        `n` is even::
 
-            sage: n = randint(3, 6)
-            sage: k = graphs.CompleteGraph(n).chromatic_index()
-            sage: k == n
-            True
+            sage: graphs.CompleteGraph(4).chromatic_index()
+            3
+            sage: graphs.CompleteGraph(5).chromatic_index()
+            5
+            sage: graphs.CompleteGraph(6).chromatic_index()
+            5
 
-        The PathGraph `P_n` with `n \geq 2` has chromatic index 2::
+        The path `P_n` with `n \geq 2` has chromatic index 2::
 
-            sage: graphs.PathGraph(4).chromatic_index()
-            2
             sage: graphs.PathGraph(5).chromatic_index()
             2
+
+        The windmill graph with parameters `k,n` has chromatic index `(k-1)n`::
+
+            sage: k,n = 3,4
+            sage: G = graphs.WindmillGraph(k,n)
+            sage: G.chromatic_index() == (k-1)*n
+            True
 
         TESTS:
 

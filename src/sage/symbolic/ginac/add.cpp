@@ -630,9 +630,9 @@ expair add::combine_ex_with_coeff_to_pair(const ex & e,
 	} else if (is_exactly_a<numeric>(e)) {
 		if (c.is_one())
 			return expair(e, _ex1);
-		if (e.is_integer_one())
+		if (ex_to<numeric>(e).is_one())
 			return expair(c, _ex1);
-		return expair(e*c, _ex1);
+		return expair(ex_to<numeric>(e)*c, _ex1);
 	}
 	return expair(e, c);
 }

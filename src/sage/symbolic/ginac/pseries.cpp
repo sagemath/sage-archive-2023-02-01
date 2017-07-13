@@ -922,7 +922,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 			acc = ex_to<pseries>(acc.mul_series(ex_to<pseries>(term)));
 	}
 
-	return acc.mul_const(ex_to<numeric>(overall_coeff));
+	return acc.mul_const(overall_coeff);
 }
 
 

@@ -895,7 +895,8 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			expair p2 = split_ex_to_pair(rh);
 
 			int cmpval = p1.rest.compare(p2.rest);
-			if (cmpval==0 && unlikely(!is_exactly_a<infinity>(p1.rest))) {
+			if (cmpval==0
+                            and likely(not is_exactly_a<infinity>(p1.rest))) {
 				p1.coeff = ex_to<numeric>(p1.coeff).add_dyn(ex_to<numeric>(p2.coeff));
 				if (!ex_to<numeric>(p1.coeff).is_zero()) {
 
@@ -1207,8 +1208,8 @@ void expairseq::combine_same_terms_sorted_seq()
 	// possible from then on the sequence has changed and must be compacted
 	bool must_copy = false;
 	while (itin2!=last) {
-		if (itin1->rest.compare(itin2->rest)==0 &&
-				unlikely(!is_exactly_a<infinity>(itin1->rest))) {
+		if (itin1->rest.compare(itin2->rest)==0
+                    and likely(not is_exactly_a<infinity>(itin1->rest))) {
 			itin1->coeff = ex_to<numeric>(itin1->coeff).
                                 add_dyn(ex_to<numeric>(itin2->coeff));
 			if (expair_needs_further_processing(itin1))

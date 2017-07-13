@@ -1477,7 +1477,8 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	for (auto cit0=a.seq.begin(); cit0!=last; ++cit0) {
 		const ex & r = cit0->rest;
 		const ex & c = cit0->coeff;
-		
+		const numeric& nc = ex_to<numeric>(c);
+
 		GINAC_ASSERT(!is_exactly_a<add>(r));
 		GINAC_ASSERT(!is_exactly_a<power>(r) ||
 		             !is_exactly_a<numeric>(ex_to<power>(r).exponent) ||
@@ -1486,7 +1487,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		             !is_exactly_a<mul>(ex_to<power>(r).basis) ||
 		             !is_exactly_a<power>(ex_to<power>(r).basis));
 		
-		if (c.is_equal(_ex1)) {
+		if (c.is_integer_one()) {
 			if (is_exactly_a<mul>(r)) {
 				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
 				                        _ex1));
@@ -1497,10 +1498,10 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		} else {
 			if (is_exactly_a<mul>(r)) {
 				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                        ex_to<numeric>(c).power_dyn(*_num2_p)));
+				                        nc.pow_intexp(*_num2_p)));
 			} else {
 				result.push_back(expair(dynallocate<power>(r, _ex2),
-				                        ex_to<numeric>(c).power_dyn(*_num2_p)));
+				                        nc.pow_intexp(*_num2_p)));
 			}
 		}
 
@@ -1523,7 +1524,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	if (a.overall_coeff.is_zero()) {
 		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
 	} else {
-		return dynallocate<add>(std::move(result), a.overall_coeff.power(2)).setflag(status_flags::expanded);
+		return dynallocate<add>(std::move(result), a.overall_coeff.pow_intexp(*_num2_p)).setflag(status_flags::expanded);
 	}
 }
 
@@ -1567,7 +1568,7 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 		distrseq.push_back(p);
 	}
 
-	const mul & result = static_cast<const mul &>((new mul(distrseq, m.overall_coeff.power_dyn(n)))->setflag(status_flags::dynallocated));
+	const mul & result = static_cast<const mul &>((new mul(distrseq, m.overall_coeff.pow_intexp(n)))->setflag(status_flags::dynallocated));
 	if (need_reexpand)
 		return ex(result).expand(options);
 	if (from_expand)

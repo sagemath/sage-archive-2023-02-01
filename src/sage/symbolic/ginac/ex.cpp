@@ -321,18 +321,17 @@ bool ex::is_integer_one() const
 {
     if (!is_exactly_a<numeric>(*this))
         return false;
-    return ex_to<numeric>(*this).is_integer()
-        and ex_to<numeric>(*this).is_one();
+    const numeric& num = ex_to<numeric>(*this);
+    return num.is_integer() and num.is_one();
 }
   
 bool ex::is_integer_pmone() const
 {
     if (!is_exactly_a<numeric>(*this))
         return false;
-    numeric num = ex_to<numeric>(*this);
-    return ((ex_to<numeric>(*this).is_integer())
-        and (ex_to<numeric>(*this).is_one()
-            or ex_to<numeric>(*this).is_minus_one()));
+    const numeric& num = ex_to<numeric>(*this);
+    return num.is_integer()
+           and (num.is_one() or num.is_minus_one());
 }
 
 void ex::set_domain(unsigned d)

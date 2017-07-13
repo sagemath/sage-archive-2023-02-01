@@ -456,10 +456,7 @@ void add::useries(flint_series_t& fp, int order) const
                 }
                 fmpq_poly_add(fp.ft, fp.ft, fp1.ft);
         }
-        ex ovcoeff = op(nops());
-        if (not is_exactly_a<numeric>(ovcoeff))
-                throw std::runtime_error("non-numeric oc encountered");
-        numeric oc = ex_to<numeric>(ovcoeff);
+        const numeric& oc = overall_coeff;
         if (oc.is_zero())
                 return;
 
@@ -482,10 +479,7 @@ void mul::useries(flint_series_t& fp, int order) const
                 fmpq_poly_mullow(fp.ft, fp.ft, fp1.ft, order+2);
                 fp.offset = newoff;
         }
-        ex ovcoeff = op(nops());
-        if (not is_exactly_a<numeric>(ovcoeff))
-                throw std::runtime_error("non-numeric oc encountered");
-        numeric oc = ex_to<numeric>(ovcoeff);
+        const numeric& oc = overall_coeff;
         if (oc.is_one())
                 return;
 

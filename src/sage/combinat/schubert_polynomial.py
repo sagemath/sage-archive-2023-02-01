@@ -110,7 +110,28 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
 
     def divided_difference(self, i):
         r"""
-        Return the ``i``-th divided difference operator of ``self``.
+        Return the ``i``-th divided difference operator, applied to
+        ``self``.
+        Here, ``i`` can be either a permutation or a positive integer.
+
+        If `i` is a positive integer, then the `i`-th divided
+        difference operator `\delta_i` is the linear operator sending
+        each polynomial `f = f(x_1, x_2, \ldots, x_n)` (in
+        `n \geq i+1` variables) to the polynomial
+
+        .. MATH::
+
+            \frac{f - f_i}{x_i - x_{i+1}}, \qquad \text{ where }
+            f_i = f(x_1, x_2, ..., x_{i-1}, x_{i+1}, x_i,
+            x_{i+1}, ..., x_n) .
+
+        If `\sigma` is a permutation in the `n`-th symmetric group,
+        then the `\sigma`-th divided difference operator `\delta_\sigma`
+        is the composition
+        `\delta_{i_1} \delta_{i_2} \cdots \delta_{i_k}`, where
+        `\sigma = s_{i_1} \circ s_{i_2} \circ \cdots \circ s_{i_k}` is
+        any reduced expression for `\sigma` (the precise choice of
+        reduced expression is immaterial).
 
         EXAMPLES::
 
@@ -142,6 +163,14 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             0
             sage: a.divided_difference(1).divided_difference(2)
             0
+
+        ::
+
+            sage: a = X([4,3,2,1])
+            sage: a.divided_difference([2,3,1])
+            X[3, 2, 4, 1]
+            sage: a.divided_difference(1).divided_difference(2)
+            X[3, 2, 4, 1]
 
         TESTS:
 

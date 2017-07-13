@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 LaTeX options for graphs
 
@@ -10,7 +11,7 @@ AUTHORS:
 
 - Rob Beezer (2009-05-20): :class:`~sage.graphs.graph_latex.GraphLatex` class
 - Fidel Barerra Cruz (2009-05-20): ``tkz-graph`` commands to render a graph
-- Nicolas M. Thiery (2010-02): dot2tex/graphviz interface
+- Nicolas M. Thiéry (2010-02): dot2tex/graphviz interface
 - Rob Beezer (2010-05-29): Extended range of ``tkz-graph`` options
 
 LaTeX Versions of Graphs
@@ -732,7 +733,7 @@ class GraphLatex(SageObject):
           will expand to contain the label.  Giving instead a pair of numbers
           will place the label exterior to the vertex at a certain distance
           from the edge, and at an angle to the positive x-axis, similar
-          in spirt to polar coordinates.
+          in spirit to polar coordinates.
 
         - ``vertex_label_placements`` -- a dictionary of placements
           indexed by the vertices.  See the explanation for
@@ -757,10 +758,10 @@ class GraphLatex(SageObject):
         - ``edge_fill_color`` -- default: 'black' -- a single color
           to use as the default for the fill color of an edge.
           The boolean switch ``edge_fills`` must be set to True
-          for theis to have an effect.  See the explanation above
+          for this to have an effect.  See the explanation above
           for the ``vertex_color`` option to see possible values.
 
-        - ``edge__fill_colors`` -- a dictionary whose keys are edges
+        - ``edge_fill_colors`` -- a dictionary whose keys are edges
           of the graph and whose values are colors. See the explanation
           above for the ``vertex_color`` option to see possible values.
           These values need only be specified for a proper subset of the
@@ -1200,7 +1201,7 @@ class GraphLatex(SageObject):
 
         INPUT:
 
-         - kwds - any number of option/value pairs to se many graph latex
+         - kwds - any number of option/value pairs to set many graph latex
            options at once (a variable number, in any order). Existing
            values are overwritten, new values are added.  Existing
            values can be cleared by setting the value to ``None``.
@@ -1343,9 +1344,11 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
-        Note: there is a lot of overlap between what tkz_picture and
-        dot2tex do. It would be best to merge them! dot2tex probably
-        can work without graphviz if layout information is provided.
+        .. NOTE::
+
+            There is a lot of overlap between what tkz_picture and
+            dot2tex do. It would be best to merge them! dot2tex probably
+            can work without graphviz if layout information is provided.
         """
         from sage.graphs.dot2tex_utils import assert_have_dot2tex
         assert_have_dot2tex()

@@ -28,7 +28,7 @@ from sage.sets.family import Family
 from sage.misc.misc import powerset
 from sage.categories.cartesian_product import cartesian_product
 
-# we use a special symbol for the fake root
+# we use a fixed special symbol for the fake root
 ROOT = '#'
 
 
@@ -57,7 +57,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         For technical reasons, instead of using forests as labels for
         the basis, we use rooted trees. Their root vertex should be
         considered as a fake vertex. This fake root vertex is labelled
-        `\#` when labels are present.
+        ``'#'`` when labels are present.
 
     EXAMPLES::
 
@@ -67,9 +67,9 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         B  + B
          #    ╭#╮
          │    │ │
-         y    x y
+         x    x y
          │
-         x
+         y
 
         sage: unicode_art(x*x*x)
         B  + B    + 3*B    + B
@@ -87,9 +87,16 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         sage: x * (y * z) == (x * y) * z
         True
 
-    When there is only one generator, unlabelled forests are used instead::
+    It is not commutative::
 
-        sage: G = algebras.GrossmanLarson(QQ, 1)
+        sage: A = algebras.GrossmanLarson(QQ, 'uv')
+        sage: u, v = A.gens()
+        sage: u * v == v * u
+        False
+
+    When ``None`` is given as input, unlabelled forests are used instead::
+
+        sage: G = algebras.GrossmanLarson(QQ, None)
         sage: x = G.gens()[0]
         sage: unicode_art(x*x)
         B  + B
@@ -98,6 +105,21 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
          o    o o
          │
          o
+
+    .. NOTE::
+
+        Variables names can be ``None``, a list of strings, a string
+        or an integer. When ``None`` is given, unlabelled rooted
+        forests are used. When a single string is given, each letter is taken
+        as a variable. See
+        :func:`sage.combinat.words.alphabet.build_alphabet`.
+
+    .. WARNING::
+
+        Beware that the underlying combinatorial free module is either based
+        on ``RootedTrees`` or ``LabelledRootedTrees``, with no restriction
+        on the labellings. This means that all code that would call the basis
+        method would not give meaningful results.
 
     REFERENCES:
 
@@ -118,10 +140,12 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: F1 is F2 and F1 is F3
             True
         """
+        if names is not None:
+            names = Alphabet(names)
+
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        return super(GrossmanLarsonAlgebra, cls).__classcall__(cls, R,
-                                                               Alphabet(names))
+        return super(GrossmanLarsonAlgebra, cls).__classcall__(cls, R, names)
 
     def __init__(self, R, names=None):
         """
@@ -132,21 +156,30 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: A = algebras.GrossmanLarson(QQ, '@'); A
             Grossman-Larson Hopf algebra on one generator ['@']
             over Rational Field
-            sage: TestSuite(A).run(skip='_test_antipode')
+            sage: TestSuite(A).run(skip='_test_antipode') # long time
 
             sage: F = algebras.GrossmanLarson(QQ, 'xy')
             sage: TestSuite(F).run(skip='_test_antipode') # long time
+
+            sage: A = algebras.GrossmanLarson(QQ, None); A
+            Grossman-Larson Hopf algebra on one generator ['o'] over
+            Rational Field
+
+            sage: F = algebras.GrossmanLarson(QQ, ['x','y']); F
+            Grossman-Larson Hopf algebra on 2 generators ['x', 'y']
+            over Rational Field
         """
-        if names.cardinality() == 1:
+        if names is None:
             Trees = RootedTrees()
             key = RootedTree.sort_key
+            self._alphabet = Alphabet(['o'])
         else:
             Trees = LabelledRootedTrees()
             key = LabelledRootedTree.sort_key
+            self._alphabet = names
         # Here one would need LabelledRootedTrees(names)
         # so that one can restrict the labels to some fixed set
 
-        self._alphabet = names
         cat = HopfAlgebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
@@ -162,6 +195,18 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: R = algebras.GrossmanLarson(QQ, 'xy')
             sage: R.variable_names()
             {'x', 'y'}
+
+            sage: R = algebras.GrossmanLarson(QQ, ['a','b'])
+            sage: R.variable_names()
+            {'a', 'b'}
+
+            sage: R = algebras.GrossmanLarson(QQ, 2)
+            sage: R.variable_names()
+            {0, 1}
+
+            sage: R = algebras.GrossmanLarson(QQ, None)
+            sage: R.variable_names()
+            {'o'}
         """
         return self._alphabet
 
@@ -173,8 +218,10 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
             sage: algebras.GrossmanLarson(QQ, '@')  # indirect doctest
             Grossman-Larson Hopf algebra on one generator ['@'] over Rational Field
+            sage: algebras.GrossmanLarson(QQ, None)  # indirect doctest
+            Grossman-Larson Hopf algebra on one generator ['o'] over Rational Field
         """
-        n = self.algebra_generators().cardinality()
+        n = len(self.gens())
         if n == 1:
             gen = "one generator"
         else:
@@ -187,7 +234,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     def gen(self, i):
         r"""
-        Return the ``i``-th generator of the algebra.
+        Return the ``i``-th generator.
 
         INPUT:
 
@@ -204,47 +251,33 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             ...
             IndexError: argument i (= 4) must be between 0 and 2
         """
-        G = self.algebra_generators()
-        n = G.cardinality()
+        G = self.gens()
+        n = len(G)
         if i < 0 or not i < n:
             m = "argument i (= {}) must be between 0 and {}".format(i, n - 1)
             raise IndexError(m)
-        return G[G.keys().unrank(i)]
-
-    @cached_method
-    def algebra_generators(self):
-        r"""
-        Return the generators of this algebra.
-
-        These are the rooted forests with just one vertex.
-
-        EXAMPLES::
-
-            sage: A = algebras.GrossmanLarson(ZZ, 'fgh'); A
-            Grossman-Larson Hopf algebra on 3 generators ['f', 'g', 'h']
-             over Integer Ring
-            sage: list(A.algebra_generators())
-            [B[#[f[]]], B[#[g[]]], B[#[h[]]]]
-
-            sage: A = algebras.GrossmanLarson(QQ, ['x1','x2'])
-            sage: list(A.algebra_generators())
-            [B[#[x1[]]], B[#[x2[]]]]
-        """
-        Trees = self.basis().keys()
-        return Family(self._alphabet,
-                      lambda a: self.monomial(Trees([Trees([], a)], ROOT)))
+        return G[i]
 
     def gens(self):
         """
-        Return the generators of ``self`` (as an algebra).
+        Return the generators of ``self``.
+
+        These are the rooted forests with just one vertex. They freely
+        generate the Lie algebra of primitive elements as a pre-Lie algebra.
 
         EXAMPLES::
 
             sage: A = algebras.GrossmanLarson(ZZ, 'fgh')
             sage: A.gens()
             (B[#[f[]]], B[#[g[]]], B[#[h[]]])
+
+            sage: A = algebras.GrossmanLarson(QQ, ['x1','x2'])
+            sage: A.gens()
+            (B[#[x1[]]], B[#[x2[]]])
         """
-        return tuple(self.algebra_generators())
+        Trees = self.basis().keys()
+        return tuple(Family(self._alphabet,
+                            lambda a: self.monomial(Trees([Trees([], a)], ROOT))))
 
     def degree_on_basis(self, t):
         """
@@ -254,7 +287,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.GrossmanLarson(QQ,'@')
+            sage: A = algebras.GrossmanLarson(QQ, '@')
             sage: RT = A.basis().keys()
             sage: A.degree_on_basis(RT([RT([])]))
             1
@@ -281,7 +314,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.GrossmanLarson(QQ,'@')
+            sage: A = algebras.GrossmanLarson(QQ, None)
             sage: A.some_elements()
             [B[[[]]],
              B[[[[]]]] + B[[[], []]],
@@ -294,11 +327,11 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: A.some_elements()
             [B[#[x[]]],
              B[#[x[x[]]]] + B[#[x[], x[]]],
-             B[#[x[x[]]]] + 3*B[#[y[x[]]]] + B[#[x[], x[]]] + 3*B[#[x[], y[]]],
+             B[#[x[x[]]]] + 3*B[#[x[y[]]]] + B[#[x[], x[]]] + 3*B[#[x[], y[]]],
              B[#[]] + B[#[x[x[]]]] + B[#[x[], x[]]]]
         """
         o = self.gen(0)
-        o1 = list(self.algebra_generators())[-1]
+        o1 = self.gens()[-1]
         x = o * o
         y = o * o1
         return [o, x, x + 3 * y, 1 + x]
@@ -313,15 +346,24 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.GrossmanLarson(QQ, '@')
+            sage: A = algebras.GrossmanLarson(QQ, None)
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.product_on_basis(x, x)
             B[[[[]]]] + B[[[], []]]
+
+        Check that the product is the correct one::
+
+            sage: A = algebras.GrossmanLarson(QQ, 'uv')
+            sage: RT = A.basis().keys()
+            sage: Tu = RT([RT([],'u')],'#')
+            sage: Tv = RT([RT([],'v')],'#')
+            sage: A.product_on_basis(Tu, Tv)
+            B[#[u[v[]]]] + B[#[u[], v[]]]
         """
-        return self.sum(self.basis()[y.single_graft(x, graftingFunction)]
+        return self.sum(self.basis()[x.single_graft(y, graftingFunction)]
                         for graftingFunction in
-                        cartesian_product([list(y.paths())] * len(x)))
+                        cartesian_product([list(x.paths())] * len(y)))
 
     def one_basis(self):
         """
@@ -333,7 +375,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: A.one_basis()
             #[]
 
-            sage: A = algebras.GrossmanLarson(QQ, 1)
+            sage: A = algebras.GrossmanLarson(QQ, None)
             sage: A.one_basis()
             []
         """
@@ -354,7 +396,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
                  │    │
                  0    0
 
-            sage: unicode_art(G.coproduct(x*y))  # indirect doctest
+            sage: unicode_art(G.coproduct(y*x))  # indirect doctest
             1 # B    + 1 # B  + B  # B  + B    # 1 + B  # B  + B  # 1
                  ╭#╮        #    #    #    ╭#╮        #    #    #
                  │ │        │    │    │    │ │        │    │    │
@@ -488,7 +530,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: G._coerce_map_from_(F)
             True
             sage: F._coerce_map_from_(H)
-            False
+            True
             sage: F._coerce_map_from_(QQ)
             False
             sage: G._coerce_map_from_(QQ)

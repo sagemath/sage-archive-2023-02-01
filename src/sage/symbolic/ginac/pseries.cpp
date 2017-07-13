@@ -95,9 +95,7 @@ pseries::pseries(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 		ex coef;
 		n.find_ex_by_loc(loc++, rest, sym_lst);
 		n.find_ex_by_loc(loc++, coef, sym_lst);
-                if (not is_exactly_a<numeric>(coef))
-                        throw std::runtime_error("can't happen");
-		seq.push_back(expair(rest, ex_to<numeric>(coef)));
+		seq.push_back(expair(rest, coef));
 	}
 
 	n.find_ex("var", var, sym_lst);
@@ -159,7 +157,7 @@ void pseries::print_series(const print_context & c, const char *openbrace, const
 					c.s << ')' << closebrace;
 				} else
 					var.print(c);
-				if (i->coeff.compare(*_num1_p) != 0) {
+				if (i->coeff.compare(_ex1) != 0) {
 					c.s << pow_sym;
 					c.s << openbrace;
 					if (i->coeff.info(info_flags::negative)) {
@@ -288,7 +286,7 @@ int pseries::degree(const ex &s) const
 	if (var.is_equal(s)) {
 		// Return last exponent
 		if (seq.size() != 0u)
-			return (seq.end()-1)->coeff.to_int();
+			return ex_to<numeric>((seq.end()-1)->coeff).to_int();
 		else
 			return 0;
 	} else {
@@ -315,7 +313,7 @@ int pseries::ldegree(const ex &s) const
 	if (var.is_equal(s)) {
 		// Return first exponent
 		if (seq.size() != 0u)
-			return (seq.begin())->coeff.to_int();
+			return ex_to<numeric>((seq.begin())->coeff).to_int();
 		else
 			return 0;
 	} else {
@@ -349,7 +347,8 @@ ex pseries::coeff(const ex &s, int n) const
 		int lo = 0, hi = seq.size() - 1;
 		while (lo <= hi) {
 			int mid = (lo + hi) / 2;
-			int cmp = seq[mid].coeff.compare(looking_for);
+			GINAC_ASSERT(is_exactly_a<numeric>(seq[mid].coeff));
+			int cmp = ex_to<numeric>(seq[mid].coeff).compare(looking_for);
 			switch (cmp) {
 				case -1:
 					lo = mid + 1;
@@ -577,7 +576,7 @@ ex basic::series(const relational & r, int order, unsigned options) const
 	ex deriv = *this;
 	const ex co = deriv.subs(r, subs_options::no_pattern);
 	if (!co.is_zero()) {
-		seq.push_back(expair(co, *_num0_p));
+		seq.push_back(expair(co, _ex0));
 	}
 
 	int n;
@@ -613,13 +612,13 @@ ex symbol::series(const relational & r, int order, unsigned options) const
 
 	if (this->is_equal_same_type(ex_to<symbol>(r.lhs()))) {
 		if (order > 0 && !point.is_zero())
-			seq.push_back(expair(point, *_num0_p));
+			seq.push_back(expair(point, _ex0));
 		if (order > 1)
-			seq.push_back(expair(_ex1, *_num1_p));
+			seq.push_back(expair(_ex1, _ex1));
 		else
 			seq.push_back(expair(Order(_ex1), numeric(order)));
 	} else
-		seq.push_back(expair(*this, *_num0_p));
+		seq.push_back(expair(*this, _ex0));
 	return pseries(r, seq);
 }
 
@@ -635,7 +634,7 @@ ex pseries::add_series(const pseries &other) const
 	// results in an empty (constant) series 
 	if (!is_compatible_to(other)) {
 		epvector nul;
-		nul.push_back(expair(Order(_ex1), *_num0_p));
+		nul.push_back(expair(Order(_ex1), _ex0));
 		return pseries(relational(var,point), nul);
 	}
 	
@@ -655,7 +654,7 @@ ex pseries::add_series(const pseries &other) const
 			}
 			break;
 		} else
-			pow_a = (*a).coeff.to_int();
+			pow_a = ex_to<numeric>((*a).coeff).to_int();
 		
 		// If b is empty, fill up with elements from a and stop
 		if (b == b_end) {
@@ -665,7 +664,7 @@ ex pseries::add_series(const pseries &other) const
 			}
 			break;
 		} else
-			pow_b = (*b).coeff.to_int();
+			pow_b = ex_to<numeric>((*b).coeff).to_int();
 		
 		// a and b are non-empty, compare powers
 		if (pow_a < pow_b) {
@@ -715,8 +714,8 @@ ex add::series(const relational & r, int order, unsigned options) const
 			term = elem.rest;
 		else
 			term = elem.rest.series(r, order, options);
-		if (not elem.coeff.is_one())
-			term = ex_to<pseries>(term).mul_const(elem.coeff);
+		if (!elem.coeff.is_equal(_ex1))
+			term = ex_to<pseries>(term).mul_const(ex_to<numeric>(elem.coeff));
 		
 		// Series addition
 		acc = ex_to<pseries>(acc).add_series(ex_to<pseries>(term));
@@ -756,7 +755,7 @@ ex pseries::mul_series(const pseries &other) const
 	// results in an empty (constant) series 
 	if (!is_compatible_to(other)) {
 		epvector nul;
-		nul.push_back(expair(Order(_ex1), *_num0_p));
+		nul.push_back(expair(Order(_ex1), _ex0));
 		return pseries(relational(var,point), nul);
 	}
 
@@ -786,11 +785,11 @@ ex pseries::mul_series(const pseries &other) const
 
         std::map<int, ex> map_int_ex1, map_int_ex2;
         for (const auto& elem : seq)
-                map_int_ex1[elem.coeff.to_int()] = elem.rest;
+                map_int_ex1[ex_to<numeric>(elem.coeff).to_int()] = elem.rest;
 
         if (other.var.is_equal(var))
                 for (const auto& elem : other.seq)
-                        map_int_ex2[elem.coeff.to_int()] = elem.rest;
+                        map_int_ex2[ex_to<numeric>(elem.coeff).to_int()] = elem.rest;
 
 	for (int cdeg=cdeg_min; cdeg<=cdeg_max; ++cdeg) {
 		ex co = _ex0;
@@ -833,12 +832,12 @@ ex mul::series(const relational & r, int order, unsigned options) const
 	// considered
         for (const auto & elem : seq) {
 
-		const numeric& expon = elem.coeff;
+		ex expon = elem.coeff;
 		int factor = 1;
 		ex buf;
 		if (expon.info(info_flags::integer)) {
 			buf = elem.rest;
-			factor = expon.to_int();
+			factor = ex_to<numeric>(expon).to_int();
 		} else {
 			buf = recombine_pair_to_ex(elem);
 		}
@@ -879,12 +878,12 @@ ex mul::series(const relational & r, int order, unsigned options) const
 	size_t j = 0;
         for (const auto & elem : seq) {
 		if ( ldegree_redo[j] ) {
-			const numeric& expon = elem.coeff;
+			ex expon = elem.coeff;
 			int factor = 1;
 			ex buf;
 			if (expon.info(info_flags::integer)) {
 				buf = elem.rest;
-				factor = expon.to_int();
+				factor = ex_to<numeric>(expon).to_int();
 			} else {
 				buf = recombine_pair_to_ex(elem);
 			}
@@ -905,7 +904,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 
 	if (degsum >= order) {
 		epvector epv;
-		epv.push_back(expair(Order(_ex1), numeric(order)));
+		epv.push_back(expair(Order(_ex1), order));
 		return (new pseries(r, epv))->setflag(status_flags::dynallocated);
 	}
 
@@ -923,7 +922,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 			acc = ex_to<pseries>(acc.mul_series(ex_to<pseries>(term)));
 	}
 
-	return acc.mul_const(overall_coeff);
+	return acc.mul_const(ex_to<numeric>(overall_coeff));
 }
 
 
@@ -1088,13 +1087,11 @@ ex power::series(const relational & r, int order, unsigned options) const
 	// Singularity encountered, is the basis equal to (var - point)?
 	if (basis.is_equal(r.lhs() - r.rhs())) {
 		epvector new_seq;
-		if (not is_exactly_a<numeric>(exponent))
-                        throw std::runtime_error("can't happen");
-                const numeric& nexp = ex_to<numeric>(exponent);
-                if (nexp.to_int() < order)
-			new_seq.push_back(expair(_ex1, nexp));
+		if (is_exactly_a<numeric>(exponent)
+                    and ex_to<numeric>(exponent).to_int() < order)
+			new_seq.push_back(expair(_ex1, exponent));
 		else
-			new_seq.push_back(expair(Order(_ex1), nexp));
+			new_seq.push_back(expair(Order(_ex1), exponent));
 		return pseries(r, new_seq);
 	}
 
@@ -1150,7 +1147,7 @@ ex pseries::series(const relational & r, int order, unsigned options) const
 		else {
 			epvector new_seq;
                         for (const auto & elem : seq) {
-				int o = elem.coeff.to_int();
+				int o = ex_to<numeric>(elem.coeff).to_int();
 				if (o >= order) {
 					new_seq.push_back(expair(Order(_ex1), o));
 					break;

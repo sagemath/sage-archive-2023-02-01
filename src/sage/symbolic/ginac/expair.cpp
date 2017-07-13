@@ -38,9 +38,8 @@ void expair::print(std::ostream & os) const
 const expair expair::conjugate() const
 {
 	ex newrest = rest.conjugate();
-	const numeric& newcoeff = coeff.conj();
-	if (are_ex_trivially_equal(newrest,rest)
-            and newcoeff.is_equal(coeff)) {
+	ex newcoeff = coeff.conjugate();
+	if (are_ex_trivially_equal(newrest,rest) && are_ex_trivially_equal(newcoeff,coeff)) {
 		return *this;
 	}
 	return expair(newrest, newcoeff);

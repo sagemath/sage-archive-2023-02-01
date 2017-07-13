@@ -430,7 +430,7 @@ static ex unit_step_series(const ex & arg,
 		throw (std::domain_error("unit_step_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(unit_step(arg_pt), *_num0_p));
+	seq.push_back(expair(unit_step(arg_pt), _ex0));
 	return pseries(rel,seq);
 }
 
@@ -515,7 +515,7 @@ static ex heaviside_series(const ex & arg,
 		throw (std::domain_error("heaviside_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(heaviside(arg_pt), *_num0_p));
+	seq.push_back(expair(heaviside(arg_pt), _ex0));
 	return pseries(rel,seq);
 }
 
@@ -594,7 +594,7 @@ static ex csgn_series(const ex & arg,
 		throw (std::domain_error("csgn_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(csgn(arg_pt), *_num0_p));
+	seq.push_back(expair(csgn(arg_pt), _ex0));
 	return pseries(rel,seq);
 }
 
@@ -702,7 +702,7 @@ static ex eta_series(const ex & x, const ex & y,
 	    ((x_pt*y_pt).info(info_flags::numeric) && (x_pt*y_pt).info(info_flags::negative)))
 			throw (std::domain_error("eta_series(): on discontinuity"));
 	epvector seq;
-	seq.push_back(expair(eta(x_pt,y_pt), *_num0_p));
+	seq.push_back(expair(eta(x_pt,y_pt), _ex0));
 	return pseries(rel,seq);
 }
 

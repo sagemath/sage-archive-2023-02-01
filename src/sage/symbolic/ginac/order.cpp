@@ -147,8 +147,8 @@ bool print_order_pair::operator() (const expair &lhex, const expair &rhex) const
 bool print_order_pair::compare_degrees(const expair &lhex, const expair &rhex) const
 {
 	// compare coeffs which are numerics
-	double lh_deg = numeric_to_double(lhex.coeff);
-	double rh_deg = numeric_to_double(rhex.coeff);
+	double lh_deg = numeric_to_double(ex_to<numeric>(lhex.coeff));
+	double rh_deg = numeric_to_double(ex_to<numeric>(rhex.coeff));
 
 	return lh_deg > rh_deg;	
 }
@@ -320,9 +320,9 @@ int print_order::compare_mul_symbol(const mul &lh, const symbol &rh) const
 	}
 
 	// compare exponents
-	cmpval = smallest_item.coeff.compare(*_num1_p);
+	cmpval = -compare(*smallest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
-		return -cmpval;
+		return cmpval;
 	}
 
 	if (lh.seq.size() == 1 and lh.overall_coeff.is_one())
@@ -361,9 +361,9 @@ int print_order::compare_mul_power(const mul &lh, const power &rh) const
 	}
 
 	// compare exponents
-	cmpval = compare(smallest_item.coeff, rh.exponent);
+	cmpval = -compare(smallest_item.coeff, rh.exponent);
 	if (cmpval != 0) {
-		return -cmpval;
+		return cmpval;
 	}
 
 	if (lh.seq.size() == 1 and lh.overall_coeff.is_one())
@@ -439,7 +439,7 @@ int print_order::compare_add_symbol(const add &lh, const symbol &rh) const
 	}
 
 	// compare coefficients
-	cmpval = biggest_item.coeff.compare(*_num1_p);
+	cmpval = compare(*biggest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}
@@ -467,7 +467,7 @@ int print_order::compare_add_mul(const add &lh,
 	}
 
 	// compare coefficients
-	cmpval = biggest_item.coeff.compare(*_num1_p);
+	cmpval = compare(*biggest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}
@@ -495,7 +495,7 @@ int print_order::compare_add_power(const add &lh,
 	}
 
 	// compare coefficients
-	cmpval = biggest_item.coeff.compare(*_num1_p);
+	cmpval = compare(*biggest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}

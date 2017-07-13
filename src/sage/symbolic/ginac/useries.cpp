@@ -354,7 +354,7 @@ static int low_series_degree(ex the_ex) {
                 power pow = ex_to<power>(the_ex);
                 ex expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)) {
-                        const numeric& n = ex_to<numeric>(expo);
+                        numeric n = ex_to<numeric>(expo);
                         if (n.is_integer())
                                 return (low_series_degree(pow.op(0))
                                       * n.to_int());
@@ -368,7 +368,7 @@ static int low_series_degree(ex the_ex) {
                 int deg_sum = 0;
                 const mul& m = ex_to<mul>(the_ex);
                 for (const auto & elem : m.get_sorted_seq())
-                        if (elem.coeff.is_integer())
+                        if (ex_to<numeric>(elem.coeff).is_integer())
                                 deg_sum += low_series_degree(m.recombine_pair_to_ex(elem));
                 return deg_sum;
         }
@@ -456,7 +456,10 @@ void add::useries(flint_series_t& fp, int order) const
                 }
                 fmpq_poly_add(fp.ft, fp.ft, fp1.ft);
         }
-        const numeric& oc = overall_coeff;
+        ex ovcoeff = op(nops());
+        if (not is_exactly_a<numeric>(ovcoeff))
+                throw std::runtime_error("non-numeric oc encountered");
+        numeric oc = ex_to<numeric>(ovcoeff);
         if (oc.is_zero())
                 return;
 
@@ -479,7 +482,10 @@ void mul::useries(flint_series_t& fp, int order) const
                 fmpq_poly_mullow(fp.ft, fp.ft, fp1.ft, order+2);
                 fp.offset = newoff;
         }
-        const numeric& oc = overall_coeff;
+        ex ovcoeff = op(nops());
+        if (not is_exactly_a<numeric>(ovcoeff))
+                throw std::runtime_error("non-numeric oc encountered");
+        numeric oc = ex_to<numeric>(ovcoeff);
         if (oc.is_one())
                 return;
 

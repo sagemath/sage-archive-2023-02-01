@@ -98,12 +98,14 @@ numeric add::integer_content() const
 	numeric c = *_num0_p, l = *_num1_p;
 	while (it != itend) {
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
-		c = gcd(it->coeff.numer(), c);
-		l = lcm(it->coeff.denom(), l);
+		GINAC_ASSERT(is_exactly_a<numeric>(it->coeff));
+		c = gcd(ex_to<numeric>(it->coeff).numer(), c);
+		l = lcm(ex_to<numeric>(it->coeff).denom(), l);
 		it++;
 	}
-	c = gcd(overall_coeff.numer(), c);
-	l = lcm(overall_coeff.denom(), l);
+	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
+	c = gcd(ex_to<numeric>(overall_coeff).numer(), c);
+	l = lcm(ex_to<numeric>(overall_coeff).denom(), l);
 	return c/l;
 }
 
@@ -117,7 +119,8 @@ numeric mul::integer_content() const
 		++it;
 	}
 #endif // def DO_GINAC_ASSERT
-	return overall_coeff.abs();
+	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
+	return abs(ex_to<numeric>(overall_coeff));
 }
 
 
@@ -167,11 +170,12 @@ numeric add::max_coefficient() const
 {
 	auto it = seq.begin();
 	auto itend = seq.end();
-	numeric cur_max = overall_coeff.abs();
+	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
+	numeric cur_max = abs(ex_to<numeric>(overall_coeff));
 	while (it != itend) {
 		numeric a;
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
-		a = it->coeff.abs();
+		a = abs(ex_to<numeric>(it->coeff));
 		if (a > cur_max)
 			cur_max = a;
 		it++;
@@ -189,7 +193,8 @@ numeric mul::max_coefficient() const
 		it++;
 	}
 #endif // def DO_GINAC_ASSERT
-	return overall_coeff.abs();
+	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
+	return abs(ex_to<numeric>(overall_coeff));
 }
 
 bool ex::is_linear(const symbol& x, ex& a, ex& b) const
@@ -246,12 +251,13 @@ ex add::smod(const numeric &xi) const
 	auto itend = seq.end();
 	while (it != itend) {
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
-		numeric num_coeff = GiNaC::smod(it->coeff, xi);
+		numeric num_coeff = GiNaC::smod(ex_to<numeric>(it->coeff), xi);
 		if (!num_coeff.is_zero())
 			newseq.push_back(expair(it->rest, num_coeff));
 		it++;
 	}
-	const numeric& num_coeff = overall_coeff._smod(xi);
+	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
+	numeric num_coeff = GiNaC::smod(ex_to<numeric>(overall_coeff), xi);
 	return (new add(newseq, num_coeff))->setflag(status_flags::dynallocated);
 }
 
@@ -266,7 +272,8 @@ ex mul::smod(const numeric &xi) const
 	}
 #endif // def DO_GINAC_ASSERT
 	auto  mulcopyp = new mul(*this);
-	mulcopyp->overall_coeff = overall_coeff._smod(xi);
+	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
+	mulcopyp->overall_coeff = GiNaC::smod(ex_to<numeric>(overall_coeff),xi);
 	mulcopyp->clearflag(status_flags::evaluated);
 	mulcopyp->clearflag(status_flags::hash_calculated);
 	return mulcopyp->setflag(status_flags::dynallocated);
@@ -474,7 +481,7 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 		dens.push_back(n.op(1));
 		it++;
 	}
-	ex n = overall_coeff.normal(repl, rev_lookup, level-1);
+	ex n = ex_to<numeric>(overall_coeff).normal(repl, rev_lookup, level-1);
 	nums.push_back(n.op(0));
 	dens.push_back(n.op(1));
 	GINAC_ASSERT(nums.size() == dens.size());
@@ -535,7 +542,7 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 		den.push_back(n.op(1));
 		it++;
 	}
-	n = overall_coeff.normal(repl, rev_lookup, level-1);
+	n = ex_to<numeric>(overall_coeff).normal(repl, rev_lookup, level-1);
 	num.push_back(n.op(0));
 	den.push_back(n.op(1));
 
@@ -886,7 +893,7 @@ ex expairseq::to_rational(exmap & repl) const
 	if (oc.info(info_flags::numeric))
 		return thisexpairseq(s, overall_coeff);
 	else
-		s.push_back(expair(oc, *_num1_p));
+		s.push_back(expair(oc, _ex1));
 	return thisexpairseq(s, default_overall_coeff());
 }
 
@@ -904,7 +911,7 @@ ex expairseq::to_polynomial(exmap & repl) const
 	if (oc.info(info_flags::numeric))
 		return thisexpairseq(s, overall_coeff);
 	else
-		s.push_back(expair(oc, *_num1_p));
+		s.push_back(expair(oc, _ex1));
 	return thisexpairseq(s, default_overall_coeff());
 }
 

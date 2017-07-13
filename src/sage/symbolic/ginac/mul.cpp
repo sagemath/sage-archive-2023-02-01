@@ -134,9 +134,12 @@ DEFAULT_ARCHIVING(mul)
 // functions overriding virtual functions from base classes
 //////////
 
-void mul::print_overall_coeff(const numeric& coeff, const print_context & c,
+void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		const char *mul_sym, bool latex) const
 {
+        if (not is_exactly_a<numeric>(coeff_ex))
+                throw std::runtime_error("mul::print_overall_coeff: can't happen");
+	const numeric & num_coeff = ex_to<numeric>(coeff_ex);
 	std::stringstream tstream;
 	std::unique_ptr<print_context> tcontext_p;
 	if (latex)
@@ -144,7 +147,7 @@ void mul::print_overall_coeff(const numeric& coeff, const print_context & c,
 	else
 		tcontext_p.reset(new print_dflt(tstream, c.options));
 	//print_context tcontext(tstream, c.options);
-	coeff.print(*tcontext_p, 0);
+	num_coeff.print(*tcontext_p, 0);
 	std::string coeffstr = tstream.str();
 
 	bool parenthesis =((coeffstr.find(' ') != std::string::npos && !latex)||
@@ -153,9 +156,9 @@ void mul::print_overall_coeff(const numeric& coeff, const print_context & c,
 		//(coeffstr.find('/') != std::string::npos) ||
 		//(coeffstr.find('*') != std::string::npos) ||
 		//(coeffstr.find('^') != std::string::npos));
-	if (coeff.is_integer()
-                and coeff.is_minus_one()
-                and not coeff.is_parent_pos_char())
+	if (num_coeff.is_integer()
+                and num_coeff.is_minus_one()
+                and not num_coeff.is_parent_pos_char())
 		c.s<<"-";
 	else if (parenthesis && coeffstr[0] == '-') {
 		// We want to move the '-' out of the parenthesis if it is
@@ -168,15 +171,14 @@ void mul::print_overall_coeff(const numeric& coeff, const print_context & c,
 		else
 			c.s<<"(";
 		tstream.str("");
-		(-coeff).print(*tcontext_p, 0);
+		(-num_coeff).print(*tcontext_p, 0);
 		c.s<<tstream.str();
 		if (latex)
 			c.s<<"\\right)";
 		else
 			c.s<<")";
 		c.s << mul_sym;
-	} else if (not coeff.is_integer()
-                   or not coeff.is_one()) {
+	} else if (!num_coeff.is_integer() || !num_coeff.is_one()) {
 		if (parenthesis) {
 			if (latex)
 				c.s << "\\left(";
@@ -263,8 +265,9 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 	const epvector & sorted_seq = get_sorted_seq();
         exvector neg_powers, others;
         for (const auto & elem : sorted_seq) {
-		if (elem.coeff.is_real()
-                    and elem.coeff.is_negative())
+		GINAC_ASSERT(is_exactly_a<numeric>(elem.coeff));
+		if (ex_to<numeric>(elem.coeff).is_real() &&
+				ex_to<numeric>(elem.coeff).is_negative())
 			neg_powers.push_back(recombine_pair_to_ex(expair(elem.rest, -(elem.coeff))));
 		else
 			others.push_back(recombine_pair_to_ex(elem));
@@ -409,16 +412,15 @@ void mul::do_print_csrc(const print_csrc & c, unsigned level) const
 		}
 
 		// If the exponent is 1 or -1, it is left out
-		if (it->coeff.is_one()
-                    or it->coeff.is_minus_one()) {
+		if (it->coeff.is_integer_pmone()) {
 			it->rest.print(c, precedence());
 		}
 		else if (it->coeff.info(info_flags::negint))
 			// Outer parens around ex needed for broken GCC parser:
-			(ex(power(it->rest, -it->coeff))).print(c, level);
+			(ex(power(it->rest, -ex_to<numeric>(it->coeff)))).print(c, level);
 		else
 			// Outer parens around ex needed for broken GCC parser:
-			(ex(power(it->rest, it->coeff))).print(c, level);
+			(ex(power(it->rest, ex_to<numeric>(it->coeff)))).print(c, level);
 
 		if (needclosingparenthesis)
 			c.s << ")";
@@ -574,7 +576,7 @@ int mul::degree(const ex & s) const
 	// Sum up degrees of factors
 	int deg_sum = 0;
         for (const auto & elem : seq)
-		if (elem.coeff.is_integer())
+		if (ex_to<numeric>(elem.coeff).is_integer())
 			deg_sum += recombine_pair_to_ex(elem).degree(s);
 		else {
 			if (elem.rest.has(s))
@@ -588,7 +590,7 @@ int mul::ldegree(const ex & s) const
 	// Sum up degrees of factors
 	int deg_sum = 0;
         for (const auto & elem : seq)
-		if (elem.coeff.is_integer())
+		if (ex_to<numeric>(elem.coeff).is_integer())
 			deg_sum += recombine_pair_to_ex(elem).ldegree(s);
 		else {
 			if (elem.rest.has(s))
@@ -644,15 +646,24 @@ ex mul::eval(int level) const
 #ifdef DO_GINAC_ASSERT
         for (const auto & elem : seq) {
 		GINAC_ASSERT((!is_exactly_a<mul>(elem.rest)) ||
-		             (not elem.coeff.is_integer())));
+		             (!(ex_to<numeric>(elem.coeff).is_integer())));
+		GINAC_ASSERT(!(elem.is_canonical_numeric()));
 		if (is_exactly_a<numeric>(recombine_pair_to_ex(elem)))
-		        throw std::runtime_error("can't happen");
+		    print(print_tree(std::cerr));
+		GINAC_ASSERT(!is_exactly_a<numeric>(recombine_pair_to_ex(elem)));
+		/* for paranoia */
+		//   The following test will fail on sage: exp(x)*exp(x)
+		//   Thats probably not an issue, but should be investigated.
+		// expair p = split_ex_to_pair(recombine_pair_to_ex(*i));
+		// GINAC_ASSERT(p.rest.is_equal(i->rest));
+		// GINAC_ASSERT(p.coeff.is_equal(i->coeff));
+		/* end paranoia */
 	}
 #endif // def DO_GINAC_ASSERT
 	
 	if ((level == 1) and (flags & status_flags::evaluated) != 0u) {
 		GINAC_ASSERT(seq.size()>0);
-		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_one());
+		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_integer_one());
 		return *this;
 	}
 
@@ -666,13 +677,14 @@ ex mul::eval(int level) const
 	// handle infinity and handle exp(a)*exp(b) -> exp(a+b) and
 	unsigned exp_count = 0;
 	for (auto i = seq.begin(); i != seq.end(); i++) {
-		const numeric& num_coeff = i->coeff;
+		const numeric& num_coeff = ex_to<numeric>(i->coeff);
 		if (unlikely(is_exactly_a<infinity>(i->rest)))
 			return eval_infinity(i);
-		if (unlikely(is_ex_the_function(i->rest, exp)
-                             and num_coeff.is_integer())) {
+		if (unlikely(is_ex_the_function(i->rest, exp) and
+			     num_coeff.is_integer())) {
 			exp_count++;
-			if (exp_count>1 or not num_coeff.is_one())
+			if (exp_count>1 or not num_coeff.is_one() or
+                                not num_coeff.is_integer())
 				return eval_exponentials();
 		}
 	}
@@ -691,11 +703,11 @@ ex mul::eval(int level) const
 		// *(x;1) -> x
 		// except in positive characteristic: 1*(x+2) = x in F_2
 		return recombine_pair_to_ex(*(seq.begin()));
-	} else if (seq_size == 1
-	           and is_exactly_a<add>(seq.begin()->rest)
-                   and seq.begin()->coeff.is_one()) {
+	} else if ((seq_size==1) &&
+	           is_exactly_a<add>((*seq.begin()).rest) &&
+	           ex_to<numeric>((*seq.begin()).coeff).is_one()) {
 		// *(+(x,y,...);c) -> +(*(x,c),*(y,c),...) (c numeric(), no powers of +())
-		const add & addref = ex_to<add>(seq.begin()->rest);
+		const add & addref = ex_to<add>((*seq.begin()).rest);
 		epvector distrseq;
 		distrseq.reserve(addref.seq.size());
                 for (const auto & elem : addref.seq)
@@ -719,7 +731,7 @@ ex mul::eval(int level) const
 		numeric oc = *_num1_p;
 		bool something_changed = false;
 		while (i!=last) {
-			if (likely(not (is_exactly_a<add>(i->rest) && i->coeff.is_one()))) {
+			if (likely(! (is_exactly_a<add>(i->rest) && i->coeff.is_integer_one()))) {
 				// power::eval has such a rule, no need to handle powers here
 				++i;
 				continue;
@@ -775,9 +787,9 @@ ex mul::eval(int level) const
 			primitive->overall_coeff /= c;
 			primitive->seq_sorted.resize(0);
 			for (auto & elem : primitive->seq)
-				elem.coeff /= c;
+				elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(c);
 
-			s.push_back(expair(*primitive, *_num1_p));
+			s.push_back(expair(*primitive, _ex1));
 
 			++i;
 			++j;
@@ -808,7 +820,7 @@ ex mul::eval_exponentials() const
 	s.reserve(seq.size());
 
 	for (const auto & elem : seq) {
-		const numeric & num_coeff = elem.coeff;
+		const numeric & num_coeff = ex_to<numeric>(elem.coeff);
 		const bool simplifyable_exp = is_ex_the_function(elem.rest, exp) and num_coeff.is_integer();
 		if (likely(not simplifyable_exp))
 			s.push_back(elem);
@@ -820,7 +832,7 @@ ex mul::eval_exponentials() const
 	if (is_exactly_a<numeric>(new_exp))
 		oc = oc.mul(ex_to<numeric>(new_exp));
 	else
-		s.push_back(expair(new_exp, *_num1_p));
+		s.push_back(expair(new_exp, _ex1));
 
 	mul * result = new mul(s, overall_coeff.mul(oc));
 	return result->setflag(status_flags::dynallocated);
@@ -857,7 +869,8 @@ ex mul::evalf(int level, PyObject* parent) const
 	--level;
         for (const auto & elem : seq)
                s.push_back(combine_ex_with_coeff_to_pair(
-                        elem.rest.evalf(level, parent), elem.coeff));
+                        elem.rest.evalf(level, parent),
+                        ex_to<numeric>(elem.coeff)));
         return mul(s, ex_to<numeric>(overall_coeff.evalf(level, parent)));
 }
 
@@ -1109,7 +1122,7 @@ ex mul::derivative(const symbol & s) const
 		                             i->rest.diff(s));
 		ep.swap(*i2);
 		addseq.push_back((new mul(mulseq,
-                     overall_coeff.mul(i->coeff)))->setflag(status_flags::dynallocated));
+                     overall_coeff.mul(ex_to<numeric>(i->coeff))))->setflag(status_flags::dynallocated));
 		ep.swap(*i2);
 		++i; ++i2;
 	}
@@ -1200,10 +1213,9 @@ expair mul::split_ex_to_pair(const ex & e) const
 	if (is_exactly_a<power>(e)) {
 		const power & powerref = ex_to<power>(e);
 		if (is_exactly_a<numeric>(powerref.exponent))
-			return expair(powerref.basis,
-                                        ex_to<numeric>(powerref.exponent));
+			return expair(powerref.basis,powerref.exponent);
 	}
-	return expair(e, *_num1_p);
+	return expair(e,_ex1);
 }
 	
 expair mul::combine_ex_with_coeff_to_pair(const ex & e,
@@ -1226,11 +1238,13 @@ expair mul::combine_ex_with_coeff_to_pair(const ex & e,
 expair mul::combine_pair_with_coeff_to_pair(const expair & p,
                                             const numeric & c) const
 {
+        GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
+
         if (is_exactly_a<symbol>(p.rest))
                 return expair(p.rest, p.coeff*c);
 	if (c.is_one())
 		return p;
-        if (p.coeff.is_one())
+        if (p.coeff.is_integer_one())
                 return expair(p.rest, c);
 
 	// to avoid duplication of power simplification rules,
@@ -1243,8 +1257,8 @@ expair mul::combine_pair_with_coeff_to_pair(const expair & p,
 ex mul::recombine_pair_to_ex(const expair & p) const
 {
         if (unlikely(is_exactly_a<infinity>(p.rest)))
-                return (new infinity(p.coeff))->setflag(status_flags::evaluated|status_flags::dynallocated);
-	if (p.coeff.is_one()) 
+                return (new infinity(ex_to<numeric>(p.coeff)))->setflag(status_flags::evaluated|status_flags::dynallocated);
+	if (p.coeff.is_integer_one()) 
 		return p.rest;
 	else
 		return (new power(p.rest,p.coeff))->setflag(status_flags::dynallocated);
@@ -1252,8 +1266,8 @@ ex mul::recombine_pair_to_ex(const expair & p) const
 
 bool mul::expair_needs_further_processing(epp it)
 {
-	if (is_exactly_a<mul>(it->rest)
-            and it->coeff.is_integer()) {
+	if (is_exactly_a<mul>(it->rest) &&
+		ex_to<numeric>(it->coeff).is_integer()) {
 		// combined pair is product with integer power -> expand it
 		*it = split_ex_to_pair(recombine_pair_to_ex(*it));
 		return true;
@@ -1265,7 +1279,7 @@ bool mul::expair_needs_further_processing(epp it)
 			*it = ep;
 			return true;
 		}
-		if (it->coeff.is_one()) {
+		if (it->coeff.is_integer_one()) {
 			// combined pair has coeff 1 and must be moved to the end
 			return true;
 		}
@@ -1293,8 +1307,10 @@ void mul::combine_overall_coeff(const numeric & c1, const numeric & c2)
 
 bool mul::can_make_flat(const expair & p) const
 {
+	GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
+
         // (x*y)^c == x^c*y^c  if c ∈ ℤ
-        return p.coeff.is_integer();
+        return p.coeff.info(info_flags::integer);
 }
 
 bool mul::can_be_further_expanded(const ex & e)
@@ -1316,8 +1332,7 @@ ex mul::expand(unsigned options) const
 	// trivial case: expanding the monomial (~ 30% of all calls)
         bool all_intsym = true;
         for (const auto & elem : seq) 
-                if (not is_exactly_a<symbol>(elem.rest)
-                    or not elem.coeff.is_integer())
+                if (not is_exactly_a<symbol>(elem.rest) or not elem.coeff.info(info_flags::integer))
                 {
                         all_intsym = false;
                         break;
@@ -1348,7 +1363,7 @@ ex mul::expand(unsigned options) const
 
 	for (const auto & elem : expanded_seq) {
 		if (is_exactly_a<add>(elem.rest) &&
-			(elem.coeff.is_one())) {
+			(elem.coeff.is_integer_one())) {
 			if (is_exactly_a<add>(last_expanded)) {
 
 				// Expand a product of two sums, aggressive version.
@@ -1374,7 +1389,7 @@ ex mul::expand(unsigned options) const
 					else
                                                 for (const auto & elem2 : add2.seq)
 							distrseq.push_back(expair(elem2.rest,
-                                                                elem2.coeff.mul_dyn(add1.overall_coeff)));
+                                                                ex_to<numeric>(elem2.coeff).mul_dyn(add1.overall_coeff)));
 				}
 
 				// Multiply add1 with the overall coefficient of add2 and append it to distrseq:
@@ -1383,7 +1398,7 @@ ex mul::expand(unsigned options) const
 						distrseq.insert(distrseq.end(),add1begin,add1end);
 					else
                                                 for (const auto & elem1 : add1.seq)
-							distrseq.push_back(expair(elem1.rest, elem1.coeff.mul_dyn(add2.overall_coeff)));
+							distrseq.push_back(expair(elem1.rest, ex_to<numeric>(elem1.coeff).mul_dyn(add2.overall_coeff)));
 				}
 
 				// Compute the new overall coefficient and put it together:
@@ -1423,10 +1438,9 @@ ex mul::expand(unsigned options) const
 						// since that would violate an invariant of expairseq:
 						const ex rest = (new mul(elem1.rest, i2_new))->setflag(status_flags::dynallocated);
 						if (is_exactly_a<numeric>(rest)) {
-							oc += ex_to<numeric>(rest).mul(elem1.coeff).mul(elem2.coeff);
+							oc += ex_to<numeric>(rest).mul(ex_to<numeric>(elem1.coeff).mul(ex_to<numeric>(elem2.coeff)));
 						} else {
-							distrseq2.push_back(expair(rest,
-                                                                             elem1.coeff.mul_dyn(elem2.coeff)));
+							distrseq2.push_back(expair(rest, ex_to<numeric>(elem1.coeff).mul_dyn(ex_to<numeric>(elem2.coeff))));
 						}
 					}
 					tmp_accu += (new add(distrseq2, oc))->setflag(status_flags::dynallocated);

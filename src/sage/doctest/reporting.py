@@ -4,7 +4,7 @@ Reporting doctest results
 This module determines how doctest results are reported to the user.
 
 It also computes the exit status in the ``error_status`` attribute of
-:class:DocTestReporter. This is a bitwise OR of the following bits:
+:class:`DocTestReporter`. This is a bitwise OR of the following bits:
 
 - 1: Doctest failure
 - 2: Bad command line syntax or invalid options

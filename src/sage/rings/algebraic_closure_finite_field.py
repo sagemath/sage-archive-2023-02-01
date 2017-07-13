@@ -63,6 +63,8 @@ from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.ring import Field
 from sage.structure.element import FieldElement
+from sage.structure.richcmp import richcmp_method, rich_to_bool, richcmp
+
 
 class AlgebraicClosureFiniteFieldElement(FieldElement):
     """
@@ -164,7 +166,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         return self._value._repr_()
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
         Compare ``self`` with ``right``.
 
@@ -176,7 +178,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
         """
         x, y = self.parent()._to_common_subfield(self, right)
-        return cmp(x, y)
+        return richcmp(x, y, op)
 
     def __pow__(self, exp):
         r"""
@@ -540,6 +542,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         return (F, x, phi)
 
 
+@richcmp_method
 class AlgebraicClosureFiniteField_generic(Field):
     """
     Algebraic closure of a finite field.
@@ -558,7 +561,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         Field.__init__(self, base_ring=base_ring, names=name,
                        normalize=False, category=category)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` with ``other``.
 
@@ -573,12 +576,13 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         """
         if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp((self.base_ring(), self.variable_name(), self.category()),
-                   (other.base_ring(), other.variable_name(), other.category()))
+            return rich_to_bool(op, 0)
+        if not isinstance(other, AlgebraicClosureFiniteField_generic):
+            return NotImplemented
+        return richcmp((self.base_ring(), self.variable_name(),
+                        self.category()),
+                       (other.base_ring(), other.variable_name(),
+                        other.category()), op)
 
     def cardinality(self):
         """

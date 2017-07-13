@@ -1,5 +1,5 @@
 r"""
-Multivector fields Modules
+Multivector Field Modules
 
 The set `A^p(U, \Phi)` of `p`-vector fields along a differentiable
 manifold `U` with values on a differentiable manifold `M` via a
@@ -20,8 +20,8 @@ AUTHORS:
 
 REFERENCES:
 
-- R. L. Bishop and S. L. Goldberg (1980) [BG1980]_
-- C.-M. Marle (1997) [Mar1997]_
+- \R. L. Bishop and S. L. Goldberg (1980) [BG1980]_
+- \C.-M. Marle (1997) [Mar1997]_
 
 """
 #******************************************************************************

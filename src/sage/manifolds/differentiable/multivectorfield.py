@@ -511,16 +511,69 @@ class MultivectorField(TensorField):
 
     def bracket(self, other):
         r"""
-        Schouten-Nijenhuis bracket of ``self`` with another multivector field.
+        Return the Schouten-Nijenhuis bracket of ``self`` with another
+        multivector field.
+
+        The Schouten-Nijenhuis bracket extends the Lie bracket of
+        vector fields (cf.
+        :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.bracket`)
+        to multivector fields.
+
+        Denoting by `A^p(M)` the `C^k(M)`-module of `p`-vector fields on the
+        `C^k`-differentiable manifold `M` over the field `K` (cf.
+        :class:`~sage.manifolds.differentiable.multivector_module.MultivectorModule`),
+        the *Schouten-Nijenhuis bracket* is a `K`-bilinear map
+
+        .. MATH::
+
+            \begin{array}{ccc}
+            A^p(M)\times A^q(M) & \longrightarrow & A^{p+q-1}(M) \\
+            (a,b) & \longmapsto & [a,b]
+            \end{array}
+
+        which obeys the following properties:
+
+        - if `p=0` and `q=0`, (i.e. `a` and `b` are two scalar fields), `[a,b]=0`
+        - if `p=0` (i.e. `a` is a scalar field) and `q\geq 1`,
+          `[a,b] = - \iota_{\mathrm{d}a} b` (minus the interior product of
+          the differential of `a` by `b`)
+        - if `p=1` (i.e. `a` is a vector field), `[a,b] = \mathcal{L}_a b`
+          (the Lie derivative of `b` along `a`)
+        - `[a,b] = -(-1)^{(p-1)(q-1)} [b,a]`
+        - for any multivector field `c` and `(a,b) \in A^p(M)\times A^q(M)`,
+          `[a,.]` obeys the *graded Leibniz rule*
+
+        .. MATH::
+
+            [a,b\wedge c] = [a,b]\wedge c + (-1)^{(p-1)q} b\wedge [a,c]
+
+        - for `(a,b,c) \in A^p(M)\times A^q(M)\times A^r(M)`, the *graded
+          Jacobi identity* holds:
+
+        .. MATH::
+
+            (-1)^{(p-1)(r-1)}[a,[b,c]] + (-1)^{(q-1)(p-1)}[b,[c,a]] +
+            (-1)^{(r-1)(q-1)}[c,[a,b]] = 0
+
+        .. NOTE::
+
+            There are two definitions of the Schouten-Nijenhuis bracket in
+            the literature, which differ from each other when `p` is even
+            by an overall sign. The definition adopted here is that of
+            [Mar1997]_, [Kos1985]_ and :wikipedia:`Schouten-Nijenhuis_bracket`.
+            The other definition, adopted e.g. by [Nij1955]_, [Lic1977]_
+            and [Vai1994]_, is `[a,b]' = (-1)^{p+1} [a,b]`.
 
         INPUT:
 
-        - ``other`` -- another multivector field
+        - ``other`` -- a multivector field, `b` say
 
         OUTPUT:
 
-        - instance of :class:`MultivectorField` representing the
-          Schouten-Nijenhuis bracket ``[self,other]``
+        - instance of :class:`MultivectorField` (or of
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if `p=1` and `q=0`) representing the
+          Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self``
 
         EXAMPLES:
 
@@ -1137,10 +1190,19 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
           (the Lie derivative of `b` along `a`)
         - `[a,b] = -(-1)^{(p-1)(q-1)} [b,a]`
         - for any multivector field `c` and `(a,b) \in A^p(M)\times A^q(M)`,
+          `[a,.]` obeys the *graded Leibniz rule*
 
         .. MATH::
 
             [a,b\wedge c] = [a,b]\wedge c + (-1)^{(p-1)q} b\wedge [a,c]
+
+        - for `(a,b,c) \in A^p(M)\times A^q(M)\times A^r(M)`, the *graded
+          Jacobi identity* holds:
+
+        .. MATH::
+
+            (-1)^{(p-1)(r-1)}[a,[b,c]] + (-1)^{(q-1)(p-1)}[b,[c,a]] +
+            (-1)^{(r-1)(q-1)}[c,[a,b]] = 0
 
         .. NOTE::
 
@@ -1157,7 +1219,9 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         OUTPUT:
 
-        - instance of :class:`MultivectorFieldParal` representing the
+        - instance of :class:`MultivectorFieldParal` (or of
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if `p=1` and `q=0`) representing the
           Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self``
 
         EXAMPLES:
@@ -1191,10 +1255,36 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             sage: s == b.lie_derivative(a)
             True
 
-        Schouten-Nijenhuis bracket for `p=1` and `q=2`::
+        Schouten-Nijenhuis bracket for `p=0` and `q=1`::
+
+            sage: s = f.bracket(a); s
+            Scalar field -i_df a on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            -i_df a: M --> R
+               (x, y, z) |--> x*y - y^2 - (x + 2*y + 1)*z + z^2
+
+        Check that `[f,a] = - \iota_{\mathrm{d}f} a = - \mathrm{d}f(a)`::
+
+            sage: s == - f.differential()(a)
+            True
+
+        Schouten-Nijenhuis bracket for `p=0` and `q=2`::
 
             sage: c = M.multivector_field(2, name='c')
             sage: c[0,1], c[0,2], c[1,2] = x+z+1, x*y+z, x-y
+            sage: s = f.bracket(c); s
+            Vector field -i_df c on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            -i_df c = (x*y^2 + (x + y + 1)*z + z^2) d/dx
+             + (x*y - y^2 - x - z - 1) d/dy + (-x*y - (x - y + 1)*z) d/dz
+
+        Check that `[f,c] = - \iota_{\mathrm{d}f} c`::
+
+            sage: s == - f.differential().interior_product(c)
+            True
+
+        Schouten-Nijenhuis bracket for `p=1` and `q=2`::
+
             sage: s = a.bracket(c); s
             2-vector field [a,c] on the 3-dimensional differentiable manifold M
             sage: s.display()
@@ -1216,11 +1306,19 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             3-vector field [c,d] on the 3-dimensional differentiable manifold M
             sage: s.display()
             [c,d] = (-y^3 + (3*x + 1)*y - y^2 - x - z + 2) d/dx/\d/dy/\d/dz
+
+        Let us check the component formula (with respect to the manifold's
+        default coordinate chart, i.e. ``X``) for `p=q=2`, taking into
+        account the tensor antisymmetries::
+
             sage: s[0,1,2] == - sum(c[i,0]*d[1,2].diff(i)
             ....:                 + c[i,1]*d[2,0].diff(i) + c[i,2]*d[0,1].diff(i)
             ....:                 + d[i,0]*c[1,2].diff(i) + d[i,1]*c[2,0].diff(i)
             ....:                 + d[i,2]*c[0,1].diff(i) for i in M.irange())
             True
+
+        Schouten-Nijenhuis bracket for `p=1` and `q=3`::
+
             sage: e = M.multivector_field(3, name='e')
             sage: e[0,1,2] = x+y*z+1
             sage: s = a.bracket(e); s
@@ -1228,25 +1326,55 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             sage: s.display()
             [a,e] = (-(2*x + 1)*y + y^2 - (y^2 - x - 1)*z - z^2
              - 2*x - 2) d/dx/\d/dy/\d/dz
+
+        Again, since `p=1`, the bracket coincides with the Lie derivative::
+
             sage: s == e.lie_derivative(a)
             True
+
+        Schouten-Nijenhuis bracket for `p=2` and `q=3`::
+
             sage: s = c.bracket(e); s
             4-vector field [c,e] on the 3-dimensional differentiable manifold M
+
+        Since on a 3-dimensional manifold, any 4-vector field is zero, we have::
+
             sage: s.display()
             [c,e] = 0
-            sage: a.bracket(b) == - b.bracket(a)
+
+        Let us check the graded commutation law
+        `[a,b] = -(-1)^{(p-1)(q-1)} [b,a]` for various values of `p` and `q`::
+
+            sage: f.bracket(a) == - a.bracket(f)  # p=0 and q=1
             True
-            sage: a.bracket(c) == - c.bracket(a)
+            sage: f.bracket(c) == c.bracket(f)    # p=0 and q=2
             True
-            sage: c.bracket(d) == d.bracket(c)
+            sage: a.bracket(b) == - b.bracket(a)  # p=1 and q=1
             True
+            sage: a.bracket(c) == - c.bracket(a)  # p=1 and q=2
+            True
+            sage: c.bracket(d) == d.bracket(c)    # p=2 and q=2
+            True
+
+        Let us check the graded Leibniz rule for `p=1` and `q=1`::
+
             sage: a.bracket(b.wedge(c)) == a.bracket(b).wedge(c) + b.wedge(a.bracket(c))
             True
+
+        as well as for `p=2` and `q=1`::
+
             sage: c.bracket(a.wedge(b)) == c.bracket(a).wedge(b) - a.wedge(c.bracket(b))
             True
+
+        Finally let us check the graded Jacobi identity for `p=1`, `q=1` and
+        `r=2`::
+
             sage: a.bracket(b.bracket(c)) + b.bracket(c.bracket(a)) \
             ....: + c.bracket(a.bracket(b)) == 0
             True
+
+        as well as for `p=1`, `q=2` and `r=2`::
+
             sage: a.bracket(c.bracket(d)) + c.bracket(d.bracket(a)) \
             ....: - d.bracket(a.bracket(c)) == 0
             True

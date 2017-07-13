@@ -5959,6 +5959,8 @@ class Polyhedron_base(Element):
 
         TESTS::
 
+            Check that :trac:`23355` is fixed::
+
             sage: P = Polyhedron([[7]]); P
             A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
             sage: P.affine_hull()

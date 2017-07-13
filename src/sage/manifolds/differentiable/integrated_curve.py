@@ -205,11 +205,11 @@ class IntegratedCurve(DifferentiableCurve):
         ....:         solution_key='carac time 1', verbose=True)
         Performing 4th order Runge-Kutta integration with Maxima by
          default...
-        <BLANKLINE>
         Numerical integration completed.
-        Checking all points are in the chart domain...
         <BLANKLINE>
+        Checking all points are in the chart domain...
         All points are in the chart domain.
+        <BLANKLINE>
         The resulting list of points was associated with the key
          'carac time 1' (if this key already referred to a former
          numerical solution, such a solution was erased).
@@ -940,11 +940,11 @@ class IntegratedCurve(DifferentiableCurve):
              default...
             Resulting list of points will be associated with the key
              'rk4_maxima' by default.
-            <BLANKLINE>
             Numerical integration completed.
-            Checking all points are in the chart domain...
             <BLANKLINE>
+            Checking all points are in the chart domain...
             All points are in the chart domain.
+            <BLANKLINE>
             The resulting list of points was associated with the key
              'rk4_maxima' (if this key already referred to a former
              numerical solution, such a solution was erased).
@@ -1092,13 +1092,13 @@ class IntegratedCurve(DifferentiableCurve):
                                      end_points=[t_min, t_max],
                                      step=step)
 
-            # Let q = (t_max-t_min)/step; then, the value of the
-            # curve parameter of the q+1-th point computed is very close
-            # to 't_max'. Yet, due to numerical rounding, it is very
-            # often a bit smaller than 't_max'. And it seems that, if
-            # the solver considers this value not to be close enough to
-            # 't_max', then the solver computes one more point,
-            # evaluated for a curve parameter exactly equal to 't_max'.
+            # The value of 'step' being set by the user when calling
+            # method 'solve', the value of (t_max - tmin)/step is not
+            # necessarily an integer.
+            # As a result, when the solver 'desolve_system_rk4' reaches
+            # a curve parameter that is distant to 't_max' by less than
+            # 'step', it computes one last point evaluated for a curve
+            # parameter exactly equal to 't_max'.
             # Therefore, the difference between the curve parameter
             # corresponding to this last point and that corresponding
             # to the previous one is strictly less than 'step'. If this
@@ -1111,9 +1111,9 @@ class IntegratedCurve(DifferentiableCurve):
             # solution when it is a point that was added by the solver
             # and threatens to be too close to the previous one
             # (arbitrarily, we consider two points to be too close if
-            # their curve parameters are separated by less than half a
+            # their curve parameters are separated by less than 90% of a
             # step).
-            if len(sol) > 1 and abs(sol[-1][0] - sol[-2][0]) < 0.5*step:
+            if len(sol) > 1 and abs(sol[-1][0] - sol[-2][0]) < 0.9*step:
                 del sol[-1]
 
         elif method == "ode_int":
@@ -1245,7 +1245,7 @@ class IntegratedCurve(DifferentiableCurve):
         coords_sol = [point[0:dim+1] for point in sol]
 
         if verbose:
-            print("\nNumerical integration completed.\n" +
+            print("Numerical integration completed.\n\n" +
                   "Checking all points are in the chart domain...")
 
         N = len(coords_sol)
@@ -1255,8 +1255,10 @@ class IntegratedCurve(DifferentiableCurve):
 
         if n < N:
             raise ValueError("the {}th point ".format(n) +
-                             "of the numerical solution (obtained at " +
-                             "time {}) is out ".format(t_min + n*step) +
+                             "(initial point being the '0th' point) " +
+                             "of the numerical solution (obtained " +
+                             "for a curve parameter equal " +
+                             "to {}) is out ".format(sol[n][0]) +
                              "of the chart domain; a curve with a " +
                              "smaller maximal value of the curve " +
                              "parameter, or a smaller initial tangent "+
@@ -1264,7 +1266,7 @@ class IntegratedCurve(DifferentiableCurve):
         else:
             self._solutions[solution_key] = coords_sol
             if verbose:
-                print("\nAll points are in the chart domain.\n" +
+                print("All points are in the chart domain.\n\n" +
                       "The resulting list of points was associated " +
                       "with the key '{}' ".format(solution_key) +
                       "(if this key already referred to a former " +
@@ -2835,13 +2837,22 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
 
         gamma = affine_connection.coef(frame=chart.frame())
 
-        for alpha in range(dim):
+        for rho in range(dim):
             rhs = 0
             for mu in range(dim):
                 for nu in range(dim):
-                    AUX = velocities[mu] * velocities[nu]
-                    rhs-= gamma[alpha+i0, mu+i0, nu+i0].expr() * AUX
-                    # 'AUX' only used for the line above to be shorter
+                    vMUvNU = velocities[mu] * velocities[nu]
+                    gammaRHO_mu_nu = gamma[[rho+i0, mu+i0, nu+i0]].expr(chart=chart)
+                    # line above is the expression of the scalar
+                    # field 'gamma[[rho+i0, mu+i0, nu+i0]]' in terms
+                    # of 'chart' (here, in any point of the manifold,
+                    # the scalar field 'gamma[[rho+i0, mu+i0, nu+i0]]'
+                    # provides the coefficient [rho+i0, mu+i0, nu+i0]
+                    # of the affine connection with respect to frame
+                    # 'chart.frame()')
+                    rhs -= gammaRHO_mu_nu * vMUvNU
+                    # 'vMUvNU' and 'gammaRHO_mu_nu' only used for the
+                    # line above to be shorter
             equations_rhs += [rhs.simplify_full()]
 
         IntegratedCurve.__init__(self, parent, equations_rhs,

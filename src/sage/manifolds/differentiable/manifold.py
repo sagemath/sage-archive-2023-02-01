@@ -2727,7 +2727,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         OUTPUT:
 
-        - :class:`~sage.manifolds.differentiable.curve.IntegratedAutoparallelCurve`
+        - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`
 
         EXAMPLES:
 
@@ -2860,7 +2860,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         OUTPUT:
 
-        - :class:`~sage.manifolds.differentiable.curve.IntegratedGeodesic`
+        - :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedGeodesic`
 
         EXAMPLES:
 

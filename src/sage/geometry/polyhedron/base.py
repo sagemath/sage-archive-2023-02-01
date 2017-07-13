@@ -4341,15 +4341,19 @@ class Polyhedron_base(Element):
             2.18169499062491
 
         When considering lower-dimensional polytopes, we can ask for the
-        ambient (full-dimensional) or the induced measure (of the affine
-        hull). This is controlled by the parameter `measure`.Different engines may have different ideas on the definition
-        of volume of a lower-dimensional object::
+        ambient (full-dimensional), the induced measure (of the affine
+        hull) or, in the case of lattice polytopes, for the induced rational measure.
+        This is controlled by the parameter `measure`. Different engines
+        may have different ideas on the definition of volume of a
+        lower-dimensional object::
 
             sage: P = Polyhedron([[0, 0], [1, 1]])
             sage: P.volume()
             0
             sage: P.volume(measure='induced')
             sqrt(2)
+            sage: P.volume(measure='induced_rational') # optional -- latte_int
+            1
 
             sage: S = polytopes.regular_polygon(6); S
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 6 vertices
@@ -4368,9 +4372,9 @@ class Polyhedron_base(Element):
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
             sage: v = Dexact.faces(2)[4].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
-            sage: v.n()
+            sage: RDF(v)
             1.53406271079044
-            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); w
+            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w)
             1.534062710738235
 
             sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]
@@ -4379,19 +4383,19 @@ class Polyhedron_base(Element):
             sage: I = Polyhedron([[-3, 0], [0, 9]])
             sage: I.volume(measure='induced')
             3*sqrt(10)
-            sage: I.volume(measure='induced_rational')
+            sage: I.volume(measure='induced_rational') # optional -- latte_int
             3
 
             sage: T = Polyhedron([[3, 0, 0], [0, 4, 0], [0, 0, 5]])
             sage: T.volume(measure='induced')
             1/2*sqrt(769)
-            sage: T.volume(measure='induced_rational')
+            sage: T.volume(measure='induced_rational') # optional -- latte_int
             1/2
 
-            sage: P = Polyhedron(vertices=[(0, 0, 1, 1), (0, 1, 1, 0), (1, 1, 0, 0)])
-            sage: P.volume(measure='induced')
+            sage: Q = Polyhedron(vertices=[(0, 0, 1, 1), (0, 1, 1, 0), (1, 1, 0, 0)])
+            sage: Q.volume(measure='induced')
             1
-            sage: P.volume(measure='induced_rational')
+            sage: Q.volume(measure='induced_rational') # optional -- latte_int
             1/2
         """
         if measure == 'induced_rational' and engine not in ['auto', 'latte']:
@@ -4410,7 +4414,7 @@ class Polyhedron_base(Element):
             pc = triangulation.point_configuration()
             return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
         elif measure == 'induced':
-            # if polyhedron is actually full-dimensional, return volume with ambient measuren
+            # if polyhedron is actually full-dimensional, return volume with ambient measure
             if self.dim() == self.ambient_dim():
                 return self.volume(measure='ambient', engine=engine, **kwds)
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix

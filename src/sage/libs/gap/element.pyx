@@ -1371,6 +1371,22 @@ cdef class GapElement_FiniteField(GapElement):
             Traceback (most recent call last):
             ...
             ValueError: the given finite field has incompatible size
+
+        TESTS::
+
+            sage: n = libgap.eval('Z(2^4)^2 + Z(2^4)^1 + Z(2^4)^0')
+            sage: n
+            Z(2^2)^2
+            sage: n.sage()
+            a + 1
+            sage: parent(_)
+            Finite Field in a of size 2^2
+
+        Check that :trac:`23153` is fixed::
+
+            sage: n = libgap.eval('Z(2^4)^2 + Z(2^4)^1 + Z(2^4)^0')
+            sage: n.sage(ring=GF(2^4, 'a'))
+            a^2 + a + 1
         """
         deg = self.DegreeFFE().sage()
         char = self.Characteristic().sage()
@@ -1383,10 +1399,10 @@ cdef class GapElement_FiniteField(GapElement):
         if deg == 1 and char == ring.characteristic():
             return ring(self.lift().sage())
         else:
-            field = self.DefaultField()
-            if field.Size().sage() != ring.cardinality():
+            field = make_GapElement_Ring(self.parent(), gap_eval(ring._gap_init_()))
+            if field.DegreeOverPrimeField() % deg != 0:
                 raise ValueError('the given finite field has incompatible size')
-            root = self.DefaultField().PrimitiveRoot()
+            root = field.PrimitiveRoot()
             exp = self.LogFFE(root)
             return ring.multiplicative_generator() ** exp.sage()
 

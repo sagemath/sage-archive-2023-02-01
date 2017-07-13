@@ -1602,7 +1602,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 from sage.misc.superseded import deprecation
 
 def mtx_unpickle(f, int nr, int nc, str Data, bint m):
-    """
+    r"""
     Helper function for unpickling.
 
     TESTS::
@@ -1612,6 +1612,51 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         True
         sage: M is loads(dumps(M))
         False
+
+    We also test that a pickle created by one machine can be understood
+    by other machines with different architecture (see :trac:`23411`).
+    Internally, a row is stored in a memory block of length a multiple
+    of ``sizeof(long)``, which may be machine dependent, but in a pickle,
+    only the bytes actually containing data of the row are stored, which
+    is machine independent. We chose a matrix over the field with `13` elements.
+    Since `13^2<255<13^3`, two columns will be stored in one byte. Our matrix
+    has five columns, thus, one row will occupy three bytes in the pickle,
+    but eight bytes (if ``sizeof(long)==8``) in memory, and the pickle
+    string will be six bytes, since we have two rows::
+
+        sage: s = 'Uq\x82\xa7\x8bh'
+        sage: len(s)
+        6
+        sage: MS = MatrixSpace(GF(13), 2, 5)
+        sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle  # optional: meataxe
+        sage: N = mtx_unpickle(MS, 2, 5, s, True)            # optional: meataxe
+        sage: N                                              # optional: meataxe
+        [ 6  7  8  9 10]
+        [12 11 10  9  8]
+        sage: type(N)                                        # optional: meataxe
+        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+
+    We demonstrate that a slightly different pickle format can be understood
+    as well, that was at some point used by some optional package::
+
+        sage: N == mtx_unpickle(int(13), 2, 5, s, True)      # optional: meataxe
+        True
+
+    In a previous version of this optional module, the whole memory chunk
+    used to store the matrix was stored. The result would have been, as
+    in the following example, a string of length 16. Unpickling works, but
+    results in a warning::
+
+        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00'
+        sage: len(t)
+        16
+        sage: N == mtx_unpickle(MS, 2, 5, t, True)
+        doctest:warning
+        ...
+        DeprecationWarning: Reading this pickle may be machine dependent
+        See http://trac.sagemath.org/23411 for details.
+        True
+
     """
     cdef Matrix_gfpn_dense OUT
     OUT = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)

@@ -917,14 +917,6 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     r"""
     Compute chromatic index and edge colorings.
 
-    .. SEEALSO::
-
-        - :wikipedia:`Edge_coloring` for further details on edge coloring
-        - :meth:`~Graph.chromatic_index`
-        - :meth:`~Graph.fractional_chromatic_index`
-        - :meth:`~Graph.chromatic_number`
-        - :meth:`sage.graphs.graph_coloring.vertex_coloring`
-
     INPUT:
 
     - ``g`` -- a graph.
@@ -987,12 +979,32 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
        can sometimes be much faster, and it is a bad idea to compute
        the whole coloring if you do not need it !
 
-    EXAMPLES::
+    .. SEEALSO::
+
+        - :wikipedia:`Edge_coloring` for further details on edge coloring
+        - :meth:`~Graph.chromatic_index`
+        - :meth:`~Graph.fractional_chromatic_index`
+        - :meth:`~Graph.chromatic_number`
+        - :meth:`sage.graphs.graph_coloring.vertex_coloring`
+
+    EXAMPLES:
+
+    The Petersen graph has chromatic index 4::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
        sage: edge_coloring(g, value_only=True)
        4
+       sage: edge_coloring(g, value_only=False)
+       [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
+        [(0, 4), (1, 2), (3, 8), (6, 9)],
+        [(0, 5), (1, 6), (3, 4), (7, 9)],
+        [(2, 7), (5, 8)]]
+       sage: edge_coloring(g, value_only=False, hex_colors=True)
+       {'#00ffff': [(0, 5), (1, 6), (3, 4), (7, 9)],
+        '#7f00ff': [(2, 7), (5, 8)],
+        '#7fff00': [(0, 4), (1, 2), (3, 8), (6, 9)],
+        '#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)]}
 
     Complete graphs are colored using the linear-time round-robin coloring::
 

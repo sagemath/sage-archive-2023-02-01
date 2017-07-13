@@ -1028,12 +1028,12 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         Specify either the number of terms of the series to evaluate or
         the error bound required.
 
-        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
-        not have to factor the resultant.
-
         ALGORITHM:
 
             The sum of the Green's function at the archimedean places and the places of bad reduction.
+
+            If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
+            not have to factor the resultant.
 
         INPUT:
 
@@ -1056,7 +1056,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - Original algorithm written by Elliot Wells [WELLS]_
 
-        - Implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+        - Wells Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
 
         EXAMPLES::
@@ -1142,7 +1142,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             if Res > 1:
                 if not err is None:
                     err = err/2
-                    N = ceil((R(abs(Res)).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
+                    N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
                         N = 1
                     kwds.update({'error_bound': err})

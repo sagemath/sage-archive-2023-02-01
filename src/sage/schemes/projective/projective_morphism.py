@@ -2014,6 +2014,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - a real number
 
+        AUTHORS:
+
+        - Original algorithm written by Elliot Wells [WELLS]_
+
+        - Well's Algorithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)

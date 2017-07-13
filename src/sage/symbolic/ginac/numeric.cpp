@@ -444,8 +444,6 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
                         mpq_get_str(&cp[0], 10, s.v._bigrat);
                         return os << &cp[0];
                 }
-                case DOUBLE:
-                        return os << s.v._double;
                 case PYOBJECT:
                         return os << *py_funcs.py_repr(s.v._pyobject, 0);
                 default:
@@ -464,8 +462,6 @@ const numeric& numeric::operator=(const numeric& x) {
                 case PYOBJECT:
                         Py_DECREF(v._pyobject);
                         break;
-                case DOUBLE:
-                        break;
         }
         t = x.t;
         hash = x.hash;
@@ -481,8 +477,6 @@ const numeric& numeric::operator=(const numeric& x) {
                 case PYOBJECT:
                         v = x.v;
                         Py_INCREF(v._pyobject);
-                        break;
-                case DOUBLE:
                         break;
         }
         return *this;
@@ -521,8 +515,6 @@ int numeric::compare_same_type(const numeric& right) const {
         }
         int ret;
         switch (t) {
-                case DOUBLE:
-                        return (v._double < right.v._double) ? -1 : static_cast<int>(v._double > right.v._double);
                 case MPZ:
                         ret = mpz_cmp(v._bigint, right.v._bigint);
                         if (ret > 0)
@@ -631,9 +623,6 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
                 case PYOBJECT:
                         v = other.v;
                         Py_INCREF(v._pyobject);
-                        return;
-                case DOUBLE:
-                        v = other.v;
                         return;
                 case MPZ:
                         mpz_init(v._bigint);
@@ -774,8 +763,6 @@ numeric::~numeric() {
         switch (t) {
                 case PYOBJECT:
                         Py_DECREF(v._pyobject);
-                        return;
-                case DOUBLE:
                         return;
                 case MPZ:
                         mpz_clear(v._bigint);
@@ -1112,8 +1099,6 @@ bool numeric::is_equal_same_type(const basic &other) const {
 
 long numeric::calchash() const {
         switch (t) {
-                case DOUBLE:
-                        return (long) v._double;
                 case MPZ:
                 case MPQ:
                 case PYOBJECT:
@@ -1238,8 +1223,6 @@ const numeric numeric::mul(const numeric &other) const {
                 return a * b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double * other.v._double;
                 case MPZ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -1271,8 +1254,6 @@ const numeric numeric::div(const numeric &other) const {
                 return a / b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double / other.v._double;
                 case MPZ:
                         if (mpz_divisible_p(v._bigint, other.v._bigint)) {
                                 mpz_t bigint;
@@ -1680,8 +1661,6 @@ const numeric &numeric::operator=(double d) {
 const numeric numeric::negative() const {
         verbose("operator-");
         switch (t) {
-                case DOUBLE:
-                        return -v._double;
                 case MPZ:
                         mpz_t bigint;
                         mpz_init_set(bigint, v._bigint);
@@ -2083,12 +2062,6 @@ const numeric numeric::step() const {
 int numeric::csgn() const {
         verbose("csgn");
         switch (t) {
-                case DOUBLE:
-                        if (v._double < 0)
-                                return -1;
-                        if (v._double == 0)
-                                return 0;
-                        return 1;
                 case MPZ:
                         return mpz_sgn(v._bigint);
                 case MPQ:
@@ -2124,8 +2097,6 @@ bool numeric::is_zero() const {
         verbose("is_zero");
         int a;
         switch (t) {
-                case DOUBLE:
-                        return v._double == 0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 0) == 0;
                 case MPQ:
@@ -2144,8 +2115,6 @@ bool numeric::is_zero() const {
 bool numeric::is_inexact_one() const {
         verbose("is_one");
         switch (t) {
-                case DOUBLE:
-                        return v._double == 1.0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 1) == 0;
                 case MPQ:
@@ -2161,8 +2130,6 @@ bool numeric::is_inexact_one() const {
 bool numeric::is_one() const {
         verbose("is_one");
         switch (t) {
-                case DOUBLE:
-                        return v._double == 1.0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 1) == 0;
                 case MPQ:
@@ -2178,8 +2145,6 @@ bool numeric::is_one() const {
 bool numeric::is_minus_one() const {
         verbose("is_one");
         switch (t) {
-                case DOUBLE:
-                        return v._double == -1.0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, -1) == 0;
                 case MPQ:
@@ -2196,8 +2161,6 @@ bool numeric::is_minus_one() const {
 bool numeric::is_positive() const {
         verbose("is_positive");
         switch (t) {
-                case DOUBLE:
-                        return v._double > 0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 0) > 0;
                 case MPQ:
@@ -2213,8 +2176,6 @@ bool numeric::is_positive() const {
 bool numeric::is_negative() const {
         verbose("is_negative");
         switch (t) {
-                case DOUBLE:
-                        return v._double < 0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 0) < 0;
                 case MPQ:
@@ -2232,8 +2193,6 @@ bool numeric::is_integer() const {
 
         bool ret;
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2255,8 +2214,6 @@ bool numeric::is_integer() const {
 bool numeric::is_pos_integer() const {
         verbose("is_pos_integer");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return is_positive();
                 case MPQ:
@@ -2272,8 +2229,6 @@ bool numeric::is_pos_integer() const {
 bool numeric::is_nonneg_integer() const {
         verbose("is_nonneg_integer");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return is_positive() or is_zero();
                 case MPQ:
@@ -2293,8 +2248,6 @@ bool numeric::is_even() const {
                 return false;
 
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return mpz_tstbit(v._bigint, 0) == 0;
                 case MPQ:
@@ -2310,8 +2263,6 @@ bool numeric::is_even() const {
 /** True if object is an exact odd integer. */
 bool numeric::is_odd() const {
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return mpz_tstbit(v._bigint, 0) == 1;
                 case MPQ:
@@ -2330,8 +2281,6 @@ bool numeric::is_odd() const {
 bool numeric::is_prime() const {
         verbose("is_prime");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return mpz_probab_prime_p(v._bigint, 25) > 0;
                 case MPQ:
@@ -2349,8 +2298,6 @@ bool numeric::is_prime() const {
 bool numeric::is_rational() const {
         verbose("is_rational");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2366,7 +2313,6 @@ bool numeric::is_rational() const {
 bool numeric::is_real() const {
         verbose("is_real");
         switch (t) {
-                case DOUBLE:
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2387,8 +2333,6 @@ bool numeric::is_parent_pos_char() const {
 int numeric::get_parent_char() const {
         verbose("get_parent_char");
         switch (t) {
-                case DOUBLE:
-                        return 0;
                 case MPZ:
                         return 0;
                 case MPQ:
@@ -2409,8 +2353,6 @@ int numeric::get_parent_char() const {
 bool numeric::is_exact() const {
         verbose("is_exact");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2443,8 +2385,6 @@ bool numeric::operator==(const numeric &right) const {
                 return a == b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double == right.v._double;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) ==0;
                 case MPQ:
@@ -2476,8 +2416,6 @@ bool numeric::operator!=(const numeric &right) const {
                 return a != b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double != right.v._double;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) !=0;
                 case MPQ:
@@ -2494,8 +2432,6 @@ bool numeric::operator!=(const numeric &right) const {
 bool numeric::is_cinteger() const {
         verbose("is_crational");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2513,8 +2449,6 @@ bool numeric::is_cinteger() const {
 bool numeric::is_crational() const {
         verbose("is_crational");
         switch (t) {
-                case DOUBLE:
-                        return false;
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2539,8 +2473,6 @@ bool numeric::operator<(const numeric &right) const {
         }
 
         switch (t) {
-                case DOUBLE:
-                        return v._double < right.v._double;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) < 0;
                 case MPQ:
@@ -2563,8 +2495,6 @@ bool numeric::operator<=(const numeric &right) const {
                 return a <= b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double <= right.v._double;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) <= 0;
                 case MPQ:
@@ -2587,8 +2517,6 @@ bool numeric::operator>(const numeric &right) const {
                 return a > b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double > right.v._double;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) > 0;
                 case MPQ:
@@ -2611,8 +2539,6 @@ bool numeric::operator>=(const numeric &right) const {
                 return a >= b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double >= right.v._double;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) >= 0;
                 case MPQ:
@@ -2632,8 +2558,6 @@ long numeric::to_long() const {
         verbose("operator long int");
         signed long int n;
         switch (t) {
-                case DOUBLE:
-                        return (long int) v._double;
                 case MPZ:
                         return (long int) mpz_get_si(v._bigint);
                 case MPQ:
@@ -2767,13 +2691,6 @@ PyObject* numeric::to_pyobject() const {
                         o = py_funcs.py_rational_from_mpq(bigrat);
                         mpq_clear(bigrat);
                         return o;
-                case DOUBLE:
-                        if ((o = PyFloat_FromDouble(v._double)) == nullptr)
-                                py_error("Error creating double");
-                        return o;
-                        //if (!(o = PyObject_CallFunction(pyfunc_Float, "d", x.v._double))) {
-                        //  py_error("Error coercing a long to an Integer");
-
                 case PYOBJECT:
                         Py_INCREF(v._pyobject);
                         return v._pyobject;
@@ -2793,8 +2710,6 @@ double numeric::to_double() const {
         verbose("operator double");
         double d;
         switch (t) {
-                case DOUBLE:
-                        return v._double;
                 case MPZ:
                         return mpz_get_d(v._bigint);
                 case MPQ:
@@ -2906,8 +2821,6 @@ const numeric numeric::real() const {
         verbose("real_part(a)");
         PyObject *ans;
         switch (t) {
-                case DOUBLE:
-                        return *this;
                 case MPZ:
                         return *this;
                 case MPQ:
@@ -2945,8 +2858,6 @@ const numeric numeric::numer() const {
 
         switch (t) {
 
-                case DOUBLE:
-                        return *this;
                 case MPZ:
                         return *this;
                 case MPQ:
@@ -2975,7 +2886,6 @@ const numeric numeric::denom() const {
         PyObject* a;
 
         switch (t) {
-                case DOUBLE:
                 case MPZ:
                         return 1;
                 case MPQ:
@@ -3615,10 +3525,6 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
         switch (left.t) {
                 case MPZ:
                         switch (right.t) {
-                                case DOUBLE:
-                                        new_left = left.to_double();
-                                        new_right = right;
-                                        return;
                                 case MPQ:
                                         mpq_init(bigrat);
                                         mpq_set_z(bigrat, left.v._bigint);
@@ -3639,10 +3545,6 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                         }
                 case MPQ:
                         switch (right.t) {
-                                case DOUBLE:
-                                        new_left = left.to_double();
-                                        new_right = right;
-                                        return;
                                 case MPZ:
                                         mpq_init(bigrat);
                                         mpq_set_z(bigrat, right.v._bigint);
@@ -3661,24 +3563,6 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         std::cerr << "type = " << right.t << "\n";
                                         stub("** invalid coercion -- left MPQ**");
                         }
-                case DOUBLE:
-                        switch (right.t) {
-                                case MPZ:
-                                        new_left = left;
-                                        new_right = right.to_double();
-                                        return;
-                                case MPQ:
-                                        new_left = left;
-                                        new_right = right.to_double();
-                                        return;
-                                case PYOBJECT:
-                                        new_left = PyFloat_FromDouble(left.to_double());
-                                        new_right = right;
-                                        return;
-                                default:
-                                        std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left DOUBLE ** ");
-                        }
                 case PYOBJECT:
                         new_left = left;
                         switch (right.t) {
@@ -3695,9 +3579,6 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         o = py_funcs.py_rational_from_mpq(bigrat);
                                         mpq_clear(bigrat);
                                         new_right = numeric(o, true);
-                                        return;
-                                case DOUBLE:
-                                        new_left = PyFloat_FromDouble(right.to_double());
                                         return;
                                 default:
                                         std::cerr << "type = " << right.t << "\n";

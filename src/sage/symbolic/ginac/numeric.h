@@ -72,14 +72,12 @@ namespace GiNaC {
 
 enum Type {
 //	LONG,
-	DOUBLE=1,
 	PYOBJECT,
 	MPZ,
 	MPQ,
 //	MPFR,
 //	MPFC,
 //	MPQC
-//	LONG,
 };
 
 union Value {

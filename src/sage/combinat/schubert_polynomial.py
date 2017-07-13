@@ -133,6 +133,15 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         any reduced expression for `\sigma` (the precise choice of
         reduced expression is immaterial).
 
+        .. NOTE::
+
+            The :meth:`expand` method results in a polynomial
+            in `n` variables named ``x0, x1, ..., x(n-1)`` rather than
+            `x_1, x_2, \ldots, x_n`.
+            The variable named ``xi`` corresponds to `x_{i+1}`.
+            Thus, ``self.divided_difference(i)`` involves the variables
+            ``x(i-1)`` and ``xi`` getting switched (in the numerator).
+
         EXAMPLES::
 
             sage: X = SchubertPolynomialRing(ZZ)

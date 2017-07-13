@@ -29,6 +29,7 @@ AUTHORS:
 from __future__ import print_function
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
+from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off
 
 ## Define an environment variable that enables MeatAxe to find
@@ -595,7 +596,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef size_t i
         cdef PTR p
         cdef size_t pickle_size
-        cdef str pickle_str
+        cdef bytes pickle_str
         if self.Data:
             FfSetField(self.Data.Field)
             FfSetNoc(self.Data.Noc)
@@ -603,11 +604,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             d = <char*>check_malloc(pickle_size)
             p = self.Data.Data
             x = d
-            for i from 0<=i<self.Data.Nor:
+            for i in range(self.Data.Nor):
                 memcpy(x, p, FfCurrentRowSizeIo)
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&p)
-            pickle_str = PyString_FromStringAndSize(d, pickle_size)
+            pickle_str = PyBytes_FromStringAndSize(d, pickle_size)
             sig_free(d)
             return mtx_unpickle, (self._parent, self.Data.Nor, self.Data.Noc,
                         pickle_str,
@@ -863,8 +864,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return -1
         d1 = <char*>(self.Data.Data)
         d2 = <char*>(N.Data.Data)
-        cdef str s1 = PyString_FromStringAndSize(d1,self.Data.RowSize * self.Data.Nor)
-        cdef str s2 = PyString_FromStringAndSize(d2,N.Data.RowSize * N.Data.Nor)
+        cdef bytes s1 = PyBytes_FromStringAndSize(d1,self.Data.RowSize * self.Data.Nor)
+        cdef bytes s2 = PyBytes_FromStringAndSize(d2,N.Data.RowSize * N.Data.Nor)
         if s1 != s2:
             if s1 > s2:
                 return 1
@@ -1657,6 +1658,22 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         See http://trac.sagemath.org/23411 for details.
         True
 
+    We test further corner cases. A ``ValueError`` is raised if the number
+    of bytes in the pickle does not comply with either the old or the new
+    pickle format (we test two code paths here)::
+
+        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: mtx_unpickle(MS, 2, 5, t, True)
+        Traceback (most recent call last):
+        ...
+        ValueError: Expected a pickle with 3*2 bytes per row, got 17 instead
+        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00\x00'
+        sage: mtx_unpickle(MS, 2, 5, t, True)
+        Traceback (most recent call last):
+        ...
+        ValueError: Expected a pickle with 3*2 bytes per row, got 18 instead
+
+
     """
     cdef Matrix_gfpn_dense OUT
     OUT = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)
@@ -1671,18 +1688,22 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
     OUT._converter = FieldConverter(OUT._base_ring)
     cdef char *x
     cdef PTR pt
-    cdef size_t pickled_rowsize = len(Data)/nr
+    cdef size_t lenData = len(Data)
+    cdef size_t pickled_rowsize = lenData//nr
+    if lenData != pickled_rowsize*nr:
+        raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {lenData} instead")
     cdef size_t i
     if Data:
-        if pickled_rowsize != FfCurrentRowSizeIo:
-            deprecation(23411, "Reading this pickle may be machine dependent")
-            x = PyString_AsString(Data)
-            memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
-        else:
+        x = PyBytes_AsString(Data)
+        if pickled_rowsize == FfCurrentRowSizeIo:
             pt = OUT.Data.Data
-            x = PyString_AsString(Data)
-            for i from 0 <= i < nr:
+            for i in range(nr):
                 memcpy(pt,x,FfCurrentRowSizeIo)
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&(pt))
+        elif pickled_rowsize == FfCurrentRowSize:
+            deprecation(23411, "Reading this pickle may be machine dependent")
+            memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+        else:
+            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {lenData} instead")
     return OUT

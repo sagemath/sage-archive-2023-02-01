@@ -44,6 +44,8 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
 from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN
 from sage.libs.ntl.error import NTLError
+from sage.libs.gmp.pylong cimport mpz_pythonhash
+
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.richcmp cimport rich_to_bool
 
@@ -2854,16 +2856,54 @@ cdef class NumberFieldElement(FieldElement):
 
     def __hash__(self):
         """
-        Return hash of this number field element, which is just the
-        hash of the underlying polynomial.
+        Return hash of this number field element.
+
+        It respects the hash values of rational numbers.
 
         EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
-            sage: hash(b^2 + 1) == hash((b^2 + 1).polynomial()) # indirect doctest
+            sage: hash(b^2 + 1)   # random
+            175247765440
+            sage: hash(K(13)) == hash(13)
+            True
+            sage: hash(K(-2/3)) == hash(-2/3)
+            True
+
+        Look for small collisions::
+
+            sage: from itertools import product
+            sage: elts = []
+            sage: for (i,j,k) in product((-1,0,1,2,3), repeat=3):
+            ....:     x = i + j*b + k*b^2
+            ....:     elts.append(x)
+            ....:     if gcd([2,i,j,k]) == 1:
+            ....:         elts.append(x / 2)
+            ....:     if gcd([3,i,j,k]) == 1:
+            ....:         elts.append(x / 3)
+            sage: len(set(map(hash, elts))) == len(elts)
             True
         """
-        return hash(self.polynomial())
+        cdef Py_hash_t h
+        cdef int i
+        cdef mpz_t z
+
+        mpz_init(z)
+        ZZX_getitem_as_mpz(z, &self.__numerator, 0)
+        h = mpz_pythonhash(z)
+
+        for i from 1 <= i <= ZZX_deg(self.__numerator):
+            ZZX_getitem_as_mpz(z, &self.__numerator, i)
+            # magic number below is floor(2^64 / (1+sqrt(5)))
+            h ^= mpz_pythonhash(z) + (<Py_hash_t> 5700357409661599242) + (h << 6) + (h >> 2)
+
+        ZZ_to_mpz(z, &self.__denominator)
+        # magic number below is floor((1+sqrt(5)) * 2^63)
+        h += (mpz_pythonhash(z) - 1) * (<Py_hash_t> (7461864723258187525))
+
+        mpz_clear(z)
+
+        return h
 
     cpdef list _coefficients(self):
         """

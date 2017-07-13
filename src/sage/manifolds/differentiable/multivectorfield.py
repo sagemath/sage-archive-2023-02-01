@@ -23,7 +23,8 @@ AUTHORS:
 
 REFERENCES:
 
-- C.-M. Marle (1997)
+- \R. L. Bishop and S. L. Goldberg (1980) [BG1980]_
+- \C.-M. Marle (1997) [Mar1997]_
 
 """
 
@@ -236,6 +237,29 @@ class MultivectorField(TensorField):
         """
         return type(self)(self._vmodule, self._tensor_rank)
 
+    def degree(self):
+        r"""
+        Return the degree of ``self``.
+
+        OUTPUT:
+
+        - integer `p` such that ``self`` is a `p`-vector field
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: a = M.multivector_field(2); a
+            2-vector field on the 3-dimensional differentiable manifold M
+            sage: a.degree()
+            2
+            sage: b = M.vector_field(); b
+            Vector field on the 3-dimensional differentiable manifold M
+            sage: b.degree()
+            1
+
+        """
+        return self._tensor_rank
+
     def wedge(self, other):
         r"""
         Exterior product with another multivector field.
@@ -384,7 +408,7 @@ class MultivectorField(TensorField):
             sage: W = U.intersection(V) # The complement of the two poles
             sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
             sage: a = M.vector_field(name='a')
-            sage: a[e_xy,:] = y, x
+            sage: a[e_xy,:] = -y, x
             sage: a.add_comp_by_continuation(e_uv, W, c_uv)
             sage: b = M.diff_form(2, name='b')
             sage: b[e_xy,1,2] = 4/(x^2+y^2+1)^2   # the standard area 2-form
@@ -397,12 +421,10 @@ class MultivectorField(TensorField):
             1-form i_a b on the 2-dimensional differentiable manifold S^2
             sage: s.display(e_xy)
             i_a b = -4*x/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx
-             + 4*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy
+             - 4*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy
             sage: s.display(e_uv)
-            i_a b = 4*(u^3 - 3*u*v^2)/(u^6 + v^6 + (3*u^2 + 2)*v^4 + 2*u^4
-             + (3*u^4 + 4*u^2 + 1)*v^2 + u^2) du
-             + 4*(3*u^2*v - v^3)/(u^6 + v^6 + (3*u^2 + 2)*v^4 + 2*u^4
-             + (3*u^4 + 4*u^2 + 1)*v^2 + u^2) dv
+             i_a b = 4*u/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du
+              + 4*v/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv
             sage: s == a.contract(b)
             True
 
@@ -487,28 +509,112 @@ class MultivectorField(TensorField):
                             resu.restrict(chart.domain()).coord_function(chart)
         return resu
 
-    def degree(self):
+    def bracket(self, other):
         r"""
-        Return the degree of ``self``.
+        Schouten-Nijenhuis bracket of ``self`` with another multivector field.
+
+        INPUT:
+
+        - ``other`` -- another multivector field
 
         OUTPUT:
 
-        - integer `p` such that ``self`` is a `p`-vector field
+        - instance of :class:`MultivectorField` representing the
+          Schouten-Nijenhuis bracket ``[self,other]``
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: M = Manifold(3, 'M')
-            sage: a = M.multivector_field(2); a
-            2-vector field on the 3-dimensional differentiable manifold M
-            sage: a.degree()
-            2
-            sage: b = M.vector_field(); b
-            Vector field on the 3-dimensional differentiable manifold M
-            sage: b.degree()
-            1
+        Bracket of two vector fields on the 2-sphere::
+
+            sage: M = Manifold(2, 'S^2', start_index=1) # the sphere S^2
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: c_xy.<x,y> = U.chart() # stereographic coord. North
+            sage: c_uv.<u,v> = V.chart() # stereographic coord. South
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V) # The complement of the two poles
+            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
+            sage: a = M.vector_field(name='a')
+            sage: a[e_xy,:] = y, x
+            sage: a.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: b = M.vector_field(name='b')
+            sage: b[e_xy,:] = x*y, x-y
+            sage: b.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: s = a.bracket(b); s
+            Vector field [a,b] on the 2-dimensional differentiable manifold S^2
+            sage: s.display(e_xy)
+            [a,b] = (x^2 + y^2 - x + y) d/dx + (-(x - 1)*y - x) d/dy
+
+        For two vector fields, the bracket coincides with the Lie derivative::
+
+            sage: s == b.lie_derivative(a)
+            True
+
+        Schouten-Nijenhuis bracket of a 2-vector field and a 1-vector field::
+
+            sage: c = a.wedge(b); c
+            2-vector field a/\b on the 2-dimensional differentiable
+             manifold S^2
+            sage: s = c.bracket(a); s
+            2-vector field [a/\b,a] on the 2-dimensional differentiable
+             manifold S^2
+            sage: s.display(e_xy)
+            [a/\b,a] = (x^3 + (2*x - 1)*y^2 - x^2 + 2*x*y) d/dx/\d/dy
+
+        Since `a` is a vector field, we have in this case::
+
+            sage: s == - c.lie_derivative(a)
+            True
+
+        .. SEEALSO::
+
+            :meth:`MultivectorFieldParal.bracket` for more examples and check
+            of standards identities involving the Schouten-Nijenhuis bracket
 
         """
-        return self._tensor_rank
+        from sage.manifolds.differentiable.scalarfield import DiffScalarField
+        pp = self._tensor_rank
+        mp1 = (-1)**(pp+1)
+        if isinstance(other, DiffScalarField):
+            resu = other.differential().interior_product(self)
+            if mp1 == 1:
+                return resu
+            return - resu
+        # Some checks:
+        if not isinstance(other, (MultivectorField, MultivectorFieldParal)):
+            raise TypeError("{} is not a multivector field".format(other))
+        if (self._vmodule.destination_map() is not self._domain.identity_map()
+            or other._vmodule.destination_map() is not
+            other._domain.identity_map()):
+            raise ValueError("the Schouten-Nijenhuis bracket is defined " +
+                             "only for fields with a trivial destination map")
+        # Search for a common domain
+        dom_resu = self._domain.intersection(other._domain)
+        self_r = self.restrict(dom_resu)
+        other_r = other.restrict(dom_resu)
+        if dom_resu.is_manifestly_parallelizable():
+            # call of the MultivectorFieldParal version:
+            return MultivectorFieldParal.bracket(self_r, other_r)
+        # otherwise, the result is created here:
+        # Name of the result:
+        resu_name = None ; resu_latex_name = None
+        if self._name is not None and other._name is not None:
+            resu_name = '[' + self._name + ',' + other._name + ']'
+        if self._latex_name is not None and other._latex_name is not None:
+            resu_latex_name = r'\left[' + self._latex_name + ',' + \
+                              other._latex_name + r'\right]'
+        vmodule = dom_resu.vector_field_module()
+        deg_resu = pp + other._tensor_rank - 1  # degree of the result
+        resu = vmodule.alternating_contravariant_tensor(deg_resu,
+                                    name=resu_name, latex_name=resu_latex_name)
+        for dom in self_r._restrictions:
+            if dom in other_r._restrictions:
+                resu._restrictions[dom] = self_r._restrictions[dom].bracket(
+                                          other_r._restrictions[dom])
+        return resu
 
 
 #******************************************************************************
@@ -580,9 +686,9 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         sage: a.symmetries()
         no symmetry;  antisymmetry: (0, 1)
-        sage: a[0,1] = 2
+        sage: a[0,1] = 2*x
         sage: a[1,0]
-        -2
+        -2*x
         sage: a.comp()
         Fully antisymmetric 2-indices components w.r.t. Coordinate frame
          (M, (d/dt,d/dx,d/dy,d/dz))
@@ -605,31 +711,23 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
     :meth:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor.display`::
 
         sage: a.display() # expansion w.r.t. the default frame
-        a = 2 d/dt/\d/dx + 3 d/dx/\d/dy
+        a = 2*x d/dt/\d/dx + 3 d/dx/\d/dy
         sage: latex(a.display()) # output for the notebook
-        a = 2 \frac{\partial}{\partial t }\wedge \frac{\partial}{\partial x }
+        a = 2 \, x \frac{\partial}{\partial t }\wedge \frac{\partial}{\partial x }
          + 3 \frac{\partial}{\partial x }\wedge \frac{\partial}{\partial y }
 
     Multivector fields can be added or subtracted::
 
         sage: b = M.multivector_field(2)
-        sage: b[0,1], b[0,2], b[0,3] = (1,2,3)
+        sage: b[0,1], b[0,2], b[0,3] = y, 2, x+z
         sage: s = a + b ; s
         2-vector field on the 4-dimensional differentiable manifold M
-        sage: a[:], b[:], s[:]
-        (
-        [ 0  2  0  0]  [ 0  1  2  3]  [ 0  3  2  3]
-        [-2  0  3  0]  [-1  0  0  0]  [-3  0  3  0]
-        [ 0 -3  0  0]  [-2  0  0  0]  [-2 -3  0  0]
-        [ 0  0  0  0], [-3  0  0  0], [-3  0  0  0]
-        )
+        sage: s.display()
+        (2*x + y) d/dt/\d/dx + 2 d/dt/\d/dy + (x + z) d/dt/\d/dz + 3 d/dx/\d/dy
         sage: s = a - b ; s
         2-vector field on the 4-dimensional differentiable manifold M
-        sage: s[:]
-        [ 0  1 -2 -3]
-        [-1  0  3  0]
-        [ 2 -3  0  0]
-        [ 3  0  0  0]
+        sage: s.display()
+        (2*x - y) d/dt/\d/dx - 2 d/dt/\d/dy + (-x - z) d/dt/\d/dz + 3 d/dx/\d/dy
 
     An example of 3-vector field in `\RR^3` with Cartesian coordinates::
 
@@ -651,7 +749,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         ....:                [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2),
         ....:                              atan2(sqrt(x^2+y^2),z), atan2(y, x))
-        sage: a.comp(c_spher.frame()) # computation of the components in the spherical frame
+        sage: a.comp(c_spher.frame()) # computation of components w.r.t. spherical frame
         Fully antisymmetric 3-indices components w.r.t. Coordinate frame
          (R3, (d/dr,d/dth,d/dph))
         sage: a.comp(c_spher.frame())[1,2,3, c_spher]
@@ -665,19 +763,14 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
     :meth:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor.wedge`::
 
         sage: a = M.vector_field(name='A')
-        sage: a[:] = (x*y*z, -z*x, y*z)
+        sage: a[:] = (x*y, -z*x, y)
         sage: b = M.vector_field(name='B')
-        sage: b[:] = (y, z+y^2, x^2-z^2)
+        sage: b[:] = (y, z+y, x^2-z^2)
         sage: ab = a.wedge(b) ; ab
         2-vector field A/\B on the 3-dimensional differentiable manifold R3
-        sage: ab[:]
-        [                             0      x*y*z^2 + (x*y^3 + x*y)*z     -x*y*z^3 + (x^3*y - y^2)*z]
-        [    -x*y*z^2 - (x*y^3 + x*y)*z                              0  x*z^3 - y*z^2 - (x^3 + y^3)*z]
-        [     x*y*z^3 - (x^3*y - y^2)*z -x*z^3 + y*z^2 + (x^3 + y^3)*z                              0]
         sage: ab.display()
-        A/\B = (x*y*z^2 + (x*y^3 + x*y)*z) d/dx/\d/dy + (-x*y*z^3
-         + (x^3*y - y^2)*z) d/dx/\d/dz + (x*z^3 - y*z^2
-         - (x^3 + y^3)*z) d/dy/\d/dz
+        A/\B = (x*y^2 + 2*x*y*z) d/dx/\d/dy + (x^3*y - x*y*z^2 - y^2) d/dx/\d/dz
+         + (x*z^3 - y^2 - (x^3 + y)*z) d/dy/\d/dz
 
     Let us check the formula relating the exterior product to the tensor
     product for vector fields::
@@ -693,18 +786,13 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
          manifold R3
         sage: c.symmetries()  # the antisymmetry is only w.r.t. the last 2 arguments:
         no symmetry;  antisymmetry: (1, 2)
-        sage: d = ab*a ; d
-        Tensor field (A/\B)*A of type (3,0) on the 3-dimensional differentiable
-         manifold R3
-        sage: d.symmetries()  # the antisymmetry is only w.r.t. the first 2 arguments:
-        no symmetry;  antisymmetry: (0, 1)
 
     The Lie derivative of a 2-vector field is a 2-vector field::
 
-        sage: v = M.vector_field(name='v')
-        sage: v[:] = (y*z, -x*z, x*y)
-        sage: ab.lie_der(v)
+        sage: ab.lie_der(a)
         2-vector field on the 3-dimensional differentiable manifold R3
+
+
 
     """
     def __init__(self, vector_field_module, degree, name=None,
@@ -959,12 +1047,12 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             sage: a = M.vector_field(name='a')
             sage: a[:] = [x, 1+t^2, x*z, y-3]
             sage: b = M.one_form(name='b')
-            sage: b[:] = [-z^2, 2, x*y, x-y]
+            sage: b[:] = [-z^2, 2, x, x-y]
             sage: s = a.interior_product(b); s
             Scalar field i_a b on the 4-dimensional differentiable manifold M
             sage: s.display()
             i_a b: M --> R
-               (t, x, y, z) |--> x^2*y*z - x*z^2 + 2*t^2 + (x + 3)*y - y^2
+               (t, x, y, z) |--> x^2*z - x*z^2 + 2*t^2 + (x + 3)*y - y^2
                 - 3*x + 2
 
         In this case, we have `\iota_a b = a^i b_i = a(b) = b(a)`::
@@ -976,15 +1064,15 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
             sage: c = M.diff_form(3, name='c')
             sage: c[0,1,2], c[0,1,3] = x*y - z, -3*t
-            sage: c[0,2,3], c[1,2,3] = t^2+x, y^2
+            sage: c[0,2,3], c[1,2,3] = t+x, y
             sage: s = a.interior_product(c); s
             2-form i_a c on the 4-dimensional differentiable manifold M
             sage: s.display()
-            i_a c = (x^2*y*z - x*z^2 - 3*t*y + 9*t) dt/\dx + (-3*t^2
-             - (t^2*x - t^2)*y + (t^2 + 1)*z - 3*x) dt/\dy + (3*t^3
-             - (t^2*x + x^2)*z + 3*t) dt/\dz + (x^2*y + y^3 - 3*y^2
-             - x*z) dx/\dy + (-x*y^2*z - 3*t*x) dx/\dz + (t^2*x
-             + (t^2 + 1)*y^2 + x^2) dy/\dz
+            i_a c = (x^2*y*z - x*z^2 - 3*t*y + 9*t) dt/\dx
+             + (-(t^2*x - t)*y + (t^2 + 1)*z - 3*t - 3*x) dt/\dy
+             + (3*t^3 - (t*x + x^2)*z + 3*t) dt/\dz
+             + ((x^2 - 3)*y + y^2 - x*z) dx/\dy
+             + (-x*y*z - 3*t*x) dx/\dz + (t*x + x^2 + (t^2 + 1)*y) dy/\dz
             sage: s == a.contract(c)
             True
 
@@ -992,14 +1080,14 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
             sage: d = M.multivector_field(2, name='d')
             sage: d[0,1], d[0,2], d[0,3] = t-x, 2*z, y-1
-            sage: d[1,2], d[1,3], d[2,3] = z^2, y*t, 4
+            sage: d[1,2], d[1,3], d[2,3] = z, y+t, 4
             sage: s = d.interior_product(c); s
             1-form i_d c on the 4-dimensional differentiable manifold M
             sage: s.display()
-            i_d c = (2*x*y*z^2 - 6*t^2*y - 2*z^3 + 8*t^2 + 8*x) dt
-             + (-4*x*y*z + 6*t*y + 8*y^2 + 4*z^2 - 6*t) dx
-             + (-2*t*y^3 + 2*t^2 - 2*(t^2 - (t - 1)*x + x^2)*y - 2*(t - x)*z
-             + 2*x) dy + (2*y^2*z^2 - 6*t^2 + 6*t*x + 4*(t^2 + x)*z) dz
+            i_d c = (2*x*y*z - 6*t^2 - 6*t*y - 2*z^2 + 8*t + 8*x) dt
+             + (-4*x*y*z + 2*(3*t + 4)*y + 4*z^2 - 6*t) dx
+             + (2*((t - 1)*x - x^2 - 2*t)*y - 2*y^2 - 2*(t - x)*z + 2*t
+             + 2*x) dy + (-6*t^2 + 6*t*x + 2*(2*t + 2*x + y)*z) dz
             sage: s == d.contract(0, 1, c, 0, 1)
             True
 
@@ -1019,64 +1107,127 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
     def bracket(self, other):
         r"""
-        Schouten-Nijenhuis bracket of ``self`` with another multivector field.
+        Return the Schouten-Nijenhuis bracket of ``self`` with another
+        multivector field.
+
+        The Schouten-Nijenhuis bracket extends the Lie bracket of
+        vector fields (cf.
+        :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.bracket`)
+        to multivector fields.
+
+        Denoting by `A^p(M)` the `C^k(M)`-module of `p`-vector fields on the
+        `C^k`-differentiable manifold `M` over the field `K` (cf.
+        :class:`~sage.manifolds.differentiable.multivector_module.MultivectorModule`),
+        the *Schouten-Nijenhuis bracket* is a `K`-bilinear map
+
+        .. MATH::
+
+            \begin{array}{ccc}
+            A^p(M)\times A^q(M) & \longrightarrow & A^{p+q-1}(M) \\
+            (a,b) & \longmapsto & [a,b]
+            \end{array}
+
+        which obeys the following properties:
+
+        - if `p=0` and `q=0`, (i.e. `a` and `b` are two scalar fields), `[a,b]=0`
+        - if `p=0` (i.e. `a` is a scalar field) and `q\geq 1`,
+          `[a,b] = - \iota_{\mathrm{d}a} b` (minus the interior product of
+          the differential of `a` by `b`)
+        - if `p=1` (i.e. `a` is a vector field), `[a,b] = \mathcal{L}_a b`
+          (the Lie derivative of `b` along `a`)
+        - `[a,b] = -(-1)^{(p-1)(q-1)} [b,a]`
+        - for any multivector field `c` and `(a,b) \in A^p(M)\times A^q(M)`,
+
+        .. MATH::
+
+            [a,b\wedge c] = [a,b]\wedge c + (-1)^{(p-1)q} b\wedge [a,c]
+
+        .. NOTE::
+
+            There are two definitions of the Schouten-Nijenhuis bracket in
+            the literature, which differ from each other when `p` is even
+            by an overall sign. The definition adopted here is that of
+            [Mar1997]_, [Kos1985]_ and :wikipedia:`Schouten-Nijenhuis_bracket`.
+            The other definition, adopted e.g. by [Nij1955]_, [Lic1977]_
+            and [Vai1994]_, is `[a,b]' = (-1)^{p+1} [a,b]`.
 
         INPUT:
 
-        - ``other`` -- another multivector field
+        - ``other`` -- a multivector field, `b` say
 
         OUTPUT:
 
         - instance of :class:`MultivectorFieldParal` representing the
-          Schouten-Nijenhuis bracket ``[self,other]``
+          Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self``
 
         EXAMPLES:
 
-        On a 3-dimensional manifold::
+        Let us consider two vector fields on a 3-dimensional manifold::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: a = M.vector_field(name='a')
-            sage: a[:] = x*y+z, x^2+y-z, z^2-2*x+y
+            sage: a[:] = x*y+z, x+y-z, z-2*x+y
             sage: b = M.vector_field(name='b')
-            sage: b[:] = y*z-x, x^2-y+z, z*x-1
+            sage: b[:] = y+2*z-x, x^2-y+z, z-x
+
+        and form their Schouten-Nijenhuis bracket::
+
             sage: s = a.bracket(b); s
             Vector field [a,b] on the 3-dimensional differentiable manifold M
             sage: s.display()
-            [a,b] = (-x^3 + (y - 1)*z^2 - x*y + y^2 + (x^2 - y^2 - 2*x + y - 1)*z + 1) d/dx
-             + ((2*x^2 + 1)*y - (2*x*y - 3*x)*z + z^2 - 2*x - 1) d/dy
-             + (-(x - 1)*z^2 - 3*x^2 + (x + 1)*y + ((x + 2)*y + 1)*z - 2*x) d/dz
+            [a,b] = (-x^3 + (x + 3)*y - y^2 - (x + 2*y + 1)*z - 2*x) d/dx
+             + (2*x^2*y - x^2 + 2*x*z - 3*x) d/dy
+             + (-x^2 - (x - 4)*y - 3*x + 2*z) d/dz
+
+        Check that `[a,b]` is actually the Lie bracket::
+
+            sage: f = M.scalar_field({X: x+y*z}, name='f')
+            sage: s(f) == a(b(f)) - b(a(f))
+            True
+
+        Check that `[a,b]` coincides with the Lie derivative of `b` along `a`::
+
             sage: s == b.lie_derivative(a)
             True
+
+        Schouten-Nijenhuis bracket for `p=1` and `q=2`::
+
             sage: c = M.multivector_field(2, name='c')
-            sage: c[0,1], c[0,2], c[1,2] = x+y^2+z, x*y*z, z*x-y
+            sage: c[0,1], c[0,2], c[1,2] = x+z+1, x*y+z, x-y
             sage: s = a.bracket(c); s
             2-vector field [a,c] on the 3-dimensional differentiable manifold M
             sage: s.display()
-            [a,c] = (2*x^2*y - y^3 + y^2 + ((x - 3)*y + x)*z + z^2 - 3*x)
-             d/dx/\d/dy  + ((x - 1)*y^2 - ((x - 1)*y + x)*z^2 - (2*x^2 - x)*y
-             + (x^3 - x^2 + x*y - 1)*z - x) d/dx/\d/dz + (-(x - 1)*z^2 - 3*x^2
-             + x*y - 2*y^2 - ((2*x^2 - x - 2)*y + x + 1)*z - 2*x) d/dy/\d/dz
+            [a,c] = ((x - 1)*y - (y - 2)*z - 2*x - 1) d/dx/\d/dy
+             + ((x + 1)*y - (x + 1)*z - 3*x - 1) d/dx/\d/dz
+             + (-5*x + y - z - 2) d/dy/\d/dz
+
+        Again, since `a` is a vector field, the Schouten-Nijenhuis bracket
+        coincides with the Lie derivative::
+
             sage: s == c.lie_derivative(a)
             True
+
+        Schouten-Nijenhuis bracket for `p=2` and `q=2`::
+
             sage: d = M.multivector_field(2, name='d')
-            sage: d[0,1], d[0,2], d[1,2] = x^2-z, y*z+x, z-x+y^2-1
+            sage: d[0,1], d[0,2], d[1,2] = x-y^2, x+z, z-x-1
             sage: s = c.bracket(d); s
             3-vector field [c,d] on the 3-dimensional differentiable manifold M
             sage: s.display()
-            [c,d] = (-x*y^3 - y*z^2 + (x^2 + 5*x + 2)*y + 2*y^2
-                     - ((x^2 + 1)*y - 2)*z) d/dx/\d/dy/\d/dz
+            [c,d] = (-y^3 + (3*x + 1)*y - y^2 - x - z + 2) d/dx/\d/dy/\d/dz
             sage: s[0,1,2] == - sum(c[i,0]*d[1,2].diff(i)
             ....:                 + c[i,1]*d[2,0].diff(i) + c[i,2]*d[0,1].diff(i)
             ....:                 + d[i,0]*c[1,2].diff(i) + d[i,1]*c[2,0].diff(i)
             ....:                 + d[i,2]*c[0,1].diff(i) for i in M.irange())
             True
             sage: e = M.multivector_field(3, name='e')
-            sage: e[0,1,2] = x^2+y*z-z+2
+            sage: e[0,1,2] = x+y*z+1
             sage: s = a.bracket(e); s
             3-vector field [a,e] on the 3-dimensional differentiable manifold M
             sage: s.display()
-            [a,e] = (-y*z^2 - x^2 + (x^2 - 2*x - 3)*y + y^2 - (x^2 + y^2 - 2*x - y + 3)*z + 2*x - 2) d/dx/\d/dy/\d/dz
+            [a,e] = (-(2*x + 1)*y + y^2 - (y^2 - x - 1)*z - z^2
+             - 2*x - 2) d/dx/\d/dy/\d/dz
             sage: s == e.lie_derivative(a)
             True
             sage: s = c.bracket(e); s

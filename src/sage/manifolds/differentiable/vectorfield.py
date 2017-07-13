@@ -932,10 +932,8 @@ class VectorField(MultivectorField):
             sage: vw.display()
             (-x^2 + y + 2) d/dy + (-y - z) d/dz
         """
-        #!#
-        # return other.lie_der(self)
-        #!# provisory:
-        return MultivectorFieldParal.bracket(self, other)
+        # Call of the Schouten-Nijenhuis bracket
+        return MultivectorField.bracket(self, other)
 
 #******************************************************************************
 

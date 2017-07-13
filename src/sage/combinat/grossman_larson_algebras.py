@@ -89,9 +89,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     It is not commutative::
 
-        sage: A = algebras.GrossmanLarson(QQ, 'uv')
-        sage: u, v = A.gens()
-        sage: u * v == v * u
+        sage: x * y == y * x
         False
 
     When ``None`` is given as input, unlabelled forests are used instead::
@@ -118,7 +116,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         Beware that the underlying combinatorial free module is either based
         on ``RootedTrees`` or ``LabelledRootedTrees``, with no restriction
-        on the labellings. This means that all code that would call the basis
+        on the labellings. This means that all code calling the basis
         method would not give meaningful results.
 
     REFERENCES:
@@ -340,7 +338,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         """
         Return the product of two forests.
 
-        This is the sum over all possible ways for the the components
+        This is the sum over all possible ways for the components
         of the forest `y` to either fall side-by-side with components
         of `x` or be grafted on a vertex of `x`.
 

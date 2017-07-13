@@ -427,7 +427,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         5. Creating a matrix from a file in MeatAxe format. We demonstrate, that it doesn't
            crash if the file doesn't exist::
 
-            sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')
+            sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
             []
 
 

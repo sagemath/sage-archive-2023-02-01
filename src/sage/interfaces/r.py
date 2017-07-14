@@ -668,7 +668,7 @@ class R(ExtraTabCompletion, Expect):
             ...
             ImportError: ...
         """
-        ret = self.eval('require("%s")'%library_name)
+        ret = self.eval('require("%s")'%library_name).decode('utf-8')
         # try hard to parse the message string in a locale-independent way
         if ' library(' in ret:       # locale-independent key-word
             raise ImportError("%s"%ret)

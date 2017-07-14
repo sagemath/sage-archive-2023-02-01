@@ -27,33 +27,24 @@ if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
 fi
 
+echo "Running OpenBLAS testsuite"
+
 $MAKE tests $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
     # See https://github.com/xianyi/OpenBLAS/issues/1204
-    # In essence: If failing, HASWELL works for high-end hardware
-    #                         ATOM/NEHALEM works for low-end hardware
-
-    # First make sure we already didn't set a target
-    if [[ $OPENBLAS_CONFIGURE == *"TARGET"* ]]; then
-        echo >&2 "Error while running the OpenBLAS testsuite ... exiting"
-        exit 1
-    fi
-
-    # If we are told what target to use then use it
-    if [ -z "$SAGE_OPENBLAS_TARGET" ]; then
-        target="ATOM"
+    # If the error was a target error, try and fix it
+    if grep -q "Detecting CPU failed. Please set TARGET explicitly" "${SAGE_ROOT}/logs/pkgs/openblas-$(<${SAGE_ROOT}/build/pkgs/openblas/package-version.txt).log"; then
+        # The recommended TARGET is ATOM if CPU fails
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=$target"
+        echo "Error while testing the OpenBLAS testsuite"
+        echo "Retrying the OpenBAS testsuit with new target"
+        $MAKE tests $OPENBLAS_CONFIGURE
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error while running the OpenBLAS testsuite ... exiting"
+            exit 1
+        fi
     else
-        target=$SAGE_OPENBLAS_TARGET
-    fi
-
-    # Do we have a low-end or high-end machine?
-    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=$target"
-    echo "Error while testing the OpenBLAS testsuite"
-    echo "Retrying the test with new target OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
-    $MAKE tests $OPENBLAS_CONFIGURE
-    if [ $? -ne 0 ]; then
         echo >&2 "Error while running the OpenBLAS testsuite ... exiting"
-        echo >&2 "Error building OpenBLAS"
         exit 1
     fi
 fi

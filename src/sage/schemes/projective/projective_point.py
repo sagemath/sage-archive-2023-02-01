@@ -1154,8 +1154,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     H = H + R(g).abs().log()/(d**(n+1))
                     x_i = x/g
                     y_i = y/g
-            h = self.green_function(F, 0 , **kwds) - R(self[1]).abs().log()
-            h = R(self[1].abs()).log() + h - H + R(t).log()
+            # Looks diffrent than Well's Algorithm because of the diffrence between what Well's calls H_infty,
+            # and what Green's Function returns for the infite place
+            h = R(self[1].abs()).log() + self.green_function(F, 0 , **kwds) - R(self[1]).abs().log() - H + R(t).log()
             return h
 
         if not K in _NumberFields:

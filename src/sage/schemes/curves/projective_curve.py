@@ -57,7 +57,7 @@ from sage.schemes.projective.projective_space import ProjectiveSpace, is_Project
 
 from . import point
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_space import (is_ProjectiveSpace,
                                                       ProjectiveSpace)
 

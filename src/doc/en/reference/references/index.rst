@@ -300,6 +300,11 @@ REFERENCES:
 .. [Br2000] Kenneth S. Brown, *Semigroups, rings, and Markov chains*,
             :arxiv:`math/0006145v1`.
 
+.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
+            functions in a dynamical setting*, 
+            LMS Journal of Computation and Mathematics, Volume 15 (2012),
+            pp 400-417.
+
 .. [BS1996] Eric Bach, Jeffrey Shallit. *Algorithmic Number Theory,
             Vol. 1: Efficient Algorithms*. MIT Press, 1996. ISBN
             978-0262024051.
@@ -1277,6 +1282,9 @@ REFERENCES:
              *Yangians and Classical Lie Algebras*.
              Mathematical Surveys and Monographs.
              Providence, RI: American Mathematical Society. (2007)
+
+.. [Molnar] \A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
+            M.Sc. Thesis.
 
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure

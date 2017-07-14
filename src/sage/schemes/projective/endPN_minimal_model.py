@@ -9,14 +9,8 @@ AUTHORS:
 - Brian Stout, Ben Hutz (Nov 2013): Modified code to use projective
   morphism functionality so that it can be included in Sage.
 
-REFERENCES:
 
-.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
-   functions in a dynamical setting*, 
-   LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
-
-.. [Molnar] \A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
-   M.Sc. Thesis.
+See [Bruin-Molnar]_ and [Molnar]_ for references.
 """
 
 #*****************************************************************************

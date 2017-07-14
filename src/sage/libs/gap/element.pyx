@@ -1415,24 +1415,19 @@ cdef class GapElement_FiniteField(GapElement):
         if ring is None:
             from sage.rings.finite_rings.finite_field_constructor import GF
             ring = GF(char**deg, name=var)
-        else:
-            compatible = ring.is_field() and ring.is_finite() and \
-                         ring.characteristic() == char and \
-                         ring.degree() % deg == 0
-            if not compatible:
-                raise ValueError(('the given ring is incompatible (must be a '
-                                  'finite field of characteristic {} and degree '
-                                  'divisible by {})').format(char, deg))
+        elif not (ring.is_field() and ring.is_finite() and \
+                  ring.characteristic() == char and ring.degree() % deg == 0):
+            raise ValueError(('the given ring is incompatible (must be a '
+                              'finite field of characteristic {} and degree '
+                              'divisible by {})').format(char, deg))
 
         if self.IsOne():
             return ring.one()
         if deg == 1 and char == ring.characteristic():
             return ring(self.lift().sage())
         else:
-            gap_field_obj = gap_eval(ring._gap_init_())
-            gap_field = make_GapElement_Ring(self.parent(), gap_field_obj)
-            root = gap_field.PrimitiveRoot()
-            exp = self.LogFFE(root)
+            gap_field = make_GapElement_Ring(self.parent(), gap_eval(ring._gap_init_()))
+            exp = self.LogFFE(gap_field.PrimitiveRoot())
             return ring.multiplicative_generator() ** exp.sage()
 
 

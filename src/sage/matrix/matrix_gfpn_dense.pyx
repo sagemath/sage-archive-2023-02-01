@@ -29,7 +29,7 @@ AUTHORS:
 from __future__ import print_function
 
 from cysignals.memory cimport check_realloc
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 ## Define an environment variable that enables MeatAxe to find
 ## its multiplication tables.
@@ -742,48 +742,46 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                     MPB += 1
                     tmp *= fl
                 O = (fl**MPB)
-                sig_on()
                 if nc%MPB:
                     for i in range(nr):
                         y = <unsigned char*>x
                         for j in range(FfCurrentRowSizeIo-1):
                             y[j] = RandState.c_random()%O
+                            sig_check()
                         for j in range(nc-(nc%MPB), nc):
                             FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
+                            sig_check()
                         FfStepPtr(&(x))
                 else:
                     for i in range(nr):
                         y = <unsigned char*>x
                         for j in range(FfCurrentRowSizeIo):
                             y[j] = RandState.c_random()%O
+                            sig_check()
                         FfStepPtr(&(x))
-                sig_off()
             else:
-                sig_on()
                 for i in range(nr):
                     for j in range(nc):
                         if RandState.c_rand_double() < density:
                             FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
+                            sig_check()
                     FfStepPtr(&(x))
-                sig_off()
         else:
             if density == 1:
                 fl -= 1
-                sig_on()
                 for i in range(nr):
                     for j in range(nc):
                         FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
+                        sig_check()
                     FfStepPtr(&(x))
-                sig_off()
             else:
                 fl -= 1
-                sig_on()
                 for i in range(nr):
                     for j in range(nc):
                         if RandState.c_rand_double() < density:
                             FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
+                            sig_check()
                     FfStepPtr(&(x))
-                sig_off()
 
 ## Debugging
 #    def show_contents(self, r=None):

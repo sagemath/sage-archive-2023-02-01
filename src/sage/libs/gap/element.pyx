@@ -1370,7 +1370,7 @@ cdef class GapElement_FiniteField(GapElement):
             sage: n.sage(ring=GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: the given finite field has incompatible size
+            ValueError: the given ring is incompatible ...
 
         TESTS::
 
@@ -1381,6 +1381,28 @@ cdef class GapElement_FiniteField(GapElement):
             a + 1
             sage: parent(_)
             Finite Field in a of size 2^2
+            sage: n.sage(ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=CC)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=GF(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=GF(2^3))
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=GF(2^2, 'a'))
+            a + 1
+            sage: n.sage(ring=GF(2^4, 'a'))
+            a^2 + a + 1
+            sage: n.sage(ring=GF(2^8, 'a'))
+            a^7 + a^6 + a^4 + a^2 + a + 1
 
         Check that :trac:`23153` is fixed::
 
@@ -1393,16 +1415,23 @@ cdef class GapElement_FiniteField(GapElement):
         if ring is None:
             from sage.rings.finite_rings.finite_field_constructor import GF
             ring = GF(char**deg, name=var)
+        else:
+            compatible = ring.is_field() and ring.is_finite() and \
+                         ring.characteristic() == char and \
+                         ring.degree() % deg == 0
+            if not compatible:
+                raise ValueError(('the given ring is incompatible (must be a '
+                                  'finite field of characteristic {} and degree '
+                                  'divisible by {})').format(char, deg))
 
         if self.IsOne():
             return ring.one()
         if deg == 1 and char == ring.characteristic():
             return ring(self.lift().sage())
         else:
-            field = make_GapElement_Ring(self.parent(), gap_eval(ring._gap_init_()))
-            if field.DegreeOverPrimeField() % deg != 0:
-                raise ValueError('the given finite field has incompatible size')
-            root = field.PrimitiveRoot()
+            gap_field_obj = gap_eval(ring._gap_init_())
+            gap_field = make_GapElement_Ring(self.parent(), gap_field_obj)
+            root = gap_field.PrimitiveRoot()
             exp = self.LogFFE(root)
             return ring.multiplicative_generator() ** exp.sage()
 

@@ -80,6 +80,8 @@ TESTS::
 
 from __future__ import absolute_import
 
+from collections import Iterator, Sequence
+
 from cysignals.memory cimport check_calloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -204,7 +206,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
                         raise IndexError("invalid entries list")
                     set_entry(&self.rows[i], j, z)
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
             # Dense input format
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
@@ -658,7 +662,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -697,7 +701,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            cols = list(cols)
 
         A = self.new_matrix(ncols = len(cols))
 

@@ -6223,6 +6223,23 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         return factorial(self.n)
 
+    def degree(self):
+        """
+        Return the degree of ``self``.
+
+        This is the cardinality `n` of the set ``self`` acts on.
+
+        EXAMPLES::
+
+            sage: Permutations(0).degree()
+            0
+            sage: Permutations(1).degree()
+            1
+            sage: Permutations(5).degree()
+            5
+        """
+        return self.n
+
     def degrees(self):
         """
         Return the degrees of ``self``.

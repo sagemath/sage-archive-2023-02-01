@@ -53,6 +53,7 @@ from sage.rings.finite_rings.integer_mod import IntegerMod_int
 from sage.matrix.constructor import random_matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.randstate import current_randstate
+from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
@@ -729,9 +730,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         FfSetField(fl)
         FfSetNoc(nc)
-        cdef int O, MPB, tmp
-        randint = current_randstate().c_random
-        randdouble = current_randstate().c_rand_double
+        cdef int MPB, tmp
+        cdef unsigned char O
+        cdef randstate RandState = current_randstate()
 
         if not nonzero:
             if density == 1:
@@ -743,44 +744,44 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 O = (fl**MPB)
                 sig_on()
                 if nc%MPB:
-                    for i from 0 <= i < nr:
+                    for i in range(nr):
                         y = <unsigned char*>x
-                        for j from 0 <= j < FfCurrentRowSizeIo-1:
-                            y[j] = randint()%O
-                        for j from nc-(nc%MPB) <= j < nc:
-                            FfInsert(x, j, FfFromInt( (randint()%fl) ))
+                        for j in range(FfCurrentRowSizeIo-1):
+                            y[j] = RandState.c_random()%O
+                        for j in range(nc-(nc%MPB), nc):
+                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
                         FfStepPtr(&(x))
                 else:
-                    for i from 0 <= i < nr:
+                    for i in range(nr):
                         y = <unsigned char*>x
-                        for j from 0 <= j < FfCurrentRowSizeIo:
-                            y[j] = randint()%O
+                        for j in range(FfCurrentRowSizeIo):
+                            y[j] = RandState.c_random()%O
                         FfStepPtr(&(x))
                 sig_off()
             else:
                 sig_on()
-                for i from 0 <= i < nr:
-                    for j from 0 <= j < nc:
-                        if randdouble() < density:
-                            FfInsert(x, j, FfFromInt( (randint()%fl) ))
+                for i in range(nr):
+                    for j in range(nc):
+                        if RandState.c_rand_double() < density:
+                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
                     FfStepPtr(&(x))
                 sig_off()
         else:
             if density == 1:
                 fl -= 1
                 sig_on()
-                for i from 0 <= i < nr:
-                    for j from 0 <= j < nc:
-                        FfInsert(x, j, FfFromInt( (randint()%fl)+1 ))
+                for i in range(nr):
+                    for j in range(nc):
+                        FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
                     FfStepPtr(&(x))
                 sig_off()
             else:
                 fl -= 1
                 sig_on()
-                for i from 0 <= i < nr:
-                    for j from 0 <= j < nc:
-                        if randdouble() < density:
-                            FfInsert(x, j, FfFromInt( (randint()%fl)+1 ))
+                for i in range(nr):
+                    for j in range(nc):
+                        if RandState.c_rand_double() < density:
+                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
                     FfStepPtr(&(x))
                 sig_off()
 

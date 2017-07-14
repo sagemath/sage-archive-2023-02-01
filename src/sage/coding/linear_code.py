@@ -3503,6 +3503,12 @@ class AbstractLinearCode(Module):
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: C.weight_enumerator(bivariate=False)
             x^7 + 7*x^4 + 7*x^3 + 1
+
+        An example of a code with a non-symmetrical weight enumerator::
+
+            sage: C = codes.GolayCode(GF(3), extended=False)
+            sage: C.weight_enumerator()
+            24*x^11 + 110*x^9*y^2 + 330*x^8*y^3 + 132*x^6*y^5 + 132*x^5*y^6 + y^11
         """
         if names is None:
             if bivariate:
@@ -3519,11 +3525,11 @@ class AbstractLinearCode(Module):
         if bivariate:
             R = PolynomialRing(ZZ,2,names)
             x,y = R.gens()
-            return sum(spec[i]*x**(n-i)*y**i for i in range(n+1))
+            return sum(spec[i]*x**i*y**(n-i) for i in range(n+1))
         else:
             R = PolynomialRing(ZZ,names)
             x, = R.gens()
-            return sum(spec[i]*x**(n-i) for i in range(n+1))
+            return sum(spec[i]*x**i for i in range(n+1))
 
     @cached_method
     def zero(self):
@@ -3594,8 +3600,10 @@ class AbstractLinearCode(Module):
         x,y,T = R.gens()
         we = self.weight_enumerator()
         A = R(we)
-        B = A(x+y,y,T)-(x+y)**n
+        #B = A(x+y,y,T)-(x+y)**n
+        B = A(x,x+y,T)-(x+y)**n
         Bs = B.coefficients()
+        Bs.reverse()
         b = [Bs[i]/binomial(n,i+d) for i in range(len(Bs))]
         r = n-d-dperp+2
         P_coeffs = []

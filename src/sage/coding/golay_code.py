@@ -251,6 +251,24 @@ class GolayCode(AbstractLinearCode):
             sage: C = codes.GolayCode(GF(3))
             sage: C.weight_distribution()
             [1, 0, 0, 0, 0, 0, 264, 0, 0, 440, 0, 0, 24]
+
+        TESTS::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
+
+            sage: C = codes.GolayCode(GF(2), extended=False)
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
+
+            sage: C = codes.GolayCode(GF(3))
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
+
+            sage: C = codes.GolayCode(GF(3), extended=False)
+            sage: C.weight_distribution() == super(codes.GolayCode, C).weight_distribution()
+            True
         """
         n = self.length()
         if n == 23:

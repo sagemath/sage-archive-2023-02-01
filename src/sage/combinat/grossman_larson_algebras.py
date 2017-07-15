@@ -136,9 +136,9 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [Pana2002] \F. Panaite, *Relating the Connes-Kreimer and Grossman-Larson  Hopf algebras built on rooted trees*, Lett. Math. Phys. 51 (2000), no. 3, pages 211-219.
+    .. [Pana2002]_
 
-    .. [GroLar1] \R. Grossman and R. G. Larson, *Hopf algebraic structure of families of trees*, J. Algebra 126 (1) (1989), 184-210.
+    .. [GroLar1]_
     """
     @staticmethod
     def __classcall_private__(cls, R, names):

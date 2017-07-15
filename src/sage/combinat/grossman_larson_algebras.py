@@ -25,8 +25,7 @@ from sage.combinat.rooted_tree import (RootedTrees, RootedTree,
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
 from sage.sets.family import Family
-from sage.misc.misc import powerset
-from sage.categories.cartesian_product import cartesian_product
+from itertools import combinations, product
 
 # we use a fixed special symbol for the fake root
 ROOT = '#'
@@ -44,13 +43,26 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
     The Grossman-Larson Hopf algebra on a given set `E` has an
     explicit description using rooted forests. The underlying vector
     space has a basis indexed by finite rooted forests endowed with a
-    map from their vertices to `E`. In this basis, the product of two
+    map from their vertices to `E` (called the "labeling").
+    In this basis, the product of two
     (decorated) rooted forests `S * T` is a sum over all maps from
     the set of roots of `T` to the union of a singleton `\{\#\}` and
     the set of vertices of `S`. Given such a map, one defines a new
     forest as follows. Starting from the disjoint union of all rooted trees
     of `S` and `T`, one adds an edge from every root of `T` to its
     image when this image is not the fake vertex labelled ``#``.
+    The coproduct sends a rooted forest `T` to the sum of all tensors
+    `T_1 \otimes T_2` obtained by splitting the connected components
+    of `T` into two subsets and letting `T_1` be the forest formed
+    by the first subset and `T_2` the forest formed by the second.
+    This yields a connected graded Hopf algebra (the degree of a
+    forest is its number of vertices).
+
+    See [Pana2002]_ (Section 2) and [GroLar1]_.
+    (Note that both references use rooted trees rather than rooted
+    forests, so think of each rooted forest grafted onto a new root.
+    Also, the product is reversed, so they are defining the opposite
+    algebra structure.)
 
     .. WARNING::
 
@@ -92,7 +104,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         sage: x * y == y * x
         False
 
-    When ``None`` is given as input, unlabelled forests are used instead::
+    When ``None`` is given as input, unlabelled forests are used instead;
+    this corresponds to a `1`-element set `E`::
 
         sage: G = algebras.GrossmanLarson(QQ, None)
         sage: x = G.gens()[0]
@@ -114,10 +127,12 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     .. WARNING::
 
-        Beware that the underlying combinatorial free module is either based
-        on ``RootedTrees`` or ``LabelledRootedTrees``, with no restriction
-        on the labellings. This means that all code calling the basis
-        method would not give meaningful results.
+        Beware that the underlying combinatorial free module is based
+        either on ``RootedTrees`` or on ``LabelledRootedTrees``, with no
+        restriction on the labellings. This means that all code calling
+        the :meth:`basis` method would not give meaningful results, since
+        :meth:`basis` returns many "chaff" elements that don't belong to
+        the algebra.
 
     REFERENCES:
 
@@ -166,6 +181,10 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: F = algebras.GrossmanLarson(QQ, ['x','y']); F
             Grossman-Larson Hopf algebra on 2 generators ['x', 'y']
             over Rational Field
+
+            sage: A = algebras.GrossmanLarson(QQ, []); A
+            Grossman-Larson Hopf algebra on 0 generators [] over
+            Rational Field
         """
         if names is None:
             Trees = RootedTrees()
@@ -187,6 +206,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
     def variable_names(self):
         r"""
         Return the names of the variables.
+
+        This returns the set `E` (as a family).
 
         EXAMPLES::
 
@@ -218,6 +239,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             Grossman-Larson Hopf algebra on one generator ['@'] over Rational Field
             sage: algebras.GrossmanLarson(QQ, None)  # indirect doctest
             Grossman-Larson Hopf algebra on one generator ['o'] over Rational Field
+            sage: algebras.GrossmanLarson(QQ, ['a','b'])
+            Grossman-Larson Hopf algebra on 2 generators ['a', 'b'] over Rational Field
         """
         n = len(self.gens())
         if n == 1:
@@ -234,9 +257,11 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         r"""
         Return the ``i``-th generator.
 
+        See :meth:`gens`.
+
         INPUT:
 
-        - ``i`` -- an integer
+        - ``i`` -- a nonnegative integer
 
         EXAMPLES::
 
@@ -272,6 +297,10 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: A = algebras.GrossmanLarson(QQ, ['x1','x2'])
             sage: A.gens()
             (B[#[x1[]]], B[#[x2[]]])
+
+            sage: A = algebras.GrossmanLarson(ZZ, None)
+            sage: A.gens()
+            (B[[[]]],)
         """
         Trees = self.basis().keys()
         return tuple(Family(self._alphabet,
@@ -336,7 +365,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, x, y):
         """
-        Return the product of two forests.
+        Return the product of two forests `x` and `y`.
 
         This is the sum over all possible ways for the components
         of the forest `y` to either fall side-by-side with components
@@ -361,7 +390,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         """
         return self.sum(self.basis()[x.single_graft(y, graftingFunction)]
                         for graftingFunction in
-                        cartesian_product([list(x.paths())] * len(y)))
+                        product(list(x.paths()), repeat=len(y)))
 
     def one_basis(self):
         """
@@ -405,10 +434,12 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         B = self.basis()
         Trees = B.keys()
         subtrees = list(x)
-        indx = list(range(len(subtrees)))
+        num_subtrees = len(subtrees)
+        indx = list(range(num_subtrees))
         return sum(B[Trees([subtrees[i] for i in S], ROOT)].tensor(
                    B[Trees([subtrees[i] for i in indx if i not in S], ROOT)])
-                   for S in powerset(indx))
+                   for k in range(num_subtrees + 1)
+                   for S in combinations(indx, k))
 
     def counit_on_basis(self, x):
         """
@@ -429,6 +460,32 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         if x.node_number() == 1:
             return self.base_ring().one()
         return self.base_ring().zero()
+
+    def antipode_on_basis(self, x):
+        """
+        Return the antipode of a forest.
+
+        EXAMPLES::
+
+            sage: G = algebras.GrossmanLarson(QQ,2)
+            sage: x, y = G.gens()
+            sage: G.antipode(x)  # indirect doctest
+            -B[#[0[]]]
+
+            sage: G.antipode(y*x)  # indirect doctest
+            B[#[0[1[]]]] + B[#[0[], 1[]]]
+        """
+        B = self.basis()
+        Trees = B.keys()
+        subtrees = list(x)
+        if not subtrees:
+            return self.one()
+        num_subtrees = len(subtrees)
+        indx = list(range(num_subtrees))
+        return sum(- self.antipode_on_basis(Trees([subtrees[i] for i in S], ROOT))
+                   * B[Trees([subtrees[i] for i in indx if i not in S], ROOT)]
+                   for k in range(num_subtrees)
+                   for S in combinations(indx, k))
 
     # after this line : coercion
     def _element_constructor_(self, x):
@@ -482,8 +539,9 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - Grossman-Larson Hopf algebras in a subset of variables over
-          a base with a coercion map into ``self.base_ring()``
+        - Grossman-Larson Hopf algebras whose set `E` of labels is
+          a subset of the corresponding self of ``set`, and whose base
+          ring has a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 

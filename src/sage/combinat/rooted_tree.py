@@ -412,9 +412,12 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         r"""
         Graft subtrees of `x` on ``self`` using the given function.
 
-        The `i`-th subtree of `x` is joined by a new edge to
+        Let `x_1, x_2, \ldots, x_p` be the children of the root of
+        `x`. For each `i`, the subtree of `x` comprising all
+        descendants of `x_i` is joined by a new edge to
         the vertex of ``self`` specified by the `i`-th path in the
-        grafting function.
+        grafting function (i.e., by the path
+        ``grafting_function[i]``).
 
         The number of vertices of the result is the sum of the numbers
         of vertices of ``self`` and `x` minus one, because the root of
@@ -445,15 +448,13 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             a[b[d[]], c[e[]]]
         """
         P = self.parent()
+        child_grafts = [suby.single_graft(x, grafting_function,
+                                          path_prefix + (i,))
+                        for i, suby in enumerate(self)]
         try:
-            y1 = P([suby.single_graft(x, grafting_function,
-                                      path_prefix + (i,))
-                    for i, suby in enumerate(self)],
-                   label=self.label())
+            y1 = P(child_grafts, label=self.label())
         except AttributeError:
-            y1 = P([suby.single_graft(x, grafting_function,
-                                      path_prefix + (i,))
-                    for i, suby in enumerate(self)])
+            y1 = P(child_grafts)
 
         with y1.clone() as y2:
             for k in range(len(x)):

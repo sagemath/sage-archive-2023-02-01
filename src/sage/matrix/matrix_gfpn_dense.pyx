@@ -1651,7 +1651,7 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00'
         sage: len(t)
         16
-        sage: N == mtx_unpickle(MS, 2, 5, t, True)
+        sage: N == mtx_unpickle(MS, 2, 5, t, True)           # optional: meataxe
         doctest:warning
         ...
         DeprecationWarning: Reading this pickle may be machine dependent
@@ -1663,15 +1663,20 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
     pickle format (we test two code paths here)::
 
         sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
-        sage: mtx_unpickle(MS, 2, 5, t, True)
+        sage: mtx_unpickle(MS, 2, 5, t, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
         ValueError: Expected a pickle with 3*2 bytes per row, got 17 instead
         sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00\x00'
-        sage: mtx_unpickle(MS, 2, 5, t, True)
+        sage: mtx_unpickle(MS, 2, 5, t, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
         ValueError: Expected a pickle with 3*2 bytes per row, got 18 instead
+        sage: mtx_unpickle(MS, 0, 5, s, True)                # optional: meataxe
+        Traceback (most recent call last):
+        ...
+        ValueError: This matrix pickle contains data, thus, the number of rows
+        and columns must be positive
 
 
     """
@@ -1689,11 +1694,14 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
     cdef char *x
     cdef PTR pt
     cdef size_t lenData = len(Data)
-    cdef size_t pickled_rowsize = lenData//nr
-    if lenData != pickled_rowsize*nr:
-        raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {lenData} instead")
+    cdef size_t pickled_rowsize
     cdef size_t i
     if Data:
+        if nr <= 0 or nc <= 0:
+            raise ValueError("This matrix pickle contains data, thus, the number of rows and columns must be positive")
+        pickled_rowsize = lenData//nr
+        if lenData != pickled_rowsize*nr:
+            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {lenData} instead")
         x = PyBytes_AsString(Data)
         if pickled_rowsize == FfCurrentRowSizeIo:
             pt = OUT.Data.Data

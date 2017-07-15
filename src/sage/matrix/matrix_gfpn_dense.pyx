@@ -1606,7 +1606,7 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
     r"""
     Helper function for unpickling.
 
-    TESTS::
+    EXAMPLES::
 
         sage: M = MatrixSpace(GF(9,'x'),10,10).random_element()
         sage: M == loads(dumps(M))   # indirect doctest
@@ -1614,7 +1614,9 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         sage: M is loads(dumps(M))
         False
 
-    We also test that a pickle created by one machine can be understood
+    TESTS:
+
+    We test that a pickle created by one machine can be understood
     by other machines with different architecture (see :trac:`23411`).
     Internally, a row is stored in a memory block of length a multiple
     of ``sizeof(long)``, which may be machine dependent, but in a pickle,
@@ -1672,12 +1674,21 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         Traceback (most recent call last):
         ...
         ValueError: Expected a pickle with 3*2 bytes per row, got 18 instead
+        sage: MS = MatrixSpace(GF(13), 0, 5)
         sage: mtx_unpickle(MS, 0, 5, s, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
         ValueError: This matrix pickle contains data, thus, the number of rows
         and columns must be positive
 
+    If the given matrix space and the given matrix dimensions do not match,
+    an assertion error is raised::
+
+        sage: MS = MatrixSpace(GF(13), 3, 5)
+        sage: mtx_unpickle(MS, 2, 5, s, True)                # optional: meataxe
+        Traceback (most recent call last):
+        ...
+        AssertionError: Inconsistent dimensions in this matrix pickle
 
     """
     cdef Matrix_gfpn_dense OUT
@@ -1686,6 +1697,7 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         # This is for old pickles created with the group cohomology spkg
         Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc))
     else:
+        assert f.nrows() == nr and f.ncols() == nc, "Inconsistent dimensions in this matrix pickle"
         Matrix_dense.__init__(OUT, f)
         f = OUT._base_ring.order()
     OUT.Data = MatAlloc(f, nr, nc)

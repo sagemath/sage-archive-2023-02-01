@@ -152,7 +152,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
     - [Liv2006]_
     """
     @staticmethod
-    def __classcall_private__(cls, R, names):
+    def __classcall_private__(cls, R, names=None):
         """
         Normalize input to ensure a unique representation.
 

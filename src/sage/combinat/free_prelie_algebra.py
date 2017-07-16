@@ -104,6 +104,14 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: w * w * w * w
         B[[[[[]]]]] + B[[[[], []]]] + 3*B[[[], [[]]]] + B[[[], [], []]]
 
+    However, it is equally possible to use labelled trees instead::
+
+        sage: F1 = algebras.FreePreLie(QQ, 'q')
+        sage: w = F1.gen(0); w
+        B[q[]]
+        sage: w * w * w * w
+        B[q[q[q[q[]]]]] + B[q[q[q[], q[]]]] + 3*B[q[q[], q[q[]]]] + B[q[q[], q[], q[]]]
+
     .. NOTE::
 
         Variables names can be ``None``, a list of strings, a string
@@ -114,10 +122,12 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     .. WARNING::
 
-        Beware that the underlying combinatorial free module is either based
-        on ``RootedTrees`` or ``LabelledRootedTrees``, with no restriction
-        on the labellings. This means that all code calling the basis
-        method would not give meaningful results.
+        Beware that the underlying combinatorial free module is based
+        either on ``RootedTrees`` or on ``LabelledRootedTrees``, with no
+        restriction on the labellings. This means that all code calling
+        the :meth:`basis` method would not give meaningful results, since
+        :meth:`basis` returns many "chaff" elements that don't belong to
+        the algebra.
 
     REFERENCES:
 
@@ -489,8 +499,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - free pre-Lie algebras in the same variables over a base with
-          a coercion map into ``self.base_ring()``
+        - free pre-Lie algebras whose set `E` of labels is
+          a subset of the corresponding self of ``set`, and whose base
+          ring has a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 

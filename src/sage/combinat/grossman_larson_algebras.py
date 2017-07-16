@@ -75,22 +75,22 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         sage: G = algebras.GrossmanLarson(QQ, 'xy')
         sage: x, y = G.gens()
-        sage: unicode_art(x*y)
+        sage: ascii_art(x*y)
         B  + B
-         #    ╭#╮
-         │    │ │
+         #      #_
+         |     / /
          x    x y
-         │
+         |
          y
 
-        sage: unicode_art(x*x*x)
-        B  + B    + 3*B    + B
-         #     #       ╭#╮    ╭─#─╮
-         │     │       │ │    │ │ │
-         x    ╭x╮      x x    x x x
-         │    │ │        │
-         x    x x        x
-         │
+        sage: ascii_art(x*x*x)
+        B  + B     + 3*B     + B
+         #      #         #_      _#__
+         |      |        / /     / / /
+         x      x_      x x     x x x
+         |     / /        |
+         x    x x         x
+         |
          x
 
     The Grossman-Larson algebra is associative::
@@ -109,12 +109,12 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         sage: G = algebras.GrossmanLarson(QQ, None)
         sage: x = G.gens()[0]
-        sage: unicode_art(x*x)
+        sage: ascii_art(x*x)
         B  + B
-         o    ╭o╮
-         │    │ │
+         o      o_
+         |     / /
          o    o o
-         │
+         |
          o
 
     .. NOTE::
@@ -141,7 +141,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
     .. [GroLar1]_
     """
     @staticmethod
-    def __classcall_private__(cls, R, names):
+    def __classcall_private__(cls, R, names=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -417,19 +417,19 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
             sage: G = algebras.GrossmanLarson(QQ,2)
             sage: x, y = G.gens()
-            sage: unicode_art(G.coproduct(x))  # indirect doctest
+            sage: ascii_art(G.coproduct(x))  # indirect doctest
             1 # B  + B  # 1
                  #    #
-                 │    │
+                 |    |
                  0    0
 
-            sage: unicode_art(G.coproduct(y*x))  # indirect doctest
-            1 # B    + 1 # B  + B  # B  + B    # 1 + B  # B  + B  # 1
-                 ╭#╮        #    #    #    ╭#╮        #    #    #
-                 │ │        │    │    │    │ │        │    │    │
-                 0 1        1    0    1    0 1        1    0    1
-                            │                                   │
-                            0                                   0
+            sage: ascii_art(G.coproduct(y*x))  # indirect doctest
+            1 # B     + 1 # B  + B  # B  + B     # 1 + B  # B  + B  # 1
+                   #_        #    #    #      #_        #    #    #
+                  / /        |    |    |     / /        |    |    |
+                 0 1         1    0    1    0 1         1    0    1
+                             |                                    |
+                             0                                    0
         """
         B = self.basis()
         Trees = B.keys()
@@ -487,7 +487,6 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
                    for k in range(num_subtrees)
                    for S in combinations(indx, k))
 
-    # after this line : coercion
     def _element_constructor_(self, x):
         r"""
         Convert ``x`` into ``self``.

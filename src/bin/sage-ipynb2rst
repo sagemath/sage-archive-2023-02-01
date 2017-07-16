@@ -36,7 +36,7 @@ case  "${#}" in
     (1)
         jupyter nbconvert --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --stdout ${1} | sed 's/:math://g' || ( echo -e '\n' ; help ) ;;
     (2)
-        jupyter nbconvert --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --stdout ${1} | sed 's/:math://g' > ${2} ( echo -e '\n' ; help ) ;;
+        jupyter nbconvert --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --stdout ${1} | sed 's/:math://g' > ${2} || ( echo -e '\n' ; help ) ;;
     (*)
         help ;;
 esac

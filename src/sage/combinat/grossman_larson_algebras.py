@@ -169,10 +169,10 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: A = algebras.GrossmanLarson(QQ, '@'); A
             Grossman-Larson Hopf algebra on one generator ['@']
             over Rational Field
-            sage: TestSuite(A).run(skip='_test_antipode') # long time
+            sage: TestSuite(A).run() # long time
 
             sage: F = algebras.GrossmanLarson(QQ, 'xy')
-            sage: TestSuite(F).run(skip='_test_antipode') # long time
+            sage: TestSuite(F).run() # long time
 
             sage: A = algebras.GrossmanLarson(QQ, None); A
             Grossman-Larson Hopf algebra on one generator ['o'] over
@@ -343,25 +343,22 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
             sage: A = algebras.GrossmanLarson(QQ, None)
             sage: A.some_elements()
-            [B[[[]]],
-             B[[[[]]]] + B[[[], []]],
-             4*B[[[[]]]] + 4*B[[[], []]],
-             B[[]] + B[[[[]]]] + B[[[], []]]]
+            [B[[[]]], B[[]] + B[[[[]]]] + B[[[], []]],
+            4*B[[[[]]]] + 4*B[[[], []]]]
 
         With several generators::
 
             sage: A = algebras.GrossmanLarson(QQ, 'xy')
             sage: A.some_elements()
             [B[#[x[]]],
-             B[#[x[x[]]]] + B[#[x[], x[]]],
-             B[#[x[x[]]]] + 3*B[#[x[y[]]]] + B[#[x[], x[]]] + 3*B[#[x[], y[]]],
-             B[#[]] + B[#[x[x[]]]] + B[#[x[], x[]]]]
+             B[#[]] + B[#[x[x[]]]] + B[#[x[], x[]]],
+             B[#[x[x[]]]] + 3*B[#[x[y[]]]] + B[#[x[], x[]]] + 3*B[#[x[], y[]]]]
         """
         o = self.gen(0)
         o1 = self.gens()[-1]
         x = o * o
         y = o * o1
-        return [o, x, x + 3 * y, 1 + x]
+        return [o, 1 + x, x + 3 * y]
 
     def product_on_basis(self, x, y):
         """

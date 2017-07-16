@@ -473,7 +473,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                                                            codomain=self),
                                      position=1)
 
-    # after this line : coercion
     def _element_constructor_(self, x):
         r"""
         Convert ``x`` into ``self``.

@@ -112,6 +112,22 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: w * w * w * w
         B[q[q[q[q[]]]]] + B[q[q[q[], q[]]]] + 3*B[q[q[], q[q[]]]] + B[q[q[], q[], q[]]]
 
+    The set `E` can be infinite::
+
+        sage: F = algebras.FreePreLie(QQ, ZZ)
+        sage: w = F.gen(1); w
+        B[1[]]
+        sage: x = F.gen(2); x
+        B[-1[]]
+        sage: y = F.gen(3); y
+        B[2[]]
+        sage: w*x
+        B[1[-1[]]]
+        sage: (w*x)*y
+        B[1[-1[2[]]]] + B[1[-1[], 2[]]]
+        sage: w*(x*y)
+        B[1[-1[2[]]]]
+
     .. NOTE::
 
         Variables names can be ``None``, a list of strings, a string

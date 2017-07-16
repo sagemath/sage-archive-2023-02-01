@@ -366,7 +366,7 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             if not list(x) in Permutations():
                 raise ValueError("The input %s is not a valid permutation"%(x))
             perm = x.remove_extra_fixed_points()
-            return self._from_dict({ perm: self.base_ring()(1) })
+            return self._from_dict({ perm: self.base_ring().one() })
         elif is_MPolynomial(x):
             return symmetrica.t_POLYNOM_SCHUBERT(x)
         else:

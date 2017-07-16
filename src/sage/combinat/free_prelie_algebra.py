@@ -89,7 +89,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: x * y * z * x == ((x * y) * z) * x
         True
 
-    The NAP product as defined in [Liv]_ is also implemented on the same
+    The NAP product as defined in [Liv2006]_ is also implemented on the same
     vector space::
 
         sage: N = F.nap_product
@@ -131,10 +131,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [ChLi] \F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
-       operad*, International Math. Research Notices (2001) no 8, pages 395-408.
-    .. [Liv] \M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
-       Algebra 207 (2006), no 1, pages 1-18.
+    .. [ChLi]_
+
+    .. [Liv2006]_
     """
     @staticmethod
     def __classcall_private__(cls, R, names):

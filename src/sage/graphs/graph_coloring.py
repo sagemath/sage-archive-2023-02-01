@@ -993,18 +993,18 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
-       sage: edge_coloring(g, value_only=True)
+       sage: edge_coloring(g, value_only=True, solver='GLPK')
        4
-       sage: edge_coloring(g, value_only=False)
-       [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
+       sage: edge_coloring(g, value_only=False, solver='GLPK')
+       [[(0, 1), (2, 3), (4, 9), (5, 7)],
         [(0, 4), (1, 2), (3, 8), (6, 9)],
-        [(0, 5), (1, 6), (3, 4), (7, 9)],
-        [(2, 7), (5, 8)]]
-       sage: edge_coloring(g, value_only=False, hex_colors=True)
-       {'#00ffff': [(0, 5), (1, 6), (3, 4), (7, 9)],
-        '#7f00ff': [(2, 7), (5, 8)],
+        [(1, 6), (5, 8), (7, 9)],
+        [(0, 5), (2, 7), (3, 4), (6, 8)]]
+       sage: edge_coloring(g, value_only=False, hex_colors=True, solver='GLPK')
+       {'#00ffff': [(1, 6), (5, 8), (7, 9)],
+        '#7f00ff': [(0, 5), (2, 7), (3, 4), (6, 8)],
         '#7fff00': [(0, 4), (1, 2), (3, 8), (6, 9)],
-        '#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)]}
+        '#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7)]}
 
     Complete graphs are colored using the linear-time round-robin coloring::
 

@@ -142,14 +142,14 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         either on ``RootedTrees`` or on ``LabelledRootedTrees``, with no
         restriction on the labellings. This means that all code calling
         the :meth:`basis` method would not give meaningful results, since
-        :meth:`basis` returns many "chaff" elements that don't belong to
+        :meth:`basis` returns many "chaff" elements that do not belong to
         the algebra.
 
     REFERENCES:
 
-    .. [ChLi]_
+    - [ChLi]_
 
-    .. [Liv2006]_
+    - [Liv2006]_
     """
     @staticmethod
     def __classcall_private__(cls, R, names):

@@ -2283,7 +2283,7 @@ EXAMPLES::
     [0 4 0 0]
     [0 0 4 0]
     [0 0 0 0]
-    sage: U*s.laplacian()*V == D  # laplacian symmetric => tranpose not necessary
+    sage: U*s.laplacian()*V == D  # laplacian symmetric => transpose not necessary
     True
 
 ---
@@ -2376,8 +2376,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-   Priezzhev and Ruelle, Communications in Mathematical Physics.
+- [Levine2014]_
 
 ---
 
@@ -3058,8 +3057,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-   Priezzhev and Ruelle, Communications in Mathematical Physics.
+- [Levine2014]_
 
 ---
 

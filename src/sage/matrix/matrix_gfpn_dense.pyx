@@ -426,16 +426,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 1]
 
         """
-        if parent is None:
+        if not parent:
             self._is_immutable = False
             self._ncols = 0
             self._nrows = 0
             self._cache = {}
             return
         if isinstance(parent, basestring): # load from file
-            if not parent:
-                self._cache == {}
-                return
             FILE = os.path.realpath(parent)
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)

@@ -14,7 +14,8 @@ cdef dict ErrMsg = {
     "Not enough memory": MemoryError,
     "Time limit exceeded": RuntimeError,
     "Division by zero": ZeroDivisionError,
-    "Bad file format": IOError,
+    "Bad file format": OSError,
+    "No such file or directory": OSError,
     "Bad argument": ValueError,
     "Argument out of range": IndexError,
 
@@ -32,5 +33,6 @@ cdef dict ErrMsg = {
 
 cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err):
     sig_block()
-    PyErr_SetObject(ErrMsg.get(err.Text, SystemError), "{} in file {} (line {})".format(err.Text, err.FileInfo.BaseName, err.LineNo))
+    cdef bytes ErrText = err.Text
+    PyErr_SetObject(ErrMsg.get(ErrText.split(': ')[-1], RuntimeError), "{} in file {} (line {})".format(ErrText, err.FileInfo.BaseName, err.LineNo))
     sig_unblock()

@@ -27,7 +27,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import string_types
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
@@ -421,7 +420,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 1]
 
         """
-        if isinstance(parent, string_types): # load from file
+        if isinstance(parent, basestring): # load from file
             FILE = os.path.realpath(parent)
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)

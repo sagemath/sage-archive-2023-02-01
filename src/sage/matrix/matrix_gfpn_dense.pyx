@@ -403,6 +403,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 Traceback (most recent call last):
                 ...
                 SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                sage: Matrix_gfpn_dense('')                             # optional: meataxe
+                Traceback (most recent call last):
+                ...
+                ValueError: Can not construct meataxe matrix from empty filename
 
         TESTS::
 
@@ -421,6 +425,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         """
         if isinstance(parent, basestring): # load from file
+            if not parent:
+                raise ValueError("Can not construct meataxe matrix from empty filename")
             FILE = os.path.realpath(parent)
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)

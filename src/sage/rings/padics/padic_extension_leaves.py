@@ -214,6 +214,27 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
             self.register_coercion(pAdicCoercion_ZZ_CR(self))
             self.register_coercion(pAdicCoercion_QQ_CR(self))
 
+    def _coerce_map_from_(self, R):
+        r"""
+        Return a coercion from ``R`` into this ring or ``True`` if the default
+        conversion map can be used to perform a coercion.
+
+        EXAMPLES::
+
+            sage: R.<a> = QqCR(27)
+            sage: R.coerce_map_from(ZqCR(27)) # indirect doctest
+            sage: R.coerce_map_from(ZqCA(27)) # indirect doctest
+            
+        """
+        if isinstance(R, UnramifiedExtensionRingCappedRelative) and R.fraction_field() is self:
+           from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field
+           return pAdicCoercion_CR_frac_field(R, self)
+        if isinstance(R, UnramifiedExtensionRingCappedAbsolute) and R.fraction_field() is self:
+           from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CA_frac_field
+           return pAdicCoercion_CA_frac_field(R, self)
+
+        return super(UnramifiedExtensionFieldCappedRelative, self)._coerce_map_from_(R)
+
 #class UnramifiedExtensionRingLazy(UnramifiedExtensionGeneric, pAdicLazyRingGeneric):
 #    def __init__(self, poly, prec, halt, print_mode, names):
 #        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, UnramifiedExtensionLazyElement)
@@ -387,6 +408,14 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
             Unramified Extension of 3-adic Ring with floating precision 10000 in a defined by x^3 + 2*x + 1
             sage: R.<a> = ZqFP(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
+
+        TESTS:
+
+        Check that :trac:`23228` has been resolved::
+
+            sage: a % R.prime()
+            a
+
         """
         self._shift_seed = None
         self._pre_poly = prepoly
@@ -395,11 +424,12 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
             raise NotImplementedError
         Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
         cache_limit = min(prec, 30)
-        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='floating-point')
+        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='floating-point')
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, qAdicFloatingPointElement)
         from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicConvert_QQ_FP
         self.register_coercion(pAdicCoercion_ZZ_FP(self))
         self.register_conversion(pAdicConvert_QQ_FP(self))
+
 
 class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFloatingPointFieldGeneric):
     """
@@ -452,6 +482,23 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
         from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP
         self.register_coercion(pAdicCoercion_ZZ_FP(self))
         self.register_coercion(pAdicCoercion_QQ_FP(self))
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return a coercion from ``R`` into this ring or ``True`` if the default
+        conversion map can be used to perform a coercion.
+
+        EXAMPLES::
+
+            sage: R.<a> = QqFP(27)
+            sage: R.coerce_map_from(ZqFP(27)) # indirect doctest
+            
+        """
+        if isinstance(R, UnramifiedExtensionRingFloatingPoint) and R.fraction_field() is self:
+            from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field
+            return pAdicCoercion_FP_frac_field(R, self)
+
+        return super(UnramifiedExtensionFieldFloatingPoint, self)._coerce_map_from_(R)
 
 class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """

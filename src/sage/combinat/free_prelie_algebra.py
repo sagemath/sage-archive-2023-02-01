@@ -493,17 +493,30 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: X, Y = D.gens()
             sage: R(X-Y).parent()
             Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
+
+        TESTS::
+
+            sage: R.<x,y> = algebras.FreePreLie(QQ)
+            sage: S.<z> = algebras.FreePreLie(GF(3))
+            sage: R(z)
+            Traceback (most recent call last):
+            ...
+            TypeError: not able to convert this to this algebra
         """
-        if x in self.basis().keys():
+        if (isinstance(x, (RootedTree, LabelledRootedTree))
+                and x in self.basis().keys()):
             return self.monomial(x)
         try:
             P = x.parent()
             if isinstance(P, FreePreLieAlgebra):
                 if P is self:
                     return x
-                return self.element_class(self, x.monomial_coefficients())
+                if self._coerce_map_from_(P):
+                    return self.element_class(self, x.monomial_coefficients())
         except AttributeError:
-            raise TypeError('not able to coerce this in this algebra')
+            raise TypeError('not able to convert this to this algebra')
+        else:
+            raise TypeError('not able to convert this to this algebra')
         # Ok, not a pre-Lie algebra element (or should not be viewed as one).
 
     def _coerce_map_from_(self, R):
@@ -568,7 +581,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # free prelie algebras in the same variables
+        # free prelie algebras in a subset of variables
         # over any base that coerces in:
         if isinstance(R, FreePreLieAlgebra):
             if all(x in self.variable_names() for x in R.variable_names()):

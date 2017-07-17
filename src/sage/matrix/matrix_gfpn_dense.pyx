@@ -322,29 +322,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     """
 ##################
 ## Init, Dealloc, Copy
-    def __cinit__(self, parent=None, entries=None, *args, **kwds):
-        """
-        TESTS::
-
-            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
-            sage: Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
-            []
-            sage: Matrix_gfpn_dense(MatrixSpace(GF(64,'z'),4), None)  # optional: meataxe
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-
-        """
-        if parent is None:  # this makes Matrix_gfpn_dense.__new__(Matrix_gfpn_dense) work,
-                            # returning a non-initialised matrix
-            return
-        if isinstance(parent, basestring): # this allows to provide a file when initialising a matrix
-            return
-        cdef int f = parent.base_ring().order()
-        cdef int nrows = parent.nrows()
-        cdef int ncols = parent.ncols()
-        self.Data = MatAlloc(f, nrows, ncols)
 
     def __dealloc__(self):
         """
@@ -425,12 +402,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 2 0]
             [0 0 0 0 2]
 
-        5. Creating a matrix from a file in MeatAxe format. We demonstrate, that it doesn't
-           crash if the file doesn't exist::
+        5. Creating a matrix from a file in MeatAxe format. If the file doesn't exist,
+            an error raised by the MeatAxe library is propagated::
 
             sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
-            []
-
+            Traceback (most recent call last):
+            ...
+            SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
 
         TESTS::
 
@@ -455,13 +433,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self._cache = {}
             return
         if isinstance(parent, basestring): # load from file
-            FILE = os.path.realpath(parent)
-            try:
-                fsock = open(FILE,"rb",0)
-                fsock.close()
-            except (OSError,IOError):
-                self.Data = NULL
+            if not parent:
+                self._cache == {}
                 return
+            FILE = os.path.realpath(parent)
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)
             B = GF(self.Data.Field, 'z')
@@ -475,8 +450,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self._cache = {}
             return
 
-        if not self.Data: # should have been initialised by __cinit__
-            raise MemoryError("Error allocating memory for MeatAxe matrix")
+        cdef int fl = parent.base_ring().order()
+        cdef int nr = parent.nrows()
+        cdef int nc = parent.ncols()
+        self.Data = MatAlloc(fl, nr, nc)
         Matrix_dense.__init__(self, parent)
         self._is_immutable = not mutable
         B = self._base_ring
@@ -500,31 +477,29 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return
 
         x = self.Data.Data
-        cdef int nr = self.Data.Nor
-        cdef int nc = self.Data.Noc
-        assert self._ncols == nc
-        assert self._nrows == nr
+        assert self.Data.Noc == nc
+        assert self.Data.Nor == nr
         if nr==0 or nc==0:
             return
         if len(data)<nr:
             raise ValueError("Expected a list of size at least the number of rows")
         cdef list dt, dt_i
-        FfSetField(self.Data.Field)
+        FfSetField(fl)
         FfSetNoc(nc)
         if isinstance(data[0],list):
             # The matrix is given by a list of rows
             dt = data
-            for i from 0 <= i < nr:
+            for i in range(nr):
                 idx = 0
                 dt_i = dt[i]
-                for j from 0 <= j < nc:
+                for j in range(nc):
                     FfInsert(x, j, FfFromInt(self._converter.field_to_int(self._coerce_element(dt_i[j]))))
                 FfStepPtr(&(x))
         else:
             # It is supposed to be a flat list of all entries, sorted by rows
             dtnext = data.__iter__().next
-            for i from 0 <= i < nr:
-                for j from 0 <= j < nc:
+            for i in range(nr):
+                for j in range(nc):
                     bla = self._converter.field_to_int(self._coerce_element(dtnext()))
                     FfInsert(x, j, FfFromInt(bla))
                 FfStepPtr(&(x))

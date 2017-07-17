@@ -402,13 +402,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 2 0]
             [0 0 0 0 2]
 
-        5. Creating a matrix from a file in MeatAxe format. If the file doesn't exist,
+        5.  Creating a matrix from a file in MeatAxe format. If the file doesn't exist,
             an error raised by the MeatAxe library is propagated::
 
-            sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
-            Traceback (most recent call last):
-            ...
-            SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
+                Traceback (most recent call last):
+                ...
+                SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
 
         TESTS::
 

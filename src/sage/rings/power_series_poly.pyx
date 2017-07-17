@@ -546,7 +546,7 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         Multiply self on the right by a scalar.
 
@@ -559,7 +559,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         Multiply self on the left by a scalar.
 

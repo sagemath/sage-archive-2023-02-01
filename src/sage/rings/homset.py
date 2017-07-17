@@ -196,11 +196,39 @@ class RingHomset_generic(HomsetWithBase):
 
             sage: H = Hom(ZZ, QQ)
             sage: H.natural_map()
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """
-        return morphism.RingHomomorphism_coercion(self)
+        f = self.codomain().coerce_map_from(self.domain())
+        if f is None:
+            raise TypeError("Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain()))
+        return f
+
+    def zero(self):
+        r"""
+        Return the zero element of this homset.
+
+        EXAMPLES:
+
+        Since a ring homomorphism maps 1 to 1, there can only be a zero
+        morphism when mapping to the trivial ring::
+
+            sage: Homset(ZZ, Zmod(1)).zero()
+            Ring morphism:
+              From: Integer Ring
+              To:   Ring of integers modulo 1
+              Defn: 1 |--> 0
+            sage: Homset(ZZ, Zmod(2)).zero()
+            Traceback (most recent call last):
+            ...
+            ValueError: homset has no zero element
+
+        """
+        if not self.codomain().is_zero():
+            raise ValueError("homset has no zero element")
+        # there is only one map in this homset
+        return self.an_element()
 
 
 class RingHomset_quo_ring(RingHomset_generic):
@@ -285,7 +313,7 @@ class RingHomset_quo_ring(RingHomset_generic):
             Composite map:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-              Defn:   Conversion map:
+              Defn:   Coercion map:
                       From: Multivariate Polynomial Ring in x, y over Integer Ring
                       To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
                     then
@@ -295,7 +323,7 @@ class RingHomset_quo_ring(RingHomset_generic):
                       Defn: a |--> b
                             b |--> a
                     then
-                      Conversion map:
+                      Coercion map:
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
 
@@ -307,4 +335,3 @@ class RingHomset_quo_ring(RingHomset_generic):
         if x.parent() == self:
             return morphism.RingHomomorphism_from_quotient(self, x._phi())
         raise TypeError
-

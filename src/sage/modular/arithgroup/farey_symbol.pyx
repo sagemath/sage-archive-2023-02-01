@@ -24,8 +24,7 @@ from __future__ import absolute_import, division
 
 from cpython.object cimport PyObject_RichCompare
 from itertools import groupby
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmpxx cimport *
 
@@ -47,7 +46,7 @@ from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object cimport richcmp_not_equal
+from sage.structure.richcmp cimport richcmp_not_equal
 
 
 cdef extern from "sage/modular/arithgroup/sl2z.hpp":

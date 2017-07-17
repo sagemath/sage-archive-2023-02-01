@@ -86,6 +86,15 @@ cdef extern from "sage/libs/pynac/wrap.h":
         GExListIter end()
         GExList append_sym "append" (GSymbol e)
 
+    cdef cppclass GSymbolSetIter "GiNaC::symbolset::const_iterator":
+        void inc "operator++" ()
+        GEx obj "operator*" ()
+        bint operator!=(GSymbolSetIter i)
+
+    cdef cppclass GSymbolSet "GiNaC::symbolset":
+        GSymbolSetIter begin()
+        GSymbolSetIter end()
+
     cdef cppclass GEx "ex":
         GEx()
         GEx(GSymbol m)
@@ -105,6 +114,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
         bint is_polynomial(GEx vars)  except +
         bint match(GEx pattern, GExList s) except +
         bint find(GEx pattern, GExList s) except +
+        GSymbolSet free_symbols()     except +
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
         GEx subs_map "subs" (GExMap map, unsigned options) except +

@@ -24,7 +24,7 @@ provide a method
 
 * ``myscheme._homset(*args, **kwds)`` returning a
   Hom-set, which must be an element of a derived class of
-  `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
+  :class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
   new Hom-set class does not use ``myscheme._morphism`` then you
   do not have to provide it.
 
@@ -83,7 +83,7 @@ from __future__ import absolute_import, print_function
 import operator
 from sage.structure.element import (AdditiveGroupElement, RingElement,
         Element, generic_power, parent, coercion_model)
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
@@ -103,7 +103,6 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
-from sage.categories.morphism import Morphism
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 
@@ -764,7 +763,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
         """
@@ -1442,7 +1441,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             S = self.codomain().change_ring(R)
             H = Hom(T,S)
 
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
             if R.domain() == self.base_ring():
                 R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
         G = []

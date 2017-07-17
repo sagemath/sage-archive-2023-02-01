@@ -112,7 +112,7 @@ from cpython.slice cimport PySlice_GetIndicesEx
 from sage.structure.sequence import Sequence
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.structure.element import canonical_coercion
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp, rich_to_bool
 
 from sage.rings.ring import is_Ring
 from sage.rings.infinity import Infinity, AnInfinity
@@ -4158,7 +4158,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._sub_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -4172,7 +4172,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [left * x for x in self._entries]
         return self._new_c(v)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -4608,7 +4608,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 v[i] = -a
         return left._new_c(v)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -4624,7 +4624,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 

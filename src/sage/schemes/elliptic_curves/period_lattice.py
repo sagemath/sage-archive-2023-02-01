@@ -986,10 +986,10 @@ class PeriodLattice_ell(PeriodLattice):
            documentation for ellsigma is very vague.  Also this is
            only implemented for curves defined over `\QQ`.
 
-        TODO:
+        .. TODO::
 
-        This function does not use any of the PeriodLattice functions
-        and so should be moved to ell_rational_field.
+            This function does not use any of the PeriodLattice functions
+            and so should be moved to ell_rational_field.
 
         EXAMPLES::
 
@@ -1088,7 +1088,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         When ``rounding`` is 'floor', returns a tuple of integers
         `n_1`, `n_2` which are the integer parts to the `x`, `y`
-        defined above. These are used in :meth:``.reduce``
+        defined above. These are used in :meth:`.reduce`
 
         EXAMPLES::
 

@@ -1153,7 +1153,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
 

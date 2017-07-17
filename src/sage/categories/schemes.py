@@ -108,14 +108,14 @@ class Schemes(Category):
         We create a scheme morphism from a ring homomorphism.x::
 
             sage: phi = ZZ.hom(QQ); phi
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
             sage: f = S(phi); f                 # indirect doctest
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
 
@@ -127,7 +127,7 @@ class Schemes(Category):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
 

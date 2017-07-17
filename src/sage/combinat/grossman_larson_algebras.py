@@ -513,8 +513,16 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             Traceback (most recent call last):
             ...
             ValueError: incorrect root label
+
+            sage: R.<x,y> = algebras.GrossmanLarson(QQ)
+            sage: S.<z> = algebras.GrossmanLarson(GF(3))
+            sage: R(z)
+            Traceback (most recent call last):
+            ...
+            TypeError: not able to convert this to this algebra
         """
-        if x in self.basis().keys():
+        if (isinstance(x, (RootedTree, LabelledRootedTree))
+                and x in self.basis().keys()):
             if hasattr(x, 'label') and x.label() != ROOT:
                 raise ValueError('incorrect root label')
             return self.monomial(x)
@@ -523,9 +531,12 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             if isinstance(P, GrossmanLarsonAlgebra):
                 if P is self:
                     return x
-                return self.element_class(self, x.monomial_coefficients())
+                if self._coerce_map_from_(P):
+                    return self.element_class(self, x.monomial_coefficients())
         except AttributeError:
-            raise TypeError('not able to coerce this in this algebra')
+            raise TypeError('not able to convert this to this algebra')
+        else:
+            raise TypeError('not able to convert this to this algebra')
         # Ok, not an element (or should not be viewed as one).
 
     def _coerce_map_from_(self, R):

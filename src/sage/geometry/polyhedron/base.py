@@ -4337,7 +4337,7 @@ class Polyhedron_base(Element):
 
             sage: polytopes.icosahedron().volume()
             5/12*sqrt5 + 5/4
-            sage: numerical_approx(_)
+            sage: numerical_approx(_) # abs tol 1e9
             2.18169499062491
 
         When considering lower-dimensional polytopes, we can ask for the
@@ -4372,9 +4372,9 @@ class Polyhedron_base(Element):
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
             sage: v = Dexact.faces(2)[4].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
-            sage: RDF(v)
+            sage: RDF(v)    # abs tol 1e9
             1.53406271079044
-            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w)
+            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
             1.534062710738235
 
             sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]

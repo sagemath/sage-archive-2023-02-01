@@ -27,6 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import string_types
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
@@ -351,8 +352,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         create these instances via the matrix constructors; what
         we explain here is for internal use only!
 
-        - None => empty matrix over an unspecified field (used for unpickling)
-        - a string ``f`` ==> load matrix from the file named ``f``
+        - A string ``f`` ==> load matrix from the file named ``f``
         - A matrix space of `m\\times n` matrices over GF(q) and either
 
           - a list `[a_{11},a_{12},...,a_{1n},a_{21},...,a_{m1},...,a_{mn}]`,
@@ -372,19 +372,14 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
 
-        1. Creating an empty matrix::
-
-            sage: Matrix_gfpn_dense(None)  # optional: meataxe
-            []
-
-        2. Creating a zero (3x2)-matrix::
+        1. Creating a zero (3x2)-matrix::
 
             sage: Matrix_gfpn_dense(MatrixSpace(GF(4,'z'),3,2))  # optional: meataxe
             [0 0]
             [0 0]
             [0 0]
 
-        3. Creating a matrix from a list or list of lists::
+        2. Creating a matrix from a list or list of lists::
 
             sage: Matrix_gfpn_dense(MatrixSpace(GF(5),2,3),[1,2,3,4,5,6])  # optional: meataxe
             [1 2 3]
@@ -393,7 +388,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [1 2 3]
             [4 0 1]
 
-        4. Creating a diagonal matrix::
+        3. Creating a diagonal matrix::
 
             sage: M = Matrix_gfpn_dense(MatrixSpace(GF(7),5),2); M  # optional: meataxe
             [2 0 0 0 0]
@@ -402,7 +397,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 2 0]
             [0 0 0 0 2]
 
-        5.  Creating a matrix from a file in MeatAxe format. If the file doesn't exist,
+        4.  Creating a matrix from a file in MeatAxe format. If the file doesn't exist,
             an error raised by the MeatAxe library is propagated::
 
                 sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
@@ -426,13 +421,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 1]
 
         """
-        if not parent:
-            self._is_immutable = False
-            self._ncols = 0
-            self._nrows = 0
-            self._cache = {}
-            return
-        if isinstance(parent, basestring): # load from file
+        if isinstance(parent, string_types): # load from file
             FILE = os.path.realpath(parent)
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)
@@ -535,7 +524,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: N is M
             False
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
-            sage: M = Matrix_gfpn_dense('')   # optional: meataxe
+            sage: M = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
             sage: N = copy(M)
             sage: N                         # optional: meataxe
             []

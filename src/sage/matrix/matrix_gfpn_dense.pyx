@@ -290,29 +290,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     """
 ##################
 ## Init, Dealloc, Copy
-    def __cinit__(self, parent=None, entries=None, *args, **kwds):
-        """
-        TESTS::
-
-            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
-            sage: Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
-            []
-            sage: Matrix_gfpn_dense(MatrixSpace(GF(64,'z'),4), None)  # optional: meataxe
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
-
-        """
-        if parent is None:  # this makes Matrix_gfpn_dense.__new__(Matrix_gfpn_dense) work,
-                            # returning a non-initialised matrix
-            return
-        if isinstance(parent, basestring): # this allows to provide a file when initialising a matrix
-            return
-        cdef int f = parent.base_ring().order()
-        cdef int nrows = parent.nrows()
-        cdef int ncols = parent.ncols()
-        self.Data = MatAlloc(f, nrows, ncols)
 
     def __dealloc__(self):
         """
@@ -342,8 +319,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         create these instances via the matrix constructors; what
         we explain here is for internal use only!
 
-        - None => empty matrix over an unspecified field (used for unpickling)
-        - a string ``f`` ==> load matrix from the file named ``f``
+        - A string ``f`` ==> load matrix from the file named ``f``
         - A matrix space of `m\\times n` matrices over GF(q) and either
 
           - a list `[a_{11},a_{12},...,a_{1n},a_{21},...,a_{m1},...,a_{mn}]`,
@@ -363,19 +339,14 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
 
-        1. Creating an empty matrix::
-
-            sage: Matrix_gfpn_dense(None)  # optional: meataxe
-            []
-
-        2. Creating a zero (3x2)-matrix::
+        1. Creating a zero (3x2)-matrix::
 
             sage: Matrix_gfpn_dense(MatrixSpace(GF(4,'z'),3,2))  # optional: meataxe
             [0 0]
             [0 0]
             [0 0]
 
-        3. Creating a matrix from a list or list of lists::
+        2. Creating a matrix from a list or list of lists::
 
             sage: Matrix_gfpn_dense(MatrixSpace(GF(5),2,3),[1,2,3,4,5,6])  # optional: meataxe
             [1 2 3]
@@ -384,7 +355,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [1 2 3]
             [4 0 1]
 
-        4. Creating a diagonal matrix::
+        3. Creating a diagonal matrix::
 
             sage: M = Matrix_gfpn_dense(MatrixSpace(GF(7),5),2); M  # optional: meataxe
             [2 0 0 0 0]
@@ -393,12 +364,17 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 2 0]
             [0 0 0 0 2]
 
-        5. Creating a matrix from a file in MeatAxe format. We demonstrate, that it doesn't
-           crash if the file doesn't exist::
+        4.  Creating a matrix from a file in MeatAxe format. If the file doesn't exist,
+            an error raised by the MeatAxe library is propagated::
 
-            sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
-            []
-
+                sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
+                Traceback (most recent call last):
+                ...
+                SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                sage: Matrix_gfpn_dense('')                             # optional: meataxe
+                Traceback (most recent call last):
+                ...
+                ValueError: Can not construct meataxe matrix from empty filename
 
         TESTS::
 
@@ -416,20 +392,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 1]
 
         """
-        if parent is None:
-            self._is_immutable = False
-            self._ncols = 0
-            self._nrows = 0
-            self._cache = {}
-            return
         if isinstance(parent, basestring): # load from file
+            if not parent:
+                raise ValueError("Can not construct meataxe matrix from empty filename")
             FILE = os.path.realpath(parent)
-            try:
-                fsock = open(FILE,"rb",0)
-                fsock.close()
-            except (OSError,IOError):
-                self.Data = NULL
-                return
             self.Data = MatLoad(FILE)
             FfSetField(self.Data.Field)
             B = GF(self.Data.Field, 'z')
@@ -443,8 +409,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self._cache = {}
             return
 
-        if not self.Data: # should have been initialised by __cinit__
-            raise MemoryError("Error allocating memory for MeatAxe matrix")
+        cdef int fl = parent.base_ring().order()
+        cdef int nr = parent.nrows()
+        cdef int nc = parent.ncols()
+        self.Data = MatAlloc(fl, nr, nc)
         Matrix_dense.__init__(self, parent)
         self._is_immutable = not mutable
         B = self._base_ring
@@ -468,31 +436,29 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             return
 
         x = self.Data.Data
-        cdef int nr = self.Data.Nor
-        cdef int nc = self.Data.Noc
-        assert self._ncols == nc
-        assert self._nrows == nr
+        assert self.Data.Noc == nc
+        assert self.Data.Nor == nr
         if nr==0 or nc==0:
             return
         if len(data)<nr:
             raise ValueError("Expected a list of size at least the number of rows")
         cdef list dt, dt_i
-        FfSetField(self.Data.Field)
+        FfSetField(fl)
         FfSetNoc(nc)
         if isinstance(data[0],list):
             # The matrix is given by a list of rows
             dt = data
-            for i from 0 <= i < nr:
+            for i in range(nr):
                 idx = 0
                 dt_i = dt[i]
-                for j from 0 <= j < nc:
+                for j in range(nc):
                     FfInsert(x, j, FfFromInt(self._converter.field_to_int(self._coerce_element(dt_i[j]))))
                 FfStepPtr(&(x))
         else:
             # It is supposed to be a flat list of all entries, sorted by rows
             dtnext = data.__iter__().next
-            for i from 0 <= i < nr:
-                for j from 0 <= j < nc:
+            for i in range(nr):
+                for j in range(nc):
                     bla = self._converter.field_to_int(self._coerce_element(dtnext()))
                     FfInsert(x, j, FfFromInt(bla))
                 FfStepPtr(&(x))
@@ -531,7 +497,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: N is M
             False
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
-            sage: M = Matrix_gfpn_dense('')   # optional: meataxe
+            sage: M = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
             sage: N = copy(M)
             sage: N                         # optional: meataxe
             []
@@ -1575,17 +1541,30 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 from sage.misc.superseded import deprecation
 
-def mtx_unpickle(f, int nr, int nc, str Data, bint m):
+def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     r"""
     Helper function for unpickling.
 
     EXAMPLES::
 
-        sage: M = MatrixSpace(GF(9,'x'),10,10).random_element()
+        sage: K.<x> = GF(9)
+        sage: M = MatrixSpace(K,10,10).random_element()
         sage: M == loads(dumps(M))   # indirect doctest
         True
         sage: M is loads(dumps(M))
         False
+
+    We also test pickles with zero rows and columns, as they may constitute
+    corner cases. Note that in the following case, if ``sizeof(long)==8``,
+    two matrix entries are stored in one byte, and therefore the last byte of
+    a row is only half filled::
+
+        sage: M = matrix(K,3,5, [x, 0, 1, 0,-1, 0, 0, 0, 0, 0, -1, 0, 1, 0, x])
+        sage: loads(dumps(M)) == M
+        True
+        sage: M = matrix(K,3,5, [0, 1, 0,-1, 0, x, 0, 1, 0, -1, 0, 0, 0, 0, 0])
+        sage: loads(dumps(M)) == M
+        True
 
     TESTS:
 
@@ -1633,6 +1612,12 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         See http://trac.sagemath.org/23411 for details.
         True
 
+    The data may be empty, which results in the zero matrix::
+
+        sage: mtx_unpickle(MS, 2, 5, '', True)               # optional: meataxe
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+
     We test further corner cases. A ``ValueError`` is raised if the number
     of bytes in the pickle does not comply with either the old or the new
     pickle format (we test two code paths here)::
@@ -1653,15 +1638,13 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         ...
         ValueError: This matrix pickle contains data, thus, the number of rows
         and columns must be positive
-
-    If the given matrix space and the given matrix dimensions do not match,
-    an assertion error is raised::
-
         sage: MS = MatrixSpace(GF(13), 3, 5)
         sage: mtx_unpickle(MS, 2, 5, s, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
-        AssertionError: Inconsistent dimensions in this matrix pickle
+        ValueError: Inconsistent dimensions in this matrix pickle
+        sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, '', True) # optional: meataxe
+        []
 
     """
     cdef Matrix_gfpn_dense OUT
@@ -1670,7 +1653,8 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         # This is for old pickles created with the group cohomology spkg
         Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc))
     else:
-        assert f.nrows() == nr and f.ncols() == nc, "Inconsistent dimensions in this matrix pickle"
+        if f.nrows() != nr or f.ncols() != nc:
+            raise ValueError("Inconsistent dimensions in this matrix pickle")
         Matrix_dense.__init__(OUT, f)
         f = OUT._base_ring.order()
     OUT.Data = MatAlloc(f, nr, nc)

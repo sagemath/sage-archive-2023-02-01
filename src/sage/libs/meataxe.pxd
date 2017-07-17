@@ -104,7 +104,7 @@ cdef extern from "meataxe.h":
     Matrix_t *MatCutRows(Matrix_t *src, int row1, int nrows) except NULL
     Matrix_t *MatDup(Matrix_t *src) except NULL
     Matrix_t *MatId(int fl, int nor) except NULL
-    Matrix_t *MatLoad(char *fn) except NULL
+    Matrix_t *MatLoad(char *fn) except? NULL
     int MatSave(Matrix_t *mat, char *fn) except -1
 
 

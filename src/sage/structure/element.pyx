@@ -979,7 +979,7 @@ cdef class Element(SageObject):
 
         But there is a zero morphism to the trivial ring::
 
-            sage: bool(Hom(ZZ, Zmod(!)).an_element())
+            sage: bool(Hom(ZZ, Zmod(1)).an_element())
             False
 
         TESTS:

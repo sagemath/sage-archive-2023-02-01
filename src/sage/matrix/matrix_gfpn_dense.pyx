@@ -1602,17 +1602,30 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
 from sage.misc.superseded import deprecation
 
-def mtx_unpickle(f, int nr, int nc, str Data, bint m):
+def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     r"""
     Helper function for unpickling.
 
     EXAMPLES::
 
-        sage: M = MatrixSpace(GF(9,'x'),10,10).random_element()
+        sage: K.<x> = GF(9)
+        sage: M = MatrixSpace(K,10,10).random_element()
         sage: M == loads(dumps(M))   # indirect doctest
         True
         sage: M is loads(dumps(M))
         False
+
+    We also test pickles with zero rows and columns, as they may constitute
+    corner cases. Note that in the following case, if ``sizeof(long)==8``,
+    two matrix entries are stored in one byte, and therefore the last byte of
+    a row is only half filled::
+
+        sage: M = matrix(K,3,5, [x, 0, 1, 0,-1, 0, 0, 0, 0, 0, -1, 0, 1, 0, x])
+        sage: loads(dumps(M)) == M
+        True
+        sage: M = matrix(K,3,5, [0, 1, 0,-1, 0, x, 0, 1, 0, -1, 0, 0, 0, 0, 0])
+        sage: loads(dumps(M)) == M
+        True
 
     TESTS:
 
@@ -1660,6 +1673,12 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         See http://trac.sagemath.org/23411 for details.
         True
 
+    The data may be empty, which results in the zero matrix::
+
+        sage: mtx_unpickle(MS, 2, 5, '', True)               # optional: meataxe
+        [0 0 0 0 0]
+        [0 0 0 0 0]
+
     We test further corner cases. A ``ValueError`` is raised if the number
     of bytes in the pickle does not comply with either the old or the new
     pickle format (we test two code paths here)::
@@ -1680,15 +1699,13 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         ...
         ValueError: This matrix pickle contains data, thus, the number of rows
         and columns must be positive
-
-    If the given matrix space and the given matrix dimensions do not match,
-    an assertion error is raised::
-
         sage: MS = MatrixSpace(GF(13), 3, 5)
         sage: mtx_unpickle(MS, 2, 5, s, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
-        AssertionError: Inconsistent dimensions in this matrix pickle
+        ValueError: Inconsistent dimensions in this matrix pickle
+        sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, '', True) # optional: meataxe
+        []
 
     """
     cdef Matrix_gfpn_dense OUT
@@ -1697,7 +1714,8 @@ def mtx_unpickle(f, int nr, int nc, str Data, bint m):
         # This is for old pickles created with the group cohomology spkg
         Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc))
     else:
-        assert f.nrows() == nr and f.ncols() == nc, "Inconsistent dimensions in this matrix pickle"
+        if f.nrows() != nr or f.ncols() != nc:
+            raise ValueError("Inconsistent dimensions in this matrix pickle")
         Matrix_dense.__init__(OUT, f)
         f = OUT._base_ring.order()
     OUT.Data = MatAlloc(f, nr, nc)

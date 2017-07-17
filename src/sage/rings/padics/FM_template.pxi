@@ -1222,7 +1222,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
 
 def unpickle_fme_v2(cls, parent, value):
     """
-    Unpickles a capped relative element.
+    Unpickles a fixed mod element.
 
     EXAMPLES::
 

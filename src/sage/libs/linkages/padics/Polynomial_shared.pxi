@@ -100,15 +100,17 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
+    if not (reduce_a or reduce_b):
+        return 0 if a == b else 1
     ccopy(prime_pow.tmp_ccmp_a, a, prime_pow)
-    ccopy(prime_pow.tmp_ccmp_b, a, prime_pow)
+    ccopy(prime_pow.tmp_ccmp_b, b, prime_pow)
 
     if reduce_a:
         creduce(prime_pow.tmp_ccmp_a, prime_pow.tmp_ccmp_a, prec, prime_pow)
     if reduce_b:
         creduce(prime_pow.tmp_ccmp_b, prime_pow.tmp_ccmp_b, prec, prime_pow)
 
-    return prime_pow.tmp_ccmp_a._cmp_(prime_pow.tmp_ccmp_b)
+    return 0 if prime_pow.tmp_ccmp_a == prime_pow.tmp_ccmp_b else 1
 
 cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -346,8 +348,18 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
 
     return hash((a._cache_key(), ordp, prec))
 
-# The element is filled in for zero in the output of clist if necessary.
-_list_zero = Integer(0)
+cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime_pow):
+    """
+    Return a list of coefficients, as elements that can be converted into the base ring.
+
+    INPUT:
+
+    - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
+    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
+    - ``prime_pow`` -- the Powcomputer of the ring
+    """
+    return x.list()
 
 cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow) except -2:
     r"""

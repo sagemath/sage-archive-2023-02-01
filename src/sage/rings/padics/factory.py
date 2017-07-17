@@ -42,6 +42,7 @@ from . import padic_printing
 ######################################################
 
 from .padic_extension_leaves import *
+from .relative_extension_leaves import *
 from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
@@ -68,6 +69,7 @@ ext_table['u', pAdicRingFixedMod] = UnramifiedExtensionRingFixedMod
 ext_table['u', pAdicRingFloatingPoint] = UnramifiedExtensionRingFloatingPoint
 ext_table['u', pAdicFieldFloatingPoint] = UnramifiedExtensionFieldFloatingPoint
 #ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
+ext_table['re', pAdicRingFixedMod] = RelativeRamifiedExtensionRingFixedMod
 
 def _default_show_prec(type, print_mode):
     """
@@ -2485,7 +2487,10 @@ class pAdicExtension_class(UniqueFactory):
             if ram_name is None:
                 ram_name = base._printer._uniformizer_name()
             names = (names, res_name, unram_name, ram_name)
-            polytype = 'u'
+            if base.degree() == 1:
+                polytype = 'u'
+            else:
+                polytype = 'ru'
             #if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             #    halt = base.halting_paramter()
             #elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
@@ -2499,12 +2504,16 @@ class pAdicExtension_class(UniqueFactory):
             shift_seed = None
             modulus = truncate_to_prec(modulus, prec)
         elif is_eisenstein(modulus):
-            unram_name = None
             res_name = None
             if ram_name is None:
                 ram_name = names
+            if base.degree() == 1:
+                unram_name = None
+                polytype = 'e'
+            else:
+                unram_name = base.variable_name()
+                polytype = 're'
             names = (names, res_name, unram_name, ram_name)
-            polytype = 'e'
             e = modulus.degree()
             #if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             #    halt = base.halting_paramter() * e
@@ -2550,7 +2559,10 @@ class pAdicExtension_class(UniqueFactory):
                 prec = prec_cap
             elif prec > prec_cap and base._prec_type() in ('capped-rel', 'capped-abs'):
                 raise ValueError("Not enough precision in defining polynomial")
-            modulus = truncate_to_prec(modulus, (prec/e).ceil() + 1)
+            if polytype == 'e':
+                modulus = truncate_to_prec(modulus, (prec/e).ceil() + 1)
+            else:
+                modulus = modulus.change_ring(modulus.base_ring().change(type='floating-point'))
         else:
             if unram_name is None:
                 unram_name = names + '_u'
@@ -2561,7 +2573,7 @@ class pAdicExtension_class(UniqueFactory):
             names = (names, res_name, unram_name, ram_name)
             polytype = 'p'
 
-        if polytype == 'u' or polytype == 'e':
+        if polytype in ('u', 'e', 'ru', 're'):
             if polytype == 'e':
                 implementation = "NTL" # for testing - FLINT ramified extensions not implemented yet
             key = (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos,
@@ -2594,7 +2606,7 @@ class pAdicExtension_class(UniqueFactory):
         if version[0] < 8:
             key = list(key)
             key[-1:-1] = [None]
-        if polytype == 'u' or polytype == 'e':
+        if polytype in ('u', 'e', 'ru', 're'):
             (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep,
              print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, show_prec, implementation) = key
             if show_prec is None:

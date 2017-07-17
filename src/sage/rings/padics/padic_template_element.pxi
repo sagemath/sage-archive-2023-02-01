@@ -121,7 +121,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 x = Rational(x)
         elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
-                raise NotImplementedError("conversion from %r to %r not implemented"%(x.parent(), self.parent()))
+                if x.parent().modulus().change_ring(self.base_ring()) == self.parent().modulus():
+                    x = x.polynomial().change_ring(self.base_ring()).list()
+                else:
+                    raise NotImplementedError("conversion from %r to %r not implemented"%(x.parent(), self.parent()))
         elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             if not Integer(self.prime_pow.prime).divides(x.parent().order()):
                 raise TypeError("p does not divide modulus %s"%x.parent().order())

@@ -392,6 +392,26 @@ class SchemeHomset_generic(HomsetWithBase):
 
         raise TypeError("x must be a ring homomorphism, list or tuple")
 
+    def _an_element_(self):
+        """
+        Construct a sample morphism.
+
+        OUTPUT:
+
+        An element of the homset.
+
+        EXAMPLES::
+
+            sage: P2 = ProjectiveSpace(QQ, 2)
+            sage: P2(QQ)._an_element_()
+            (1 : 1 : 1)
+            sage: End(P2)._an_element_()
+            Scheme endomorphism of Projective Space of dimension 2 over Rational
+            Field
+              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                    (x0 : x0 : x0)
+        """
+        return self([self.domain().coordinate_ring().gen(0)]*self.codomain().ngens())
 
 #*******************************************************************
 # Base class for points

@@ -148,6 +148,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             Traceback (most recent call last):
             ...
             ValueError: +Infinity not well defined in dimension > 1
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -1572,8 +1576,12 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
         ::
 
-            sage: P = ProjectiveSpace(ZZ,2)
+            sage: P = ProjectiveSpace(QQ,2)
             sage: P(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+            sage: P.point(infinity)
             Traceback (most recent call last):
             ...
             ValueError: +Infinity not well defined in dimension > 1

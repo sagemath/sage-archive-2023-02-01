@@ -756,13 +756,8 @@ class SympyConverter(Converter):
             sage: s.composition(f, f.operator())
             asin(2)
         """
-        # print('--- ex',ex)
-        # print('--- operator',operator)
         f = operator._sympy_init_()
-        # print('--- f',f)
-        # print('diff f operator:',type(f),type(operator))
         g = ex.operands()
-        # print('--- g',g)
         import sympy
 
         f_sympy = getattr(sympy, f, None)
@@ -773,6 +768,85 @@ class SympyConverter(Converter):
             # create generic function with nargs equal to initial function
             return  sympy.Function(f)(*tuple(g))
             #raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
+
+
+        # import sympy
+
+        # f = operator._sympy_init_()
+        # G = ex.operands()
+
+        # f_sympy = getattr(sympy, f, sympy.Function)
+        # # print(f,g,f_sympy,sympy.sympify(g, evaluate=False),*sympy.sympify(g, evaluate=False))
+        # try :
+        #     if f_sympy == sympy.Function :
+        #         # Case f generic fuction
+        #         # print (type(f_sympy(f)))
+        #         # print (type(f_sympy(f)(*sympy.sympify(g, evaluate=False))))
+        #         return f_sympy(f)(*sympy.sympify(g, evaluate=False))
+        #     else :
+        #         return f_sympy(*sympy.sympify(g, evaluate=False))
+        # except:
+        #     raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
+
+
+    def derivative(self, ex, operator):
+        """
+        The input to this method is a symbolic expression which
+        corresponds to a relation.
+
+        TESTS::
+            sage: import sympy
+
+            sage: var('x','y')
+            (x, y)
+
+            sage: f_sage = function('f_sage')(x,y)
+
+            convertion ::
+            sage: f_sympy = f_sage._sympy_()
+
+            sage: df_sage = f_sage.diff(x,2,y,1); df_sage
+            diff(f_sage(x, y), x, x, y)
+            sage: df_sympy = df_sage._sympy_(); df_sympy
+            Derivative(f_sage(x, y), x, x, y)
+            sage: df_sympy == f_sympy.diff(x,2,y,1)
+            True
+
+
+        """
+        # print(operator,operator.__dict__,type(operator._f),type(operator))
+        # print (ex,ex.arguments())
+        # print (operator,operator.function(),type(operator.function()),operator.function()==operator._f)
+
+        import sympy
+
+
+        # retrive derivated function
+        f = operator.function()
+
+        f_sympy = self.composition(ex,f)
+
+
+
+        # retrive order
+        order = operator._parameter_set
+        # arguments
+        _args = ex.arguments()
+
+        sympy_arg = []
+        for aa in range(len(_args)):
+            gg = order.count(aa)
+            if gg > 0 :
+                sympy_arg.append(_args[aa])
+                sympy_arg.append(gg)
+
+
+        # print(f_sympy,order,_args,sympy_arg,type(ex),ex)
+
+
+        return f_sympy.diff(*sympy_arg)
+
+
 
 sympy = SympyConverter()
 

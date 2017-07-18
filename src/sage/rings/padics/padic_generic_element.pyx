@@ -2661,3 +2661,128 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         raise NotImplementedError
+
+    def polylog(self, n):
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.power_series_ring import PowerSeriesRing
+        from sage.rings.padics.factory import Qp
+        from sage.misc.all import verbose
+        from sage.functions.log import log
+        from sage.functions.other import ceil
+
+        def _polylog_c(n,p):
+            return p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p)
+
+        def _compute_g(p, n, prec, terms):
+            # Compute the sequence of power series g
+            R = PowerSeriesRing(Qp(p, ceil(prec)), default_prec=terms, names='v')
+            v = R.gen()
+            g = (n+1)*[0]
+            g[0] = v-1 - ((v-1)**p)/(v**p-(v-1)**p)
+            for i in range(n):
+                g[i+1] = -(g[i]/(v-v**2)).integral()
+            return [x.truncate(terms) for x in g]
+
+        def _findprec(c_1,c_2,c_3,p):
+            k = ceil(c_1/c_2)
+            while True:
+                if c_1*k - c_2*k.log(p) > c_3:
+                    return k
+                k += 1
+
+        def _Li_n_res_1(p, n, z0, prec):
+            """
+            compute Li_n for z0 = 1 mod p
+            """
+            if z0 == 1:
+                raise ValueError('z0 cannot be 1!')
+            elif p == 2:
+                raise ValueError('p cannot be 2!')
+            else:
+                hsl = _findprec((z0-1).valuation(p), n, prec, p) # TODO increase if  p = 2
+                K = Qp(p,ceil(prec + n*log(hsl-1,p)))
+                gsl = max([_findprec(1/(p-1), 1, prec - m  + _polylog_c(m,p)+  K(1-2**(m-1)).valuation() + (n-m)*(hsl-1).log(p), p) for m in range(2,n+1)])
+                g = _compute_g(p, n, prec, gsl)
+                S = PowerSeriesRing(K, default_prec=hsl,names='t')
+                t = S.gen()
+                G = [((1+t).log())**i/Integer(i).factorial() for i in range(n+4)]
+
+                H = (n+1)*[0] 
+                H[2] = sum((-1)**i*t**i/(i+1) for i in range(hsl+1)).integral()
+                for i in range(2,n):
+                    H0 = 0
+                    if (i + 1) % 2 == 1:
+                        H0 = 2**i*p**(i+1)*g[i+1](1/2)/((1-2**i)*(p**(i+1) - 1))
+                    H[i+1] = (H[i]/(1+t) + G[i]/t).integral() + H0
+
+                return Qp(p,prec)(H[n](K(z0-1)) - (K(z0).log(0))**(n-1)*K(1-z0).log(0)/Integer(n-1).factorial())
+
+        def _Li_n(p = 7, n = 3, z0 = 1/2, prec = 20):
+            """
+            Return Li_n(z0) , the p-adic polylogarithm of ``z0`` to precision prec.
+
+            z0 not infinity or 1 mod p
+
+            INPUT:
+
+                - ``p`` -- (default: 7) a positive prime integer
+                - ``n`` -- (default: 2) a positive integer
+                - prec -- (default: 15) a positive integer
+
+            OUTPUT:
+
+                - Li_n(z0)
+
+            EXAMPLES:
+            ::
+
+                sage: Li_n(13, 6, -1) == 0
+                True
+
+            """
+            K = Qp(p,prec)
+            res = 'infty' # Assume residue disk around oo
+            if K(z0).valuation() >= 0:
+                res = K(z0).residue()
+
+            # Which residue disk are we in
+            if res == 0:
+                verbose("residue 0, using series. %d %s"%(n,str(z0)), level=2)
+                return sum(K(z0)**k/k**n for k in range(1,p*prec))
+            if res == 1 and K(z0) == 1:
+                raise ValueError
+            # Residue disk around 1
+            if res == 1 and K(z0) != 1:
+                verbose("residue 1, using Li_n_res_1. %d %s"%(n,str(z0)), level=2)
+                return _Li_n_res_1(p, n, z0, prec)
+            if res == 'infty':
+                verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(z0)), level=2)
+                return (-1)**(n+1)*_Li_n(p,n,1/z0,prec)-(K(z0).log(0)**n)/K(n.factorial())
+
+            P = PolynomialRing(K, 'x')
+            x = P.gen()
+            f = x**(p-1)-1
+            roots = f.roots(multiplicities=False) # TODO use K.zeta here?
+            for x in roots:
+                if (z0 - x).valuation() > 0:
+                    zeta = x
+
+            # Set up precision bounds
+            tsl = _findprec((z0-zeta).valuation(), n, prec, p)
+            gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) + (n-m)*(tsl-1).log(p), p) for m in range(1,n+1)])
+
+            gtr = _compute_g(p, n, prec + n*(tsl -1).log(p) + n*(gsl-1).log(p), gsl)
+
+            # Residue disk around zeta
+            verbose("general case. %d %s"%(n,str(z0)), level=2)
+            Li_i_zeta = [0] + [p**i/(p**i-1)*gtr[i](1/(1-zeta)) for i in range(1,n+1)]
+
+            T = PowerSeriesRing(K, default_prec=tsl, names='t')
+            t = T.gen()
+            F = (n+1)*[0]
+            F[0] = (zeta+t)/(1-zeta-t)
+            for i in range(n):
+                F[i+1] = Li_i_zeta[i+1] + (F[i]/(zeta+t)).integral()
+            return Qp(p, prec)(F[n](z0-zeta))
+
+        return _Li_n(self.parent().prime(), n, self, self.precision_absolute())

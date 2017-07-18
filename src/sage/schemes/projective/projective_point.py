@@ -140,6 +140,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             (1 : 0)
             sage: P(infinity)
             (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,2)
+            sage: P(Infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -150,7 +158,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 v = list(v)
             elif v is infinity  or (len(v) == 1 and v[0] is infinity):
                 if d > 2:
-                    raise ValueError("infinity not well defined in dimension > 1")
+                    raise ValueError("%s not well defined in dimension > 1"%v)
                 v = [1, 0]
 
             if not isinstance(v,(list,tuple)):
@@ -1561,6 +1569,14 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             (1 : 0)
             sage: P(infinity)
             (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,2)
+            sage: P(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -1570,7 +1586,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
                 v = list(v)
             elif v is infinity or (len(v) == 1 and v[0] is infinity):
                 if d > 2:
-                    raise ValueError("infinity not well defined in dimension > 1")
+                    raise ValueError("%s not well defined in dimension > 1"%v)
                 v = [1, 0]
             if not isinstance(v, (list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))

@@ -560,7 +560,7 @@ cdef class Expression(CommutativeRingElement):
         if state[0] != 0 or len(state) != 3:
             raise ValueError("unknown state information")
         # set parent
-        self._set_parent(ring.SR)
+        self._parent = ring.SR
         # get variables
         cdef GExList sym_lst
         for name in state[1]:

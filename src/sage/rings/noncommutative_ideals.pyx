@@ -141,7 +141,7 @@ class IdealMonoid_nc(IdealMonoid_c):
         elif isinstance(x, Ideal_generic):
             x = x.gens()
         y = self._IdealMonoid_c__R.ideal(x, side=side)
-        y._set_parent(self)
+        y._parent = self
         return y
 
 

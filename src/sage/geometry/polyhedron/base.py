@@ -1820,6 +1820,18 @@ class Polyhedron_base(Element):
         """
         return self.parent().ambient_dim()
 
+    def backend(self):
+        r"""
+        Return the backend.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices = [[1,0,0,0],[0,1,0,0],[0,0,1,0]])
+            sage: P.backend()
+            'ppl'
+        """
+        return self.parent().backend()
+
     def dim(self):
         """
         Return the dimension of the polyhedron.

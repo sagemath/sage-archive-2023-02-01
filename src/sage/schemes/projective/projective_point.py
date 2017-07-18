@@ -132,16 +132,27 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P = ProjectiveSpace(1, R.quo(t^2+1))
             sage: P([2*t, 1])
             (2*tbar : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,1)
+            sage: P.point(Infinity)
+            (1 : 0)
+            sage: P(infinity)
+            (1 : 0)
         """
         SchemeMorphism.__init__(self, X)
         if check:
             from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
             d = X.codomain().ambient_space().ngens()
+
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
+            elif v is infinity  or (len(v) == 1 and v[0] is infinity):
+                if d > 2:
+                    raise ValueError("infinity not well defined in dimension > 1")
+                v = [1, 0]
+
             if not isinstance(v,(list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
@@ -1542,6 +1553,14 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: Q=P([2, 1])
             sage: Q[0].parent()
             Finite Field of size 7
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ,1)
+            sage: P.point(Infinity)
+            (1 : 0)
+            sage: P(infinity)
+            (1 : 0)
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -1549,10 +1568,11 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
-            if not isinstance(v,(list,tuple)):
+            elif v is infinity or (len(v) == 1 and v[0] is infinity):
+                if d > 2:
+                    raise ValueError("infinity not well defined in dimension > 1")
+                v = [1, 0]
+            if not isinstance(v, (list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
                 raise TypeError("v (=%s) must have %s components"%(v, d))

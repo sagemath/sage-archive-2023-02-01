@@ -126,10 +126,20 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             return "Hyperelliptic Curve over %s defined by %s + %s = %s"%(R, y**2, h(x)*y, f(x))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        """
+        Test of equality.
+        """
         if not isinstance(other, HyperellipticCurve_generic):
-            return -1
-        return cmp(self._hyperelliptic_polynomials, other._hyperelliptic_polynomials)
+            return False
+        return (self._hyperelliptic_polynomials ==
+                other._hyperelliptic_polynomials)
+
+    def __ne__(self, other):
+        """
+        Test of not equality.
+        """
+        return not self == other
 
     def hyperelliptic_polynomials(self, K=None, var='x'):
         """
@@ -145,7 +155,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             f, h = self._hyperelliptic_polynomials
             P = PolynomialRing(K, var)
-            return (P(f),P(h))
+            return (P(f), P(h))
 
     def is_singular(self):
         r"""

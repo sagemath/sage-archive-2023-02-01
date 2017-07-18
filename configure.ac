@@ -28,29 +28,10 @@ AC_PREREQ([2.69])
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
-AC_COPYRIGHT([GPL version 3])
-AC_CONFIG_SRCDIR([configure.ac])
-AC_CONFIG_AUX_DIR([config])
-
-dnl This is the hierarchy where everything gets installed (SAGE_LOCAL).
-dnl By default, it is the subdirectory local, but the user
-dnl can override it by supplying --prefix=....
-AC_PREFIX_DEFAULT(`pwd -P`/local)
-
-dnl We don't really use automake, but configure needs aclocal and the
-dnl automake library files (like config.guess).
-AM_INIT_AUTOMAKE([1.9.6 foreign])
-
-# Allow "configure --disable-maintainer-mode" to disable timestamp checking
-AM_MAINTAINER_MODE([enable])
-
-dnl Make sure the path to our own m4 macros is always properly set 
-dnl and doesn't depend on how autoconf is called.
-AC_CONFIG_MACRO_DIR([m4])
-
-#---------------------------------------------------------
+# The following needs to be immediately after calling AC_INIT
+#------------------------------------------------------------
 # We need to run this configure script with bash
-if test -z "$BASH_VERSION$CONFIG_SHELL"
+if test -z "$BASH_VERSION"
 then
     CONFIG_SHELL=bash
     export CONFIG_SHELL
@@ -71,6 +52,27 @@ then
         AC_MSG_ERROR(['bash' not found])
     fi
 fi
+
+
+AC_COPYRIGHT([GPL version 3])
+AC_CONFIG_SRCDIR([configure.ac])
+AC_CONFIG_AUX_DIR([config])
+
+dnl This is the hierarchy where everything gets installed (SAGE_LOCAL).
+dnl By default, it is the subdirectory local, but the user
+dnl can override it by supplying --prefix=....
+AC_PREFIX_DEFAULT(`pwd -P`/local)
+
+dnl We don't really use automake, but configure needs aclocal and the
+dnl automake library files (like config.guess).
+AM_INIT_AUTOMAKE([1.9.6 foreign])
+
+# Allow "configure --disable-maintainer-mode" to disable timestamp checking
+AM_MAINTAINER_MODE([enable])
+
+dnl Make sure the path to our own m4 macros is always properly set 
+dnl and doesn't depend on how autoconf is called.
+AC_CONFIG_MACRO_DIR([m4])
 
 #---------------------------------------------------------
 #

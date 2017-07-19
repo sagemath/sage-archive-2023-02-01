@@ -1,3 +1,9 @@
+def frobenius_gen(K):
+    f = K.defining_polynomial()
+    
+
+
+
 def frobenius_unram(self, arithmetic=True):
     """
     Returns the image of this element under the Frobenius automorphism
@@ -40,18 +46,34 @@ def frobenius_unram(self, arithmetic=True):
         ...
         NotImplementedError: Frobenius automorphism only implemented for unramified extensions
     """
+    if self == 0:
+        return self
     R = self.parent()
-    if self.is_zero(): return self
-    L = self.teichmuller_list()
-    ppow = R.uniformizer_pow(self.valuation())
-    if arithmetic:
-        exp = R.prime()
-    else:
-        exp = R.prime()**(R.degree()-1)
-    ans = ppow * L[0]**exp
-    for m in range(1,len(L)):
-        ppow = ppow << 1
-        ans += ppow * L[m]**exp
+    p = R.prime()
+    a = R.gen()
+    prec = R.precision_cap()
+    exp = p
+    if not arithmetic:
+        exp = p**(R.degree()-1)
+    frob_a = R(a.residue()**exp).lift_to_precision(prec) #initial approximation of frob_a
+    f = R.defining_polynomial()
+    g = f.derivative()
+    while(f(frob_a) != 0): #hensel lift frob_a 
+        frob_a = frob_a - f(frob_a)/g(frob_a)
+    ppow = self.valuation()
+    unit = self.unit_part()
+    coefs = unit.list()
+    power_dict = {} # j : frob_a^j. cache powers of frob_a
+    ans = 0
+    for i in range(len(coefs)):
+        update = 0
+        for j in range(len(coefs[i])):
+            if j in power_dict.keys():
+                update += coefs[i][j]*power_dict[j]
+            else:
+                power_dict[j] = frob_a**j #We might be able to optimize this with smarts
+                update += coefs[i][j]*power_dict[j]
+        ans += update*p**(i+ppow)
     return ans
 
 def norm_unram(self, base = None):

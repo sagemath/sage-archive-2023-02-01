@@ -53,9 +53,9 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             Eisenstein Extension in t defined by x^2 + 7 with capped relative precision 20 over 7-adic Ring
         """
         if do_latex:
-            return "Eisenstein Extension in %s defined by %s over %s"%(self.latex_name(), latex(self.defining_polynomial()), latex(self.ground_ring()))
+            return "Eisenstein Extension in %s defined by %s over %s"%(self.latex_name(), latex(self.defining_polynomial(exact=True)), latex(self.ground_ring()))
         else:
-            return "Eisenstein Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(), precprint(self._prec_type(), self.precision_cap(), self.variable_name()), self.prime(), "Field" if self.is_field() else "Ring")
+            return "Eisenstein Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.variable_name()), self.prime(), "Field" if self.is_field() else "Ring")
 
     def ramification_index(self, K = None):
         """

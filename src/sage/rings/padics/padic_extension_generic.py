@@ -177,13 +177,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def defining_polynomial(self):
         """
-        Returns the polynomial defining this extension, as an exact polynomial
-        with coefficients in the exact field associated to the base.
+        Returns the polynomial defining this extension.
 
-        .. SEEALSO::
+        INPUT:
 
-            :meth:`modulus`
-            :meth:`exact_field`
+        - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
+                       defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -192,9 +191,19 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: f = x^5 + 75*x^3 - 15*x^2 + 125*x - 5
             sage: W.<w> = R.ext(f)
             sage: W.defining_polynomial()
+            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.defining_polynomial(exact=True)
             x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+        .. SEEALSO::
+
+            :meth:`modulus`
+            :meth:`exact_field`
         """
-        return self._exact_modulus
+        if exact:
+            return self._exact_modulus
+        else:
+            return self._given_poly
 
     def exact_field(self):
         """
@@ -202,10 +211,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
         Note that this method always returns a field, even for
         a p-adic ring.
-
-        .. SEEALSO::
-
-            :meth:`defining_polynomial`
 
         EXAMPLES::
 
@@ -215,17 +220,22 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.<w> = R.ext(f)
             sage: W.exact_field()
             Number Field in w with defining polynomial x^5 + 75*x^3 - 15*x^2 + 125*x - 5
-        """
-        return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
-
-    def modulus(self):
-        """
-        Returns the polynomial defining this extension, as an inexact polynomial
-        over the base ring.
 
         .. SEEALSO::
 
             :meth:`defining_polynomial`
+            :meth:`modulus`
+        """
+        return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
+
+    def modulus(self, exact=False):
+        """
+        Returns the polynomial defining this extension.
+
+        INPUT:
+
+        - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
+                       defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -235,8 +245,15 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.<w> = R.ext(f)
             sage: W.modulus()
             (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.modulus(exact=True)
+            x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+        .. SEEALSO::
+
+            :meth:`defining_polynomial`
+            :meth:`exact_field`
         """
-        return self._given_poly
+        return self.defining_polynomial(exact)
 
     def ground_ring(self):
         """

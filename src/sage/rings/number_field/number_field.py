@@ -10731,7 +10731,6 @@ def is_real_place(v):
     INPUT:
 
     - ``v`` -- an infinite place of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
 

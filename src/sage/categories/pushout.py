@@ -2991,7 +2991,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: R.<a> = K[]
             sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
             sage: AEF(K)
-            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+            Eisenstein Extension in a defined by a^2 - 3 with capped relative precision 6 over 3-adic Field
 
         """
         from sage.all import QQ, ZZ, CyclotomicField

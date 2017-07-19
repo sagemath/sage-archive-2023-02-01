@@ -49,7 +49,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode['var_name'] = names[0]
         names = names[0]
         pAdicGeneric.__init__(self, R, R.prime(), prec, print_mode, names, element_class)
-        self._populate_coercion_lists_(coerce_list=[], element_constructor=element_class)
+        self._populate_coercion_lists_(element_constructor=element_class)
 
     def _coerce_map_from_(self, R):
         """
@@ -137,7 +137,35 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def defining_polynomial(self):
         """
-        Returns the polynomial defining this extension.
+        Returns the polynomial defining this extension, as an exact polynomial
+        with coefficients in the exact field associated to the base.
+
+        .. SEEALSO::
+
+            :meth:`modulus`
+            :meth:`exact_field`
+
+        EXAMPLES::
+
+            sage: R = Zp(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: W.defining_polynomial()
+            x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+        """
+        return self._exact_modulus
+
+    def exact_field(self):
+        """
+        Return a number field with the same defining polynomial.
+
+        Note that this method always returns a field, even for
+        a p-adic ring.
+
+        .. SEEALSO::
+
+            :meth:`defining_polynomial`
 
         EXAMPLES::
 
@@ -145,14 +173,19 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
-            sage: W.defining_polynomial()
-            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.exact_field()
+            Number Field in w with defining polynomial x^5 + 75*x^3 - 15*x^2 + 125*x - 5
         """
-        return self._given_poly
+        return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
 
     def modulus(self):
         """
-        Returns the polynomial defining this extension.
+        Returns the polynomial defining this extension, as an inexact polynomial
+        over the base ring.
+
+        .. SEEALSO::
+
+            :meth:`defining_polynomial`
 
         EXAMPLES::
 
@@ -243,13 +276,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: c, R0 = R.construction(); R0
             5-adic Ring with capped relative precision 8
             sage: c(R0)
-            Unramified Extension of 5-adic Ring with capped relative precision 8 in a defined by (1 + O(5^8))*x^2 + (4 + O(5^8))*x + (2 + O(5^8))
+            Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 8 over 5-adic Ring
             sage: c(R0) == R
             True
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
         print_mode = self._printer.dict()
-        return (AEF([self._pre_poly], [self.variable_name()],
+        return (AEF([self.defining_polynomial()], [self.variable_name()],
                     prec=self.precision_cap(), print_mode=self._printer.dict(),
                     implementation=self._implementation),
                 self.base_ring())
@@ -273,7 +306,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
-            Unramified Extension of 17-adic Field with capped relative precision 6 in a defined by (1 + O(17^6))*x^4 + (O(17^6))*x^3 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + (3 + O(17^6))
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
         """
@@ -303,7 +336,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
-            Unramified Extension of 17-adic Ring with capped relative precision 6 in a defined by (1 + O(17^6))*x^4 + (O(17^6))*x^3 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + (3 + O(17^6))
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
         """

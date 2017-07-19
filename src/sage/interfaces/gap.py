@@ -188,6 +188,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.element import ModuleElement
 import re
 import os
+import io
 import pexpect
 import time
 import platform
@@ -1339,7 +1340,7 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = open(self._local_tmpfile(),"r")
+            F = io.open(self._local_tmpfile(), "r", encoding='utf-8')
             help = F.read()
             if pager:
                 from IPython.core.page import page

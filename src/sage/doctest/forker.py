@@ -514,7 +514,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
-            got = self._fakeout.getvalue().decode('utf-8')
+            got = self._fakeout.getvalue()
+            try:
+                got = got.decode('utf-8')
+            except UnicodeDecodeError:
+                got = got.decode('latin1')
             # the actual output
 
             outcome = FAILURE   # guilty until proved innocent or insane

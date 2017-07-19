@@ -417,7 +417,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             if self.parent().e() == 1:
                 norm_of_uniformizer = self.parent().ground_ring().uniformizer_pow(self.parent().degree())
             else:
-                norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().modulus()[0]
+                norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().defining_polynomial()[0]
             return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det()) * norm_of_uniformizer**self.valuation()
 
     def trace(self, base = None):

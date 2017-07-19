@@ -2275,6 +2275,22 @@ class pAdicExtension_class(UniqueFactory):
               x^4 - 15, ('w', None, None, 'w'),
               12, 'series', True, '|', (), -1, -1, -1, 'NTL'),
              {'approx_modulus': (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4))})
+
+            sage: A = Qp(3,5)
+            sage: Po.<X> = A[]
+            sage: f = Po([3,0,-1])
+            sage: K.<a> = A.ext(f)
+            sage: -a^2+3
+            O(a^12)
+            sage: K.defining_polynomial() == f/f.leading_coefficient()
+            True
+
+            sage: g = Po([6,3,2])
+            sage: H.<b> = A.ext(g)
+            sage: 2*b^2+3*b+6
+            O(b^12)
+            sage: H.defining_polynomial() == g/g.leading_coefficient()
+            True
         """
         if print_mode is None:
             print_mode = base.print_mode()

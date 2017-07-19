@@ -70,7 +70,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
                 return "\\mathbf{Q}_{%s^{%s}}" % (self.prime(), self.degree())
             else:
                 return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
-        return "Unramified Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(), precprint(self._prec_type(), self.precision_cap(), self.prime()), self.prime(), "Field" if self.is_field() else "Ring")
+        return "Unramified Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.prime()), self.prime(), "Field" if self.is_field() else "Ring")
 
     def ramification_index(self, K = None):
         """

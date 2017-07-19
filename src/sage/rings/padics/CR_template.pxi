@@ -2314,7 +2314,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism_coercion):
 
     def is_surjective(self):
         r"""
-        Return whether this map is injective.
+        Return whether this map is surjective.
 
         EXAMPLES::
 

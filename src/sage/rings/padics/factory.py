@@ -475,6 +475,14 @@ class Qp_class(UniqueFactory):
             sage: Qp.create_key(5,40)
             (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1)
         """
+        if isinstance(names, (int, Integer)):
+            # old pickle; names is what used to be halt.
+            names = ram_name
+            ram_name = print_pos
+            print_pos = print_sep
+            print_alphabet = print_max_terms
+            print_max_terms = check
+            check = True
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, check, ['capped-rel', 'floating-point'])
 
     def create_object(self, version, key):
@@ -1491,6 +1499,14 @@ class Zp_class(UniqueFactory):
             sage: Zp.create_key(5,40,print_mode='digits')
             (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1)
         """
+        if isinstance(names, (int, Integer)):
+            # old pickle; names is what used to be halt.
+            names = ram_name
+            ram_name = print_pos
+            print_pos = print_sep
+            print_alphabet = print_max_terms
+            print_max_terms = check
+            check = True
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet,
                             print_max_terms, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point'])
 

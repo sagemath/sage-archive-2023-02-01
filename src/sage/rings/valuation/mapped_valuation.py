@@ -11,7 +11,7 @@ through an infinite valuation on `K[x]` which maps `G` to infinity::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
 
-    sage: v = FunctionFieldValuation(K, 0)
+    sage: v = K.valuation(0)
     sage: w = v.extension(L); w
     (x)-adic valuation
 
@@ -24,7 +24,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -44,7 +44,7 @@ class MappedValuation_base(DiscretePseudoValuation):
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
 
-        sage: v = FunctionFieldValuation(K, 0)
+        sage: v = K.valuation(0)
         sage: w = v.extension(L); w
         (x)-adic valuation
 
@@ -61,9 +61,10 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x^2 + 1)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L); w
             (x)-adic valuation
+            sage: from sage.rings.valuation.mapped_valuation import MappedValuation_base
             sage: isinstance(w, MappedValuation_base)
             True
 
@@ -84,7 +85,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: v.extension(L) # indirect doctest
             2-adic valuation
 
@@ -99,7 +100,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: v.extension(L).residue_ring()
             Finite Field of size 2
 
@@ -115,7 +116,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: v.extension(L).uniformizer()
             t + 1
 
@@ -132,7 +133,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extensions(L)[0]
             sage: w._to_base_domain(y).parent()
             Univariate Polynomial Ring in y over Rational function field in x over Rational Field
@@ -150,7 +151,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
             sage: w._from_base_domain(w._base_valuation.domain().gen()).parent()
             Function field in y defined by y^2 - x
@@ -168,7 +169,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
             sage: w(y) # indirect doctest
             1/2
@@ -186,7 +187,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x - 2))
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
             sage: w.reduce(y)
             u1
@@ -205,7 +206,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 2)
+            sage: v = K.valuation(2)
             sage: w = v.extension(L)
             sage: w.lift(w.residue_field().gen())
             y
@@ -227,7 +228,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extensions(L)[0]
             sage: w._to_base_residue_ring(1)
             1
@@ -246,7 +247,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extensions(L)[0]
             sage: w._from_base_residue_ring(1)
             1
@@ -265,7 +266,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extensions(L)[0]
             sage: w._test_to_from_base_domain()
 
@@ -297,7 +298,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
 
-        sage: v = FunctionFieldValuation(K, 0)
+        sage: v = K.valuation(0)
         sage: w = v.extension(L); w
         (x)-adic valuation
 
@@ -310,8 +311,9 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
     
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
+            sage: from sage.rings.valuation.mapped_valuation import FiniteExtensionFromInfiniteValuation
             sage: isinstance(w, FiniteExtensionFromInfiniteValuation)
             True
             sage: TestSuite(w).run() # long time
@@ -329,7 +331,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
             sage: ww = v.extension(L)
             sage: w == ww # indirect doctest
@@ -347,7 +349,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
             sage: w.restriction(K) is v
             True
@@ -369,9 +371,9 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = valuations.pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
             sage: u.separating_element([w,uu]) # indirect doctest
             1/20*t + 7/20
@@ -398,7 +400,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = valuations.pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
             sage: w._relative_size(1024*t + 1024)
             11
@@ -419,7 +421,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = valuations.pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
             sage: f = 125*t + 1
             sage: u.simplify(f, error=u(f), force=True)
@@ -445,7 +447,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = valuations.pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
             sage: u.lower_bound(t + 2)
             0
@@ -468,7 +470,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = valuations.pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
             sage: u.upper_bound(t + 2)
             3
@@ -490,7 +492,7 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
-        sage: v = FunctionFieldValuation(K, 1)
+        sage: v = K.valuation(1)
         sage: w = v.extensions(L); w
         [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
          [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
@@ -511,9 +513,10 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
-            sage: v = FunctionFieldValuation(K, 2)
+            sage: v = K.valuation(2)
             sage: w = v.extension(L); w
             (x - 2)-adic valuation
+            sage: from sage.rings.valuation.mapped_valuation import FiniteExtensionFromLimitValuation
             sage: isinstance(w, FiniteExtensionFromLimitValuation)
             True
 
@@ -533,7 +536,7 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
 
         EXAMPLES::
 
-            sage: pAdicValuation(GaussianIntegers().fraction_field(), 2) # indirect doctest
+            sage: valuations.pAdicValuation(GaussianIntegers().fraction_field(), 2) # indirect doctest
             2-adic valuation
 
         """

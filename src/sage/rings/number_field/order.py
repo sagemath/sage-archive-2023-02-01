@@ -991,6 +991,18 @@ class Order(IntegralDomain):
         """
         return self.number_field().absolute_degree()
 
+    def valuation(self, p):
+        r"""
+        Return the `p`-adic valuation on this order.
+
+        EXAMPLES::
+
+            sage: GaussianIntegers().valuation(2)
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
 ##     def absolute_polynomial(self):
 ##         """
 ##         Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.

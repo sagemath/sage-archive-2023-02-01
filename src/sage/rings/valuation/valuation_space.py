@@ -9,7 +9,7 @@ numbers extended by `\infty`.
 
 EXAMPLES::
 
-    sage: pAdicValuation(QQ, 2).parent()
+    sage: QQ.valuation(2).parent()
     Discrete pseudo-valuations on Rational Field
 
 AUTHORS:
@@ -18,7 +18,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -37,8 +37,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
     EXAMPLES::
 
+        sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
         sage: H = DiscretePseudoValuationSpace(QQ)
-        sage: pAdicValuation(QQ, 2) in H
+        sage: QQ.valuation(2) in H
         True
 
     .. NOTE::
@@ -75,7 +76,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         r"""
         TESTS::
 
-            sage: isinstance(pAdicValuation(QQ, 2).parent(), DiscretePseudoValuationSpace)
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+            sage: isinstance(QQ.valuation(2).parent(), DiscretePseudoValuationSpace)
             True
 
         """
@@ -106,7 +108,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
-            sage: isinstance(pAdicValuation(QQ, 2), DiscretePseudoValuationSpace.ElementMethods) # indirect doctest
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+            sage: isinstance(QQ.valuation(2), DiscretePseudoValuationSpace.ElementMethods) # indirect doctest
             True
 
         """
@@ -120,7 +123,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: from operator import mul
             sage: v.parent().get_action(ZZ, mul) # indirect doctest
 
@@ -139,6 +142,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: DiscretePseudoValuationSpace(QQ).an_element() # indirect doctest
             Trivial pseudo-valuation on Rational Field
 
@@ -152,6 +156,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         
         EXAMPLES::
 
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: DiscretePseudoValuationSpace(QQ) # indirect doctest
             Discrete pseudo-valuations on Rational Field
 
@@ -164,13 +169,14 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES:
 
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: H = DiscretePseudoValuationSpace(QQ)
             sage: H.an_element() in H
             True
 
         Elements of spaces which embed into this spaces are correctly handled::
 
-            sage: pAdicValuation(QQ, 2) in H
+            sage: QQ.valuation(2) in H
             True
 
         """
@@ -186,8 +192,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES:
 
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: H = DiscretePseudoValuationSpace(QQ)
-            sage: H(pAdicValuation(QQ, 2))
+            sage: H(QQ.valuation(2))
             2-adic valuation
 
         """
@@ -206,9 +213,10 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         We try to convert valuations defined on different domains by changing
         their base ring::
 
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: Z = DiscretePseudoValuationSpace(ZZ)
             sage: Q = DiscretePseudoValuationSpace(QQ)
-            sage: v = pAdicValuation(ZZ, 2)
+            sage: v = ZZ.valuation(2)
             sage: v in Q
             False
             sage: Q(v) in Q
@@ -245,13 +253,15 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         Here is an example of a method that is automagically added to a
         discrete valuation::
 
+            sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: H = DiscretePseudoValuationSpace(QQ)
-            sage: pAdicValuation(QQ, 2).is_discrete_pseudo_valuation() # indirect doctest
+            sage: QQ.valuation(2).is_discrete_pseudo_valuation() # indirect doctest
             True
 
         The methods will be provided even if the concrete types is not created
         with :meth:`__make_element_class__`::
 
+            sage: from sage.rings.valuation.valuation import DiscretePseudoValuation
             sage: m = DiscretePseudoValuation(H)
             sage: m.parent() is H
             True
@@ -278,7 +288,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 2).is_discrete_pseudo_valuation()
+                sage: QQ.valuation(2).is_discrete_pseudo_valuation()
                 True
 
             """
@@ -293,7 +303,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 2).is_discrete_valuation()
+                sage: QQ.valuation(2).is_discrete_valuation()
                 True
             
             """
@@ -306,7 +316,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 2).is_negative_pseudo_valuation()
+                sage: QQ.valuation(2).is_negative_pseudo_valuation()
                 False
 
             """
@@ -329,7 +339,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 7).is_trivial()
+                sage: QQ.valuation(7).is_trivial()
                 False
 
             """
@@ -350,11 +360,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 11).uniformizer()
+                sage: QQ.valuation(11).uniformizer()
                 11
 
             Trivial valuations have no uniformizer::
 
+                sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
                 sage: v = DiscretePseudoValuationSpace(QQ).an_element()
                 sage: v.is_trivial()
                 True
@@ -374,12 +385,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 2).value_group()
+                sage: QQ.valuation(2).value_group()
                 Additive Abelian Group generated by 1
 
             A pseudo-valuation that is `\infty` everywhere, does not have a
             value group::
 
+                sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
                 sage: v = DiscretePseudoValuationSpace(QQ).an_element()
                 sage: v.value_group()
                 Traceback (most recent call last):
@@ -401,7 +413,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Most commonly, in particular over fields, the semigroup is the
             group generated by the valuation of the uniformizer::
 
-                sage: G = pAdicValuation(QQ, 2).value_semigroup(); G
+                sage: G = QQ.valuation(2).value_semigroup(); G
                 Additive Abelian Semigroup generated by -1, 1
                 sage: G in AdditiveMagmas().AdditiveAssociative().AdditiveUnital().AdditiveInverse()
                 True
@@ -409,13 +421,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             If the domain is a discrete valuation ring, then the semigroup
             consists of the positive elements of the :meth:`value_group`::
 
-                sage: pAdicValuation(Zp(2), 2).value_semigroup()
+                sage: Zp(2).valuation().value_semigroup()
                 Additive Abelian Semigroup generated by 1
 
             The semigroup can have a more complicated structure when the
             uniformizer is not in the domain::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: R.<x> = ZZ[]
                 sage: w = GaussValuation(R, v)
                 sage: u = w.augmentation(x, 5/3)
@@ -436,7 +448,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: v.element_with_valuation(10)
                 1024
 
@@ -464,19 +476,19 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 2).residue_ring()
+                sage: QQ.valuation(2).residue_ring()
                 Finite Field of size 2
-                sage: TrivialValuation(QQ).residue_ring()
+                sage: valuations.TrivialValuation(QQ).residue_ring()
                 Rational Field
 
             Note that a residue ring always exists, even when a residue field
             may not::
 
-                sage: TrivialPseudoValuation(QQ).residue_ring()
+                sage: valuations.TrivialPseudoValuation(QQ).residue_ring()
                 Quotient of Rational Field by the ideal (1)
                 sage: TrivialValuation(ZZ).residue_ring()
                 Integer Ring
-                sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_ring()
+                sage: GaussValuation(ZZ['x'], ZZ.valuation(2)).residue_ring()
                 Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
 
 
@@ -490,14 +502,14 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: pAdicValuation(QQ, 2).residue_field()
+                sage: QQ.valuation(2).residue_field()
                 Finite Field of size 2
-                sage: TrivialValuation(QQ).residue_field()
+                sage: valuations.TrivialValuation(QQ).residue_field()
                 Rational Field
 
-                sage: TrivialValuation(ZZ).residue_field()
+                sage: valuations.TrivialValuation(ZZ).residue_field()
                 Rational Field
-                sage: GaussValuation(ZZ['x'], pAdicValuation(ZZ, 2)).residue_field()
+                sage: GaussValuation(ZZ['x'], ZZ.valuation(2)).residue_field()
                 Rational function field in x over Finite Field of size 2
 
             """
@@ -520,7 +532,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(QQ, 2)
+                sage: v = QQ.valuation(2)
                 sage: v.reduce(2)
                 0
                 sage: v.reduce(1)
@@ -542,7 +554,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(QQ, 2)
+                sage: v = QQ.valuation(2)
                 sage: v.lift(v.residue_ring().one())
                 1
 
@@ -554,7 +566,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: w = v.extension(QQ)
                 sage: w.domain()
                 Rational Field
@@ -572,7 +584,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: v.extensions(QQ)
                 [2-adic valuation]
 
@@ -587,7 +599,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(QQ, 2)
+                sage: v = QQ.valuation(2)
                 sage: w = v.restriction(ZZ)
                 sage: w.domain()
                 Integer Ring
@@ -607,7 +619,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(QQ, 3)
+                sage: v = QQ.valuation(3)
                 sage: v.change_domain(ZZ)
                 3-adic valuation
 
@@ -630,7 +642,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: w = v.scale(3)
                 sage: w(3)
                 3
@@ -687,9 +699,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v2 = pAdicValuation(QQ, 2)
-                sage: v3 = pAdicValuation(QQ, 3)
-                sage: v5 = pAdicValuation(QQ, 5)
+                sage: v2 = QQ.valuation(2)
+                sage: v3 = QQ.valuation(3)
+                sage: v5 = QQ.valuation(5)
                 sage: v2.separating_element([v3,v5])
                 4/15
 
@@ -759,8 +771,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v2 = pAdicValuation(QQ, 2)
-                sage: v3 = pAdicValuation(QQ, 3)
+                sage: v2 = QQ.valuation(2)
+                sage: v3 = QQ.valuation(3)
                 sage: v2._strictly_separating_element(v3)
                 2/3
 
@@ -836,8 +848,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v2 = pAdicValuation(QQ, 2)
-                sage: v3 = pAdicValuation(QQ, 3)
+                sage: v2 = QQ.valuation(2)
+                sage: v3 = QQ.valuation(3)
                 sage: v2._weakly_separating_element(v3)
                 2
 
@@ -861,7 +873,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: v.shift(1, 10)
                 1024
                 sage: v.shift(11, -1)
@@ -872,7 +884,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             the uniformizer and substraction of a lift of the reduction::
 
                 sage: R.<x> = ZZ[]
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: w = GaussValuation(R, v)
                 sage: w.shift(x, 1)
                 2*x
@@ -912,7 +924,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: v.simplify(6, force=True)
                 2
                 sage: v.simplify(6, error=0, force=True)
@@ -934,7 +946,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: v.lower_bound(2^10)
                 10
 
@@ -950,7 +962,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: v = pAdicValuation(ZZ, 2)
+                sage: v = ZZ.valuation(2)
                 sage: v.upper_bound(2^10)
                 10
 
@@ -971,7 +983,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES:: 
 
-                sage: v = pAdicValuation(Qp(2))
+                sage: v = Qp(2).valuation()
                 sage: v._relative_size(2)
                 1
 
@@ -991,7 +1003,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: v._test_is_negative_pseudo_valuation()
 
             """
@@ -1014,7 +1026,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: v._test_bounds()
 
             """
@@ -1031,7 +1043,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: v._test_simplify()
 
             """
@@ -1074,7 +1086,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: v._test_shift()
 
             """
@@ -1103,7 +1115,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: v._test_scale()
 
             """
@@ -1139,7 +1151,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(ZZ, 3)
+                sage: v = ZZ.valuation(3)
                 sage: v._test_add()
 
             """
@@ -1157,7 +1169,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_infinite_zero()
 
             """
@@ -1171,7 +1183,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_mul()
 
             """
@@ -1187,12 +1199,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_no_infinite_units()
 
             As multiplication translates to addition, pseudo-valuations which
             send a unit to infinity are necessarily trivial::
 
+                sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
                 sage: v = DiscretePseudoValuationSpace(QQ).an_element()
                 sage: v(1)
                 +Infinity
@@ -1217,7 +1230,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_value_group()
 
             """
@@ -1246,7 +1259,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_value_semigroup()
 
             """
@@ -1265,7 +1278,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_element_with_valuation()
 
             """
@@ -1284,7 +1297,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_residue_ring()
 
             """
@@ -1316,7 +1329,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_reduce()
 
             """
@@ -1355,7 +1368,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_lift()
 
             """
@@ -1385,7 +1398,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_restriction()
 
             """
@@ -1399,7 +1412,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_extension()
 
             """
@@ -1414,7 +1427,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_change_domain()
 
             """
@@ -1428,7 +1441,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_no_infinite_nonzero()
 
             """
@@ -1447,7 +1460,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_residue_field()
 
             """
@@ -1481,7 +1494,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_ge()
 
             """
@@ -1502,7 +1515,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: v = pAdicValuation(QQ, 5)
+                sage: v = QQ.valuation(5)
                 sage: v._test_le()
 
             """
@@ -1525,7 +1538,7 @@ class ScaleAction(Action):
 
     EXAMPLES::
 
-        sage: v = pAdicValuation(QQ, 5)
+        sage: v = QQ.valuation(5)
         sage: from operator import mul
         sage: v.parent().get_action(IntegerRing, mul, self_on_left=False)
 
@@ -1536,7 +1549,7 @@ class ScaleAction(Action):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = QQ.valuation(5)
             sage: 3*v # indirect doctest
             3 * 5-adic valuation
             
@@ -1550,7 +1563,7 @@ class InverseScaleAction(Action):
 
     EXAMPLES::
 
-        sage: v = pAdicValuation(QQ, 5)
+        sage: v = QQ.valuation(5)
         sage: from operator import div
         sage: v.parent().get_action(IntegerRing, div, self_on_left=True)
 
@@ -1561,7 +1574,7 @@ class InverseScaleAction(Action):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = QQ.valuation(5)
             sage: v/3 # indirect doctest
             1/3 * 5-adic valuation
             

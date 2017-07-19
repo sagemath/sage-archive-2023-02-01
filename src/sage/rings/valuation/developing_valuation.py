@@ -11,7 +11,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -31,7 +31,7 @@ class DevelopingValuation(DiscretePseudoValuation):
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, pAdicValuation(QQ, 7))
+        sage: v = valuations.GaussValuation(R, QQ.valuation(7))
 
     TESTS::
 
@@ -43,7 +43,8 @@ class DevelopingValuation(DiscretePseudoValuation):
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 7))
+            sage: v = valuations.GaussValuation(R, QQ.valuation(7))
+            sage: from sage.rings.valuation.developing_valuation import DevelopingValuation
             sage: isinstance(v, DevelopingValuation)
             True
 
@@ -187,7 +188,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         EXAMPLES::
 
             sage: S.<x> = QQ[]
-            sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(S, QQ.valuation(2))
             sage: v._quo_rem(x^2 + 1)
             (x, 1)
 
@@ -282,7 +283,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
-            sage: v = GaussValuation(S, pAdicValuation(R))
+            sage: v = valuations.GaussValuation(S, R.valuation())
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]

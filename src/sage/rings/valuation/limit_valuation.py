@@ -30,7 +30,7 @@ extensions can only be approximated::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
 
-    sage: v = FunctionFieldValuation(K, 1)
+    sage: v = K.valuation(1)
     sage: w = v.extensions(L); w
     [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
      [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
@@ -40,7 +40,7 @@ The same phenomenon can be observed for valuations on number fields::
     sage: K = QQ
     sage: R.<t> = K[]
     sage: L.<t> = K.extension(t^2 + 1)
-    sage: v = pAdicValuation(QQ, 5)
+    sage: v = QQ.valuation(5)
     sage: w = v.extensions(L); w
     [[ 5-adic valuation, v(t + 2) = 1 ]-adic valuation,
      [ 5-adic valuation, v(t + 3) = 1 ]-adic valuation]
@@ -55,7 +55,7 @@ The same phenomenon can be observed for valuations on number fields::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
 
-    sage: v = FunctionFieldValuation(K, 1/x)
+    sage: v = K.valuation(1/x)
     sage: w = v.extension(L); w
     Valuation at the infinite place
     sage: w._base_valuation._base_valuation._improve_approximation()
@@ -96,8 +96,8 @@ class LimitValuationFactory(UniqueFactory):
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-        sage: w = LimitValuation(v, x)
+        sage: v = GaussValuation(R, QQ.valuation(2))
+        sage: w = valuations.LimitValuation(v, x)
         sage: w(x)
         +Infinity
 
@@ -112,10 +112,10 @@ class LimitValuationFactory(UniqueFactory):
         easily possible to create the same limit in two different ways::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: w = LimitValuation(v, x) # indirect doctest
+            sage: v = GaussValuation(R, QQ.valuation(2))
+            sage: w = valuations.LimitValuation(v, x) # indirect doctest
             sage: v = v.augmentation(x, infinity)
-            sage: u = LimitValuation(v, x)
+            sage: u = valuations.LimitValuation(v, x)
             sage: u == w
             False
 
@@ -135,8 +135,8 @@ class LimitValuationFactory(UniqueFactory):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
-            sage: w = LimitValuation(v, x^2 + 1) # indirect doctest
+            sage: v = GaussValuation(R, QQ.valuation(2))
+            sage: w = valuations.LimitValuation(v, x^2 + 1) # indirect doctest
 
         """
         base_valuation, G = key
@@ -159,7 +159,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
 
-        sage: v = FunctionFieldValuation(K, 0)
+        sage: v = K.valuation(0)
         sage: w = v.extension(L)
         sage: w._base_valuation
         [ Gauss valuation induced by (x)-adic valuation, v(y) = 1/2 , … ]
@@ -172,6 +172,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
 
     TESTS::
 
+        sage: from sage.rings.valuation.limit_valuation import LimitValuation_generic
         sage: isinstance(w._base_valuation, LimitValuation_generic)
         True
         sage: TestSuite(w._base_valuation).run() # long time
@@ -183,7 +184,8 @@ class LimitValuation_generic(DiscretePseudoValuation):
     
             sage: R.<x> = QQ[]
             sage: K.<i> = QQ.extension(x^2 + 1)
-            sage: v = pAdicValuation(K, 2)
+            sage: v = K.valuation(2)
+            sage: from sage.rings.valuation.limit_valuation import LimitValuation_generic
             sage: isinstance(v._base_valuation, LimitValuation_generic)
             True
     
@@ -211,7 +213,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x - 1))
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
             sage: w.reduce(y) # indirect doctest
             u1
@@ -232,7 +234,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
             sage: w(y) # indirect doctest
             1/2
@@ -256,7 +258,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         For the unique extension over the place at 1337, the initial
         approximation is sufficient to compute the reduction of ``y``::
 
-            sage: v = FunctionFieldValuation(K, 1337)
+            sage: v = K.valuation(1337)
             sage: w = v.extension(L)
             sage: u = w._base_valuation
             sage: u._approximation
@@ -269,7 +271,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         However, at a place over 1341, the initial approximation is not sufficient
         for some values (note that 1341-1337 is a square)::
 
-            sage: v = FunctionFieldValuation(K, 1341)
+            sage: v = K.valuation(1341)
             sage: w = v.extensions(L)[0]
             sage: u = w._base_valuation
             sage: u._approximation
@@ -300,7 +302,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         For the unique extension over the place at 23, the initial
         approximation is sufficient to compute all valuations::
 
-            sage: v = FunctionFieldValuation(K, 23)
+            sage: v = K.valuation(23)
             sage: w = v.extension(L)
             sage: u = w._base_valuation
             sage: u._approximation
@@ -331,7 +333,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: w = v.extension(L)
             sage: w._base_valuation # indirect doctest
             [ Gauss valuation induced by 2-adic valuation, v(t + 1) = 1/2 , … ]
@@ -362,7 +364,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         sage: R.<x> = QQ[]
         sage: K.<i> = QQ.extension(x^2 + 1)
 
-        sage: v = pAdicValuation(K, 2)
+        sage: v = K.valuation(2)
         sage: u = v._base_valuation; u
         [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 , … ]
 
@@ -373,8 +375,9 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
     
             sage: R.<x> = QQ[]
             sage: K.<i> = QQ.extension(x^2 + 1)
-            sage: v = pAdicValuation(K, 2)
+            sage: v = K.valuation(2)
             sage: u = v._base_valuation
+            sage: from sage.rings.valuation.limit_valuation import MacLaneLimitValuation
             sage: isinstance(u, MacLaneLimitValuation)
             True
     
@@ -392,7 +395,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(GaussianIntegers(), 2)
+            sage: v = GaussianIntegers().valuation(2)
             sage: u = v._base_valuation
             sage: u.extensions(QQ['x'])
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 , … ]]
@@ -421,7 +424,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^4 - x^2 - 2*x - 1)
 
-            sage: v = FunctionFieldValuation(K, 1)
+            sage: v = K.valuation(1)
             sage: w = v.extensions(L)[0]; w
             [ (x - 1)-adic valuation, v(y^2 - 2) = 1 ]-adic valuation
             sage: s = w.reduce(y); s
@@ -443,7 +446,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
 
-            sage: v = FunctionFieldValuation(K, 0)
+            sage: v = K.valuation(0)
             sage: w = v.extension(L)
             sage: w.uniformizer() # indirect doctest
             y
@@ -459,20 +462,20 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
             sage: K = QQ
             sage: R.<x> = K[]
-            sage: vK = pAdicValuation(K, 2)
+            sage: vK = K.valuation(2)
             sage: f = (x^2 + 7) * (x^2 + 9)
             sage: V = vK.mac_lane_approximants(f, require_incomparability=True)
             sage: V = sorted(V, key=str)
 
-            sage: w = LimitValuation(V[0], f)
+            sage: w = valuations.LimitValuation(V[0], f)
             sage: w((x^2 + 7) * (x + 3))
             3/2
 
-            sage: w = LimitValuation(V[1], f)
+            sage: w = valuations.LimitValuation(V[1], f)
             sage: w((x^2 + 7) * (x + 3))
             +Infinity
 
-            sage: w = LimitValuation(V[2], f)
+            sage: w = valuations.LimitValuation(V[2], f)
             sage: w((x^2 + 7) * (x + 3))
             +Infinity
 
@@ -492,7 +495,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: w = v.extension(L)
             sage: u = w._base_valuation
             sage: u._approximation
@@ -534,7 +537,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = QQ.valuation(5)
             sage: w = v.extensions(L)[0]
             sage: u = w._base_valuation
             sage: u._approximation
@@ -611,7 +614,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 13)
+            sage: v = QQ.valuation(13)
             sage: w = v.extensions(L)[0]
             sage: u = w._base_valuation
             sage: u._approximation
@@ -640,7 +643,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: w = v.extension(L)
             sage: w.residue_ring()
             Finite Field of size 2
@@ -666,13 +669,13 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: R.<x> = QQ[]
             sage: F = (x^2 + 7) * (x^2 + 9)
             sage: G = (x^2 + 7)
-            sage: V = pAdicValuation(QQ, 2).mac_lane_approximants(F, require_incomparability=True)
+            sage: V = QQ.valuation(2).mac_lane_approximants(F, require_incomparability=True)
             sage: V = sorted(V, key=str)
-            sage: LimitValuation(V[0], F) >= LimitValuation(V[1], F)
+            sage: valuations.LimitValuation(V[0], F) >= valuations.LimitValuation(V[1], F)
             False
-            sage: LimitValuation(V[1], F) >= LimitValuation(V[1], G)
+            sage: valuations.LimitValuation(V[1], F) >= valuations.LimitValuation(V[1], G)
             True
-            sage: LimitValuation(V[2], F) >= LimitValuation(V[2], G)
+            sage: valuations.LimitValuation(V[2], F) >= valuations.LimitValuation(V[2], G)
             True
 
         """
@@ -709,7 +712,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: w = v.extension(L)
             sage: w._base_valuation.restriction(K)
             2-adic valuation
@@ -731,9 +734,9 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: w = v.extension(L)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = QQ.valuation(5)
             sage: u,uu = v.extensions(L)
             sage: w._base_valuation._weakly_separating_element(u._base_valuation) # long time
             2
@@ -741,13 +744,13 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             t + 2
 
             sage: K.<x> = FunctionField(QQ)
-            sage: v = FunctionFieldValuation(K, 1/x)
+            sage: v = K.valuation(1/x)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - 1/(x^2 + 1))
             sage: u,uu = v.extensions(L)
-            sage: v = FunctionFieldValuation(K, x)
+            sage: v = K.valuation(x)
             sage: w,ww = v.extensions(L)
-            sage: v = FunctionFieldValuation(K, 1)
+            sage: v = K.valuation(1)
             sage: v = v.extension(L)
             sage: u.separating_element([uu,ww,w,v]) # long time, random output
             ((8*x^4 + 12*x^2 + 4)/(x^2 - x))*y + (8*x^4 + 8*x^2 + 1)/(x^3 - x^2)
@@ -787,7 +790,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = QQ.valuation(5)
             sage: u,uu = v.extensions(L)
             sage: u.value_semigroup()
             Additive Abelian Semigroup generated by -1, 1
@@ -804,7 +807,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u.element_with_valuation(1/2)
             t + 1
@@ -829,7 +832,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u._relative_size(1024*t + 1024)
             11
@@ -850,7 +853,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u.simplify(t + 1024, force=True)
             t
@@ -879,7 +882,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u.lower_bound(1024*t + 1024)
             10
@@ -902,7 +905,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u.upper_bound(1024*t + 1024)
             21/2
@@ -926,7 +929,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u.is_negative_pseudo_valuation()
             False

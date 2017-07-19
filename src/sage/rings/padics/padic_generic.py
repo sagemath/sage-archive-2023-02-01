@@ -949,6 +949,38 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         pass
 
+    def valuation(self):
+        r"""
+        Return the `p`-adic valuation on this ring.
+
+        OUTPUT:
+
+        a valuation that is normalized such that the rational prime `p` has
+        valuation 1.
+
+        EXAMPLES::
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^3 - 3)
+            sage: v = L.valuation(); v
+            sage: v(3)
+            1
+            sage: L(3).valuation()
+            3
+
+        The normalization is chosen such that the valuation restricts to the
+        valuation on the base ring::
+
+            sage: v(3) == K.valuation()(3)
+            True
+            sage: v.restriction(K) == K.valuation()
+            True
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self)
+
 def local_print_mode(obj, print_options, pos = None, ram_name = None):
     r"""
     Context manager for safely temporarily changing the print_mode

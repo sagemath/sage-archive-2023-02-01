@@ -1514,6 +1514,21 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return sib.name('ZZ')
 
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer `p`.
+
+        EXAMPLES::
+
+            sage: v = ZZ.valuation(3); v
+            3-adic valuation
+            sage: v(3)
+            1
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
 ZZ = IntegerRing_class()
 Z = ZZ
 

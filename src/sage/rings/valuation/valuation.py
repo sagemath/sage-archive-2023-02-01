@@ -10,7 +10,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -32,7 +32,7 @@ class DiscretePseudoValuation(Morphism):
 
     EXAMPLES::
 
-        sage: v = pAdicValuation(ZZ, 2); v # indirect doctest
+        sage: v = ZZ.valuation(2); v # indirect doctest
         2-adic valuation
 
     TESTS::
@@ -44,7 +44,8 @@ class DiscretePseudoValuation(Morphism):
         r"""
         TESTS::
 
-            sage: isinstance(pAdicValuation(ZZ, 2), DiscretePseudoValuation)
+            sage: from sage.rings.valuation.valuation import DiscretePseudoValuation
+            sage: isinstance(ZZ.valuation(2), DiscretePseudoValuation)
             True
 
         """
@@ -56,7 +57,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: v.is_equivalent(2, 1)
             False
             sage: v.is_equivalent(2, -2)
@@ -84,7 +85,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: hash(v) == hash(v) # indirect doctest
             True
 
@@ -105,7 +106,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: hash(v) == hash(v) # indirect doctest
             True
             
@@ -125,7 +126,7 @@ class DiscretePseudoValuation(Morphism):
         when they can fall back to the implementation through ``>=`` and
         ``<=``::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: v > v
             False
 
@@ -135,7 +136,7 @@ class DiscretePseudoValuation(Morphism):
         not coerce into a common parent, a rather random comparison of ``id``
         happens::
 
-            sage: w = TrivialValuation(GF(2))
+            sage: w = valuations.TrivialValuation(GF(2))
             sage: w < v # random output
             True
             sage: v < w # random output
@@ -159,12 +160,12 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: v == v
             True
             sage: v != v
             False
-            sage: w = pAdicValuation(QQ, 3)
+            sage: w = QQ.valuation(3)
             sage: v == w
             False
             sage: v != w
@@ -176,7 +177,7 @@ class DiscretePseudoValuation(Morphism):
         do not coerce into a common parent, a rather random comparison of
         ``id`` happens::
 
-            sage: w = TrivialValuation(GF(2))
+            sage: w = valuations.TrivialValuation(GF(2))
             sage: w <= v # random output
             True
             sage: v <= w # random output
@@ -214,7 +215,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = TrivialValuation(QQ)
+            sage: v = valuations.TrivialValuation(QQ)
             sage: v == v
             True
 
@@ -231,8 +232,8 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = TrivialValuation(QQ)
-            sage: w = pAdicValuation(QQ, 2)
+            sage: v = valuations.TrivialValuation(QQ)
+            sage: w = QQ.valuation(2)
             sage: v <= w
             True
 
@@ -242,7 +243,7 @@ class DiscretePseudoValuation(Morphism):
         do not coerce into a common parent, a rather random comparison of
         ``id`` happens::
 
-            sage: w = TrivialValuation(GF(2))
+            sage: w = valuations.TrivialValuation(GF(2))
             sage: w <= v # random output
             True
             sage: v <= w # random output
@@ -261,8 +262,8 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: v = TrivialValuation(QQ)
-            sage: w = pAdicValuation(QQ, 2)
+            sage: v = valuations.TrivialValuation(QQ)
+            sage: w = QQ.valuation(2)
             sage: v >= w
             False
 
@@ -272,7 +273,7 @@ class DiscretePseudoValuation(Morphism):
         do not coerce into a common parent, a rather random comparison of
         ``id`` happens::
 
-            sage: w = TrivialValuation(GF(2))
+            sage: w = valuations.TrivialValuation(GF(2))
             sage: w <= v # random output
             True
             sage: v <= w # random output
@@ -299,7 +300,7 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: pAdicValuation(QQ, 2)._test_valuation_inheritance()
+            sage: QQ.valuation(2)._test_valuation_inheritance()
 
         """
         tester = self._tester(**options)
@@ -312,7 +313,7 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: v = pAdicValuation(QQ, 2)
+        sage: v = QQ.valuation(2)
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, v)
         sage: w = v.augmentation(x, infinity); w # indirect doctest
@@ -320,6 +321,7 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
     
     TESTS::
 
+        sage: from sage.rings.valuation.valuation import InfiniteDiscretePseudoValuation
         sage: isinstance(w, InfiniteDiscretePseudoValuation)
         True
         sage: TestSuite(w).run() # long time
@@ -331,7 +333,7 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, v)
             sage: w = v.augmentation(x, infinity)
@@ -350,9 +352,9 @@ class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
     EXAMPLES:
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, TrivialValuation(QQ)).augmentation(x, infinity)
+        sage: v = GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x, infinity)
         sage: K.<x> = FunctionField(QQ)
-        sage: w = FunctionFieldValuation(K, v)
+        sage: w = K.valuation(v)
 
     TESTS::
 
@@ -366,9 +368,9 @@ class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ)).augmentation(x, infinity)
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x, infinity)
             sage: K.<x> = FunctionField(QQ)
-            sage: w = FunctionFieldValuation(K, v)
+            sage: w = K.valuation(v)
             sage: w.is_negative_pseudo_valuation()
             True
 
@@ -382,7 +384,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: v = pAdicValuation(QQ, 2)
+        sage: v = QQ.valuation(2)
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, v)
         sage: w = v.augmentation(x, 1337); w # indirect doctest
@@ -390,6 +392,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
     TESTS::
 
+        sage: from sage.rings.valuation.valuation import DiscreteValuation
         sage: isinstance(w, DiscreteValuation)
         True
         sage: TestSuite(w).run() # long time
@@ -401,7 +404,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: v = TrivialValuation(ZZ)
+            sage: v = valuations.TrivialValuation(ZZ)
             sage: v.is_discrete_valuation()
             True
 
@@ -453,7 +456,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: R.<x> = QQ[]
             sage: v.mac_lane_approximants(x^2 + 1)
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]]
@@ -486,13 +489,13 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<y> = K[]
             sage: F = y^21 + x*y^20 + (x^3 + x + 1)*y^18 + (x^3 + 1)*y^17 + (x^4 + x)*y^16 + (x^7 + x^6 + x^3 + x + 1)*y^15 + x^7*y^14 + (x^8 + x^7 + x^6 + x^4 + x^3 + 1)*y^13 + (x^9 + x^8 + x^4 + 1)*y^12 + (x^11 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2)*y^11 + (x^12 + x^9 + x^8 + x^7 + x^5 + x^3 + x + 1)*y^10 + (x^14 + x^13 + x^10 + x^9 + x^8 + x^7 + x^6 + x^3 + x^2 + 1)*y^9 + (x^13 + x^9 + x^8 + x^6 + x^4 + x^3 + x)*y^8 + (x^16 + x^15 + x^13 + x^12 + x^11 + x^7 + x^3 + x)*y^7 + (x^17 + x^16 + x^13 + x^9 + x^8 + x)*y^6 + (x^17 + x^16 + x^12 + x^7 + x^5 + x^2 + x + 1)*y^5 + (x^19 + x^16 + x^15 + x^12 + x^6 + x^5 + x^3 + 1)*y^4 + (x^18 + x^15 + x^12 + x^10 + x^9 + x^7 + x^4 + x)*y^3 + (x^22 + x^21 + x^20 + x^18 + x^13 + x^12 + x^9 + x^8 + x^7 + x^5 + x^4 + x^3)*y^2 + (x^23 + x^22 + x^20 + x^17 + x^15 + x^14 + x^12 + x^9)*y + x^25 + x^23 + x^19 + x^17 + x^15 + x^13 + x^11 + x^5
             sage: x = K._ring.gen()
-            sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x,1))
+            sage: v0 = K.valuation(valuations.GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x,1))
             sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x + 1) = 3/2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y) = 4/3, v(y^3 + x^4) = 13/3 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x) = 2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y^15 + y^13 + (x + 1)*y^12 + x*y^11 + (x + 1)*y^10 + y^9 + y^8 + x*y^6 + x*y^5 + y^4 + y^3 + y^2 + (x + 1)*y + x + 1) = 2 ]]
-            sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x+1,1))
+            sage: v0 = K.valuation(valuations.GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x+1,1))
             sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 7/2, v(y^2 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1) = 15/2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y + x^2 + 1) = 7/2 ],
@@ -512,7 +515,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: K.<x> = FunctionField(QQ)
             sage: S.<y> = K[]
             sage: F = y^2 - x^2 - x^3 - 3
-            sage: v0 = GaussValuation(K._ring,pAdicValuation(QQ,3))
+            sage: v0 = GaussValuation(K._ring, QQ.valuation(3))
             sage: v1 = v0.augmentation(K._ring.gen(),1/3)
             sage: mu0 = FunctionFieldValuation(K, v1)
             sage: sorted(mu0.mac_lane_approximants(F), key=str)
@@ -522,7 +525,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         Over a complete base field::
 
             sage: k=Qp(2,10)
-            sage: v = pAdicValuation(k)
+            sage: v = k.valuation()
 
             sage: R.<x>=k[]
             sage: G = x
@@ -546,17 +549,17 @@ class DiscreteValuation(DiscretePseudoValuation):
         The factorization of primes in the Gaussian integers can be read off
         the Mac Lane approximants::
 
-            sage: v0 = pAdicValuation(QQ, 2)
+            sage: v0 = QQ.valuation(2)
             sage: R.<x> = QQ[]
             sage: G = x^2 + 1
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/2 ]]
 
-            sage: v0 = pAdicValuation(QQ, 3)
+            sage: v0 = QQ.valuation(3)
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 3-adic valuation, v(x^2 + 1) = +Infinity ]]
 
-            sage: v0 = pAdicValuation(QQ, 5)
+            sage: v0 = QQ.valuation(5)
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
@@ -569,7 +572,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         read off the Mac Lane approximants::
 
             sage: k=Qp(5,4)
-            sage: v = pAdicValuation(k)
+            sage: v = k.valuation()
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v1,v2 = v.mac_lane_approximants(G); sorted([v1,v2], key=str)
@@ -595,7 +598,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         This obviously cannot happen over the rationals where we only get an
         approximate factorization::
 
-            sage: v = pAdicValuation(QQ, 5)
+            sage: v = QQ.valuation(5)
             sage: R.<x>=QQ[]
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
@@ -613,13 +616,13 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: alpha = T^3/4
             sage: G = 3^3*T^3*(alpha^4 - alpha)^2 - (4*alpha^3 - 1)^3
             sage: G = G/G.leading_coefficient()
-            sage: pAdicValuation(K).mac_lane_approximants(G) # optional: integrated
+            sage: K.valuation().mac_lane_approximants(G) # optional: integrated
             [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^20))*T + (2 + O(3^20))) = 1/9, v((1 + O(3^20))*T^9 + (2*3 + 2*3^2 + O(3^21))*T^8 + (3 + 3^5 + O(3^21))*T^7 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + O(3^21))*T^6 + (2*3 + 2*3^2 + 3^4 + 3^6 + 2*3^7 + O(3^21))*T^5 + (3 + 3^2 + 3^3 + 2*3^6 + 2*3^7 + 3^8 + O(3^21))*T^4 + (2*3 + 2*3^2 + 3^3 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^3 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^2 + (3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^7 + 3^8 + O(3^21))*T + (2 + 2*3 + 2*3^2 + 2*3^4 + 2*3^5 + 3^7 + O(3^20))) = 55/27 ]]
 
         A similar example::
 
             sage: R.<x> = QQ[]
-            sage: v = pAdicValuation(QQ, 3)
+            sage: v = QQ.valuation(3)
             sage: G = (x^3 + 3)^3 - 81
             sage: v.mac_lane_approximants(G) # optional: integrated
             [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
@@ -631,7 +634,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: K.<theta> = NumberField(x^6 + 108) 
             sage: K.is_galois()
             True
-            sage: vK = pAdicValuation(QQ, 2).extension(K)
+            sage: vK = QQ.valuation(2).extension(K)
             sage: vK(2) 
             1 
             sage: vK(theta) 
@@ -645,7 +648,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         An easy case that produced the wrong error at some point::
 
             sage: R.<x> = QQ[]
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: v.mac_lane_approximants(x^2 - 1/2)
             Traceback (most recent call last):
             ...
@@ -691,28 +694,7 @@ class DiscreteValuation(DiscretePseudoValuation):
                     return False
             return True
 
-        # Leaves in the computation of the tree of approximants. Each vertex
-        # consists of a tuple (v,ef,p,coeffs,vals) where v is an approximant, i.e., a
-        # valuation, ef is a boolean, p is the parent of this vertex, and
-        # coeffs and vals are cached values. (Only v and ef are relevant,
-        # everything else are caches/debug info.)
-        # The boolean ef denotes whether v already has the final ramification
-        # index E and residue degree F of this approximant.
-        # An edge V -- P represents the relation P.v ≤ V.v (pointwise on the
-        # polynomial ring K[x]) between the valuations.
-        class Node(object):
-            def __init__(self, valuation, parent, ef, principal_part_bound, coefficients, valuations):
-                self.valuation = valuation
-                self.parent = parent
-                self.ef = ef
-                self.principal_part_bound = principal_part_bound
-                self.coefficients = coefficients
-                self.valuations = valuations
-                self.forced_leaf = False
-        import mac_lane
-        mac_lane.valuation.Node = Node
-
-        seed = Node(GaussValuation(R,self), None, G.degree() == 1, G.degree(), None, None)
+        seed = MacLaneApproximantNode(GaussValuation(R,self), None, G.degree() == 1, G.degree(), None, None)
         seed.forced_leaf = is_sufficient(seed, [])
 
         def create_children(node):
@@ -722,7 +704,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             augmentations = node.valuation.mac_lane_step(G, report_degree_bounds_and_caches=True, coefficients=node.coefficients, valuations=node.valuations, check=False, principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()
-                new_leafs.append(Node(w, node, ef, principal_part_bound, coefficients, valuations))
+                new_leafs.append(MacLaneApproximantNode(w, node, ef, principal_part_bound, coefficients, valuations))
             for leaf in new_leafs:
                 if is_sufficient(leaf, [l for l in new_leafs if l is not leaf]):
                     leaf.forced_leaf = True
@@ -771,7 +753,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: v._pow(2, 2, error=4)
             4
             sage: v._pow(2, 1000, error=4)
@@ -794,7 +776,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: R.<x> = QQ[]
             sage: G = x^2 + 1
 
@@ -905,7 +887,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         EXAMPLES::
 
             sage: k=Qp(5,4)
-            sage: v = pAdicValuation(k)
+            sage: v = k.valuation()
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v.montes_factorization(G)
@@ -915,7 +897,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         particular because the factors can not be represented there)::
 
             sage: R.<x> = QQ[]
-            sage: v = pAdicValuation(QQ, 2)
+            sage: v = QQ.valuation(2)
             sage: v.montes_factorization(x^2 + 1)
             x^2 + 1
 
@@ -958,8 +940,8 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: v = TrivialValuation(QQ)
-            sage: w = pAdicValuation(QQ, 2)
+            sage: v = valuations.TrivialValuation(QQ)
+            sage: w = QQ.valuation(2)
             sage: v >= w
             False
 
@@ -967,3 +949,42 @@ class DiscreteValuation(DiscretePseudoValuation):
         if other.is_trivial():
             return other.is_discrete_valuation()
         return super(DiscreteValuation, self)._ge_(other)
+
+
+class MacLaneApproximantNode(object):
+    r"""
+    A node in the tree computed by :meth:`DiscreteValuation.mac_lane_approximants`
+
+    Leaves in the computation of the tree of approximants
+    :meth:`DiscreteValuation.mac_lane_approximants`. Each vertex consists of a
+    tuple ``(v,ef,p,coeffs,vals)`` where ``v`` is an approximant, i.e., a
+    valuation, ef is a boolean, ``p`` is the parent of this vertex, and
+    ``coeffs`` and ``vals`` are cached values. (Only ``v`` and ``ef`` are
+    relevant, everything else are caches/debug info.) The boolean ``ef``
+    denotes whether ``v`` already has the final ramification index E and
+    residue degree F of this approximant.  An edge V -- P represents the
+    relation ``P.v ≤ V.v`` (pointwise on the polynomial ring K[x]) between the
+    valuations.
+
+    TESTS::
+
+        sage: v = pAdicValuation(ZZ, 3)
+        sage: v.extension(GaussianIntegers()) # indirect doctest
+
+    """
+    def __init__(self, valuation, parent, ef, principal_part_bound, coefficients, valuations):
+        r"""
+        TESTS::
+
+            sage: from sage.rings.valuation.valuation import MacLaneApproximantNode
+            sage: node = MacLaneApproximantNode(pAdicValuation(QQ, 2), None, 1, None, None, None)
+            sage: TestSuite(node).run()
+
+        """
+        self.valuation = valuation
+        self.parent = parent
+        self.ef = ef
+        self.principal_part_bound = principal_part_bound
+        self.coefficients = coefficients
+        self.valuations = valuations
+        self.forced_leaf = False

@@ -6477,6 +6477,19 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             raise RuntimeError("Error in number field solve_CRT()")
         return self(x)
 
+    def valuation(self, prime):
+        r"""
+        Return the valuation on this field defined by ``prime``.
+
+        EXAMPLES::
+
+            sage: GaussianIntegers().fraction_field().valuation(2)
+            2-adic valuation
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, prime)
+
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, structure=None):

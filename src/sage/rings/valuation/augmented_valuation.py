@@ -8,7 +8,7 @@ Starting from a :class:`GaussValuation`, we can create augmented valuations on
 polynomial rings::
 
     sage: R.<x> = QQ[]
-    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: v = GaussValuation(R, QQ.valuation(2))
     sage: w = v.augmentation(x, 1); w
     [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]
     sage: w(x)
@@ -18,7 +18,7 @@ This also works for polynomial rings over base rings which are not fields.
 However, much of the functionality is only available over fields::
 
     sage: R.<x> = ZZ[]
-    sage: v = GaussValuation(R, pAdicValuation(ZZ, 2))
+    sage: v = GaussValuation(R, ZZ.valuation(2))
     sage: w = v.augmentation(x, 1); w
     [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]
     sage: w(x)
@@ -27,7 +27,7 @@ However, much of the functionality is only available over fields::
 TESTS::
 
     sage: R.<x> = QQ[]
-    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: v = GaussValuation(R, QQ.valuation(2))
     sage: w = v.augmentation(x, 1)
     sage: TestSuite(w).run() # long time
 
@@ -37,7 +37,7 @@ TESTS::
 Run the test suite for a valuation with a residual extension::
 
     sage: R.<x> = QQ[]
-    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: v = GaussValuation(R, QQ.valuation(2))
     sage: w = v.augmentation(x^2 + x + 1, 1)
     sage: TestSuite(w).run() # long time
 
@@ -67,7 +67,7 @@ Run the test suite for an augmentation of a ramified augmentation::
 Run the test suite for a ramified augmentation of an unramified augmentation::
 
     sage: R.<x> = QQ[]
-    sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+    sage: v = GaussValuation(R, QQ.valuation(2))
     sage: w = v.augmentation(x^2 + x + 1, 1)
     sage: TestSuite(w).run() # long time
 
@@ -127,7 +127,7 @@ extends the residue field::
 Run the test suite if the polynomial ring is not over a field::
 
     sage: R.<x> = ZZ[]
-    sage: v = GaussValuation(R, pAdicValuation(ZZ, 2))
+    sage: v = GaussValuation(R, ZZ.valuation(2))
     sage: w = v.augmentation(x, 1)
     sage: TestSuite(w).run() # long time
 
@@ -171,7 +171,7 @@ class AugmentedValuationFactory(UniqueFactory):
     :meth:`augmentation` of a valuation should be called::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x, 1) # indirect doctest
 
     Note that trivial parts of the augmented valuation might be dropped, so you
@@ -199,7 +199,7 @@ class AugmentedValuationFactory(UniqueFactory):
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x, 1) # indirect doctest
             sage: ww = v.augmentation(x, 1)
             sage: w is ww
@@ -233,7 +233,7 @@ class AugmentedValuationFactory(UniqueFactory):
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1) # indirect doctest
 
         """
@@ -270,7 +270,7 @@ class AugmentedValuation_base(InductiveValuation):
 
         sage: K.<u> = CyclotomicField(5)
         sage: R.<x> = K[]
-        sage: v = GaussValuation(R, pAdicValuation(K, 2))
+        sage: v = GaussValuation(R, K.valuation(2))
         sage: w = v.augmentation(x, 1/2); w # indirect doctest
         [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2 ]
         sage: ww = w.augmentation(x^4 + 2*x^2 + 4*u, 3); ww
@@ -289,7 +289,9 @@ class AugmentedValuation_base(InductiveValuation):
             sage: K.<u> = Qq(4, 5)
             sage: R.<x> = K[]
             sage: v = GaussValuation(R)
+            sage: from sage.rings.valuation.augmented_valuation import AugmentedValuation
             sage: w = AugmentedValuation(v, x, 1/2)
+            sage: from sage.rings.valuation.augmented_valuation import AugmentedValuation_base
             sage: isinstance(w, AugmentedValuation_base)
             True
 
@@ -439,7 +441,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x, 1)
             sage: w.augmentation_chain()
             [[ Gauss valuation induced by 2-adic valuation, v(x) = 1 ],
@@ -542,7 +544,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w.extensions(GaussianIntegers().fraction_field()['x'])
@@ -583,7 +585,7 @@ class AugmentedValuation_base(InductiveValuation):
 
             sage: K = GaussianIntegers().fraction_field()
             sage: R.<x> = K[]
-            sage: v = GaussValuation(R, pAdicValuation(K, 2))
+            sage: v = GaussValuation(R, K.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w.restriction(QQ['x'])
@@ -606,7 +608,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w.uniformizer()
@@ -622,7 +624,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w.is_gauss_valuation()
@@ -641,7 +643,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w.monic_integral_model(5*x^2 + 1/2*x + 1/4)
@@ -662,7 +664,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
             sage: w >= v
             True
@@ -696,7 +698,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
             sage: w.is_trivial()
             False
@@ -714,7 +716,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
             sage: 3*w # indirect doctest
             [ Gauss valuation induced by 3 * 2-adic valuation, v(x^2 + x + 1) = 3 ]
@@ -734,7 +736,7 @@ class AugmentedValuation_base(InductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
             sage: w._residue_ring_generator_name()
             'u1'
@@ -772,7 +774,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: R.<u> = QQ[]
             sage: K.<u> = QQ.extension(u^2 + u+ 1)
             sage: S.<x> = K[]
-            sage: v = GaussValuation(S, pAdicValuation(K, 2))
+            sage: v = GaussValuation(S, K.valuation(2))
             sage: w = v.augmentation(x^2 + x + u, 1/2)
             sage: w._relative_size(x^2 + x + 1)
             1
@@ -792,7 +794,7 @@ class AugmentedValuation_base(InductiveValuation):
         `-\infty`, so this method always returns ``False``::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: w = v.augmentation(x, infinity)
             sage: w.is_negative_pseudo_valuation()
             False
@@ -809,7 +811,7 @@ class AugmentedValuation_base(InductiveValuation):
         We can change the domain of an augmented valuation even if there is no coercion between rings::
 
             sage: R.<x> = GaussianIntegers()[]
-            sage: v = GaussValuation(R, pAdicValuation(GaussianIntegers(), 2))
+            sage: v = GaussValuation(R, GaussianIntegers().valuation(2))
             sage: v = v.augmentation(x, 1)
             sage: v.change_domain(QQ['x'])
             [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]
@@ -829,7 +831,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, TrivialValuation(QQ))
+        sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
         sage: w = v.augmentation(x, 1)
 
     """
@@ -838,8 +840,9 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: w = v.augmentation(x, 1)
+            sage: from sage.rings.valuation.augmented_valuation import FinalAugmentedValuation
             sage: isinstance(w, FinalAugmentedValuation)
             True
 
@@ -856,7 +859,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
 
             sage: w = v.augmentation(x, 1)
             sage: w.residue_ring()
@@ -868,7 +871,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         An example with a non-trivial base valuation::
 
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, infinity)
             sage: w.residue_ring()
             Finite Field in u1 of size 2^2
@@ -886,7 +889,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         We avoid clashes in generator names::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: v = FunctionFieldValuation(K, x^2 + 2)
+            sage: v = K.valuation(x^2 + 2)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + x^2)
             sage: w = v.extension(L)
@@ -940,7 +943,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
 
             sage: w = v.augmentation(x, 1)
             sage: w.reduce(x^2 + x + 1)
@@ -1015,7 +1018,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
 
             sage: w = v.augmentation(x, 1)
             sage: w._residue_field_generator()
@@ -1062,7 +1065,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
 
             sage: w = v.augmentation(x, 1)
             sage: w.lift(1/2)
@@ -1114,7 +1117,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x^2 + x + 1, 1)
 
     """
@@ -1123,8 +1126,9 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
+            sage: from sage.rings.valuation.augmented_valuation import NonFinalAugmentedValuation
             sage: isinstance(w, NonFinalAugmentedValuation)
             True
 
@@ -1141,7 +1145,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
 
             sage: w = v.augmentation(x^2 + x + 1, 1)
             sage: w.residue_ring()
@@ -1532,7 +1536,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w._Q(1)
@@ -1552,7 +1556,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
 
             sage: w._Q_reciprocal()
@@ -1596,6 +1600,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: w = v.augmentation(x^2 + x + u, 1/2)
+            sage: from sage.rings.valuation.augmented_valuation import FiniteAugmentedValuation
             sage: isinstance(w, FiniteAugmentedValuation)
             True
 
@@ -1837,7 +1842,7 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, TrivialValuation(QQ))
+        sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
         sage: w = v.augmentation(x, 1)
 
     """
@@ -1846,8 +1851,9 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: w = v.augmentation(x, 1)
+            sage: from sage.rings.valuation.augmented_valuation import FinalFiniteAugmentedValuation
             sage: isinstance(w, FinalFiniteAugmentedValuation)
             True
 
@@ -1864,7 +1870,7 @@ class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugment
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x, 1)
 
     """
@@ -1873,8 +1879,9 @@ class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugment
         TESTS::
     
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x, 1)
+            sage: from sage.rings.valuation.augmented_valuation import NonFinalFiniteAugmentedValuation
             sage: isinstance(w, NonFinalFiniteAugmentedValuation)
             True
     
@@ -1892,7 +1899,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+        sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x, infinity)
 
     """
@@ -1901,8 +1908,9 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x, infinity)
+            sage: from sage.rings.valuation.augmented_valuation import InfiniteAugmentedValuation
             sage: isinstance(w, InfiniteAugmentedValuation)
             True
 

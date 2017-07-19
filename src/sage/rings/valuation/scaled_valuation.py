@@ -4,7 +4,7 @@ Valuations which are scaled versions of another valuation.
 
 EXAMPLES:
 
-    sage: 3*pAdicValuation(ZZ, 3)
+    sage: 3*ZZ.valuation(3)
     3 * 3-adic valuation
 
 AUTHORS:
@@ -13,7 +13,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -30,7 +30,7 @@ class ScaledValuationFactory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: 3*pAdicValuation(ZZ, 2) # indirect doctest
+        sage: 3*ZZ.valuation(2) # indirect doctest
         3 * 2-adic valuation
 
     """
@@ -40,7 +40,7 @@ class ScaledValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: 3*pAdicValuation(ZZ, 2) is 2*(3/2*pAdicValuation(ZZ, 2)) # indirect doctest
+            sage: 3*ZZ.valuation(2) is 2*(3/2*ZZ.valuation(2)) # indirect doctest
             True
             
         """
@@ -70,7 +70,7 @@ class ScaledValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: 3*pAdicValuation(ZZ, 2) # indirect doctest
+            sage: 3*ZZ.valuation(2) # indirect doctest
             3 * 2-adic valuation
 
         """
@@ -91,7 +91,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
     EXAMPLES::
 
-        sage: v = 3*pAdicValuation(ZZ, 3); v
+        sage: v = 3*ZZ.valuation(3); v
         3 * 3-adic valuation
 
     TESTS::
@@ -103,7 +103,8 @@ class ScaledValuation_generic(DiscreteValuation):
         r"""
         TESTS::
 
-            sage: v = 3*pAdicValuation(ZZ, 2)
+            sage: v = 3*ZZ.valuation(2)
+            sage: from sage.rings.valuation.scaled_valuation import ScaledValuation_generic
             sage: isinstance(v, ScaledValuation_generic)
             True
 
@@ -119,7 +120,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: 3*pAdicValuation(ZZ, 2) # indirect doctest
+            sage: 3*ZZ.valuation(2) # indirect doctest
             3 * 2-adic valuation
 
         """
@@ -131,7 +132,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(ZZ, 2)
+            sage: v = 3*ZZ.valuation(2)
             sage: v.residue_ring()
             Finite Field of size 2
 
@@ -144,7 +145,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(ZZ, 2)
+            sage: v = 3*ZZ.valuation(2)
             sage: v.uniformizer()
             2
 
@@ -157,7 +158,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(ZZ, 2)
+            sage: v = 3*ZZ.valuation(2)
             sage: v(2)
             3
 
@@ -170,7 +171,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(ZZ, 2)
+            sage: v = 3*ZZ.valuation(2)
             sage: v.reduce(1)
             1
 
@@ -184,7 +185,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(ZZ, 2)
+            sage: v = 3*ZZ.valuation(2)
             sage: v.lift(1)
             1
 
@@ -197,7 +198,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(ZZ, 5)
+            sage: v = 3*ZZ.valuation(5)
             sage: v.extensions(GaussianIntegers().fraction_field())
             [3 * [ 5-adic valuation, v(x + 2) = 1 ]-adic valuation,
              3 * [ 5-adic valuation, v(x + 3) = 1 ]-adic valuation]
@@ -211,7 +212,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v = 3*pAdicValuation(QQ, 5)
+            sage: v = 3*QQ.valuation(5)
             sage: v.restriction(ZZ)
             3 * 5-adic valuation
 
@@ -226,8 +227,8 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v2 = pAdicValuation(QQ, 2)
-            sage: v3 = 12 * pAdicValuation(QQ, 3)
+            sage: v2 = QQ.valuation(2)
+            sage: v3 = 12 * QQ.valuation(3)
             sage: v2._strictly_separating_element(v3)
             2/3
 
@@ -252,8 +253,8 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v2 = pAdicValuation(QQ, 2)
-            sage: v3 = 12 * pAdicValuation(QQ, 3)
+            sage: v2 = QQ.valuation(2)
+            sage: v3 = 12 * QQ.valuation(3)
             sage: v2._weakly_separating_element(v3)
             2
 
@@ -267,7 +268,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v2 = pAdicValuation(QQ, 2)
+            sage: v2 = QQ.valuation(2)
             sage: 2*v2 >= v2
             True
             sage: v2/2 >= 2*v2
@@ -302,7 +303,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v2 = pAdicValuation(QQ, 2)
+            sage: v2 = QQ.valuation(2)
             sage: 2*v2 <= v2
             False
             sage: v2/2 <= 2*v2
@@ -325,7 +326,7 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: v2 = pAdicValuation(QQ, 2)
+            sage: v2 = QQ.valuation(2)
             sage: (2*v2).value_semigroup()
             Additive Abelian Semigroup generated by -2, 2
 

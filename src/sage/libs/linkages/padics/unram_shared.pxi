@@ -55,8 +55,7 @@ def frobenius_unram(self, arithmetic=True):
     exp = p
     if not arithmetic:
         exp = p**(R.degree()-1)
-    #frob_a = R(a.residue()**exp).lift_to_precision(prec) #initial approximation of frob_a
-    frob_a = R.frob_gen()
+    frob_a = R._frob_gen()
     f = R.defining_polynomial()
     g = f.derivative()
     while(f(frob_a) != 0): #hensel lift frob_a 

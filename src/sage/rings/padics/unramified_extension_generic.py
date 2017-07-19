@@ -215,7 +215,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         return self([0,1])
 
     @cached_method
-    def frob_gen(self, arithmetic = True):
+    def _frob_gen(self, arithmetic = True):
         """
         Returns frobenius of the generator for this unramified extension
         """

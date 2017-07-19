@@ -41,7 +41,6 @@ class PadicValuationFactory(UniqueFactory):
     For integers and rational numbers, ``prime`` is just a prime of the
     integers::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: pAdicValuation(ZZ, 3)
         3-adic valuation
 
@@ -156,7 +155,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(QQ, 2) # indirect doctest
             2-adic valuation
 
@@ -186,7 +184,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(QQ, 2) # indirect doctest
             2-adic valuation
 
@@ -208,7 +205,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(Qp(2)) # indirect doctest
             2-adic valuation
 
@@ -231,7 +227,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(GaussianIntegers(), 2) # indirect doctest
             2-adic valuation
 
@@ -262,7 +257,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(GaussianIntegers(), pAdicValuation(ZZ, 2)) # indirect doctest
             2-adic valuation
 
@@ -328,7 +322,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(GaussianIntegers(), GaussianIntegers().ideal(2)) # indirect doctest
             2-adic valuation
 
@@ -368,7 +361,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: K = R.quo(x^2 + 1)
             sage: pAdicValuation._normalize_number_field_data(K)
@@ -403,7 +395,6 @@ class PadicValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(ZZ, 5) # indirect doctest
             5-adic valuation
 
@@ -451,7 +442,6 @@ class pAdicValuation_base(DiscreteValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: pAdicValuation(ZZ, 3)
         3-adic valuation
 
@@ -476,7 +466,6 @@ class pAdicValuation_base(DiscreteValuation):
         """
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: isinstance(pAdicValuation(ZZ, 3), pAdicValuation_base)
             True
 
@@ -492,7 +481,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(GaussianIntegers(), 2).p()
             2
 
@@ -513,7 +501,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 3)
             sage: v.reduce(4)
             1
@@ -536,7 +523,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 3)
             sage: xbar = v.reduce(4)
             sage: v.lift(xbar)
@@ -570,7 +556,6 @@ class pAdicValuation_base(DiscreteValuation):
         We consider an extension as unramified if its ramification index is 1.
         Hence, a trivial extension is unramified::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = pAdicValuation(QQ, 2)
             sage: v.is_unramified(x)
@@ -649,7 +634,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: k=Qp(5,4)
             sage: v = pAdicValuation(k)
             sage: R.<x>=k[]
@@ -711,7 +695,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: v.change_domain(QQ).domain()
             Rational Field
@@ -726,7 +709,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: pAdicValuation(QQ, 2)._extensions_to_quotient(R.quo(x^2 + x + 1))
             [2-adic valuation]
@@ -743,7 +725,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: v.extensions(GaussianIntegers())
             [2-adic valuation]
@@ -803,7 +784,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(GaussianIntegers(), 2)
             sage: v.restriction(ZZ)
             2-adic valuation
@@ -824,7 +804,6 @@ class pAdicValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(GaussianIntegers(), 2)
             sage: v.value_semigroup()
             Additive Abelian Semigroup generated by 1/2
@@ -848,7 +827,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(Qp(2)); v #indirect doctest
         2-adic valuation
 
@@ -861,7 +839,6 @@ class pAdicValuation_padic(pAdicValuation_base):
         """
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: from sage.rings.padics.padic_valuation import padicValuation_padic # optional: integrated
             sage: isinstance(pAdicValuation(Qp(2)), pAdicValuation_padic)
             True
@@ -883,7 +860,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(3)
             sage: pAdicValuation(Zp(3)).reduce(R(4))
             1
@@ -903,7 +879,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(3)
             sage: v = pAdicValuation(R)
             sage: xbar = v.reduce(R(4))
@@ -920,7 +895,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(Zp(3))
             sage: v.uniformizer()
             3 + O(3^21)
@@ -938,7 +912,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(3)
             sage: v = pAdicValuation(Zp(3))
             sage: v.element_with_valuation(3)
@@ -958,7 +931,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(ZZ, 3)._repr_()
             '3-adic valuation'
 
@@ -971,7 +943,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = Qp(3)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - 3)
@@ -987,7 +958,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(Qq(9, names='a'), 3).residue_ring()
             Finite Field in a0 of size 3^2
 
@@ -1008,7 +978,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = ZpCA(2)
             sage: v = pAdicValuation(R)
             sage: v.shift(R.one(), 1)
@@ -1042,7 +1011,6 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(2)
             sage: v = pAdicValuation(R, 2)
             sage: v.simplify(6)
@@ -1068,7 +1036,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(ZZ, 3); v
         3-adic valuation
 
@@ -1083,7 +1050,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(ZZ, 3)._repr_()
             '3-adic valuation'
 
@@ -1100,7 +1066,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(ZZ, 3)(9)
             2
 
@@ -1119,7 +1084,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 3)
             sage: v.uniformizer()
             3
@@ -1133,7 +1097,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 3)
             sage: v.residue_ring()
             Finite Field of size 3
@@ -1149,7 +1112,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: w = TrivialValuation(ZZ)
             sage: v >= w
@@ -1176,7 +1138,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES:: 
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: v._relative_size(2)
             2
@@ -1210,7 +1171,6 @@ class pAdicValuation_int(pAdicValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: v.simplify(6, force=True)
             2
@@ -1257,7 +1217,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(GaussianIntegers(), 3); v
         3-adic valuation
 
@@ -1270,7 +1229,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(GaussianIntegers(), 3)
             sage: isinstance(v, pAdicFromLimitValuation)
             True
@@ -1286,7 +1244,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(GaussianIntegers(), 3)
             sage: I = GaussianIntegers().fraction_field().gen()
             sage: v._to_base_domain(I)
@@ -1303,7 +1260,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(GaussianIntegers(), 3)
             sage: v._from_base_domain(v._base_valuation.domain().gen())
             I
@@ -1317,7 +1273,6 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(GaussianIntegers(), 3)
             sage: v.extensions(v.domain().fraction_field())
             [3-adic valuation]
@@ -1345,7 +1300,6 @@ def _fraction_field(ring):
         sage: S.fraction_field()
         Fraction Field of Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
 
-        sage: from mac_lane.padic_valuation import _fraction_field
         sage: _fraction_field(S)
         Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
 

@@ -4,7 +4,6 @@ Valuations which are scaled versions of another valuation.
 
 EXAMPLES:
 
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: 3*pAdicValuation(ZZ, 3)
     3 * 3-adic valuation
 
@@ -31,7 +30,6 @@ class ScaledValuationFactory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: 3*pAdicValuation(ZZ, 2) # indirect doctest
         3 * 2-adic valuation
 
@@ -42,7 +40,6 @@ class ScaledValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: 3*pAdicValuation(ZZ, 2) is 2*(3/2*pAdicValuation(ZZ, 2)) # indirect doctest
             True
             
@@ -73,7 +70,6 @@ class ScaledValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: 3*pAdicValuation(ZZ, 2) # indirect doctest
             3 * 2-adic valuation
 
@@ -95,7 +91,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = 3*pAdicValuation(ZZ, 3); v
         3 * 3-adic valuation
 
@@ -108,7 +103,6 @@ class ScaledValuation_generic(DiscreteValuation):
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 2)
             sage: isinstance(v, ScaledValuation_generic)
             True
@@ -125,7 +119,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: 3*pAdicValuation(ZZ, 2) # indirect doctest
             3 * 2-adic valuation
 
@@ -138,7 +131,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 2)
             sage: v.residue_ring()
             Finite Field of size 2
@@ -152,7 +144,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 2)
             sage: v.uniformizer()
             2
@@ -166,7 +157,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 2)
             sage: v(2)
             3
@@ -180,7 +170,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 2)
             sage: v.reduce(1)
             1
@@ -195,7 +184,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 2)
             sage: v.lift(1)
             1
@@ -209,7 +197,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(ZZ, 5)
             sage: v.extensions(GaussianIntegers().fraction_field())
             [3 * [ 5-adic valuation, v(x + 2) = 1 ]-adic valuation,
@@ -224,7 +211,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = 3*pAdicValuation(QQ, 5)
             sage: v.restriction(ZZ)
             3 * 5-adic valuation
@@ -240,7 +226,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v2 = pAdicValuation(QQ, 2)
             sage: v3 = 12 * pAdicValuation(QQ, 3)
             sage: v2._strictly_separating_element(v3)
@@ -267,7 +252,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v2 = pAdicValuation(QQ, 2)
             sage: v3 = 12 * pAdicValuation(QQ, 3)
             sage: v2._weakly_separating_element(v3)
@@ -283,7 +267,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v2 = pAdicValuation(QQ, 2)
             sage: 2*v2 >= v2
             True
@@ -319,7 +302,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v2 = pAdicValuation(QQ, 2)
             sage: 2*v2 <= v2
             False
@@ -343,7 +325,6 @@ class ScaledValuation_generic(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v2 = pAdicValuation(QQ, 2)
             sage: (2*v2).value_semigroup()
             Additive Abelian Semigroup generated by -2, 2

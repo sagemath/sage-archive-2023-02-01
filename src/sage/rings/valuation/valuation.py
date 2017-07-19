@@ -32,7 +32,6 @@ class DiscretePseudoValuation(Morphism):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(ZZ, 2); v # indirect doctest
         2-adic valuation
 
@@ -45,7 +44,6 @@ class DiscretePseudoValuation(Morphism):
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: isinstance(pAdicValuation(ZZ, 2), DiscretePseudoValuation)
             True
 
@@ -58,7 +56,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: v.is_equivalent(2, 1)
             False
@@ -87,7 +84,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: hash(v) == hash(v) # indirect doctest
             True
@@ -109,7 +105,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: hash(v) == hash(v) # indirect doctest
             True
@@ -130,7 +125,6 @@ class DiscretePseudoValuation(Morphism):
         when they can fall back to the implementation through ``>=`` and
         ``<=``::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: v > v
             False
@@ -165,7 +159,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: v == v
             True
@@ -221,7 +214,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: v == v
             True
@@ -239,7 +231,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: w = pAdicValuation(QQ, 2)
             sage: v <= w
@@ -270,7 +261,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: w = pAdicValuation(QQ, 2)
             sage: v >= w
@@ -309,7 +299,6 @@ class DiscretePseudoValuation(Morphism):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(QQ, 2)._test_valuation_inheritance()
 
         """
@@ -323,7 +312,6 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(QQ, 2)
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, v)
@@ -343,7 +331,6 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, v)
@@ -362,7 +349,6 @@ class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
 
     EXAMPLES:
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ)).augmentation(x, infinity)
         sage: K.<x> = FunctionField(QQ)
@@ -379,7 +365,6 @@ class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ)).augmentation(x, infinity)
             sage: K.<x> = FunctionField(QQ)
@@ -397,7 +382,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(QQ, 2)
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, v)
@@ -417,7 +401,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(ZZ)
             sage: v.is_discrete_valuation()
             True
@@ -470,7 +453,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: R.<x> = QQ[]
             sage: v.mac_lane_approximants(x^2 + 1)
@@ -789,7 +771,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: v._pow(2, 2, error=4)
             4
@@ -813,7 +794,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: R.<x> = QQ[]
             sage: G = x^2 + 1
@@ -924,7 +904,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: k=Qp(5,4)
             sage: v = pAdicValuation(k)
             sage: R.<x>=k[]
@@ -979,7 +958,6 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: w = pAdicValuation(QQ, 2)
             sage: v >= w

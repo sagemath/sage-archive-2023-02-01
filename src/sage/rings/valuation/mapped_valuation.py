@@ -7,7 +7,6 @@ EXAMPLES:
 Extensions of valuations over finite field extensions `L=K[x]/(G)` are realized
 through an infinite valuation on `K[x]` which maps `G` to infinity::
     
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: K.<x> = FunctionField(QQ)
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
@@ -41,7 +40,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
@@ -59,7 +57,6 @@ class MappedValuation_base(DiscretePseudoValuation):
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x^2 + 1)
@@ -84,7 +81,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -100,7 +96,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -117,7 +112,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -134,7 +128,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -153,7 +146,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -172,7 +164,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -191,7 +182,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x - 2))
@@ -211,7 +201,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -234,7 +223,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -254,7 +242,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -274,7 +261,6 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -307,7 +293,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
@@ -321,7 +306,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
         r"""
         TESTS::
     
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -342,7 +326,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -361,7 +344,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -384,7 +366,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -414,7 +395,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES:: 
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -436,7 +416,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -463,7 +442,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -487,7 +465,6 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = QQ
             sage: R.<t> = K[]
             sage: L.<t> = K.extension(t^2 + 1)
@@ -510,7 +487,6 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
@@ -532,7 +508,6 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
         Note that this implementation is also used when the underlying limit is
         only taken over a finite sequence of valuations::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
@@ -558,7 +533,6 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: pAdicValuation(GaussianIntegers().fraction_field(), 2) # indirect doctest
             2-adic valuation
 

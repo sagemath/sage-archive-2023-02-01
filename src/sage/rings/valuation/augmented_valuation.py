@@ -7,7 +7,6 @@ Implements augmentations of valutions as defined in [ML1936].
 Starting from a :class:`GaussValuation`, we can create augmented valuations on
 polynomial rings::
 
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: R.<x> = QQ[]
     sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
     sage: w = v.augmentation(x, 1); w
@@ -147,7 +146,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -171,7 +170,6 @@ class AugmentedValuationFactory(UniqueFactory):
     This factory is not meant to be called directly. Instead,
     :meth:`augmentation` of a valuation should be called::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x, 1) # indirect doctest
@@ -200,7 +198,6 @@ class AugmentedValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x, 1) # indirect doctest
@@ -235,7 +232,6 @@ class AugmentedValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1) # indirect doctest
@@ -272,7 +268,6 @@ class AugmentedValuation_base(InductiveValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<u> = CyclotomicField(5)
         sage: R.<x> = K[]
         sage: v = GaussValuation(R, pAdicValuation(K, 2))
@@ -291,7 +286,6 @@ class AugmentedValuation_base(InductiveValuation):
         """
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<u> = Qq(4, 5)
             sage: R.<x> = K[]
             sage: v = GaussValuation(R)
@@ -327,7 +321,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -388,7 +381,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -426,7 +418,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -447,7 +438,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x, 1)
@@ -479,7 +469,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -506,7 +495,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -532,7 +520,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -554,7 +541,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -595,7 +581,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K = GaussianIntegers().fraction_field()
             sage: R.<x> = K[]
             sage: v = GaussValuation(R, pAdicValuation(K, 2))
@@ -620,7 +605,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -637,7 +621,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -657,7 +640,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -679,7 +661,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -714,7 +695,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -733,7 +713,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -754,7 +733,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -791,7 +769,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         EXAMPLES:: 
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = QQ[]
             sage: K.<u> = QQ.extension(u^2 + u+ 1)
             sage: S.<x> = K[]
@@ -814,7 +791,6 @@ class AugmentedValuation_base(InductiveValuation):
         No element in the domain of an augmented valuation can have valuation
         `-\infty`, so this method always returns ``False``::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: w = v.augmentation(x, infinity)
@@ -832,7 +808,6 @@ class AugmentedValuation_base(InductiveValuation):
 
         We can change the domain of an augmented valuation even if there is no coercion between rings::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = GaussianIntegers()[]
             sage: v = GaussValuation(R, pAdicValuation(GaussianIntegers(), 2))
             sage: v = v.augmentation(x, 1)
@@ -853,7 +828,6 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
         sage: w = v.augmentation(x, 1)
@@ -863,7 +837,6 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: w = v.augmentation(x, 1)
@@ -882,7 +855,6 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
 
@@ -967,7 +939,6 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
 
@@ -1043,7 +1014,6 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
 
@@ -1091,7 +1061,6 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
 
@@ -1144,7 +1113,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -1154,7 +1122,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -1173,7 +1140,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
 
@@ -1251,7 +1217,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1348,7 +1313,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1391,7 +1355,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1497,7 +1460,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1569,7 +1531,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -1590,7 +1551,6 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, 1)
@@ -1622,7 +1582,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<u> = Qq(4, 5)
         sage: S.<x> = R[]
         sage: v = GaussValuation(S)
@@ -1633,7 +1592,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         r"""
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1652,7 +1610,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1674,7 +1631,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Zq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1714,7 +1670,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1778,7 +1733,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1819,7 +1773,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1861,7 +1814,6 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1884,7 +1836,6 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
         sage: w = v.augmentation(x, 1)
@@ -1894,7 +1845,6 @@ class FinalFiniteAugmentedValuation(FiniteAugmentedValuation, FinalAugmentedValu
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: w = v.augmentation(x, 1)
@@ -1913,7 +1863,6 @@ class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugment
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x, 1)
@@ -1923,7 +1872,6 @@ class NonFinalFiniteAugmentedValuation(FiniteAugmentedValuation, NonFinalAugment
         r"""
         TESTS::
     
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x, 1)
@@ -1943,7 +1891,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x, infinity)
@@ -1953,7 +1900,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x, infinity)
@@ -1971,7 +1917,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1989,7 +1934,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Zq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -2024,7 +1968,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -2068,7 +2011,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -2096,7 +2038,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -2116,7 +2057,6 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)

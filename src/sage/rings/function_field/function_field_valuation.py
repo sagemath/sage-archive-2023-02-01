@@ -7,7 +7,6 @@ EXAMPLES:
 We can create classical valuations that correspond to finite and infinite
 places on a rational function field::
 
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: K.<x> = FunctionField(QQ)
     sage: v = FunctionFieldValuation(K, 1); v
     (x - 1)-adic valuation
@@ -118,7 +117,6 @@ Run test suite for a valuation which is backed by limit valuation::
 
 Run test suite for a valuation which sends an element to `-\infty`::
 
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: R.<x> = QQ[]
     sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2)).augmentation(x, infinity)
     sage: K.<x> = FunctionField(QQ)
@@ -160,7 +158,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
     EXAMPLES::
     
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
     
     We create a valuation that correspond to a finite rational place of a function
@@ -269,7 +266,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
         We specify a valuation on a function field by two different means and
         get the same object::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x - 1) # indirect doctest
 
@@ -330,7 +326,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         TESTS:
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
 
@@ -373,7 +368,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         TESTS:
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<x> = QQ[]
             sage: w = GaussValuation(R, TrivialValuation(QQ)).augmentation(x - 1, 1)
@@ -418,7 +412,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -470,7 +463,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<x> = QQ[]
             sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
@@ -533,7 +525,6 @@ class FunctionFieldValuation_base(DiscretePseudoValuation):
 
     TESTS::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, FunctionFieldValuation_base)
@@ -548,7 +539,6 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
 
     TESTS::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, DiscreteFunctionFieldValuation_base)
@@ -561,7 +551,6 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x)
             sage: R.<y> = K[]
@@ -635,7 +624,6 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
 
     TESTS::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(GF(2))
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, RationalFunctionFieldValuation_base)
@@ -651,7 +639,6 @@ class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
 
     TESTS::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(GF(5))
         sage: v = FunctionFieldValuation(K, x) # indirect doctest
         sage: isinstance(v, ClassicalFunctionFieldValuation_base)
@@ -665,7 +652,6 @@ class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x^2 + 1)
             sage: v._test_classical_residue_field()
@@ -681,7 +667,6 @@ class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x^2 + 1)
             sage: w = FunctionFieldValuation(K, x)
@@ -705,7 +690,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
     TESTS::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x^2 + 1) # indirect doctest
 
@@ -714,7 +698,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x) # indirect doctest
             sage: isinstance(v, InducedFunctionFieldValuation_base)
@@ -735,7 +718,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: FunctionFieldValuation(K, x).uniformizer()
             x
@@ -750,7 +732,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x)
             sage: v.lift(0)
@@ -777,7 +758,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: FunctionFieldValuation(K, x).value_group()
             Additive Abelian Group generated by 1
@@ -791,7 +771,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x^2 + 1)
             sage: v.reduce(x)
@@ -824,7 +803,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: FunctionFieldValuation(K, x^2 + 1) # indirect doctest
             (x^2 + 1)-adic valuation
@@ -848,7 +826,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x^2 + 1)
             sage: L.<x> = FunctionField(GaussianIntegers().fraction_field())
@@ -883,7 +860,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x) # indirect doctest
             sage: v((x+1)/x^2)
@@ -898,7 +874,6 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: FunctionFieldValuation(K, x).residue_ring()
             Rational Field
@@ -925,7 +900,6 @@ class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, C
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, x + 1); v # indirect doctest
         (x + 1)-adic valuation
@@ -952,7 +926,6 @@ class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, C
         r"""
         TESTS::
     
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, x + 1)
             sage: isinstance(v, FiniteRationalFunctionFieldValuation)
@@ -971,7 +944,6 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2))
         sage: w = FunctionFieldValuation(K, v); w # indirect doctest
@@ -986,7 +958,6 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
         function fields in the code. However, since these valuations must send
         elments to `-\infty`, they are not supported yet::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2)).augmentation(x, infinity)
             sage: K.<x> = FunctionField(QQ)
@@ -1006,7 +977,6 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation, Discret
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
@@ -1024,7 +994,6 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation, Discret
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
@@ -1043,7 +1012,6 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation, Discret
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
@@ -1061,7 +1029,6 @@ class FunctionFieldFromLimitValuation(FiniteExtensionFromLimitValuation, Discret
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - (x^2 + x + 1))
@@ -1083,7 +1050,6 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
 
     EXAMPLES::
     
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(GF(2))
         sage: v = FunctionFieldValuation(K, 1/x); v
         Valuation at the infinite place
@@ -1093,7 +1059,6 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
         r"""
         TESTS::
     
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: v = FunctionFieldValuation(K, 1/x)
             sage: isinstance(v, FunctionFieldMappedValuation_base)
@@ -1112,7 +1077,6 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -1130,7 +1094,6 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -1148,7 +1111,6 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -1169,7 +1131,6 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -1191,7 +1152,6 @@ class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, Ra
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import *
         sage: K.<x> = FunctionField(QQ)
         sage: R.<x> = QQ[]
         sage: w = GaussValuation(R, pAdicValuation(QQ, 2)).augmentation(x, 1)
@@ -1204,7 +1164,6 @@ class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, Ra
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import *
             sage: K.<x> = FunctionField(QQ)
             sage: R.<x> = QQ[]
             sage: w = GaussValuation(R, pAdicValuation(QQ, 2)).augmentation(x, 1)
@@ -1224,7 +1183,6 @@ class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, 
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
 
@@ -1233,7 +1191,6 @@ class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, 
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: v = FunctionFieldValuation(K, 1/x) # indirect doctest
             sage: isinstance(v, InfiniteRationalFunctionFieldValuation)
@@ -1251,7 +1208,6 @@ class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, 
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: FunctionFieldValuation(K, 1/x) # indirect doctest
             Valuation at the infinite place
@@ -1270,7 +1226,6 @@ class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(GF(2))
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -1296,7 +1251,6 @@ class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)
@@ -1324,7 +1278,6 @@ class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(GF(2))
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 + y + x^3)

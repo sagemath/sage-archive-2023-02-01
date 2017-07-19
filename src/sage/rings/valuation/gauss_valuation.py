@@ -12,7 +12,6 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: R.<x> = QQ[]
     sage: v0 = pAdicValuation(QQ, 2)
     sage: v = GaussValuation(R, v0); v
@@ -64,7 +63,6 @@ class GaussValuationFactory(UniqueFactory):
 
     The Gauss valuation is the minimum of the valuation of the coefficients::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(QQ, 2)
         sage: R.<x> = QQ[]
         sage: w = GaussValuation(R, v)
@@ -82,7 +80,6 @@ class GaussValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: R.<x> = ZZ[]
             sage: GaussValuation.create_key(R, v)
@@ -113,7 +110,6 @@ class GaussValuationFactory(UniqueFactory):
 
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: R.<x> = QQ[]
             sage: GaussValuation.create_object(0, (R, v))
@@ -139,7 +135,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R = Zp(3,5)
         sage: S.<x> = R[]
         sage: v0 = pAdicValuation(R)
@@ -159,8 +154,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
-            sage: from mac_lane.gauss_valuation import GaussValuation_generic # optional: standalone
+            sage: from gauss_valuation import GaussValuation_generic
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: isinstance(v, GaussValuation_generic)
@@ -177,7 +171,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.value_group()
@@ -192,7 +185,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.value_semigroup()
@@ -207,7 +199,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v # indirect doctest
@@ -224,7 +215,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 5))
             sage: v.uniformizer()
@@ -258,7 +248,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = ZZ
             sage: S.<x> = R[]
             sage: v = GaussValuation(S, pAdicValuation(R, 2))
@@ -302,7 +291,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = Qp(2,5)[]
             sage: v = GaussValuation(S)
             sage: v.residue_ring()
@@ -337,7 +325,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = Qp(2,5)[]
             sage: v = GaussValuation(S)
             sage: f = x^2 + 2*x + 16
@@ -386,7 +373,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: f = x^2 + 2*x + 16
@@ -426,7 +412,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = QQ
             sage: S.<x> = R[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
@@ -461,7 +446,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
@@ -482,7 +466,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v.element_with_valuation(-2)
@@ -498,7 +481,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -516,7 +498,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -533,7 +514,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: R.<x> = ZZ[]
             sage: w = GaussValuation(R, v)
@@ -553,7 +533,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: R.<x> = ZZ[]
             sage: w = GaussValuation(R, v)
@@ -573,7 +552,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(ZZ, 2)
             sage: R.<x> = ZZ[]
             sage: w = GaussValuation(R, v)
@@ -595,7 +573,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -612,7 +589,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -629,7 +605,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v.is_trivial()
@@ -646,7 +621,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = Qp(2, 5)[]
             sage: v = GaussValuation(R)
             sage: v.monic_integral_model(5*x^2 + 1/2*x + 1/4)
@@ -683,7 +657,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = GaussValuation(R, pAdicValuation(QQ, 3))
@@ -708,7 +681,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: 3*v # indirect doctest
@@ -734,7 +706,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES:: 
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v._relative_size(x + 1024)
@@ -778,7 +749,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -810,7 +780,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -839,7 +808,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)

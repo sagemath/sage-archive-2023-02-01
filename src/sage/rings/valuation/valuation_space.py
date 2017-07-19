@@ -9,7 +9,6 @@ numbers extended by `\infty`.
 
 EXAMPLES::
 
-    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: pAdicValuation(QQ, 2).parent()
     Discrete pseudo-valuations on Rational Field
 
@@ -38,7 +37,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: H = DiscretePseudoValuationSpace(QQ)
         sage: pAdicValuation(QQ, 2) in H
         True
@@ -77,7 +75,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         r"""
         TESTS::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: isinstance(pAdicValuation(QQ, 2).parent(), DiscretePseudoValuationSpace)
             True
 
@@ -109,7 +106,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: isinstance(pAdicValuation(QQ, 2), DiscretePseudoValuationSpace.ElementMethods) # indirect doctest
             True
 
@@ -124,7 +120,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 2)
             sage: from operator import mul
             sage: v.parent().get_action(ZZ, mul) # indirect doctest
@@ -144,7 +139,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: DiscretePseudoValuationSpace(QQ).an_element() # indirect doctest
             Trivial pseudo-valuation on Rational Field
 
@@ -158,7 +152,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: DiscretePseudoValuationSpace(QQ) # indirect doctest
             Discrete pseudo-valuations on Rational Field
 
@@ -171,7 +164,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES:
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: H = DiscretePseudoValuationSpace(QQ)
             sage: H.an_element() in H
             True
@@ -194,7 +186,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         EXAMPLES:
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: H = DiscretePseudoValuationSpace(QQ)
             sage: H(pAdicValuation(QQ, 2))
             2-adic valuation
@@ -215,7 +206,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         We try to convert valuations defined on different domains by changing
         their base ring::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: Z = DiscretePseudoValuationSpace(ZZ)
             sage: Q = DiscretePseudoValuationSpace(QQ)
             sage: v = pAdicValuation(ZZ, 2)
@@ -255,7 +245,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         Here is an example of a method that is automagically added to a
         discrete valuation::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: H = DiscretePseudoValuationSpace(QQ)
             sage: pAdicValuation(QQ, 2).is_discrete_pseudo_valuation() # indirect doctest
             True
@@ -263,7 +252,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         The methods will be provided even if the concrete types is not created
         with :meth:`__make_element_class__`::
 
-            sage: from mac_lane.valuation import DiscretePseudoValuation
             sage: m = DiscretePseudoValuation(H)
             sage: m.parent() is H
             True
@@ -290,7 +278,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).is_discrete_pseudo_valuation()
                 True
 
@@ -306,7 +293,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).is_discrete_valuation()
                 True
             
@@ -320,7 +306,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).is_negative_pseudo_valuation()
                 False
 
@@ -344,7 +329,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 7).is_trivial()
                 False
 
@@ -366,7 +350,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 11).uniformizer()
                 11
 
@@ -391,7 +374,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).value_group()
                 Additive Abelian Group generated by 1
 
@@ -419,7 +401,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Most commonly, in particular over fields, the semigroup is the
             group generated by the valuation of the uniformizer::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: G = pAdicValuation(QQ, 2).value_semigroup(); G
                 Additive Abelian Semigroup generated by -1, 1
                 sage: G in AdditiveMagmas().AdditiveAssociative().AdditiveUnital().AdditiveInverse()
@@ -455,7 +436,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: v.element_with_valuation(10)
                 1024
@@ -484,7 +464,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).residue_ring()
                 Finite Field of size 2
                 sage: TrivialValuation(QQ).residue_ring()
@@ -511,7 +490,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: pAdicValuation(QQ, 2).residue_field()
                 Finite Field of size 2
                 sage: TrivialValuation(QQ).residue_field()
@@ -542,7 +520,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 2)
                 sage: v.reduce(2)
                 0
@@ -565,7 +542,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 2)
                 sage: v.lift(v.residue_ring().one())
                 1
@@ -578,7 +554,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: w = v.extension(QQ)
                 sage: w.domain()
@@ -597,7 +572,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: v.extensions(QQ)
                 [2-adic valuation]
@@ -613,7 +587,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 2)
                 sage: w = v.restriction(ZZ)
                 sage: w.domain()
@@ -634,7 +607,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 3)
                 sage: v.change_domain(ZZ)
                 3-adic valuation
@@ -658,7 +630,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: w = v.scale(3)
                 sage: w(3)
@@ -716,7 +687,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v2 = pAdicValuation(QQ, 2)
                 sage: v3 = pAdicValuation(QQ, 3)
                 sage: v5 = pAdicValuation(QQ, 5)
@@ -789,7 +759,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v2 = pAdicValuation(QQ, 2)
                 sage: v3 = pAdicValuation(QQ, 3)
                 sage: v2._strictly_separating_element(v3)
@@ -867,7 +836,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v2 = pAdicValuation(QQ, 2)
                 sage: v3 = pAdicValuation(QQ, 3)
                 sage: v2._weakly_separating_element(v3)
@@ -893,7 +861,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: v.shift(1, 10)
                 1024
@@ -945,7 +912,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: v.simplify(6, force=True)
                 2
@@ -968,7 +934,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: v.lower_bound(2^10)
                 10
@@ -985,7 +950,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 2)
                 sage: v.upper_bound(2^10)
                 10
@@ -1007,7 +971,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             EXAMPLES:: 
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(Qp(2))
                 sage: v._relative_size(2)
                 1
@@ -1028,7 +991,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: v._test_is_negative_pseudo_valuation()
 
@@ -1052,7 +1014,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: v._test_bounds()
 
@@ -1070,7 +1031,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: v._test_simplify()
 
@@ -1114,7 +1074,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: v._test_shift()
 
@@ -1144,7 +1103,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: v._test_scale()
 
@@ -1181,7 +1139,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(ZZ, 3)
                 sage: v._test_add()
 
@@ -1200,7 +1157,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_infinite_zero()
 
@@ -1215,7 +1171,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_mul()
 
@@ -1232,7 +1187,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_no_infinite_units()
 
@@ -1263,7 +1217,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_value_group()
 
@@ -1293,7 +1246,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_value_semigroup()
 
@@ -1313,7 +1265,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_element_with_valuation()
 
@@ -1333,7 +1284,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_residue_ring()
 
@@ -1366,7 +1316,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_reduce()
 
@@ -1406,7 +1355,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_lift()
 
@@ -1437,7 +1385,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_restriction()
 
@@ -1452,7 +1399,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_extension()
 
@@ -1468,7 +1414,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_change_domain()
 
@@ -1483,7 +1428,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_no_infinite_nonzero()
 
@@ -1503,7 +1447,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_residue_field()
 
@@ -1538,7 +1481,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_ge()
 
@@ -1560,7 +1502,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             TESTS::
 
-                sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
                 sage: v = pAdicValuation(QQ, 5)
                 sage: v._test_le()
 
@@ -1584,7 +1525,6 @@ class ScaleAction(Action):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(QQ, 5)
         sage: from operator import mul
         sage: v.parent().get_action(IntegerRing, mul, self_on_left=False)
@@ -1596,7 +1536,6 @@ class ScaleAction(Action):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 5)
             sage: 3*v # indirect doctest
             3 * 5-adic valuation
@@ -1611,7 +1550,6 @@ class InverseScaleAction(Action):
 
     EXAMPLES::
 
-        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = pAdicValuation(QQ, 5)
         sage: from operator import div
         sage: v.parent().get_action(IntegerRing, div, self_on_left=True)
@@ -1623,7 +1561,6 @@ class InverseScaleAction(Action):
 
         EXAMPLES::
 
-            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = pAdicValuation(QQ, 5)
             sage: v/3 # indirect doctest
             1/3 * 5-adic valuation

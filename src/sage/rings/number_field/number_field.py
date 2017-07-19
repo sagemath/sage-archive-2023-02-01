@@ -8068,49 +8068,49 @@ class NumberField_absolute(NumberField_generic):
         return self.places(prec=prec)[0:self.signature()[0]]
 
     def abs_val(self, v, iota, prec=None):
-    r"""
-    Return the value `|\iota|_{v}`.
+        r"""
+        Return the value `|\iota|_{v}`.
 
-    INPUT:
+        INPUT:
 
-    - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``K.places(prec)``)
-    - ``iota`` -- an element of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+        - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``K.places(prec)``)
+        - ``iota`` -- an element of ``K``
+        - ``prec`` -- (default: None) the precision of the real field
 
-    OUTPUT:
+        OUTPUT:
 
-    The absolute value as a real number
+        The absolute value as a real number
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: K.<xi> = NumberField(x^3-3)
-        sage: phi_real = K.places()[0]
-        sage: phi_complex = K.places()[1]
-        sage: v_fin = tuple(K.primes_above(3))[0]
+            sage: K.<xi> = NumberField(x^3-3)
+            sage: phi_real = K.places()[0]
+            sage: phi_complex = K.places()[1]
+            sage: v_fin = tuple(K.primes_above(3))[0]
 
-        sage: K.abs_val(phi_real,xi^2)
-        2.080083823051904114530056824358
+            sage: K.abs_val(phi_real,xi^2)
+            2.08008382305190
 
-        sage: K.abs_val(phi_complex,xi^2)
-        4.326748710922225349406744498992
+            sage: K.abs_val(phi_complex,xi^2)
+            4.32674871092223
 
-        sage: K.abs_val(v_fin,xi^2)
-        0.1111111111111111111111111111111
-    """
-    if prec is None:
-        prec = 53
-    R = sage.rings.real_mpfr.RealField(prec)
-    
-    try:
-        p = v.smallest_integer()
-        iota_ideal = self.ideal(self(iota))
-        exponent = - v.residue_class_degree() * iota_ideal.valuation(v)
-        return R(p**exponent)
-    except AttributeError:
-        if is_real_place(v):
-            return R(v(iota).abs())
-        else:
-            return RealField(prec)(v(iota).abs()**2)
+            sage: K.abs_val(v_fin,xi^2)
+            0.111111111111111
+        """
+        if prec is None:
+            prec = 53
+        R = sage.rings.real_mpfr.RealField(53)
+
+        try:
+            p = v.smallest_integer()
+            iota_ideal = self.ideal(self(iota))
+            exponent = - v.residue_class_degree() * iota_ideal.valuation(v)
+            return R(p**exponent)
+        except AttributeError:
+            if is_real_place(v):
+                return R(v(iota).abs())
+            else:
+                return R(v(iota).abs()**2)
 
     def relativize(self, alpha, names, structure=None):
         r"""

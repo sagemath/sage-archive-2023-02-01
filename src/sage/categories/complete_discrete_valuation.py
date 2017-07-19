@@ -39,6 +39,7 @@ def smith_normal_form(M, transformation):
     val = -Infinity
     for piv in range(min(n,m)):
         curval = Infinity
+        pivi = pivj = piv
         for i in range(piv,n):
             for j in range(piv,m):
                 v = S[i,j].valuation()

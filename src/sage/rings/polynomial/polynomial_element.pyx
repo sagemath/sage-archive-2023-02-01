@@ -4339,6 +4339,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Finite Field in b of size 401^52
 
         """
+        if name is None:
+            raise TypeError("You must specify the name of the generator.")
         name = normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField

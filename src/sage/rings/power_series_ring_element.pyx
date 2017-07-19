@@ -467,6 +467,19 @@ cdef class PowerSeries(AlgebraElement):
         """
         raise NotImplementedError
 
+    def lift_to_maximal_precision(self):
+        """
+        Discard the O(...) is this power series.
+
+        EXAMPLES::
+
+            sage: A.<t> = PowerSeriesRing(GF(5))
+            sage: x = t + t^2 + O(t^5)
+            sage: x.lift_to_maximal_precision()
+            t + t^2
+        """
+        return self.parent(self.list())
+
     def __copy__(self):
         """
         Return this power series. Power series are immutable so copy can

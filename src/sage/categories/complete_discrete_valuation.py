@@ -11,10 +11,13 @@ from __future__ import absolute_import
 
 
 from sage.misc.abstract_method import abstract_method
+from sage.rings.infinity import Infinity
+from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.category_singleton import Category_singleton
 from .discrete_valuation import DiscreteValuationRings, DiscreteValuationFields
 #from sage.misc.cachefunc import cached_method
+
 
 class CompleteDiscreteValuationRings(Category_singleton):
     """
@@ -40,6 +43,166 @@ class CompleteDiscreteValuationRings(Category_singleton):
             [Category of discrete valuation rings]
         """
         return [DiscreteValuationRings()]
+
+    class ParentMethods:
+        def _matrix_smith_form(self, M, transformation):
+            """
+            Return the Smith normal form of this matrix.
+
+            INPUT:
+
+            - ``transformation`` -- a boolean (default: True)
+              Indicates whether the transformation matrices are returned
+
+            NOTE:
+
+            We recall that a Smith decomposition of a matrix `M`
+            defined over a complete discrete valuation ring/field
+            is a writing of the form `L*M*R = S` where:
+
+            - `L` and `R` are invertible matrices in the ring of
+              integers
+
+            - the only non-vanishing entries of `S` are located on
+              the diagonal (through `S` might be not a square matrix)
+
+            - if `d_i` denotes the `(i,i)` entry of `D`, then `d_i`
+              divides `d_{i+1}` for all `i`.
+
+            The `d_i`'s are uniquely determined provided that they are
+            normalized so that they are all either `0` or a power of the 
+            distinguished uniformizer of the base ring.
+            Normalized this way, the writing `L*M*R = S` is called the
+            Smith normal form of `M`.
+
+            EXAMPLES::
+
+                sage: A = Zp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+                sage: S, L, R = M.smith_form()
+                sage: S
+                [ ...1     0]
+                [    0 ...10]
+                sage: L
+                [...222222223          ...]
+                [...444444444         ...2]
+                sage: R
+                [         ...1 ...2222222214]
+                [            0          ...1]
+
+            If not needed, it is possible to do not compute the
+            transformations matrices L and R as follows::
+
+                sage: M.smith_form(transformation=False)
+                [ ...1     0]
+                [    0 ...10]
+
+            This method works for rectangular matrices as well::
+
+                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+                sage: S, L, R = M.smith_form()
+                sage: S
+                [ ...1     0]
+                [    0 ...10]
+                [    0     0]
+                sage: L
+                [...222222223          ...          ...]
+                [...444444444         ...2          ...]
+                [...444444443         ...1         ...1]
+                sage: R
+                [         ...1 ...2222222214]
+                [            0          ...1]
+
+            An error is raised if the precision on the entries is
+            not enough to determine the Smith normal form::
+
+                sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
+                sage: M.smith_form()
+                Traceback (most recent call last):
+                ...
+                PrecisionError: Not enough precision to compute Smith normal form
+
+            TESTS::
+
+                sage: M = random_matrix(A, 4)
+                sage: S, L, R = M.smith_form()
+                sage: L*M*R == S
+                True
+
+            We check that Smith decomposition works over various rings::
+
+                sage: from sage.rings.padics.precision_error import PrecisionError
+                sage: ring1 = ZpCA(5,15)
+                sage: ring2 = Zq(5^3,names='a')
+                sage: ring3 = Zp(5).extension(x^2-5, names='pi')
+                sage: ring4 = PowerSeriesRing(GF(5), name='t')
+                sage: for A in [ ring1, ring2, ring3, ring4 ]:
+                ....:     for _ in range(10):
+                ....:         M = random_matrix(A,4)
+                ....:         try:
+                ....:             S, L, R = M.smith_form()
+                ....:         except PrecisionError:
+                ....:             continue
+                ....:         if L*M*R != S: raise RuntimeError
+            """
+            n = M.nrows()
+            m = M.ncols()
+            S = M.parent()(M.list())
+            smith = M.parent()(0)
+            R = M.base_ring()
+            if transformation:
+                from sage.matrix.special import identity_matrix
+                left = identity_matrix(R,n)
+                right = identity_matrix(R,m)
+            else:
+                left = right = None
+            val = -Infinity
+            for piv in range(min(n,m)):
+                curval = Infinity
+                for i in range(piv,n):
+                    for j in range(piv,m):
+                        v = S[i,j].valuation()
+                        if v < curval:
+                            pivi = i; pivj = j
+                            curval = v
+                            if v == val: break
+                    else:
+                        continue
+                    break
+                if S[piv,piv] == 0:
+                    if curval is Infinity:
+                        break
+                    else:
+                        raise PrecisionError("Not enough precision to compute Smith normal form")
+                S.swap_rows(pivi,piv)
+                S.swap_columns(pivj,piv)
+                if transformation:
+                    left.swap_rows(pivi,piv)
+                    right.swap_columns(pivj,piv)
+                smith[piv,piv] = R(1) << curval
+                inv = ~(S[piv,piv] >> curval)
+                for i in range(piv+1,n):
+                    scalar = -inv * (S[i,piv] >> curval)
+                    scalar = scalar.lift_to_maximal_precision()
+                    S.add_multiple_of_row(i,piv,scalar,piv+1)
+                    if transformation:
+                        left.add_multiple_of_row(i,piv,scalar)
+                if transformation:
+                    left.rescale_row(piv,inv)
+                    for j in range(piv+1,m):
+                        scalar = -inv * (S[piv,j] >> curval)
+                        scalar = scalar.lift_to_maximal_precision()
+                        right.add_multiple_of_column(j,piv,scalar)
+            if transformation:
+                prec = min([ x.precision_absolute() for x in M.list() ])
+                if prec is not Infinity:
+                    prec -= curval
+                left = left.apply_map(lambda x: x.add_bigoh(prec))
+                return smith, left, right
+            else:
+                return smith
+
 
     class ElementMethods:
         @abstract_method
@@ -68,6 +231,21 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 7 + O(7^21)
                 sage: x.precision_relative()
                 20
+            """
+
+        @abstract_method
+        def lift_to_maximal_precision(self):
+            """
+            Lift this element to the maximal precision
+            allowed by the parent.
+
+            EXAMPLES::
+
+                sage: R = Zp(7,prec=20)
+                sage: x = R(7,5); x
+                7 + O(7^5)
+                sage: x.lift_to_maximal_precision()
+                7 + O(7^21)
             """
 
 class CompleteDiscreteValuationFields(Category_singleton):
@@ -96,6 +274,166 @@ class CompleteDiscreteValuationFields(Category_singleton):
         """
         return [DiscreteValuationFields()]
 
+    class ParentMethods:
+        def _matrix_smith_form(self, M, transformation):
+            """
+            Return the Smith normal form of this matrix.
+
+            INPUT:
+
+            - ``transformation`` -- a boolean (default: True)
+              Indicates whether the transformation matrices are returned
+
+            NOTE:
+
+            We recall that a Smith decomposition of a matrix `M`
+            defined over a complete discrete valuation ring/field
+            is a writing of the form `L*M*R = S` where:
+
+            - `L` and `R` are invertible matrices in the ring of
+              integers
+
+            - the only non-vanishing entries of `S` are located on
+              the diagonal (through `S` might be not a square matrix)
+
+            - if `d_i` denotes the `(i,i)` entry of `D`, then `d_i`
+              divides `d_{i+1}` for all `i`.
+
+            The `d_i`'s are uniquely determined provided that they are
+            normalized so that they are all either `0` or a power of the 
+            distinguished uniformizer of the base ring.
+            Normalized this way, the writing `L*M*R = S` is called the
+            Smith normal form of `M`.
+
+            EXAMPLES::
+
+                sage: A = Qp(5, prec=10, print_mode="digits")
+                sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+                sage: S, L, R = M.smith_form()
+                sage: S
+                [ ...1     0]
+                [    0 ...10]
+                sage: L
+                [...222222223          ...]
+                [...444444444         ...2]
+                sage: R
+                [         ...1 ...2222222214]
+                [            0          ...1]
+
+            If not needed, it is possible to do not compute the
+            transformations matrices L and R as follows::
+
+                sage: M.smith_form(transformation=False)
+                [ ...1     0]
+                [    0 ...10]
+
+            This method works for rectangular matrices as well::
+
+                sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+                sage: S, L, R = M.smith_form()
+                sage: S
+                [ ...1     0]
+                [    0 ...10]
+                [    0     0]
+                sage: L
+                [...222222223          ...          ...]
+                [...444444444         ...2          ...]
+                [...444444443         ...1         ...1]
+                sage: R
+                [         ...1 ...2222222214]
+                [            0          ...1]
+
+            An error is raised if the precision on the entries is
+            not enough to determine the Smith normal form::
+
+                sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
+                sage: M.smith_form()
+                Traceback (most recent call last):
+                ...
+                PrecisionError: Not enough precision to compute Smith normal form
+
+            TESTS::
+
+                sage: M = random_matrix(A, 4)
+                sage: S, L, R = M.smith_form()
+                sage: L*M*R == S
+                True
+
+            We check that Smith decomposition works over various rings::
+
+                sage: from sage.rings.padics.precision_error import PrecisionError
+                sage: ring1 = Qp(7,10)
+                sage: ring2 = Qq(7^2,names='a')
+                sage: ring3 = Qp(7).extension(x^3-7, names='pi')
+                sage: ring4 = LaurentSeriesRing(GF(7), name='t')
+                sage: for A in [ ring1, ring2, ring4 ]:  # ring3 causes troubles (see ticket #23464)
+                ....:     for _ in range(10):
+                ....:         M = random_matrix(A,4)
+                ....:         try:
+                ....:             S, L, R = M.smith_form()
+                ....:         except PrecisionError:
+                ....:             continue
+                ....:         if L*M*R != S: raise RuntimeError
+            """
+            n = M.nrows()
+            m = M.ncols()
+            S = M.parent()(M.list())
+            smith = M.parent()(0)
+            R = M.base_ring()
+            if transformation:
+                from sage.matrix.special import identity_matrix
+                left = identity_matrix(R,n)
+                right = identity_matrix(R,m)
+            else:
+                left = right = None
+            val = -Infinity
+            for piv in range(min(n,m)):
+                curval = Infinity
+                for i in range(piv,n):
+                    for j in range(piv,m):
+                        v = S[i,j].valuation()
+                        if v < curval:
+                            pivi = i; pivj = j
+                            curval = v
+                            if v == val: break
+                    else:
+                        continue
+                    break
+                if S[piv,piv] == 0:
+                    if curval is Infinity:
+                        break
+                    else:
+                        raise PrecisionError("Not enough precision to compute Smith normal form")
+                S.swap_rows(pivi,piv)
+                S.swap_columns(pivj,piv)
+                if transformation:
+                    left.swap_rows(pivi,piv)
+                    right.swap_columns(pivj,piv)
+                smith[piv,piv] = R(1) << curval
+                inv = ~(S[piv,piv] >> curval)
+                for i in range(piv+1,n):
+                    scalar = -inv * (S[i,piv] >> curval)
+                    scalar = scalar.lift_to_maximal_precision()
+                    S.add_multiple_of_row(i,piv,scalar,piv+1)
+                    if transformation:
+                        left.add_multiple_of_row(i,piv,scalar)
+                if transformation:
+                    left.rescale_row(piv,inv)
+                    for j in range(piv+1,m):
+                        scalar = -inv * (S[piv,j] >> curval)
+                        scalar = scalar.lift_to_maximal_precision()
+                        right.add_multiple_of_column(j,piv,scalar)
+            if transformation:
+                prec = min([ x.precision_absolute() for x in M.list() ])
+                if prec is not Infinity:
+                    prec -= curval
+                left = left.apply_map(lambda x: x.add_bigoh(prec))
+                return smith, left, right
+            else:
+                return smith
+
+
     class ElementMethods:
         @abstract_method
         def precision_absolute(self):
@@ -124,3 +462,5 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 sage: x.precision_relative()
                 20
             """
+
+

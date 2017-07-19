@@ -13149,21 +13149,20 @@ cdef class Matrix(Matrix1):
 
            :meth:`smith_form`
         """
-        d, u, v = self.smith_form()
+        d = self.smith_form(transformation=False)
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
-    def smith_form(self):
+    def smith_form(self, transformation=True):
         r"""
-        If self is a matrix over a principal ideal domain R, return
-        matrices D, U, V over R such that D = U \* self \* V, U and V have
-        unit determinant, and D is diagonal with diagonal entries the
+        Return a Smith decomposition of this matrix,
+        that is a writing `D = U * self * V` where U and V are
+        invertible and D is diagonal with diagonal entries the
         ordered elementary divisors of self, ordered so that
         `D_{i} \mid D_{i+1}`. Note that U and V are not uniquely
         defined in general, and D is defined only up to units.
 
         INPUT:
-
 
         -  ``self`` - a matrix over an integral domain. If the
            base ring is not a PID, the routine might work, or else it will
@@ -13172,8 +13171,13 @@ cdef class Matrix(Matrix1):
            PID, since this might be quite expensive (e.g. for rings of
            integers of number fields of large degree).
 
+        -  ``transformation`` -- a boolean (default: True)
+           Indicates whether the matrices U and V are returned or not.
 
-        ALGORITHM: Lifted wholesale from
+
+        ALGORITHM: 
+        If the base ring has a method `_matrix_smith_form`, use it.
+        Otherwise, use the lifted wholesale from
         http://en.wikipedia.org/wiki/Smith_normal_form
 
         .. SEEALSO::
@@ -13259,10 +13263,16 @@ cdef class Matrix(Matrix1):
             True
         """
         R = self.base_ring()
-        left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
-        right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
+        if hasattr(R, '_matrix_smith_form'):
+            return R._matrix_smith_form(self,transformation=transformation)
+        if transformation:
+            left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
+            right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
         if self == 0 or (self.nrows() <= 1 and self.ncols() <= 1):
-            return self.__copy__(), left_mat, right_mat
+            if transformation:
+                return self.__copy__(), left_mat, right_mat
+            else:
+                return self.__copy__()
 
         # data type checks on R
         if not R.is_integral_domain() or not R.is_noetherian():
@@ -13276,13 +13286,17 @@ cdef class Matrix(Matrix1):
         # now recurse: t now has a nonzero entry at 0,0 and zero entries in the rest
         # of the 0th row and column, so we apply smith_form to the smaller submatrix
         mm = t.submatrix(1,1)
-        dd, uu, vv = mm.smith_form()
+        dd, uu, vv = mm.smith_form(transformation=transformation)
         mone = self.new_matrix(1, 1, [1])
         d = dd.new_matrix(1,1,[t[0,0]]).block_sum(dd)
-        u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
-        v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
-        dp, up, vp = _smith_diag(d)
-        return dp,up*u,v*vp
+        if transformation:
+            u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
+            v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
+        dp, up, vp = _smith_diag(d, transformation=transformation)
+        if transformation:
+            return dp, up*u, v*vp
+        else:
+            return dp
 
     def _hermite_form_euclidean(self, transformation=False, normalization=None):
         """
@@ -14641,7 +14655,7 @@ cdef class Matrix(Matrix1):
         deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
-def _smith_diag(d):
+def _smith_diag(d, transformation):
     r"""
     For internal use by the smith_form routine. Given a diagonal matrix d
     over a ring r, return matrices d', a,b such that a\*d\*b = d' and
@@ -14672,14 +14686,18 @@ def _smith_diag(d):
     dp = d.__copy__()
     n = min(d.nrows(), d.ncols())
     R = d.base_ring()
-    left = d.new_matrix(d.nrows(), d.nrows(), 1)
-    right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    if transformation:
+        left = d.new_matrix(d.nrows(), d.nrows(), 1)
+        right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    else:
+        left = right = None
     for i in xrange(n):
         I = R.ideal(dp[i,i])
 
         if I == R.unit_ideal():
             if dp[i,i] != 1:
-                left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
+                if transformation:
+                    left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
                 dp[i,i] = R(1)
             continue
 
@@ -14703,8 +14721,9 @@ def _smith_diag(d):
                 newrmat[j,i] = mu
                 newrmat[j,j] = R(lamb*dp[i,i] / t)
 
-                left = newlmat*left
-                right = right*newrmat
+                if transformation:
+                    left = newlmat*left
+                    right = right*newrmat
                 dp = newlmat*dp*newrmat
     return dp, left, right
 

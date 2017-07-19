@@ -2259,11 +2259,17 @@ cdef class Matrix_integer_dense(Matrix_dense):
         self.cache('elementary_divisors', d)
         return d[:]
 
-    def smith_form(self):
+    def smith_form(self, transformation=True):
         r"""
-        Returns matrices S, U, and V such that S = U\*self\*V, and S is in
-        Smith normal form. Thus S is diagonal with diagonal entries the
-        ordered elementary divisors of S.
+        Return the smith normal form of this matrix, that is the
+        diagonal matrix S with diagonal entries the ordered elementary 
+        divisors of self.
+
+        INPUT:
+
+        - transformation -- a boolean (default: True)
+          Indicated whether the transformation matrices U and V such that 
+          `S = U\*self\*V` are also returned.
 
         .. warning::
 
@@ -2329,10 +2335,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
            :meth:`elementary_divisors`
         """
         v = self.__pari__().matsnf(1).sage()
-        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
-        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
         D = self.matrix_space()([v[2][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
+
+        if not transformation:
+            return D
+
+        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
+        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
 
         if self._ncols == 0:
             # silly special cases for matrices with 0 columns (PARI has a unique empty matrix)

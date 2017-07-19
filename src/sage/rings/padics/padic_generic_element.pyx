@@ -1493,6 +1493,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return self.valuation(p) / self.parent().ramification_index()
 
+    def lift_to_maximal_precision(self):
+        """
+        Returns another element of the same parent with maximal precision,
+        congruent to this `p`-adic element modulo the precision of this element.
+
+        EXAMPLES::
+
+            sage: R = Zp(17)
+            sage: R(-1,2).lift_to_maximal_precision()
+            16 + 16*17 + O(17^20)
+            sage: R(17,15).lift_to_maximal_precision()
+            17 + O(17^21)
+        """
+        return self.lift_to_precision()
+
     def rational_reconstruction(self):
         r"""
         Returns a rational approximation to this p-adic number

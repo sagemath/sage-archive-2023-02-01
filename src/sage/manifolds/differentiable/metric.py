@@ -111,13 +111,13 @@ class PseudoRiemannianMetric(TensorField):
 
         sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
         sage: g.display(eU)
-        g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
+        g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx*dx + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dy*dy
 
     A matrix view of the components::
 
         sage: g[eU,:]
-        [4/(x^2 + y^2 + 1)^2                   0]
-        [                  0 4/(x^2 + y^2 + 1)^2]
+          [4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)                                           0]
+          [                                          0 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)]
 
     The components of g on domain V expressed in terms of (u,v) coordinates are
     similar to those on domain U expressed in (x,y) coordinates, as we can
@@ -1020,8 +1020,10 @@ class PseudoRiemannianMetric(TensorField):
             Tensor field Riem(g) of type (1,3) on the Open subset U of the
              2-dimensional differentiable manifold S^2
             sage: g.riemann()[:]
-            [[[[0, 0], [0, 0]], [[0, sin(th)^2], [-sin(th)^2, 0]]],
-             [[[0, (cos(th)^2 - 1)/sin(th)^2], [1, 0]], [[0, 0], [0, 0]]]]
+            [[[[0, 0], [0, 0]],
+              [[0, sin(2*th)/(2*tan(th)) - cos(2*th)],
+               [-sin(2*th)/(2*tan(th)) + cos(2*th), 0]]],
+             [[[0, -1], [1, 0]], [[0, 0], [0, 0]]]]
 
 
         """
@@ -2230,8 +2232,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             Tensor field inv_g of type (2,0) on the 2-dimensional
               differentiable manifold M
             sage: ig[:]
-            [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
-            [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]
+            [[(x - 1)/(x**2*y**2 + x**2 - 1), x*y/(x**2*y**2 + x**2 - 1)],
+             [x*y/(x**2*y**2 + x**2 - 1), -(x + 1)/(x**2*y**2 + x**2 - 1)]]
 
 
 

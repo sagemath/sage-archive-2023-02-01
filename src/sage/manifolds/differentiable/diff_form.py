@@ -225,14 +225,12 @@ class DiffForm(TensorField):
         2
 
     Setting the components of ``a``::
-        sage: type(a)
         sage: a[eU,0,1] = x*y^2 + 2*x
         sage: a.add_comp_by_continuation(eV, W, c_uv)
         sage: a.display(eU)
         a = x*(y**2 + 2) dx/\dy
         sage: a.display(eV)
-        a = (-1/16*u^3 + 1/16*u*v^2 - 1/16*v^3
-         + 1/16*(u^2 - 8)*v - 1/2*u) du/\dv
+        a = (-u**3/16 + u**2*v/16 + u*v**2/16 - u/2 - v**3/16 - v/2) du/\dv
 
     A 1-form on ``M``::
 
@@ -251,7 +249,7 @@ class DiffForm(TensorField):
         sage: a.display(eU)
         a = -y dx + x dy
         sage: a.display(eV)
-        a = 1/2*v du - 1/2*u dv
+        a = v/2 du - u/2 dv
 
     The exterior derivative of the 1-form is a 2-form::
 
@@ -275,17 +273,16 @@ class DiffForm(TensorField):
         sage: s.display(eU)
         a+b = (x*y - y + 1) dx + x*(x + 1) dy
         sage: s.display(eV)
-        a+b = (1/4*u^2 + 1/4*(u + 2)*v + 1/2) du
-         + (-1/4*u*v - 1/4*v^2 - 1/2*u + 1/2) dv
+        a+b = (u**2/4 + u*v/4 + v/2 + 1/2) du + (-u*v/4 - u/2 - v**2/4 + 1/2) dv
 
     The exterior product of two 1-forms is a 2-form::
 
         sage: s = a.wedge(b) ; s
         2-form a/\b on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
-        a/\b = (-2*x^2*y - x) dx/\dy
+        a/\b = -x*(2*x*y + 1) dx/\dy
         sage: s.display(eV)
-        a/\b = (1/8*u^3 - 1/8*u*v^2 - 1/8*v^3 + 1/8*(u^2 + 2)*v + 1/4*u) du/\dv
+        a/\b = (u**3/8 + u**2*v/8 - u*v**2/8 + u/4 - v**3/8 + v/4) du/\dv
 
     Multiplying a 1-form by a scalar field results in another 1-form::
 
@@ -295,7 +292,7 @@ class DiffForm(TensorField):
         sage: s.display(eU)
         -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
         sage: s.display(eV)
-        1/2*u^2*v du - 1/2*u^3 dv
+        u**2*v/2 du - u**3/2 dv
 
 
     """

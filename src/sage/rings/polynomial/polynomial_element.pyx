@@ -4204,7 +4204,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``names`` -- (dfault: ``None``)  a variable name for the splitting field.
+        - ``names`` -- (default: ``None``)  a variable name for the splitting field.
 
         - ``map`` -- (default: ``False``) also return an embedding of
           ``self`` into the resulting field.
@@ -4337,12 +4337,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t = x^56 - 14*x^3
             sage: t.splitting_field('b')
             Finite Field in b of size 401^52
-            
+
             sage: R.<x> = QQ[]
             sage: f = x^2 - 2
-            sage: f.splitting_field() 
-            R.<x> = QQ[]
-            f = x^2 - 2
+            sage: f.splitting_field()
             Traceback (most recent call last):
             ...
             TypeError: You must specify the name of the generator.

@@ -61,13 +61,13 @@ def gauss_sum(a, p, f, prec = 20):
 
         In this example, we verify that g_3(0) = -1
 
-            sage: from sage.rings.padics import gauss_sum
+            sage: from sage.rings.padics.misc import gauss_sum
             sage: -gauss_sum(0,3,1)
             1 + O(pi^40)
         
         Next, we verify that g_5(a)*g_5(-a) = 5*(-1)^a 
         
-            sage: from sage.rings.padics import gauss_sum
+            sage: from sage.rings.padics.misc import gauss_sum
             sage: gauss_sum(2,5,1)^2-5
             O(pi^84)
             sage: gauss_sum(1,5,1)*gauss_sum(3,5,1)+5
@@ -75,7 +75,7 @@ def gauss_sum(a, p, f, prec = 20):
         
         Finally, we compute a non-trivial value
             
-            sage: from sage.rings.padics import gauss_sum
+            sage: from sage.rings.padics.misc import gauss_sum
             sage: gauss_sum(2,13,2)
             6*pi^2 + 7*pi^14 + 11*pi^26 + 3*pi^62 + 6*pi^74 + 3*pi^86 + 5*pi^98 + pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 + pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
        

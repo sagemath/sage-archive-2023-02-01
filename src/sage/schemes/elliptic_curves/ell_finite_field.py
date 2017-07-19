@@ -1245,17 +1245,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         EXAMPLES::
 
             sage: E = EllipticCurve(GF(11),[2,5])
-            sage: E.gens()
-            ((0 : 7 : 1),)
+            sage: P = E.gens()[0]; P # random
+            (0 : 7 : 1)
+            sage: E.cardinality(), P.order()
+            (10, 10)
             sage: E = EllipticCurve(GF(41),[2,5])
-            sage: E.gens()
+            sage: P, Q = E.gens(); P, Q # random
             ((30 : 13 : 1), (32 : 23 : 1))
+            sage: P.order()*Q.order()
+            484
             sage: E.cardinality()
             44
-            sage: E.gens()[0].order()
-            22
-            sage: E.gens()[1].order()
-            22
 
         If the abelian group has been computed, return those generators
         instead::

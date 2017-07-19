@@ -1,14 +1,17 @@
 r"""
 Miscellaneous Functions
 
-This file contains two miscellaneous functions used by `p`-adics.
+This file contains several miscellaneous functions used by `p`-adics.
 
+- ``gauss_sum`` -- Computes gauss sums using the Gross-Koblitz formula.
 - ``min`` -- a version of ``min`` that returns `\infty` on empty input.
 - ``max`` -- a version of ``max`` that returns `-\infty` on empty input.
 
 AUTHORS:
 
 - David Roe
+- Adriana Salerno
+- Ander Steele
 """
 
 #*****************************************************************************
@@ -32,53 +35,58 @@ from sage.rings.all import PolynomialRing
 def gauss_sum(a, p, f, prec = 20):
     """
     Return the gauss sum g_q(a) as a p-adic number.
-    
+
     g_q(a) is defined by g_q(a)= \sum_{u\in F_q^\times} omega(u)^(-a) \zeta_q^u
     where q = p^f, \omega is the Teichmuller character and \zeta_q is some arbitrary 
     choice of primitive q-th root of unity
-     
 
-        INPUT:
-        
-        - ``a`` -- integer.
-        
-        - ``p`` -- prime.
-        
-        - ``f`` -- positive integer.
-        
-        - ``prec`` -- positive integer. set to 20 by default.
 
-        OUTPUT:
+   INPUT:
 
-        - a `p`-adic number in an Eisenstein extension of Q_p
+    - ``a`` -- integer.
 
-        .. NOTE::
+    - ``p`` -- prime.
 
-            This is based on GP code written by Adriana Salerno
-            
+    - ``f`` -- positive integer.
 
-        EXAMPLES:
+    - ``prec`` -- positive integer. set to 20 by default.
 
-        In this example, we verify that g_3(0) = -1
+    OUTPUT:
 
-            sage: from sage.rings.padics.misc import gauss_sum
-            sage: -gauss_sum(0,3,1)
-            1 + O(pi^40)
-        
-        Next, we verify that g_5(a)*g_5(-a) = 5*(-1)^a 
-        
-            sage: from sage.rings.padics.misc import gauss_sum
-            sage: gauss_sum(2,5,1)^2-5
-            O(pi^84)
-            sage: gauss_sum(1,5,1)*gauss_sum(3,5,1)+5
-            O(pi^84)
-        
-        Finally, we compute a non-trivial value
-            
-            sage: from sage.rings.padics.misc import gauss_sum
-            sage: gauss_sum(2,13,2)
-            6*pi^2 + 7*pi^14 + 11*pi^26 + 3*pi^62 + 6*pi^74 + 3*pi^86 + 5*pi^98 + pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 + pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
-       
+    - a `p`-adic number in an Eisenstein extension of Q_p
+
+    .. NOTE::
+
+        This is based on GP code written by Adriana Salerno
+
+    EXAMPLES:
+
+    In this example, we verify that g_3(0) = -1
+
+    ::
+
+        sage: from sage.rings.padics.misc import gauss_sum
+        sage: -gauss_sum(0,3,1)
+        1 + O(pi^40)
+
+    Next, we verify that g_5(a)*g_5(-a) = 5*(-1)^a 
+
+    ::
+
+        sage: from sage.rings.padics.misc import gauss_sum
+        sage: gauss_sum(2,5,1)^2-5
+        O(pi^84)
+        sage: gauss_sum(1,5,1)*gauss_sum(3,5,1)+5
+        O(pi^84)
+
+    Finally, we compute a non-trivial value
+
+    ::
+
+        sage: from sage.rings.padics.misc import gauss_sum
+        sage: gauss_sum(2,13,2)
+        6*pi^2 + 7*pi^14 + 11*pi^26 + 3*pi^62 + 6*pi^74 + 3*pi^86 + 5*pi^98 + pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 + pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
+
     """
     a = a % (p**f)
     R = Zp(p, prec)

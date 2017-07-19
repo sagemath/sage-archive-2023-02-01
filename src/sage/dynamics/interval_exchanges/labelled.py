@@ -5,7 +5,7 @@ A labelled (generalized) permutation is better suited to study the
 dynamic of a translation surface than a reduced one (see the module
 :mod:`sage.dynamics.interval_exchanges.reduced`). The latter is more
 adapted to the study of strata. This kind of permutation was
-introduced by Yoccoz [Yoc05]_ (see also [MMY03]_).
+introduced by Yoccoz [Yoc2005]_ (see also [MMY2003]_).
 
 In fact, there is a geometric counterpart of labelled
 permutations. They correspond to translation surfaces with marked
@@ -81,14 +81,6 @@ TESTS::
     WordMorphism: a->abcd, b->bab, c->cdc, d->dcbababcd
     sage: s1.incidence_matrix() == s2.incidence_matrix().transpose()
     True
-
-REFERENCES:
-
-.. [Yoc05] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au college de
-   France
-
-.. [MMY03] Jean-Christophe Yoccoz, Stefano Marmi and Pierre Moussa "On the
-   cohomological equation for interval exchange maps", :arxiv:`math/0304469v1`
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -96,6 +88,8 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+from six.moves import zip
 
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
@@ -108,11 +102,12 @@ from sage.combinat.words.morphism import WordMorphism
 from sage.matrix.constructor import identity_matrix
 from sage.rings.integer import Integer
 
-from template import PermutationIET, PermutationLI
-from template import FlippedPermutationIET, FlippedPermutationLI
-from template import twin_list_iet, twin_list_li
-from template import RauzyDiagram, FlippedRauzyDiagram
-from template import interval_conversion, side_conversion
+from .template import PermutationIET, PermutationLI
+from .template import FlippedPermutationIET, FlippedPermutationLI
+from .template import twin_list_iet, twin_list_li
+from .template import RauzyDiagram, FlippedRauzyDiagram
+from .template import interval_conversion, side_conversion
+
 
 class LabelledPermutation(SageObject):
     r"""
@@ -342,7 +337,7 @@ class LabelledPermutation(SageObject):
         r"""
         .. TODO::
 
-            resolve properly the mutablility problem with the
+            resolve properly the mutability problem with the
             :meth:`_twin` attribute.
 
         TESTS::
@@ -643,7 +638,8 @@ def LabelledPermutationsIET_iterator(nintervals=None,
     TESTS::
 
         sage: for p in iet.Permutations_iterator(2, alphabet="ab"):
-        ....:     print p, "\n****"   #indirect doctest
+        ....:     print(p)
+        ....:     print("****")   #indirect doctest
         a b
         b a
         ****
@@ -651,7 +647,8 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         a b
         ****
         sage: for p in iet.Permutations_iterator(3, alphabet="abc"):
-        ....:     print p, "\n*****"   #indirect doctest
+        ....:     print(p)
+        ....:     print("*****")   #indirect doctest
         a b c
         b c a
         *****
@@ -707,7 +704,9 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         b a c
         *****
     """
-    from itertools import imap, ifilter, product
+    from builtins import map
+    from itertools import product
+    from six.moves import filter
     from sage.combinat.permutation import Permutations
 
     if not irreducible:
@@ -724,9 +723,9 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         alphabet = Alphabet(alphabet)
         g = lambda x: [alphabet.unrank(k-1) for k in x]
         P = [g(_) for _ in Permutations(nintervals)]
-        return imap(f,product(P,P))
+        return map(f, product(P, P))
     else:
-        return ifilter(
+        return filter(
             lambda x: x.is_irreducible(),
             LabelledPermutationsIET_iterator(nintervals,False,alphabet))
 
@@ -751,12 +750,12 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         sage: p = iet.Permutation('a b c', 'c b a')
         sage: p.has_rauzy_move('top')
         True
-        sage: print p.rauzy_move('bottom')
+        sage: p.rauzy_move('bottom')
         a c b
         c b a
         sage: p.has_rauzy_move('top')
         True
-        sage: print p.rauzy_move('top')
+        sage: p.rauzy_move('top')
         a b c
         c a b
 
@@ -833,7 +832,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
             sage: p.reduced() == q
             True
         """
-        from reduced import ReducedPermutationIET
+        from .reduced import ReducedPermutationIET
 
         return ReducedPermutationIET(self.list(), alphabet=self._alphabet)
 
@@ -1090,9 +1089,9 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         sage: p.is_irreducible()
         False
         sage: test, decomposition = p.is_irreducible(return_decomposition = True)
-        sage: print test
+        sage: test
         False
-        sage: print decomposition
+        sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
     Rauzy movability and Rauzy move::
@@ -1103,7 +1102,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         sage: p.has_rauzy_move(1)
         True
         sage: q = p.rauzy_move(1)
-        sage: print q
+        sage: q
         a a b b c
         c d d
         sage: q.has_rauzy_move(0)
@@ -1413,7 +1412,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
             sage: p.rauzy_move(0).reduced() == q.rauzy_move(0)
             True
         """
-        from reduced import ReducedPermutationLI
+        from .reduced import ReducedPermutationLI
 
         return ReducedPermutationLI(self.list(),alphabet=self._alphabet)
 
@@ -1441,7 +1440,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         r"""
         The twin list of the permutation
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')
             sage: p._twin
@@ -1561,13 +1560,15 @@ class FlippedLabelledPermutation(LabelledPermutation):
             True
         """
         if flips:
-            a0 = zip([self._alphabet.unrank(_) for _ in self._intervals[0]], self._flips[0])
-            a1 = zip([self._alphabet.unrank(_) for _ in self._intervals[1]], self._flips[1])
+            a0 = list(zip([self._alphabet.unrank(_)
+                           for _ in self._intervals[0]], self._flips[0]))
+            a1 = list(zip([self._alphabet.unrank(_)
+                           for _ in self._intervals[1]], self._flips[1]))
         else:
             a0 = [self._alphabet.unrank(_) for _ in self._intervals[0]]
             a1 = [self._alphabet.unrank(_) for _ in self._intervals[1]]
 
-        return [a0,a1]
+        return [a0, a1]
 
     def __getitem__(self,i):
         r"""
@@ -1580,10 +1581,10 @@ class FlippedLabelledPermutation(LabelledPermutation):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b', 'b a', flips='a')
-            sage: print p[0]
+            sage: p[0]
             [('a', -1), ('b', 1)]
             sage: p = iet.GeneralizedPermutation('c p p', 't t c', flips='ct')
-            sage: print p[1]
+            sage: p[1]
             [('t', -1), ('t', -1), ('c', -1)]
         """
         if not isinstance(i, (Integer, int)):
@@ -1594,7 +1595,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         letters = [self._alphabet.unrank(_) for _ in self._intervals[i]]
         flips = self._flips[i]
 
-        return zip(letters,flips)
+        return list(zip(letters, flips))
 
     def __eq__(self,other):
         r"""
@@ -1752,13 +1753,13 @@ class FlippedLabelledPermutationIET(
     Rauzy movability and Rauzy move::
 
         sage: p = iet.Permutation('a b c', 'c b a',flips='a')
-        sage: print p
+        sage: p
         -a  b  c
          c  b -a
-        sage: print p.rauzy_move(1)
+        sage: p.rauzy_move(1)
         -c -a  b
         -c  b -a
-        sage: print p.rauzy_move(0)
+        sage: p.rauzy_move(0)
         -a  b  c
          c -a  b
 
@@ -1807,17 +1808,17 @@ class FlippedLabelledPermutationIET(
             sage: p.append(iet.Permutation('a b','b a',flips='a'))
             sage: p.append(iet.Permutation('a b','b a',flips='b'))
             sage: p.append(iet.Permutation('a b','b a',flips='ab'))
-            sage: h = map(hash, p)
+            sage: h = list(map(hash, p))
             sage: for i in range(len(h)-1):
             ....:     if h[i] == h[i+1]:
-            ....:         print "You choose a bad hash!"
+            ....:         print("You choose a bad hash!")
         """
         if self._hash is None:
             f = self._flips
             i = self._intervals
             l = []
-            l.extend([str(j*(1+k)) for j,k in zip(f[0],i[0])])
-            l.extend([str(-j*(1+k)) for j,k in zip(f[1],i[1])])
+            l.extend([str(j*(1+k)) for j, k in zip(f[0],i[0])])
+            l.extend([str(-j*(1+k)) for j, k in zip(f[1],i[1])])
             self._hash = hash(''.join(l))
 
         return self._hash
@@ -1918,9 +1919,9 @@ class FlippedLabelledPermutationLI(FlippedLabelledPermutation,
         sage: p.is_irreducible()
         False
         sage: test, decomp = p.is_irreducible(return_decomposition = True)
-        sage: print test
+        sage: test
         False
-        sage: print decomp
+        sage: decomp
         (['a'], ['c', 'a'], [], ['c'])
 
     Rauzy movability and Rauzy move::
@@ -1944,7 +1945,7 @@ class FlippedLabelledPermutationLI(FlippedLabelledPermutation,
 
         permutation -- the associated reduced permutation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.GeneralizedPermutation('a a','b b c c',flips='a')
             sage: q = iet.GeneralizedPermutation('a a','b b c c',flips='a',reduced=True)
@@ -2174,11 +2175,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def orbit_substitution(self):
             r"""
-            Returns the substitution on the orbit of the left extremity.
+            Return the substitution on the orbit of the left extremity.
 
             OUTPUT:
 
-            WordMorhpism -- the word morphism corresponding to the orbit
+            WordMorphism -- the word morphism corresponding to the orbit
 
             EXAMPLES::
 
@@ -2212,7 +2213,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
             boolean -- ``True`` if the path is full and ``False`` else
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: p = iet.Permutation('a b c','c b a')
                 sage: r = p.rauzy_diagram()
@@ -2237,7 +2238,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         WordMorphism -- the WordMorphism corresponding to the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
@@ -2267,7 +2268,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         WordMorphism -- the word morphism corresponding to the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
@@ -2303,12 +2304,13 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         iterator -- iterator over full loops
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for g in r.full_loop_iterator(p,2):
-            ....:     print g.matrix(), "\n*****"
+            ....:     print(g.matrix())
+            ....:     print("*****")
             [1 1]
             [1 2]
             *****
@@ -2316,15 +2318,16 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from itertools import ifilter, imap
+        from builtins import map
+        from six.moves import filter
 
         g = self.path(start)
 
-        ifull = ifilter(
+        ifull = filter(
             lambda x: x.is_loop() and x.is_full(),
             self._all_path_extension(g,max_length))
 
-        return imap(copy,ifull)
+        return map(copy, ifull)
 
     def full_nloop_iterator(self, start=None, length=1):
         r"""
@@ -2340,12 +2343,13 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         iterator -- an iterator over the full loops of given length
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()
             sage: for g in d.full_nloop_iterator(p,2):
-            ....:     print g.matrix(), "\n*****"
+            ....:     print(g.matrix())
+            ....:     print("*****")
             [1 1]
             [1 2]
             *****
@@ -2353,15 +2357,16 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from itertools import ifilter, imap
+        from builtins import map
+        from six.moves import filter
 
         g = self.path(start)
 
-        ifull = ifilter(
+        ifull = filter(
             lambda x: x.is_loop() and x.is_full(),
             self._all_npath_extension(g,length))
 
-        return imap(copy, ifull)
+        return map(copy, ifull)
 
     def _permutation_to_vertex(self, p):
         r"""

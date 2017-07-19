@@ -1,6 +1,7 @@
 """
 Composition species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,9 +16,9 @@ Composition species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from species import GenericCombinatorialSpecies
-from structure import GenericSpeciesStructure
-from partition_species import PartitionSpecies
+from .species import GenericCombinatorialSpecies
+from .structure import GenericSpeciesStructure
+from .partition_species import PartitionSpecies
 from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -225,7 +226,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              p[1, 1, 1] + p[2, 1] + p[3],
              p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2] + p[3, 1] + p[4]]
 
-        Here we (indirectly) check that the the cycle index series for
+        Here we (indirectly) check that the cycle index series for
         permutations weighted by the number of cycles is correctly
         computed.
 

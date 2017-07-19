@@ -107,6 +107,11 @@ TESTS::
     sage: polygen(CBF, x)^3
     x^3
 
+::
+
+    sage: SR.coerce(CBF(0.42 + 3.33*I))
+    [0.4200000000000000 +/- 1.56e-17] + [3.330000000000000 +/- 7.11e-17]*I
+
 Check that :trac:`19839` is fixed::
 
     sage: log(SR(CBF(0.42))).pyobject().parent()
@@ -123,14 +128,16 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
 
 import operator
+from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
 
 cimport sage.rings.integer
 cimport sage.rings.rational
+
+import sage.rings.number_field.number_field as number_field
 
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
@@ -141,15 +148,16 @@ from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_modular cimport *
-from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
+from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
-from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
+from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_abs
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
-from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
+from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si, mpz_sgn
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
+from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
+from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi, real_part_of_quadratic_element_to_arb
 from sage.rings.real_arb import RealBallField
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.rings.ring import Field
@@ -199,6 +207,7 @@ cdef int acb_to_ComplexIntervalFieldElement(
     arb_to_mpfi(target.__re, acb_realref(source), precision)
     arb_to_mpfi(target.__im, acb_imagref(source), precision)
     return 0
+
 
 class ComplexBallField(UniqueRepresentation, Field):
     r"""
@@ -263,27 +272,27 @@ class ComplexBallField(UniqueRepresentation, Field):
         construction functions)::
 
             sage: CBF.coerce_map_from(ZZ)
-            Conversion map:
-            From: Integer Ring
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Integer Ring
+              To:   Complex ball field with 53 bits precision
             sage: CBF.coerce_map_from(QQ)
-            Conversion map:
-            From: Rational Field
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Rational Field
+              To:   Complex ball field with 53 bits precision
 
         Various other coercions are available through real ball fields or CLF::
 
             sage: CBF.coerce_map_from(RLF)
             Composite map:
-            From: Real Lazy Field
-            To:   Complex ball field with 53 bits precision
-            Defn:   Conversion map:
-                    From: Real Lazy Field
-                    To:   Real ball field with 53 bits precision
+              From: Real Lazy Field
+              To:   Complex ball field with 53 bits precision
+              Defn:   Coercion map:
+                      From: Real Lazy Field
+                      To:   Real ball field with 53 bits precision
                     then
-                    Conversion map:
-                    From: Real ball field with 53 bits precision
-                    To:   Complex ball field with 53 bits precision
+                      Coercion map:
+                      From: Real ball field with 53 bits precision
+                      To:   Complex ball field with 53 bits precision
             sage: CBF.has_coerce_map_from(AA)
             True
             sage: CBF.has_coerce_map_from(QuadraticField(-1))
@@ -308,8 +317,8 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         TESTS::
 
-            sage: CBF._real_field()
-            Real ball field with 53 bits precision
+            sage: CBF._real_field() is RBF
+            True
         """
         return self._base
 
@@ -357,7 +366,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         r"""
         Return 1 as the only generator is the imaginary unit.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CBF.ngens()
             1
@@ -368,7 +377,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         r"""
         For i = 0, return the imaginary unit in this complex ball field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CBF.0
             1.000000000000000*I
@@ -387,7 +396,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         Return the tuple of generators of this complex ball field, i.e.
         ``(i,)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CBF.gens()
             (1.000000000000000*I,)
@@ -413,14 +422,18 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.coerce_map_from(CBF)
             Identity endomorphism of Complex ball field with 53 bits precision
             sage: CBF.coerce_map_from(ComplexBallField(100))
-            Conversion map:
-            From: Complex ball field with 100 bits precision
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Complex ball field with 100 bits precision
+              To:   Complex ball field with 53 bits precision
             sage: CBF.has_coerce_map_from(ComplexBallField(42))
             False
             sage: CBF.has_coerce_map_from(RealBallField(54))
             True
             sage: CBF.has_coerce_map_from(RealBallField(52))
+            False
+            sage: CBF.has_coerce_map_from(QuadraticField(-2))
+            True
+            sage: CBF.has_coerce_map_from(QuadraticField(2, embedding=None))
             False
 
         Check that there are no coercions from interval or floating-point parents::
@@ -436,6 +449,10 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         if isinstance(other, (RealBallField, ComplexBallField)):
             return (other._prec >= self._prec)
+        elif isinstance(other, number_field.NumberField_quadratic):
+            emb = other.coerce_embedding()
+            if emb is not None:
+                return self.has_coerce_map_from(emb.codomain())
 
     def _element_constructor_(self, x=None, y=None):
         r"""
@@ -478,6 +495,9 @@ class ComplexBallField(UniqueRepresentation, Field):
             [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
             sage: ComplexBallField(106)(1/3, 1/6)
             [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
+            sage: NF.<a> = QuadraticField(-2)
+            sage: CBF(1/5 + a/2)
+            [0.2000000000000000 +/- 4.45e-17] + [0.707106781186547 +/- 5.86e-16]*I
             sage: CBF(infinity, NaN)
             [+/- inf] + nan*I
             sage: CBF(x)
@@ -494,7 +514,7 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF(1+I, 2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert I + 1 to a RealBall
+            ValueError: nonzero imaginary part
         """
         try:
             return self.element_class(self, x, y)
@@ -688,9 +708,19 @@ cdef class ComplexBall(RingElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported initializer
+            sage: NF.<a> = QuadraticField(-1, embedding=CC(0, -1))
+            sage: CBF(a)
+            -1.000000000000000*I
+            sage: NF.<a> = QuadraticField(-1, embedding=None)
+            sage: CBF(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: need an embedding
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
+        cdef NumberFieldElement_quadratic x_as_qe
+        cdef long myprec
 
         RingElement.__init__(self, parent)
 
@@ -720,6 +750,25 @@ cdef class ComplexBall(RingElement):
             elif isinstance(x, ComplexIntervalFieldElement):
                 ComplexIntervalFieldElement_to_acb(self.value,
                                                    <ComplexIntervalFieldElement> x)
+            elif isinstance(x, NumberFieldElement_quadratic):
+                x_as_qe = <NumberFieldElement_quadratic> x
+                real_part_of_quadratic_element_to_arb(acb_realref(self.value),
+                        x_as_qe, prec(self))
+                myprec = prec(self) + 4
+                if mpz_sgn(x_as_qe.D.value) < 0:
+                    if x_as_qe._parent._embedding is None:
+                        raise ValueError("need an embedding")
+                    fmpz_init(tmpz)
+                    fmpz_set_mpz(tmpz, x_as_qe.D.value)
+                    fmpz_abs(tmpz, tmpz)
+                    arb_sqrt_fmpz(acb_imagref(self.value), tmpz, myprec)
+                    fmpz_set_mpz(tmpz, x_as_qe.b)
+                    arb_mul_fmpz(acb_imagref(self.value), acb_imagref(self.value), tmpz, myprec)
+                    fmpz_set_mpz(tmpz, x_as_qe.denom)
+                    arb_div_fmpz(acb_imagref(self.value), acb_imagref(self.value), tmpz, prec(self))
+                    fmpz_clear(tmpz)
+                    if not x_as_qe.standard_embedding:
+                        acb_conj(self.value, self.value)
             else:
                 raise TypeError("unsupported initializer")
         elif isinstance(x, RealBall) and isinstance(y, RealBall):
@@ -939,6 +988,37 @@ cdef class ComplexBall(RingElement):
         else:
             raise ValueError("nonzero imaginary part")
 
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(CBF(1))
+            1.0
+            sage: float(CBF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex ball to float
+        """
+        if self.imag() == 0:
+            return float(self.n(prec(self)))
+        else:
+            raise TypeError("can't convert complex ball to float")
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(CBF(1))
+            (1+0j)
+            sage: complex(CBF(1,1))
+            (1+1j)
+        """
+        return complex(self.n(prec(self)))
+
     # Real and imaginary part, midpoint, radius
 
     cpdef RealBall real(self):
@@ -1092,7 +1172,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1/3, 1).mid().parent()
             Complex Field with 53 bits of precision
             sage: CBF('inf', 'nan').mid()
-            +infinity - NaN*I
+            +infinity + NaN*I
             sage: CBF('nan', 'inf').mid()
             NaN + +infinity*I
             sage: CBF('nan').mid()
@@ -1308,6 +1388,25 @@ cdef class ComplexBall(RingElement):
 
     # Comparisons and predicates
 
+    def is_NaN(self):
+        """
+        Return ``True`` iff either the real or the imaginary part
+        is not-a-number.
+
+        EXAMPLES::
+
+            sage: CBF(NaN).is_NaN()
+            True
+            sage: CBF(-5).gamma().is_NaN()
+            True
+            sage: CBF(oo).is_NaN()
+            False
+            sage: CBF(42+I).is_NaN()
+            False
+        """
+        return (arf_is_nan(arb_midref(acb_realref(self.value)))
+                or arf_is_nan(arb_midref(acb_imagref(self.value))))
+
     def is_zero(self):
         """
         Return ``True`` iff the midpoint and radius of this ball are both zero.
@@ -1406,7 +1505,7 @@ cdef class ComplexBall(RingElement):
         """
         return acb_is_real(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -1699,7 +1798,7 @@ cdef class ComplexBall(RingElement):
         acb_conj(res.value, self.value)
         return res
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Return the sum of two balls, rounded to the ambient field's precision.
 
@@ -1717,7 +1816,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         Return the difference of two balls, rounded to the ambient field's
         precision.
@@ -1758,7 +1857,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    cpdef RingElement _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Return the product of two balls, rounded to the ambient field's
         precision.
@@ -1858,7 +1957,7 @@ cdef class ComplexBall(RingElement):
             raise TypeError("unsupported operand type(s) for >>: '{}' and '{}'"
                             .format(type(val).__name__, type(shift).__name__))
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         Return the quotient of two balls, rounded to the ambient field's
         precision.
@@ -2530,7 +2629,7 @@ cdef class ComplexBall(RingElement):
 
         The generalized hypergeometric function defined by
 
-        .. math::
+        .. MATH::
 
             {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
             = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{(b_1)_k\dots(b_q)_k} \frac {z^k} {k!}
@@ -2540,7 +2639,7 @@ cdef class ComplexBall(RingElement):
 
         The regularized generalized hypergeometric function
 
-        .. math::
+        .. MATH::
 
             {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
             = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{\Gamma(b_1+k)\dots\Gamma(b_q+k)} \frac {z^k} {k!}
@@ -3037,7 +3136,7 @@ cdef class ComplexBall(RingElement):
 
         The following definitions are used:
 
-        .. math ::
+        .. MATH::
 
             \theta_1(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} (-1)^n q^{n(n+1)} \sin((2n+1) \pi z)
 

@@ -80,7 +80,6 @@ AUTHORS:
 - Chris Wuthrich: more documentation 2010-01
 
 """
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -95,7 +94,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six import integer_types
 
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
@@ -107,8 +107,8 @@ from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalI
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.ideal import is_Ideal
 
-from constructor import EllipticCurve
-from kodaira_symbol import KodairaSymbol
+from .constructor import EllipticCurve
+from .kodaira_symbol import KodairaSymbol
 
 class EllipticCurveLocalData(SageObject):
     r"""
@@ -268,9 +268,9 @@ class EllipticCurveLocalData(SageObject):
         if algorithm=="pari" and K is QQ:
             Eint = E.integral_model()
             data = Eint.pari_curve().elllocalred(p)
-            self._fp = data[0].python()
-            self._KS = KodairaSymbol(data[1].python())
-            self._cp = data[3].python()
+            self._fp = data[0].sage()
+            self._KS = KodairaSymbol(data[1].sage())
+            self._cp = data[3].sage()
             # We use a global minimal model since we can:
             self._Emin_reduced = Eint.minimal_model()
             self._val_disc = self._Emin_reduced.discriminant().valuation(p)
@@ -1121,7 +1121,7 @@ def check_prime(K,P):
         [Fractional ideal (5/2*a + 1/2), Fractional ideal (5/2*a - 1/2)]
     """
     if K is QQ:
-        if isinstance(P, (int,long,Integer)):
+        if isinstance(P, integer_types + (Integer,)):
             P = Integer(P)
             if P.is_prime():
                 return P

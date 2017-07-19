@@ -59,10 +59,8 @@ trivial::
     ....:     w0 = W.long_element()
     ....:     sr = W.domain().simple_roots()
     ....:     return all(a == -w0.action(a) for a in sr)
-    ....:
-    sage: for ct in [CartanType(['D',r]) for r in [2..8]]:
-    ....:    print ct,roots_not_permuted(ct)
-    ....:
+    sage: for ct in [CartanType(['D', r]) for r in [2..8]]:
+    ....:     print("{} {}".format(ct, roots_not_permuted(ct)))
     ['D', 2] True
     ['D', 3] False
     ['D', 4] True
@@ -95,8 +93,8 @@ construct a list (e.g., using the ``list`` function) or use the method
     sage: ref[a1+a2+a3]
     s1*s2*s3*s2*s1
     sage: list(ref)
-    [s1*s2*s3*s2*s1, s3*s2*s3, s2, s3, s1, s2*s3*s1*s2*s3*s1*s2,
-     s1*s2*s1, s3*s1*s2*s3*s1, s2*s3*s2]
+    [s1, s2, s3, s3*s2*s3, s2*s3*s2, s1*s2*s1, s3*s1*s2*s3*s1,
+     s1*s2*s3*s2*s1, s2*s3*s1*s2*s3*s1*s2]
 
 If instead you want a family whose keys are the reflections
 and whose values are the roots, you may use the inverse family::
@@ -107,8 +105,8 @@ and whose values are the roots, you may use the inverse family::
     sage: altref = W.reflections().inverse_family()
     sage: pprint(altref)
     Finite family {s1*s2*s1: (1, 0, -1), s2: (0, 1, -1), s3*s2*s3: (0, 1, 1),
-                   s1*s2*s3*s2*s1: (1, 0, 0), s1: (1, -1, 0),
-                   s2*s3*s1*s2*s3*s1*s2: (1, 1, 0), s3*s1*s2*s3*s1: (1, 0, 1),
+                   s3*s1*s2*s3*s1: (1, 0, 1), s1: (1, -1, 0),
+                   s1*s2*s3*s2*s1: (1, 0, 0), s2*s3*s1*s2*s3*s1*s2: (1, 1, 0),
                    s2*s3*s2: (0, 1, 0), s3: (0, 0, 1)}
     sage: altref[s3*s2*s3]
     (0, 1, 1)
@@ -121,7 +119,7 @@ The Weyl group is implemented as a GAP matrix group. You therefore can
 display its character table. The character table is returned as a
 string, which you can print::
 
-    sage: print WeylGroup("D4").character_table()
+    sage: print(WeylGroup("D4").character_table())
     CT1
     <BLANKLINE>
           2  6  4  5  1  3  5  5  4  3  3  1  4  6
@@ -172,9 +170,8 @@ Although ``W1`` in this example is isomorphic to ``WeylGroup("A2")`` it
 has a different matrix realization::
 
     sage: for s in WeylGroup(['A',2,1]).classical().simple_reflections():
-    ....:    print s
-    ....:    print
-    ...
+    ....:     print(s)
+    ....:     print("")
     [ 1  0  0]
     [ 1 -1  1]
     [ 0  0  1]
@@ -184,9 +181,8 @@ has a different matrix realization::
     [ 1  1 -1]
 
     sage: for s in WeylGroup(['A',2]).simple_reflections():
-    ....:    print s
-    ....:    print
-    ...
+    ....:     print(s)
+    ....:     print("")
     [0 1 0]
     [1 0 0]
     [0 0 1]
@@ -293,7 +289,7 @@ file and load the file::
     for v in W:
         for u in W.bruhat_interval(1,v):
             if u != v:
-                print u,v,find_reflection(u,v)
+                print((u,v,find_reflection(u,v)))
 
 This shows that the Bruhat interval is stabilized by a reflection for
 all pairs `(u,v)` with `u < v` except the following two:

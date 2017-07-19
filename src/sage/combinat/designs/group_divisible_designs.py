@@ -22,6 +22,7 @@ following functions are available:
 Functions
 ---------
 """
+from __future__ import absolute_import, division
 
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
@@ -30,10 +31,11 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.arith.all import is_prime_power
 from sage.misc.unknown    import Unknown
-from incidence_structures import IncidenceStructure
+from .incidence_structures import IncidenceStructure
 
 def group_divisible_design(v,K,G,existence=False,check=False):
     r"""
@@ -92,7 +94,7 @@ def group_divisible_design(v,K,G,existence=False,check=False):
     if (len(G) == 1 and
         len(K) == 1 and
         G[0]+1 in K):
-        from bibd import balanced_incomplete_block_design
+        from .bibd import balanced_incomplete_block_design
         k = K[0]
         if existence:
             return balanced_incomplete_block_design(v+1,k,existence=True)
@@ -101,7 +103,7 @@ def group_divisible_design(v,K,G,existence=False,check=False):
         d = {p:i for i,p in enumerate(sum(groups,[]))}
         d[v]=v
         BIBD.relabel(d)
-        groups = [range((k-1)*i,(k-1)*(i+1)) for i in range(v//(k-1))]
+        groups = [list(range((k-1)*i,(k-1)*(i+1))) for i in range(v//(k-1))]
         blocks = [S for S in BIBD if v not in S]
 
     # (v,{4},{2})-GDD
@@ -117,7 +119,7 @@ def group_divisible_design(v,K,G,existence=False,check=False):
     elif (len(G)    == 1 and
           len(K)    == 1 and
           K[0]*G[0] == v):
-        from orthogonal_arrays import transversal_design
+        from .orthogonal_arrays import transversal_design
         return transversal_design(k=K[0],n=G[0],existence=existence)
 
     if blocks:
@@ -157,7 +159,7 @@ def GDD_4_2(q,existence=False,check=True):
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.group_divisible_designs import GDD_4_2
         sage: GDD_4_2(7,existence=True)
@@ -181,10 +183,11 @@ def GDD_4_2(q,existence=False,check=True):
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     G = GF(q,'x')
     w = G.primitive_element()
-    e = w**((q-1)/3)
+    e = w**((q - 1) // 3)
 
     # A first parallel class is defined. G acts on it, which yields all others.
-    first_class = [[(0,0),(1,w**i),(1,e*w**i),(1,e*e*w**i)] for i in range((q-1)/6)]
+    first_class = [[(0,0),(1,w**i),(1,e*w**i),(1,e*e*w**i)]
+                   for i in range((q - 1) // 6)]
 
     label = {p:i for i,p in enumerate(G)}
     classes = [[[2*label[x[1]+g]+(x[0]+j)%2 for x in S]
@@ -245,11 +248,11 @@ class GroupDivisibleDesign(IncidenceStructure):
       modified in place (each block is sorted, and the whole list is
       sorted). Your ``blocks`` object will become the instance's internal data.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
         sage: TD = designs.transversal_design(4,10)
-        sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+        sage: groups = [list(range(i*10,(i+1)*10)) for i in range(4)]
         sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
         Group Divisible Design on 40 points of type 10^4
 
@@ -265,15 +268,15 @@ class GroupDivisibleDesign(IncidenceStructure):
         r"""
         Constructor function
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
-            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+            sage: groups = [list(range(i*10,(i+1)*10)) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points of type 10^4
         """
-        from designs_pyx import is_group_divisible_design
+        from .designs_pyx import is_group_divisible_design
 
         self._lambd = lambd
 
@@ -302,11 +305,11 @@ class GroupDivisibleDesign(IncidenceStructure):
         r"""
         Return the groups of the Group-Divisible Design.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
-            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+            sage: groups = [list(range(i*10,(i+1)*10)) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points of type 10^4
             sage: GDD.groups()
@@ -337,11 +340,11 @@ class GroupDivisibleDesign(IncidenceStructure):
         r"""
         Returns a string that describes self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
-            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+            sage: groups = [list(range(i*10,(i+1)*10)) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points of type 10^4
         """

@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -25,8 +26,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 
-from hecke_triangle_groups import HeckeTriangleGroup
-from abstract_space import FormsSpace_abstract
+from .hecke_triangle_groups import HeckeTriangleGroup
+from .abstract_space import FormsSpace_abstract
 
 
 def canonical_parameters(ambient_space, basis, check=True):
@@ -174,7 +175,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.analytic_type()
             modular
             sage: subspace.category()
-            Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            Category of modules over Integer Ring
+            sage: subspace in subspace.category()
+            True
             sage: subspace.module()
             Vector space of degree 4 and dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             Basis matrix:
@@ -209,7 +212,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         """
 
         FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep(), n=ambient_space.hecke_n())
-        Module.__init__(self, base=self.coeff_ring())
+        Module.__init__(self, base=ambient_space.base_ring())
 
         self._ambient_space = ambient_space
         self._basis = [v for v in basis]

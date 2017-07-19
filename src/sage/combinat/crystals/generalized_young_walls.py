@@ -15,12 +15,12 @@ introduced in [KS10]_ and designed to be a realization of the crystals
 
 REFERENCES:
 
-.. [KS10] J.-A. Kim and D.-U. Shin.
+.. [KS10] \J.-A. Kim and D.-U. Shin.
    Generalized Young walls and crystal bases for quantum affine algebra
    of type `A`.
    Proc. Amer. Math. Soc. 138(11), pp. 3877--3889, 2010.
 
-.. [KLRS] S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+.. [KLRS] \S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
    A combinatorial description of the affine Gindikin-Karpelevich formula of
    type `A_n^{(1)}`.
    :arXiv:`1203.1640`.
@@ -36,6 +36,7 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 import re
 from copy import deepcopy
@@ -232,8 +233,8 @@ class GeneralizedYoungWall(CombinatorialElement):
             if row == []:
                 wall += '|'
             print(wall.rjust(2*self.cols+1))
-        if self.data==[]:
-            print '0'
+        if self.data == []:
+            print('0')
 
     def content(self):
         r"""
@@ -487,7 +488,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             0
         """
         if i not in self.index_set():
-            raise ValueError("i must in in the index set")
+            raise ValueError("i must be in the index set")
         eps = 0
         while True:
             self = self.e(i)
@@ -723,7 +724,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
 
         sage: S = Yinf.subcrystal(max_depth=3)
         sage: G = Yinf.digraph(subset=S) # long time
-        sage: view(G, tightpage=True) # not tested
+        sage: view(G) # not tested
     """
 
     @staticmethod
@@ -785,18 +786,6 @@ class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
             Crystal of generalized Young walls of type ['A', 4, 1]
         """
         return "Crystal of generalized Young walls of type {}".format(self._cartan_type)
-
-    def weight_lattice_realization(self):
-        r"""
-        Return the extended affine weight lattice of ``self``.
-
-        EXAMPLES::
-
-            sage: Y = crystals.infinity.GeneralizedYoungWalls(3)
-            sage: Y.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 3, 1]
-        """
-        return RootSystem(self._cartan_type).weight_lattice(extended=True)
 
 
 ########################
@@ -933,7 +922,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
         sage: S = YLa.subcrystal(max_depth=4)
         sage: G = YLa.digraph(subset=S)
-        sage: view(G, tightpage=True) # not tested
+        sage: view(G) # not tested
     """
     @staticmethod
     def __classcall_private__(cls, n, La):

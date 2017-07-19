@@ -4,6 +4,7 @@ Root systems
 
 See :ref:`sage.combinat.root_system` for an overview.
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
 #                               Justin Walker <justin at mac.com>
@@ -17,11 +18,11 @@ See :ref:`sage.combinat.root_system` for an overview.
 # Design largely inspired from MuPAD-Combinat
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from cartan_type import CartanType
+from .cartan_type import CartanType
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
-from root_space import RootSpace
-from weight_space import WeightSpace
+from .root_space import RootSpace
+from .weight_space import WeightSpace
 
 class RootSystem(UniqueRepresentation, SageObject):
     r"""
@@ -252,7 +253,7 @@ class RootSystem(UniqueRepresentation, SageObject):
     The coweight lattice and space are defined similarly. Note that, to
     limit confusion, all the output have been tweaked appropriately.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :mod:`sage.combinat.root_system`
         - :class:`RootSpace`
@@ -276,7 +277,7 @@ class RootSystem(UniqueRepresentation, SageObject):
     ::
 
         sage: for T in CartanType.samples(crystallographic=True):  # long time (13s on sage.math, 2012)
-        ...       TestSuite(RootSystem(T)).run()
+        ....:     TestSuite(RootSystem(T)).run()
     """
 
     @staticmethod
@@ -284,7 +285,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Straighten arguments to enable unique representation
 
-        .. seealso:: :class:`UniqueRepresentation`
+        .. SEEALSO:: :class:`UniqueRepresentation`
 
         TESTS::
 
@@ -329,7 +330,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
             sage: RootSystem(["A",3])._test_root_lattice_realizations()
 
-        See also :class:`TestSuite`.
+        .. SEEALSO:: :class:`TestSuite`.
         """
         tester = self._tester(**options)
         options.pop('tester', None)
@@ -540,7 +541,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Returns the weight lattice associated to self.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`weight_space`
             - :meth:`coweight_space`, :meth:`coweight_lattice`
@@ -561,7 +562,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Returns the weight space associated to self.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`weight_lattice`
             - :meth:`coweight_space`, :meth:`coweight_lattice`
@@ -583,7 +584,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         This is the weight lattice of the dual root system.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`coweight_space`
             - :meth:`weight_space`, :meth:`weight_lattice`
@@ -605,7 +606,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         This is the weight space of the dual root system.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`coweight_lattice`
             - :meth:`weight_space`, :meth:`weight_lattice`
@@ -669,7 +670,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         root or weight lattice (and dually).
 
         There is no mechanical way to define the ambient space just
-        from the Cartan matrix. Instead is is constructed from hard
+        from the Cartan matrix. Instead it is constructed from hard
         coded type by type data, according to the usual Bourbaki
         conventions. Such data is provided for all the finite
         (crystallographic) types. From this data, ambient spaces can be

@@ -1,7 +1,7 @@
-"""
+r"""
 Miscellaneous Functions
 
-This file contains some miscellaneous functions used by p-adics.
+This file contains two miscellaneous functions used by `p`-adics.
 
 - ``min`` -- a version of ``min`` that returns `\infty` on empty input.
 - ``max`` -- a version of ``max`` that returns `-\infty` on empty input.
@@ -21,15 +21,17 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from __builtin__ import min as python_min
-from __builtin__ import max as python_max
+from six.moves.builtins import min as python_min
+from six.moves.builtins import max as python_max
 from sage.rings.infinity import infinity
 
+
 def min(*L):
-    """
-    Returns the minimum of the inputs, where the minimum of the empty
-    list is ``infinity``.
+    r"""
+    Return the minimum of the inputs, where the minimum of the empty
+    list is `\infty`.
 
     EXAMPLES::
 
@@ -46,10 +48,11 @@ def min(*L):
     except ValueError:
         return infinity
 
+
 def max(*L):
-    """
-    Returns the maximum of the inputs, where the maximum of the empty
-    list is ``-infinity``.
+    r"""
+    Return the maximum of the inputs, where the maximum of the empty
+    list is `-\infty`.
 
     EXAMPLES::
 

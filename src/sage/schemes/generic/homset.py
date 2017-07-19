@@ -35,7 +35,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
@@ -289,7 +289,7 @@ class SchemeHomset_generic(HomsetWithBase):
         EXAMPLES::
 
             sage: A = AffineSpace(4, QQ)
-            sage: print A.structure_morphism()._repr_()
+            sage: print(A.structure_morphism()._repr_())
             Scheme morphism:
               From: Affine Space of dimension 4 over Rational Field
               To:   Spectrum of Rational Field
@@ -454,7 +454,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
     def _element_constructor_(self, *v, **kwds):
         """
-        The element contstructor.
+        The element constructor.
 
         INPUT:
 
@@ -593,7 +593,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
         A tuple containing all points of the toric variety.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P1 = toric_varieties.P1(base_ring=GF(3))
             sage: P1.point_set().list()

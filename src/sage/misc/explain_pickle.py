@@ -65,7 +65,7 @@ The explain_pickle function has several use cases.
     in a way that would invalidate old pickles, the output of
     ``explain_pickle`` will also change.  At that point, you can add
     the previous output of :obj:`explain_pickle` as a new set of
-    doctests (and then update the :obj`explain_pickle` doctest to use
+    doctests (and then update the :obj:`explain_pickle` doctest to use
     the new output), to ensure that old pickles will continue to work.
     (These problems will also be caught using the :obj:`picklejar`,
     but having the tests directly in the relevant module is clearer.)
@@ -145,30 +145,42 @@ old pickles to work).
 
 """
 
-##########################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2009 Carl Witty <Carl.Witty@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##########################################################################
+#*****************************************************************************
 
+from __future__ import absolute_import, print_function
+
+import sys
+import re
+import types
+from six import iteritems
+from six.moves import cStringIO as StringIO
+from six.moves import cPickle
+import pickletools
 from pickletools import genops
-
 import zlib as comp
 import bz2 as comp_other
 
+import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import unpickle_override, unpickle_global, dumps, register_unpickle_override
-import pickletools
-import types
 
-import sys
-import sage.all
-import re
+
+try:
+    from types import ClassType
+except ImportError:
+    # Python 3 does not have a "ClassType". Instead, we ensure that
+    # isinstance(foo, ClassType) will always return False.
+    ClassType = ()
+
 
 def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     r"""
@@ -242,10 +254,10 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     if compress:
         try:
             p = comp.decompress(p)
-        except Exception as msg1:
+        except Exception:
             try:
                 p = comp_other.decompress(p)
-            except Exception as msg2:
+            except Exception:
                 # Maybe data is uncompressed?
                 pass
 
@@ -716,7 +728,7 @@ class PickleExplainer(object):
 
     def _APPENDS_helper(self, lst, slice):
         r"""
-        TESTS::
+        TESTS:
 
         See the doctests for APPEND and APPENDS for some simple indirect
         tests of this method.  Here we test some subtle behavior.
@@ -1196,7 +1208,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1223,7 +1235,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 31415)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1250,7 +1262,7 @@ class PickleExplainer(object):
         r"""
         TESTS::
 
-            sage: from copy_reg import *
+            sage: from six.moves.copyreg import *
             sage: from sage.misc.explain_pickle import *
             sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 27182818)
             sage: test_pickle(EmptyNewstyleClass())
@@ -1962,7 +1974,7 @@ class PickleExplainer(object):
             if isinstance(obj, PickleObject):
                 if isinstance(obj.value, type):
                     simple_call = True
-                elif isinstance(obj.value, types.ClassType):
+                elif isinstance(obj.value, ClassType):
                     if hasattr(obj.value, '__getinitargs__'):
                         simple_call = True
                     else:
@@ -2379,6 +2391,7 @@ class PickleExplainer(object):
         """
         self.push_and_share(self.sib(s))
 
+
 # Helper routines for explain_pickle
 
 def unpickle_newobj(klass, args):
@@ -2386,20 +2399,32 @@ def unpickle_newobj(klass, args):
     Create a new object; this corresponds to the C code
     klass->tp_new(klass, args, NULL).  Used by ``explain_pickle``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: unpickle_newobj(tuple, ([1, 2, 3],))
         (1, 2, 3)
+
+    TESTS:
+
+    We can create a :class:`Sequence_generic` which would not work with
+    a pure Python implementation. We just test that this does not raise
+    an exception, we cannot do anything with ``s`` since ``s.__init__``
+    was never called::
+
+        sage: from sage.structure.sequence import Sequence_generic
+        sage: s = unpickle_newobj(Sequence_generic, ([1, 2, 3],))
     """
     # We need to call klass->tp_new(klass, args, NULL).
     # This is almost but not quite the same as klass.__new__(klass, *args).
-    # (I don't know exactly what the difference is, but when you try
-    # to unpickle a Sequence, cPickle -- which uses the former -- works,
-    # and pickle.py -- which uses the latter -- fails, with
+    #
+    # The reason is that the __new__ method does additional checking:
+    # When you try to unpickle a Sequence, cPickle -- which uses the
+    # former -- works, and pickle.py -- which uses the latter -- fails,
+    # with
     # TypeError: sage.structure.sage_object.SageObject.__new__(Sequence) is not safe, use list.__new__()
-    # )
-
-    # It seems unlikely that you can implement this from pure-Python code --
-    # somewhat disturbingly, it actually is possible.  This shows how.
+    #
+    # It seems unlikely that you can implement this from pure-Python
+    # code. As a hack, we use cPickle itself to make it work.
     # (Using Cython would also work, of course; but this is cooler, and
     # probably simpler.)
 
@@ -2408,14 +2433,13 @@ def unpickle_newobj(klass, args):
     pickle = "P0\nP1\n\x81."
 
     pers = [klass, args]
+    def pers_load(id):
+        return pers[int(id)]
 
-    pers_load = lambda id: pers[int(id)]
-
-    from cStringIO import StringIO
-    import cPickle
     unp = cPickle.Unpickler(StringIO(pickle))
     unp.persistent_load = pers_load
     return unp.load()
+
 
 def unpickle_build(obj, state):
     r"""
@@ -2442,13 +2466,14 @@ def unpickle_build(obj, state):
     if state is not None:
         assert(isinstance(state, dict))
         d = obj.__dict__
-        for k,v in state.iteritems():
+        for k, v in iteritems(state):
             d[k] = v
 
     if slots is not None:
         assert(isinstance(slots, dict))
-        for k,v in slots.iteritems():
+        for k, v in iteritems(slots):
             setattr(obj, k, v)
+
 
 def unpickle_instantiate(fn, args):
     r"""
@@ -2460,10 +2485,13 @@ def unpickle_instantiate(fn, args):
         sage: unpickle_instantiate(Integer, ('42',))
         42
     """
-    if isinstance(fn, types.ClassType) and len(args) == 0 and not hasattr(fn, '__getinitargs__'):
+    if isinstance(fn, ClassType) and not args and not hasattr(fn, '__getinitargs__'):
+        # types.InstanceType doesn't exist on Python 3, but that's not
+        # a problem since the above condition is always False.
         return types.InstanceType(fn)
 
     return fn(*args)
+
 
 unpickle_persistent_loader = None
 
@@ -2482,6 +2510,7 @@ def unpickle_persistent(s):
     """
     return unpickle_persistent_loader(s)
 
+
 def unpickle_extension(code):
     r"""
     Takes an integer index and returns the extension object with that
@@ -2489,13 +2518,13 @@ def unpickle_extension(code):
 
     EXAMPLES::
 
-        sage: from copy_reg import *
+        sage: from six.moves.copyreg import *
         sage: add_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
         sage: unpickle_extension(42)
         <class 'sage.misc.explain_pickle.EmptyNewstyleClass'>
         sage: remove_extension('sage.misc.explain_pickle', 'EmptyNewstyleClass', 42)
     """
-    from copy_reg import _inverted_registry, _extension_cache
+    from six.moves.copyreg import _inverted_registry, _extension_cache
     # copied from .get_extension() in pickle.py
     nil = []
     obj = _extension_cache.get(code, nil)
@@ -2507,6 +2536,7 @@ def unpickle_extension(code):
     obj = unpickle_global(*key)
     _extension_cache[code] = obj
     return obj
+
 
 def unpickle_appends(lst, vals):
     r"""
@@ -2528,6 +2558,7 @@ def unpickle_appends(lst, vals):
         append = lst.append
         for v in vals:
             append(v)
+
 
 def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     r"""
@@ -2596,18 +2627,20 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
         print("explain_pickle in_current_sage=False:")
         print(generic)
 
-    pers_load = lambda s: args[int(s)]
+    def pers_load(s):
+        return args[int(s)]
 
     global unpickle_persistent_loader
     unpickle_persistent_loader = pers_load
 
-    if verbose_eval: print("evaluating explain_pickle in_current_sage=True:")
+    if verbose_eval:
+        print("evaluating explain_pickle in_current_sage=True:")
     current_res = sage_eval(current, preparse=False)
-    if verbose_eval: print("evaluating explain_pickle in_current_sage=False:")
+    if verbose_eval:
+        print("evaluating explain_pickle in_current_sage=False:")
     generic_res = sage_eval(generic, preparse=False)
-    if verbose_eval: print("loading pickle with cPickle:")
-    from cStringIO import StringIO
-    import cPickle
+    if verbose_eval:
+        print("loading pickle with cPickle:")
     unp = cPickle.Unpickler(StringIO(p))
     unp.persistent_load = pers_load
     unp.find_global = unpickle_global
@@ -2630,6 +2663,7 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
         assert(current_repr == generic_repr)
         print("result: " + current_repr + " (cPickle raised an exception!)")
 
+
 class EmptyOldstyleClass:
     r"""
     A featureless old-style class (does not inherit from object); used for
@@ -2639,7 +2673,8 @@ class EmptyOldstyleClass:
         r"""
         Print an EmptyOldstyleClass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.misc.explain_pickle import *
             sage: v = EmptyOldstyleClass()
             sage: v
@@ -2655,7 +2690,8 @@ class EmptyOldstyleClass:
         r"""
         Produce a predictable hash value for EmptyOldstyleClass.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.misc.explain_pickle import *
             sage: v = EmptyOldstyleClass()
             sage: hash(v)
@@ -2664,6 +2700,7 @@ class EmptyOldstyleClass:
             0
         """
         return 0
+
 
 class EmptyNewstyleClass(object):
     r"""
@@ -2686,6 +2723,7 @@ class EmptyNewstyleClass(object):
             'EmptyNewstyleClass'
         """
         return "EmptyNewstyleClass"
+
 
 class TestReduceGetinitargs:
     r"""
@@ -2738,6 +2776,7 @@ class TestReduceGetinitargs:
         """
         return "TestReduceGetinitargs"
 
+
 class TestReduceNoGetinitargs:
     r"""
     An old-style class with no __getinitargs__ method.  Used for testing
@@ -2774,6 +2813,7 @@ class TestReduceNoGetinitargs:
             'TestReduceNoGetinitargs'
         """
         return "TestReduceNoGetinitargs"
+
 
 class TestAppendList(list):
     r"""
@@ -2819,6 +2859,7 @@ class TestAppendList(list):
             [3, 1, 4, 1, 5, 9]
         """
         raise NotImplementedError
+
 
 class TestAppendNonlist(object):
     r"""
@@ -2903,6 +2944,7 @@ class TestAppendNonlist(object):
         """
         return repr(self.list)
 
+
 class TestBuild(object):
     r"""
     A simple class with a __getstate__ but no __setstate__.  Used for testing
@@ -2938,6 +2980,7 @@ class TestBuild(object):
             'TestBuild: x=None; y=None'
         """
         return "TestBuild: x=%s; y=%s" % (getattr(self, 'x', None), getattr(self, 'y', None))
+
 
 class TestBuildSetstate(TestBuild):
     r"""
@@ -2975,13 +3018,15 @@ class TestGlobalOldName(object):
     """
     pass
 
+
 class TestGlobalNewName(object):
     r"""
     A featureless new-style class.  When you try to unpickle an instance
     of TestGlobalOldName, it is redirected to create an instance of this
     class instead.  Used for testing explain_pickle.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.explain_pickle import *
         sage: loads(dumps(TestGlobalOldName()))
         TestGlobalNewName
@@ -3003,6 +3048,7 @@ class TestGlobalNewName(object):
         """
         return "TestGlobalNewName"
 
+
 register_unpickle_override('sage.misc.explain_pickle', 'TestGlobalOldName', TestGlobalNewName, call_name=('sage.misc.explain_pickle', 'TestGlobalNewName'))
 
 class TestGlobalFunnyName(object):
@@ -3023,7 +3069,7 @@ class TestGlobalFunnyName(object):
         r"""
         Print a TestGlobalFunnyName.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.explain_pickle import *
             sage: v = TestGlobalFunnyName()

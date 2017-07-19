@@ -25,6 +25,7 @@ All of these examples are accessible by typing
 - :func:`BrucknerGrunbaumSphere`
 - :func:`ChessboardComplex`
 - :func:`ComplexProjectivePlane`
+- :func:`DunceHat`
 - :func:`K3Surface`
 - :func:`KleinBottle`
 - :func:`MatchingComplex`
@@ -36,11 +37,14 @@ All of these examples are accessible by typing
 - :func:`RandomTwoSphere`
 - :func:`RealProjectivePlane`
 - :func:`RealProjectiveSpace`
+- :func:`RudinBall`
+- :func:`ShiftedComplex`
 - :func:`Simplex`
 - :func:`Sphere`
 - :func:`SumComplex`
 - :func:`SurfaceOfGenus`
 - :func:`Torus`
+- :func:`ZieglerBall`
 
 You can also get a list by typing ``simplicial_complexes.`` and hitting the
 TAB key.
@@ -58,6 +62,7 @@ EXAMPLES::
     sage: simplicial_complexes.MatchingComplex(6).homology()
     {0: 0, 1: Z^16, 2: 0}
 """
+from six import iteritems
 
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
@@ -88,7 +93,7 @@ def facets_for_RP4():
     a certain subgroup `G` of the symmetric group `S_{16}`. Then the set
     of all facets is the `G`-orbit of the two given facets.
 
-    See the description in Example 3.12 in Datta [Da2007]_.
+    See the description in Example 3.12 in Datta [Dat2007]_.
 
     EXAMPLES::
 
@@ -354,7 +359,7 @@ def Torus():
 
     REFERENCES:
 
-    .. [LutzCsas] `Császár's Torus <http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html>`_
+    - [Lut2002]_
     """
     return UniqueSimplicialComplex([[0,1,2], [1,2,4], [1,3,4], [1,3,6],
                               [0,1,5], [1,5,6], [2,3,5], [2,4,5],
@@ -391,18 +396,12 @@ ProjectivePlane = RealProjectivePlane
 def KleinBottle():
     """
     A minimal triangulation of the Klein bottle, as presented for example
-    in Davide Cervone's thesis [Ce1994]_.
+    in Davide Cervone's thesis [Cer1994]_.
 
     EXAMPLES::
 
         sage: simplicial_complexes.KleinBottle()
         Minimal triangulation of the Klein bottle
-
-    REFERENCES:
-
-    .. [Ce1994] D. P. Cervone, "Vertex-minimal simplicial immersions of the Klein
-       bottle in three-space", Geom. Ded. 50 (1994) 117-141,
-       http://www.math.union.edu/~dpvc/papers/1993-03.kb/vmkb.pdf.
     """
     return UniqueSimplicialComplex([[2,3,7], [1,2,3], [1,3,5], [1,5,7],
                               [1,4,7], [2,4,6], [1,2,6], [1,6,0],
@@ -519,12 +518,6 @@ def ComplexProjectivePlane():
 
     This was constructed by Kühnel and Banchoff [KB1983]_.
 
-    REFERENCES:
-
-    .. [KB1983] W. Kühnel and T. F. Banchoff, "The 9-vertex complex
-       projective plane", Math. Intelligencer 5 (1983), no. 3,
-       11-22.
-
     EXAMPLES::
 
         sage: C = simplicial_complexes.ComplexProjectivePlane()
@@ -564,7 +557,7 @@ def PseudoQuaternionicProjectivePlane():
     automorphism group is isomorphic to the alternating group `A_5`
     and acts transitively on vertices.
 
-    This is defined here using the description in [BrK92]_. This
+    This is defined here using the description in [BK1992]_. This
     article deals with three different triangulations. This procedure
     returns the only one which has a transitive group of
     automorphisms.
@@ -580,11 +573,6 @@ def PseudoQuaternionicProjectivePlane():
 
         sage: HP2.automorphism_group().is_isomorphic(AlternatingGroup(5))
         True
-
-    REFERENCES:
-
-    .. [BrK92] Brehm U., Kuhnel W., "15-vertex triangulations of an
-               8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
     """
     from sage.groups.perm_gps.permgroup import PermutationGroup
     P = [(1,2,3,4,5),(6,7,8,9,10),(11,12,13,14,15)]
@@ -611,20 +599,13 @@ def PseudoQuaternionicProjectivePlane():
 
 def PoincareHomologyThreeSphere():
     """
-    A triangulation of the Poincare homology 3-sphere.
+    A triangulation of the Poincaré homology 3-sphere.
 
     This is a manifold whose integral homology is identical to the
     ordinary 3-sphere, but it is not simply connected. In particular,
     its fundamental group is the binary icosahedral group, which has
     order 120. The triangulation given here has 16 vertices and is
     due to Björner and Lutz [BL2000]_.
-
-    REFERENCES:
-
-    .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial
-       manifolds, bistellar flips and a 16-vertex triangulation of
-       the Poincaré homology 3-sphere", Experiment. Math. 9
-       (2000), no. 2, 275-289.
 
     EXAMPLES::
 
@@ -682,17 +663,17 @@ def RealProjectiveSpace(n):
       triangles.
 
     - `\Bold{R}P^3`: any triangulation has at least 11 vertices by
-      a result of Walkup [Wa1970]_; this function returns a
-      triangulation with 11 vertices, as given by Lutz [Lu2005]_.
+      a result of Walkup [Wal1970]_; this function returns a
+      triangulation with 11 vertices, as given by Lutz [Lut2005]_.
 
     - `\Bold{R}P^4`: any triangulation has at least 16 vertices by
       a result of Walkup; this function returns a triangulation
-      with 16 vertices as given by Lutz; see also Datta [Da2007]_,
+      with 16 vertices as given by Lutz; see also Datta [Dat2007]_,
       Example 3.12.
 
     - `\Bold{R}P^n`: Lutz has found a triangulation of
       `\Bold{R}P^5` with 24 vertices, but it does not seem to have
-      been published.  Kühnel [Ku1987]_ has described a triangulation of
+      been published.  Kühnel [Kuh1987]_ has described a triangulation of
       `\Bold{R}P^n`, in general, with `2^{n+1}-1` vertices; see
       also Datta, Example 3.21.  This triangulation is presumably
       not minimal, but it seems to be the best in the published
@@ -718,28 +699,13 @@ def RealProjectiveSpace(n):
     sends any subset `U` to its complement.  One can show that
     modding out by this action results in a triangulation for
     `\Bold{R}P^n`.  To find the facets in this triangulation, find
-    the facets in `S`.  These are indentified in pairs to form
+    the facets in `S`.  These are identified in pairs to form
     `\Bold{R}P^n`, so choose a representative from each pair: for
     each facet in `S`, replace any vertex in `S` containing 0 with
     its complement.
 
     Of course these complexes increase in size pretty quickly as
     `n` increases.
-
-    REFERENCES:
-
-    .. [Da2007] Basudeb Datta, "Minimal triangulations of manifolds",
-       J. Indian Inst. Sci. 87 (2007), no. 4, 429-449.
-
-    .. [Ku1987] W. Kühnel, "Minimal triangulations of Kummer varieties",
-       Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
-
-    .. [Lu2005] Frank H. Lutz, "Triangulated Manifolds with Few Vertices:
-       Combinatorial Manifolds", preprint (2005),
-       arXiv:math/0506372.
-
-    .. [Wa1970] David W. Walkup, "The lower bound conjecture for 3- and
-       4-manifolds", Acta Math. 125 (1970), 75-107.
 
     EXAMPLES::
 
@@ -875,16 +841,6 @@ def K3Surface():
     in [CK2001]_. The construction here uses the labeling from
     Spreer and Kühnel [SK2011]_.
 
-    REFERENCES:
-
-    .. [CK2001] M. Casella and W. Kühnel, "A triangulated K3 surface
-       with the minimum number of vertices", Topology 40 (2001),
-       753–772.
-
-    .. [SK2011] J. Spreer and W. Kühnel, "Combinatorial properties
-       of the K3 surface: Simplicial blowups and slicings", Experimental
-       Mathematics, Volume 20, Issue 2, 2011.
-
     EXAMPLES::
 
         sage: K3=simplicial_complexes.K3Surface() ; K3
@@ -1003,9 +959,9 @@ def BarnetteSphere():
     This is a pure simplicial complex of dimension 3 with 8
     vertices and 19 facets, which is a non-polytopal triangulation
     of the 3-sphere. It was constructed by Barnette in
-    [B1970]_. The construction here uses the labeling from De
+    [Bar1970]_. The construction here uses the labeling from De
     Loera, Rambau and Santos [DLRS2010]_. Another reference is chapter
-    III.4 of Ewald [E1996]_.
+    III.4 of Ewald [Ewa1996]_.
 
     EXAMPLES::
 
@@ -1017,7 +973,7 @@ def BarnetteSphere():
     TESTS:
 
     Checks that this is indeed the same Barnette Sphere as the one
-    given on page 87 of [E1996]_.::
+    given on page 87 of [Ewa1996]_.::
 
         sage: BS2 = SimplicialComplex([[1,2,3,4],[3,4,5,6],[1,2,5,6],
         ....:                          [1,2,4,7],[1,3,4,7],[3,4,6,7],
@@ -1028,20 +984,6 @@ def BarnetteSphere():
         ....:                          [1,3,5,7]])
         sage: BS.is_isomorphic(BS2)
         True
-
-    REFERENCES:
-
-    .. [B1970] Barnette, "Diagrams and Schlegel diagrams", in
-       Combinatorial Structures and Their Applications, Proc. Calgary
-       Internat. Conference 1969, New York, 1970, Gordon and Breach.
-
-    .. [DLRS2010] De Loera, Rambau and Santos, "Triangulations:
-       Structures for Algorithms and Applications", Algorithms and
-       Computation in Mathematics, Volume 25, Springer, 2011.
-
-    .. [E1996] Ewald, "Combinatorial Convexity and Algebraic Geometry",
-       vol. 168 of Graduate Texts in Mathematics, Springer, 1996
-
     """
     return UniqueSimplicialComplex([
             (1,2,4,5),(2,3,5,6),(1,3,4,6),(1,2,3,7),(4,5,6,7),(1,2,4,7),
@@ -1061,7 +1003,7 @@ def BrucknerGrunbaumSphere():
 
     It is defined here as the link of any vertex in the unique minimal
     triangulation of the complex projective plane, see chapter 4 of
-    [Ku1995]_.
+    [Kuh1995]_.
 
     EXAMPLES::
 
@@ -1069,19 +1011,6 @@ def BrucknerGrunbaumSphere():
         Bruckner and Grunbaum's triangulation of the 3-sphere
         sage: BGS.f_vector()
         [1, 8, 28, 40, 20]
-
-    REFERENCES:
-
-    .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen
-       Polytope und die nach Isomorphismus verschiedenen Typen der
-       allgemeinen Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
-       Erste Sectie, 10 (1910)
-
-    .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
-       4-polytopes with 8 vertices", J. Comb. Th. 2, 437-465 (1967)
-
-    .. [Ku1995] Kuhnel, "Tight Polyhedral Submanifolds and Tight Triangulations"
-       Lecture Notes in Mathematics Volume 1612, 1995
     """
     # X = ComplexProjectivePlane().link([9])
     # return UniqueSimplicialComplex(X.facets(),
@@ -1126,17 +1055,6 @@ def NotIConnectedGraphs(n, i):
         [1, 10, 45, 120, 210, 240, 140, 20]
         sage: simplicial_complexes.NotIConnectedGraphs(5,2).homology(5).ngens()
         6
-
-    REFERENCES:
-
-    .. [BBLSW1999] Babson, Bjorner, Linusson, Shareshian, and Welker,
-       "Complexes of not i-connected graphs," Topology 38 (1999),
-       271-299
-
-    .. [DHSW2003] Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-       homology based on efficient Smith normal form algorithms,"
-       in "Algebra, geometry, and software systems" (2003),
-       177-206.
     """
     G_list = range(1,n+1)
     G_vertices = Set(G_list)
@@ -1179,7 +1097,7 @@ def MatchingComplex(n):
     -  ``n`` -- positive integer.
 
     See Dumas et al. [DHSW2003]_ for information on computing its homology
-    by computer, and see Wachs [Wa2003]_ for an expository article about
+    by computer, and see Wachs [Wac2003]_ for an expository article about
     the theory.  For example, the homology of these complexes seems to
     have only mod 3 torsion, and this has been proved for the
     bottom non-vanishing homology group for the matching complex `M_n`.
@@ -1194,13 +1112,6 @@ def MatchingComplex(n):
         20
         sage: simplicial_complexes.MatchingComplex(8).homology(2)  # long time (6s on sage.math, 2012)
         Z^132
-
-    REFERENCES:
-
-    .. [Wa2003] Wachs, "Topology of Matching, Chessboard and General Bounded
-       Degree Graph Complexes" (Algebra Universalis Special Issue
-       in Memory of Gian-Carlo Rota, Algebra Universalis, 49 (2003)
-       345-385)
     """
     G_vertices = Set(range(1,n+1))
     facets = []
@@ -1262,7 +1173,7 @@ def ChessboardComplex(n, i):
     -  ``n, i`` -- positive integers.
 
     See Dumas et al. [DHSW2003]_ for information on computing its homology
-    by computer, and see Wachs [Wa2003]_ for an expository article about
+    by computer, and see Wachs [Wac2003]_ for an expository article about
     the theory.
 
     EXAMPLES::
@@ -1321,11 +1232,6 @@ def RandomComplex(n, d, p=0.5):
 
         sage: simplicial_complexes.RandomComplex(6, 12)
         The 5-simplex
-
-    REFERENCES:
-
-    .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
-       `k`-dimensional complexes", preprint, math.CO/0609773.
     """
     if d+1 > n:
         return Simplex(n-1)
@@ -1372,13 +1278,6 @@ def SumComplex(n, A):
     - ``n`` -- a positive integer
 
     - ``A`` -- a subset of `\ZZ/(n)`
-
-    REFERENCES:
-
-    .. [LMR2010] N. Linial, R. Meshulam and M. Rosenthal, "Sum
-       complexes -- a new family of hypertrees", Discrete &
-       Computational Geometry, 2010, Volume 44, Number 3, Pages
-       622-636
 
     EXAMPLES::
 
@@ -1508,12 +1407,140 @@ def RandomTwoSphere(n):
     graph = RandomTriangulation(n)
 
     graph = graph.relabel(inplace=False)
-    triangles = [(u, v, w) for u, L in graph._embedding.iteritems()
+    triangles = [(u, v, w) for u, L in iteritems(graph._embedding)
                  for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
 
     return SimplicialComplex(triangles, maximality_check=False)
 
+def ShiftedComplex(generators):
+    r"""
+    Return the smallest shifted simplicial complex containing ``generators``
+    as faces.
 
-# For taking care of old pickles
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)
+    Let `V` be a set of vertices equipped with a total order.  The
+    'componentwise partial ordering' on k-subsets of `V` is defined as
+    follows: if `A = \{a_1 < \cdots < a_k\}` and `B = \{b_1 < \cdots < b_k\}`,
+    then `A \leq_C B` iff `a_i \leq b_i` for all `i`.  A simplicial complex
+    `X` on vertex set `[n]` is *shifted* if its faces form an order ideal
+    under the componentwise partial ordering, i.e., if `B \in X` and
+    `A \leq_C B` then `A \in X`.  Shifted complexes of dimension 1 are also
+    known as threshold graphs.
+
+    .. NOTE::
+
+        This method assumes that `V` consists of positive integers
+        with the natural ordering.
+
+    INPUT:
+
+    - ``generators`` -- a list of generators of the order ideal, which may
+      be lists, tuples or simplices
+
+    EXAMPLES::
+
+        sage: X = simplicial_complexes.ShiftedComplex([ Simplex([1,6]), (2,4), [8] ])
+        sage: X.facets()
+        {(2, 4), (7,), (1, 2), (1, 5), (1, 4), (8,), (2, 3), (1, 6), (1, 3)}
+        sage: X = simplicial_complexes.ShiftedComplex([ [2,3,5] ])
+        sage: X.facets()
+        {(1, 3, 4), (1, 3, 5), (2, 3, 5), (1, 2, 3), (2, 3, 4), (1, 2, 5), (1, 2, 4)}
+        sage: X = simplicial_complexes.ShiftedComplex([ [1,3,5], [2,6] ])
+        sage: X.facets()
+        {(1, 3, 4), (1, 3, 5), (1, 6), (2, 6), (1, 2, 3), (1, 2, 5), (1, 2, 4)}
+    """
+    from sage.combinat.partition import Partitions
+    Facets = []
+    for G in generators:
+        G = list(reversed(sorted(G)))
+        L = len(G)
+        for k in range(L * (L+1) // 2, sum(G) + 1):
+            for P in Partitions(k, length=L, max_slope=-1, outer=G):
+                Facets.append( list(reversed(P)) )
+    return SimplicialComplex(Facets)
+
+def RudinBall():
+    r"""
+    Return the non-shellable ball constructed by Rudin.
+
+    This complex is a non-shellable triangulation of the 3-ball
+    with 14 vertices and 41 facets, constructed by Rudin in
+    [Rud1958]_.
+
+    EXAMPLES::
+
+        sage: R = simplicial_complexes.RudinBall(); R
+        Rudin ball
+        sage: R.f_vector()
+        [1, 14, 66, 94, 41]
+        sage: R.homology()
+        {0: 0, 1: 0, 2: 0, 3: 0}
+        sage: R.is_cohen_macaulay()
+        True
+    """
+    return UniqueSimplicialComplex(
+        [[1,9,2,5], [1,10,2,5], [1,10,5,11], [1,10,7,11], [1,13,5,11],
+         [1,13,7,11], [2,10,3,6], [2,11,3,6], [2,11,6,12], [2,11,8,12],
+         [2,14,6,12], [2,14,8,12], [3,11,4,7], [3,12,4,7], [3,12,5,9],
+         [3,12,7,9], [3,13,5,9], [3,13,7,9], [4,9,1,8], [4,9,6,10],
+         [4,9,8,10], [4,12,1,8], [4,14,6,10], [4,14,8,10], [9,10,2,5],
+         [9,10,2,6], [9,10,5,11], [9,10,11,12], [9,13,5,11], [10,11,3,6],
+         [10,11,3,7], [10,11,6,12], [10,14,6,12], [11,12,4,7], [11,12,4,8],
+         [11,12,7,9], [11,13,7,9], [12,9,1,5], [12,9,1,8], [12,9,8,10],
+         [12,14,8,10]],
+        name="Rudin ball"
+    )
+
+def ZieglerBall():
+    r"""
+    Return the non-shellable ball constructed by Ziegler.
+
+    This complex is a non-shellable triangulation of the 3-ball
+    with 10 vertices and 21 facets, constructed by Ziegler in
+    [Zie1998]_ and the smallest such complex known.
+
+    EXAMPLES::
+
+        sage: Z = simplicial_complexes.ZieglerBall(); Z
+        Ziegler ball
+        sage: Z.f_vector()
+        [1, 10, 38, 50, 21]
+        sage: Z.homology()
+        {0: 0, 1: 0, 2: 0, 3: 0}
+        sage: Z.is_cohen_macaulay()
+        True
+    """
+
+    return UniqueSimplicialComplex(
+       [[1,2,3,4], [1,2,5,6], [1,5,6,9], [2,5,6,0], [3,6,7,8], [4,5,7,8],
+        [2,3,6,7], [1,6,2,9], [2,6,7,0], [3,2,4,8], [4,1,3,7], [3,4,7,8],
+        [1,2,4,9], [2,7,3,0], [3,2,6,8], [4,1,5,7], [4,1,8,5], [1,4,8,9],
+        [2,3,1,0], [1,8,5,9], [2,1,5,0]],
+       name="Ziegler ball"
+    )
+
+def DunceHat():
+    r"""
+    Return the minimal triangulation of the dunce hat given by Hachimori
+    [Hac2016]_.
+
+    This is a standard example of a space that is contractible
+    but not collapsible.
+
+    EXAMPLES::
+
+        sage: D = simplicial_complexes.DunceHat(); D
+        Minimal triangulation of the dunce hat
+        sage: D.f_vector()
+        [1, 8, 24, 17]
+        sage: D.homology()
+        {0: 0, 1: 0, 2: 0}
+        sage: D.is_cohen_macaulay()
+        True
+    """
+
+    return UniqueSimplicialComplex(
+       [[1,3,5], [2,3,5], [2,4,5], [1,2,4], [1,3,4], [3,4,8],
+        [1,2,8], [1,7,8], [1,2,7], [2,3,7], [3,6,7], [1,3,6],
+        [1,5,6], [4,5,6], [4,6,8], [6,7,8], [2,3,8]],
+       name="Minimal triangulation of the dunce hat"
+    )

@@ -17,7 +17,7 @@ slopes (and hence a last infinite slope).
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.structure.sage_object import op_EQ, op_NE, op_LE, op_GE, op_LT
+from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_GE, op_LT
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.infinity import Infinity
@@ -737,9 +737,10 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                     raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
                 x += 1
                 y += slope
-                vertices.append((x,y))
+                vertices.append((x, y))
         else:
             vertices = [(x, y) for (x, y) in arg if y is not Infinity]
+
         if len(vertices) == 0:
             polyhedron = Polyhedron(base_ring=self.base_ring(), ambient_dim=2)
         else:

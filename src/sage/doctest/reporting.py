@@ -32,9 +32,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-import sys, signal
+import sys
+import signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
 from sage.doctest.sources import DictAsObject
@@ -131,13 +132,13 @@ class DocTestReporter(SageObject):
             sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD, [filename])
             sage: DTR = DocTestReporter(DC)
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t .../sage/doctest/reporting.py
 
         The same with various options::
 
             sage: DD.long = True
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t --long .../sage/doctest/reporting.py
         """
         cmd = "sage -t"
@@ -307,7 +308,6 @@ class DocTestReporter(SageObject):
             stats = self.stats
             basename = source.basename
             cmd = self.report_head(source)
-
             try:
                 ntests, result_dict = results
             except (TypeError, ValueError):
@@ -322,7 +322,9 @@ class DocTestReporter(SageObject):
                     fail_msg += " (with error after interrupt)"
                 elif return_code < 0:
                     sig = -return_code
-                    if sig == signal.SIGKILL:
+                    if sig == signal.SIGQUIT:
+                        pass  # and interrupt succeeded
+                    elif sig == signal.SIGKILL:
                         fail_msg += " (and interrupt failed)"
                     else:
                         fail_msg += " (with %s after interrupt)"%signal_name(sig)
@@ -451,7 +453,7 @@ class DocTestReporter(SageObject):
 
     def finalize(self):
         """
-        Print out the postcript that summarizes the doctests that were run.
+        Print out the postscript that summarizes the doctests that were run.
 
         EXAMPLES:
 

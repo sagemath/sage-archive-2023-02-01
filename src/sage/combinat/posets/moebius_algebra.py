@@ -60,7 +60,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
     The Möbius algebra of a lattice.
 
     Let `L` be a lattice. The *Möbius algebra* `M_L` was originally
-    constructed by Solomon and has a natural basis
+    constructed by Solomon [Solomon67]_ and has a natural basis
     `\{ E_x \mid x \in L \}` with multiplication given by
     `E_x \cdot E_y = E_{x \vee y}`. Moreover this has a basis given by
     orthogonal idempotents `\{ I_x \mid x \in L \}` (so
@@ -69,11 +69,22 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
 
     .. MATH::
 
-        I_x = \sum_{y \leq x} \mu_L(y, x) E_x,
+        I_x = \sum_{x \leq y} \mu_L(x, y) E_y,
 
     where `\mu_L` is the Möbius function of `L`.
 
+    .. NOTE::
+
+        We use the join `\vee` for our multiplication, whereas [Greene73]_
+        and [Etienne98]_ define the Möbius algebra using the meet `\wedge`.
+        This is done for compatibility with :class:`QuantumMoebiusAlgebra`.
+
     REFERENCES:
+
+    .. [Solomon67] Louis Solomon.
+       *The Burnside Algebra of a Finite Group*.
+       Journal of Combinatorial Theory, **2**, 1967.
+       :doi:`10.1016/S0021-9800(67)80064-4`.
 
     .. [Greene73] Curtis Greene.
        *On the Möbius algebra of a partially ordered set*.
@@ -95,8 +106,6 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             sage: M = L.moebius_algebra(QQ)
             sage: TestSuite(M).run()
         """
-        if not L.is_lattice():
-            raise ValueError("L must be a lattice")
         cat = Algebras(R).Commutative().WithBasis()
         if L in FiniteEnumeratedSets():
             cat = cat.FiniteDimensional()
@@ -183,7 +192,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             """
             M = self.realization_of()
             I = M.idempotent()
-            return I.sum_of_monomials(M._lattice.order_ideal([x]))
+            return I.sum_of_monomials(M._lattice.order_filter([x]))
 
         def product_on_basis(self, x, y):
             """
@@ -197,6 +206,14 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
                 E[15]
                 sage: E.product_on_basis(2, 8)
                 E[10]
+
+            TESTS::
+
+                sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+                sage: E = M.E()
+                sage: I = M.I()
+                sage: all(I(x)*I(y) == I(x*y) for x in E.basis() for y in E.basis())
+                True
             """
             return self.monomial(self.realization_of()._lattice.join(x, y))
 
@@ -234,6 +251,17 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
                 sage: L = posets.BooleanLattice(4)
                 sage: M = L.moebius_algebra(QQ)
                 sage: TestSuite(M.I()).run()
+
+            Check that the transition maps can be pickled::
+
+                sage: L = posets.BooleanLattice(4)
+                sage: M = L.moebius_algebra(QQ)
+                sage: E = M.E()
+                sage: I = M.I()
+                sage: phi = E.coerce_map_from(I)
+                sage: loads(dumps(phi))
+                Generic morphism:
+                ...
             """
             self._basis_name = "idempotent"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
@@ -245,12 +273,14 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             self.module_morphism(self._to_natural_basis,
                                  codomain=E, category=self.category(),
-                                 triangular='upper', unitriangular=True
+                                 triangular='lower', unitriangular=True,
+                                 key=M._lattice._element_to_vertex
                                  ).register_as_coercion()
 
             E.module_morphism(E._to_idempotent_basis,
                               codomain=self, category=self.category(),
-                              triangular='upper', unitriangular=True
+                              triangular='lower', unitriangular=True,
+                              key=M._lattice._element_to_vertex
                               ).register_as_coercion()
 
 
@@ -270,7 +300,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             M = self.realization_of()
             N = M.natural()
             moebius = M._lattice.moebius_function
-            return N.sum_of_terms((y, moebius(y,x)) for y in M._lattice.order_ideal([x]))
+            return N.sum_of_terms((y, moebius(x,y)) for y in M._lattice.order_filter([x]))
 
         def product_on_basis(self, x, y):
             """
@@ -284,6 +314,14 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
                 0
                 sage: I.product_on_basis(2, 2)
                 I[2]
+
+            TESTS::
+
+                sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+                sage: E = M.E()
+                sage: I = M.I()
+                sage: all(E(x)*E(y) == E(x*y) for x in I.basis() for y in I.basis())
+                True
             """
             if x == y:
                 return self.monomial(x)
@@ -521,7 +559,8 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
-                                       triangular='lower', unitriangular=True)
+                                       triangular='lower', unitriangular=True,
+                                       key=M._lattice._element_to_vertex)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -601,7 +640,8 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
-                                       triangular='lower', unitriangular=True)
+                                       triangular='lower', unitriangular=True,
+                                       key=M._lattice._element_to_vertex)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()

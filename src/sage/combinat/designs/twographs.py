@@ -20,7 +20,7 @@ the :meth:`descendant <TwoGraph.descendant>` of `T` w.r.t. `v`.
 in the same number alpha of triples of `T`.
 
 This module implements a direct construction of a two-graph from a list of
-triples, constrution of descendant graphs, regularity checking, and other
+triples, construction of descendant graphs, regularity checking, and other
 things such as constructing the complement two-graph, cf. [BH12]_.
 
 AUTHORS:
@@ -55,6 +55,8 @@ This module's functions are the following :
 Methods
 ---------
 """
+from __future__ import absolute_import
+
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations
 
@@ -151,7 +153,7 @@ class TwoGraph(IncidenceStructure):
         """
         The two-graph which is the complement of ``self``
 
-        That is, the two-graph constisting exactly of triples not in ``self``.
+        That is, the two-graph consisting exactly of triples not in ``self``.
         Note that this is different from :meth:`complement
         <sage.combinat.designs.incidence_structures.IncidenceStructure.complement>`
         of the :class:`parent class
@@ -159,7 +161,7 @@ class TwoGraph(IncidenceStructure):
 
         EXAMPLES::
 
-            sage: p=graphs.CompleteGraph(8).line_graph().twograph()
+            sage: p = graphs.CompleteGraph(8).line_graph().twograph()
             sage: pc = p.complement(); pc
             Incidence structure with 28 points and 1260 blocks
 
@@ -241,10 +243,12 @@ def is_twograph(T):
         for x in B:
             v_to_blocks[x].add(B)
 
-    has_triple = lambda (x,y,z) : bool(v_to_blocks[x]&v_to_blocks[y]&v_to_blocks[z])
+    def has_triple(x_y_z):
+        x, y, z = x_y_z
+        return bool(v_to_blocks[x] & v_to_blocks[y] & v_to_blocks[z])
 
     # Check that every quadruple contains an even number of triples
-    from __builtin__ import sum
+    from six.moves.builtins import sum
     for quad in combinations(range(T.num_points()),4):
         if sum(map(has_triple,combinations(quad,3))) % 2 == 1:
             return False

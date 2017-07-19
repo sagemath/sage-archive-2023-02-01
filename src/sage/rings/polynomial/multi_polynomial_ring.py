@@ -50,6 +50,7 @@ TESTS::
     (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,
     (x, y, z))
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -60,7 +61,8 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
+from six import iteritems
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
@@ -135,11 +137,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         order = TermOrder(order,n)
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         # Construct the generators
-        v = [0 for _ in xrange(n)]
+        v = [0] * n
         one = base_ring(1);
         self._gens = []
         C = self._poly_class()
-        for i in xrange(n):
+        for i in range(n):
             v[i] = 1  # int's!
             self._gens.append(C(self, {tuple(v):one}))
             v[i] = 0
@@ -356,7 +358,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P('pi')
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
+            TypeError: unable to convert pi to a rational
 
         Check that it is possible to convert strings to iterated
         polynomial rings (see :trac:`13327`)::
@@ -394,6 +396,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: f.sage(locals={'a': a, 'd': d})
             a*d
 
+        Check that :trac:`21999` is fixed::
+
+            sage: R = QQbar['s,t']
+            sage: type(R({(1,2): 3}).coefficients()[0])
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element
@@ -409,7 +416,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         except TypeError:
             pass
 
-        from multi_polynomial_libsingular import MPolynomial_libsingular
+        from .multi_polynomial_libsingular import MPolynomial_libsingular
 
         if isinstance(x, MPolynomial_polydict):
             P = x.parent()
@@ -429,7 +436,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -453,7 +460,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -467,6 +474,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         elif isinstance(x, PolyDict):
             return MPolynomial_polydict(self, x)
+
+        elif isinstance(x, dict):
+            K = self.base_ring()
+            return MPolynomial_polydict(self, {i: K(a) for i, a in iteritems(x)})
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
@@ -513,13 +524,375 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             # with highest priority, and the x[i] are expressions
             # in the remaining variables.
             v = self.gens_dict_recursive()[str(x.variable())]
-            return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
+            return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
 
         if isinstance(x, dict):
             return MPolynomial_polydict(self, x)
         else:
             c = self.base_ring()(x)
             return MPolynomial_polydict(self, {self._zero_tuple:c})
+
+### The following methods are handy for implementing Groebner
+### basis algorithms. They do only superficial type/sanity checks
+### and should be called carefully.
+
+    def monomial_quotient(self, f, g, coeff=False):
+        r"""
+        Return ``f/g``, where both ``f`` and ``g`` are treated as monomials.
+
+        Coefficients are ignored by default.
+
+        INPUT:
+
+        -  ``f`` - monomial.
+
+        -  ``g`` - monomial.
+
+        -  ``coeff`` - divide coefficients as well (default:
+           False).
+
+        OUTPUT: monomial.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
+            sage: P.monomial_quotient(3/2*x*y, x)
+            y
+
+        ::
+
+            sage: P.monomial_quotient(3/2*x*y, 2*x, coeff=True)
+            3/4*y
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: R.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.monomial_quotient(x*y, x)
+            y
+
+        ::
+
+            sage: P.monomial_quotient(x*y, R.gen())
+            y
+
+        ::
+
+            sage: P.monomial_quotient(P(0), P(1))
+            0
+
+        ::
+
+            sage: P.monomial_quotient(P(1), P(0))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
+        ::
+
+            sage: P.monomial_quotient(P(3/2), P(2/3), coeff=True)
+            9/4
+
+        ::
+
+            sage: P.monomial_quotient(x, y) # Note the wrong result
+            x*y^-1
+
+        ::
+
+            sage: P.monomial_quotient(x, P(1))
+            x
+
+        .. note::
+
+           Assumes that the head term of f is a multiple of the head
+           term of g and return the multiplicant m. If this rule is
+           violated, funny things may happen.
+        """
+        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
+
+        if not f:
+          return f
+        if not g:
+          raise ZeroDivisionError
+
+        if not coeff:
+          coeff = self.base_ring()(1)
+        else:
+          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
+
+        f = f.dict().keys()[0]
+        g = g.dict().keys()[0]
+
+        res = f.esub(g)
+
+        return MPolynomial_polydict(self, PolyDict({res:coeff},\
+                                                   force_int_exponents=False, \
+                                                   force_etuples=False))
+
+    def monomial_lcm(self, f, g):
+        """
+        LCM for monomials. Coefficients are ignored.
+
+        INPUT:
+
+        -  ``f`` - monomial.
+
+        -  ``g`` - monomial.
+
+        OUTPUT: monomial.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.monomial_lcm(3/2*x*y, x)
+            x*y
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: R.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.monomial_lcm(x*y, R.gen())
+            x*y
+
+        ::
+
+            sage: P.monomial_lcm(P(3/2), P(2/3))
+            1
+
+        ::
+
+            sage: P.monomial_lcm(x, P(1))
+            x
+        """
+        one = self.base_ring()(1)
+
+        f = f.dict().keys()[0]
+        g = g.dict().keys()[0]
+
+
+        length = len(f)
+
+        res = {}
+
+        for i in f.common_nonzero_positions(g):
+            res[i] = max([f[i],g[i]])
+
+        res =  self(PolyDict({ETuple(res,length):one},\
+                            force_int_exponents=False,force_etuples=False))
+        return res
+
+    def monomial_reduce(self, f, G):
+        r"""
+        Try to find a ``g`` in ``G`` where ``g.lm()`` divides ``f``.
+
+        If found, ``(flt,g)`` is returned, ``(0,0)`` otherwise, where
+        ``flt`` is ``f/g.lm()``. It is assumed that ``G`` is iterable and contains
+        ONLY elements in this ring.
+
+        INPUT:
+
+
+        -  ``f`` - monomial
+
+        -  ``G`` - list/set of mpolynomials
+
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: f = x*y^2
+            sage: G = [3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)]
+            sage: P.monomial_reduce(f,G)
+            (y, 1/4*x*y + 2/7)
+
+        ::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(Zmod(23432),3, order='degrevlex')
+            sage: f = x*y^2
+            sage: G = [3*x^3 + y^2 + 2, 4*x*y + 7, P(2)]
+            sage: P.monomial_reduce(f,G)
+            (y, 4*x*y + 7)
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: f = x*y^2
+            sage: G = [3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)]
+
+        ::
+
+            sage: P.monomial_reduce(P(0),G)
+            (0, 0)
+
+        ::
+
+            sage: P.monomial_reduce(f,[P(0)])
+            (0, 0)
+        """
+        if not f:
+            return 0,0
+        for g in G:
+            t = g.lm()
+            try:
+                if self.monomial_divides(t,f):
+                    return self.monomial_quotient(f,t),g
+            except ZeroDivisionError:
+                return 0,0
+        return 0,0
+
+    def monomial_divides(self, a, b):
+        """
+        Return False if ``a`` does not divide ``b`` and True otherwise.
+
+        INPUT:
+
+        -  ``a`` - monomial.
+
+        -  ``b`` - monomial.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = PolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
+            True
+            sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
+            False
+
+        TESTS::
+
+            sage: P.<x,y,z> = PolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.monomial_divides(P(1), P(0))
+            True
+            sage: P.monomial_divides(P(1), x)
+            True
+        """
+        if not b:
+            return True
+        if not a:
+            raise ZeroDivisionError
+
+        a = a.dict().keys()[0]
+        b = b.dict().keys()[0]
+
+        for i in b.common_nonzero_positions(a):
+          if b[i] - a[i] < 0:
+            return False
+        return True
+
+    def monomial_pairwise_prime(self, h, g):
+        r"""
+        Return True if ``h`` and ``g`` are pairwise prime.
+
+        Both are treated as monomials.
+
+        INPUT:
+
+        -  ``h`` - monomial.
+
+        -  ``g`` - monomial.
+
+        OUTPUT: Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.monomial_pairwise_prime(x^2*z^3, y^4)
+            True
+
+        ::
+
+            sage: P.monomial_pairwise_prime(1/2*x^3*y^2, 3/4*y^3)
+            False
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: Q.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.monomial_pairwise_prime(x^2*z^3, Q('y^4'))
+            True
+
+        ::
+
+            sage: P.monomial_pairwise_prime(1/2*x^3*y^2, Q(0))
+            True
+
+        ::
+
+            sage: P.monomial_pairwise_prime(P(1/2),x)
+            False
+        """
+        if not g:
+            if not h:
+                return False #GCD(0,0) = 0
+            else:
+                return True #GCD(x,0) = 1
+
+        elif not h:
+            return True # GCD(0,x) = 1
+
+        return self.monomial_lcm(g,h) == g*h
+
+    def monomial_all_divisors(self, t):
+        r"""
+        Return a list of all monomials that divide ``t``, coefficients are
+        ignored.
+
+        INPUT:
+
+        -  ``t`` - a monomial.
+
+        OUTPUT: a list of monomials.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.monomial_all_divisors(x^2*z^3)
+            [x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
+
+        ALGORITHM: addwithcarry idea by Toon Segers
+        """
+
+        def addwithcarry(tempvector, maxvector, pos):
+            if tempvector[pos] < maxvector[pos]:
+              tempvector[pos] += 1
+            else:
+              tempvector[pos] = 0
+              tempvector = addwithcarry(tempvector, maxvector, pos + 1)
+            return tempvector
+
+        if not t.is_monomial():
+          raise TypeError("only monomials are supported")
+
+        R = self
+        one = self.base_ring()(1)
+        M = list()
+
+        maxvector = list(t.dict().keys()[0])
+
+        tempvector =[0,]*len(maxvector)
+
+        pos = 0
+
+        while tempvector != maxvector:
+          tempvector = addwithcarry(list(tempvector) , maxvector, pos)
+          M.append(R(PolyDict({ETuple(tempvector):one}, \
+                              force_int_exponents=False,force_etuples=False)))
+        return M
+
+
 
 class MPolynomialRing_polydict_domain(IntegralDomain,
                                       MPolynomialRing_polydict):
@@ -562,354 +935,6 @@ class MPolynomialRing_polydict_domain(IntegralDomain,
         if ('coerce' in kwds and kwds['coerce']) or do_coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
-
-    def monomial_quotient(self,f, g, coeff=False):
-        """
-        Return f/g, where both f and g are treated as monomials.
-        Coefficients are ignored by default.
-
-        INPUT:
-
-
-        -  ``f`` - monomial
-
-        -  ``g`` - monomial
-
-        -  ``coeff`` - divide coefficients as well (default:
-           False)
-
-
-        EXAMPLE::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
-            sage: P.monomial_quotient(3/2*x*y,x)
-            y
-
-        ::
-
-            sage: P.monomial_quotient(3/2*x*y,2*x,coeff=True)
-            3/4*y
-
-        TESTS::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_quotient(x*y,x)
-            y
-
-        ::
-
-            sage: P.monomial_quotient(x*y,R.gen())
-            y
-
-        ::
-
-            sage: P.monomial_quotient(P(0),P(1))
-            0
-
-        ::
-
-            sage: P.monomial_quotient(P(1),P(0))
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError
-
-        ::
-
-            sage: P.monomial_quotient(P(3/2),P(2/3), coeff=True)
-            9/4
-
-        ::
-
-            sage: P.monomial_quotient(x,y) # Note the wrong result
-            x*y^-1
-
-        ::
-
-            sage: P.monomial_quotient(x,P(1))
-            x
-
-        .. note::
-
-           Assumes that the head term of f is a multiple of the head
-           term of g and return the multiplicant m. If this rule is
-           violated, funny things may happen.
-        """
-        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
-
-        if not f:
-          return f
-        if not g:
-          raise ZeroDivisionError
-
-        if not coeff:
-          coeff= self.base_ring()(1)
-        else:
-          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
-
-        f = f.dict().keys()[0]
-        g = g.dict().keys()[0]
-
-        res = f.esub(g)
-
-        return MPolynomial_polydict(self, PolyDict({res:coeff},\
-                                                   force_int_exponents=False, \
-                                                   force_etuples=False))
-
-    def monomial_lcm(self, f, g):
-        """
-        LCM for monomials. Coefficients are ignored.
-
-        INPUT:
-
-
-        -  ``f`` - monomial
-
-        -  ``g`` - monomial
-
-
-        EXAMPLE::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_lcm(3/2*x*y,x)
-            x*y
-
-        TESTS::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_lcm(x*y,R.gen())
-            x*y
-
-        ::
-
-            sage: P.monomial_lcm(P(3/2),P(2/3))
-            1
-
-        ::
-
-            sage: P.monomial_lcm(x,P(1))
-            x
-        """
-        one = self.base_ring()(1)
-
-        f=f.dict().keys()[0]
-        g=g.dict().keys()[0]
-
-
-        length = len(f)
-
-        res = {}
-
-        for i in f.common_nonzero_positions(g):
-            res[i] = max([f[i],g[i]])
-
-        res =  self(PolyDict({ETuple(res,length):one},\
-                            force_int_exponents=False,force_etuples=False))
-        return res
-
-    def monomial_reduce(self, f, G):
-        """
-        Try to find a g in G where g.lm() divides f. If found (g,flt) is
-        returned, (0,0) otherwise, where flt is f/g.lm().
-
-        It is assumed that G is iterable and contains ONLY elements in
-        self.
-
-        INPUT:
-
-
-        -  ``f`` - monomial
-
-        -  ``G`` - list/set of mpolynomials
-
-
-        EXAMPLES::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: f = x*y^2
-            sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)  ]
-            sage: P.monomial_reduce(f,G)
-            (y, 1/4*x*y + 2/7)
-
-        TESTS::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: f = x*y^2
-            sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)  ]
-
-        ::
-
-            sage: P.monomial_reduce(P(0),G)
-            (0, 0)
-
-        ::
-
-            sage: P.monomial_reduce(f,[P(0)])
-            (0, 0)
-        """
-        if not f:
-            return 0,0
-        for g in G:
-            t = g.lm()
-            try:
-                if self.monomial_divides(t,f):
-                    return self.monomial_quotient(f,t),g
-            except ZeroDivisionError:
-                return 0,0
-        return 0,0
-
-    def monomial_divides(self, a, b):
-        """
-        Return False if a does not divide b and True otherwise.
-
-        INPUT:
-
-
-        -  ``a`` - monomial
-
-        -  ``b`` - monomial
-
-
-        EXAMPLES::
-
-            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
-            sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
-            True
-            sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
-            False
-
-        TESTS::
-
-            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
-            sage: P.monomial_divides(P(1), P(0))
-            True
-            sage: P.monomial_divides(P(1), x)
-            True
-        """
-
-        if not b:
-            return True
-        if not a:
-            raise ZeroDivisionError
-
-        a=a.dict().keys()[0]
-        b=b.dict().keys()[0]
-
-        for i in b.common_nonzero_positions(a):
-          if b[i] - a[i] < 0:
-            return False
-        return True
-
-    def monomial_pairwise_prime(self, h, g):
-        """
-        Return True if h and g are pairwise prime. Both are treated as
-        monomials.
-
-        INPUT:
-
-
-        -  ``h`` - monomial
-
-        -  ``g`` - monomial
-
-
-        EXAMPLES::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_pairwise_prime(x^2*z^3, y^4)
-            True
-
-        ::
-
-            sage: P.monomial_pairwise_prime(1/2*x^3*y^2, 3/4*y^3)
-            False
-
-        TESTS::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: Q.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_pairwise_prime(x^2*z^3, Q('y^4'))
-            True
-
-        ::
-
-            sage: P.monomial_pairwise_prime(1/2*x^3*y^2, Q(0))
-            True
-
-        ::
-
-            sage: P.monomial_pairwise_prime(P(1/2),x)
-            False
-        """
-        if not g:
-            if not h:
-                return False #GCD(0,0) = 0
-            else:
-                return True #GCD(x,0) = 1
-
-        elif not h:
-            return True # GCD(0,x) = 1
-
-        return self.monomial_lcm(g,h) == g*h
-
-    def monomial_all_divisors(self,t):
-        """
-        Return a list of all monomials that divide t, coefficients are
-        ignored.
-
-        INPUT:
-
-
-        -  ``t`` - a monomial
-
-
-        OUTPUT: a list of monomials
-
-        EXAMPLE::
-
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_all_divisors(x^2*z^3)
-            [x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
-
-        ALGORITHM: addwithcarry idea by Toon Segers
-        """
-
-        def addwithcarry(tempvector, maxvector, pos):
-            if tempvector[pos] < maxvector[pos]:
-              tempvector[pos] += 1
-            else:
-              tempvector[pos] = 0
-              tempvector = addwithcarry(tempvector, maxvector, pos + 1)
-            return tempvector
-
-        if not t.is_monomial():
-          raise TypeError("Only monomials are supported")
-
-        R = self
-        one = self.base_ring()(1)
-        M = list()
-
-        maxvector = list(t.dict().keys()[0])
-
-        tempvector =[0,]*len(maxvector)
-
-        pos = 0
-
-        while tempvector != maxvector:
-          tempvector = addwithcarry(list(tempvector) , maxvector, pos)
-          M.append(R(PolyDict({ETuple(tempvector):one}, \
-                              force_int_exponents=False,force_etuples=False)))
-        return M
 
 
 

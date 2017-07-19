@@ -17,6 +17,7 @@ Coxeter Matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
 
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
@@ -29,6 +30,8 @@ from sage.rings.infinity import infinity
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_type import CoxeterType
 
+
+@add_metaclass(ClasscallMetaclass)
 class CoxeterMatrix(CoxeterType):
     r"""
     A Coxeter matrix.
@@ -109,8 +112,6 @@ class CoxeterMatrix(CoxeterType):
         [   1 -3/2]
         [-3/2    1]
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, data=None, index_set=None, coxeter_type=None,
                               cartan_type=None, coxeter_type_check=True):
@@ -678,7 +679,7 @@ class CoxeterMatrix(CoxeterType):
         EXAMPLES::
 
             sage: CM = CoxeterMatrix([[1,8],[8,1]])
-            sage: CM.__iter__().next()
+            sage: next(CM.__iter__())
             (1, 8)
         """
         return iter(self._matrix)
@@ -1052,6 +1053,22 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         ....:     recognized_type = recognize_coxeter_type_from_matrix(relabeled_matrix, relabelling_perm)
         ....:     if C.is_finite() or C.is_affine():
         ....:         assert recognized_type == C.coxeter_type()
+
+    We check the rank 2 cases (:trac:`20419`)::
+
+        sage: for i in range(2, 10):
+        ....:     M = matrix([[1,i],[i,1]])
+        ....:     CoxeterMatrix(M).coxeter_type()
+        Coxeter type of A1xA1 relabelled by {1: 2}
+        Coxeter type of ['A', 2]
+        Coxeter type of ['B', 2]
+        Coxeter type of ['I', 5]
+        Coxeter type of ['G', 2]
+        Coxeter type of ['I', 7]
+        Coxeter type of ['I', 8]
+        Coxeter type of ['I', 9]
+        sage: CoxeterMatrix(matrix([[1,-1],[-1,1]]), index_set=[0,1]).coxeter_type()
+        Coxeter type of ['A', 1, 1]
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())
@@ -1070,8 +1087,10 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         if r == 2: # Type B2, G2, or I_2(p)
             e = S.edge_labels()[0]
             if e == 3: # Can't be 2 because it is connected
-                ct = CoxeterType(['B',2])
+                ct = CoxeterType(['A',2])
             elif e == 4:
+                ct = CoxeterType(['B',2])
+            elif e == 6:
                 ct = CoxeterType(['G',2])
             elif e > 0 and e < float('inf'): # Remaining non-affine types
                 ct = CoxeterType(['I',e])
@@ -1109,7 +1128,7 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         for ct in test:
             ct = CoxeterType(ct)
             T = ct.coxeter_graph()
-            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            iso, match = T.is_isomorphic(S, certificate=True, edge_labels=True)
             if iso:
                 types.append(ct.relabel(match))
                 found = True

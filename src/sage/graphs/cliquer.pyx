@@ -9,9 +9,9 @@ AUTHORS:
 
 - Nathann Cohen (2009-08-14): Initial version
 
-- Jeroen Demeyer (2011-05-06): Make cliquer interruptible (#11252)
+- Jeroen Demeyer (2011-05-06): Make cliquer interruptible (:trac:`11252`)
 
-- Nico Van Cleemput (2013-05-27): Handle the empty graph (#14525)
+- Nico Van Cleemput (2013-05-27): Handle the empty graph (:trac:`14525`)
 
 REFERENCE:
 
@@ -34,9 +34,8 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 
 cdef extern from "sage/graphs/cliquer/cl.c":
@@ -58,7 +57,7 @@ def max_clique(graph):
           sage: max_clique(C)
           [7, 9]
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.clique_maximum()
@@ -130,7 +129,7 @@ def all_max_clique(graph):
         sage: C.cliques_maximum()
         [[1, 2, 3, 4]]
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.cliques_maximum()
@@ -192,7 +191,7 @@ def clique_number(graph):
         sage: clique_number(G)
         3
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.clique_number()

@@ -572,7 +572,7 @@ Tupel besteht, welches das Interval des Definitionsbereichs angibt, also z.B. ``
 `[-\infty, 0]` und einer für das Interval geltende Funktionsgleichung. Als letztes Argument muss angegeben werden,
 welche Variable durch die Funktion gebunden werden soll::
 
-    sage: f = Piecewise([[(-oo,0), -x^2],[(0,oo), x^2]], x)
+    sage: f = piecewise([[(-oo,0), -x^2],[(0,oo), x^2]], var=x)
     sage: f(3)
     9
     sage: f(-3)
@@ -1242,8 +1242,8 @@ Seite der deutschen Version von Sage findet sich hier:
 .. rubric:: Footnotes
 
 .. [#keywords] http://docs.python.org/2/reference/lexical_analysis.html#keywords
-.. [#tutorial] http://www.sagemath.org/de/html/tutorial/
-.. [#units] http://www.sagemath.org/doc/reference/calculus/sage/symbolic/units.html
-.. [#2dgraphics] http://www.sagemath.org/doc/reference/plotting/index.html
-.. [#scatterplot] http://www.sagemath.org/doc/reference/plotting/sage/plot/scatter_plot.html
+.. [#tutorial] http://doc.sagemath.org/html/de/tutorial/
+.. [#units] http://doc.sagemath.org/html/en/reference/calculus/sage/symbolic/units.html
+.. [#2dgraphics] http://doc.sagemath.org/html/en/reference/plotting/index.html
+.. [#scatterplot] http://doc.sagemath.org/html/en/reference/plotting/sage/plot/scatter_plot.html
 .. [#listcomp] http://docs.python.org/2/tutorial/datastructures.html#list-comprehensions

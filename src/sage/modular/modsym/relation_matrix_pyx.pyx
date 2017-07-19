@@ -49,15 +49,15 @@ def sparse_2term_quotient_only_pm1(rels, n):
         [(3, -1), (3, -1), (3, -1), (3, 1), (5, 1), (5, 1)]
     """
     if not isinstance(rels, set):
-        raise TypeError, "rels must be a set"
+        raise TypeError("rels must be a set")
 
     n = int(n)
 
     tm = misc.verbose("Starting optimized integer sparse 2-term quotient...")
 
     cdef int c0, c1, i, die
-    free = range(n)
-    coef = [1]*n
+    free = list(xrange(n))
+    coef = [1] * n
     related_to_me = [[] for i in range(n)]
 
     for v0, v1 in rels:
@@ -83,7 +83,7 @@ def sparse_2term_quotient_only_pm1(rels, n):
             x = free[v0[0]]
             free[x] = free[v1[0]]
             if c0 != 1 and c0 != -1:
-                raise ValueError, "coefficients must all be -1 or 1."
+                raise ValueError("coefficients must all be -1 or 1.")
             coef[x] = -c1/c0
             for i in related_to_me[x]:
                 free[i] = free[x]

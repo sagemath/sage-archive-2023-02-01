@@ -24,7 +24,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.element cimport Element, ModuleElement
 from sage.categories.semirings import Semirings
 from sage.categories.map cimport Map
 from sage.sets.family import Family
@@ -32,7 +32,7 @@ from sage.rings.all import ZZ
 
 import operator
 
-cdef class TropicalSemiringElement(RingElement):
+cdef class TropicalSemiringElement(Element):
     r"""
     An element in the tropical semiring over an ordered additive semigroup
     `R`. Either in `R` or `\infty`. The operators `+, \cdot` are defined as
@@ -60,7 +60,7 @@ cdef class TropicalSemiringElement(RingElement):
             sage: elt = T(2)
             sage: TestSuite(elt).run()
         """
-        RingElement.__init__(self, parent)
+        Element.__init__(self, parent)
         self._val = val
 
     def __reduce__(self):
@@ -134,7 +134,7 @@ cdef class TropicalSemiringElement(RingElement):
         return hash(self._val)
 
     # Comparisons
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Return ``-1`` if ``left`` is less than ``right``, ``0`` if
         ``left`` and ``right`` are equal, and ``1`` if ``left`` is
@@ -210,7 +210,7 @@ cdef class TropicalSemiringElement(RingElement):
             return 1
         return 0
 
-    cpdef ModuleElement _add_(left, ModuleElement right):
+    cpdef _add_(left, right):
         """
         Add ``left`` to ``right``.
 
@@ -230,6 +230,20 @@ cdef class TropicalSemiringElement(RingElement):
             2
             sage: T.infinity() + T(2)
             2
+
+        TESTS:
+
+        Check some additions with trivial coercion of ``int(0)``::
+
+            sage: T = TropicalSemiring(QQ)
+            sage: T(1) + int(0)
+            0
+            sage: T(-1) + int(0)
+            -1
+            sage: int(0) + T(1)
+            0
+            sage: int(0) + T(-1)
+            -1
         """
         cdef TropicalSemiringElement self, rhs
         self = left
@@ -264,7 +278,7 @@ cdef class TropicalSemiringElement(RingElement):
             return self
         raise ArithmeticError("cannot negate any non-infinite element")
 
-    cpdef RingElement _mul_(left, RingElement right):
+    cpdef _mul_(left, right):
         """
         Multiply ``left`` and ``right``.
 
@@ -290,7 +304,7 @@ cdef class TropicalSemiringElement(RingElement):
         x._val = self._val + rhs._val
         return x
 
-    cpdef RingElement _div_(left, RingElement right):
+    cpdef _div_(left, right):
         """
         Divide ``left`` by ``right``.
 

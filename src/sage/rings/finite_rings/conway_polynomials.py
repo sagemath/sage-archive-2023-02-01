@@ -9,6 +9,10 @@ AUTHORS:
 
 - Peter Bruin
 """
+from __future__ import absolute_import
+import six
+from six.moves import range
+
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
@@ -198,7 +202,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
 
         REFERENCE:
 
-        .. [HL99] L. Heath and N. Loehr (1999).  New algorithms for
+        .. [HL99] \L. Heath and N. Loehr (1999).  New algorithms for
            generating Conway polynomials over finite fields.
            Proceedings of the tenth annual ACM-SIAM symposium on
            discrete algorithms, pp. 429-437.
@@ -241,7 +245,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
         # Construct a compatible element having order the lcm of orders
         q, x = xi.popitem()
         v = p**(n//q) - 1
-        for q, xitem in xi.iteritems():
+        for q, xitem in six.iteritems(xi):
             w = p**(n//q) - 1
             g, alpha, beta = v.xgcd(w)
             x = x**beta * xitem**alpha
@@ -276,8 +280,7 @@ class PseudoConwayLattice(WithEqualityById, SageObject):
             sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
             sage: PCL = PseudoConwayLattice(2, use_database=False)
             sage: PCL.check_consistency(6)
-            sage: PCL.check_consistency(60)  # long
-
+            sage: PCL.check_consistency(60)  # long time
         """
         p = self.p
         K = FiniteField(p**n, modulus = self.polynomial(n), names='a')
@@ -316,8 +319,8 @@ def _find_pow_of_frobenius(p, n, x, y):
         11
 
     """
-    from integer_mod import mod
-    for i in xrange(n):
+    from .integer_mod import mod
+    for i in range(n):
         if x == y: break
         y = y**p
     else:
@@ -410,10 +413,10 @@ def _frobenius_shift(K, generators, check_only=False):
     p = K.characteristic()
     n = K.degree()
     compatible = {}
-    from integer_mod import mod
+    from .integer_mod import mod
     for m in n.divisors():
         compatible[m] = {}
-    for q, x in generators.iteritems():
+    for q, x in six.iteritems(generators):
         for m in (n//q).divisors():
             compatible[m][q] = x**((p**(n//q)-1)//(p**m-1))
     if check_only:
@@ -422,7 +425,7 @@ def _frobenius_shift(K, generators, check_only=False):
                 q, x = compatible[m].popitem()
             except KeyError:
                 break
-            for qq, xx in compatible[m].iteritems():
+            for qq, xx in six.iteritems(compatible[m]):
                 assert x == xx
         return
     crt = {}
@@ -436,7 +439,7 @@ def _frobenius_shift(K, generators, check_only=False):
             j = qlist.index(mqlist[k])
             i = qlist.index(mqlist[k-1])
             crt[(i,j)].append(_find_pow_of_frobenius(p, m, compatible[m][qlist[j]], compatible[m][qlist[i]]))
-    from integer_mod import mod
+    from .integer_mod import mod
     pairs = crt.keys()
     for i, j in pairs:
         L = crt[(i,j)]

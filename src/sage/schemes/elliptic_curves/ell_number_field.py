@@ -17,7 +17,7 @@ Currently Sage can obtain local information about `E/K_v` for finite places
 the torsion subgroup of the Mordell-Weil group `E(K)`, and it can work with
 isogenies defined over `K`.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: K.<i> = NumberField(x^2+1)
     sage: E = EllipticCurve([0,4+i])
@@ -73,6 +73,7 @@ REFERENCE:
 - [Sil2] Silverman, Joseph H. Advanced topics in the arithmetic of elliptic curves. Graduate Texts in
   Mathematics, 151. Springer, 1994.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -85,10 +86,10 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ell_field import EllipticCurve_field
-from ell_generic import is_EllipticCurve
-from ell_point import EllipticCurvePoint_number_field
-from constructor import EllipticCurve
+from .ell_field import EllipticCurve_field
+from .ell_generic import is_EllipticCurve
+from .ell_point import EllipticCurvePoint_number_field
+from .constructor import EllipticCurve
 from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
 from six import reraise as raise_
@@ -245,21 +246,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
-               LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Search for trivial points on the curve
              Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
-              zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              Hilbert symbol (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) =
-              zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              Hilbert symbol (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) =
-              sol of quadratic equation = [1, 0, 1]~
-              zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              quartic: (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
-              reduced: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
+              zc = Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              Hilbert symbol (Mod(1, y^2 + 7),Mod(-2*y + 2, y^2 + 7)) =
+              sol of quadratic equation = [1, 1, 0]~
+              zc*z1^2 = Mod(Mod(4, y^2 + 7)*x + Mod(-2*y + 6, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              quartic: (-1)*Y^2 = x^4 + (3*y - 9)*x^2 + (-8*y + 16)*x + (9/2*y - 11/2)
+              reduced: Y^2 = -x^4 + (-3*y + 9)*x^2 + (-8*y + 16)*x + (-9/2*y + 11/2)
               not ELS at [2, [0, 1]~, 1, 1, [1, -2; 1, 0]]
               zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]
@@ -299,7 +298,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            (3, 3, [(0 : 0 : 1), (-1/4*zeta43_0^2 - 1/2*zeta43_0 + 3 : -3/8*zeta43_0^2 - 3/4*zeta43_0 + 4 : 1)])
+            (3,
+             3,
+             [(0 : 0 : 1),
+              (-1/2*zeta43_0^2 - 1/2*zeta43_0 + 7 : -3/2*zeta43_0^2 - 5/2*zeta43_0 + 18 : 1)])
         """
         verbose = int(verbose)
         if known_points is None:
@@ -319,7 +321,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         except KeyError:
             pass
 
-        from gp_simon import simon_two_descent
+        from .gp_simon import simon_two_descent
         t = simon_two_descent(self, verbose=verbose,
                               lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime,
@@ -888,7 +890,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             r = ((-a2 + s*a1 +s*s)/3).round()
             t = ((-a3 - r*a1)/2).round('up')
         else:
-            pariK = K._pari_()
+            pariK = K.__pari__()
             s = K(pariK.nfeltdiveuc(-a1, 2))
             r = K(pariK.nfeltdiveuc(-a2 + s*a1 + s*s, 3))
             t = K(pariK.nfeltdiveuc(-a3 - r*a1, 2))
@@ -1610,8 +1612,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         The integral ideal `D` whose valuation at every prime `P` is
         that of the local minimal model for `E` at `P`.  If `E` has a
         global minimal model, this will be the principal ideal
-        generated by the discriminant of any such model, bt otherwise
-        it can be a proper divisor of the discrimanant of any model.
+        generated by the discriminant of any such model, but otherwise
+        it can be a proper divisor of the discriminant of any model.
 
         EXAMPLES::
 
@@ -1957,7 +1959,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 for P in E.base_ring()(E.discriminant()).support():
                     E = E.local_data(P,proof, globally=True).minimal_model()
             else:
-                from kraus import semi_global_minimal_model
+                from .kraus import semi_global_minimal_model
                 E, P = semi_global_minimal_model(self)
             return E._scale_by_units()._reduce_model()
 
@@ -2129,7 +2131,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.torsion_subgroup ()
             Torsion Subgroup isomorphic to Trivial group associated to the Elliptic Curve defined by y^2  = x^3 + i*x + (i+3) over Number Field in i with defining polynomial x^2 + 1
         """
-        from ell_torsion import EllipticCurveTorsionSubgroup
+        from .ell_torsion import EllipticCurveTorsionSubgroup
         return EllipticCurveTorsionSubgroup(self)
 
     @cached_method
@@ -2190,7 +2192,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
             sage: EK.torsion_points()  # long time (1s on sage.math, 2014)
-            [(16 : 60 : 1),
+            [(0 : 1 : 0),
+             (16 : 60 : 1),
              (5 : 5 : 1),
              (5 : -6 : 1),
              (16 : -61 : 1),
@@ -2213,8 +2216,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
              (10/121*t^3 + 49/121*t^2 + 168/121*t + 73/121 : -32/121*t^3 - 60/121*t^2 + 261/121*t + 686/121 : 1),
              (5/121*t^3 - 14/121*t^2 - 158/121*t - 453/121 : 49/121*t^3 + 129/121*t^2 + 315/121*t + 86/121 : 1),
              (-9/121*t^3 - 21/121*t^2 - 127/121*t - 377/121 : 7/121*t^3 - 24/121*t^2 - 197/121*t - 137/121 : 1),
-             (-3/55*t^3 - 7/55*t^2 - 2/55*t - 133/55 : -6/55*t^3 - 3/55*t^2 - 25/11*t - 211/55 : 1),
-             (0 : 1 : 0)]
+             (-3/55*t^3 - 7/55*t^2 - 2/55*t - 133/55 : -6/55*t^3 - 3/55*t^2 - 25/11*t - 211/55 : 1)]
 
         ::
 
@@ -2464,8 +2466,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
             sage: E.gens(lim1=1, lim3=1)
             []
-            sage: E.rank(), E.gens()  # long time (about 3 s)
-            (1, [(9/25*y^2 + 26/25 : -229/125*y^3 - 67/25*y^2 - 731/125*y - 213/25 : 1)])
+            sage: E.rank(), E.gens(lim3=12)  # long time (about 4s)
+            (1,
+             [(369/25*y^3 + 539/25*y^2 + 1178/25*y + 1718/25 : -29038/125*y^3 - 43003/125*y^2 - 92706/125*y - 137286/125 : 1)])
 
         Here is a curve of rank 2, yet the list contains many points::
 
@@ -2570,7 +2573,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         Return the canonical height function attached to self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 - 5)
             sage: E = EllipticCurve(K, '11a3')
@@ -2955,7 +2958,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ValueError: 4 is not prime.
 
         """
-        from isogeny_small_degree import isogenies_prime_degree
+        from .isogeny_small_degree import isogenies_prime_degree
 
         if l is not None and not isinstance(l, list):
             try:
@@ -2971,7 +2974,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 raise ValueError("%s is not prime." % l)
 
         if l is None:
-            from isogeny_class import possible_isogeny_degrees
+            from .isogeny_class import possible_isogeny_degrees
             L = possible_isogeny_degrees(self)
             return self.isogenies_prime_degree(L)
 
@@ -3139,7 +3142,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         #  Next we try the primes for which X_0^+(l) has genus 0 for
         #  which isogeny-finding is faster than in general:
 
-        from isogeny_small_degree import hyperelliptic_primes
+        from .isogeny_small_degree import hyperelliptic_primes
         for l in hyperelliptic_primes:
             if any([E2.is_isomorphic(f.codomain()) for f in E1.isogenies_prime_degree(l)]):
                 return True
@@ -3332,7 +3335,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         r = len(points)
         if height_matrix is None:
             height_matrix = self.height_pairing_matrix(points, precision)
-        U = height_matrix._pari_().lllgram().python()
+        U = height_matrix.__pari__().lllgram().sage()
         new_points = [sum([U[j, i]*points[j] for j in range(r)])
                       for i in range(r)]
         return new_points, U
@@ -3365,7 +3368,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: rho.non_surjective()
             [5]
         """
-        from gal_reps_number_field import GaloisRepresentation
+        from .gal_reps_number_field import GaloisRepresentation
         return GaloisRepresentation(self)
 
     @cached_method

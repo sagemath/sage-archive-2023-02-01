@@ -69,7 +69,7 @@ class Scheme(Parent):
       of the ring will be used as base.
 
     - ``category`` -- the category (optional). Will be automatically
-      construted by default.
+      constructed by default.
 
     EXAMPLES::
 
@@ -914,7 +914,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: P = S(ZZ.ideal(3)); P
             Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
             sage: type(P)
-            <class 'sage.schemes.generic.point.AffineScheme_with_category.element_class'>
+            <class 'sage.schemes.generic.scheme.AffineScheme_with_category.element_class'>
             sage: S(ZZ.ideal(next_prime(1000000)))
             Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
 
@@ -1167,7 +1167,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: A1.hom([2,r],A1_emb)
             Scheme morphism:
               From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Curve over Rational Field defined by p - 2
+              To:   Affine Plane Curve over Rational Field defined by p - 2
               Defn: Defined on coordinates by sending (r) to
                     (2, r)
         """

@@ -24,11 +24,15 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+
+import six
+
 
 class FiniteRankFreeModuleMorphism(Morphism):
     r"""
@@ -75,9 +79,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
         sage: e = M.basis('e') ; f = N.basis('f')
         sage: H = Hom(M,N) ; H
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-2 free module N over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-2 free module N over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: phi = H([[2,-1,3], [1,0,-4]], name='phi', latex_name=r'\phi') ; phi
         Generic morphism:
           From: Rank-3 free module M over the Integer Ring
@@ -114,7 +118,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     is a derived class of :class:`FiniteRankFreeModuleMorphism`::
 
         sage: type(phi)
-        <class 'sage.tensor.modules.free_module_morphism.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
+        <class 'sage.tensor.modules.free_module_homset.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
         sage: isinstance(phi, sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism)
         True
 
@@ -168,9 +172,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: Id = End(M).one() ; Id
         Identity endomorphism of Rank-3 free module M over the Integer Ring
         sage: Id.parent()
-        Set of Morphisms from Rank-3 free module M over the Integer Ring to
-         Rank-3 free module M over the Integer Ring in Category of modules
-         over Integer Ring
+        Set of Morphisms from Rank-3 free module M over the Integer Ring
+         to Rank-3 free module M over the Integer Ring
+         in Category of finite dimensional modules over Integer Ring
         sage: Id.parent() is End(M)
         True
 
@@ -494,7 +498,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     # Required module methods
     #
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -506,22 +510,23 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
             sage: e = M.basis('e') ; f = N.basis('f')
             sage: phi = M.hom(N, [[2,-1,3], [1,0,-4]])
-            sage: phi.__nonzero__()
+            sage: bool(phi)
             True
             sage: phi.is_zero() # indirect doctest
             False
             sage: phi = M.hom(N, 0)
-            sage: phi.__nonzero__()
+            sage: bool(phi)
             False
             sage: phi.is_zero() # indirect doctest
             True
-            sage: Hom(M,N).zero().__nonzero__()
+            sage: bool(Hom(M,N).zero())
             False
-
         """
         # Some matrix representation is picked at random:
         matrix_rep = self._matrices.values()[0]
         return not matrix_rep.is_zero()
+
+    __nonzero__ = __bool__
 
     def _add_(self, other):
         r"""
@@ -680,9 +685,9 @@ class FiniteRankFreeModuleMorphism(Morphism):
         return self.__class__(self.parent(), resu_mat, bases=bases,
                               name=resu_name, latex_name=resu_latex_name)
 
-    def _rmul_(self, scalar):
+    def _lmul_(self, scalar):
         r"""
-        Multiplication on the left by ``scalar``.
+        Multiplication by ``scalar``.
 
         INPUT:
 
@@ -691,7 +696,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         OUTPUT:
 
-        - the homomorphism resulting from the multiphication of ``self`` by
+        - the homomorphism resulting from the multiplication of ``self`` by
           ``scalar``
 
         EXAMPLES::
@@ -701,19 +706,18 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: e = M.basis('e') ; f = N.basis('f')
             sage: phi = M.hom(N, [[-1,2,0], [5,1,2]], name='phi',
             ....:             latex_name=r'\phi')
-            sage: s = phi._rmul_(7) ; s
+            sage: s = phi._lmul_(7) ; s
             Generic morphism:
               From: Rank-3 free module M over the Integer Ring
               To:   Rank-2 free module N over the Integer Ring
             sage: s.matrix(e,f)
             [-7 14  0]
             [35  7 14]
-            sage: s == 7*phi  # indirect doctest
+            sage: s == 7 * phi
             True
-
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = scalar * mat
         return resu
 
@@ -730,7 +734,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -751,7 +755,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         resu = self.__class__(self.parent(), 0, is_identity=self._is_identity)
                                            # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = +mat
         if self._name is not None:
             resu._name = '+' + self._name
@@ -767,7 +771,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the homomorphism `-f`, where `f` is ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -788,7 +792,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = -mat
         if self._name is not None:
             resu._name = '-' + self._name
@@ -812,7 +816,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the image of ``element`` by ``self``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Images of a homomorphism between two `\ZZ`-modules::
 
@@ -828,10 +832,8 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         TESTS::
 
-            sage: for i in range(2):
-            ....:     print w[i] == sum( phi.matrix()[i,j]*v[j] for j in range(3) ),
-            ....:
-            True True
+            sage: all(w[i] == sum(phi.matrix()[i,j]*v[j] for j in range(3)) for i in range(2))
+            True
             sage: phi.matrix(e,f)
             [-1  2  0]
             [ 5  1  2]
@@ -852,10 +854,8 @@ class FiniteRankFreeModuleMorphism(Morphism):
             Element phi(v) of the Rank-2 free module N over the Integer Ring
             sage: w.display()
             phi(v) = -5 f_0 + 10 f_1
-            sage: for i in range(2):
-            ....:     print w[i] == sum( phi.matrix(ep,f)[i,j]*v[ep,j] for j in range(3) ),
-            ....:
-            True True
+            sage: all(w[i] == sum(phi.matrix(ep,f)[i,j]*v[ep,j] for j in range(3)) for i in range(2))
+            True
 
         Check of homomorphism properties::
 
@@ -962,7 +962,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``True`` if ``self`` is a surjective homomorphism and ``False``
           otherwise
 
-        EXAMPLE:
+        EXAMPLES:
 
         This method has not been implemented yet::
 
@@ -976,7 +976,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             NotImplementedError: FiniteRankFreeModuleMorphism.is_surjective()
              has not been implemented yet
 
-        except for the identity endomorphisme (!)::
+        except for the identity endomorphism (!)::
 
             sage: End(M).one().is_surjective()
             True
@@ -1042,7 +1042,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         # Some basis in which ``self`` has a representation is picked at
         # random and the test is performed on the images of the basis
         # elements:
-        basis = self._matrices.keys()[0][0]
+        basis = list(self._matrices)[0][0]
         for i in fmodule.irange():
             if self(basis[i]) != basis[i]:
                 return False

@@ -8,17 +8,7 @@ fi
 
 CUR=`pwd`
 
-# Copy over pre-patched files:
-cp patches/main.c src/demosrc &&
-cp patches/Make-arch src/unix &&
-cp patches/Make-config src/unix
-if [ $? -ne 0 ]; then
-    echo "Error copying over patched files."
-    exit 1
-fi
-
-cd src/unix
-
+cd "$CUR/src/unix"
 
 finished()
 {
@@ -82,8 +72,7 @@ if [ "$UNAME" = "Linux" ]; then
         ppc*|powerpc*)
             $MAKE linux-ppc;;
         armv6l|armv7l)
-            sed "s/-m32//g" ../../patches/Make-arch > Make-arch
-            $MAKE linux-thr;;
+            $MAKE linux-arm-thr;;
         *) # e.g. SPARC
             echo "Error: Sorry, your platform isn't supported by Tachyon and/or Sage. Exiting..."
             exit 1

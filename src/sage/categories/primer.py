@@ -189,7 +189,7 @@ Those can be viewed graphically::
 
     sage: g = Groups().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 In case ``dot2tex`` is not available, you can use instead::
 
@@ -199,7 +199,7 @@ Here is an overview of all categories in Sage::
 
     sage: g = sage.categories.category.category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
@@ -370,7 +370,7 @@ categories and their super categories::
 
     sage: g = EuclideanDomains().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 A bit of help from computer science
 ===================================
@@ -414,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
     sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 
@@ -466,7 +466,7 @@ the hierarchy of classes for an element of a group of permutations::
 
     sage: P = Permutations(4)
     sage: m = P.an_element()
-    sage: for cls in m.__class__.mro(): print cls
+    sage: for cls in m.__class__.mro(): print(cls)
     <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
     <class 'sage.combinat.permutation.StandardPermutations_n.Element'>
     <class 'sage.combinat.permutation.Permutation'>
@@ -486,7 +486,7 @@ The full hierarchy is best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Parallel hierarchy of classes for parents
 -----------------------------------------
@@ -526,7 +526,7 @@ group `G` is an instance of the following class::
 
 Here is a piece of the hierarchy of classes above it::
 
-    sage: for cls in G.__class__.mro(): print cls
+    sage: for cls in G.__class__.mro(): print(cls)
     <class 'sage.groups.matrix_gps.linear.LinearMatrixGroup_gap_with_category'>
     ...
     <class 'sage.categories.groups.Groups.parent_class'>
@@ -541,7 +541,7 @@ best viewed graphically::
     sage: g = class_graph(m.__class__)
     sage: g.relabel(lambda x: x.replace("_","\_"))
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 .. NOTE::
 
@@ -651,14 +651,14 @@ parallel to the hierarchy of categories::
      Category of sets,
      ...]
 
-    sage: for cls in Groups().element_class.mro(): print cls
+    sage: for cls in Groups().element_class.mro(): print(cls)
     <class 'sage.categories.groups.Groups.element_class'>
     <class 'sage.categories.monoids.Monoids.element_class'>
     <class 'sage.categories.semigroups.Semigroups.element_class'>
     ...
     <class 'sage.categories.magmas.Magmas.element_class'>
     ...
-    sage: for cls in Groups().parent_class.mro(): print cls
+    sage: for cls in Groups().parent_class.mro(): print(cls)
     <class 'sage.categories.groups.Groups.parent_class'>
     <class 'sage.categories.monoids.Monoids.parent_class'>
     <class 'sage.categories.semigroups.Semigroups.parent_class'>
@@ -806,6 +806,7 @@ element of the parent?)::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
       pass
@@ -817,6 +818,7 @@ element of the parent?)::
     running ._test_enumerated_set_iter_cardinality() . . . pass
     running ._test_enumerated_set_iter_list() . . . pass
     running ._test_eq() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_pickling() . . . pass
     running ._test_some_elements() . . . pass
@@ -922,17 +924,32 @@ to use Sage's introspection tools to recover where it's implemented::
     sage: x.__pow__.__module__
     'sage.categories.semigroups'
 
-``__mul__`` is a default implementation from the :class:`Magmas`
+``__mul__`` is a generic method provided by the :class:`Magmas`
 category (a *magma* is a set with an inner law `*`, not necessarily
-associative)::
+associative). If the two arguments are in the same parent, it will
+call the method ``_mul_``, and otherwise let the :mod:`coercion model
+<sage.structure.coerce>` try to discover how to do the
+multiplication::
 
-    sage: x.__mul__.__module__
-    'sage.categories.magmas'
+    sage: x.__mul__??                           # not tested
 
-It delegates the work to the parent (following the advice: if you do
-not know what to do, ask your parent)::
+Since it is a speed critical method, it is implemented in Cython
+in a separate file::
 
-    sage: x.__mul__??                             # not tested
+    sage: x._mul_.__module__
+    'sage.categories.coercion_methods'
+
+``_mul_`` is a default implementation, also provided by the
+:class:`Magmas` category, that delegates the work to the method
+``product`` of the parent (following the advice: if you do not know
+what to do, ask your parent); it's also a speed critical method::
+
+    sage: x._mul_??                             # not tested
+    sage: x._mul_.__module__
+    'sage.categories.coercion_methods'
+    sage: from six import get_method_function as gmf
+    sage: gmf(x._mul_) is gmf(Magmas.ElementMethods._mul_parent)
+    True
 
 ``product`` is a mathematical method implemented by the parent::
 
@@ -1001,14 +1018,14 @@ permutation groups (no surprise)::
     sage: P = PermutationGroup([[(1,2,3)]]); P
     Permutation Group with generators [(1,2,3)]
     sage: P.category()
-    Category of finite permutation groups
+    Category of finite enumerated permutation groups
 
 In this case, the group is commutative, so we can specify this::
 
     sage: P = PermutationGroup([[(1,2,3)]], category=PermutationGroups().Finite().Commutative()); P
     Permutation Group with generators [(1,2,3)]
     sage: P.category()
-    Category of finite commutative permutation groups
+    Category of finite enumerated commutative permutation groups
 
 This feature can even be used, typically in experimental code, to add
 more structure to existing parents, and in particular to add methods
@@ -1018,9 +1035,9 @@ for the parents or the elements, without touching the code base::
     ....:     def super_categories(self):
     ....:          return [PermutationGroups().Finite().Commutative()]
     ....:     class ParentMethods:
-    ....:         def foo(self): print "foo"
+    ....:         def foo(self): print("foo")
     ....:     class ElementMethods:
-    ....:         def bar(self): print "bar"
+    ....:         def bar(self): print("bar")
 
     sage: P = PermutationGroup([[(1,2,3)]], category=Foos())
     sage: P.foo()
@@ -1275,7 +1292,7 @@ The infrastructure allows for specifying further deduction rules, in
 order to encode mathematical facts like Wedderburn's theorem::
 
     sage: DivisionRings() & Sets().Finite()
-    Category of finite fields
+    Category of finite enumerated fields
 
 .. NOTE::
 
@@ -1366,13 +1383,13 @@ for a category with two operations `+` and `*`::
     Category of fields
 
     sage: Rings().Division().Finite()
-    Category of finite fields
+    Category of finite enumerated fields
 
 or for more advanced categories::
 
     sage: g = HopfAlgebras(QQ).WithBasis().Graded().Connected().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Difference between axioms and regressive covariant functorial constructions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

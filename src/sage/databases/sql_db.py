@@ -72,6 +72,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
 import sqlite3 as sqlite
 import os
 import re
@@ -104,8 +106,7 @@ def regexp(expr, item):
 
     REFERENCES:
 
-    .. [GH2005] Gerhard Haring. [Online] Available:
-        http://lists.initd.org/pipermail/pysqlite/2005-November/000253.html
+    - [Ha2005]_
 
     EXAMPLES::
 
@@ -240,7 +241,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.env import SAGE_SHARE
+    from sage.env import GRAPHS_DATA_DIR
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])
@@ -255,7 +256,7 @@ def construct_skeleton(database):
         for col in exe2.fetchall():
             if col[1].find('sqlite') == -1:
                 if database.__dblocation__ == \
-                        os.path.join(SAGE_SHARE,'graphs','graphs.db'):
+                        os.path.join(GRAPHS_DATA_DIR,'graphs.db'):
                     name = col[1]
                 else:
                     name = col[1][len(table[0])+3:]
@@ -628,7 +629,7 @@ class SQLQuery(SageObject):
             sage: from sage.graphs.graph_database import valid_kwds, data_to_degseq
             sage: relabel = {}
             sage: for col in valid_kwds:
-            ...       relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
+            ....:     relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
             sage: q = GraphQuery(display_cols=['graph6','degree_sequence'], num_vertices=4)
             sage: SQLQuery.show(q, format_cols={'degree_sequence':(lambda x,y: data_to_degseq(x,y))}, relabel_cols=relabel, id_col='graph6')
             Graph6               Degree Sequence
@@ -908,10 +909,10 @@ class SQLDatabase(SageObject):
         is the name of a column::
 
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
 
         Then we create the table::
 
@@ -945,12 +946,12 @@ class SQLDatabase(SageObject):
 
             sage: labels = {}
             sage: for i in range(2, 5):
-            ...       labels[i] = []
-            ...       for g in all_labeled_graphs(i):
-            ...           g = g.canonical_label()
-            ...           if g not in labels[i]:
-            ...               labels[i].append(g)
-            ...               D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
+            ....:     labels[i] = []
+            ....:     for g in all_labeled_graphs(i):
+            ....:         g = g.canonical_label()
+            ....:         if g not in labels[i]:
+            ....:             labels[i].append(g)
+            ....:             D.add_row('simon', (g.size(), g.graph6_string(), g.order()))
             sage: D.show('simon') # random
             edges                graph6               vertices
             ------------------------------------------------------------
@@ -1077,7 +1078,7 @@ class SQLDatabase(SageObject):
             sage: replace_with_filepath = tmp_dir() + 'test.db'
             sage: SD = SQLDatabase(replace_with_filepath, False)
             sage: SD.create_table('simon', {'n':{'sql':'INTEGER', 'index':True}})
-            sage: print SD
+            sage: print(SD)
             table simon:
                 column n: index: True; unique: False; primary_key: False;
                     sql: INTEGER;
@@ -1315,7 +1316,7 @@ class SQLDatabase(SageObject):
             sage: con = D.get_connection()
             sage: t = con.execute('CREATE TABLE simon(n INTEGER, n2 INTEGER)')
             sage: for n in range(10):
-            ...     t = con.execute('INSERT INTO simon VALUES(%d,%d)'%(n,n^2))
+            ....:   t = con.execute('INSERT INTO simon VALUES(%d,%d)'%(n,n^2))
             sage: D.show('simon')
             n                    n2
             ----------------------------------------
@@ -1377,10 +1378,10 @@ class SQLDatabase(SageObject):
 
             sage: D = SQLDatabase()
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
             sage: D.create_table('simon', table_skeleton)
             sage: D.show('simon')
             edges                graph6               vertices

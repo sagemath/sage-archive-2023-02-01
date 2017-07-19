@@ -266,6 +266,15 @@ class LocalGeneric(CommutativeRing):
             sage: repr(~R(17))
             '...13403'
 
+        Changing print mode to 'digits' works for Eisenstein extensions::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: W.print_mode()
+            'series'
+            sage: W.change(print_mode='digits').print_mode()
+            'digits'
+
         You can change extensions::
 
             sage: K.<a> = QqFP(125, prec=4)
@@ -348,6 +357,14 @@ class LocalGeneric(CommutativeRing):
                 kwds['show_prec'] = _default_show_prec(new_type, kwds['mode'])
             else:
                 raise RuntimeError
+        p = kwds.get('p', functor.p if hasattr(functor, 'p') else self.prime())
+        curpstr = str(self.prime())
+        # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
+        if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
+           (functor.extras['print_mode'].get('mode') == 'digits' and p > functor.p)):
+            from .padic_printing import _printer_defaults
+            kwds['alphabet'] = _printer_defaults.alphabet()[:p]
+
         # There are two kinds of functors possible:
         # CompletionFunctor and AlgebraicExtensionFunctor
         # We distinguish them by the presence of ``prec``,
@@ -367,14 +384,6 @@ class LocalGeneric(CommutativeRing):
                             raise TypeError('You must specify the type explicitly')
                 elif ring.is_field():
                     ring = ring.ring_of_integers()
-            p = kwds.get('p', functor.p)
-            curpstr = str(self.prime())
-            # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
-            if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
-                (functor.extras['print_mode'].get('mode') == 'digits' and
-                 p > functor.p)):
-                from .padic_printing import _printer_defaults
-                kwds['alphabet'] = _printer_defaults.alphabet()[:p]
             for atr in ('p', 'prec', 'type'):
                 if atr in kwds:
                     setattr(functor, atr, kwds.pop(atr))

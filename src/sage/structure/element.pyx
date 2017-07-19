@@ -979,7 +979,7 @@ cdef class Element(SageObject):
 
         But there is a zero morphism to the trivial ring::
 
-            sage: bool(Hom(ZZ, Zmod(!)).an_element())
+            sage: bool(Hom(ZZ, Zmod(1)).an_element())
             False
 
         TESTS:
@@ -998,12 +998,16 @@ cdef class Element(SageObject):
             False
 
         """
+        if hasattr(self,'_parent'):
+            P = self._parent
+        elif hasattr(self,'parent'):
+            P = self.parent()
+        else:
+            return True # By convention!
         try:
-            zero = self._parent.zero()
-        except:
-            return False
-
-        return self != zero
+            return self != P.zero()
+        except (AttributeError,ValueError):
+            return True # By convention!
 
     def is_zero(self):
         """
@@ -1079,7 +1083,7 @@ cdef class Element(SageObject):
                 raise NotImplementedError("old-style comparisons are not "
                                           "supported anymore (see "
                                           "https://trac.sagemath.org/ticket/22981)")
-
+        
         # Now we have two Sage Elements with the same parent
         try:
             # First attempt: use _cmp_()

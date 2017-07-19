@@ -24,7 +24,9 @@ from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
 from sage.structure.richcmp import op_EQ
 from functools import reduce
-
+from sage.categories.morphism import Morphism
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+from sage.categories.homset import Hom
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -62,7 +64,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coercion map from R to self.
+        Finds coercion maps from R to this ring.
 
         EXAMPLES::
 
@@ -84,6 +86,27 @@ class pAdicExtensionGeneric(pAdicGeneric):
             elif R._prec_type() == 'floating-point':
                 from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
             return coerce_map(R, self)
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        Currently, a conversion exists if the defining polynomial is the same.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: S = R.change(type='capped-abs', prec=40, print_mode='terse', print_pos=False)
+            sage: S(a - 15)
+            -15 + a + O(5^20)
+        """
+        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial() == self.defining_polynomial():
+            if R.is_field() and not self.is_field():
+                cat = SetsWithPartialMaps()
+            else:
+                cat = R.category()
+            H = Hom(R, self)
+            return H.__make_element_class__(DefPolyConversion)(H)
 
     def __eq__(self, other):
         """
@@ -405,3 +428,42 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def zeta_order(self):
     #    raise NotImplementedError
 
+class DefPolyConversion(Morphism):
+    """
+    Conversion map between p-adic rings/fields with the same defining polynomial.
+
+    INPUT:
+
+    - ``R`` -- a p-adic extension ring or field.
+    - ``S`` -- a p-adic extension ring or field with the same defining polynomial.
+
+    EXAMPLES::
+
+        sage: R.<a> = Zq(125, print_mode='terse')
+        sage: S = R.change(prec = 15, type='floating-point')
+        sage: a - 1
+        95367431640624 + a + O(5^20)
+        sage: S(a - 1)
+        30517578124 + a + O(5^15)
+
+    ::
+
+        sage: R.<a> = Zq(125, print_mode='terse')
+        sage: S = R.change(prec = 15, type='floating-point')
+        sage: f = S.convert_map_from(R)
+        sage: TestSuite(f).run()
+    """
+    def _call_(self, x):
+        """
+        Use the polynomial associated to the element to do the conversion.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: z = W.random_element()
+            sage: W.change(print_mode='digits')(z)
+        """
+        S = self.codomain()
+        Sbase = S.base_ring()
+        return S([Sbase(c) for c in x.polynomial().list()])

@@ -1199,9 +1199,22 @@ cdef class FpT_Polyring_section(Section):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.FpT_Polyring_section'>
 
+    .. WARNING::
+
+        Comparison of FpT_Polyring_section objects is not currently 
+        implemented. See :trac: `23469`. ::
+    
+   
+        sage: fprime = loads(dumps(f))
+        sage: fprime == f
+        False
+
+        sage: fprime(1+t) == f(1+t)
+        True
+
     TESTS::
 
-        sage: TestSuite(f).run()
+        sage: TestSuite(f).run(skip='_test_pickling')
 
     """
     cdef long p
@@ -1487,9 +1500,23 @@ cdef class FpT_Fp_section(Section):
         sage: type(f)
         <type 'sage.rings.fraction_field_FpT.FpT_Fp_section'>
 
+    .. WARNING::
+
+        Comparison of FpT_Fp_section objects is not currently 
+        implemented. See :trac: `23469`. ::
+    
+   
+        sage: fprime = loads(dumps(f))
+        sage: fprime == f
+        False
+
+        sage: fprime(3) == f(3)
+        True
+
     TESTS::
 
-        sage: TestSuite(f).run()
+        sage: TestSuite(f).run(skip='_test_pickling')
+
 
     """
     cdef long p

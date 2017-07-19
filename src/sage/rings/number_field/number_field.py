@@ -10760,6 +10760,7 @@ def is_real_place(v):
         AttributeError: 'NumberFieldFractionalIdeal' object has no attribute 'im_gens'
 
     """
+    RR = sage.rings.real_mpfr.RealField(53)
     try:
         RR(v.im_gens()[0])
         return True

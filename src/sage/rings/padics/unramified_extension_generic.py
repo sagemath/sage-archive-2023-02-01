@@ -23,6 +23,7 @@ from __future__ import absolute_import
 
 from .padic_extension_generic import pAdicExtensionGeneric
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.misc.cachefunc import cached_method
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     """
@@ -213,6 +214,23 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             raise IndexError("only one generator")
         return self([0,1])
 
+    @cached_method
+    def frob_gen(self, arithmetic = True):
+        """
+        Returns frobenius of the generator for this unramified extension
+        """
+        p = self.prime()
+        exp = p
+        a = self.gen()
+        if not arithmetic:
+            exp = p**(self.degree()-1)
+        approx = (self(a.residue()**exp)).lift_to_precision(self.precision_cap()) #first approximation
+        f = self.defining_polynomial()
+        g = f.derivative()
+        while(f(approx) != 0): #hensel lift frobenius(a)
+            approx = approx - f(approx)/g(approx)
+        return approx
+    
     def uniformizer_pow(self, n):
         """
         Returns the nth power of the uniformizer of self (as an element of self).

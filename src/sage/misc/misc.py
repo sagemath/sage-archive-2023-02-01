@@ -50,7 +50,6 @@ import sage.misc.prandom as random
 import warnings
 from .lazy_string import lazy_string
 
-
 from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())

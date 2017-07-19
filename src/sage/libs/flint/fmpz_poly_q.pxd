@@ -5,8 +5,8 @@ from sage.libs.flint.types cimport *
 cdef extern from "flint/qadic.h":
     #* Accessing numerator and denominator ***************************************/
     # macros
-    fmpz_poly_struct* fmpz_poly_q_numref(op)
-    fmpz_poly_struct* fmpz_poly_q_denref(op)
+    fmpz_poly_struct* fmpz_poly_q_numref(fmpz_poly_q_t op)
+    fmpz_poly_struct* fmpz_poly_q_denref(fmpz_poly_q_t op)
 
     void fmpz_poly_q_canonicalise(fmpz_poly_q_t rop)
     int fmpz_poly_q_is_canonical(const fmpz_poly_q_t op)

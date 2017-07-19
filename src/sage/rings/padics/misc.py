@@ -34,11 +34,11 @@ from sage.rings.all import PolynomialRing
 
 def gauss_sum(a, p, f, prec = 20):
     """
-    Return the gauss sum g_q(a) as a p-adic number.
+    Return the gauss sum `g_q(a)` as a `p`-adic number.
 
-    g_q(a) is defined by g_q(a)= \sum_{u\in F_q^\times} omega(u)^(-a) \zeta_q^u
-    where q = p^f, \omega is the Teichmuller character and \zeta_q is some arbitrary 
-    choice of primitive q-th root of unity
+    `g_q(a)` is defined by `g_q(a)= \sum_{u\in F_q^*} \omega(u)^{(-a)} \zeta_q^u`
+    where `q = p^f`, `\omega` is the Teichmuller character and `\zeta_q` is some arbitrary 
+    choice of primitive `q`-th root of unity
 
 
    INPUT:

@@ -235,11 +235,13 @@ cdef class SageObject:
             return str(type(self))
         else:
             result = repr_func()
-            if isinstance(result, unicode):
-                # Py3 compatibility: allow _repr_ to return unicode
-                return result.encode('utf-8')
-            else:
-                return result
+            try:
+                txt = str(u'é')
+            except UnicodeEncodeError:  # PY2
+                if isinstance(result, unicode):
+                    # for Py3 compatibility: allow _repr_ to return unicode
+                    return result.encode('utf-8')
+            return result
 
     def _ascii_art_(self):
         r"""

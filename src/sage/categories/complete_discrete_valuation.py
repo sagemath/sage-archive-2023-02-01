@@ -89,6 +89,60 @@ def smith_normal_form(M, transformation):
         return smith
 
 
+def determinant(M):
+    """
+    Helper function for the computation of the determinant.
+
+    Avoids duplication of code
+    """
+    n = M.nrows()
+    S = M.parent()(M.list())
+    R = M.base_ring()
+
+    sign = 1; det = R(1)
+    valdet = 0; val = -Infinity
+    for piv in range(n):
+        curval = Infinity
+        for i in range(piv,n):
+            for j in range(piv,n):
+                v = S[i,j].valuation()
+                if v < curval:
+                    pivi = i; pivj = j
+                    curval = v
+                    if v == val: break
+            else:
+                continue
+            break
+        val = curval
+        if S[pivi,pivj] == 0:
+            return R(0, prec = valdet + (n-piv)*val)
+
+        valdet += val
+        S.swap_rows(pivi,piv)
+        if pivi > piv: sign = -sign
+        S.swap_columns(pivj,piv)
+        if pivj > piv: sign = -sign
+
+        det *= S[piv,piv]
+        inv = ~(S[piv,piv] >> val)
+        for i in range(piv+1,n):
+            scalar = -inv * (S[i,piv] >> val)
+            scalar = scalar.lift_to_maximal_precision()
+            S.add_multiple_of_row(i,piv,scalar)
+
+    relprec = +Infinity
+    for i in range(n):
+        prec = Infinity
+        for j in range(n):
+            p = S[i,j].precision_absolute()
+            if p < prec: prec = p
+        prec -= S[i,i].valuation()
+        if prec < relprec: relprec = prec
+
+    return (sign*det).add_bigoh(valdet+relprec)
+
+
+
 class CompleteDiscreteValuationRings(Category_singleton):
     """
     The category of complete discrete valuation rings
@@ -217,6 +271,9 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 ....:         if L*M*R != S: raise RuntimeError
             """
             return smith_normal_form(M, transformation)
+
+        def _matrix_determinant(self,M):
+            return determinant(M)
 
 
     class ElementMethods:
@@ -392,6 +449,9 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 ....:         if L*M*R != S: raise RuntimeError
             """
             return smith_normal_form(M, transformation)
+
+        def _matrix_determinant(self,M):
+            return determinant(M)
 
 
     class ElementMethods:

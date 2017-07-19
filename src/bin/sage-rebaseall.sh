@@ -1,4 +1,4 @@
-#! /bin/dash
+#!/bin/dash
 
 # Authors:
 # * Gary Zablackis <gzabl@yahoo.com>
@@ -17,4 +17,4 @@
 # (which usually means admin rights).
 
 DIR=$(dirname "$(readlink -f "$0")")
-exec "$DIR"/sage-rebase.sh" --all $@
+exec "$DIR"/sage-rebase.sh --all $@

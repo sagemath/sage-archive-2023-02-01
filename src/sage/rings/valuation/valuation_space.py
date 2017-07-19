@@ -486,7 +486,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
                 sage: valuations.TrivialPseudoValuation(QQ).residue_ring()
                 Quotient of Rational Field by the ideal (1)
-                sage: TrivialValuation(ZZ).residue_ring()
+                sage: valuations.TrivialValuation(ZZ).residue_ring()
                 Integer Ring
                 sage: GaussValuation(ZZ['x'], ZZ.valuation(2)).residue_ring()
                 Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)

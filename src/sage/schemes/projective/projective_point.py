@@ -36,7 +36,6 @@ from __future__ import print_function
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
-from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField
 from sage.rings.morphism import RingHomomorphism_im_gens
@@ -160,10 +159,6 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity  or (len(v) == 1 and v[0] is infinity):
-                if d > 2:
-                    raise ValueError("%s not well defined in dimension > 1"%v)
-                v = [1, 0]
 
             if not isinstance(v,(list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
@@ -1592,10 +1587,6 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity or (len(v) == 1 and v[0] is infinity):
-                if d > 2:
-                    raise ValueError("%s not well defined in dimension > 1"%v)
-                v = [1, 0]
             if not isinstance(v, (list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:

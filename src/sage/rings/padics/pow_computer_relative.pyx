@@ -55,7 +55,7 @@ cdef class PowComputer_relative(PowComputer_class):
         sage: isinstance(PC, PowComputer_relative)
 
     """
-    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly):
+    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed):
         r"""
         TESTS::
 
@@ -65,7 +65,7 @@ cdef class PowComputer_relative(PowComputer_class):
         """
         self.__allocated = 4
 
-    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly):
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed):
         r"""
         TESTS::
 
@@ -76,7 +76,7 @@ cdef class PowComputer_relative(PowComputer_class):
             sage: TestSuite(PC).run()
 
         """
-        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
         self.e = poly.degree()
         self.f = 1
 
@@ -89,6 +89,7 @@ cdef class PowComputer_relative(PowComputer_class):
 
         self.base_ring = poly.base_ring()
         self.poly_ring = poly.parent()
+        self._shift_seed = shift_seed
 
     def __dealloc__(self):
         r"""
@@ -180,7 +181,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         sage: isinstance(PC, PowComputer_relative_eis)
 
     """
-    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly):
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed):
         r"""
         TESTS::
 
@@ -191,7 +192,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
             sage: TestSuite(A).run()
 
         """
-        PowComputer_relative.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
+        PowComputer_relative.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
 
         self.e = self.modulus.degree()
         self.f = 1
@@ -212,9 +213,9 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         A polynomial ``b`` such that ``a*b`` is one modulo `π^\mathrm{prec}`
 
         EXAMPLES::
-    
+
             sage: TODO: invert something
-    
+
         """
         # TODO: At the moment, we use an xgcd. We should use Newton iterations
         # instead to make this faster.
@@ -241,7 +242,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         EXAMPLES::
 
-            sage: TODO         
+            sage: TODO
 
         """
         if r < 0:
@@ -252,15 +253,13 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
             # Split modulus in half:
             # modulus = p*c - π^r*d, where c and d are integral polynomials, and c has unit const term.
             # Then p/π^r = d/c.
-            c = self.modulus.parent()(self.modulus.list()[:r]).map_coefficients(lambda c: c>>1)
-            d = -self.modulus.parent()(self.modulus.list()[r:])
+            R = self.modulus.parent()
+            c = R(self._shift_seed.list()[:r])
+            d = -R(self.modulus.list()[r:])
             c_inverse = self.invert(c, self.ram_prec_cap)
             return (d*c_inverse) % self.modulus
         elif r == self.e:
-            K = self.base_ring.fraction_field()
-            Qpmodulus = self.modulus.change_ring(K)
-            xep = (self.poly_ring.gen()**self.e - Qpmodulus) / K.uniformizer()
-            return self.invert(xep, self.ram_prec_cap)
+            return self.invert(self._shift_seed, self.ram_prec_cap)
         else:
             raise NotImplementedError
 
@@ -305,7 +304,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         OUTPUT:
 
-        A reduce polynomial in π
+        A reduced polynomial in π
 
         EXAMPLES::
 
@@ -323,7 +322,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         else:
             return (self.uniformizer_pow(r//2) * self.uniformizer_pow(r//2)) % self.modulus
 
-def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, prec_type):
+def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed, prec_type):
     r"""
     Create a ``PowComputer``.
 
@@ -365,6 +364,6 @@ def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_fi
         sage: TODO
 
     """
-    PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
+    PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
     PC._prec_type = prec_type
     return PC

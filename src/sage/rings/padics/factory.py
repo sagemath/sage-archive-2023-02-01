@@ -2496,7 +2496,7 @@ class pAdicExtension_class(UniqueFactory):
             (polytype, base, exact_modulus, names, prec, print_mode, print_pos,
              print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms,
              print_max_terse_terms, show_prec, implementation) = key
-            if polytype == 'e':
+            if polytype in ('e', 're'):
                 unif = exact_modulus.base_ring()(base.uniformizer())
                 shift_seed = (-exact_modulus[:exact_modulus.degree()] / unif).change_ring(base)
             if not krasner_check(exact_modulus, prec):

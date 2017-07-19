@@ -359,9 +359,10 @@ class LocalGeneric(CommutativeRing):
                 raise RuntimeError
         p = kwds.get('p', functor.p if hasattr(functor, 'p') else self.prime())
         curpstr = str(self.prime())
+        functor_dict = getattr(functor, "extras", getattr(functor, "kwds", None))
         # If we are switching to 'digits', or changing p, need to ensure a large enough alphabet.
         if 'alphabet' not in kwds and (kwds.get('mode') == 'digits' or
-           (functor.extras['print_mode'].get('mode') == 'digits' and p > functor.p)):
+           (functor_dict['print_mode'].get('mode') == 'digits' and p > getattr(functor, "p", p))):
             from .padic_printing import _printer_defaults
             kwds['alphabet'] = _printer_defaults.alphabet()[:p]
 

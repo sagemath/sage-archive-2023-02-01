@@ -4346,7 +4346,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             TypeError: You must specify the name of the generator.
 
         """
-        if name is None:
+        if names is None:
             raise TypeError("You must specify the name of the generator.")
         name = normalize_names(1, names)[0]
 

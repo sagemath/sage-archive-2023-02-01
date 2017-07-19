@@ -33,7 +33,7 @@ AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 # We need to run this configure script with bash
 if test -z "$BASH_VERSION"
 then
-    CONFIG_SHELL=bash
+    CONFIG_SHELL=`command -v bash`
     export CONFIG_SHELL
     if $CONFIG_SHELL -c "exit 0"
     then

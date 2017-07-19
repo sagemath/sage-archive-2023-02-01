@@ -22,10 +22,14 @@ from __future__ import absolute_import
 
 from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
+from sage.rings.number_field.number_field_base import NumberField
+from sage.rings.number_field.order import Order
 from sage.structure.richcmp import op_EQ
 from functools import reduce
 from sage.categories.morphism import Morphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 
 class pAdicExtensionGeneric(pAdicGeneric):
@@ -100,12 +104,21 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: S(a - 15)
             -15 + a + O(5^20)
         """
-        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial() == self.defining_polynomial():
-            if R.is_field() and not self.is_field():
-                cat = SetsWithPartialMaps()
+        cat = None
+        if isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
+            cat = IntegralDomains()
+        if isinstance(R, (pAdicExtensionGeneric, NumberField)) and R.defining_polynomial() == self.defining_polynomial():
+            if R.is_field():
+                if not self.is_field():
+                    cat = SetsWithPartialMaps()
+                elif isinstance(R, pAdicExtensionGeneric):
+                    cat = R.category()
+                else:
+                    cat = Fields()
             else:
                 cat = R.category()
-            H = Hom(R, self)
+        if cat is not None:
+            H = Hom(R, self, cat)
             return H.__make_element_class__(DefPolyConversion)(H)
 
     def __eq__(self, other):

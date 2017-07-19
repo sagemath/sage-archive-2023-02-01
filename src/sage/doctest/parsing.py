@@ -22,8 +22,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, unicode_literals
 from sage.misc.six import u
+from six import text_type
 
 import re
 import sys
@@ -291,7 +292,7 @@ def reduce_hex(fingerprints):
     return "%032x" % res
 
 
-class MarkedOutput(str):
+class MarkedOutput(text_type):
     """
     A subclass of string with context for whether another string
     matches it.
@@ -306,6 +307,9 @@ class MarkedOutput(str):
         'abc'
         sage: s.rel_tol
         0.0500000000000000
+
+        sage: MarkedOutput(u"56 µs")
+        u'56 \xb5s'
     """
     random = False
     rel_tol = 0

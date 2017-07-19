@@ -693,8 +693,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:

@@ -514,7 +514,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
-            got = self._fakeout.getvalue()  # the actual output
+            got = self._fakeout.getvalue().decode('utf-8')
+            # the actual output
+
             outcome = FAILURE   # guilty until proved innocent or insane
 
             # If the example executed without raising any exceptions,
@@ -768,7 +770,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example))
+        s = pre_hash(get_source(example)).encode('utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:

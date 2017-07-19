@@ -293,13 +293,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: c, R0 = R.construction(); R0
             5-adic Ring with capped relative precision 8
             sage: c(R0)
-            Unramified Extension of 5-adic Ring with capped relative precision 8 in a defined by (1 + O(5^8))*x^2 + (4 + O(5^8))*x + (2 + O(5^8))
+            Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 8 over 5-adic Ring
             sage: c(R0) == R
             True
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
         print_mode = self._printer.dict()
-        return (AEF([self._pre_poly], [self.variable_name()],
+        return (AEF([self.defining_polynomial()], [self.variable_name()],
                     prec=self.precision_cap(), print_mode=self._printer.dict(),
                     implementation=self._implementation),
                 self.base_ring())

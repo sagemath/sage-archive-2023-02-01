@@ -223,12 +223,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: Z(Q(v)) in Z
             True
 
-        We support coercions and conversions, even though they are not
-        implemented here::
-
-            sage: Z(v)
-            2-adic valuation
-
         """
         if isinstance(x.parent(), DiscretePseudoValuationSpace):
             if x.domain() is not self.domain():

@@ -1094,7 +1094,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         n = asm.nrows()
         for i in range(n):
             # check that partial sums of the i-th row
-            # and i-th column are between 0 and 1
+            # and i-th column are either 0 or 1
             rs = cs = ZZ.zero()
             for j in range(n):
                 rs += asm[i,j]
@@ -1106,7 +1106,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
                     return False
 
             # check that the total sums of the i-th
-            # rwo and i-th column is 1
+            # row and i-th column is 1
             if not (rs.is_one() and cs.is_one()):
                 return False
 

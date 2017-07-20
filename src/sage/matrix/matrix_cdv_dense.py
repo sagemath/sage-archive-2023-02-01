@@ -2,6 +2,10 @@
 Helper methods for matrices over CDVR/CDVF
 """
 
+from sage.rings.infinity import Infinity
+from sage.rings.padics.precision_error import PrecisionError
+
+
 def smith_normal_form(M, transformation):
     """
     Helper method for the computation of the Smith normal form

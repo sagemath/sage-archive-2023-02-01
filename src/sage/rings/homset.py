@@ -202,7 +202,7 @@ class RingHomset_generic(HomsetWithBase):
         """
         f = self.codomain().coerce_map_from(self.domain())
         if f is None:
-            raise TypeError("Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain()))
+            raise TypeError("natural coercion morphism from %s to %s not defined"%(self.domain(), self.codomain()))
         return f
 
     def zero(self):
@@ -214,12 +214,12 @@ class RingHomset_generic(HomsetWithBase):
         Since a ring homomorphism maps 1 to 1, there can only be a zero
         morphism when mapping to the trivial ring::
 
-            sage: Homset(ZZ, Zmod(1)).zero()
+            sage: Hom(ZZ, Zmod(1)).zero()
             Ring morphism:
               From: Integer Ring
               To:   Ring of integers modulo 1
               Defn: 1 |--> 0
-            sage: Homset(ZZ, Zmod(2)).zero()
+            sage: Hom(ZZ, Zmod(2)).zero()
             Traceback (most recent call last):
             ...
             ValueError: homset has no zero element

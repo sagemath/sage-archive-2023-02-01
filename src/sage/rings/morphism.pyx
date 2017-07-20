@@ -70,7 +70,7 @@ From smaller to bigger doesn't make sense::
     sage: f = RR.hom( R200 )
     Traceback (most recent call last):
     ...
-    TypeError: Natural coercion morphism from Real Field with 53 bits of precision to Real Field with 200 bits of precision not defined.
+    TypeError: natural coercion morphism from Real Field with 53 bits of precision to Real Field with 200 bits of precision not defined
 
 From bigger to small does::
 

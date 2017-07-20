@@ -3510,10 +3510,6 @@ class DiGraph(GenericGraph):
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)
 
-import types
-
-import sage.graphs.comparability
-DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
-
-from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
-DiGraph.strongly_connected_components = types.MethodType(tarjan_strongly_connected_components, None, DiGraph)
+    # Aliases to functions defined in other modules
+    from sage.graphs.comparability import is_transitive
+    from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components

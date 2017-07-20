@@ -1,3 +1,4 @@
+# cython: binding=True
 """
 Chromatic Polynomial
 

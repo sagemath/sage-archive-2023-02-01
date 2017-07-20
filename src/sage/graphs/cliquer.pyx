@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Interface with Cliquer (clique-related problems)
 
@@ -23,7 +24,6 @@ REFERENCE:
 Methods
 -------
 """
-
 
 #*****************************************************************************
 #       Copyright (C) 2009 Nathann Cohen <nathann.cohen@gmail.com>

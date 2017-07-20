@@ -41,7 +41,6 @@ Functions
 
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.graphs.graph import Graph
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
 from sage.misc.decorators import sage_wraps
@@ -197,6 +196,7 @@ def underlying_graph(G):
         sage: underlying_graph(G).edges()
         [(0, 1, None)]
     """
+    from sage.graphs.graph import Graph
     g = Graph()
     g.allow_loops(True)
     for edge in set(G.edges(labels=False)):

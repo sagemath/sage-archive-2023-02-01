@@ -151,7 +151,6 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.functions.other import factorial
-from sage.groups.generic import structure_description
 
 def load_hap():
     """
@@ -4187,7 +4186,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         UCS = self._gap_().UpperCentralSeriesOfGroup()
         return [self.subgroup(gap_group=group) for group in UCS]
 
-PermutationGroup_generic.structure_description = types.MethodType(structure_description, None, PermutationGroup_generic)
+    from sage.groups.generic import structure_description
+
 
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """

@@ -671,11 +671,6 @@ class Scheme(Parent):
         An integer. The number of points over `\GF{q}, \ldots,
         \GF{q^n}` on a scheme over a finite field `\GF{q}`.
 
-        .. note::
-
-           This is currently only implemented for schemes over prime
-           order finite fields.
-
         EXAMPLES::
 
             sage: P.<x> = PolynomialRing(GF(3))
@@ -684,17 +679,21 @@ class Scheme(Parent):
             [6, 12, 18, 96]
             sage: C.base_extend(GF(9,'a')).count_points(2)
             [12, 96]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: X.count_points(2)
+            [5, 17]
         """
         F = self.base_ring()
         if not F.is_finite():
             raise TypeError("Point counting only defined for schemes over finite fields")
-        q = F.cardinality()
-        if not q.is_prime():
-            raise NotImplementedError("Point counting only implemented for schemes over prime fields")
-        a = []
-        for i in range(1, n+1):
-            F1 = GF(q**i, name='z')
-            S1 = self.base_extend(F1)
+        a = [len(self.rational_points())]
+        for i in range(2, n+1):
+            F1, psi = F.extension(i, map=True)
+            S1 = self.change_ring(psi)
             a.append(len(S1.rational_points()))
         return(a)
 
@@ -745,6 +744,14 @@ class Scheme(Parent):
             ...
             TypeError: zeta functions only defined for schemes
             over finite fields
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: X.zeta_series(2,t)
+            1 + 5*t + 21*t^2 + O(t^3)
         """
         F = self.base_ring()
         if not F.is_finite():

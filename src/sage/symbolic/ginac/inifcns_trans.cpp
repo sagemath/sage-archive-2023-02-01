@@ -594,10 +594,15 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 			seq.push_back(expair(Li2(x_pt), _ex0));
 			// compute the intermediate terms:
 			ex replarg = series(Li2(x), s==foo, order);
-			for (size_t i=1; i<replarg.nops()-1; ++i)
-				seq.push_back(expair((replarg.op(i)/power(s-foo,i)).series(foo==point,1,options).op(0).subs(foo==s, subs_options::no_pattern),i));
+			for (unsigned i=1; i < replarg.nops()-1; ++i) {
+				ex term = replarg.op(i) / power(s-foo, i);
+                                term = term.series(foo==point,1,options).op(0);
+                                term.subs(foo==s, subs_options::no_pattern);
+				seq.push_back(expair(term, numeric(i)));
+                        }
 			// append an order term:
-			seq.push_back(expair(Order(_ex1), replarg.nops()-1));
+			seq.push_back(expair(Order(_ex1),
+                                                long(replarg.nops()-1)));
 			return pseries(rel, seq);
 		}
 	}

@@ -1376,8 +1376,10 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 	// i.e. the number of unordered arrangements of m nonnegative integers
 	// which sum up to n.  It is frequently written as C_n(m) and directly
 	// related with binomial coefficients: binomial(n+m-1,m-1).
-	size_t result_size = binomial(numeric(n+a.nops()-1), numeric(a.nops()-1)).to_long();
-	if (!a.overall_coeff.is_zero()) {
+        long anops = a.nops() - 1;
+	long result_size = binomial(numeric(n + anops),
+                        numeric(anops)).to_long();
+	if (not a.overall_coeff.is_zero()) {
 		// the result's overall_coeff is one of the terms
 		--result_size;
 	}

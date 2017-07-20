@@ -151,16 +151,16 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 		ex sum = _ex0;
 		ex sign = _ex1;
 		ex aa = _ex1;
-		unsigned long nn = numn.to_long();
+		long nn = numn.to_long();
 
 		sign = - 1;
-		for (unsigned long k=0; k<=nn/2; k++) {
+		for (long k=0; k<=nn/2; k++) {
 			sign *= - 1;
 			aa = a;
 			p = 1;
 
 			// rising factorial (a)_{n-k}
-			for (unsigned long i=0; i<nn-k; i++) {
+			for (long i=0; i<nn-k; i++) {
 				p *= aa;
 				aa = aa + 1;
 			}
@@ -178,14 +178,14 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 	numeric t = numn.factorial();
 	numeric overall_denom = denom.pow_intexp(numn) * t;
 
-	unsigned long nn = numn.to_long();
+	long nn = numn.to_long();
 	numeric p = t / (numeric(nn/2).factorial());
 	if ((nn%2) != 0u)
 		p *= *_num2_p;
 	if ((nn&2) != 0u)
 		p = -p;
 
-	for (unsigned long k=0; k < nn-nn/2; k++) {
+	for (long k=0; k < nn-nn/2; k++) {
 		p *= numer;
 		numer += denom;
 	}

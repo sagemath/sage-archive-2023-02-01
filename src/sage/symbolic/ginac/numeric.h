@@ -71,7 +71,7 @@ namespace giac {
 namespace GiNaC {
 
 enum Type {
-//	LONG,
+	LONG=1,
 	PYOBJECT,
 	MPZ,
 	MPQ,
@@ -81,7 +81,9 @@ enum Type {
 };
 
 union Value {
-	double _double;
+        Value() {}
+        Value(signed long int i) : _long(i) {}
+	signed long int _long;
 	mpz_t _bigint;
 	mpq_t _bigrat;
 	PyObject* _pyobject;
@@ -105,10 +107,12 @@ class numeric : public basic {
 	// other constructors
 public:
 	numeric(const numeric&);
-	numeric(int i);
-	numeric(unsigned int i);
-	numeric(long i);
-	numeric(unsigned long i);
+	numeric(int i) : basic(&numeric::tinfo_static), t(LONG), v(i)
+        { setflag(status_flags::evaluated | status_flags::expanded); }
+	numeric(unsigned int i) : basic(&numeric::tinfo_static), t(LONG), v(i)
+        { setflag(status_flags::evaluated | status_flags::expanded); }
+	numeric(long i) : basic(&numeric::tinfo_static), t(LONG), v(i)
+        { setflag(status_flags::evaluated | status_flags::expanded); }
 	numeric(long numer, long denom);
 	numeric(double d);
 	numeric(mpz_t bigint);
@@ -189,7 +193,6 @@ public:
 	const numeric & operator=(int i);
 	const numeric & operator=(unsigned int i);
 	const numeric & operator=(long i);
-	const numeric & operator=(unsigned long i);
 	const numeric & operator=(double d);
 	const numeric & operator=(const numeric& x);
         void swap(numeric& other);
@@ -302,8 +305,6 @@ public:
         void factorsmall(std::vector<std::pair<long, int>>& factors, long range=0) const;
         void divisors(std::set<int>& divs) const;
 	
-	int int_length() const;
-
 protected:
 	void print_numeric(const print_context & c, const char *par_open,
 		const char *par_close, const char *imag_sym,

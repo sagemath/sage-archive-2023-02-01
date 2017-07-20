@@ -430,6 +430,8 @@ PyObject* TWO = PyInt_FromLong(2); // todo: never freed
 
 std::ostream& operator<<(std::ostream& os, const numeric& s) {
         switch (s.t) {
+                case LONG:
+                        return os << s.v._long;
                 case MPZ:
                 {
                         std::vector<char> cp(2 + mpz_sizeinbase(s.v._bigint, 10));
@@ -453,6 +455,8 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
 
 const numeric& numeric::operator=(const numeric& x) {
         switch (t) {
+                case LONG:
+                        break;
                 case MPZ:
                         mpz_clear(v._bigint);
                         break;
@@ -466,6 +470,9 @@ const numeric& numeric::operator=(const numeric& x) {
         t = x.t;
         hash = x.hash;
         switch (x.t) {
+                case LONG:
+                        v._long = x.v._long;
+                        break;
                 case MPZ:
                         mpz_init(v._bigint);
                         mpz_set(v._bigint, x.v._bigint);
@@ -493,28 +500,45 @@ void numeric::swap(numeric& other)
 int numeric::compare_same_type(const numeric& right) const {
         verbose("compare_same_type");
         if (t != right.t) {
+                int ret;
                 if (t == MPZ and right.t == MPQ) {
-                        int ret = mpq_cmp_z(right.v._bigrat, v._bigint);
-                        if (ret > 0)
-                                ret = -1;
-                        else if (ret < 0)
-                                ret = 1;
-                        return ret;
+                        ret = -mpq_cmp_z(right.v._bigrat, v._bigint);
                 }
                 else if (t == MPQ and right.t == MPZ) {
-                        int ret = mpq_cmp_z(v._bigrat, right.v._bigint);
-                        if (ret > 0)
-                                ret = 1;
-                        else if (ret < 0)
-                                ret = -1;
-                        return ret;
+                        ret = mpq_cmp_z(v._bigrat, right.v._bigint);
                 }
-                numeric a, b;
-                coerce(a, b, *this, right);
-                return a.compare_same_type(b);
+                else if (t == LONG and right.t == MPZ) {
+                        ret = -mpz_cmp_si(right.v._bigint, v._long);
+                }
+                else if (t == LONG and right.t == MPQ) {
+                        ret = -mpq_cmp_si(right.v._bigrat, v._long, 1);
+                }
+                else if (t == MPZ and right.t == LONG) {
+                        ret = mpz_cmp_si(v._bigint, right.v._long);
+                }
+                else if (t == MPQ and right.t == LONG) {
+                        ret = mpq_cmp_si(v._bigrat, right.v._long, 1);
+                }
+                else {
+                        numeric a, b;
+                        coerce(a, b, *this, right);
+                        return a.compare_same_type(b);
+                }
+                if (ret > 0)
+                        ret = 1;
+                else if (ret < 0)
+                        ret = -1;
+                return ret;
         }
         int ret;
         switch (t) {
+                case LONG:
+                        if (v._long > right.v._long)
+                                return 1;
+                        else if (v._long < right.v._long)
+                                return -1;
+                        else
+                                return 0;
                 case MPZ:
                         ret = mpz_cmp(v._bigint, right.v._bigint);
                         if (ret > 0)
@@ -597,16 +621,7 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(numeric, basic,
         print_func<print_python_repr>(&numeric::do_print_python_repr))
 
 
-//////////
-// default constructor
-//////////
-
-/** default constructor. Numerically it initializes to an integer zero. */
-numeric::numeric() : basic(&numeric::tinfo_static) {
-        t = MPZ;
-        mpz_init(v._bigint);
-        mpz_set_ui(v._bigint, 0);
-        hash = _mpz_pythonhash(v._bigint);
+numeric::numeric() : basic(&numeric::tinfo_static), t(LONG), v(0) {
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -620,6 +635,9 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
         t = other.t;
         hash = other.hash;
         switch (t) {
+                case LONG:
+                        v._long = other.v._long;
+                        return;
                 case PYOBJECT:
                         v = other.v;
                         Py_INCREF(v._pyobject);
@@ -639,10 +657,8 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         if (o == nullptr) py_error("Error");
         if (not force_py) {
                 if (PyInt_Check(o)) {
-                        t = MPZ;
-                        mpz_init(v._bigint);
-                        mpz_set_si(v._bigint, PyInt_AsLong(o));
-                        hash = _mpz_pythonhash(v._bigint);
+                        t = LONG;
+                        v._long = PyInt_AsLong(o);
                         setflag(status_flags::evaluated | status_flags::expanded);
                         Py_DECREF(o);
                         return;
@@ -680,38 +696,6 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
 
 }
 
-numeric::numeric(int i) : basic(&numeric::tinfo_static) {
-        t = MPZ;
-        mpz_init(v._bigint);
-        mpz_set_si(v._bigint, i);
-        hash = _mpz_pythonhash(v._bigint);
-        setflag(status_flags::evaluated | status_flags::expanded);
-}
-
-numeric::numeric(unsigned int i) : basic(&numeric::tinfo_static) {
-        t = MPZ;
-        mpz_init(v._bigint);
-        mpz_set_ui(v._bigint, i);
-        hash = _mpz_pythonhash(v._bigint);
-        setflag(status_flags::evaluated | status_flags::expanded);
-}
-
-numeric::numeric(long i) : basic(&numeric::tinfo_static) {
-        t = MPZ;
-        mpz_init(v._bigint);
-        mpz_set_si(v._bigint, i);
-        hash = _mpz_pythonhash(v._bigint);
-        setflag(status_flags::evaluated | status_flags::expanded);
-}
-
-numeric::numeric(unsigned long i) : basic(&numeric::tinfo_static) {
-        t = MPZ;
-        mpz_init(v._bigint);
-        mpz_set_ui(v._bigint, i);
-        hash = _mpz_pythonhash(v._bigint);
-        setflag(status_flags::evaluated | status_flags::expanded);
-}
-
 numeric::numeric(mpz_t bigint) : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init_set(v._bigint, bigint);
@@ -736,10 +720,8 @@ numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
         if (den == 0)
                 throw std::overflow_error("numeric::div(): division by zero");
         if ((num%den) == 0) {
-                t = MPZ;
-                mpz_init(v._bigint);
-                mpz_set_si(v._bigint, num/den);                
-                hash = _mpz_pythonhash(v._bigint);
+                t = LONG;
+                v._long = num/den;
         }
         else
         {
@@ -761,6 +743,8 @@ numeric::numeric(double d) : basic(&numeric::tinfo_static) {
 
 numeric::~numeric() {
         switch (t) {
+                case LONG:
+                        return;
                 case PYOBJECT:
                         Py_DECREF(v._pyobject);
                         return;
@@ -790,6 +774,9 @@ inherited(n, sym_lst) {
                 throw (std::runtime_error("archive error: cannot read object data"));
         PyObject *arg;
         switch (t) {
+                case LONG:
+                        v._long = std::stol(str);
+                        return;
                 case MPZ:
                         mpz_init(v._bigint);
                         mpz_set_str(v._bigint, str.c_str(), 10);
@@ -832,6 +819,9 @@ void numeric::archive(archive_node &n) const {
         // create a string representation of this object
         std::string *tstr;
         switch (t) {
+                case LONG:
+                        tstr = new std::string(std::to_string(v._long));
+                        return;
                 case MPZ:
                 {
                         std::vector<char> cp(2 + mpz_sizeinbase(v._bigint, 10));
@@ -916,6 +906,8 @@ void numeric::dbgprint() const
 {
         std::string ts;
         switch(t) {
+                case LONG: ts = {"LONG"};
+                          break;
                 case MPZ: ts = {"MPZ"};
                           break;
                 case MPQ: ts = {"MPQ"};
@@ -1049,6 +1041,7 @@ bool numeric::has(const ex &other, unsigned /*options*/) const {
 
 numeric numeric::conj() const {
         switch(t) {
+                case LONG:
                 case MPZ:
                 case MPQ: return *this;
                 case PYOBJECT:
@@ -1099,6 +1092,8 @@ bool numeric::is_equal_same_type(const basic &other) const {
 
 long numeric::calchash() const {
         switch (t) {
+                case LONG:
+                        return v._long;
                 case MPZ:
                 case MPQ:
                 case PYOBJECT:
@@ -1127,9 +1122,6 @@ long numeric::calchash() const {
  *  a numeric object. */
 const numeric numeric::add(const numeric &other) const {
         verbose("operator+");
-        // We will have to write a coercion model :-(
-        // Or just a nested switch of switches that covers all
-        // combinations of long,double,mpfr,mpz,mpq,mpfc,mpqc.  Yikes.
         if (t != other.t) {
                 if (t == MPZ and other.t == MPQ) {
                         mpq_t bigrat;
@@ -1151,6 +1143,23 @@ const numeric numeric::add(const numeric &other) const {
                 return a + b;
         }
         switch (t) {
+                case LONG:
+                        {
+                        long long ll = v._long;
+                        ll += other.v._long;
+                        if ((v._long > 0
+                             and ll < std::numeric_limits<long>::max())
+                            or (v._long < 0
+                             and ll > std::numeric_limits<long>::min()))
+                                return long(ll);
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        if (other.v._long < 0)
+                                mpz_sub_ui(bigint, bigint, -other.v._long);
+                        else
+                                mpz_add_ui(bigint, bigint, other.v._long);
+                        return bigint;
+                        }
                 case MPZ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -1196,6 +1205,23 @@ const numeric numeric::sub(const numeric &other) const {
                 return a - b;
         }
         switch (t) {
+                case LONG:
+                        {
+                        long long ll = v._long;
+                        ll -= other.v._long;
+                        if ((v._long > 0
+                             and ll < std::numeric_limits<long>::max())
+                            or (v._long < 0
+                             and ll > std::numeric_limits<long>::min()))
+                                return long(ll);
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        if (other.v._long < 0)
+                                mpz_add_ui(bigint, bigint, -other.v._long);
+                        else
+                                mpz_sub_ui(bigint, bigint, other.v._long);
+                        return bigint;
+                        }
                 case MPZ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -1223,6 +1249,20 @@ const numeric numeric::mul(const numeric &other) const {
                 return a * b;
         }
         switch (t) {
+                case LONG:
+                        {
+                        long long ll = v._long;
+                        ll *= other.v._long;
+                        if ((t > 0
+                             and t < std::numeric_limits<long>::max())
+                            or (t < 0
+                             and t > std::numeric_limits<long>::min()))
+                                return long(ll);
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        mpz_mul_si(bigint, bigint, other.v._long);
+                        return bigint;
+                        }
                 case MPZ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -1254,6 +1294,22 @@ const numeric numeric::div(const numeric &other) const {
                 return a / b;
         }
         switch (t) {
+                case LONG:
+                        {
+                        auto ld = std::div(v._long, other.v._long);
+                        if (ld.rem == 0)
+                                return ld.quot;
+                        else {
+                                mpq_t bigrat, obigrat;
+                                mpq_init(bigrat);
+                                mpq_init(obigrat);
+                                mpq_set_z(bigrat, v._bigint);
+                                mpq_set_si(obigrat, other.v._long, 1);
+                                mpq_div(bigrat, bigrat, obigrat);
+                                mpq_clear(obigrat);
+                                return bigrat;
+                        }
+                        }
                 case MPZ:
                         if (mpz_divisible_p(v._bigint, other.v._bigint)) {
                                 mpz_t bigint;
@@ -1319,9 +1375,54 @@ const numeric numeric::div(const numeric &other) const {
 bool numeric::integer_rational_power(numeric& res,
                 const numeric& a, const numeric& b)
 {
-        if (a.t != MPZ or b.t != MPQ)
+        if (b.t != MPQ)
                 throw std::runtime_error("integer_rational_power: bad input");
         if (mpz_sgn(mpq_numref(b.v._bigrat)) < 0)
+                throw std::runtime_error("integer_rational_power: bad input");
+        if (a.t == LONG) {
+                if (a.v._long == 1
+                    or mpz_cmp_ui(mpq_numref(b.v._bigrat), 0) == 0)
+                {
+                        res = 1;
+                        return true;
+                }
+                else if (a.v._long == 0) {
+                        res = 0;
+                        return true;
+                }
+                else if (a.v._long < 0
+                         and mpz_cmp_ui(mpq_denref(b.v._bigrat), 1))
+                        return false;
+                long z;
+                if (not mpz_fits_ulong_p(mpq_numref(b.v._bigrat))
+                    or not mpz_fits_ulong_p(mpq_denref(b.v._bigrat)))
+                // too big to take roots/powers
+                        return false;
+                else if (mpz_cmp_ui(mpq_denref(b.v._bigrat), 2) == 0) {
+                        z = std::lround(std::sqrt(a.v._long));
+                        if (a.v._long != std::pow(z, 2))
+                                return false;
+                }
+                else {
+                        unsigned ed = mpz_get_ui(mpq_denref(b.v._bigrat));
+                        z = std::lround(std::pow(a.v._long, 1.0 / ed));
+                        if (a.v._long != std::pow(z, ed))
+                                return false;
+                }
+                unsigned en = mpz_get_ui(mpq_numref(b.v._bigrat));
+                double d = std::pow(double(z), en);
+                if (d < std::numeric_limits<long>::max()) {
+                        res = long(std::pow(z, en));
+                        return true;
+                }
+                mpz_t m;
+                mpz_init(m);
+                mpz_set_si(m, z);
+                mpz_pow_ui(m, m, mpz_get_ui(mpq_numref(b.v._bigrat)));
+                res = m;
+                return true;
+        }
+        if (a.t != MPZ)
                 throw std::runtime_error("integer_rational_power: bad input");
         int sgn = mpz_sgn(a.v._bigint);
         mpz_t z;
@@ -1370,7 +1471,11 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 c_unit = c.is_one();
                 return;
         }
-        if ((a_orig.t != MPZ and a_orig.t != MPQ) or b_orig.t != MPQ) {
+
+        if ((a_orig.t != LONG
+             and a_orig.t != MPZ
+             and a_orig.t != MPQ)
+            or b_orig.t != MPQ) {
                 d = a_orig;
                 c = *_num1_p;
                 c_unit = true;
@@ -1392,6 +1497,7 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 return;
         }
 
+        // remaining a types are LONG and MPZ
         if (numeric::integer_rational_power(c, a, b)) {
                 c_unit = c.is_one();
                 d = *_num1_p;
@@ -1399,7 +1505,7 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
         }
         numeric numer = b.numer();
         numeric denom = b.denom();
-        if (not mpz_fits_ulong_p(denom.v._bigint)) {
+        if (a.t == MPZ and not mpz_fits_ulong_p(denom.v._bigint)) {
                 c = *_num1_p;
                 c_unit = true;
                 d = a;
@@ -1416,7 +1522,11 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
         long max_prime_idx;
         static numeric maxnum = numeric(10).power(200);
         if (a < maxnum) {
-                double ad = mpz_get_d(a.v._bigint);
+                double ad;
+                if (a.t == MPZ)
+                        ad = mpz_get_d(a.v._bigint);
+                else
+                        ad = a.v._long;
                 double adrootlog = std::log(ad) / denoml;
                 double adroot = std::exp(adrootlog);
                 double mpid = adroot*1.25506/adrootlog;
@@ -1443,6 +1553,28 @@ const numeric numeric::power(signed long exp_si) const
 {
         PyObject *o, *r;
         switch (t) {
+                case LONG:
+                        if (exp_si >= 0) {
+                                double d = std::pow(double(v._long), exp_si);
+                                if (d < std::numeric_limits<long>::max())
+                                        return long(std::pow(v._long, exp_si));
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_set_si(bigint, v._long);
+                                mpz_pow_ui(bigint, bigint, exp_si);
+                                return numeric(bigint);
+                        }
+                        else {
+                                mpz_t bigint;
+                                mpz_init_set_si(bigint, v._long);
+                                mpz_pow_ui(bigint, bigint, -exp_si);
+                                mpq_t bigrat;
+                                mpq_init(bigrat);
+                                mpq_set_z(bigrat, bigint);
+                                mpq_inv(bigrat, bigrat);
+                                mpz_clear(bigint);
+                                return numeric(bigrat);
+                        }
                 case MPZ:
                         if (exp_si >= 0) {
                                 mpz_t bigint;
@@ -1498,9 +1630,12 @@ const numeric numeric::pow_intexp(const numeric &exponent) const
 {
         if (not exponent.is_integer())
                 throw std::runtime_error("nueric::pow_intexp: exponent not integer");
-        if (not mpz_fits_sint_p(exponent.v._bigint))
-                throw std::runtime_error("size of exponent exceeds signed long size");
-        return power(mpz_get_si(exponent.v._bigint));
+        if (exponent.t == MPZ) {
+                if (not mpz_fits_sint_p(exponent.v._bigint))
+                        throw std::runtime_error("size of exponent exceeds signed long size");
+                return power(mpz_get_si(exponent.v._bigint));
+        }
+        return power(exponent.v._long);
 }
 
 /** Numerical exponentiation.
@@ -1515,12 +1650,12 @@ const ex numeric::power(const numeric &exponent) const {
                 long si = PyInt_AsLong(exponent.v._pyobject);
                 mpz_set_si(expo.v._bigint, si);
         }
-        if (expo.t == MPZ)
+        if (expo.t == LONG or expo.t == MPZ)
                 return pow_intexp(expo);
         if (expo.t == MPQ and expo.is_integer())
                 return power(exponent.to_long());
 
-        if ((t == MPZ or t == MPQ) and expo.t == MPQ) {
+        if ((t == LONG or t == MPZ or t == MPQ) and expo.t == MPQ) {
                 numeric c, d;
                 bool c_unit;
                 rational_power_parts(*this, expo, c, d, c_unit);
@@ -1650,10 +1785,6 @@ const numeric &numeric::operator=(long i) {
         return operator=(numeric(i));
 }
 
-const numeric &numeric::operator=(unsigned long i) {
-        return operator=(numeric(i));
-}
-
 const numeric &numeric::operator=(double d) {
         return operator=(numeric(d));
 }
@@ -1661,6 +1792,8 @@ const numeric &numeric::operator=(double d) {
 const numeric numeric::negative() const {
         verbose("operator-");
         switch (t) {
+                case LONG:
+                        return -v._long;
                 case MPZ:
                         mpz_t bigint;
                         mpz_init_set(bigint, v._bigint);
@@ -1712,6 +1845,28 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
+                case LONG:
+                        {
+                        long long ll = lh.v._long;
+                        ll += rh.v._long;
+                        if ((lh.v._long > 0
+                             and ll < std::numeric_limits<long>::max())
+                            or (lh.v._long < 0
+                             and ll > std::numeric_limits<long>::min())) {
+                                lh.v._long = ll;
+                                return lh;
+                        }
+                        lh.t = MPZ;
+                        mpz_init_set_si(lh.v._bigint, lh.v._long);
+                        if (rh.v._long < 0)
+                                mpz_sub_ui(lh.v._bigint,
+                                                lh.v._bigint, -rh.v._long);
+                        else
+                                mpz_add_ui(lh.v._bigint, lh.v._bigint,
+                                                rh.v._long);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
+                        return lh;
+                        }
                 case MPZ:
                         mpz_add(lh.v._bigint, lh.v._bigint, rh.v._bigint);
                         lh.hash = _mpz_pythonhash(lh.v._bigint);
@@ -1769,6 +1924,28 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
+                case LONG:
+                        {
+                        long long ll = lh.v._long;
+                        ll -= rh.v._long;
+                        if ((lh.v._long > 0
+                             and ll < std::numeric_limits<long>::max())
+                            or (lh.v._long < 0
+                             and ll > std::numeric_limits<long>::min())) {
+                                lh.v._long = ll;
+                                return lh;
+                        }
+                        lh.t = MPZ;
+                        mpz_init_set_si(lh.v._bigint, lh.v._long);
+                        if (rh.v._long < 0)
+                                mpz_add_ui(lh.v._bigint,
+                                                lh.v._bigint, -rh.v._long);
+                        else
+                                mpz_sub_ui(lh.v._bigint, lh.v._bigint,
+                                                rh.v._long);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
+                        return lh;
+                        }
                 case MPZ:
                         mpz_sub(lh.v._bigint, lh.v._bigint, rh.v._bigint);
                         lh.hash = _mpz_pythonhash(lh.v._bigint);
@@ -1843,6 +2020,23 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
+                case LONG:
+                        {
+                        long long ll = lh.v._long;
+                        ll *= rh.v._long;
+                        if ((lh.v._long > 0
+                             and ll < std::numeric_limits<long>::max())
+                            or (lh.v._long < 0
+                             and ll > std::numeric_limits<long>::min())) {
+                                lh.v._long = ll;
+                                return lh;
+                        }
+                        lh.t = MPZ;
+                        mpz_init_set_si(lh.v._bigint, lh.v._long);
+                        mpz_mul_si(lh.v._bigint, lh.v._bigint, rh.v._long);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
+                        return lh;
+                        }
                 case MPZ:
                         mpz_mul(lh.v._bigint, lh.v._bigint, rh.v._bigint);
                         lh.hash = _mpz_pythonhash(lh.v._bigint);
@@ -1869,6 +2063,9 @@ numeric & operator*=(numeric & lh, const numeric & rh)
         }
 }
 
+template <typename T> int sgn(T val) {
+            return (T(0) < val) - (val < T(0));
+}
 numeric & operator/=(numeric & lh, const numeric & rh)
 {
         if (rh.is_zero())
@@ -1921,6 +2118,31 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
+                case LONG:
+                        {
+                        auto ld = std::div(lh.v._long, rh.v._long);
+                        if (ld.rem == 0) {
+                                lh.v._long = ld.quot;
+                                return lh;
+                        }
+                        else {
+                                mpq_t obigrat;
+                                lh.t = MPQ;
+                                unsigned long l = std::labs(lh.v._long);
+                                unsigned long r = std::labs(rh.v._long);
+                                int sign = sgn(lh.v._long) * sgn(rh.v._long);
+                                mpq_init(obigrat);
+                                mpq_init(lh.v._bigrat);
+                                mpq_set_ui(lh.v._bigrat, l, 1);
+                                mpq_set_ui(obigrat, r, 1);
+                                mpq_div(lh.v._bigrat, lh.v._bigrat, obigrat);
+                                if (sign == -1)
+                                        mpq_neg(lh.v._bigrat, lh.v._bigrat);
+                                mpq_clear(obigrat);
+                                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                                return lh;
+                        }
+                        }
                 case MPZ:
                         if (mpz_divisible_p(lh.v._bigint, rh.v._bigint)) {
                                 mpz_divexact(lh.v._bigint,
@@ -2041,6 +2263,7 @@ const numeric numeric::inverse() const {
  */
 const numeric numeric::step() const {
         switch (t) {
+                case LONG: return v._long > 0;
                 case MPZ:
                 case MPQ:
                         if (is_positive())
@@ -2062,6 +2285,10 @@ const numeric numeric::step() const {
 int numeric::csgn() const {
         verbose("csgn");
         switch (t) {
+                case LONG:
+                        if (v._long == 0)
+                                return 0;
+                        return v._long < 0 ? -1:1;
                 case MPZ:
                         return mpz_sgn(v._bigint);
                 case MPQ:
@@ -2097,6 +2324,8 @@ bool numeric::is_zero() const {
         verbose("is_zero");
         int a;
         switch (t) {
+                case LONG:
+                        return v._long == 0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 0) == 0;
                 case MPQ:
@@ -2115,6 +2344,8 @@ bool numeric::is_zero() const {
 bool numeric::is_inexact_one() const {
         verbose("is_one");
         switch (t) {
+                case LONG:
+                        return v._long == 1;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 1) == 0;
                 case MPQ:
@@ -2130,6 +2361,8 @@ bool numeric::is_inexact_one() const {
 bool numeric::is_one() const {
         verbose("is_one");
         switch (t) {
+                case LONG:
+                        return v._long == 1;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 1) == 0;
                 case MPQ:
@@ -2145,6 +2378,8 @@ bool numeric::is_one() const {
 bool numeric::is_minus_one() const {
         verbose("is_one");
         switch (t) {
+                case LONG:
+                        return v._long == -1;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, -1) == 0;
                 case MPQ:
@@ -2161,6 +2396,8 @@ bool numeric::is_minus_one() const {
 bool numeric::is_positive() const {
         verbose("is_positive");
         switch (t) {
+                case LONG:
+                        return v._long > 0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 0) > 0;
                 case MPQ:
@@ -2176,6 +2413,8 @@ bool numeric::is_positive() const {
 bool numeric::is_negative() const {
         verbose("is_negative");
         switch (t) {
+                case LONG:
+                        return v._long < 0;
                 case MPZ:
                         return mpz_cmp_si(v._bigint, 0) < 0;
                 case MPQ:
@@ -2193,6 +2432,7 @@ bool numeric::is_integer() const {
 
         bool ret;
         switch (t) {
+                case LONG:
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2214,6 +2454,8 @@ bool numeric::is_integer() const {
 bool numeric::is_pos_integer() const {
         verbose("is_pos_integer");
         switch (t) {
+                case LONG:
+                        return v._long > 0;
                 case MPZ:
                         return is_positive();
                 case MPQ:
@@ -2229,6 +2471,8 @@ bool numeric::is_pos_integer() const {
 bool numeric::is_nonneg_integer() const {
         verbose("is_nonneg_integer");
         switch (t) {
+                case LONG:
+                        return v._long >= 0;
                 case MPZ:
                         return is_positive() or is_zero();
                 case MPQ:
@@ -2248,6 +2492,8 @@ bool numeric::is_even() const {
                 return false;
 
         switch (t) {
+                case LONG:
+                        return v._long % 2 == 0;
                 case MPZ:
                         return mpz_tstbit(v._bigint, 0) == 0;
                 case MPQ:
@@ -2263,6 +2509,8 @@ bool numeric::is_even() const {
 /** True if object is an exact odd integer. */
 bool numeric::is_odd() const {
         switch (t) {
+                case LONG:
+                        return v._long & 1;
                 case MPZ:
                         return mpz_tstbit(v._bigint, 0) == 1;
                 case MPQ:
@@ -2281,6 +2529,14 @@ bool numeric::is_odd() const {
 bool numeric::is_prime() const {
         verbose("is_prime");
         switch (t) {
+                case LONG:
+                        {
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        bool ret = mpz_probab_prime_p(bigint, 25) > 0;
+                        mpz_clear(bigint);
+                        return ret;
+                        }
                 case MPZ:
                         return mpz_probab_prime_p(v._bigint, 25) > 0;
                 case MPQ:
@@ -2298,8 +2554,8 @@ bool numeric::is_prime() const {
 bool numeric::is_rational() const {
         verbose("is_rational");
         switch (t) {
+                case LONG:
                 case MPZ:
-                        return true;
                 case MPQ:
                         return true;
                 case PYOBJECT:
@@ -2313,8 +2569,8 @@ bool numeric::is_rational() const {
 bool numeric::is_real() const {
         verbose("is_real");
         switch (t) {
+                case LONG:
                 case MPZ:
-                        return true;
                 case MPQ:
                         return true;
                 case PYOBJECT:
@@ -2333,8 +2589,8 @@ bool numeric::is_parent_pos_char() const {
 int numeric::get_parent_char() const {
         verbose("get_parent_char");
         switch (t) {
+                case LONG:
                 case MPZ:
-                        return 0;
                 case MPQ:
                         return 0;
                 case PYOBJECT:
@@ -2353,8 +2609,8 @@ int numeric::get_parent_char() const {
 bool numeric::is_exact() const {
         verbose("is_exact");
         switch (t) {
+                case LONG:
                 case MPZ:
-                        return true;
                 case MPQ:
                         return true;
                 case PYOBJECT:
@@ -2370,6 +2626,10 @@ bool numeric::operator==(const numeric &right) const {
         if (this == &right)
                 return true;
         if (t != right.t) {
+                if (t == LONG and right.t == MPZ)
+                        return mpz_cmp_si(right.v._bigint, v._long) ==0;
+                if (right.t == LONG and t == MPZ)
+                        return mpz_cmp_si(v._bigint, right.v._long) ==0;
                 if (t == MPZ and right.t == MPQ) {
                         if (mpz_cmp_ui(mpq_denref(right.v._bigrat), 1) != 0)
                                 return false;
@@ -2385,6 +2645,8 @@ bool numeric::operator==(const numeric &right) const {
                 return a == b;
         }
         switch (t) {
+                case LONG:
+                        return v._long == right.v._long;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) ==0;
                 case MPQ:
@@ -2416,6 +2678,8 @@ bool numeric::operator!=(const numeric &right) const {
                 return a != b;
         }
         switch (t) {
+                case LONG:
+                        return v._long != right.v._long;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) !=0;
                 case MPQ:
@@ -2432,6 +2696,7 @@ bool numeric::operator!=(const numeric &right) const {
 bool numeric::is_cinteger() const {
         verbose("is_crational");
         switch (t) {
+                case LONG:
                 case MPZ:
                         return true;
                 case MPQ:
@@ -2449,8 +2714,8 @@ bool numeric::is_cinteger() const {
 bool numeric::is_crational() const {
         verbose("is_crational");
         switch (t) {
+                case LONG:
                 case MPZ:
-                        return true;
                 case MPQ:
                         return true;
                 case PYOBJECT:
@@ -2473,6 +2738,8 @@ bool numeric::operator<(const numeric &right) const {
         }
 
         switch (t) {
+                case LONG:
+                        return v._long < right.v._long;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) < 0;
                 case MPQ:
@@ -2495,6 +2762,8 @@ bool numeric::operator<=(const numeric &right) const {
                 return a <= b;
         }
         switch (t) {
+                case LONG:
+                        return v._long <= right.v._long;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) <= 0;
                 case MPQ:
@@ -2517,6 +2786,8 @@ bool numeric::operator>(const numeric &right) const {
                 return a > b;
         }
         switch (t) {
+                case LONG:
+                        return v._long > right.v._long;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) > 0;
                 case MPQ:
@@ -2539,6 +2810,8 @@ bool numeric::operator>=(const numeric &right) const {
                 return a >= b;
         }
         switch (t) {
+                case LONG:
+                        return v._long >= right.v._long;
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) >= 0;
                 case MPQ:
@@ -2558,6 +2831,8 @@ long numeric::to_long() const {
         verbose("operator long int");
         signed long int n;
         switch (t) {
+                case LONG:
+                        return v._long;
                 case MPZ:
                         return (long int) mpz_get_si(v._bigint);
                 case MPQ:
@@ -2582,26 +2857,30 @@ long numeric::to_long() const {
 // Use this only if o was tested integer.
 const numeric numeric::to_bigint() const {
         switch (t) {
-            case MPZ: return *this;
-            case MPQ: 
-                if (not denom().is_one())
-                    throw std::runtime_error("not integer in numeric::to_mpz_num()");
-                return numer();
-            case PYOBJECT:
+                case LONG:
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        return bigint;
+                case MPZ: return *this;
+                case MPQ: 
+                        if (not denom().is_one())
+                                throw std::runtime_error("not integer in numeric::to_mpz_num()");
+                        return numer();
+                case PYOBJECT:
                 {
-                PyObject* m = PyImport_ImportModule("sage.rings.integer");
-                if (m == nullptr)
-                        py_error("Error importing sage.rings.integer");
-                PyObject* Integer = PyObject_GetAttrString(m, "Integer");
-                if (Integer == nullptr)
-                        py_error("Error getting Integer attribute");
-                PyObject* ans = PyObject_CallFunctionObjArgs(Integer, v._pyobject, NULL);
-                Py_DECREF(m);
-                Py_DECREF(Integer);
-                return ans;
+                        PyObject* m = PyImport_ImportModule("sage.rings.integer");
+                        if (m == nullptr)
+                                py_error("Error importing sage.rings.integer");
+                        PyObject* Integer = PyObject_GetAttrString(m, "Integer");
+                        if (Integer == nullptr)
+                                py_error("Error getting Integer attribute");
+                        PyObject* ans = PyObject_CallFunctionObjArgs(Integer, v._pyobject, NULL);
+                        Py_DECREF(m);
+                        Py_DECREF(Integer);
+                        return ans;
                 }
-            default:
-                stub("invalid type: operator long int() type not handled");
+                default:
+                        stub("invalid type: operator long int() type not handled");
         }
 }
 
@@ -2622,6 +2901,8 @@ const mpq_t& numeric::as_mpq() const
 #ifdef PYNAC_HAVE_LIBGIAC
 giac::gen* numeric::to_giacgen(giac::context* cptr) const
 {
+        if (t == LONG)
+                return new giac::gen(v._long);
         if (t == MPZ) {
                 mpz_t bigint;
                 mpz_init_set(bigint, v._bigint);
@@ -2646,6 +2927,8 @@ giac::gen* numeric::to_giacgen(giac::context* cptr) const
 
 CanonicalForm numeric::to_canonical() const
 {
+        if (t == LONG)
+                return CanonicalForm(v._long);
         if (t == MPZ) {
                 if (mpz_fits_sint_p(v._bigint))
                         return CanonicalForm(to_int());
@@ -2677,13 +2960,24 @@ PyObject* numeric::to_pyobject() const {
         // Returns a New Reference
         PyObject* o;
         switch (t) {
+                case LONG:
+                        {
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        o = py_funcs.py_integer_from_mpz(bigint);
+                        mpz_clear(bigint);
+                        return o;
+                        }
                 case MPZ:
+                        {
                         mpz_t bigint;
                         mpz_init_set(bigint, v._bigint);
                         o = py_funcs.py_integer_from_mpz(bigint);
                         mpz_clear(bigint);
                         return o;
+                        }
                 case MPQ:
+                        {
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_set(bigrat, v._bigrat);
@@ -2691,6 +2985,7 @@ PyObject* numeric::to_pyobject() const {
                         o = py_funcs.py_rational_from_mpq(bigrat);
                         mpq_clear(bigrat);
                         return o;
+                        }
                 case PYOBJECT:
                         Py_INCREF(v._pyobject);
                         return v._pyobject;
@@ -2710,6 +3005,8 @@ double numeric::to_double() const {
         verbose("operator double");
         double d;
         switch (t) {
+                case LONG:
+                        return v._long;
                 case MPZ:
                         return mpz_get_d(v._bigint);
                 case MPQ:
@@ -2821,8 +3118,8 @@ const numeric numeric::real() const {
         verbose("real_part(a)");
         PyObject *ans;
         switch (t) {
+                case LONG:
                 case MPZ:
-                        return *this;
                 case MPQ:
                         return *this;
                 case PYOBJECT:
@@ -2857,7 +3154,7 @@ const numeric numeric::numer() const {
         PyObject* a;
 
         switch (t) {
-
+                case LONG:
                 case MPZ:
                         return *this;
                 case MPQ:
@@ -2886,6 +3183,7 @@ const numeric numeric::denom() const {
         PyObject* a;
 
         switch (t) {
+                case LONG:
                 case MPZ:
                         return 1;
                 case MPQ:
@@ -2945,7 +3243,8 @@ const numeric numeric::log(const numeric &b) const {
         if (b.is_zero())
                 return *_num0_p;
 
-        if ((t != MPZ and t != MPQ) or (b.t != MPZ and b.t != MPQ))
+        if ((t != LONG and t != MPZ and t != MPQ)
+            or (b.t != LONG and b.t != MPZ and b.t != MPQ))
                 return log()/b.log();
         else {
                 bool israt;
@@ -2970,11 +3269,36 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
         if (b.is_zero())
                 return *_num0_p;
 
-        if ((t != MPZ and t != MPQ) or (b.t != MPZ and b.t != MPQ)) {
+        if ((t != LONG and t != MPZ and t != MPQ)
+            or (b.t != LONG and b.t != MPZ and b.t != MPQ)) {
                 israt = false;
                 return *_num0_p;
         }
 
+        if (t == LONG and b.t == LONG) {
+                if (b.v._long <= 0) {
+                        israt = false;
+                        return *_num0_p;
+                }
+                int c = 0;
+                std::ldiv_t ld;
+                ld.quot = v._long;
+                ld.rem = 0;
+                do {
+                        ld = std::div(ld.quot, b.v._long);
+                        ++c;
+                }
+                while (ld.quot != 1 and ld.rem == 0);
+                if (ld.quot != 1 or ld.rem != 0) {
+                        israt = false;
+                        return *_num0_p;
+                }
+                return c;
+        }
+        if (b.t == LONG)
+                return ratlog(to_bigint(), israt);
+        if (t == LONG)
+                return to_bigint().ratlog(b, israt);
         if (t == MPZ and b.t == MPZ) {
                 if (b > *_num0_p) {
                         mpz_t ret;
@@ -2982,7 +3306,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
                         mp_bitcnt_t r = mpz_remove(ret, v._bigint, b.v._bigint);
                         if (mpz_cmp_ui(ret, 1) == 0) {
                                 mpz_clear(ret);
-                                return r;
+                                return long(r);
                         }
                         mpz_clear(ret);
                 }
@@ -3007,6 +3331,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
                 }
         }
 
+        // from here both MPQ
         numeric d = denom().log(b.denom());
         if (numer().is_one() and b.numer().is_one())
                 return d;
@@ -3140,15 +3465,14 @@ const numeric numeric::doublefactorial() const {
 }
 
 const numeric numeric::binomial(const numeric &k) const {
-        numeric res;
-        PyObject *nobj, *kobj;
-
         if (t == MPZ and k.info(info_flags::integer)) {
                 mpz_t bigint;
                 mpz_init(bigint);
                 mpz_bin_ui(bigint, v._bigint, k.to_long());
                 return bigint;
         }
+        numeric res;
+        PyObject *nobj, *kobj;
         nobj = this->to_pyobject();
         kobj = k.to_pyobject();
 
@@ -3255,7 +3579,19 @@ bool numeric::is_square() const
                 return false;
         if (is_zero() or is_one())
                 return true;
-        if (t == MPZ) {
+        switch (t) {
+                case LONG:
+                case MPZ:
+                case MPQ:
+                case PYOBJECT:
+                default:
+                        stub("invalid type: type not handled");
+        }
+        if (t == LONG) {
+                long rt = std::lround(std::sqrt(v._long));
+                return std::pow(rt, 2) == v._long;
+        }
+        else if (t == MPZ) {
                 return mpz_perfect_square_p(v._bigint);
         }
         else if (t == MPQ) {
@@ -3274,63 +3610,98 @@ const ex numeric::sqrt_as_ex() const
                 return _ex0;
         if (is_one())
                 return _ex1;
-        if (t == MPZ) {
-                if (mpz_perfect_square_p(v._bigint)) {
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_sqrt(bigint, v._bigint);
-                        return ex(numeric(bigint));
+        switch (t) {
+                case LONG:
+                {
+                        long rt = std::lround(std::sqrt(v._long));
+                        if (std::pow(rt, 2) == v._long)
+                                return ex(numeric(rt));
+                        break;
                 }
-                return (new GiNaC::power(ex(*this), _ex1_2))->setflag(status_flags::dynallocated | status_flags::evaluated);
-        }
-        else if (t == MPQ) {
-                if (mpz_perfect_square_p(mpq_numref(v._bigrat))
-                    and mpz_perfect_square_p(mpq_denref(v._bigrat))) {
-                        mpz_t bigint;
-                        mpq_t bigrat, obigrat;
-                        mpz_init(bigint);
-                        mpq_init(bigrat);
-                        mpq_init(obigrat);
-                        mpz_sqrt(bigint, mpq_numref(v._bigrat));
-                        mpq_set_z(bigrat, bigint);
-                        mpz_sqrt(bigint, mpq_denref(v._bigrat));
-                        mpq_set_z(obigrat, bigint);
-                        mpq_div(bigrat, bigrat, obigrat);
-                        mpz_clear(bigint);
-                        mpq_clear(obigrat);
-                        return ex(numeric(bigrat));
+                case MPZ:
+                {
+                        if (mpz_perfect_square_p(v._bigint)) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_sqrt(bigint, v._bigint);
+                                return ex(numeric(bigint));
+                        }
+                        break;
                 }
-                return (new GiNaC::power(ex(*this), _ex1_2))->setflag(status_flags::dynallocated | status_flags::evaluated);
+                case MPQ:
+                {
+                        if (mpz_perfect_square_p(mpq_numref(v._bigrat))
+                            and mpz_perfect_square_p(mpq_denref(v._bigrat))) {
+                                mpz_t bigint;
+                                mpq_t bigrat, obigrat;
+                                mpz_init(bigint);
+                                mpq_init(bigrat);
+                                mpq_init(obigrat);
+                                mpz_sqrt(bigint, mpq_numref(v._bigrat));
+                                mpq_set_z(bigrat, bigint);
+                                mpz_sqrt(bigint, mpq_denref(v._bigrat));
+                                mpq_set_z(obigrat, bigint);
+                                mpq_div(bigrat, bigrat, obigrat);
+                                mpz_clear(bigint);
+                                mpq_clear(obigrat);
+                                return ex(numeric(bigrat));
+                        }
+                        break;
+                }
+                case PYOBJECT:
+                        return sqrt();
+                default:
+                        stub("invalid type: type not handled");
         }
-        return sqrt();
+        return (new GiNaC::power(ex(*this), _ex1_2))->setflag(status_flags::dynallocated | status_flags::evaluated);
 }
 
 const numeric numeric::abs() const {
-        if (t == MPZ) {
-                mpz_t bigint;
-                mpz_init(bigint);
-                mpz_abs(bigint, v._bigint);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        return std::labs(v._long);
+                case MPZ:
+                {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_abs(bigint, v._bigint);
+                        return bigint;
+                }
+                case MPQ:
+                {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_abs(bigrat, v._bigrat);
+                        return bigrat;
+                }
+                case PYOBJECT:
+                {
+                        PY_RETURN(py_funcs.py_abs);
+                }
+                default:
+                        stub("invalid type: type not handled");
         }
-        else if (t == MPQ) {
-                mpq_t bigrat;
-                mpq_init(bigrat);
-                mpq_abs(bigrat, v._bigrat);
-                return bigrat;
-        }
-        
-        PY_RETURN(py_funcs.py_abs);
 }
 
 const numeric numeric::mod(const numeric &b) const {
-        if (t == MPZ) {
-                mpz_t bigint;
-                mpz_init(bigint);
-                mpz_mod(bigint, v._bigint, b.v._bigint);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        return v._long % b.v._long;
+                case MPZ:
+                {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_mod(bigint, v._bigint, b.v._bigint);
+                        return bigint;
+                }
+                case MPQ:
+                case PYOBJECT:
+                {
+                        PY_RETURN2(py_funcs.py_mod, b);
+                }
+                default:
+                        stub("invalid type: type not handled");
         }
-        
-        PY_RETURN2(py_funcs.py_mod, b);
 }
 
 const numeric numeric::_smod(const numeric &b) const {
@@ -3338,130 +3709,263 @@ const numeric numeric::_smod(const numeric &b) const {
 }
 
 const numeric numeric::irem(const numeric &b) const {
-        if (t == MPZ) {
-                mpz_t bigint;
-                mpz_init(bigint);
-                mpz_fdiv_r(bigint, v._bigint, b.v._bigint);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        return std::remainder(v._long, b.v._long);
+                case MPZ:
+                {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_fdiv_r(bigint, v._bigint, b.v._bigint);
+                        return bigint;
+                }
+                case MPQ:
+                case PYOBJECT:
+                {
+                        PY_RETURN2(py_funcs.py_irem, b);
+                }
+                default:
+                        stub("invalid type: type not handled");
         }
-        
-        PY_RETURN2(py_funcs.py_irem, b);
 }
 
 const numeric numeric::iquo(const numeric &b) const {
-        if (t == MPZ and b.t == MPZ) {
-                mpz_t bigint;
-                mpz_init(bigint);
-                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        if (b.t == LONG)
+                                return v._long / b.v._long;
+                        if (b.t == MPZ)
+                                return to_bigint().iquo(b);
+                case MPZ:
+                        if (b.t == LONG) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_fdiv_q_ui(bigint, v._bigint,
+                                              std::labs(b.v._long));
+                                if (b.v._long < 0)
+                                        mpz_neg(bigint, bigint);
+                                return bigint;
+                        }
+                        if (b.t == MPZ) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
+                                return bigint;
+                        }
+                case MPQ:
+                case PYOBJECT:
+                default:
+                        stub("invalid type: type not handled");
         }
         throw std::runtime_error("iquo: bad input");
 }
 
 const numeric numeric::iquo(const numeric &b, numeric& r) const {
-        if (t == MPZ and b.t == MPZ) {
-                mpz_t bigint, tmp;
-                mpz_init(bigint);
-                mpz_init(tmp);
-                mpz_init(r.v._bigint);
-                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
-                mpz_mul(tmp, bigint, b.v._bigint);
-                mpz_sub(r.v._bigint, v._bigint, tmp);
-                mpz_clear(tmp);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        if (b.t == LONG) {
+                                auto ld = std::ldiv(v._long, b.v._long);
+                                r = ld.rem;
+                                return ld.quot;
+                        }
+                        if (b.t == MPZ)
+                                return to_bigint().iquo(b, r);
+                case MPZ:
+                        if (b.t == LONG) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                r = long(mpz_fdiv_q_ui(bigint, v._bigint,
+                                                 std::labs(b.v._long)));
+                                return bigint;
+                        }
+                        if (b.t == MPZ) {
+                                mpz_t bigint, tmp;
+                                mpz_init(bigint);
+                                mpz_init(tmp);
+                                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
+                                mpz_mul(tmp, bigint, b.v._bigint);
+                                mpz_sub(tmp, v._bigint, tmp);
+                                r = numeric(tmp);
+                                return bigint;
+                        }
+                case MPQ:
+                case PYOBJECT:
+                default:
+                        stub("invalid type: type not handled");
         }
         throw std::runtime_error("iquo2: bad input");
 }
 
 const numeric numeric::gcd(const numeric &b) const {
-        if (t == MPZ and b.t == MPZ) {
-                mpz_t bigint;
-                mpz_init(bigint);
-                mpz_gcd(bigint, v._bigint, b.v._bigint);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        if (b.t == LONG) {
+                                // C++17 will have a function for this
+                                long a = v._long;
+                                long bl = b.v._long;
+                                long c;
+                                while ( a != 0 ) {
+                                        c = a; a = bl % a;  bl = c;
+                                }
+                                return bl;
+                        }
+                        if (b.t == MPZ)
+                                return to_bigint().gcd(b);
+                case MPZ:
+                        if (b.t == LONG) {
+                                if (b.t != 0) {
+                                        mpz_t bigint;
+                                        mpz_init(bigint);
+                                        long l = mpz_gcd_ui(bigint,
+                                                          v._bigint,
+                                                          std::labs(b.v._long));
+                                        mpz_clear(bigint);
+                                        return l;
+                                }
+                                return *this;
+                        }
+                        if (b.t == MPZ) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_gcd(bigint, v._bigint, b.v._bigint);
+                                return bigint;
+                        }
+                case MPQ:
+                case PYOBJECT:
+                {
+                        PY_RETURN2(py_funcs.py_gcd, b);
+                }
+                default:
+                        stub("invalid type: type not handled");
         }
         
-        PY_RETURN2(py_funcs.py_gcd, b);
 }
 
 const numeric numeric::lcm(const numeric &b) const {
-        if (t == MPZ and b.t == MPZ) {
-                mpz_t bigint;
-                mpz_init(bigint);
-                mpz_lcm(bigint, v._bigint, b.v._bigint);
-                return bigint;
+        switch (t) {
+                case LONG:
+                        if (b.t == LONG) {
+                                // C++17 will have a function for this
+                                long a = v._long;
+                                long bl = b.v._long;
+                                long c;
+                                while ( a != 0 ) {
+                                        c = a; a = bl % a;  bl = c;
+                                }
+                                return (v._long / bl) * b.v._long;
+                        }
+                        if (b.t == MPZ)
+                                return to_bigint().lcm(b);
+                case MPZ:
+                        if (b.t == LONG)
+                                return lcm(b.to_bigint());
+                        if (b.t == MPZ) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_lcm(bigint, v._bigint, b.v._bigint);
+                                return bigint;
+                        }
+                case MPQ:
+                case PYOBJECT:
+                {
+                        PY_RETURN2(py_funcs.py_lcm, b);
+                }
+                default:
+                        stub("invalid type: type not handled");
         }
-        
-        PY_RETURN2(py_funcs.py_lcm, b);
 }
 
 // version of factor for factors fitting into long
 void numeric::factorsmall(std::vector<std::pair<long, int>>& factors, long range) const
 {
-        if (t == MPQ)
-                return to_bigint().factorsmall(factors);
-        if (t != MPZ)
-                return;
         if (is_one() or is_minus_one())
                 return;
-        fmpz_t f;
-        fmpz_init(f);
-        mpz_t bigint;
-        mpz_init(bigint);
-        mpz_abs(bigint, v._bigint);
-        fmpz_set_mpz(f, bigint);
-        fmpz_factor_t fs;
-        fmpz_factor_init(fs);
-        if (range == 0)
-                fmpz_factor(fs, f);
-        else
-                fmpz_factor_trial_range(fs, f, 0, range);
-        for (slong i=0; i<fs->num; ++i) {
-                fmpz_get_mpz(bigint, fs->p + i);
-                factors.push_back(std::make_pair(mpz_get_si(bigint),
-                                              int(*(fs->exp+i))));
+        switch (t) {
+                case LONG:
+                        return to_bigint().factorsmall(factors, range);
+                case MPZ:
+                {
+                        fmpz_t f;
+                        fmpz_init(f);
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_abs(bigint, v._bigint);
+                        fmpz_set_mpz(f, bigint);
+                        fmpz_factor_t fs;
+                        fmpz_factor_init(fs);
+                        if (range == 0)
+                                fmpz_factor(fs, f);
+                        else
+                                fmpz_factor_trial_range(fs, f, 0, range);
+                        for (slong i=0; i<fs->num; ++i) {
+                                fmpz_get_mpz(bigint, fs->p + i);
+                                factors.push_back(std::make_pair(mpz_get_si(bigint),
+                                                              int(*(fs->exp+i))));
+                        }
+                        mpz_clear(bigint);
+                        fmpz_factor_clear(fs);
+                        fmpz_clear(f);
+                        return;
+                }
+                case MPQ:
+                        return to_bigint().factorsmall(factors);
+                case PYOBJECT:
+                default:
+                        stub("invalid type: type not handled");
         }
-        mpz_clear(bigint);
-        fmpz_factor_clear(fs);
-        fmpz_clear(f);
 }
 
 // may take long time if no range given
 void numeric::factor(std::vector<std::pair<numeric, int>>& factors, long range) const
 {
-        if (t == MPQ)
-                return to_bigint().factor(factors);
-        if (t != MPZ)
-                return;
         if (is_one() or is_minus_one())
                 return;
-        fmpz_t f;
-        fmpz_init(f);
-        mpz_t bigint, tmp;
-        mpz_init(bigint);
-        mpz_abs(bigint, v._bigint);
-        fmpz_set_mpz(f, bigint);
-        fmpz_factor_t fs;
-        fmpz_factor_init(fs);
-        if (range == 0)
-                fmpz_factor(fs, f);
-        else
-                fmpz_factor_trial_range(fs, f, 0, range);
-        for (slong i=0; i<fs->num; ++i) {
-                mpz_init(tmp);
-                fmpz_get_mpz(tmp, fs->p + i);
-                if (range != 0)
-                        for (int j=0; j<int(*(fs->exp+i)); ++j)
-                                mpz_divexact(bigint, bigint, tmp);
-                factors.push_back(std::make_pair(numeric(tmp),
-                                              int(*(fs->exp+i))));
+        switch (t) {
+                case LONG:
+                {
+                        std::vector<std::pair<long, int>> f;
+                        factorsmall(f, range);
+                        for (auto p : f)
+                                factors.push_back(std::make_pair(numeric(p.first), p.second));
+                        return;
+                }
+                case MPZ:
+                {
+                        fmpz_t f;
+                        fmpz_init(f);
+                        mpz_t bigint, tmp;
+                        mpz_init(bigint);
+                        mpz_abs(bigint, v._bigint);
+                        fmpz_set_mpz(f, bigint);
+                        fmpz_factor_t fs;
+                        fmpz_factor_init(fs);
+                        if (range == 0)
+                                fmpz_factor(fs, f);
+                        else
+                                fmpz_factor_trial_range(fs, f, 0, range);
+                        for (slong i=0; i<fs->num; ++i) {
+                                mpz_init(tmp);
+                                fmpz_get_mpz(tmp, fs->p + i);
+                                if (range != 0)
+                                        for (int j=0; j<int(*(fs->exp+i)); ++j)
+                                                mpz_divexact(bigint, bigint, tmp);
+                                factors.push_back(std::make_pair(numeric(tmp),
+                                                              int(*(fs->exp+i))));
+                        }
+                        fmpz_clear(f);
+                        fmpz_factor_clear(fs);
+                        if (range != 0 and mpz_cmp_ui(bigint, 1) != 0)
+                                factors.push_back(std::make_pair(numeric(bigint), 1));
+                        else
+                                mpz_clear(bigint);
+                        return;
+                }
+                case MPQ:
+                        return to_bigint().factor(factors);
+                case PYOBJECT:
+                default:
+                        stub("invalid type: type not handled");
         }
-        fmpz_clear(f);
-        fmpz_factor_clear(fs);
-        if (range != 0 and mpz_cmp_ui(bigint, 1) != 0)
-                factors.push_back(std::make_pair(numeric(bigint), 1));
-        else
-                mpz_clear(bigint);
 }
 
 static void setDivisors(long n, int i, std::set<int>& divisors,
@@ -3481,31 +3985,23 @@ static void setDivisors(long n, int i, std::set<int>& divisors,
 
 void numeric::divisors(std::set<int>& divs) const
 {
-        if (t == MPQ)
-                return to_bigint().divisors(divs);
-        if (t != MPZ)
-                return;
         divs.insert(1);
         if (is_one() or is_minus_one())
                 return;
-        std::vector<std::pair<long, int>> factors;
-        factorsmall(factors);
-        setDivisors(1, 0, divs, factors);
-}
-
-/** Size in binary notation.  For integers, this is the smallest n >= 0 such
- *  that -2^n <= x < 2^n. If x > 0, this is the unique n > 0 such that
- *  2^(n-1) <= x < 2^n.
- *
- *  @return  number of bits (excluding sign) needed to represent that number
- *  in two's complement if it is an integer, 0 otherwise. */
-int numeric::int_length() const {
-        PyObject* a = to_pyobject();
-        int n = py_funcs.py_int_length(a);
-        Py_DECREF(a);
-        if (n == -1)
-                py_error("int_length");
-        return n;
+        switch (t) {
+                case LONG:
+                case MPZ:
+                {
+                        std::vector<std::pair<long, int>> factors;
+                        factorsmall(factors);
+                        setDivisors(1, 0, divs, factors);
+                }
+                case MPQ:
+                        return to_bigint().divisors(divs);
+                case PYOBJECT:
+                default:
+                        stub("invalid type: type not handled");
+        }
 }
 
 //////////
@@ -3520,11 +4016,43 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 new_right = right;
                 return;
         }
+        mpz_t bigint;
         mpq_t bigrat;
         PyObject *o;
         switch (left.t) {
+                case LONG:
+                        switch (right.t) {
+                                case MPZ:
+                                        mpz_init(bigint);
+                                        mpz_set_si(bigint, left.v._long);
+                                        new_left = numeric(bigint);
+                                        new_right = right;
+                                        return;
+                                case MPQ:
+                                        mpq_init(bigrat);
+                                        mpq_set_si(bigrat, left.v._long, 1);
+                                        new_left = numeric(bigrat);
+                                        new_right = right;
+                                        return;
+                                case PYOBJECT:
+                                        mpz_init_set_ui(bigint, left.v._long);
+                                        o = py_funcs.py_integer_from_mpz(bigint);
+                                        new_left = numeric(o, true);
+                                        new_right = right;
+                                        mpz_clear(bigint);
+                                        return;
+                                default:
+                                        std::cerr << "type = " << right.t << "\n";
+                                        stub("** invalid coercion -- left MPZ**");
+                        }
                 case MPZ:
                         switch (right.t) {
+                                case LONG:
+                                        mpz_init(bigint);
+                                        mpz_set_si(bigint, right.v._long);
+                                        new_right = numeric(bigint);
+                                        new_left = left;
+                                        return;
                                 case MPQ:
                                         mpq_init(bigrat);
                                         mpq_set_z(bigrat, left.v._bigint);
@@ -3532,7 +4060,6 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         new_right = right;
                                         return;
                                 case PYOBJECT:
-                                        mpz_t bigint;
                                         mpz_init_set(bigint, left.v._bigint);
                                         o = py_funcs.py_integer_from_mpz(bigint);
                                         new_left = numeric(o, true);
@@ -3545,6 +4072,12 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                         }
                 case MPQ:
                         switch (right.t) {
+                                case LONG:
+                                        mpq_init(bigrat);
+                                        mpq_set_si(bigrat, right.v._long, 1);
+                                        new_right = numeric(bigrat);
+                                        new_left = left;
+                                        return;
                                 case MPZ:
                                         mpq_init(bigrat);
                                         mpq_set_z(bigrat, right.v._bigint);
@@ -3566,8 +4099,13 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 case PYOBJECT:
                         new_left = left;
                         switch (right.t) {
+                                case LONG:
+                                        mpz_init_set_si(bigint, right.v._long);
+                                        o = py_funcs.py_integer_from_mpz(bigint);
+                                        mpz_clear(bigint);
+                                        new_right = numeric(o, true);
+                                        return;
                                 case MPZ:
-                                        mpz_t bigint;
                                         mpz_init_set(bigint, right.v._bigint);
                                         o = py_funcs.py_integer_from_mpz(bigint);
                                         mpz_clear(bigint);

@@ -887,43 +887,6 @@ basic & ex::construct_from_long(long i)
 	}
 }
 	
-basic & ex::construct_from_ulong(unsigned long i)
-{
-	switch (i) {  // prefer flyweights over new objects
-	case 0:
-		return *const_cast<numeric *>(_num0_p);
-	case 1:
-		return *const_cast<numeric *>(_num1_p);
-	case 2:
-		return *const_cast<numeric *>(_num2_p);
-	case 3:
-		return *const_cast<numeric *>(_num3_p);
-	case 4:
-		return *const_cast<numeric *>(_num4_p);
-	case 5:
-		return *const_cast<numeric *>(_num5_p);
-	case 6:
-		return *const_cast<numeric *>(_num6_p);
-	case 7:
-		return *const_cast<numeric *>(_num7_p);
-	case 8:
-		return *const_cast<numeric *>(_num8_p);
-	case 9:
-		return *const_cast<numeric *>(_num9_p);
-	case 10:
-		return *const_cast<numeric *>(_num10_p);
-	case 11:
-		return *const_cast<numeric *>(_num11_p);
-	case 12:
-		return *const_cast<numeric *>(_num12_p);
-	default:
-		basic *bp = new numeric(i);
-		bp->setflag(status_flags::dynallocated);
-		GINAC_ASSERT(bp->get_refcount() == 0);
-		return *bp;
-	}
-}
-	
 basic & ex::construct_from_double(double d)
 {
 	basic *bp = new numeric(d);

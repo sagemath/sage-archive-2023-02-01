@@ -1154,7 +1154,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
 		// Combine equal symmetrized terms
 		std::vector<terminfo> terms_pass2;
 		for (std::vector<terminfo>::const_iterator i=terms.begin(); i!=terms.end(); ) {
-			size_t num = 1;
+			long num = 1;
 			auto j = i + 1;
 			while (j != terms.end() && j->symm == i->symm) {
 				num++;

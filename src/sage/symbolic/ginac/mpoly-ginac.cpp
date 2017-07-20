@@ -571,12 +571,12 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
 	size_t num_yun = yun.size();
 	exvector factor; factor.reserve(num_yun);
 	exvector cofac; cofac.reserve(num_yun);
-	for (size_t i=0; i<num_yun; i++) {
+	for (unsigned i=0; i<num_yun; i++) {
 		if (!yun[i].is_equal(_ex1)) {
-			for (size_t j=0; j<=i; j++) {
+			for (unsigned j=0; j<=i; j++) {
 				factor.push_back(pow(yun[i], j+1));
 				ex prod = _ex1;
-				for (size_t k=0; k<num_yun; k++) {
+				for (unsigned k=0; k<num_yun; k++) {
 					if (k == i)
 						prod *= pow(yun[k], i-j);
 					else

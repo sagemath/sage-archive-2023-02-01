@@ -103,7 +103,6 @@ public:
 	ex(int i);
 	ex(unsigned int i);
 	ex(long i);
-	ex(unsigned long i);
 	ex(double const d);
 	ex(PyObject* o);
 
@@ -271,7 +270,6 @@ private:
 	static basic & construct_from_pyobject(PyObject* o);
 	static basic & construct_from_uint(unsigned int i);
 	static basic & construct_from_long(long i);
-	static basic & construct_from_ulong(unsigned long i);
 	static basic & construct_from_double(double d);
 	static ptr<basic> construct_from_string_and_lst(const std::string &s, const ex &l);
 	void makewriteable();
@@ -327,12 +325,6 @@ ex::ex(unsigned int i) : bp(construct_from_uint(i))
 
 inline
 ex::ex(long i) : bp(construct_from_long(i))
-{
-	GINAC_ASSERT(bp->flags & status_flags::dynallocated);
-}
-
-inline
-ex::ex(unsigned long i) : bp(construct_from_ulong(i))
 {
 	GINAC_ASSERT(bp->flags & status_flags::dynallocated);
 }

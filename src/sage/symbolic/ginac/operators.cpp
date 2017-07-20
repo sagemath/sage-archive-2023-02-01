@@ -45,15 +45,7 @@ static inline const ex exadd(const ex & lh, const ex & rh)
 /** Used internally by operator*() to multiply two ex objects together. */
 static inline const ex exmul(const ex & lh, const ex & rh)
 {
-	// Check if we are constructing a mul object or a ncmul object.  Due to
-	// ncmul::eval()'s rule to pull out commutative elements we need to check
-	// only one of the elements.
-	if (rh.return_type()==return_types::commutative ||
-	    lh.return_type()==return_types::commutative) {
-		return (new mul(lh,rh))->setflag(status_flags::dynallocated);
-	} else {
-		return (new ncmul(lh,rh))->setflag(status_flags::dynallocated);
-	}
+        return (new mul(lh,rh))->setflag(status_flags::dynallocated);
 }
 
 /** Used internally by operator-() and friends to change the sign of an argument. */

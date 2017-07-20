@@ -1,17 +1,26 @@
 diff --git a/sympy/core/function.py b/sympy/core/function.py
-index 4c4ce9c..fcc8c95 100644
+index 4c4ce9c..63c52da 100644
 --- a/sympy/core/function.py
 +++ b/sympy/core/function.py
-@@ -746,8 +746,12 @@ def _eval_as_leading_term(self, x):
+@@ -746,8 +746,21 @@ def _eval_as_leading_term(self, x):
      def _sage_(self):
          import sage.all as sage
          fname = self.func.__name__
 -        func = getattr(sage, fname)
 +        func = getattr(sage, fname,None)
          args = [arg._sage_() for arg in self.args]
++
++        # In the case the function is not known in sage:
 +        if func is None:
-+            # abstract function
-+            return sage.function(fname)(*args)
++            import sympy
++            if getattr(sympy, fname,None) is None:
++                # abstract function
++                return sage.function(fname)(*args)
++
++            else:
++                # the function defined in sympy is not known in sage
++                # this exception is catched in sage
++                raise AttributeError
 +
          return func(*args)
  

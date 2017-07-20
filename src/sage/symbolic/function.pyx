@@ -619,9 +619,7 @@ cdef class Function(SageObject):
             sage: g._sympy_init_()
             'gg'
             sage: g(x)._sympy_()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: SymPy function 'gg' doesn't exist
+            gg(x)
         """
         return self._conversions.get('sympy', self._name)
 
@@ -1514,4 +1512,3 @@ def unpickle_wrapper(p):
     if p is None:
         return None
     return unpickle_function(p)
-

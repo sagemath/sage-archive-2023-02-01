@@ -787,10 +787,11 @@ class SwapOperator(SageObject):
         """
         return hash(self._position)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
-        Compare two swap operators. The comparison is done by comparing the
-        positions.
+        Compare two swap operators.
+
+        The comparison is done by comparing the positions.
 
         EXAMPLES::
 
@@ -798,15 +799,27 @@ class SwapOperator(SageObject):
             sage: s = [SwapOperator(i) for i in range(3)]
             sage: s[0] == s[0]
             True
-            sage: s[1] < s[0]
+            sage: s[1] == s[0]
             False
-            sage: s[1] < s[2]
+        """
+        if not isinstance(other, SwapOperator):
+            return False
+        return self._position == other._position
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.yang_baxter_graph import SwapOperator
+            sage: s = [SwapOperator(i) for i in range(3)]
+            sage: s[0] != s[0]
+            False
+            sage: s[1] != s[0]
             True
         """
-        if type(self) is type(other):
-            return cmp(self._position, other._position)
-        else:
-            return cmp(type(self), type(other))
+        return not (self == other)
 
     def __repr__(self):
         r"""

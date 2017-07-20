@@ -1417,7 +1417,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef _set(self, x, int base):
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
-        cdef RealNumber n, d
         cdef RealField_class parent
         cdef Gen _gen
         parent = self._parent

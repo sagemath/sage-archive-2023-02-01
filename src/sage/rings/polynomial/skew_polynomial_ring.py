@@ -2,7 +2,7 @@ r"""
 Skew Univariate Polynomial Rings
 
 This module provides the
-:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``,
+:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`,
 which constructs a general dense univariate skew polynomials over commutative
 base rings with automorphisms over the base rings. This is usual accessed only
 indirectly through the constructor

@@ -168,6 +168,7 @@ List of Poset methods
     :meth:`~FinitePoset.zeta_polynomial` | Return the zeta polynomial of the poset.
     :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial of the poset.
     :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
+    :meth:`~FinitePoset.degree_polynomial` | Return the generating polynomial of degrees of vertices in the Hasse diagram.
 
 **Polytopes**
 
@@ -1692,6 +1693,9 @@ class FinitePoset(UniqueRepresentation, Parent):
           * ``cover_labels`` - a dictionary, list or function representing
             labels of the covers of the poset. When set to ``None`` (default)
             no label is displayed on the edges of the Hasse Diagram.
+          * ``cover_labels_background`` - a background color for cover
+            relations. The default is "white". To achieve a transparent
+            background use "transparent".
 
         - Options to change overall look:
 
@@ -1788,6 +1792,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                   'element_size':   'vertex_size',
                   'element_shape':  'vertex_shape',
                   'cover_color':    'edge_color',
+                  'cover_labels_background':    'edge_labels_background',
                   'cover_colors':   'edge_colors',
                   'cover_style':    'edge_style',
                   'border':         'graph_border',
@@ -3416,6 +3421,10 @@ class FinitePoset(UniqueRepresentation, Parent):
     def cardinality(self):
         """
         Return the number of elements in the poset.
+
+        .. SEEALSO::
+
+            :meth:`degree_polynomial` for a more refined invariant
 
         EXAMPLES::
 
@@ -6303,6 +6312,39 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 4, 10]
         """
         return self.order_ideals_lattice(as_ideals=False).zeta_polynomial()
+
+    def degree_polynomial(self):
+        r"""
+        Return the generating polynomial of degrees of vertices in ``self``.
+
+        This is the sum
+
+        .. MATH::
+
+            \sum_{v \in P} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
+
+        where ``in(v)`` and ``out(v)`` are the number of incoming and
+        outgoing edges at vertex `v` in the Hasse diagram of `P`.
+
+        Because this polynomial is multiplicative for Cartesian
+        product of posets, it is useful to help see if the poset can
+        be isomorphic to a Cartesian product.
+
+        .. SEEALSO::
+
+            :meth:`cardinality` for the value at `(x, y) = (1, 1)`
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.degree_polynomial()
+            x^2 + 3*x*y + y^2
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.degree_polynomial().factor()
+            (x + y)^4
+        """
+        return self._hasse_diagram.degree_polynomial()
 
     def promotion(self, i=1):
         r"""

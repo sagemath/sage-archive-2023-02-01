@@ -560,7 +560,8 @@ class Kash(Expect):
 ##         """
 ##         Return help on KASH commands.
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: X = kash.help('IntegerRing')   # optional - kash
 
 ##         """

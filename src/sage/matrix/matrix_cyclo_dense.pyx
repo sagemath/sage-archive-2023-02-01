@@ -38,7 +38,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
@@ -81,7 +82,8 @@ MAX_MODULUS = min(MAX_MODULUS_modn_dense_double, MAX_MODULUS_multi_modular)
 echelon_primes_increment = 15
 echelon_verbose_level = 1
 
-cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
+
+cdef class Matrix_cyclo_dense(Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
     # x * __cinit__
@@ -559,7 +561,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 

@@ -83,7 +83,8 @@ class EtaGroup_class(AbelianGroup):
         Create the group of eta products of a given level, which must be a
         positive integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = EtaGroup(12); G # indirect doctest
             Group of eta products on X_0(12)
             sage: G is loads(dumps(G))

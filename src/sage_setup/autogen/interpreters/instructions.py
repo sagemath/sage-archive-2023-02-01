@@ -377,3 +377,31 @@ def instr_funcall_1arg_mpfr(name, io, op):
         exp: S->S = 'mpfr_exp(o0, i0, MPFR_RNDN);'
     """
     return InstrSpec(name, io, code='%s(o0, i0, MPFR_RNDN);' % op)
+
+def instr_funcall_2args_mpc(name, io, op):
+    r"""
+    A helper function for creating MPC instructions with two inputs
+    and one output.
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.interpreters import *
+        sage: pg = CCInterpreter().pg
+        sage: instr_funcall_2args_mpc('add', pg('SS','S'), 'mpc_add')
+        add: SS->S = 'mpc_add(o0, i0, i1, MPC_RNDNN);'
+    """
+    return InstrSpec(name, io, code='%s(o0, i0, i1, MPC_RNDNN);' % op)
+
+def instr_funcall_1arg_mpc(name, io, op):
+    r"""
+    A helper function for creating MPC instructions with one input
+    and one output.
+
+    EXAMPLES::
+
+        sage: from sage_setup.autogen.interpreters import *
+        sage: pg = CCInterpreter().pg
+        sage: instr_funcall_1arg_mpc('exp', pg('S','S'), 'mpc_exp')
+        exp: S->S = 'mpc_exp(o0, i0, MPC_RNDNN);'
+    """
+    return InstrSpec(name, io, code='%s(o0, i0, MPC_RNDNN);' % op)

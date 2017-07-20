@@ -2171,7 +2171,17 @@ class Graphics3dGroup(Graphics3d):
             sage: G = sphere(texture=T) + sphere((1, 1, 1), texture=T)
             sage: len(G.texture_set())
             1
+
+        TESTS:
+
+        Check that :trac:`23200` is fixed::
+
+            sage: G = sage.plot.plot3d.base.Graphics3dGroup()
+            sage: G.texture_set()
+            set()
         """
+        if not self.all:
+            return set()
         return reduce(set.union, [g.texture_set() for g in self.all])
 
     def flatten(self):

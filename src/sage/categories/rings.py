@@ -94,11 +94,7 @@ class Rings(CategoryWithAxiom):
             Unless the codomain is the zero ring::
 
                 sage: codomain = Integers(1)
-                sage: f = K.hom([codomain(1)]); f
-                Function Field morphism:
-                  From: Rational function field in x over Rational Field
-                  To:   Ring of integers modulo 1
-                  Defn: x |--> 0
+                sage: f = QQ.hom([Zmod(1)(0)], check=False)
                 sage: f.is_injective()
                 False
 
@@ -1085,6 +1081,60 @@ class Rings(CategoryWithAxiom):
             if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
+
+        def inverse_of_unit(self):
+            r"""
+            Return the inverse of this element if it is a unit.
+
+            OUTPUT:
+
+            An element in the same ring as this element.
+
+            EXAMPLES::
+
+                sage: R.<x> = ZZ[]
+                sage: S = R.quo(x^2 + x + 1)
+                sage: S(1).inverse_of_unit()
+                1
+
+            This method fails when the element is not a unit::
+
+                sage: 2.inverse_of_unit()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: inverse does not exist
+
+            The inverse returned is in the same ring as this element::
+
+                sage: a = -1
+                sage: a.parent()
+                Integer Ring
+                sage: a.inverse_of_unit().parent()
+                Integer Ring
+
+            Note that this is often not the case when computing inverses in other ways::
+
+                sage: (~a).parent()
+                Rational Field
+                sage: (1/a).parent()
+                Rational Field
+
+            """
+            try:
+                if not self.is_unit():
+                    raise ArithmeticError("element is not a unit")
+            except NotImplementedError:
+                # if an element does not implement is_unit, we just try to
+                # invert it anyway; if the result is in the ring again, it was
+                # a unit
+                pass
+
+            inverse = ~self
+            if inverse not in self.parent():
+                raise ArithmeticError("element is not a unit")
+
+            # return the inverse (with the correct parent)
+            return self.parent()(inverse)
 
         def _divide_if_possible(self, y):
             """

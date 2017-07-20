@@ -58,3 +58,4 @@ from .linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, Ternar
 from .utilities import setprint, newlabel, get_nonisomorphic_matroids, lift_cross_ratios, lift_map
 from . import lean_matrix
 from .extension import LinearSubclasses, MatroidExtensions
+from .union_matroid import MatroidUnion, MatroidSum, PartitionMatroid

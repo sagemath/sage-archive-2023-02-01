@@ -132,7 +132,7 @@ cdef class Cache_givaro(SageObject):
         Finite Field.
 
         These are implemented using Zech logs and the
-        cardinality must be less than `2^{16}`. By default conway polynomials
+        cardinality must be less than `2^{16}`. By default Conway polynomials
         are used as minimal polynomial.
 
         INPUT:
@@ -1144,11 +1144,11 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: k(1) / k(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
         """
         cdef int r
         if (<FiniteField_givaroElement>right).element == 0:
-            raise ZeroDivisionError('division by zero in finite field.')
+            raise ZeroDivisionError('division by zero in finite field')
         r = self._cache.objectptr.div(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
@@ -1209,13 +1209,12 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: ~z
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+            ZeroDivisionError: division by zero in finite field
 
         """
         cdef int r
-        if (<FiniteField_givaroElement>self).element == 0:
-            raise ZeroDivisionError('division by zero in %s'
-                                    % self.parent())
+        if self.element == 0:
+            raise ZeroDivisionError('division by zero in finite field')
         self._cache.objectptr.inv(r, self.element)
         return make_FiniteField_givaroElement(self._cache,r)
 
@@ -1284,7 +1283,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         elif (cache.objectptr).isZero(self.element):
             if exp < 0:
-                raise ZeroDivisionError
+                raise ZeroDivisionError('division by zero in finite field')
             return make_FiniteField_givaroElement(cache, cache.objectptr.zero)
 
         cdef int order = (cache.order_c()-1)

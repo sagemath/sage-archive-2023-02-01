@@ -37,6 +37,10 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
+- :class:`algebras.QuantumMatrixCoordinate
+  <sage.algebras.quantum_matrix_coordinate_algebra.QuantumMatrixCoordinateAlgebra>`
+- :class:`algebras.QuantumGL
+  <sage.algebras.quantum_matrix_coordinate_algebra.QuantumGL>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
 - :func:`algebras.Quaternion
@@ -48,6 +52,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
+- :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
 - :class:`algebras.Tensor <sage.algebras.tensor_algebra.TensorAlgebra>`
@@ -84,5 +89,9 @@ lazy_import('sage.combinat.diagram_algebras', 'TemperleyLiebAlgebra', 'Temperley
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 lazy_import('sage.combinat.free_dendriform_algebra', 'FreeDendriformAlgebra', 'FreeDendriform')
+lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
+            'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
+lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
+lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion

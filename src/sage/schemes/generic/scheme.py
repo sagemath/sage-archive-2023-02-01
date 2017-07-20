@@ -697,6 +697,24 @@ class Scheme(Parent):
             a.append(len(S1.rational_points()))
         return(a)
 
+    def zeta_function(self):
+        r"""
+        Compute the zeta function of a generic scheme.
+
+        Derived clases should override this method.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: X.zeta_function()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
     def zeta_series(self, n, t):
         """
         Return the zeta series.
@@ -734,6 +752,14 @@ class Scheme(Parent):
             sage: C.base_extend(GF(9,'a')).zeta_series(4,t)
             1 + 12*t + 120*t^2 + 1092*t^3 + 9840*t^4 + O(t^5)
 
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: X.zeta_series(2,t)
+            1 + 5*t + 21*t^2 + O(t^3)
+
         TESTS::
 
             sage: P.<x> = PolynomialRing(ZZ)
@@ -744,14 +770,6 @@ class Scheme(Parent):
             ...
             TypeError: zeta functions only defined for schemes
             over finite fields
-
-        ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
-            sage: X = P.subscheme([y^2*z - x^3 - z^3])
-            sage: R.<t> = PowerSeriesRing(Integers())
-            sage: X.zeta_series(2,t)
-            1 + 5*t + 21*t^2 + O(t^3)
         """
         F = self.base_ring()
         if not F.is_finite():

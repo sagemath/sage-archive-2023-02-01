@@ -94,7 +94,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 sage: A = Zp(5, prec=10, print_mode="digits")
                 sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
 
-                sage: S, L, R = M.smith_form()
+                sage: S, L, R = M.smith_form()  # indirect doctest
                 sage: S
                 [ ...1     0]
                 [    0 ...10]
@@ -108,14 +108,14 @@ class CompleteDiscreteValuationRings(Category_singleton):
             If not needed, it is possible to do not compute the
             transformations matrices L and R as follows::
 
-                sage: M.smith_form(transformation=False)
+                sage: M.smith_form(transformation=False)  # indirect doctest
                 [ ...1     0]
                 [    0 ...10]
 
             This method works for rectangular matrices as well::
 
                 sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
-                sage: S, L, R = M.smith_form()
+                sage: S, L, R = M.smith_form()  # indirect doctest
                 sage: S
                 [ ...1     0]
                 [    0 ...10]
@@ -132,7 +132,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             not enough to determine the Smith normal form::
 
                 sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
-                sage: M.smith_form()
+                sage: M.smith_form()  # indirect doctest
                 Traceback (most recent call last):
                 ...
                 PrecisionError: Not enough precision to compute Smith normal form
@@ -329,7 +329,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 sage: A = Qp(5, prec=10, print_mode="digits")
                 sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
 
-                sage: S, L, R = M.smith_form()
+                sage: S, L, R = M.smith_form()  # indirect doctest
                 sage: S
                 [ ...1     0]
                 [    0 ...10]
@@ -343,14 +343,14 @@ class CompleteDiscreteValuationFields(Category_singleton):
             If not needed, it is possible to do not compute the
             transformations matrices L and R as follows::
 
-                sage: M.smith_form(transformation=False)
+                sage: M.smith_form(transformation=False)  # indirect doctest
                 [ ...1     0]
                 [    0 ...10]
 
             This method works for rectangular matrices as well::
 
                 sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
-                sage: S, L, R = M.smith_form()
+                sage: S, L, R = M.smith_form()  # indirect doctest
                 sage: S
                 [ ...1     0]
                 [    0 ...10]
@@ -367,7 +367,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             not enough to determine the Smith normal form::
 
                 sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
-                sage: M.smith_form()
+                sage: M.smith_form()  # indirect doctest
                 Traceback (most recent call last):
                 ...
                 PrecisionError: Not enough precision to compute Smith normal form

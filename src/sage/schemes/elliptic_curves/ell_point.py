@@ -129,7 +129,7 @@ import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.groups.all import AbelianGroup
+from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
 import sage.groups.generic as generic
 from sage.libs.pari import pari
 from cypari2.pari_instance import prec_words_to_bits
@@ -3546,7 +3546,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             if not hasattr(E, '_order'):
                 E._order = N
             if not E.abelian_group.is_in_cache():
-                g = AbelianGroup([N]), (self,)
+                g = AdditiveAbelianGroupWrapper(E.point_homset(), [self], [N])
                 E.abelian_group.set_cache(g)
 
         self._order = N

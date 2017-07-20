@@ -1030,10 +1030,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ALGORITHM:
 
-            The sum of the Green's function at the archimedean places and the places of bad reduction.
+        The sum of the Green's function at the archimedean places and the places of bad reduction.
 
-            If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
-            not have to factor the resultant.
+        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
+        not have to factor the resultant.
 
         INPUT:
 
@@ -1100,17 +1100,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-        sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
-            1726400507263657518745202199786469389956474942774063845925192557326303453731548\
-            2685079170261221429134616704292143116022212404792747377940806653514195974598569\
-            02143413
-        sage: P.<x,y> = ProjectiveSpace(QQ,1)
-        sage: H = End(P)
-        sage: f = H([RSA768*x^2 + y^2, x*y])
-        sage: Q = P(RSA768,1)
-        sage: Q.canonical_height(f, error_bound=0.00000000000000001)
-        931.18256422718241278672729195
-
+            sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
+                1726400507263657518745202199786469389956474942774063845925192557326303453731548\
+                2685079170261221429134616704292143116022212404792747377940806653514195974598569\
+                02143413
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([RSA768*x^2 + y^2, x*y])
+            sage: Q = P(RSA768,1)
+            sage: Q.canonical_height(f, error_bound=0.00000000000000001)
+            931.18256422718241278672729195
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
@@ -1156,7 +1155,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     y_i = y/g
             # Looks diffrent than Well's Algorithm because of the diffrence between what Well's calls H_infty,
             # and what Green's Function returns for the infite place
-            h = R(self[1].abs()).log() + self.green_function(F, 0 , **kwds) - R(self[1]).abs().log() - H + R(t).log()
+            h = self.green_function(F, 0 , **kwds) - H + R(t).log()
             return h
 
         if not K in _NumberFields:

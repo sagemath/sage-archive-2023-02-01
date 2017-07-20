@@ -1136,7 +1136,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             sage: A([[1,2,3],[4,5,6],[7,8,9]])
             Traceback (most recent call last):
             ...
-            ValueError: not a valid argument to build an alternating sign matrix
+            ValueError: invalid alternating sign matrix
             sage: A([[1,2,3],[4,5,6],[7,8,9]], check=False)
             [1 2 3]
             [4 5 6]
@@ -1152,7 +1152,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             m = self._matrix_space(asm)
             m.set_immutable()
             if check and m not in self:
-                raise ValueError('not a valid argument to build an alternating sign matrix')
+                raise ValueError('invalid alternating sign matrix')
             return self.element_class(self, m)
 
     Element = AlternatingSignMatrix

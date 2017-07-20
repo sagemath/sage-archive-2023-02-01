@@ -376,19 +376,19 @@ class FullyPackedLoop(Element):
             sage: FullyPackedLoop([[3,1],[5,5]])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid alternating sign matrix
+            ValueError: invalid alternating sign matrix
 
             sage: FullyPackedLoops(2)([[3,1],[5,5]])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid alternating sign matrix
+            ValueError: invalid alternating sign matrix
 
         Note that if anything else is used to generate the fully packed loop an error will occur::
 
             sage: fpl = FullyPackedLoop(5)
             Traceback (most recent call last):
             ...
-            ValueError: Invalid alternating sign matrix
+            ValueError: invalid alternating sign matrix
 
             sage: fpl = FullyPackedLoop((1, 2, 3))
             Traceback (most recent call last):
@@ -399,7 +399,7 @@ class FullyPackedLoop(Element):
             sage: FullyPackedLoop(SVM)
             Traceback (most recent call last):
             ...
-            ValueError: Invalid alternating sign matrix
+            ValueError: invalid alternating sign matrix
 
     REFERENCES:
 

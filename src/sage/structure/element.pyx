@@ -998,12 +998,16 @@ cdef class Element(SageObject):
             False
 
         """
+        if hasattr(self,'_parent'):
+            P = self._parent
+        elif hasattr(self,'parent'):
+            P = self.parent()
+        else:
+            return True # By convention!
         try:
-            zero = self._parent.zero()
-        except:
-            return False
-
-        return self != zero
+            return self != P.zero()
+        except (AttributeError,ValueError):
+            return True # By convention!
 
     def is_zero(self):
         """

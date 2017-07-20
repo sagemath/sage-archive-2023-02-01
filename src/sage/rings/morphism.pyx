@@ -947,7 +947,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
             sage: g = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
             sage: hash(f) == hash(g)
-	        True
+            True
 
         """
         return hash((self.domain(), self.codomain()))

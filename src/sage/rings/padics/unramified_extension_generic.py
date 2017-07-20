@@ -218,9 +218,8 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     def _frob_gen(self, arithmetic = True):
         """
         Returns frobenius of the generator for this unramified extension
-        
+
         EXAMPLES::
-        
             sage: R.<a> = Zq(9)
             sage: R._frob_gen()
             (2*a + 1) + (2*a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + (2*a + 2)*3^4 + (2*a + 2)*3^5 + (2*a + 2)*3^6 + (2*a + 2)*3^7 + (2*a + 2)*3^8 + (2*a + 2)*3^9 + (2*a + 2)*3^10 + (2*a + 2)*3^11 + (2*a + 2)*3^12 + (2*a + 2)*3^13 + (2*a + 2)*3^14 + (2*a + 2)*3^15 + (2*a + 2)*3^16 + (2*a + 2)*3^17 + (2*a + 2)*3^18 + (2*a + 2)*3^19 + O(3^20)
@@ -236,7 +235,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         while(f(approx) != 0): #hensel lift frobenius(a)
             approx = approx - f(approx)/g(approx)
         return approx
-    
+
     def uniformizer_pow(self, n):
         """
         Returns the nth power of the uniformizer of self (as an element of self).

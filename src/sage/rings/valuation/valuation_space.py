@@ -780,7 +780,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             assert(dd > 0)
             assert(d is not infinity)
             if d < 0:
-                return self.domain()(1/denominator)
+                # The following may fail if denominator is not inverible in the domain,
+                # but we don't have a better option this generically.
+                return self.domain()(~denominator)
 
             # We need non-negative integers a and b such that
             # a*n - b*d > 0 and a*nn - b*dd < 0

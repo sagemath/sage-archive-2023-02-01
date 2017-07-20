@@ -249,7 +249,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: QQ.valuation(2).is_discrete_pseudo_valuation() # indirect doctest
             True
 
-        The methods will be provided even if the concrete types is not created
+        The methods will be provided even if the concrete type is not created
         with :meth:`__make_element_class__`::
 
             sage: from sage.rings.valuation.valuation import DiscretePseudoValuation

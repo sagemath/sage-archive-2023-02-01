@@ -160,6 +160,26 @@ class Rings(CategoryWithAxiom):
 
             raise NotImplementedError
 
+        def _is_nonzero(self):
+            r"""
+            Return whether this is not the zero morphism.
+
+            .. NOTE::
+
+                We can not override ``is_zero()`` from the category framework
+                and we can not implement ``__nonzero__`` because it is a
+                special method. That this is why this has a cumbersome name.
+
+            EXAMPLES::
+
+                sage: ZZ.hom(ZZ)._is_nonzero()
+                True
+                sage: ZZ.hom(Zmod(1))._is_nonzero()
+                False
+
+            """
+            return bool(self.codomain().one())
+
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):

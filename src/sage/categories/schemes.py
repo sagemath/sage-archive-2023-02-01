@@ -138,12 +138,14 @@ class Schemes(Category):
         from sage.schemes.generic.morphism import is_SchemeMorphism
         if is_SchemeMorphism(x):
             return x
-        from sage.rings.morphism import is_RingHomomorphism
         from sage.rings.ring import CommutativeRing
         from sage.schemes.generic.spec import Spec
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
         if isinstance(x, CommutativeRing):
             return Spec(x)
-        elif is_RingHomomorphism(x):
+        elif isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
+            # x is a morphism of Rings
             A = Spec(x.codomain())
             return A.hom(x)
         else:

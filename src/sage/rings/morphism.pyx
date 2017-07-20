@@ -524,9 +524,6 @@ cdef class RingMap_lift(RingMap):
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
 
-        if not isinstance(other, RingMap_lift):
-            return (op == Py_NE)
-
         # Since they are lifting maps they are determined by their
         # parents, i.e., by the domain and codomain, since we just
         # compare those.
@@ -962,9 +959,6 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
 
-        if not isinstance(other, RingHomomorphism_coercion):
-            return (op == Py_NE)
-
         # Since they are coercion morphisms they are determined by
         # their parents, i.e., by the domain and codomain, so we just
         # compare those.
@@ -1177,11 +1171,6 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: loads(dumps(f2)) == f2
             True
         """
-        if not isinstance(other, RingHomomorphism_im_gens):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
-            return NotImplemented
-
         return richcmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens, op)
 
     def __hash__(self):
@@ -1471,10 +1460,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: f1M == loads(dumps(f1M))
             True
         """
-        if not isinstance(other, RingHomomorphism_from_base):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
-            return NotImplemented
         return richcmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying, op)
 
     def _repr_defn(self):
@@ -1649,9 +1634,6 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-
-        if not isinstance(other, RingHomomorphism_cover):
-            return (op == Py_NE)
 
         return richcmp(self.parent(), other.parent(), op)
 
@@ -1848,9 +1830,6 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         """
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-
-        if not isinstance(other, RingHomomorphism_from_quotient):
-            return (op == Py_NE)
 
         cdef RingHomomorphism_from_quotient left = self
         cdef RingHomomorphism_from_quotient right = other

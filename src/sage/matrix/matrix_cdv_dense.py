@@ -43,8 +43,11 @@ def smith_normal_form(M, transformation):
             break
         val = curval
 
-        if R.tracks_precision() and precM is not Infinity and val <= precM:
+        if R.tracks_precision() and precM is not Infinity and val >= precM:
             raise PrecisionError("Not enough precision to compute Smith normal form")
+
+        if val is Infinity:
+            break
 
         S.swap_rows(pivi,piv)
         S.swap_columns(pivj,piv)
@@ -52,10 +55,10 @@ def smith_normal_form(M, transformation):
             left.swap_rows(pivi,piv)
             right.swap_columns(pivj,piv)
 
-        smith[piv,piv] = R(1) << curval
-        inv = ~(S[piv,piv] >> curval)
+        smith[piv,piv] = R(1) << val
+        inv = ~(S[piv,piv] >> val)
         for i in range(piv+1,n):
-            scalar = -inv * (S[i,piv] >> curval)
+            scalar = -inv * (S[i,piv] >> val)
             if R.tracks_precision():
                 scalar = scalar.lift_to_maximal_precision()
             S.add_multiple_of_row(i,piv,scalar,piv+1)
@@ -64,7 +67,7 @@ def smith_normal_form(M, transformation):
         if transformation:
             left.rescale_row(piv,inv)
             for j in range(piv+1,m):
-                scalar = -inv * (S[piv,j] >> curval)
+                scalar = -inv * (S[piv,j] >> val)
                 if R.tracks_precision():
                     scalar = scalar.lift_to_maximal_precision()
                 right.add_multiple_of_column(j,piv,scalar)

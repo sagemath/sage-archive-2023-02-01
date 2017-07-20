@@ -139,11 +139,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
             TESTS::
 
-                sage: M = random_matrix(A, 4)
-                sage: S, L, R = M.smith_form()
-                sage: L*M*R == S
-                True
-
             We check that Smith decomposition works over various rings::
 
                 sage: from sage.rings.padics.precision_error import PrecisionError
@@ -330,11 +325,6 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 PrecisionError: Not enough precision to compute Smith normal form
 
             TESTS::
-
-                sage: M = random_matrix(A, 4)
-                sage: S, L, R = M.smith_form()
-                sage: L*M*R == S
-                True
 
             We check that Smith decomposition works over various rings::
 

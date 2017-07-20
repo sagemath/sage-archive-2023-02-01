@@ -43,6 +43,22 @@ class CompleteDiscreteValuationRings(Category_singleton):
         return [DiscreteValuationRings()]
 
     class ParentMethods:
+        def tracks_precision(self):
+            """
+            Return whether this parent tracks precision
+
+            EXAMPLES::
+
+                sage: R = Zp(5)
+                sage: R.tracks_precision()
+                True
+
+                sage: R = ZpFP(5)
+                sage: R.tracks_precision()
+                False
+            """
+            return True
+
         def _matrix_smith_form(self, M, transformation):
             """
             Return the Smith normal form of this matrix.
@@ -219,6 +235,22 @@ class CompleteDiscreteValuationFields(Category_singleton):
         return [DiscreteValuationFields()]
 
     class ParentMethods:
+        def tracks_precision(self):
+            """
+            Return whether this parent tracks precision
+
+            EXAMPLES::
+
+                sage: R = Qp(5)
+                sage: R.tracks_precision()
+                True
+
+                sage: R = QpFP(5)
+                sage: R.tracks_precision()
+                False
+            """
+            return True
+
         def _matrix_smith_form(self, M, transformation):
             """
             Return the Smith normal form of this matrix.

@@ -55,7 +55,8 @@ def smith_normal_form(M, transformation):
         inv = ~(S[piv,piv] >> curval)
         for i in range(piv+1,n):
             scalar = -inv * (S[i,piv] >> curval)
-            scalar = scalar.lift_to_maximal_precision()
+            if R.tracks_precision():
+                scalar = scalar.lift_to_maximal_precision()
             S.add_multiple_of_row(i,piv,scalar,piv+1)
             if transformation:
                 left.add_multiple_of_row(i,piv,scalar)
@@ -63,14 +64,16 @@ def smith_normal_form(M, transformation):
             left.rescale_row(piv,inv)
             for j in range(piv+1,m):
                 scalar = -inv * (S[piv,j] >> curval)
-                scalar = scalar.lift_to_maximal_precision()
+                if R.tracks_precision():
+                    scalar = scalar.lift_to_maximal_precision()
                 right.add_multiple_of_column(j,piv,scalar)
 
     if transformation:
-        prec = min([ x.precision_absolute() for x in M.list() ])
-        if prec is not Infinity:
-            prec -= curval
-        left = left.apply_map(lambda x: x.add_bigoh(prec))
+        if R.tracks_precision():
+            prec = min([ x.precision_absolute() for x in M.list() ])
+            if prec is not Infinity:
+                prec -= curval
+            left = left.apply_map(lambda x: x.add_bigoh(prec))
         return smith, left, right
     else:
         return smith

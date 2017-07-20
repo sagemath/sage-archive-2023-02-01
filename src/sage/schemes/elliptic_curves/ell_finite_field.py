@@ -1282,8 +1282,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.gens()
             ()
 
-        Unlike :meth:`abelian_group`, this works even over large finite
-        fields::
+        This works over larger finite fields where :meth:abelian_group may be
+        too expensive::
 
             sage: k.<a> = GF(5^60)
             sage: E = EllipticCurve([a,a])

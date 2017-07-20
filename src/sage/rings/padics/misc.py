@@ -1,4 +1,4 @@
-r"""
+"""
 Miscellaneous Functions
 
 This file contains several miscellaneous functions used by `p`-adics.
@@ -38,7 +38,15 @@ def gauss_sum(a, p, f, prec = 20):
 
     `g_q(a)` is defined by `g_q(a)= \sum_{u\in F_q^*} \omega(u)^{(-a)} \zeta_q^u`
     where `q = p^f`, `\omega` is the Teichmuller character and `\zeta_q` is some arbitrary 
-    choice of primitive `q`-th root of unity
+    choice of primitive `q`-th root of unity. The computation is adapted from the main theorem
+    in Alain Robert's paper The Gross-Koblitz formula revisited,
+    Rend. Sem. Mat. Univ. Padova 105 (2001), 157--170.
+
+    Let `p` be a prime, `f` a positive integer, `q=p^f`, and `\pi` be a root of `f(x)=x^{p-1}+p`.
+    Let `0\leq a<q-1`. Then the Gross-Koblitz formula gives us the value of the Gauss sum `g_q(a)`
+    as a product of p-adic Gamma functions as follows: `g_q(a)=\pi^s\prod_{0\leq i<f}\Gamma_p(a^{(i)}/(q-1))`
+    where `s` is the sum of the digits of `a` in base `p` and the `a^{(i)}` have `p`-adic expansions
+    obtained from cyclic permutations of that of `a`.
 
 
    INPUT:
@@ -86,6 +94,7 @@ def gauss_sum(a, p, f, prec = 20):
         sage: from sage.rings.padics.misc import gauss_sum
         sage: gauss_sum(2,13,2)
         6*pi^2 + 7*pi^14 + 11*pi^26 + 3*pi^62 + 6*pi^74 + 3*pi^86 + 5*pi^98 + pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 + pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
+
 
     """
     a = a % (p**f)

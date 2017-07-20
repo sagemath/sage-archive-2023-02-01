@@ -46,6 +46,7 @@ import operator
 from sage.structure.element import MultiplicativeGroupElement, parent
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.sequence    import Sequence
+from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.rings.all             import QQ, ZZ, Zmod, NumberField
 from sage.rings.ring import is_Ring
 from sage.misc.cachefunc        import cached_method
@@ -103,10 +104,18 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             self._c = self._c - 1
             self._check_level()
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self and other. Note that this only gets called when the
-        parents of self and other are identical.
+        Compare ``self`` and ``other``.
+
+        Note that this only gets called when the
+        parents of ``self`` and ``other`` are identical.
+
+        INPUT:
+
+        - ``other`` -- another smooth character
+
+        - ``op`` -- a comparison operator (see :mod:`sage.structure.richcmp`)
 
         EXAMPLES::
 
@@ -122,8 +131,12 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi1 == loads(dumps(chi1))
             True
         """
-        assert other.parent() is self.parent()
-        return cmp(self.level(), other.level()) or cmp(self._values_on_gens, other._values_on_gens)
+        lx = self.level()
+        rx = other.level()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self._values_on_gens, other._values_on_gens, op)
 
     def multiplicative_order(self):
         r"""
@@ -371,7 +384,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         else:
             raise TypeError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         TESTS::
 
@@ -386,10 +399,31 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G == SmoothCharacterGroupQp(3, QQ)
             True
         """
-        return cmp(type(self), type(other)) \
-            or cmp(self.prime(), other.prime()) \
-            or cmp(self.number_field(), other.number_field()) \
-            or cmp(self.base_ring(), other.base_ring())
+        if not isinstance(other, SmoothCharacterGroupGeneric):
+            return False
+
+        return (self.prime() == other.prime() and
+                self.number_field() == other.number_field() and
+                self.base_ring() == other.base_ring())
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
+            sage: G = SmoothCharacterGroupQp(3, QQ)
+            sage: G != SmoothCharacterGroupQp(3, QQ[I])
+            True
+            sage: G != 7
+            True
+            sage: G != SmoothCharacterGroupQp(7, QQ)
+            True
+            sage: G != SmoothCharacterGroupQp(3, QQ)
+            False
+        """
+        return not (self == other)
 
     def _coerce_map_from_(self, other):
         r"""

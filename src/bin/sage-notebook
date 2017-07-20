@@ -226,11 +226,23 @@ def make_parser():
     return parser
 
 
+def trac_23428_browser_workaround():
+    """
+    Running 'sage -n" with the Jupyter notebook on Darwin fails to
+    open a browser automatically. See :trac:`23428`.
+    """
+    if sys.platform != 'darwin':
+        return
+    if not os.environ.get('BROWSER', False):
+        os.environ['BROWSER'] = 'open'
+
+
 if __name__ == '__main__':
     parser = make_parser()
     args, unknown = parser.parse_known_args(sys.argv[1:])
     if len(unknown) > 0 and unknown[0] == '--':
         unknown = unknown[1:]
+    trac_23428_browser_workaround()
     if args.log is not None:
         import logging
         level = getattr(logging, args.log.upper())

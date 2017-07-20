@@ -115,7 +115,7 @@ def determinant(M):
             break
         val = curval
         if S[pivi,pivj] == 0:
-            return R(0, prec = valdet + (n-piv)*val)
+            return R(0, valdet + (n-piv)*val)
 
         valdet += val
         S.swap_rows(pivi,piv)
@@ -273,6 +273,50 @@ class CompleteDiscreteValuationRings(Category_singleton):
             return smith_normal_form(M, transformation)
 
         def _matrix_determinant(self,M):
+            """
+            Return the determinant of this matrix
+
+            ALGORITHM:
+
+            We row-echenolize the matrix by always choosing the
+            pivot of smallest valuation and allowing permutations
+            of columns.
+
+            We then compute separatedly the value of the determinant
+            (as the product of the diagonal entries of the row-echelon
+            form) and a bound on the precision on it.
+
+            EXAMPLES::
+
+                sage: R = Zp(5, 10)
+                sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
+                sage: M.determinant()
+                4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+
+                sage: (5*M).determinant()
+                4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
+
+            TESTS:
+
+            We check the stability of our algorithm::
+
+                sage: R = Zp(5,10)
+                sage: M = random_matrix(R,3) * diagonal_matrix([1,25,125]) * random_matrix(R,3)
+                sage: d = M.determinant()
+                sage: d.precision_absolute() >= 12
+                True
+
+                sage: for dim in range(3,10):
+                ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
+                ....:     print M.determinant()
+                O(5^20)
+                O(5^30)
+                O(5^40)
+                O(5^50)
+                O(5^60)
+                O(5^70)
+                O(5^80)
+            """
             return determinant(M)
 
 
@@ -451,6 +495,44 @@ class CompleteDiscreteValuationFields(Category_singleton):
             return smith_normal_form(M, transformation)
 
         def _matrix_determinant(self,M):
+            """
+            Return the determinant of this matrix
+
+            ALGORITHM:
+
+            We row-echenolize the matrix by always choosing the
+            pivot of smallest valuation and allowing permutations
+            of columns.
+
+            We then compute separatedly the value of the determinant
+            (as the product of the diagonal entries of the row-echelon
+            form) and a bound on the precision on it.
+
+            EXAMPLES::
+
+                sage: R = Qp(5, 10)
+                sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
+                sage: M.determinant()
+                4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+
+                sage: (5*M).determinant()
+                4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
+
+            TESTS:
+
+            We check the stability of our algorithm::
+
+                sage: for dim in range(3,10):
+                ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
+                ....:     print M.determinant()
+                O(5^20)
+                O(5^30)
+                O(5^40)
+                O(5^50)
+                O(5^60)
+                O(5^70)
+                O(5^80)
+            """
             return determinant(M)
 
 
@@ -482,5 +564,3 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 sage: x.precision_relative()
                 20
             """
-
-

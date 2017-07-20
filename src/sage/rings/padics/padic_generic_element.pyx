@@ -1495,7 +1495,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def rational_reconstruction(self):
         r"""
-        Returns a rational approximation to this p-adic number
+        Returns a rational approximation to this `p`-adic number
 
         This will raise an ArithmeticError if there are no valid
         approximations to the unit part with numerator and
@@ -1504,10 +1504,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         .. SEEALSO:
 
             :meth:`_rational_`
-
-        INPUT:
-
-        - ``self`` -- a p-adic element
 
         OUTPUT:
 
@@ -1533,7 +1529,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _rational_(self):
         r"""
-        Return a rational approximation to this p-adic number.
+        Return a rational approximation to this `p`-adic number.
 
         If there is no good rational approximation to the unit part,
         will just return the integer approximation.

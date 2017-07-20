@@ -100,21 +100,21 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic ring.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- t polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -153,26 +153,26 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
     def __init__(self, exact_modulus, poly, prec, print_mode, shift_seed, names, implementation='FLINT'):
-        """
+        r"""
         A representation of Qq.
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with rational coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic field.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -217,21 +217,21 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while poly has coefficients in a `p`-adic ring.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- A dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name,
+          unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -276,21 +276,20 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic field.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -339,21 +338,20 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while ``poly`` has coefficients in Zp.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -388,21 +386,20 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with rational coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic field.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -439,21 +436,20 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic ring.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -495,21 +491,20 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Qp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with rational coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic field.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -552,21 +547,20 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic ring.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 
@@ -608,21 +602,20 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
 
         INPUT:
 
-            - exact_modulus -- The original polynomial defining the
-              extension.  This could be a polynomial with integer
-              coefficients, for example, while poly has coefficients
-              in Zp.
+        - ``exact_modulus`` -- the original polynomial defining the extension.
+          This could be a polynomial with integer coefficients, for example,
+          while ``poly`` has coefficients in a `p`-adic ring.
 
-            - poly -- The polynomial with coefficients in
-              self.base_ring() defining this extension.
+        - ``poly`` -- the polynomial with coefficients in :meth:`base_ring`
+          defining this extension
 
-            - prec -- The precision cap of this ring.
+        - ``prec`` -- the precision cap of this ring
 
-            - print_mode -- A dictionary of print options.
+        - ``print_mode`` -- a dictionary of print options
 
-            - shift_seed -- unused
+        - ``shift_seed`` -- unused
 
-            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+        - ``names`` -- a 4-tuple, ``(variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)``
 
         EXAMPLES::
 

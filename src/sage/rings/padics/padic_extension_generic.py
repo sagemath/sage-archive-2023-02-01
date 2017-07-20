@@ -544,9 +544,10 @@ class DefPolyConversion(Morphism):
         # Inexact zeros need to be handled separately
         elif isinstance(x.parent(), pAdicExtensionGeneric):
             if args:
-                absprec = args.pop(0)
                 if 'absprec' in kwds:
                     raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
+                absprec = args[0]
+                args = args[1:]
             else:
                 absprec = kwds.pop('absprec',x.precision_absolute())
             absprec = min(absprec, x.precision_absolute())

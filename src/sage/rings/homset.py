@@ -202,7 +202,7 @@ class RingHomset_generic(HomsetWithBase):
         """
         f = self.codomain().coerce_map_from(self.domain())
         if f is None:
-            raise TypeError("Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain()))
+            raise TypeError("natural coercion morphism from %s to %s not defined"%(self.domain(), self.codomain()))
         return f
 
     def zero(self):

@@ -523,7 +523,7 @@ class DefPolyConversion(Morphism):
         else:
             return S(0)
 
-    def _call_with_args(self, x, *args, **kwds):
+    def _call_with_args(self, x, args=(), kwds={}):
         """
         Use the polynomial associated to the element to do the conversion,
         passing arguments along to the codomain.

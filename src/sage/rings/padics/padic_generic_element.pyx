@@ -1537,6 +1537,30 @@ cdef class pAdicGenericElement(LocalGenericElement):
             p = self.parent().prime()
             return Rational(p**self.valuation() * self.unit_part().lift())
 
+    def _number_field_(self, K):
+        r"""
+        Return an element of K approximating this p-adic number.
+
+        INPUT:
+
+        - ``K`` -- a number field
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: K = R.exact_field()
+            sage: a._number_field_(K)
+            a
+        """
+        Kbase = K.base_ring()
+        if K.defining_polynomial() != self.parent().defining_polynomial(exact=True):
+            # Might convert to K's base ring.
+            return Kbase(self)
+        L = [Kbase(c) for c in self.polynomial().list()]
+        if len(L) < K.degree():
+            L += [Kbase(0)] * (K.degree() - len(L))
+        return K(L)
+
     def _log_generic(self, aprec, mina=0):
         r"""
         Return ``\log(self)`` for ``self`` equal to 1 in the residue field

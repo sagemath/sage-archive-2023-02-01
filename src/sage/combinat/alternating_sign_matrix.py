@@ -1371,7 +1371,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
 
         TESTS::
 
-            AlternatingSignMatrices(3).list()
+            sage: AlternatingSignMatrices(3).list()
             [
             [1 0 0]  [0 1 0]  [1 0 0]  [ 0  1  0]  [0 0 1]  [0 1 0]  [0 0 1]
             [0 1 0]  [1 0 0]  [0 0 1]  [ 1 -1  1]  [1 0 0]  [0 0 1]  [0 1 0]

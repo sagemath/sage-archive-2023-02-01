@@ -176,10 +176,10 @@ class CompleteDiscreteValuationRings(Category_singleton):
 
                 sage: R = Zp(5, 10)
                 sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
-                sage: M.determinant()
+                sage: M.determinant()  # indirect doctest
                 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
 
-                sage: (5*M).determinant()
+                sage: (5*M).determinant()  # indirect doctest
                 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
 
             TESTS:
@@ -411,10 +411,10 @@ class CompleteDiscreteValuationFields(Category_singleton):
 
                 sage: R = Qp(5, 10)
                 sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
-                sage: M.determinant()
+                sage: M.determinant()  # indirect doctest
                 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
 
-                sage: (5*M).determinant()
+                sage: (5*M).determinant()  # indirect doctest
                 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
 
             TESTS:

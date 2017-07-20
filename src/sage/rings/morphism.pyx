@@ -813,7 +813,7 @@ cdef class RingHomomorphism(RingMap):
 
         This is not implemented in any generality yet::
 
-            sage: f = ZZ.hom(Zp)
+            sage: f = ZZ.hom(Zp(2))
             sage: f.inverse_image(ZZ.ideal(2))
             Traceback (most recent call last):
             ...

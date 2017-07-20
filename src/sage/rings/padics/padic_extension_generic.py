@@ -316,7 +316,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
         print_mode = self._printer.dict()
-        return (AEF([self.defining_polynomial()], [self.variable_name()],
+        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
                     prec=self.precision_cap(), print_mode=self._printer.dict(),
                     implementation=self._implementation),
                 self.base_ring())

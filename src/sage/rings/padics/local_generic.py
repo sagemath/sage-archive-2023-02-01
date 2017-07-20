@@ -310,19 +310,19 @@ class LocalGeneric(CommutativeRing):
             sage: x = polygen(ZZ)
             sage: R.<a> = Zp(5).extension(x^2 + 2)
             sage: S = R.change(p=7)
-            sage: S.defining_polynomial()
+            sage: S.defining_polynomial(exact=True)
             x^2 + 2
             sage: A.<y> = Zp(5)[]
             sage: R.<a> = Zp(5).extension(y^2 + 2)
             sage: S = R.change(p=7)
-            sage: S.defining_polynomial()
+            sage: S.defining_polynomial(exact=True)
             y^2 + 2
 
         ::
 
             sage: R.<a> = Zq(5^3)
             sage: S = R.change(prec=50)
-            sage: S.defining_polynomial()
+            sage: S.defining_polynomial(exact=True)
             x^3 + 3*x + 3
         """
         # We support both print_* and * for *=mode, pos, sep, alphabet

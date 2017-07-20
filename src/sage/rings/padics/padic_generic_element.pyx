@@ -1992,7 +1992,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(2, prec=5)
             sage: R(180).log(p_branch=0) == R(30).log(p_branch=0) + R(6).log(p_branch=0)
-            False            
+            False
 
         Check that log is the inverse of exp::
 
@@ -2090,7 +2090,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - Julian Rueth (2013-02-14): Added doctests, some changes for
           capped-absolute implementations.
 
-        - Xavier Caruso (2017-06): Added binary splitting type algorithms 
+        - Xavier Caruso (2017-06): Added binary splitting type algorithms
           over Qp
 
         """

@@ -24,6 +24,7 @@ from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
 from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.number_field.order import Order
+from sage.rings.rational_field import QQ
 from sage.structure.richcmp import op_EQ
 from functools import reduce
 from sage.categories.morphism import Morphism
@@ -103,20 +104,36 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: S = R.change(type='capped-abs', prec=40, print_mode='terse', print_pos=False)
             sage: S(a - 15)
             -15 + a + O(5^20)
+
+        We get conversions from the exact field::
+
+            sage: K = R.exact_field(); K
+            Number Field in a with defining polynomial x^3 + 3*x + 3
+            sage: R(K.gen())
+            a + O(5^20)
+
+        and its maximal order::
+
+            sage: OK = K.maximal_order()
+            sage: R(OK.gen(1))
+            a + O(5^20)
         """
         cat = None
-        if isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
-            cat = IntegralDomains()
-        if isinstance(R, (pAdicExtensionGeneric, NumberField)) and R.defining_polynomial() == self.defining_polynomial():
-            if R.is_field():
-                if not self.is_field():
-                    cat = SetsWithPartialMaps()
-                elif isinstance(R, pAdicExtensionGeneric):
-                    cat = R.category()
-                else:
-                    cat = Fields()
+        if self._implementation == 'NTL' and R == QQ:
+            # Want to use DefaultConvertMap
+            return None
+        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
+            if R.is_field() and not self.is_field():
+                cat = SetsWithPartialMaps()
             else:
                 cat = R.category()
+        elif isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
+            cat = IntegralDomains()
+        elif isinstance(R, NumberField) and R.defining_polynomial() == self.defining_polynomial():
+            if self.is_field():
+                cat = Fields()
+            else:
+                cat = SetsWithPartialMaps()
         if cat is not None:
             H = Hom(R, self, cat)
             return H.__make_element_class__(DefPolyConversion)(H)
@@ -188,7 +205,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return self._given_poly.degree()
 
-    def defining_polynomial(self):
+    def defining_polynomial(self, exact=False):
         """
         Returns the polynomial defining this extension.
 
@@ -352,7 +369,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
         print_mode = self._printer.dict()
-        return (AEF([self.defining_polynomial()], [self.variable_name()],
+        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
                     prec=self.precision_cap(), print_mode=self._printer.dict(),
                     implementation=self._implementation),
                 self.base_ring())
@@ -492,8 +509,17 @@ class DefPolyConversion(Morphism):
             sage: S.<x> = ZZ[]
             sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
             sage: z = W.random_element()
-            sage: W.change(print_mode='digits')(z)
+            sage: repr(W.change(print_mode='digits')(z))
+            '...20112102111011011200001212210222202220100111100200011222122121202100210120010120'
         """
         S = self.codomain()
         Sbase = S.base_ring()
-        return S([Sbase(c) for c in x.polynomial().list()])
+        L = x.polynomial().list()
+        if L and not (len(L) == 1 and L[0].is_zero()): # ZZ_pX elements 
+            return S([Sbase(c) for c in L])
+        else:
+            # Inexact zeros need to be handled separately
+            if isinstance(x.parent(), pAdicExtensionGeneric):
+                return S(0, x.precision_absolute())
+            else:
+                return S(0)

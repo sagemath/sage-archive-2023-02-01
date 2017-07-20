@@ -1152,6 +1152,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         R = self.base_ring()
         S = R[var]
+        if self.is_zero():
+            return S([])
         return S([Integer(c) for c in self._ntl_rep().list()])
 
     cdef ZZ_p_c _const_term(self):

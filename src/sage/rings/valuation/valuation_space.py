@@ -3,7 +3,7 @@ r"""
 Spaces of valuations
 
 This module provides spaces of exponential pseudo-valuations on integral
-domains. It currently, only provides support for such valuations if they are
+domains. It currently only provides support for such valuations if they are
 discrete, i.e., their image is a discrete additive subgroup of the rational
 numbers extended by `\infty`.
 

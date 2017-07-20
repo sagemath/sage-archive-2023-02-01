@@ -27,11 +27,9 @@ from sage.functions.all import sqrt
 from itertools import permutations, combinations
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
-from sage.misc.functional import squarefree_part
 from sage.misc.misc_c import prod
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import NumberField
 from sage.arith.all import gcd, lcm, CRT, is_square, divisors
@@ -67,7 +65,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
         sage: F.<z> = PolynomialRing(QQ)
         sage: rational_function = (z^2 - 2*z - 2)/(-2*z^2 - 2*z + 1)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
         sage: automorphism_group_QQ_fixedpoints(rational_function, True)
           [z, 2/(2*z), -z - 1, -2*z/(2*z + 2), (-z - 1)/z, -1/(z + 1)]
 
@@ -75,7 +73,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
         sage: F.<z> = PolynomialRing(QQ)
         sage: rational_function = (z^2 + 2*z)/(-2*z - 1)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
         sage: automorphism_group_QQ_fixedpoints(rational_function)
           [
           [1 0]  [-1 -1]  [-2  0]  [0 2]  [-1 -1]  [ 0 -1]
@@ -86,7 +84,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
 
         sage: F.<z> = PolynomialRing(QQ)
         sage: rational_function = (z^2 - 4*z -3)/(-3*z^2 - 2*z + 2)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
         sage: automorphism_group_QQ_fixedpoints(rational_function, True, True)
           ([z, (-z - 1)/z, -1/(z + 1)], 'Cyclic of order 3')
     """
@@ -306,7 +304,7 @@ def height_bound(polynomial):
 
         sage: R.<z> = PolynomialRing(QQ)
         sage: f = (z^3+2*z+6)
-        sage: from sage.schemes.projective.endPN_automorphism_group import height_bound
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import height_bound
         sage: height_bound(f)
         413526
     """
@@ -349,7 +347,7 @@ def PGL_repn(rational_function):
 
         sage: R.<z> = PolynomialRing(QQ)
         sage: f = ((2*z-1)/(3-z))
-        sage: from sage.schemes.projective.endPN_automorphism_group import PGL_repn
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import PGL_repn
         sage: PGL_repn(f)
         [ 2 -1]
         [-1  3]
@@ -383,14 +381,14 @@ def PGL_order(A):
     EXAMPLES::
 
         sage: M = matrix([[0,2],[2,0]])
-        sage: from sage.schemes.projective.endPN_automorphism_group import PGL_order
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import PGL_order
         sage: PGL_order(M)
         2
 
     ::
 
         sage: R.<x> = PolynomialRing(QQ)
-        sage: from sage.schemes.projective.endPN_automorphism_group import PGL_order
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import PGL_order
         sage: PGL_order(-1/x)
         2
     """
@@ -424,7 +422,7 @@ def CRT_helper(automorphisms, moduli):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.endPN_automorphism_group import CRT_helper
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import CRT_helper
         sage: CRT_helper([[matrix([[4,0],[0,1]]), matrix([[0,1],[1,0]])]],[5])
         ([
         [4 0]  [0 1]
@@ -483,7 +481,7 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
         sage: ords = [[1,2]]
         sage: degree = 2
         sage: mods = [5]
-        sage: from sage.schemes.projective.endPN_automorphism_group import CRT_automorphisms
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import CRT_automorphisms
         sage: CRT_automorphisms(aut,ords,degree,mods)
         ([
         [0 1]
@@ -529,7 +527,7 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
 
         sage: R.<z> = PolynomialRing(QQ)
         sage: F = z^2
-        sage: from sage.schemes.projective.endPN_automorphism_group import valid_automorphisms
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import valid_automorphisms
         sage: valid_automorphisms([matrix(GF(5),[[0,1],[1,0]])], F, 48, 5, True)
         [1/z]
     """
@@ -589,7 +587,7 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
         sage: mods = [7]
         sage: R.<x> = PolynomialRing(QQ)
         sage: int_auts = [-1/x]
-        sage: from sage.schemes.projective.endPN_automorphism_group import remove_redundant_automorphisms
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import remove_redundant_automorphisms
         sage: remove_redundant_automorphisms(auts, ord_elts, mods, int_auts)
         [[
         [1 0]  [6 0]  [0 1]  [6 1]  [1 1]  [1 6]  [6 6]
@@ -656,7 +654,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
         sage: R.<z> = PolynomialRing(QQ)
         sage: f = (3*z^2 - 1)/(z^3 - 3*z)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_QQ_CRT
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_CRT
         sage: automorphism_group_QQ_CRT(f, 4, True)
         [z, -z, 1/z, -1/z, (-z + 1)/(z + 1), (z + 1)/(z - 1), (z - 1)/(z + 1),
         (-z - 1)/(z - 1)]
@@ -665,7 +663,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
         sage: R.<z> = PolynomialRing(QQ)
         sage: f = (3*z^2 - 1)/(z^3 - 3*z)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_QQ_CRT
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_CRT
         sage: automorphism_group_QQ_CRT(f, 4, False)
         [
         [1 0]  [-1  0]  [0 1]  [ 0 -1]  [-1  1]  [ 1  1]  [ 1 -1]  [-1 -1]
@@ -862,7 +860,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
     EXAMPLES::
 
         sage: R.<x> = PolynomialRing(GF(5^2, 't'))
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF
         sage: automorphism_group_FF((x^2+x+1)/(x+1))
         [
         [1 0]  [4 3]
@@ -872,14 +870,14 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
     ::
 
         sage: R.<x> = PolynomialRing(GF(2^5, 't'))
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF
         sage: automorphism_group_FF(x^(5), True, False, True)
         [Univariate Polynomial Ring in w over Finite Field in b of size 2^5, [w, 1/w]]
 
     ::
 
         sage: R.<x> = PolynomialRing(GF(2^5, 't'))
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF
         sage: automorphism_group_FF(x^(5), False, False, True)
         [x, 1/x]
     """
@@ -932,7 +930,7 @@ def field_descent(sigma, y):
         sage: R = GF(11^2,'b')
         sage: RR = GF(11)
         sage: s = RR.Hom(R)[0]
-        sage: from sage.schemes.projective.endPN_automorphism_group import field_descent
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import field_descent
         sage: field_descent(s, R(1))
         1
     """
@@ -996,7 +994,7 @@ def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
         sage: S.<y> = PolynomialRing(GF(11))
         sage: s = S.base_ring().hom(T.base_ring())
         sage: f = (3*z^3 - z^2)/(z-1)
-        sage: from sage.schemes.projective.endPN_automorphism_group import rational_function_coefficient_descent
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import rational_function_coefficient_descent
         sage: rational_function_coefficient_descent(f,s,S)
         (3*y^3 + 10*y^2)/(y + 10)
     """
@@ -1051,7 +1049,7 @@ def rational_function_coerce(rational_function, sigma, S_polys):
         sage: S.<z> = PolynomialRing(ZZ)
         sage: s = S.hom([z],R)
         sage: f = (3*z^2 + 1)/(z^3-1)
-        sage: from sage.schemes.projective.endPN_automorphism_group import rational_function_coerce
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import rational_function_coerce
         sage: rational_function_coerce(f,s,R)
         (3*y^2 + 1)/(y^3 - 1)
     """
@@ -1085,7 +1083,7 @@ def rational_function_reduce(rational_function):
 
         sage: R.<z> = PolynomialRing(GF(7))
         sage: f = ((z-1)*(z^2+z+1))/((z-1)*(z^3+1))
-        sage: from sage.schemes.projective.endPN_automorphism_group import rational_function_reduce
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import rational_function_reduce
         sage: rational_function_reduce(f)
         (z^2 + z + 1)/(z^3 + 1)
     """
@@ -1117,7 +1115,7 @@ def three_stable_points(rational_function, invariant_list):
         sage: R.<z> = PolynomialRing(GF(5^2,'t'))
         sage: f = z^3
         sage: L = [[0,1],[4,1],[1,1],[1,0]]
-        sage: from sage.schemes.projective.endPN_automorphism_group import three_stable_points
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import three_stable_points
         sage: three_stable_points(f,L)
         [z, 4*z, 2/(2*z), 3/(2*z)]
     """
@@ -1187,7 +1185,7 @@ def automorphism_group_FF_alg2(rational_function):
 
         sage: R.<z> = PolynomialRing(GF(7^2,'t'))
         sage: f = (3*z^3 - z^2)/(z-1)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF_alg2
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF_alg2
         sage: automorphism_group_FF_alg2(f)
         [Univariate Polynomial Ring in w over Finite Field in b of size 7^2, [w, (3*b + 2)/((2*b + 6)*w)]]
 
@@ -1195,7 +1193,7 @@ def automorphism_group_FF_alg2(rational_function):
 
         sage: R.<z> = PolynomialRing(GF(5^3,'t'))
         sage: f = (3456*z^(4))
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF_alg2
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF_alg2
         sage: automorphism_group_FF_alg2(f)
         [Univariate Polynomial Ring in w over Finite Field in b of size 5^6, [w,
         (3*b^5 + 4*b^4 + 3*b^2 + 2*b + 1)*w, (2*b^5 + b^4 + 2*b^2 + 3*b + 3)*w,
@@ -1312,7 +1310,7 @@ def order_p_automorphisms(rational_function, pre_image):
         ....: [[8, 1], [],1], [[7, 1], [], 1], [[6, 1], [], 1], [[5, 1], [], 1],
         ....: [[4, 1], [], 1],[[3, 1], [], 1], [[2, 1], [], 1], [[1, 1], [], 1],
         ....: [[1, 0], [], 1]]
-        sage: from sage.schemes.projective.endPN_automorphism_group import order_p_automorphisms
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import order_p_automorphisms
         sage: order_p_automorphisms(f,L)
         [x/(x + 1), 6*x/(x + 6), 3*x/(x + 3), 7*x/(x + 7), 9*x/(x + 9), 10*x/(x
         + 10), 5*x/(x + 5), 8*x/(x + 8), 4*x/(x + 4), 2*x/(x + 2), 10/(x + 2),
@@ -1492,7 +1490,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
         sage: R.<z> = PolynomialRing(GF(7^2, 't'))
         sage: f = (z^2 + 5*z + 5)/(5*z^2 + 5*z + 1)
         sage: L = [[4, 1], [2, 1]]
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphisms_fixing_pair
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphisms_fixing_pair
         sage: automorphisms_fixing_pair(f, L, False)
         [(6*z + 6)/z, 4/(3*z + 3)]
     """
@@ -1568,7 +1566,7 @@ def automorphism_group_FF_alg3(rational_function):
 
         sage: R.<z> = PolynomialRing(GF(5^3,'t'))
         sage: f = (3456*z^4)
-        sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF_alg3
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF_alg3
         sage: automorphism_group_FF_alg3(f)
         [z, 3/(3*z)]
     """
@@ -1739,7 +1737,7 @@ def which_group(list_of_elements):
 
         sage: R.<x> = PolynomialRing(GF(7,'t'))
         sage: G = [x, 6*x/(x + 1), 6*x + 6, 1/x, (6*x + 6)/x, 6/(x + 1)]
-        sage: from sage.schemes.projective.endPN_automorphism_group import which_group
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import which_group
         sage: which_group(G)
         'Dihedral of order 6'
     """

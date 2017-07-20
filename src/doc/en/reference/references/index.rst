@@ -337,6 +337,9 @@ REFERENCES:
 
 **C**
 
+.. [CS1996] \G. Call and J. Silverman. Computing the Canonical Height on
+            K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
+
 .. [CB2007] Nicolas Courtois, Gregory V. Bard: Algebraic Cryptanalysis
             of the Data Encryption Standard, In 11-th IMA Conference,
             Cirencester, UK, 18-20 December 2007, Springer
@@ -662,6 +665,14 @@ REFERENCES:
 
 **F**
 
+.. [FMV2014] Xander Faber, Michelle Manes, and Bianca Viray. Computing
+             Conjugating Sets and Automorphism Groups of Rational Functions.
+             Journal of Algebra, 423 (2014), 1161-1190.
+
+.. [FH2015]     \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
+            Wehler K3 Surfaces over finite fields. New Zealand Journal
+            of Mathematics 45 (2015), 19–31.
+
 .. [Fe1997] Stefan Felsner, "On the Number of Arrangements of
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
             Computational Geometry 18 (1997),
@@ -875,6 +886,9 @@ REFERENCES:
 .. [HP2003] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
             Codes, Cambridge Univ. Press, 2003.
 
+.. [Hutz2007] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
+              than one. PhD Thesis, Brown University 2007
+
 .. [HP2016] \S. Hopkins, D. Perkinson. "Bigraphical
             Arrangements". Transactions of the American Mathematical
             Society 368 (2016), 709-725. :arxiv:`1212.4398`
@@ -904,6 +918,12 @@ REFERENCES:
              (ed.), Geometric Galois Actions II: Dessins d'Enfants,
              Mapping Class Groups and Moduli, volume 243 of LMS
              Lect. Notes, 67-77, Cambridge Univ. Press (1997)
+
+.. [Hutz2009] \B. Hutz. Good reduction of periodic points, Illinois Journal of
+              Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+
+.. [Hutz2015] \B. Hutz. Determination of all rational preperiodic points
+              for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).
@@ -1282,6 +1302,9 @@ REFERENCES:
              `P^s_t` bases for the Steenrod algebra," J. Pure
              Appl. Algebra 125 (1998), no. 1-3, 235-260.
 
+.. [MoPa1994] \P. Morton and P. Patel. The Galois theory of periodic points
+              of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
+
 .. [MR1989] \G. Melançon and C. Reutenauer.
             *Lyndon words, free algebras and shuffles*,
             Can. J. Math., Vol. XLI, No. 4, 1989, pp. 577-591.
@@ -1537,6 +1560,10 @@ REFERENCES:
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004
 
+.. [Sil2007] Joseph H. Silverman. The Arithmetic of Dynamics Systems.
+             Springer, GTM 241, 2007.
+
+
 .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties of the
             K3 surface: Simplicial blowups and slicings", Experimental
             Mathematics, Volume 20, Issue 2, 2011.
@@ -1736,6 +1763,10 @@ REFERENCES:
 
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
+
+.. [Weh1998] \J. Wehler. Hypersurfaces of the Flag Variety: Deformation
+             Theory and the Theorems of Kodaira-Spencer, Torelli,
+             Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38.
 
 .. [Wei1994] Charles A. Weibel, *An introduction to homological
              algebra*. Cambridge Studies in Advanced Math., vol. 38,

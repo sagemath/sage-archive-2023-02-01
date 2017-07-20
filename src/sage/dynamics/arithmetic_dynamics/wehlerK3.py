@@ -14,18 +14,7 @@ AUTHORS:
 
     Number Fields
 
-REFERENCES:
-
-.. [FaHu] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
-   Wehler K3 Surfaces over finite fields
-   :arxiv:`1309.6598`, 2013.
-.. [CaSi] \G. Call and J. Silverman. Computing the Canonical Height on
-   K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
-.. [Wehl] \J. Wehler. Hypersurfaces of the Flag Variety: Deformation
-   Theory and the Theorems of Kodaira-Spencer, Torelli,
-   Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38
-.. [Hutzthesis] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
-   than one. PhD Thesis, Brown University 2007
+REFERENCES: [FH2015]_, [CS1996]_, [Weh1998]_, [Hutz2007]
 
 """
 
@@ -64,7 +53,7 @@ _Fields = Fields()
 def WehlerK3Surface(polys):
     r"""
     Defines a K3 Surface over `\mathbb{P}^2 \times \mathbb{P}^2` defined as
-    the intersection of a bilinear and biquadratic form. [Wehl]_
+    the intersection of a bilinear and biquadratic form. [Weh1998]_
 
     INPUT: Bilinear and biquadratic polynomials as a tuple or list.
 
@@ -98,7 +87,7 @@ def WehlerK3Surface(polys):
 def random_WehlerK3Surface(PP):
     r"""
     Produces a random K3 surface in `\mathbb{P}^2 \times \mathbb{P}^2` defined as the
-    intersection of a bilinear and biquadratic form. [Wehl]_
+    intersection of a bilinear and biquadratic form. [Weh1998]_
 
     INPUT: Projective space cartesian product.
 
@@ -130,7 +119,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     r"""
 
     A K3 surface in `\mathbb{P}^2 \times \mathbb{P}^2` defined as the
-    intersection of a bilinear and biquadratic form. [Wehl]_
+    intersection of a bilinear and biquadratic form. [Weh1998]_
 
     EXAMPLES::
 
@@ -250,7 +239,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
             `L^y_i` = the coefficients of `x_i` in `L(x, y)` (Component = 1)
 
-            Definition and Notation from: [CaSi]_
+            Definition and Notation from: [CS1996]_
 
         INPUT:
 
@@ -298,7 +287,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
             `Q^y_{ij}` = the coefficients of `x_{i}x_{j}` in `Q(x, y)` (Component = 1).
 
-            Definition and Notation from: [CaSi]_.
+            Definition and Notation from: [CS1996]_.
 
         INPUT:
 
@@ -440,7 +429,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `L^{x}_{a} = \{(a, y) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon L(a, y) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`.
 
@@ -478,7 +467,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `Q^{x}_{a} = \{(a,y) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon Q(a,y) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`.
 
@@ -515,7 +504,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `S^{x}_{a} = L^{x}_{a} \cap Q^{x}_{a}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
         INPUT: ``a`` - Point in `\mathbb{P}^2`.
 
@@ -551,7 +540,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `L^{y}_{b} = \{(x,b) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon L(x,b) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
         INPUT: ``b`` - Point in projective space.
 
@@ -590,7 +579,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `Q^{y}_{b} = \{(x,b) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon Q(x,b) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
         INPUT: ``b`` - Point in projective space.
 
@@ -626,7 +615,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `S^{y}_{b} = L^{y}_{b} \cap Q^{y}_{b}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
         INPUT: ``b`` - Point in `\mathbb{P}^2`.
 
@@ -663,7 +652,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         `g^* = \frac{\left(H^*_{ij}\right)^2 - 4G^*_iG^*_j}{\left(L^*_k\right)^2}`.
 
         The roots of this polynomial will either be degenerate fibers or fixed points
-        of the involutions `\sigma_x` or `\sigma_y` for more information, see [CaSi]_.
+        of the involutions `\sigma_x` or `\sigma_y` for more information, see [CS1996]_.
 
         INPUT: ``i`` - Integer, either 0 (polynomial in y) or 1 (polynomial in x).
 
@@ -743,7 +732,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         vars = list(PS.gens())
         R0 = PolynomialRing(K, 3, vars) #for dimension calculation to work,
             #must be done with Polynomial ring over a field
-        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CaSi]_
+        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CS1996]_
         I = R.ideal(self.Gpoly(1, 0), self.Gpoly(1, 1), self.Gpoly(1, 2), self.Hpoly(1, 0, 1),
                     self.Hpoly(1, 0, 2), self.Hpoly(1, 1, 2))
         phi = R.hom(vars + [0, 0, 0], R0)
@@ -755,7 +744,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         vars = list(PS.gens())
         R0 = PolynomialRing(K,3,vars) #for dimension calculation to work,
         #must be done with Polynomial ring over a field
-        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CaSi]_
+        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CS1996]_
         I = R.ideal(self.Gpoly(0, 0), self.Gpoly(0, 1), self.Gpoly(0, 2), self.Hpoly(0, 0, 1),
                     self.Hpoly(0, 0, 2), self.Hpoly(0, 1, 2))
         phi = R.hom([0, 0, 0] + vars, R0)
@@ -776,7 +765,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ``self.Gpoly(1, 0)``, ``self.Gpoly(1, 1)``, ``self.Gpoly(1, 2)``,
         ``self.Hpoly(1, 0, 1)``,``self.Hpoly(1, 0, 2)``,
         ``self.Hpoly(1, 1, 2)`` (for the first component), is from Proposition 1.4
-        in the following article: [CaSi]_.
+        in the following article: [CS1996]_.
 
         This function finds the common solution through elimination via Groebner bases
         by using the .variety() function on the three affine charts in each component.
@@ -1052,8 +1041,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`, `\phi`,
-        and `\psi`" in [CaSi]_.
-        For the degenerate case refer to [FaHu]_.
+        and `\psi`" in [CS1996FH2015.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
@@ -1297,8 +1286,8 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`, `\phi`,
-        and `\psi`" in [CaSi]_.
-        For the degenerate case refer to [FaHu]_.
+        and `\psi`" in [CS1996]_.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
@@ -1530,9 +1519,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`,
-        `\phi`, and `\psi`" in [CaSi]_.
+        `\phi`, and `\psi`" in [CS1996]_.
 
-        For the degenerate case refer to [FaHu]_.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
@@ -1570,9 +1559,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`,
-        `\phi`, and `\psi`" in [CaSi]_.
+        `\phi`, and `\psi`" in [CS1996]_.
 
-        For the degenerate case refer to [FaHu]_.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
@@ -1613,7 +1602,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over local heights using convergent series, for more details,
-        see section 4 of [CaSi]_.
+        see section 4 of [CS1996]_.
 
         INPUT:
 
@@ -1712,7 +1701,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over local heights using convergent series, for more details,
-        see section 4 of [CaSi]_.
+        see section 4 of [CS1996]_.
 
         INPUT:
 
@@ -1806,7 +1795,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over the lambda plus heights (local heights) in a convergent series,
-        for more detail see section 7 of [CaSi]_.
+        for more detail see section 7 of [CS1996]_.
 
         INPUT:
 
@@ -1870,7 +1859,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over the lambda minus heights (local heights) in a convergent series,
-        for more detail see section 7 of [CaSi]_.
+        for more detail see section 7 of [CS1996]_.
 
         INPUT:
 
@@ -1932,7 +1921,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         The sum of the canonical height minus and canonical height plus,
-        for more info see section 4 of [CaSi]_.
+        for more info see section 4 of [CS1996]_.
 
         INPUT:
 
@@ -1982,7 +1971,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         Returns the fibers [y (component = 1) or x (Component = 0)] of a point on a
         K3 Surface, will work for nondegenerate fibers only.
 
-        For algorithm, see [Hutzthesis]_.
+        For algorithm, see [Hutz2007]_.
 
         INPUT:
 
@@ -2273,7 +2262,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def orbit_phi(self,P,N, **kwds):
         r"""
         Returns the orbit of the `\phi` function defined by `\phi = \sigma_y \circ \sigma_x`
-        Function is defined in [CaSi]_.
+        Function is defined in [CS1996]_.
 
         INPUT:
 
@@ -2332,7 +2321,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Returns the orbit of the `\psi` function defined by `\psi = \sigma_x \circ \sigma_y`.
 
-        Function is defined in [CaSi]_.
+        Function is defined in [CS1996]_.
 
         INPUT:
 

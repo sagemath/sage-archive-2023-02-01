@@ -43,28 +43,25 @@ def _fast_possible_periods(self, return_points=False):
 
     Examples::
 
-            sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+            sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _fast_possible_periods
             sage: P.<x,y> = ProjectiveSpace(GF(23),1)
-            sage: H = Hom(P,P)
-            sage: f = H([x^2-2*y^2, y^2])
+            sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
             sage: _fast_possible_periods(f, False)
             [1, 5, 11, 22, 110]
 
         ::
 
-            sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+            sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _fast_possible_periods
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
-            sage: H = End(P)
-            sage: f = H([x^2-y^2, y^2])
+            sage: f = DynamicalSystem_projective([x^2-y^2, y^2])
             sage: sorted(_fast_possible_periods(f, True))
             [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
         ::
 
-            sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+            sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _fast_possible_periods
             sage: PS.<x,y,z> = ProjectiveSpace(2,GF(7))
-            sage: H = End(PS)
-            sage: f = H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
+            sage: f = DynamicalSystem_projective([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
             sage: _fast_possible_periods(f, False)
             [1, 2, 4, 6, 12, 14, 28, 42, 84]
 
@@ -78,8 +75,6 @@ def _fast_possible_periods(self, return_points=False):
     if not self._is_prime_finite_field:
         raise TypeError("must be prime field")
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if is_ProjectiveSpace(self.domain()) == False or self.domain()!=self.codomain():
-        raise NotImplementedError("must be an endomorphism of projective space")
 
     PS = self.domain()
     p = PS.base_ring().order()
@@ -159,7 +154,7 @@ def _enum_points(int prime, int dimension):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
+        sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _enum_points
         sage: list(_enum_points(3,2))
         [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1],
         [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
@@ -182,7 +177,7 @@ def _hash(list Point, int prime):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.projective_morphism_helper import _hash
+        sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _hash
         sage: _hash([1, 2, 1], 3)
         16
 
@@ -206,7 +201,7 @@ def _get_point_from_hash(int value, int prime, int dimension):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.projective_morphism_helper import _get_point_from_hash
+        sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _get_point_from_hash
         sage: _get_point_from_hash(16,3,2)
         [1, 2, 1]
 
@@ -227,7 +222,7 @@ def _mod_inv(int num, int prime):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.projective_morphism_helper import _mod_inv
+        sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _mod_inv
         sage: _mod_inv(2,7)
         4
     """
@@ -256,7 +251,7 @@ def _normalize_coordinates(list point, int prime, int len_points):
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.projective_morphism_helper import _normalize_coordinates
+        sage: from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _normalize_coordinates
         sage: _normalize_coordinates([1,5,1],3,3)
         [1, 2, 1]
 

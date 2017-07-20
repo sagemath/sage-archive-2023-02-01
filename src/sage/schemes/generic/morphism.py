@@ -1193,7 +1193,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
     def __copy__(self):
         r"""
-        Returns a copy of ``self``.
+        Return a copy of ``self``.
 
         OUTPUT:
 
@@ -1201,22 +1201,22 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3/5*x^2,6*y^2])
-            sage: g =copy(f)
-            sage: f==g
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P, P)
+            sage: f = H([3/5*x^2, 6*y^2])
+            sage: g = copy(f)
+            sage: f == g
             True
             sage: f is g
             False
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: Q=X(23,23,46)
-            sage: P=X(1,1,1)
-            sage: P!=Q
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme(x^2 - y^2);
+            sage: Q = X(23, 23, 46)
+            sage: P = X(1, 1, 1)
+            sage: P != Q
             True
         """
         return self.parent()(self._polys)
@@ -1444,14 +1444,24 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         if isinstance(R, Morphism):
             if R.domain() == self.base_ring():
-                R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
-        G = []
-        for f in self:
-            if isinstance(f, FractionFieldElement):
-                G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
-            else:
-                G.append(f.change_ring(R))
-        return(H(G, check))
+                from sage.structure.coerce_maps import CallableConvertMap
+                S = self.domain().ambient_space().coordinate_ring()
+                T = T.ambient_space().coordinate_ring()
+                phi = CallableConvertMap(S, T, lambda self, g:T(g.map_coefficients(R)))
+                G = []
+                for f in self:
+                    if isinstance(f, FractionFieldElement):
+                        G.append(phi(f.numerator())/phi(f.denominator()))
+                    else:
+                        G.append(phi(f))
+        else:
+            G = []
+            for f in self:
+                if isinstance(f, FractionFieldElement):
+                    G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+                else:
+                    G.append(f.change_ring(R))
+        return H(G, check)
 
     def specialization(self, D=None, phi=None, homset=None):
         r"""
@@ -1519,8 +1529,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
             sage: R.<c> = QQ[]
             sage: P.<x,y> = ProjectiveSpace(R,1)
-            sage: H = End(P)
-            sage: f = H([x^2 + c*y^2, y^2])
+            sage: f = DynamicalSystem_projective([x^2 + c*y^2, y^2], domain=P)
             sage: F = f.dynatomic_polynomial(3)
             sage: g = F.specialization({c:1}); g
             x^6 + x^5*y + 4*x^4*y^2 + 3*x^3*y^3 + 7*x^2*y^4 + 4*x*y^5 + 5*y^6

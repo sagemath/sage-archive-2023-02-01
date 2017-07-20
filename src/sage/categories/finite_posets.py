@@ -51,11 +51,10 @@ class FinitePosets(CategoryWithAxiom):
 
         def is_lattice(self):
             r"""
-            Return ``True`` if the poset is lattice, and
-            ``False`` otherwise.
+            Return whether the poset is a lattice.
 
-            A poset is lattice if every pair of elements have
-            both the least upper bound ("join") and the greatest lower bound
+            A poset is a lattice if all pairs of elements have
+            both a least upper bound ("join") and a greatest lower bound
             ("meet") in the poset.
 
             EXAMPLES::
@@ -93,8 +92,7 @@ class FinitePosets(CategoryWithAxiom):
 
         def is_selfdual(self):
             r"""
-            Return ``True`` if the poset is *self-dual*, and
-            ``False`` otherwise.
+            Return whether the poset is *self-dual*.
 
             A poset is self-dual if it is isomorphic to its dual poset.
 

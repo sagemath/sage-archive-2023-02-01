@@ -22,9 +22,16 @@ from __future__ import absolute_import
 
 from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
+from sage.rings.number_field.number_field_base import NumberField
+from sage.rings.number_field.order import Order
+from sage.rings.rational_field import QQ
 from sage.structure.richcmp import op_EQ
 from functools import reduce
-
+from sage.categories.morphism import Morphism
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.fields import Fields
+from sage.categories.homset import Hom
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -53,8 +60,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def _coerce_map_from_(self, R):
         """
-        Return a coercion from ``R`` into this ring or ``True`` if the default
-        conversion map can be used to perform a coercion.
+        Finds coercion maps from R to this ring.
 
         EXAMPLES::
 
@@ -67,6 +73,52 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         if R is self.base_ring():
             return True
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        Currently, a conversion exists if the defining polynomial is the same.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: S = R.change(type='capped-abs', prec=40, print_mode='terse', print_pos=False)
+            sage: S(a - 15)
+            -15 + a + O(5^20)
+
+        We get conversions from the exact field::
+
+            sage: K = R.exact_field(); K
+            Number Field in a with defining polynomial x^3 + 3*x + 3
+            sage: R(K.gen())
+            a + O(5^20)
+
+        and its maximal order::
+
+            sage: OK = K.maximal_order()
+            sage: R(OK.gen(1))
+            a + O(5^20)
+        """
+        cat = None
+        if self._implementation == 'NTL' and R == QQ:
+            # Want to use DefaultConvertMap
+            return None
+        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
+            if R.is_field() and not self.is_field():
+                cat = SetsWithPartialMaps()
+            else:
+                cat = R.category()
+        elif isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
+            cat = IntegralDomains()
+        elif isinstance(R, NumberField) and R.defining_polynomial() == self.defining_polynomial():
+            if self.is_field():
+                cat = Fields()
+            else:
+                cat = SetsWithPartialMaps()
+        if cat is not None:
+            H = Hom(R, self, cat)
+            return H.__make_element_class__(DefPolyConversion)(H)
 
     def __eq__(self, other):
         """
@@ -135,15 +187,14 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return self._given_poly.degree()
 
-    def defining_polynomial(self):
+    def defining_polynomial(self, exact=False):
         """
-        Returns the polynomial defining this extension, as an exact polynomial
-        with coefficients in the exact field associated to the base.
+        Returns the polynomial defining this extension.
 
-        .. SEEALSO::
+        INPUT:
 
-            :meth:`modulus`
-            :meth:`exact_field`
+        - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
+                       defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -152,9 +203,19 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: f = x^5 + 75*x^3 - 15*x^2 + 125*x - 5
             sage: W.<w> = R.ext(f)
             sage: W.defining_polynomial()
+            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.defining_polynomial(exact=True)
             x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+        .. SEEALSO::
+
+            :meth:`modulus`
+            :meth:`exact_field`
         """
-        return self._exact_modulus
+        if exact:
+            return self._exact_modulus
+        else:
+            return self._given_poly
 
     def exact_field(self):
         """
@@ -162,10 +223,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
         Note that this method always returns a field, even for
         a p-adic ring.
-
-        .. SEEALSO::
-
-            :meth:`defining_polynomial`
 
         EXAMPLES::
 
@@ -175,17 +232,22 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.<w> = R.ext(f)
             sage: W.exact_field()
             Number Field in w with defining polynomial x^5 + 75*x^3 - 15*x^2 + 125*x - 5
-        """
-        return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
-
-    def modulus(self):
-        """
-        Returns the polynomial defining this extension, as an inexact polynomial
-        over the base ring.
 
         .. SEEALSO::
 
             :meth:`defining_polynomial`
+            :meth:`modulus`
+        """
+        return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
+
+    def modulus(self, exact=False):
+        """
+        Returns the polynomial defining this extension.
+
+        INPUT:
+
+        - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
+                       defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -195,8 +257,15 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.<w> = R.ext(f)
             sage: W.modulus()
             (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.modulus(exact=True)
+            x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+        .. SEEALSO::
+
+            :meth:`defining_polynomial`
+            :meth:`exact_field`
         """
-        return self._given_poly
+        return self.defining_polynomial(exact)
 
     def ground_ring(self):
         """
@@ -282,7 +351,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
         print_mode = self._printer.dict()
-        return (AEF([self.defining_polynomial()], [self.variable_name()],
+        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
                     prec=self.precision_cap(), print_mode=self._printer.dict(),
                     implementation=self._implementation),
                 self.base_ring())
@@ -388,3 +457,51 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def zeta_order(self):
     #    raise NotImplementedError
 
+class DefPolyConversion(Morphism):
+    """
+    Conversion map between p-adic rings/fields with the same defining polynomial.
+
+    INPUT:
+
+    - ``R`` -- a p-adic extension ring or field.
+    - ``S`` -- a p-adic extension ring or field with the same defining polynomial.
+
+    EXAMPLES::
+
+        sage: R.<a> = Zq(125, print_mode='terse')
+        sage: S = R.change(prec = 15, type='floating-point')
+        sage: a - 1
+        95367431640624 + a + O(5^20)
+        sage: S(a - 1)
+        30517578124 + a + O(5^15)
+
+    ::
+
+        sage: R.<a> = Zq(125, print_mode='terse')
+        sage: S = R.change(prec = 15, type='floating-point')
+        sage: f = S.convert_map_from(R)
+        sage: TestSuite(f).run()
+    """
+    def _call_(self, x):
+        """
+        Use the polynomial associated to the element to do the conversion.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: z = W.random_element()
+            sage: repr(W.change(print_mode='digits')(z))
+            '...20112102111011011200001212210222202220100111100200011222122121202100210120010120'
+        """
+        S = self.codomain()
+        Sbase = S.base_ring()
+        L = x.polynomial().list()
+        if L and not (len(L) == 1 and L[0].is_zero()): # ZZ_pX elements 
+            return S([Sbase(c) for c in L])
+        else:
+            # Inexact zeros need to be handled separately
+            if isinstance(x.parent(), pAdicExtensionGeneric):
+                return S(0, x.precision_absolute())
+            else:
+                return S(0)

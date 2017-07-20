@@ -13286,7 +13286,10 @@ cdef class Matrix(Matrix1):
         # now recurse: t now has a nonzero entry at 0,0 and zero entries in the rest
         # of the 0th row and column, so we apply smith_form to the smaller submatrix
         mm = t.submatrix(1,1)
-        dd, uu, vv = mm.smith_form(transformation=transformation)
+        if transformation:
+            dd, uu, vv = mm.smith_form(transformation=True)
+        else:
+            dd = mm.smith_form(transformation=False)
         mone = self.new_matrix(1, 1, [1])
         d = dd.new_matrix(1,1,[t[0,0]]).block_sum(dd)
         if transformation:
@@ -14655,7 +14658,7 @@ cdef class Matrix(Matrix1):
         deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
-def _smith_diag(d, transformation):
+def _smith_diag(d, transformation=True):
     r"""
     For internal use by the smith_form routine. Given a diagonal matrix d
     over a ring r, return matrices d', a,b such that a\*d\*b = d' and

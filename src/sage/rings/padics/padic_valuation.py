@@ -796,7 +796,7 @@ class pAdicValuation_base(DiscreteValuation):
         if not ring.is_subring(self.domain()):
             raise ValueError("ring must be a subring of the domain of this valuation but %r is not a subring of %r"%(ring, self.domain()))
 
-        return ring.valuation(self.p())
+        return ring.valuation()
 
     @cached_method
     def value_semigroup(self):

@@ -3398,12 +3398,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def adjunct(self, other, a, b):
         r"""
-        Return the adjunct of the lattice by `other` on pair `(a, b)`.
+        Return the adjunct of the lattice by ``other`` on the pair `(a, b)`.
 
         It is assumed that `a < b` but `b` does not cover `a`.
 
         The adjunct of a lattice `K` to `L` with respect to pair
-        `(a, b)` of `L` if defined such that `x < y` if
+        `(a, b)` of `L` is defined such that `x < y` if
 
         - `x, y \in K` and `x < y` in `K`,
         - `x, y \in L` and `x < y` in `L`,
@@ -3420,10 +3420,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES::
 
-            sage: P = Posets.PentagonPoset()
-            sage: PP = P.adjunct(P, 0, 3)
+            sage: Pnum = Posets.PentagonPoset()
+            sage: Palp = Pnum.relabel(lambda x: chr(ord('a')+x))
+            sage: PP = Pnum.adjunct(Palp, 0, 3)
             sage: PP.atoms()
-            [(0, 1), (0, 2), (1, 0)]
+            [(0, 1), (0, 2), (1, 'a')]
             sage: PP.coatoms()
             [(0, 3), (0, 1)]
 

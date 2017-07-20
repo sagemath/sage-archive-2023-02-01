@@ -1501,7 +1501,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         approximations to the unit part with numerator and
         denominator bounded by ``sqrt(p^absprec / 2)``.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`_rational_`
 

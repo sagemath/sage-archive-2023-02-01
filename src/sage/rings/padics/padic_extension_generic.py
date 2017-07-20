@@ -152,7 +152,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return self._given_poly.degree()
 
-    def defining_polynomial(self):
+    def defining_polynomial(self, exact=False):
         """
         Returns the polynomial defining this extension.
 

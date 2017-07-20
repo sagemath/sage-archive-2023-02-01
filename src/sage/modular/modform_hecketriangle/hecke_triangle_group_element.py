@@ -2020,9 +2020,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.simple_fixed_point_set()
-            {(-lam + 3/2)*e - 1/2*lam + 1, 1/2*e + 1/2*lam, (-lam + 3/2)*e + 1/2*lam - 1, 1/2*e - 1/2*lam}
+            {1/2*e - 1/2*lam, 1/2*e + 1/2*lam, (-lam + 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e - 1/2*lam + 1}
+
             sage: el.simple_fixed_point_set(extended=False)
-            {1/2*e + 1/2*lam, 1/2*e - 1/2*lam}
+            {1/2*e - 1/2*lam, 1/2*e + 1/2*lam}
         """
         if self.parent().n() == infinity:
             from warnings import warn
@@ -2519,7 +2520,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.is_hecke_symmetric()
             True
             sage: el.simple_fixed_point_set()
-            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e + 1/2*lam - 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e - 1/2*lam + 1}
+            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e - 1/2*lam + 1, (lam - 3/2)*e - 1/2*lam + 1}
             sage: el.simple_fixed_point_set() == el.inverse().simple_fixed_point_set()
             True
         """

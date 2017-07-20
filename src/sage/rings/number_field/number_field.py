@@ -8099,7 +8099,7 @@ class NumberField_absolute(NumberField_generic):
         """
         if prec is None:
             prec = 53
-        R = sage.rings.real_mpfr.RealField(53)
+        R = sage.rings.real_mpfr.RealField(prec)
 
         try:
             p = v.smallest_integer()

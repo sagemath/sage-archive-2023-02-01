@@ -97,7 +97,7 @@ def gauss_sum(a, p, f, prec = 20):
 
 
     """
-    a = a % (p**f)
+    a = a % (p**f-1)
     R = Zp(p, prec)
     R_poly = PolynomialRing(R,name='X')
     X = R_poly.gen()

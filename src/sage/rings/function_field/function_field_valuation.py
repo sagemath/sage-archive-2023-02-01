@@ -197,7 +197,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         """
         from sage.categories.function_fields import FunctionFields
-        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
         if domain not in FunctionFields():
             raise ValueError("Domain must be a function field.")
 
@@ -207,7 +206,8 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 # isomorphism information
                 return self.create_key_and_extra_args_from_valuation_on_isomorphic_field(domain, prime[0], prime[1], prime[2])
 
-        if prime in DiscretePseudoValuationSpace(domain):
+        from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+        if prime.parent() is DiscretePseudoValuationSpace(domain):
             # prime is already a valuation of the requested domain
             # if we returned (domain, prime), we would break caching
             # because this element has been created from a different key
@@ -220,7 +220,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
         if prime in domain:
             # prime defines a place
             return self.create_key_and_extra_args_from_place(domain, prime)
-        if prime in DiscretePseudoValuationSpace(domain._ring):
+        if prime.parent() is DiscretePseudoValuationSpace(domain._ring):
             # prime is a discrete (pseudo-)valuation on the polynomial ring
             # that the domain is constructed from
             return self.create_key_and_extra_args_from_valuation(domain, prime)

@@ -564,8 +564,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         if other in FunctionFields() and other.ngens() == 1:
             # extend to K[x] and from there to K(x)
             v = self.extension(self.domain().change_ring(self.domain().base().fraction_field()))
-            from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
-            return [FunctionFieldValuation(other, v)]
+            return [other.valuation(v)]
         return super(FiniteInductiveValuation, self).extensions(other)
 
 

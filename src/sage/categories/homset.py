@@ -1109,7 +1109,7 @@ class Homset(Set_generic):
             ...
             TypeError: Identity map only defined for endomorphisms. Try natural_map() instead.
             sage: H.natural_map()
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """

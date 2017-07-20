@@ -1370,7 +1370,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: f(7)
            2
            sage: f
-           Ring Coercion morphism:
+           Natural morphism:
              From: Integer Ring
              To:   Finite Field of size 5
 
@@ -1849,6 +1849,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Conversion map:
               From: Finite Field of size 7
               To:   Finite Field of size 11
+
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
 
         """
         from . import coerce_maps

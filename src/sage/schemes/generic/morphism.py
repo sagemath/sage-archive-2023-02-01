@@ -103,7 +103,6 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
-from sage.categories.morphism import Morphism
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 
@@ -764,7 +763,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
         """
@@ -1442,7 +1441,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             S = self.codomain().change_ring(R)
             H = Hom(T,S)
 
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
             if R.domain() == self.base_ring():
                 R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
         G = []

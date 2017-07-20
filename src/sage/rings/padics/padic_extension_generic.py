@@ -515,7 +515,7 @@ class DefPolyConversion(Morphism):
         S = self.codomain()
         Sbase = S.base_ring()
         L = x.polynomial().list()
-        if L and not (len(L) == 1 and L[0].is_zero()): # ZZ_pX elements 
+        if L and not (len(L) == 1 and L[0].is_zero()):
             return S([Sbase(c) for c in L])
         else:
             # Inexact zeros need to be handled separately

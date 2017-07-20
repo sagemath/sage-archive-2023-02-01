@@ -964,6 +964,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^3 - 3)
             sage: v = L.valuation(); v
+            3-adic valuation
             sage: v(3)
             1
             sage: L(3).valuation()

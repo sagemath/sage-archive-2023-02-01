@@ -89,7 +89,6 @@ cdef class PowComputer_relative(PowComputer_class):
 
         self.base_ring = poly.base_ring()
         self.poly_ring = poly.parent()
-        self._shift_seed = shift_seed
 
     def __dealloc__(self):
         r"""
@@ -196,6 +195,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         self.e = self.modulus.degree()
         self.f = 1
+        self._shift_seed = shift_seed
 
     cdef Polynomial_generic_dense invert(self, Polynomial_generic_dense a, long prec):
         r"""

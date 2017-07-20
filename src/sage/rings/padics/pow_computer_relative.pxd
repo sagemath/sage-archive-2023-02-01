@@ -20,4 +20,6 @@ cdef class PowComputer_relative(PowComputer_class):
     cdef unsigned long capdiv(self, unsigned long n)
 
 cdef class PowComputer_relative_eis(PowComputer_relative):
+    # (x^e - modulus)/p
+    cdef public Polynomial_generic_dense _shift_seed
     cdef Polynomial_generic_dense invert(self, Polynomial_generic_dense element, long prec)

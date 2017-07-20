@@ -173,9 +173,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: H = DiscretePseudoValuationSpace(QQ)
             sage: H.an_element() in H
             True
-
-        Elements of spaces which embed into this spaces are correctly handled::
-
             sage: QQ.valuation(2) in H
             True
 

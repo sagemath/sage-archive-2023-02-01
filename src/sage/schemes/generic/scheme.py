@@ -701,7 +701,7 @@ class Scheme(Parent):
         r"""
         Compute the zeta function of a generic scheme.
 
-        Derived clases should override this method.
+        Derived classes should override this method.
 
         EXAMPLES::
 

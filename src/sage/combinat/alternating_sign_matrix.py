@@ -1129,17 +1129,29 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        Check that checking is disabled with ``check=False``::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1,2,3],[4,5,6],[7,8,9]])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a valid argument to build an alternating sign matrix
+            sage: A([[1,2,3],[4,5,6],[7,8,9]], check=False)
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
         """
         if isinstance(asm, AlternatingSignMatrix):
             if asm.parent() is self:
                 return asm
             raise ValueError("Cannot convert between alternating sign matrices of different sizes")
         elif asm in MonotoneTriangles(self._n):
-            return self.from_monotone_triangle(asm)
+            return self.from_monotone_triangle(asm, check=check)
         else:
             m = self._matrix_space(asm)
             m.set_immutable()
-            if not m in self:
+            if check and m not in self:
                 raise ValueError('not a valid argument to build an alternating sign matrix')
             return self.element_class(self, m)
 

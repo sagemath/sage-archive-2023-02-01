@@ -7,7 +7,7 @@ using the deformation method, developed by Sebastion Pancratz.
 
 == License ==
 
-???
+GLPv3
 
 == Upstream Contact ==
 

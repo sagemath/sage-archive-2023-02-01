@@ -241,7 +241,7 @@ class Qp_class(UniqueFactory):
     - ``print_max_terms`` -- integer (default ``None``) The maximum number of
       terms shown.  See PRINTING below.
 
-    - ``show_prec`` -- bool (default ``None``) Whether to show the precision
+    - ``show_prec`` -- bool (default ``None``) whether to show the precision
       for elements.  See PRINTING below.
 
     - ``check`` -- bool (default ``True``) whether to check if `p` is prime.
@@ -663,7 +663,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
       number of terms in the polynomial representation of an element
       (using ``'terse'``).  See PRINTING below.
 
-    - ``show_prec`` -- bool (default ``None``) Whether to show the precision
+    - ``show_prec`` -- bool (default ``None``) whether to show the precision
       for elements.  See PRINTING below.
 
     - ``check`` -- bool (default ``True``) whether to check inputs.
@@ -1236,7 +1236,7 @@ class Zp_class(UniqueFactory):
     - ``print_max_terms`` -- integer (default ``None``) The maximum
       number of terms shown.  See PRINTING below.
 
-    - ``show_prec`` -- bool (default ``None``) Whether to show the precision
+    - ``show_prec`` -- bool (default ``None``) whether to show the precision
       for elements.  See PRINTING below.
 
     - ``check`` -- bool (default ``True``) whether to check if `p` is

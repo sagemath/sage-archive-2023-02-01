@@ -852,6 +852,121 @@ cdef class RingHomomorphism(RingMap):
             return self._lift
         return self._lift(x)
 
+cdef class RingHomomorphism_coercion(RingHomomorphism):
+    r"""
+    A ring homomorphism that is a coercion.
+
+    .. WARNING:;
+
+        This class is obsolete. Set the category of your morphism to a
+        subcategory of ``Rings`` instead.
+
+    TESTS:
+
+        sage: from sage.rings.morphism import RingHomomorphism_coercion
+        sage: parent = Hom(ZZ,ZZ)
+        sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+        doctest:warning
+        ...
+        DeprecationWarning: Set the category of your morphism to a subcategory of Rings instead.
+        See http://trac.sagemath.org/23204 for details.
+        sage: TestSuite(f).run()
+
+    """
+    def __init__(self, parent, check = True):
+        r"""
+        TESTS:
+
+            sage: from sage.rings.morphism import RingHomomorphism_coercion
+            sage: parent = Hom(ZZ,ZZ)
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: isinstance(f, RingHomomorphism_coercion)
+            True
+
+        """
+        sage.misc.superseded.deprecation(23204, "Set the category of your morphism to a subcategory of Rings instead.")
+
+        RingHomomorphism.__init__(self, parent)
+        # putting in check allows us to define subclasses of RingHomomorphism_coercion that implement _coerce_map_from
+        if check and not self.codomain().has_coerce_map_from(self.domain()):
+            raise TypeError("Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain()))
+
+    def _repr_type(self):
+        """
+        Used internally when printing this.
+
+        EXAMPLES::
+
+            sage: from sage.rings.morphism import RingHomomorphism_coercion
+            sage: parent = Hom(ZZ,ZZ)
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: f._repr_type()
+            'Ring Coercion'
+
+        """
+        return "Ring Coercion"
+
+    def __richcmp__(self, other, int op):
+        """
+        Compare a ring coercion morphism ``self`` to ``other``.
+
+        Ring coercion morphisms never compare equal to any other data type. If
+        other is a ring coercion morphism, the parents of ``self`` and
+        ``other`` are compared.
+
+        EXAMPLES::
+
+            sage: from sage.rings.morphism import RingHomomorphism_coercion
+            sage: parent = Hom(ZZ,ZZ)
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: f == f
+            True
+            sage: f != f
+            False
+
+        """
+        if op not in [Py_EQ, Py_NE]:
+            return NotImplemented
+
+        if not isinstance(other, RingHomomorphism_coercion):
+            return (op == Py_NE)
+
+        # Since they are coercion morphisms they are determined by
+        # their parents, i.e., by the domain and codomain, so we just
+        # compare those.
+        return richcmp(self.parent(), other.parent(), op)
+
+    def __hash__(self):
+        """
+        Return the hash of this morphism.
+
+        TESTS::
+
+            sage: from sage.rings.morphism import RingHomomorphism_coercion
+            sage: parent = Hom(ZZ,ZZ)
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: g = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: hash(f) == hash(g)
+	        True
+
+        """
+        return hash((self.domain(), self.codomain()))
+
+    cpdef Element _call_(self, x):
+        """
+        Evaluate this coercion morphism at ``x``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.morphism import RingHomomorphism_coercion
+            sage: parent = Hom(ZZ,ZZ)
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
+            sage: f(0)
+            0
+
+        """
+        return self.codomain().coerce(x)
+
 import sage.structure.all
 
 cdef class RingHomomorphism_im_gens(RingHomomorphism):

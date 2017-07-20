@@ -517,9 +517,39 @@ class DefPolyConversion(Morphism):
         L = x.polynomial().list()
         if L and not (len(L) == 1 and L[0].is_zero()):
             return S([Sbase(c) for c in L])
+        # Inexact zeros need to be handled separately
+        elif isinstance(x.parent(), pAdicExtensionGeneric):
+            return S(0, x.precision_absolute())
         else:
-            # Inexact zeros need to be handled separately
-            if isinstance(x.parent(), pAdicExtensionGeneric):
-                return S(0, x.precision_absolute())
+            return S(0)
+
+    def _call_with_args(self, x, *args, **kwds):
+        """
+        Use the polynomial associated to the element to do the conversion,
+        passing arguments along to the codomain.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: z = W.random_element()
+            sage: repr(W.change(print_mode='digits')(z, absprec=8))
+            '...20010120'
+        """
+        S = self.codomain()
+        Sbase = S.base_ring()
+        L = x.polynomial().list()
+        if L and not (len(L) == 1 and L[0].is_zero()):
+            return S([Sbase(c) for c in L], *args, **kwds)
+        # Inexact zeros need to be handled separately
+        elif isinstance(x.parent(), pAdicExtensionGeneric):
+            if args:
+                absprec = args.pop(0)
+                if 'absprec' in kwds:
+                    raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
             else:
-                return S(0)
+                absprec = kwds.pop('absprec',x.precision_absolute())
+            absprec = min(absprec, x.precision_absolute())
+            return S(0, absprec, *args, **kwds)
+        else:
+            return S(0, *args, **kwds)

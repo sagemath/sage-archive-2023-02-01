@@ -588,14 +588,14 @@ class FunctionField(Field):
         polynomial ring::
         
             sage: R.<x> = QQ[]
-            sage: w = GaussValuation(R, TrivialValuation(QQ)).augmentation(x - 1, 1)
+            sage: w = valuations.GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x - 1, 1)
             sage: v = K.valuation(w); v
             (x - 1)-adic valuation
         
         Note that this allows us to specify valuations which do not correspond to a
         place of the function field::
         
-            sage: w = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = valuations.GaussValuation(R, QQ.valuation(2))
             sage: v = K.valuation(w); v
             2-adic valuation
 
@@ -606,7 +606,7 @@ class FunctionField(Field):
         applying the substitution `x \mapsto 1/x` (here, the inverse map is also `x
         \mapsto 1/x`)::
 
-            sage: w = GaussValuation(R, pAdicValuation(QQ, 2)).augmentation(x, 1)
+            sage: w = valuations.GaussValuation(R, QQ.valuation(2)).augmentation(x, 1)
             sage: w = K.valuation(w)
             sage: v = K.valuation((w, K.hom([~K.gen()]), K.hom([~K.gen()]))); v
             Valuation on rational function field induced by [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ] (in Rational function field in x over Rational Field after x |--> 1/x)

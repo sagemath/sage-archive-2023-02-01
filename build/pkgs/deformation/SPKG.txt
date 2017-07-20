@@ -1,0 +1,14 @@
+= deformation =
+
+== Description ==
+
+Deformation is a C library for counting points on hypersurfaces
+using the deformation method, developed by Sebastion Pancratz.
+
+== License ==
+
+???
+
+== Upstream Contact ==
+
+* Sebastian Pancratz: sebastian.pancratz@gmail.com

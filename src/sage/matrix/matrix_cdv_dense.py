@@ -105,7 +105,10 @@ def determinant(M):
             break
         val = curval
         if S[pivi,pivj] == 0:
-            return R(0, valdet + (n-piv)*val)
+            if R.tracks_precision():
+                return R(0, valdet + (n-piv)*val)
+            else:
+                return R(0)
 
         valdet += val
         S.swap_rows(pivi,piv)
@@ -117,16 +120,19 @@ def determinant(M):
         inv = ~(S[piv,piv] >> val)
         for i in range(piv+1,n):
             scalar = -inv * (S[i,piv] >> val)
-            scalar = scalar.lift_to_maximal_precision()
+            if R.tracks_precision():
+                scalar = scalar.lift_to_maximal_precision()
             S.add_multiple_of_row(i,piv,scalar)
 
-    relprec = +Infinity
-    for i in range(n):
-        prec = Infinity
-        for j in range(n):
-            p = S[i,j].precision_absolute()
-            if p < prec: prec = p
-        prec -= S[i,i].valuation()
-        if prec < relprec: relprec = prec
-
-    return (sign*det).add_bigoh(valdet+relprec)
+    if R.tracks_precision():
+        relprec = +Infinity
+        for i in range(n):
+            prec = Infinity
+            for j in range(n):
+                p = S[i,j].precision_absolute()
+                if p < prec: prec = p
+            prec -= S[i,i].valuation()
+            if prec < relprec: relprec = prec
+        return (sign*det).add_bigoh(valdet+relprec)
+    else:
+        return sign*det

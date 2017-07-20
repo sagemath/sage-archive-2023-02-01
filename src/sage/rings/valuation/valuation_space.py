@@ -130,7 +130,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         """
         from operator import mul, div
         from sage.rings.all import QQ, InfinityRing, ZZ
-        if op == mul and not self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
+        if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
             return ScaleAction(S, self)
         if op == div and self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
             return InverseScaleAction(self, S)

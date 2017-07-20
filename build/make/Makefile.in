@@ -97,22 +97,28 @@ $(INST)/.dummy:
 # Generate build rules for 'normal' packages; this template is used to generate
 # three rules in the form:
 #
-# $(inst_<pkgname>): $(foreach dep,$(deps_<pkname>),$(inst_$(dep)))
+# $(INST)/<pkgname>-<pkgvers>: $(foreach dep,$(deps_<pkname>),$(inst_$(dep)))
 #     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) <pkgname>-<pkgvers>' '$(SAGE_LOGS)/<pkgname>-<pkgvers>.log'
 #
-# <pkgname>: $(inst_<pkgname>)
+# <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
-#     rm -rf $(inst_<pkgname>)
- 
+#     rm -rf $(INST)/<pkgname>-<pkgvers>
+#
+# Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
+# explicitly, rather than expanding the $(inst_<pkgname>) variable, since
+# it may expand to $(INST)/.dummy for packages that were not configured
+# for installation by default.  However, we wish to be able to manually
+# install those packages later.
+
 define NORMAL_PACKAGE_templ
-$$(inst_$(1)): $$(foreach dep,$$(deps_$(1)),$$(inst_$$(dep)))
+$$(INST)/$(1)-$$(vers_$(1)): $$(foreach dep,$$(deps_$(1)),$$(inst_$$(dep)))
 	+$(AM_V_at)sage-logger -p '$(SAGE_SPKG) $(1)-$$(vers_$(1))' '$(SAGE_LOGS)/$(1)-$$(vers_$(1)).log'
 
-$(1): $$(inst_$(1))
+$(1): $$(INST)/$(1)-$$(vers_$(1))
 
 $(1)-clean:
-	rm -rf $$(inst_$(1))
+	rm -rf $$(INST)/$(1)-$$(vers_$(1))
 endef
 
 $(foreach pkgname,$(NORMAL_PACKAGES),\

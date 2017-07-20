@@ -91,7 +91,6 @@ from sage.categories.fields import Fields
 from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.rings.morphism import is_RingHomomorphism
 from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity
 from . import scheme
@@ -769,7 +768,8 @@ class SchemeMorphism_spec(SchemeMorphism):
         """
         SchemeMorphism.__init__(self, parent)
         if check:
-            if not is_RingHomomorphism(phi):
+            from sage.categories.all import Rings
+            if not (isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())):
                 raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():
                 raise TypeError("phi (=%s) must have domain %s"

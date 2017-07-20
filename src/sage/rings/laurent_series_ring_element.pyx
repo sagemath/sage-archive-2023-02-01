@@ -553,12 +553,12 @@ cdef class LaurentSeries(AlgebraElement):
             sage: A.<t> = LaurentSeriesRing(GF(5))
             sage: x = t^(-1) + t^2 + O(t^5)
             sage: x.lift_to_maximal_precision()
-            t^(-1) + t^2 
+            t^-1 + t^2 
         """
         if self.is_zero():
             return self._parent(0)
         else:
-            return self._parent(self.list()) >> self.__n
+            return self._parent(self.list()) << self.__n
 
     def __setitem__(self, n, value):
         """

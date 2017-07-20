@@ -193,7 +193,7 @@ class LocalGeneric(CommutativeRing):
         return self._repr_(do_latex = True)
 
     def change(self, **kwds):
-        """
+        r"""
         Return a new ring with changed attributes.
 
         INPUT:
@@ -225,10 +225,10 @@ class LocalGeneric(CommutativeRing):
                        the precision on the base is increased as necessary (respecting ramification).
                        If the precision is decreased, the precision of the base is unchanged.
 
-        - ``field`` -- bool.  If True, switch to a tower of fields via the fraction field.
+        - ``field`` -- bool.  If ``True``, switch to a tower of fields via the fraction field.
                         If False, switch to a tower of rings of integers.
 
-        - ``q`` -- prime power.  Replace the initial unramified extension of `\Qp` or `\Zp`
+        - ``q`` -- prime power.  Replace the initial unramified extension of `\Q_p` or `\Z_p`
                     with an unramified extension of residue cardinality `q`.
                     If the initial extension is ramified, add in an unramified extension.
 

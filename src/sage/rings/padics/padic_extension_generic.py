@@ -218,11 +218,11 @@ class pAdicExtensionGeneric(pAdicGeneric):
             return self._given_poly
 
     def exact_field(self):
-        """
+        r"""
         Return a number field with the same defining polynomial.
 
-        Note that this method always returns a field, even for
-        a p-adic ring.
+        Note that this method always returns a field, even for a `p`-adic
+        ring.
 
         EXAMPLES::
 
@@ -241,7 +241,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
 
     def modulus(self, exact=False):
-        """
+        r"""
         Returns the polynomial defining this extension.
 
         INPUT:
@@ -497,7 +497,7 @@ class DefPolyConversion(Morphism):
         S = self.codomain()
         Sbase = S.base_ring()
         L = x.polynomial().list()
-        if L and not (len(L) == 1 and L[0].is_zero()): # ZZ_pX elements 
+        if L and not (len(L) == 1 and L[0].is_zero()):
             return S([Sbase(c) for c in L])
         else:
             # Inexact zeros need to be handled separately

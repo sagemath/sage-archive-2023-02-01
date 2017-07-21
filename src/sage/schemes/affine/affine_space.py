@@ -15,6 +15,7 @@ from six import integer_types
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
 from sage.rings.rational_field import is_RationalField
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
@@ -87,7 +88,7 @@ def AffineSpace(n, R=None, names='x'):
         sage: A.coordinate_ring() is R
         True
     """
-    if is_MPolynomialRing(n) and R is None:
+    if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         R = n
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R

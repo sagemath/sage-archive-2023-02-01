@@ -789,30 +789,33 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             if nn == 0:
                 # the above becomes b != 0 and a/b > d/n
                 b = 1
-                if d/n in ZZ:
-                    a = d/n + 1
-                else:
-                    a = (d/n).ceil()
+                a = (d/n + 1).floor()
             else:
                 # Since n,nn,d,dd are all non-negative this is essentially equivalent to
                 # a/b > d/n and b/a > nn/dd
                 # which is 
                 # dd/nn > a/b > d/n
                 assert(dd/nn > d/n)
-                for b in iter(NN):
-                    # we naĩvely find the smallest b which can satisfy such an equation
-                    # there are faster algorithms for this
-                    # https://dl.acm.org/citation.cfm?id=1823943&CFID=864015776&CFTOKEN=26270402
-                    if b == 0:
-                        continue
-                    assert(b <= n + nn) # (a+b)/(n+nn) is a solution
-                    if nn/dd/b in ZZ:
-                        a = nn/dd/b + 1
-                    else:
-                        a = (nn/dd/b).ceil()
-                    assert(a/b > d/n)
-                    if dd/nn > a/b:
-                        break
+                from sage.rings.continued_fraction import continued_fraction
+                ab_cf = []
+                dn_cf = continued_fraction(d/n)
+                ddnn_cf = continued_fraction(dd/nn)
+                for i, (x,y) in enumerate(zip(dn_cf, ddnn_cf)):
+                    if x == y:
+                        ab_cf.append(x)
+                    elif x < y:
+                        if y > x+1 or len(ddnn_cf) > i+1:
+                            ab_cf.append(x+1)
+                        else:
+                            # the expansion of dd/nn is ending, so we can't append x+1
+                            ab_cf.extend([x,1,1])
+                    elif y < x:
+                        if x > y+1 or len(dn_cf) > i+1:
+                            ab_cf.append(y+1)
+                        else:
+                            ab_cf.extend([y,1,1])
+                ab = continued_fraction(ab_cf).value()
+                a,b = ab.numerator(), ab.denominator()
                 
             ret = self.domain()(numerator**a / denominator**b)
             assert(self(ret) > 0)

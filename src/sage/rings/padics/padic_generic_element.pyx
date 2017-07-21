@@ -2774,7 +2774,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         `Li_1(z) = -\log(1-z)` for `|z| < 1`
         
         ::
-        
+
             sage: Qp(5)(10).polylog(1) == -Qp(5)(1-10).log(0)
             True
 
@@ -2793,12 +2793,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         REFERENCES:
 
-        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm 
+        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of computation
              (2008): 1105-1134.
 
         .. [DCW2015] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed tate motives and the
-             unit equation." International Mathematics Research Notices 
+             unit equation." International Mathematics Research Notices
              2016.17 (2015): 5291-5354.
 
         AUTHORS:
@@ -2884,12 +2884,12 @@ def _polylog_c(n, p):
 
         sage: sage.rings.padics.padic_generic_element._polylog_c(1, 2)
         log(4/log(2))/log(2) + 2
-    
+
     REFERENCES:
 
     See Prop. 6.1 of
 
-        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm 
+        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of computation
              (2008): 1105-1134.
 
@@ -2924,7 +2924,7 @@ def _findprec(c_1, c_2, c_3, p):
 
     Remark 7.11 of
 
-        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm 
+        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of computation
              (2008): 1105-1134.
     """
@@ -2941,7 +2941,7 @@ def _compute_g(p, n, prec, terms):
     This is an internal function, used by :meth:`polylog`.
 
     EXAMPLES::
-        
+
         sage: sage.rings.padics.padic_generic_element._compute_g(7, 3, 3, 3)[0]
         (O(7^3))*v^2 + (1 + O(7^3))*v + (O(7^3))
 

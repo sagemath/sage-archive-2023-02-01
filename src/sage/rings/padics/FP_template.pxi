@@ -1156,13 +1156,13 @@ cdef class FPElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: K.<a> = Qq(5^3)
+            sage: K.<a> = QqFP(5^3)
             sage: a.polynomial()
-            (1 + O(5^20))*x + (O(5^20))
+            x
             sage: a.polynomial(var='y')
-            (1 + O(5^20))*y + (O(5^20))
+            y
             sage: (5*a^2 + K(25, 4)).polynomial()
-            (5 + O(5^4))*x^2 + (O(5^4))*x + (5^2 + O(5^4))
+            5*x^2 + 5^2
         """
         R = self.base_ring()
         S = R[var]
@@ -1171,7 +1171,7 @@ cdef class FPElement(pAdicTemplateElement):
         elif very_neg_val(self.ordp):
             return S([~R(0)])
         else:
-            return S(ccoefficients(self.unit, self.ordp, self.relprec, self.prime_pow))
+            return S(ccoefficients(self.unit, self.ordp, self.prime_pow.ram_prec_cap, self.prime_pow))
 
     def precision_absolute(self):
         """

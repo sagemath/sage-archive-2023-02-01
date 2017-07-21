@@ -798,7 +798,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             x = todo.pop()
             yield x
             for y in self.successors(x):
-                if y == None or y in known:
+                if y is None or y in known:
                     continue
                 todo.add(y)
                 known.add(y)

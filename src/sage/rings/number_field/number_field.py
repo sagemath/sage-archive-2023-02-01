@@ -6030,7 +6030,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         except AttributeError:
             pass
 
-        if proof == False:
+        if not proof:
             try:
                 return self._unit_group_no_proof
             except AttributeError:
@@ -6153,7 +6153,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         except KeyError:
             pass
 
-        if proof == False:
+        if not proof:
             try:
                 return self._S_unit_group_no_proof_cache[S]
             except AttributeError:

@@ -175,7 +175,7 @@ class FixedModGeneric(LocalGeneric):
 
             sage: R = ZpFM(5)
             sage: R.tracks_precision()
-            True
+            False
 
         """
         return False
@@ -300,7 +300,7 @@ class FloatingPointGeneric(LocalGeneric):
 
             sage: R = ZpFP(5)
             sage: R.tracks_precision()
-            True
+            False
 
         """
         return False

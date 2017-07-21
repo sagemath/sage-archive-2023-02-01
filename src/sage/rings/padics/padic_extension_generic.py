@@ -207,9 +207,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def exact_ring(self):
         """
-	Return the order with the same defining polynomial.
+Return the order with the same defining polynomial.
 
-	Will raise a ValueError if the coefficients of the defining polynomial are not 		integral.
+Will raise a ValueError if the coefficients of the defining polynomial are not 		integral.
 
         EXAMPLES::
 
@@ -218,13 +218,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: W.exact_ring()
-	    Order in Number Field in w with defining polynomial x^5 + 75*x^3 - 15*x^2 + 	    125*x - 5
-	
-	    sage: T = Zp(5,5)
-	    sage: U.<z> = T[]
-	    sage: g = 2*z^4 + 1
-	    sage: V.<v> = T.ext(g)
-	    sage: V.exact_ring()
+            Order in Number Field in w with defining polynomial x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+            sage: T = Zp(5,5)
+            sage: U.<z> = T[]
+            sage: g = 2*z^4 + 1
+            sage: V.<v> = T.ext(g)
+            sage: V.exact_ring()
 	    ValueError: each generator must be integral
         """
         return self.base_ring().exact_ring().extension(self.defining_polynomial(exact=True), self.variable_name())

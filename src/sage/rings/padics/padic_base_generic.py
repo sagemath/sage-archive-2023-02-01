@@ -173,16 +173,16 @@ class pAdicBaseGeneric(pAdicGeneric):
         return QQ
 
     def exact_ring(self):
-	"""
-	Returns the integer ring.  
+        """
+        Returns the integer ring.  
 
-	EXAMPLES::
+        EXAMPLES::
 
-	    sage: Zp(5).exact_ring() 
-	    Integer Ring
-	"""
-	from sage.rings.integer_ring import ZZ
-	return ZZ
+            sage: Zp(5).exact_ring() 
+            Integer Ring
+        """
+        from sage.rings.integer_ring import ZZ
+        return ZZ
 
     def is_isomorphic(self, ring):
         r"""

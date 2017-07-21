@@ -703,6 +703,8 @@ class Scheme(Parent):
 
         Derived classes should override this method.
 
+        OUTPUT: rational function in one variable.
+
         EXAMPLES::
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)

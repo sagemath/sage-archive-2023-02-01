@@ -601,7 +601,7 @@ class LocalGeneric(CommutativeRing):
             z = y.residue()
             tester.assertEqual(x, z)
 
-    def _matrix_smith_form(self, M, transformation):
+    def _matrix_smith_form(self, M, transformation, integral):
         r"""
         Return the Smith normal form of the matrix ``M``.
 
@@ -616,8 +616,12 @@ class LocalGeneric(CommutativeRing):
 
         - ``M`` -- a matrix over this ring
 
-        - ``transformation`` -- a boolean (default: ``True``); whether the
-        transformation matrices are returned
+        - ``transformation`` -- a boolean; whether the transformation matrices
+        are returned
+
+        - ``integral`` -- a subring of the base ring or ``True``; the entries
+        of the transformation matrices are in this ring.  If ``True``, the
+        entries are in the ring of integers of the base ring.
 
         EXAMPLES::
 
@@ -665,9 +669,16 @@ class LocalGeneric(CommutativeRing):
             sage: M.smith_form()  # indirect doctest
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision to compute Smith normal form
+            PrecisionError: not enough precision to compute Smith normal form
 
         """
+        if integral is None:
+            integral = self
+        if integral is True:
+            integral = self.integer_ring()
+        if integral is not self and integral is not self.integer_ring():
+            raise NotImplementedError("Smith normal form over this subring")
+
         n = M.nrows()
         m = M.ncols()
         S = M.parent()(M.list())
@@ -700,7 +711,7 @@ class LocalGeneric(CommutativeRing):
 
             if R.tracks_precision() and precM is not Infinity and val >= precM:
                 from .precision_error import PrecisionError
-                raise PrecisionError("Not enough precision to compute Smith normal form")
+                raise PrecisionError("not enough precision to compute Smith normal form")
 
             if val is Infinity:
                 break
@@ -731,6 +742,8 @@ class LocalGeneric(CommutativeRing):
         if transformation:
             if R.tracks_precision() and precM is not Infinity:
                 left = left.apply_map(lambda x: x.add_bigoh(precM-val))
+            left = left.change_ring(integral)
+            right = right.change_ring(integral)
             return smith, left, right
         else:
             return smith
@@ -752,20 +765,27 @@ class LocalGeneric(CommutativeRing):
         from .precision_error import PrecisionError
         matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
         for M in tester.some_elements(matrices):
-            try:
-                S,U,V = M.smith_form()
-            except PrecisionError:
-                continue
+            bases = [self]
+            if self is not self.integer_ring():
+                bases.append(self.integer_ring())
+            for base in bases:
+                try:
+                    S,U,V = M.smith_form(integral=base)
+                except PrecisionError:
+                    continue
 
-            if self.is_exact() or self.tracks_precision():
-                tester.assertEqual(U*M*V, S)
+                if self.is_exact() or self.tracks_precision():
+                    tester.assertEqual(U*M*V, S)
 
-            tester.assertEqual(U.nrows(), U.ncols())
-            tester.assertEqual(V.nrows(), V.ncols())
+                tester.assertEqual(U.nrows(), U.ncols())
+                tester.assertEqual(U.base_ring(), base)
 
-            for d in S.diagonal():
-                if not d.is_zero():
-                    tester.assertTrue(d.unit_part().is_one())
+                tester.assertEqual(V.nrows(), V.ncols())
+                tester.assertEqual(V.base_ring(), base)
 
-            for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
-                tester.assertTrue(d.divides(dd))
+                for d in S.diagonal():
+                    if not d.is_zero():
+                        tester.assertTrue(d.unit_part().is_one())
+
+                for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
+                    tester.assertTrue(d.divides(dd))

@@ -97,7 +97,7 @@ class DiscretePseudoValuation(Morphism):
         Return a hash value for this valuation.
 
         We override the strange default provided by
-        ``sage.categories.marphism.Morphism`` here and implement equality by
+        :class:`sage.categories.marphism.Morphism` here and implement equality by
         ``id``. This works fine for objects which use unique representation.
 
         Note that the vast majority of valuations come out of a
@@ -203,7 +203,7 @@ class DiscretePseudoValuation(Morphism):
         Return whether this valuation and ``other`` are indistinguishable.
 
         We override the strange default provided by
-        ``sage.categories.marphism.Morphism`` here and implement equality by
+        :class:`sage.categories.marphism.Morphism` here and implement equality by
         ``id``. This is the right behaviour in many cases.
 
         Note that the vast majority of valuations come out of a
@@ -336,6 +336,8 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
             sage: v = QQ.valuation(2)
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, v)
+            sage: v.is_discrete_valuation()
+            True
             sage: w = v.augmentation(x, infinity)
             sage: w.is_discrete_valuation()
             False
@@ -369,6 +371,8 @@ class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
 
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x, infinity)
+            sage: v.is_negative_pseudo_valuation()
+            False
             sage: K.<x> = FunctionField(QQ)
             sage: w = K.valuation(v)
             sage: w.is_negative_pseudo_valuation()
@@ -421,7 +425,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         INPUT:
 
-        - ``G`` -- a monic squarefree integral polynomial defined over a
+        - ``G`` -- a monic squarefree integral polynomial in a
           univariate polynomial ring over the :meth:`domain` of this valuation.
 
         - ``assume_squarefree`` -- a boolean (default: ``False``), whether to
@@ -490,19 +494,19 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: F = y^21 + x*y^20 + (x^3 + x + 1)*y^18 + (x^3 + 1)*y^17 + (x^4 + x)*y^16 + (x^7 + x^6 + x^3 + x + 1)*y^15 + x^7*y^14 + (x^8 + x^7 + x^6 + x^4 + x^3 + 1)*y^13 + (x^9 + x^8 + x^4 + 1)*y^12 + (x^11 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2)*y^11 + (x^12 + x^9 + x^8 + x^7 + x^5 + x^3 + x + 1)*y^10 + (x^14 + x^13 + x^10 + x^9 + x^8 + x^7 + x^6 + x^3 + x^2 + 1)*y^9 + (x^13 + x^9 + x^8 + x^6 + x^4 + x^3 + x)*y^8 + (x^16 + x^15 + x^13 + x^12 + x^11 + x^7 + x^3 + x)*y^7 + (x^17 + x^16 + x^13 + x^9 + x^8 + x)*y^6 + (x^17 + x^16 + x^12 + x^7 + x^5 + x^2 + x + 1)*y^5 + (x^19 + x^16 + x^15 + x^12 + x^6 + x^5 + x^3 + 1)*y^4 + (x^18 + x^15 + x^12 + x^10 + x^9 + x^7 + x^4 + x)*y^3 + (x^22 + x^21 + x^20 + x^18 + x^13 + x^12 + x^9 + x^8 + x^7 + x^5 + x^4 + x^3)*y^2 + (x^23 + x^22 + x^20 + x^17 + x^15 + x^14 + x^12 + x^9)*y + x^25 + x^23 + x^19 + x^17 + x^15 + x^13 + x^11 + x^5
             sage: x = K._ring.gen()
             sage: v0 = K.valuation(valuations.GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x,1))
-            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
+            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assumes squarefree for speed
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x + 1) = 3/2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y) = 4/3, v(y^3 + x^4) = 13/3 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y + x) = 2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x) = 1 ], v(y^15 + y^13 + (x + 1)*y^12 + x*y^11 + (x + 1)*y^10 + y^9 + y^8 + x*y^6 + x*y^5 + y^4 + y^3 + y^2 + (x + 1)*y + x + 1) = 2 ]]
             sage: v0 = K.valuation(valuations.GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x+1,1))
-            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
+            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assumes squarefree for speed
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 7/2, v(y^2 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1) = 15/2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y + x^2 + 1) = 7/2 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y) = 3/4, v(y^4 + x^3 + x^2 + x + 1) = 15/4 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x + 1) = 1 ], v(y^13 + x*y^12 + y^10 + (x + 1)*y^9 + (x + 1)*y^8 + x*y^7 + x*y^6 + (x + 1)*y^4 + y^3 + (x + 1)*y^2 + 1) = 2 ]]
             sage: v0 = FunctionFieldValuation(K, GaussValuation(K._ring, TrivialValuation(k)).augmentation(x^3+x^2+1,1))
-            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # optional: integrated; assumes squarefree for speed
+            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assumes squarefree for speed
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y + x^3 + x^2 + x) = 2, v(y^2 + (x^6 + x^4 + 1)*y + x^14 + x^10 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2 + x) = 5 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y^2 + (x^7 + x^5 + x^4 + x^3 + x^2 + x)*y + x^7 + x^5 + x + 1) = 3 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by Trivial valuation, v(x^3 + x^2 + 1) = 1 ], v(y^3 + (x^8 + x^5 + x^4 + x^3 + x + 1)*y^2 + (x^7 + x^6 + x^5)*y + x^8 + x^5 + x^4 + x^3 + 1) = 3 ],
@@ -535,9 +539,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = +Infinity ]]
 
             sage: G = x^2 + 1
-            sage: v.mac_lane_approximants(G) # optional: integrated
+            sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
-            sage: v.mac_lane_approximants(G, required_precision = infinity) # optional: integrated
+            sage: v.mac_lane_approximants(G, required_precision = infinity)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
 
             sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
@@ -584,9 +588,9 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         Note how the latter give a better approximation to the factors of `x^2 + 1`::
 
-            sage: v1.phi() * v2.phi() - G # optional: integrated
+            sage: v1.phi() * v2.phi() - G
             (5 + O(5^4))*x + 5 + O(5^4)
-            sage: w1.phi() * w2.phi() - G # optional: integrated
+            sage: w1.phi() * w2.phi() - G
             (5^3 + O(5^4))*x + 5^3 + O(5^4)
 
         In this example, the process stops with a factorization of `x^2 + 1`::
@@ -616,7 +620,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: alpha = T^3/4
             sage: G = 3^3*T^3*(alpha^4 - alpha)^2 - (4*alpha^3 - 1)^3
             sage: G = G/G.leading_coefficient()
-            sage: K.valuation().mac_lane_approximants(G) # optional: integrated
+            sage: K.valuation().mac_lane_approximants(G)
             [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^20))*T + (2 + O(3^20))) = 1/9, v((1 + O(3^20))*T^9 + (2*3 + 2*3^2 + O(3^21))*T^8 + (3 + 3^5 + O(3^21))*T^7 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^6 + O(3^21))*T^6 + (2*3 + 2*3^2 + 3^4 + 3^6 + 2*3^7 + O(3^21))*T^5 + (3 + 3^2 + 3^3 + 2*3^6 + 2*3^7 + 3^8 + O(3^21))*T^4 + (2*3 + 2*3^2 + 3^3 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^3 + (2*3 + 2*3^2 + 3^3 + 2*3^4 + 3^5 + 2*3^6 + 2*3^7 + 2*3^8 + O(3^21))*T^2 + (3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^7 + 3^8 + O(3^21))*T + (2 + 2*3 + 2*3^2 + 2*3^4 + 2*3^5 + 3^7 + O(3^20))) = 55/27 ]]
 
         A similar example::
@@ -624,7 +628,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x> = QQ[]
             sage: v = QQ.valuation(3)
             sage: G = (x^3 + 3)^3 - 81
-            sage: v.mac_lane_approximants(G) # optional: integrated
+            sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
 
         Another problematic case::
@@ -663,7 +667,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         verbose("Approximants of %r on %r towards %r"%(self, self.domain(), G), level=3)
 
         from sage.rings.all import infinity
-        from gauss_valuation import GaussValuation
+        from sage.rings.valuation.gauss_valuation import GaussValuation
 
         if not all([self(c) >= 0 for c in G.coefficients()]):
             raise ValueError("G must be integral")
@@ -774,6 +778,16 @@ class DiscreteValuation(DiscretePseudoValuation):
         Return the approximant from :meth:`mac_lane_approximants` for ``G``
         which is approximated by or approximates ``valuation``.
 
+        INPUT:
+
+        - ``G`` -- a monic squarefree integral polynomial in a
+          univariate polynomial ring over the :meth:`domain` of this valuation.
+
+        - ``valuation`` -- a valuation on the parent of ``G``.
+
+        - ``approximants`` -- the output of :meth:`mac_lane_approximants`.
+          If not given, it is computed.
+
         EXAMPLES::
 
             sage: v = QQ.valuation(2)
@@ -860,7 +874,6 @@ class DiscreteValuation(DiscretePseudoValuation):
             raise ValueError("The valuation %r is not approximated by a unique extension of %r with respect to %r"%(valuation, self, G))
         if len(smaller_approximants) == 0:
             raise ValueError("The valuation %r is not related to an extension of %r with respect to %r"%(valuation, self, G))
-        assert len(smaller_approximants) == 1
         return smaller_approximants[0]
 
     def montes_factorization(self, G, assume_squarefree=False, required_precision=None):

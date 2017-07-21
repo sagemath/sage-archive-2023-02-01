@@ -92,6 +92,7 @@ from __future__ import absolute_import
 from six.moves import range
 
 from sage.misc.misc import repr_lincomb
+from sage.structure.richcmp import richcmp_method, richcmp
 
 import sage.modules.free_module as free_module
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -276,6 +277,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         return self*(-1)
 
 
+@richcmp_method
 class BoundarySpace(hecke.HeckeModule_generic):
     def __init__(self,
                  group = arithgroup.Gamma0(1),
@@ -329,7 +331,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         self._is_zero = []
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -341,9 +343,11 @@ class BoundarySpace(hecke.HeckeModule_generic):
             False
         """
         if type(self) is not type(other):
-            return cmp(type(self), type(other))
-        else:
-            return cmp( (self.group(), self.weight(), self.character()), (other.group(), other.weight(), other.character()) )
+            return NotImplemented
+
+        return richcmp((self.group(), self.weight(), self.character()),
+                       (other.group(), other.weight(), other.character()),
+                       op)
 
     def _known_cusps(self):
         """

@@ -225,6 +225,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: g = 2*z^4 + 1
             sage: V.<v> = T.ext(g)
             sage: V.exact_ring()
+            Traceback (most recent call last):
+            ...
             ValueError: each generator must be integral
         """
         return self.base_ring().exact_ring().extension(self.defining_polynomial(exact=True), self.variable_name())

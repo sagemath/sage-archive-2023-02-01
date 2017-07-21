@@ -1626,7 +1626,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             The ordering for the factors `d_{i} | d_{i+1}` and for
             the placement of zeroes was chosen to agree with the output of
-            ``smith_form``.
+            :meth:`smith_form`.
 
             See the example for a pictorial description of such a basis.
 
@@ -2175,10 +2175,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return the elementary divisors of self, in order.
 
-
         .. warning::
 
-           This is MUCH faster than the smith_form function.
+           This is MUCH faster than the :meth:`smith_form` function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of *left* multiplication of this matrix.
@@ -2259,7 +2258,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         self.cache('elementary_divisors', d)
         return d[:]
 
-    def smith_form(self, transformation=True):
+    def smith_form(self, transformation=True, integral=None):
         r"""
         Return the smith normal form of this matrix, that is the diagonal
         matrix `S` with diagonal entries the ordered elementary divisors of
@@ -2270,6 +2269,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         - ``transformation`` -- a boolean (default: ``True``); whether to
           return the transformation matrices `U` and `V` such that `S=U\cdot
           self\cdot V`.
+
+        - ``integral`` -- a subring of the base ring or ``True`` (default:
+          ``None``); ignored for matrices with integer entries.
 
         .. NOTE::
 

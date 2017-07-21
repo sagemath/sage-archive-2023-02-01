@@ -886,7 +886,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
         fi
         $SAGE_SUDO mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
         if [ $? -ne 0 ]; then
-            error_msg "Error moving files for $PKG_BASE."
+            error_msg "Error moving files for $PKG_NAME."
             exit 1
         fi
     done
@@ -903,9 +903,10 @@ unset SAGE_DESTDIR_LOCAL
 
 # Run the post-install script, if any
 if [ -f spkg-postinst ]; then
+    echo "Running post-install script for $PKG_NAME."
     time $SAGE_SUDO ./spkg-postinst
     if [ $? -ne 0 ]; then
-        error_msg "Error running the postinst script for $PKG_BASE."
+        error_msg "Error running the postinst script for $PKG_NAME."
         exit 1
     fi
 fi

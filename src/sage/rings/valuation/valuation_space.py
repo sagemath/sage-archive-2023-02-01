@@ -897,11 +897,11 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return x * self.uniformizer()**s
             else: # s < 0
                 if ~self.uniformizer() in self.domain():
-                    return x / self.uniformizer()**(-s)
+                    return self.domain()(x / self.uniformizer()**(-s))
                 else:
                     for i in range(-s):
                         if self(x) < 0:
-                            raise NotImplementedError("can not compute general shifts over non-fields which do contain elements of negative valuation")
+                            raise NotImplementedError("can not compute general shifts over non-fields which contain elements of negative valuation")
                         x -= self.lift(self.reduce(x))
                         x //= self.uniformizer()
                     return x
@@ -913,6 +913,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Produce an element which differs from ``x`` by an element of
             valuation strictly greater than the valuation of ``x`` (or strictly
             greater than ``error`` if set.)
+            
+            If ``force`` is not set, then expensive simplifications may be avoided.
 
             EXAMPLES::
 
@@ -1087,7 +1089,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             try:
                 self.residue_ring()
-            except:
+            except Exception:
                 # it is not clear what a shift should be in this case
                 return
 

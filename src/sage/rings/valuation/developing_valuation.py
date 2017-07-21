@@ -111,11 +111,11 @@ class DevelopingValuation(DiscretePseudoValuation):
         return [i for i,w in enumerate(valuations) if w == v][-1]
 
     @cached_method
-    def _pow(self, x, e, error, effective_degree):
+    def _pow(self, f, e, error, effective_degree):
         r"""
-        Return `x^e`.
+        Return `f^e`.
 
-        This method does not compute the exact value of `x^e` but only an
+        This method does not compute the exact value of `f^e` but only an
         element that differs from the correct result by an error with valuation
         at least ``error``. The output is assumed to have at most
         ``effective_degree``.
@@ -132,11 +132,11 @@ class DevelopingValuation(DiscretePseudoValuation):
         if e == 0:
             return self.domain().one()
         if e == 1:
-            return self.simplify(x, error=error)
+            return self.simplify(f, error=error)
         if e % 2 == 0:
-            return self._pow(self.simplify(x*x, error=error*2/e, effective_degree=effective_degree*2/e), e//2, error=error, effective_degree=effective_degree)
+            return self._pow(self.simplify(f*f, error=error*2/e, effective_degree=effective_degree*2/e), e//2, error=error, effective_degree=effective_degree)
         else:
-            return self.simplify(x*self._pow(x, e-1, error=error*(e-1)/e, effective_degree=effective_degree*(e-1)/e), error=error, effective_degree=effective_degree)
+            return self.simplify(f*self._pow(f, e-1, error=error*(e-1)/e, effective_degree=effective_degree*(e-1)/e), error=error, effective_degree=effective_degree)
 
     def coefficients(self, f):
         r"""

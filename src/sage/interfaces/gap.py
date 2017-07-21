@@ -1330,8 +1330,9 @@ class Gap(Gap_generic):
         else:
             tmp_to_use = self._local_tmpfile()
         self.eval('SetGAPDocTextTheme("none")')
-        self.eval(r'\$SAGE.tempfile := "%s";'%tmp_to_use)
-        line = Expect.eval(self, "? %s"%s)
+        self.eval('GAPInfo.TermEncoding := "UTF-8";')
+        self.eval(r'\$SAGE.tempfile := "%s";' % tmp_to_use)
+        line = Expect.eval(self, "? %s" % s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
         if match is None:

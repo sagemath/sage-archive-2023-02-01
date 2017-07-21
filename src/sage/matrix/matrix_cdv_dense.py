@@ -26,8 +26,6 @@ def smith_normal_form(M, transformation):
         from sage.matrix.special import identity_matrix
         left = identity_matrix(R,n)
         right = identity_matrix(R,m)
-    else:
-        left = right = None
 
     val = -Infinity
     for piv in range(min(n,m)):

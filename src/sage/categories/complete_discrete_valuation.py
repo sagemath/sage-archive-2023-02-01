@@ -80,7 +80,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             - the only non-vanishing entries of `S` are located on
               the diagonal (through `S` might be not a square matrix)
 
-            - if `d_i` denotes the `(i,i)` entry of `D`, then `d_i`
+            - if `d_i` denotes the `(i,i)` entry of `S`, then `d_i`
               divides `d_{i+1}` for all `i`.
 
             The `d_i`'s are uniquely determined provided that they are
@@ -105,8 +105,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 [         ...1 ...2222222214]
                 [            0          ...1]
 
-            If not needed, it is possible to do not compute the
-            transformations matrices L and R as follows::
+            If not needed, it is possible to avoid the computation of
+            the transformations matrices L and R::
 
                 sage: M.smith_form(transformation=False)  # indirect doctest
                 [ ...1     0]

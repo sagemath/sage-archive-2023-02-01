@@ -426,21 +426,19 @@ cdef class IdentityMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: ZZ.hom(ZZ).is_surjective()
+            sage: Hom(ZZ, ZZ).identity().is_surjective()
             True
-
         """
         return True
 
     def is_injective(self):
         r"""
-        Return whether this morphism is injective
+        Return whether this morphism is injective.
 
         EXAMPLES::
 
-            sage: ZZ.hom(ZZ).is_injective()
+            sage: Hom(ZZ, ZZ).identity().is_injective()
             True
-
         """
         return True
 

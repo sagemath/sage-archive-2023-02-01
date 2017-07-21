@@ -242,15 +242,6 @@ class ScaledValuation_generic(DiscreteValuation):
         valuation with respect to this valuation than with respect to
         ``other``.
 
-        .. NOTE::
-        
-            Overriding this method tends to be a nuissance as you need to
-            handle all possible types (as in Python type) of valuations.
-            This is essentially the same problem that you have when
-            implementing operators such as ``+`` or ``>=``. A sufficiently
-            fancy multimethod implementation could solve that here but
-            there is currently nothing like that in Sage/Python.
-
         EXAMPLES::
 
             sage: v2 = QQ.valuation(2)

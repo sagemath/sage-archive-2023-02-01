@@ -605,31 +605,20 @@ class LocalGeneric(CommutativeRing):
         r"""
         Return the Smith normal form of the matrix ``M``.
 
-        The Smith normal form of a matrix `M` is a matrix `S = LMR` such
-        that:
+        This method gets called by
+        :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
+        normal form over local rings and fields.
 
-        * `L` and `R` are invertible matrices in the ring of integers
-        * the only non-vanishing entries of `S` are located on the diagonal
-          (though `S` might be not a square matrix)
-        * if `d_i` denotes the entry of `S at `(i,i)`, then `d_i` divides
-          `d_{i+1}` for all `i`
-
-        The `d_i`'s are uniquely determined provided that they are
-        normalized so that they are all either zero or a power of the
-        distinguished uniformizer of the base ring.
+        The entries of the Smith normal form are normalized such that the
+        diagonal only contains powers of the distinguished uniformizer of this
+        ring.
 
         INPUT:
 
         - ``M`` -- a matrix over this ring
 
-        - ``transformation`` -- a boolean (default: True); whether the
-          transformation matrices are returned
-
-        .. NOTE::
-
-            This method gets called by
-            :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
-            normal form over local rings and fields.
+        - ``transformation`` -- a boolean (default: ``True``); whether the
+        transformation matrices are returned
 
         EXAMPLES::
 

@@ -13155,34 +13155,42 @@ cdef class Matrix(Matrix1):
 
     def smith_form(self, transformation=True):
         r"""
-        Return a Smith decomposition of this matrix,
-        that is a writing `D = U * self * V` where U and V are
-        invertible and D is diagonal with diagonal entries the
-        ordered elementary divisors of self, ordered so that
-        `D_{i} \mid D_{i+1}`. Note that U and V are not uniquely
-        defined in general, and D is defined only up to units.
+        Return a Smith normal form of this matrix.
+
+        For a matrix `M`, a Smith normal form is a matrix `S = UMV` such that:
+
+        * `U` and `V` are invertible matrices
+        * the only non-vanishing entries of `S` are located on the diagonal
+          (though `S` might not be a square matrix)
+        * if `d_i` denotes the entry of `S` at `(i,i)`, then `d_i` divides
+          `d_{i+1}` for all `i`, i.e., the `d_i` are the ordered
+          :meth:`elementary_divisors` of `M`
+
+        Note that the matrices `U` and `V` are not uniquely determined and the
+        `d_i` are only uniquely determined up to units. For some base rings,
+        such as local rings, the `d_i` might be further normalized, see
+        ``ALGORITHM`` below.
+
+        If the base ring is not a PID, the routine might work, or else it will
+        fail having found an example of a non-principal ideal. Note that we do
+        not call any methods to check whether or not the base ring is a PID,
+        since this might be quite expensive (e.g. for rings of integers of
+        number fields of large degree).
 
         INPUT:
 
-        -  ``self`` - a matrix over an integral domain. If the
-           base ring is not a PID, the routine might work, or else it will
-           fail having found an example of a non-principal ideal. Note that we
-           do not call any methods to check whether or not the base ring is a
-           PID, since this might be quite expensive (e.g. for rings of
-           integers of number fields of large degree).
-
-        -  ``transformation`` -- a boolean (default: True)
+        - ``transformation`` -- a boolean (default: True)
            Indicates whether the matrices U and V are returned or not.
 
-
         ALGORITHM: 
-        If the base ring has a method `_matrix_smith_form`, use it.
+
+        If the base ring has a method ``_matrix_smith_form``, use it; note that
+        ``_matrix_smith_form`` might choose to further normalize the output,
+        e.g., over local rings, the diagonal of `S` only contains powers of the
+        uniformizer. See ``_matrix_smith_form`` for more detail.
+
         Otherwise, use the lifted wholesale from
         http://en.wikipedia.org/wiki/Smith_normal_form
-
-        .. SEEALSO::
-
-           :meth:`elementary_divisors`
 
         AUTHORS:
 

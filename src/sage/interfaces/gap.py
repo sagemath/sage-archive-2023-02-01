@@ -1330,7 +1330,7 @@ class Gap(Gap_generic):
         else:
             tmp_to_use = self._local_tmpfile()
         self.eval('SetGAPDocTextTheme("none")')
-        self.eval('GAPInfo.TermEncoding := "UTF-8";')
+        gap_encoding = str(self('GAPInfo.TermEncoding;'))
         self.eval(r'\$SAGE.tempfile := "%s";' % tmp_to_use)
         line = Expect.eval(self, "? %s" % s)
         Expect.eval(self, "? 1")
@@ -1341,7 +1341,7 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = io.open(self._local_tmpfile(), "r", encoding='utf-8')
+            F = io.open(self._local_tmpfile(), "r", encoding=gap_encoding)
             help = F.read()
             if pager:
                 from IPython.core.page import page

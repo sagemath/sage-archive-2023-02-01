@@ -51,15 +51,7 @@ def frobenius_unram(self, arithmetic=True):
     R = self.parent()
     p = R.prime()
     a = R.gen()
-    prec = R.precision_cap()
-    exp = p
-    if not arithmetic:
-        exp = p**(R.degree()-1)
     frob_a = R._frob_gen()
-    f = R.defining_polynomial()
-    g = f.derivative()
-    while(f(frob_a) != 0): #hensel lift frob_a 
-        frob_a = frob_a - f(frob_a)/g(frob_a)
     ppow = self.valuation()
     unit = self.unit_part()
     coefs = unit.list()

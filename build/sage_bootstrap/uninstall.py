@@ -38,6 +38,7 @@ from __future__ import print_function
 import glob
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -96,8 +97,8 @@ def uninstall(spkg_name, sage_local):
         if not files:
             print("Warning: No files to uninstall for "
                   "'{0}'".format(spkg_name), file=sys.stderr)
-        else:
-            modern_uninstall(spkg_meta['files'], sage_local)
+
+        modern_uninstall(spkg_name, sage_local, files)
 
     # Finally, if all went well, delete all the stamp files.
     for stamp_file in stamp_files:
@@ -127,7 +128,7 @@ def legacy_uninstall(spkg_name):
     subprocess.check_call([legacy_uninstall])
 
 
-def modern_uninstall(files, sage_local):
+def modern_uninstall(spkg_name, sage_local, files):
     """
     Remove all listed files from the given SAGE_LOCAL (all file paths should
     be assumed relative to SAGE_LOCAL).
@@ -139,10 +140,15 @@ def modern_uninstall(files, sage_local):
     files are removed then the directory is removed as well.
     """
 
+    spkg_scripts = pth.join(sage_local, 'var', 'lib', 'sage', 'scripts',
+                            spkg_name)
+
     # Sort the given files first by the highest directory depth, then by name,
     # so that we can easily remove a directory once it's been emptied
     files.sort(key=lambda f: (-f.count(os.sep), f))
     cur_dir = None
+
+    print("Uninstalling existing '{0}'".format(spkg_name), file=sys.stderr)
 
     for filename in files:
         filename = pth.join(sage_local, filename)
@@ -164,6 +170,16 @@ def modern_uninstall(files, sage_local):
     # Remove the last directory, if it was empty
     if cur_dir and not os.listdir(cur_dir):
         os.rmdir(cur_dir)
+
+    # Run the package's postrm script, if it exists
+    postrm = pth.join(spkg_scripts, 'spkg-postrm')
+    if pth.exists(postrm):
+        print("Running post-uninstall script for '{0}'".format(spkg_name),
+              file=sys.stderr)
+        # Any errors from this, including a non-zero return code will
+        # bubble up and exit the uninstaller
+        subprocess.check_call([postrm])
+        shutil.rmtree(spkg_scripts)
 
 
 def dir_type(path):

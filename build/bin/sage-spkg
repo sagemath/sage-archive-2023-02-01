@@ -714,7 +714,7 @@ __EOF__
 }
 
 
-for script in build install check postinst; do
+for script in build install check postinst legacy-uninstall; do
     script="spkg-$script"
     if [ -f "$script" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then

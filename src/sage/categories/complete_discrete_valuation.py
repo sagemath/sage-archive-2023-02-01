@@ -64,13 +64,11 @@ class CompleteDiscreteValuationRings(Category_singleton):
             EXAMPLES::
 
                 sage: K = Qp(7)
-                sage: x = K(1/21); x
-                7^-1 + O(7^19)
+                sage: x = K(1/21)
                 sage: x.denominator()
                 7 + O(7^21)
 
-                sage: x = K(7); x
-                7 + O(7^21)
+                sage: x = K(7)
                 sage: x.denominator()
                 1 + O(7^20)
 
@@ -140,13 +138,11 @@ class CompleteDiscreteValuationFields(Category_singleton):
             EXAMPLES::
 
                 sage: K = Qp(7)
-                sage: x = K(1/21); x
-                7^-1 + O(7^19)
+                sage: x = K(1/21)
                 sage: x.denominator()
                 7 + O(7^21)
 
-                sage: x = K(7); x
-                7 + O(7^21)
+                sage: x = K(7)
                 sage: x.denominator()
                 1 + O(7^20)
 

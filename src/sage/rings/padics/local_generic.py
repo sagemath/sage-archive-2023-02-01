@@ -772,7 +772,8 @@ class LocalGeneric(CommutativeRing):
             if self.is_exact() or self.tracks_precision():
                 tester.assertEqual(U*M*V, S)
 
-            tester.assertEqual(S.nrows(), S.ncols())
+            tester.assertEqual(U.nrows(), U.ncols())
+            tester.assertEqual(V.nrows(), V.ncols())
 
             for d in S.diagonal():
                 if not d.is_zero():

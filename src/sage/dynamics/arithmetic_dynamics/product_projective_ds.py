@@ -21,6 +21,7 @@ EXAMPLES::
 #*****************************************************************************
 from copy import copy
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_generic
+from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
 from sage.rings.all import ZZ
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
@@ -31,7 +32,19 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
     r"""
     The class of dynamical systems on products of projective spaces.
 
-    The components are projective space dynamical systems.
+    .. WARNING::
+
+        You should not create objects of this class directly. The
+        preferred method to construct such dynamical systems is to use
+        :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_projective`
+        function
+
+    INPUT:
+
+    - ``morphism`` -- a SchemeMorphism_polynomial object representing
+      a rational endomorphism of a product of projective schemes. See
+      :class:`SchemeMorphism_polynomial` for details.
+
 
     EXAMPLES::
 
@@ -42,51 +55,8 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
                     (x^2 : y^2 : z^2 , w^2 : u^2).
     """
 
-    def __init__(self, polys, domain, check=True):
-        r"""
-        The Python constructor.
-
-        INPUT:
-
-        - ``polys`` -- anything that defines a point in the class.
-
-        - ``domain`` -- product of projective spaces scheme or subscheme
-
-        - ``check`` -- Boolean. Whether or not to perform input checks.
-          (Default:`` True``)
-
-        EXAMPLES::
-
-            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
-            sage: DynamicalSystem_projective([x^2*u, y^2*w, z^2*u, w^2, u^2], domain=T)
-            Dynamical System of Product of projective spaces P^2 x P^1 over Rational Field
-              Defn: Defined by sending (x : y : z , w : u) to
-                    (x^2*u : y^2*w : z^2*u , w^2 : u^2).
-
-        ::
-
-            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
-            sage: DynamicalSystem_projective([x^2*u, y^2*w, z^2*u, w^2, u*z], domain=T)
-            Traceback (most recent call last):
-            ...
-            TypeError: polys (=[x^2*u, y^2*w, z^2*u, w^2, z*u]) must be
-            multi-homogeneous of the same degrees (by component)
-        """
-        if check:
-            #check multi-homogeneous
-            #if self is a subscheme, we may need the lift of the polynomials
-            try:
-                polys[0].exponents()
-            except AttributeError:
-                polys = [f.lift() for f in polys]
-
-            splitpolys = domain._factors(polys)
-            for m in range(len(splitpolys)):
-                d = domain._degree(splitpolys[m][0])
-                if not all(d == domain._degree(f) for f in splitpolys[m]):
-                    raise  TypeError("polys (=%s) must be multi-homogeneous of the same degrees (by component)"%polys)
-
-        DynamicalSystem_generic.__init__(self, polys, domain=domain, check=check)
+    def __init__(self, morphism):
+        DynamicalSystem_generic.__init__(self, morphism)
 
     def __call__(self, P, check=True):
         r"""
@@ -289,14 +259,14 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
         F = list(self._polys)
         Coord_ring = E.coordinate_ring()
         if isinstance(Coord_ring, QuotientRing_generic):
-            PHI = [Coord_ring.gen(i).lift() for i in range(N)]
+            PHI = [gen.lift() for gen in Coord_ring.gens()]
         else:
-            PHI = [Coord_ring.gen(i) for i in range(N)]
+            PHI = list(Coord_ring.gens())
 
         while D:
             if D&1:
-                PHI = [PHI[j](*F) for j in range(N)]
+                PHI = [poly(*F) for poly in PHI]                
             if D > 1: #avoid extra iterate
-                F = [F[j](*F) for j in range(N)] #'square'
+                F = [poly(*F) for poly in F] #'square'
             D >>= 1
-        return DynamicalSystem_product_projective_ring(PHI, domain=self.domain())
+        return DynamicalSystem_projective(PHI, domain=self.domain())

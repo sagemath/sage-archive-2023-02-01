@@ -88,6 +88,7 @@ from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.number_field.number_field import NumberField
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_generic
+from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
 
 class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space,\
                              DynamicalSystem_generic):
@@ -96,139 +97,25 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
     polynomials that define what the morphism does on points in the
     ambient projective space.
 
-    EXAMPLES::
+    .. WARNING::
 
-        sage: R.<x,y> = QQ[]
-        sage: P1 = ProjectiveSpace(R)
-        sage: DynamicalSystem_projective([y,2*x])
-        Dynamical System of Projective Space of dimension 1 over Rational Field
-          Defn: Defined on coordinates by sending (x : y) to
-                (y : 2*x)
+        You should not create objects of this class directly. The
+        preferred method to construct such dynamical systems is to use
+        :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_projective`
+        function
 
+    INPUT:
 
-    We illustrate some error checking::
+    - ``morphism`` -- a SchemeMorphism_polynomial object representing
+      a rational endomorphism of a projective scheme. See
+      :class:`SchemeMorphism_polynomial` for details.
 
-        sage: R.<x,y> = QQ[]
-        sage: P1 = ProjectiveSpace(R)
-        sage: f = DynamicalSystem_projective([x-y, x*y])
-        Traceback (most recent call last):
-        ...
-        ValueError: polys (=[x - y, x*y]) must be of the same degree
-
-        sage: DynamicalSystem_projective([x-1, x*y+x])
-        Traceback (most recent call last):
-        ...
-        ValueError: polys (=[x - 1, x*y + x]) must be homogeneous
-
-        sage: DynamicalSystem_projective([exp(x),exp(y)])
-        Traceback (most recent call last):
-        ...
-        TypeError: cannot have Symbolic Ring as base ring
-
-    We can also compute the forward image of subschemes through
-    elimination. In particular, let `X = V(h_1,\ldots, h_t)` and define the ideal
-    `I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))`.
-    Then the elimination ideal `I_{n+1} = I \cap K[y_0,\ldots,y_n]` is a homogeneous
-    ideal and `f(X) = V(I_{n+1})`::
-
-        sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-        sage: f = DynamicalSystem_projective([(x-2*y)^2, (x-2*z)^2, x^2])
-        sage: X = P.subscheme(y-z)
-        sage: f(f(f(X)))
-        Closed subscheme of Projective Space of dimension 2 over Rational Field
-        defined by:
-          y - z
-
-    ::
-
-        sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-        sage: f = DynamicalSystem_projective([(x-2*y)^2, (x-2*z)^2, (x-2*w)^2, x^2])
-        sage: f(P.subscheme([x,y,z]))
-        Closed subscheme of Projective Space of dimension 3 over Rational Field
-        defined by:
-          w,
-          y,
-          x
     """
 
-    def __init__(self, polys, domain=None, check=True):
-        """
-        The Python constructor.
-
-        See :class:`SchemeMorphism_polynomial` for details.
-
-        INPUT:
-
-        - ``polys`` -- SchemeMorphisms or list or tuple of polynomial or rational functions.
-
-        - ``domain`` -- projective scheme or subscheme
-
-        - ``check`` -- Boolean.
-
-        EXAMPLES::
-
-            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
-            sage: DynamicalSystem_projective([y,2*x])
-            Dynamical System of Projective Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x : y) to
-                    (y : 2*x)
-
-        ::
-
-            sage: R.<t> = PolynomialRing(QQ)
-            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
-            sage: X = P.subscheme([x])
-            sage: DynamicalSystem_projective([x^2, t*y^2, x*z], domain=X)
-            Dynamical System of Closed subscheme of Projective Space of dimension
-            2 over Univariate Polynomial Ring in t over Rational Field defined by:
-              x
-              Defn: Defined on coordinates by sending (x : y : z) to
-                    (x^2 : t*y^2 : x*z)
-
-        When elements of the quotient ring is used, they are reduced::
-
-            sage: P.<x,y,z> = ProjectiveSpace(CC, 2)
-            sage: X = P.subscheme([x-y])
-            sage: u,v,w = X.coordinate_ring().gens()
-            sage: DynamicalSystem_projective([u^2, v^2, w*u], domain=X)
-            Dynamical System of Closed subscheme of Projective Space of dimension
-            2 over Complex Field with 53 bits of precision defined by:
-              x - y
-              Defn: Defined on coordinates by sending (x : y : z) to
-                    (y^2 : y^2 : y*z)
-        """
-        if check:
-            from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-            from sage.schemes.projective.projective_space import is_ProjectiveSpace, ProjectiveSpace
-            from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-            if isinstance(polys, SchemeMorphism_polynomial):
-                if domain is None:
-                    domain = polys.domain()
-                if not (is_ProjectiveSpace(domain) or\
-                        isinstance(domain, AlgebraicScheme_subscheme_projective)):
-                    raise ValueError("domain must be projective space or a subscheme of projective space")
-                polys = list(polys)
-            elif not isinstance(polys, (list, tuple)):
-                    raise TypeError("polys (=%s) must be a list or tuple"%polys)
-            elif domain is None:
-                R = polys[0].parent()
-                if is_FractionField(R):
-                    domain = ProjectiveSpace(R.ring())
-                else:
-                    domain = ProjetiveSpace(R)
-            # morphisms from projective space are always given by
-            # homogeneous polynomials of the same degree
-            try:
-                d = polys[0].degree()
-            except AttributeError:
-                polys = [f.lift() for f in polys]
-            if not all([f.is_homogeneous() for f in polys]):
-                raise  ValueError("polys (=%s) must be homogeneous" % polys)
-            degs = [f.degree() for f in polys]
-            if not all([d == degs[0] for d in degs[1:]]):
-                raise ValueError("polys (=%s) must be of the same degree" % polys)
-        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring()) # Needed for _fast_eval and _fastpolys
-        DynamicalSystem_generic.__init__(self, polys, domain=domain, check=check)
+    def __init__(self, morphism):
+        # Next attribute needed for _fast_eval and _fastpolys
+        self._is_prime_finite_field = is_PrimeFiniteField(morphism[0].base_ring()) 
+        DynamicalSystem_generic.__init__(self,morphism)
 
     def __copy__(self):
         r"""
@@ -248,7 +135,6 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             sage: f is g
             False
         """
-        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
         return DynamicalSystem_projective(self._polys, domain=self.domain())
 
 

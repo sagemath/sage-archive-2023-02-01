@@ -600,3 +600,161 @@ class LocalGeneric(CommutativeRing):
                 tester.assertEqual(y.valuation(), 0)
             z = y.residue()
             tester.assertEqual(x, z)
+
+    def _matrix_smith_form(self, M, transformation):
+        r"""
+        Return the Smith normal form of the matrix ``M``.
+
+        The Smith normal form of a matrix `M` is a matrix `S = LMR` such
+        that:
+
+        * `L` and `R` are invertible matrices in the ring of integers
+        * the only non-vanishing entries of `S` are located on the diagonal
+          (though `S` might be not a square matrix)
+        * if `d_i` denotes the entry of `S at `(i,i)`, then `d_i` divides
+          `d_{i+1}` for all `i`
+
+        The `d_i`'s are uniquely determined provided that they are
+        normalized so that they are all either zero or a power of the
+        distinguished uniformizer of the base ring.
+
+        INPUT:
+
+        - ``M`` -- a matrix over this ring
+
+        - ``transformation`` -- a boolean (default: True); whether the
+          transformation matrices are returned
+
+        .. NOTE::
+
+            This method gets called by
+            :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
+            normal form over local rings and fields.
+
+        EXAMPLES::
+
+            sage: A = Zp(5, prec=10, print_mode="digits")
+            sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+            sage: S, L, R = M.smith_form()  # indirect doctest
+            sage: S
+            [ ...1     0]
+            [    0 ...10]
+            sage: L
+            [...222222223          ...]
+            [...444444444         ...2]
+            sage: R
+            [         ...1 ...2222222214]
+            [            0          ...1]
+
+        If not needed, it is possible to avoid the computation of
+        the transformations matrices `L` and `R`::
+
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [ ...1     0]
+            [    0 ...10]
+
+        This method works for rectangular matrices as well::
+
+            sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+            sage: S, L, R = M.smith_form()  # indirect doctest
+            sage: S
+            [ ...1     0]
+            [    0 ...10]
+            [    0     0]
+            sage: L
+            [...222222223          ...          ...]
+            [...444444444         ...2          ...]
+            [...444444443         ...1         ...1]
+            sage: R
+            [         ...1 ...2222222214]
+            [            0          ...1]
+
+        An error is raised if the precision on the entries is
+        not enough to determine the Smith normal form::
+
+            sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
+            sage: M.smith_form()  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision to compute Smith normal form
+
+        """
+        n = M.nrows()
+        m = M.ncols()
+        S = M.parent()(M.list())
+        smith = M.parent()(0)
+        R = M.base_ring()
+        if R.tracks_precision():
+            precM = min([ x.precision_absolute() for x in M.list() ])
+
+        if transformation:
+            from sage.matrix.special import identity_matrix
+            left = identity_matrix(R,n)
+            right = identity_matrix(R,m)
+
+        val = -Infinity
+        for piv in range(min(n,m)):
+            curval = Infinity
+            pivi = pivj = piv
+            for i in range(piv,n):
+                for j in range(piv,m):
+                    v = S[i,j].valuation()
+                    if v < curval:
+                        pivi = i; pivj = j
+                        curval = v
+                        if v == val: break
+                else:
+                    continue
+                break
+            val = curval
+
+            if R.tracks_precision() and precM is not Infinity and val >= precM:
+                raise PrecisionError("Not enough precision to compute Smith normal form")
+
+            if val is Infinity:
+                break
+
+            S.swap_rows(pivi,piv)
+            S.swap_columns(pivj,piv)
+            if transformation:
+                left.swap_rows(pivi,piv)
+                right.swap_columns(pivj,piv)
+
+            smith[piv,piv] = R(1) << val
+            inv = ~(S[piv,piv] >> val)
+            for i in range(piv+1,n):
+                scalar = -inv * (S[i,piv] >> val)
+                if R.tracks_precision():
+                    scalar = scalar.lift_to_maximal_precision()
+                S.add_multiple_of_row(i,piv,scalar,piv+1)
+                if transformation:
+                    left.add_multiple_of_row(i,piv,scalar)
+            if transformation:
+                left.rescale_row(piv,inv)
+                for j in range(piv+1,m):
+                    scalar = -inv * (S[piv,j] >> val)
+                    if R.tracks_precision():
+                        scalar = scalar.lift_to_maximal_precision()
+                    right.add_multiple_of_column(j,piv,scalar)
+
+        if transformation:
+            if R.tracks_precision() and precM is not Infinity:
+                left = left.apply_map(lambda x: x.add_bigoh(precM-val))
+            return smith, left, right
+        else:
+            return smith
+
+    def _test_matrix_smith(self, **options):
+        r"""
+        Test that :meth:`_matrix_smith_form` works correctly.
+
+        EXAMPLES::
+
+            sage: ZpCA(5, 15)._test_matrix_smith_form()
+
+        """
+        tester = self._tester(**options)
+        tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
+
+        raise NotImplementedError()

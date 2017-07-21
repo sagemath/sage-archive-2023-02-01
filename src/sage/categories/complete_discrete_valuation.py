@@ -72,21 +72,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
 
         @abstract_method
-        def lift_to_maximal_precision(self):
-            """
-            Lift this element to the maximal precision
-            allowed by the parent.
-
-            EXAMPLES::
-
-                sage: R = Zp(7,prec=20)
-                sage: x = R(7,5); x
-                7 + O(7^5)
-                sage: x.lift_to_maximal_precision()
-                7 + O(7^21)
-            """
-
-        @abstract_method
         def lift_to_precision(self, absprec=None):
             """
             Return another element of the same parent with absolute precision

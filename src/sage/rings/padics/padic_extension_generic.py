@@ -206,7 +206,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
 
     def exact_ring(self):
-	return self.base_ring().exact_ring().extension(self.defining_polynomial(exact=True), self.variable_name())
+        return self.base_ring().exact_ring().extension(self.defining_polynomial(exact=True), self.variable_name())
 
     def modulus(self, exact=False):
         r"""

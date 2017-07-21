@@ -212,7 +212,7 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     r"""
     A helper function to build ``OrthogonalPolarGraph`` and ``NO2,3,5`` graphs.
 
-    See see the `page of
+    See the `page of
     Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
@@ -333,7 +333,7 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     r"""
     Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
 
-    For more information on Orthogonal Polar graphs, see see the `page of
+    For more information on Orthogonal Polar graphs, see the `page of
     Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:

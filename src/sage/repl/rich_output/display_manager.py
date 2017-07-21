@@ -107,7 +107,7 @@ class restricted_output(object):
 
         In the context, the output is restricted to the output
         container types listed in ``output_classes``. Additionally,
-        display preferences are changed not not show graphics.
+        display preferences are changed not to show graphics.
 
         INPUT:
 

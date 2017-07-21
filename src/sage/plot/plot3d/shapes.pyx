@@ -599,7 +599,7 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
 def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
     Create a line segment, which is drawn as a cylinder from start to
-    end with radius radius.
+    end with radius ``radius``.
 
     EXAMPLES::
 

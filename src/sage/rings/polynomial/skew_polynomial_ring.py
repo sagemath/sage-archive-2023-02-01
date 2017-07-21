@@ -545,7 +545,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        ``self`` with variable name name changed to ``var``.
+        ``self`` with variable name changed to ``var``.
 
         EXAMPLES::
 

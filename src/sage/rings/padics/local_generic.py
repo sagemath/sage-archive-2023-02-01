@@ -693,6 +693,7 @@ class LocalGeneric(CommutativeRing):
             left = identity_matrix(R,n)
             right = identity_matrix(R,m)
 
+        from sage.rings.all import Infinity
         val = -Infinity
         for piv in range(min(n,m)):
             curval = Infinity
@@ -710,6 +711,7 @@ class LocalGeneric(CommutativeRing):
             val = curval
 
             if R.tracks_precision() and precM is not Infinity and val >= precM:
+                from .precision_error import PrecisionError
                 raise PrecisionError("Not enough precision to compute Smith normal form")
 
             if val is Infinity:
@@ -726,7 +728,7 @@ class LocalGeneric(CommutativeRing):
             for i in range(piv+1,n):
                 scalar = -inv * (S[i,piv] >> val)
                 if R.tracks_precision():
-                    scalar = scalar.lift_to_maximal_precision()
+                    scalar = scalar.lift_to_precision()
                 S.add_multiple_of_row(i,piv,scalar,piv+1)
                 if transformation:
                     left.add_multiple_of_row(i,piv,scalar)
@@ -735,7 +737,7 @@ class LocalGeneric(CommutativeRing):
                 for j in range(piv+1,m):
                     scalar = -inv * (S[piv,j] >> val)
                     if R.tracks_precision():
-                        scalar = scalar.lift_to_maximal_precision()
+                        scalar = scalar.lift_to_precision()
                     right.add_multiple_of_column(j,piv,scalar)
 
         if transformation:

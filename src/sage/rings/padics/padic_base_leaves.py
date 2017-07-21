@@ -478,22 +478,6 @@ class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric
             return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring with floating precision %s"%(self.prime(), self.precision_cap())
 
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision
-
-        EXAMPLES::
-
-            sage: R = Zp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = ZpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
-
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
     An implementation of the `p`-adic integers using fixed modulus.
@@ -605,22 +589,6 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: a = ZpFM(5)(4); b = ZpFM(5)(5)
         """
         raise TypeError("This implementation of the p-adic ring does not support fields of fractions.")
-
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision
-
-        EXAMPLES::
-
-            sage: R = Zp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = ZpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
 
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
@@ -842,20 +810,3 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
         if do_latex:
             return "\\QQ_{%s}" % self.prime()
         return "%s-adic Field with floating precision %s"%(self.prime(), self.precision_cap())
-
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision
-
-        EXAMPLES::
-
-            sage: R = Qp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = QpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
-

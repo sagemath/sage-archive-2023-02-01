@@ -90,7 +90,7 @@ def uninstall(spkg_name, sage_local):
         print("Old-style or corrupt stamp file '{0}'".format(stamp_file),
               file=sys.stderr)
 
-        legacy_uninstall(spkg_name, sage_local)
+        legacy_uninstall(spkg_name)
     else:
         files = spkg_meta['files']
         if not files:
@@ -104,7 +104,7 @@ def uninstall(spkg_name, sage_local):
         os.remove(stamp_file)
 
 
-def legacy_uninstall(spkg_name, sage_local):
+def legacy_uninstall(spkg_name):
     """
     Run the spkg's legacy uninstall script, if one exists; otherwise do
     nothing.
@@ -122,19 +122,9 @@ def legacy_uninstall(spkg_name, sage_local):
     print("Uninstalling '{0}' with legacy uninstaller".format(spkg_name),
           file=sys.stderr)
 
-    # Pass in a few environment variables that legacy uninstallers
-    # may expect to be set (same basic assumptions as spkg-install,
-    # but uninstallers should only really care about paths)
-    env = os.environ.copy()
-    env.setdefault('SAGE_LOCAL', sage_local)
-    env.setdefault('SAGE_ETC', pth.join(sage_local, 'etc'))
-    env.setdefault('SAGE_EXTCODE',
-                   pth.join(sage_local, 'share', 'sage', 'ext'))
-    env.setdefault('SAGE_SHARE', pth.join(sage_local, 'share'))
-
     # Any errors from this, including a non-zero return code will
     # bubble up and exit the uninstaller
-    subprocess.check_call([legacy_uninstall], env=env)
+    subprocess.check_call([legacy_uninstall])
 
 
 def modern_uninstall(files, sage_local):

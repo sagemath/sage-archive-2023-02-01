@@ -87,6 +87,11 @@ def determinant(M):
     See also :meth:`_matrix_determinant`
     """
     n = M.nrows()
+
+    # For 2x2 matrices, we use the formula
+    if n == 2:
+        return M[0,0]*M[1,1] - M[0,1]*M[1,0]
+
     S = M.parent()(M.list())
     R = M.base_ring()
 
@@ -127,13 +132,15 @@ def determinant(M):
 
     if R.tracks_precision():
         relprec = +Infinity
+        relprec_neg = 0
         for i in range(n):
             prec = Infinity
             for j in range(n):
                 p = S[i,j].precision_absolute()
-                if p < prec: prec = p
             prec -= S[i,i].valuation()
             if prec < relprec: relprec = prec
+            if prec < 0: relprec_neg += prec
+        if relprec_neg < 0: relprec = relprec_neg
         return (sign*det).add_bigoh(valdet+relprec)
     else:
         return sign*det
@@ -239,4 +246,3 @@ class Matrix_cdvf_dense(Matrix_generic_dense):
             ....:         if L*M*R != S: raise RuntimeError
         """
         return smith_normal_form(self, transformation)
->>>>>>> padic_smith

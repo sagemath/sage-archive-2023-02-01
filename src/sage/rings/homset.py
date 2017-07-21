@@ -123,7 +123,8 @@ class RingHomset_generic(HomsetWithBase):
               To:   Rational Field
               Defn: 1 |--> 1
         """
-        if not isinstance(x, morphism.RingHomomorphism):
+        from sage.categories.map import Map
+        if not (isinstance(x, Map) and x.category_for().is_subcategory(Rings())):
             raise TypeError
         if x.parent() is self:
             return x
@@ -174,7 +175,9 @@ class RingHomset_generic(HomsetWithBase):
             sage: H == loads(dumps(H))
             True
         """
-        if isinstance(im_gens, morphism.RingHomomorphism):
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
+        if isinstance(im_gens, Map) and im_gens.category_for().is_subcategory(Rings()):
             return self._coerce_impl(im_gens)
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)

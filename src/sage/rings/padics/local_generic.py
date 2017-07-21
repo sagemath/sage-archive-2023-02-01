@@ -382,7 +382,8 @@ class LocalGeneric(CommutativeRing):
                         if self._prec_type() == 'capped-abs':
                             kwds['type'] = 'capped-rel'
                         elif self._prec_type() == 'fixed-mod':
-                            raise TypeError('You must specify the type explicitly')
+                            kwds['type'] = 'floating-point'
+                            kwds['show_prec'] = False # This can be removed once printing of fixed mod elements is changed.
                 elif ring.is_field():
                     ring = ring.ring_of_integers()
             for atr in ('p', 'prec', 'type'):

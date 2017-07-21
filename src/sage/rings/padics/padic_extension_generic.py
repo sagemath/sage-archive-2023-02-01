@@ -321,67 +321,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     implementation=self._implementation),
                 self.base_ring())
 
-    def fraction_field(self, print_mode=None):
-        r"""
-        Returns the fraction field of this extension, which is just
-        the extension of base.fraction_field() determined by the
-        same polynomial.
-
-        INPUT:
-
-        - print_mode -- a dictionary containing print options.
-          Defaults to the same options as this ring.
-
-        OUTPUT:
-
-        - the fraction field of self.
-
-        EXAMPLES::
-
-            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
-            sage: U.fraction_field()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            False
-        """
-        if self.is_field() and print_mode is None:
-            return self
-        if print_mode is None:
-            return self.change(field=True)
-        else:
-            return self.change(field=True, **print_mode)
-
-    def integer_ring(self, print_mode=None):
-        r"""
-        Returns the ring of integers of self, which is just the
-        extension of base.integer_ring() determined by the same
-        polynomial.
-
-        INPUT:
-
-            - print_mode -- a dictionary containing print options.
-              Defaults to the same options as this ring.
-
-        OUTPUT:
-
-            - the ring of elements of self with nonnegative valuation.
-
-        EXAMPLES::
-
-            sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
-            sage: U.integer_ring()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            False
-        """
-        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
-        if not self.is_field() and print_mode is None:
-            return self
-        if print_mode is None:
-            return self.change(field=False)
-        else:
-            return self.change(field=False, **print_mode)
-
     #def hasGNB(self):
     #    raise NotImplementedError
 

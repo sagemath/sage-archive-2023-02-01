@@ -357,6 +357,84 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return [self(i) for i in self.residue_class_field()]
 
+    def fraction_field(self, print_mode=None):
+        r"""
+        Returns the fraction field of this ring or field.
+
+        For `\ZZ_p`, this is the `p`-adic field with the same options,
+        and for extensions, it is just the extension of the fraction
+        field of the base determined by the same polynomial.
+
+        The fraction field of a capped absolute ring is capped relative,
+        and that of a fixed modulus ring is floating point.
+
+        INPUT:
+
+        - ``print_mode`` -- a dictionary containing print options.
+          Defaults to the same options as this ring.
+
+        OUTPUT:
+
+        - the fraction field of this ring.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, print_mode='digits')
+            sage: K = R.fraction_field(); repr(K(1/3))[3:]
+            '31313131313131313132'
+            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
+            '3132'
+            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
+            sage: U.fraction_field()
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
+            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            False
+        """
+        if self.is_field() and print_mode is None:
+            return self
+        if print_mode is None:
+            return self.change(field=True)
+        else:
+            return self.change(field=True, **print_mode)
+
+    def integer_ring(self, print_mode=None):
+        r"""
+        Returns the ring of integers of this ring or field.
+
+        For `\QQ_p`, this is the `p`-adic ring with the same options,
+        and for extensions, it is just the extension of the ring
+        of integers of the base determined by the same polynomial.
+
+        INPUT:
+
+        - ``print_mode`` -- a dictionary containing print options.
+          Defaults to the same options as this ring.
+
+        OUTPUT:
+
+        - the ring of elements of this field with nonnegative valuation.
+
+        EXAMPLES::
+
+            sage: K = Qp(5, print_mode='digits')
+            sage: R = K.integer_ring(); repr(R(1/3))[3:]
+            '31313131313131313132'
+            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
+            '3132'
+            sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
+            sage: U.integer_ring()
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
+            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            False
+        """
+        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
+        if not self.is_field() and print_mode is None:
+            return self
+        if print_mode is None:
+            return self.change(field=False)
+        else:
+            return self.change(field=False, **print_mode)
+
     def teichmuller(self, x, prec = None):
         r"""
         Returns the teichmuller representative of x.

@@ -175,13 +175,14 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
         morphism = morphism_or_polys
         R = morphism.base_ring()
         domain = morphism.domain()
+        polys = list(morphism)
         if not is_AffineSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_affine):    
             raise ValueError('"domain" must be an affine scheme')        
         if R not in _Fields:
-            return DynamicalSystem_affine_ring(morphism)
+            return DynamicalSystem_affine_ring(polys,domain)
         if is_FiniteField(R):
-            return DynamicalSystem_affine_finite_field(morphism)
-        return DynamicalSystem_affine_field(morphism)
+            return DynamicalSystem_affine_finite_field(polys,domain)
+        return DynamicalSystem_affine_field(polys,domain)
 
     if isinstance(morphism_or_polys,(list,tuple)):
         polys = list(morphism_or_polys)
@@ -201,8 +202,7 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
         # Replace base ring with its fraction field
         P = P.ring().change_ring(K).fraction_field()
         polys = [P(poly) for poly in polys]
-
-    if not fraction_field:
+    else:
         # If any of the list entries lies in a quotient ring, we try
         # to lift all entries to a common polynomial ring.
         quotient_ring = False
@@ -213,17 +213,16 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
                 break
         if quotient_ring:
             polys = [P(poly).lift() for poly in polys]
+        else:
+            poly_ring = False
+            for poly in polys:
+                P = poly.parent()
+                if is_PolynomialRing(P) or is_MPolynomialRing(P):
+                    poly_ring = True
+                    break
+            if poly_ring:
+                polys = [P(poly) for poly in polys]
 
-    if not fraction_field and not quotient_ring:
-        poly_ring = False
-        for poly in polys:
-            P = poly.parent()
-            if is_PolynomialRing(P) or is_MPolynomialRing(P):
-                poly_ring = True
-                break
-        if poly_ring:
-            polys = [P(poly) for poly in polys]
-    
     if domain is None:
         f = polys[0]
         CR = f.parent()
@@ -234,16 +233,13 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
     R = domain.base_ring()
     if R is SR:
         raise TypeError("Symbolic Ring cannot be the base ring")
-    H = End(domain)
-
-    f = H(polys,check=False) # Allow SchemeMorphism_polynomial to raise its own errors    
     if not is_AffineSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_affine):    
         raise ValueError('"domain" must be an affine scheme')
     if R not in _Fields:
-        return DynamicalSystem_affine_ring(f)
+        return DynamicalSystem_affine_ring(polys,domain)
     if is_FiniteField(R):
-            return DynamicalSystem_affine_finite_field(f)
-    return DynamicalSystem_affine_field(f)
+            return DynamicalSystem_affine_finite_field(polys,domain)
+    return DynamicalSystem_affine_field(polys,domain)
 
 
 
@@ -398,16 +394,18 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
 
     
     if isinstance(morphism_or_polys, SchemeMorphism_polynomial):
-        morphism = morphism_or_polys
-        R = morphism.base_ring()
-        domain = morphism.domain()
+        R = morphism_or_polys.base_ring()
+        domain = morphism_or_polys.domain()
+        polys = list(morphism_or_polys)
+        if domain != morphism_or_polys.codomain():
+            raise ValueError('domain and codomain do not agree')
         if not is_ProjectiveSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_projective):    
-            raise ValueError('"domain" must be a projective scheme')                
+            raise ValueError('domain must be a projective scheme')                
         if R not in _Fields:
-            return DynamicalSystem_projective_ring(morphism)
+            return DynamicalSystem_projective_ring(polys,domain)
         if is_FiniteField(R):
-            return DynamicalSystem_projective_finite_field(morphism)
-        return DynamicalSystem_projective_field(morphism)
+            return DynamicalSystem_projective_finite_field(polys,domain)
+        return DynamicalSystem_projective_field(polys,domain)
 
     if isinstance(morphism_or_polys,(list,tuple)):        
         polys = list(morphism_or_polys)
@@ -417,6 +415,7 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
                 polys = [poly.lift() for poly in polys]
             except:
                 raise ValueError('{} is not a list of polynomials'.format(morphism_or_polys))
+
     else:
         # homogenize!
         f = morphism_or_polys
@@ -446,18 +445,38 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
     R = domain.base_ring()
     if R is SR:
         raise TypeError("Symbolic Ring cannot be the base ring")
-    H = End(domain)
 
-    f = H(polys) # Allow SchemeMorphism_polynomial to raise its own errors
+    if len(polys) != domain.ambient_space().coordinate_ring().ngens():
+        msg = 'polys (={}) do not define a rational endomorphism of the domain'
+        raise ValueError(msg.format(polys))
+    
     if is_ProductProjectiveSpaces(domain):
-        return DynamicalSystem_product_projective_ring(f)
+        splitpolys = domain._factors(polys)
+        for split_poly in splitpolys:
+            split_d = domain._degree(split_poly[0])
+            if not all(split_d == domain._degree(f) for f in split_poly):
+                msg = 'polys (={}) must be multi-homogeneous of the same degrees (by component)'
+                raise TypeError(msg.format(polys))
+        return DynamicalSystem_product_projective_ring(polys,domain)
+            
+
+    # Now polys define an endomorphism of a scheme in P^n
+    if not all(poly.is_homogeneous() for poly in polys):
+        msg = 'polys (={}) must be homogeneous'
+        raise ValueError(msg.format(polys))            
+    d = polys[0].degree()
+    if not all(poly.degree() == d for poly in polys):
+        msg = 'polys (={}) must be of the same degree'
+        raise ValueError(msg.format(polys))
+        
+        
     if not is_ProjectiveSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_projective):    
         raise ValueError('"domain" must be a projective scheme')
     if R not in _Fields:
-        return DynamicalSystem_projective_ring(f)
+        return DynamicalSystem_projective_ring(polys,domain)
     if is_FiniteField(R):
-            return DynamicalSystem_projective_finite_field(f)
-    return DynamicalSystem_projective_field(f)
+            return DynamicalSystem_projective_finite_field(polys,domain)
+    return DynamicalSystem_projective_field(polys,domain)
 
 
 DynamicalSystem = DynamicalSystem_projective
@@ -469,8 +488,11 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
 
     INPUT:
 
-    - ``morphism`` -- a SchemeMorphism_polynomial object representing
-      an endomorphism.
+    - ``polys_or_rat_fncts`` -- a list of polynomials or rational functions, 
+      all of which should have the same parent
+
+    - ``domain`` -- an affine or projective scheme, or product of
+      projective schemes, on which ``polys`` defines an endomorphism
 
     EXAMPLES::
 
@@ -488,16 +510,11 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
 
     """
 
-    def __init__(self, morphism):
-        # FIXME: Should these really say ambient_space?
-        source = morphism.domain() #.ambient_space()
-        target = morphism.codomain() #.ambient_space()
-        if source != target:
-            raise ValueError("domain and codomain must agree")
-        P = morphism.parent()
-        polys = list(morphism)
-        # init with check = False to allow for rational maps
-        SchemeMorphism_polynomial.__init__(self,P,polys,check=False)
+    def __init__(self, polys_or_rat_fncts, domain):
+        H = End(domain)
+        # All consistency checks are done by the public class constructors,
+        # so we can set check=False here. 
+        SchemeMorphism_polynomial.__init__(self,H,polys_or_rat_fncts,check=False)
 
     # We copy methods of sage.categories.map.Map, to make
     # a future transition of SchemeMorphism to a sub-class of Morphism
@@ -540,20 +557,6 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
                 return self.pushforward(x,*args,**kwds)
             except (AttributeError, TypeError, NotImplementedError):
                 pass # raise TypeError, "%s must be coercible into %s"%(x, self.domain())
-            # Here, we would like to do
-            ##try:
-            ##    x = D(x).
-            ##except (TypeError, NotImplementedError):
-            ##    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
-            # However, this would involve a test whether x.codomain() ==
-            # self. This would trigger a Groebner basis computation, that
-            # (1) could be slow and (2) could involve an even slower toy
-            # implementation, resulting in a warning.
-            #
-            # Contract: If x is a scheme morphism point, then _call_ knows
-            # what to do with it (e.g., use the _coords attribute). Otherwise,
-            # we can try a conversion into the domain (e.g., if x is a list),
-            # WITHOUT to trigger a Groebner basis computation.
             if kwds.get('check', True):
                 if not isinstance(x, SchemeMorphism_point):
                     try:

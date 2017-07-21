@@ -92,30 +92,30 @@ from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_project
 
 class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space,\
                              DynamicalSystem_generic):
-    r"""
-    A dynamical system of projective schemes determined by homogeneous
+    r"""A dynamical system of projective schemes determined by homogeneous
     polynomials that define what the morphism does on points in the
     ambient projective space.
 
     .. WARNING::
 
-        You should not create objects of this class directly. The
-        preferred method to construct such dynamical systems is to use
+        You should not create objects of this class directly because
+        no type or consistency checking is performed. The preferred
+        method to construct such dynamical systems is to use
         :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_projective`
         function
 
     INPUT:
 
-    - ``morphism`` -- a SchemeMorphism_polynomial object representing
-      a rational endomorphism of a projective scheme. See
-      :class:`SchemeMorphism_polynomial` for details.
+    - ``polys`` -- a list of ``n`` homogeneous polynomials of the same
+      degree, all of which should have the same parent
+
+    - ``domain`` -- a projective scheme embedded in ``P^{n-1}``
 
     """
-
-    def __init__(self, morphism):
+    def __init__(self, polys, domain):
         # Next attribute needed for _fast_eval and _fastpolys
-        self._is_prime_finite_field = is_PrimeFiniteField(morphism[0].base_ring()) 
-        DynamicalSystem_generic.__init__(self,morphism)
+        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring()) 
+        DynamicalSystem_generic.__init__(self,polys,domain)
 
     def __copy__(self):
         r"""
@@ -139,8 +139,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
 
     def dehomogenize(self, n):
-        r"""
-        Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain
+        r"""Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain
         and the ``n[1]`` coordinate for the codomain.
 
         Note that the new function is defined over the fraction field
@@ -153,7 +152,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_affine`.
+        - :class:`DynamicalSystem_affine`, given by dehomogenizing the
+          source and target of `self` with respect to the given
+          indices
 
         EXAMPLES::
 
@@ -163,10 +164,12 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             Dynamical System of Affine Space of dimension 1 over Integer Ring
               Defn: Defined on coordinates by sending (x) to
                     (x^2/(x^2 + 1))
+
         """
         f = self.as_scheme_morphism()
         F = f.dehomogenize(n)
-        return F.as_dynamical_system()
+        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_affine        
+        return DynamicalSystem_affine(F)
 
     def dynatomic_polynomial(self, period):
         r"""
@@ -2091,7 +2094,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             TypeError: the function is not a morphism
 
         """
-        if self.base_ring() != QQ and self.base_ring() != ZZ:
+        if self.base_ring() != ZZ and self.base_ring() != QQ:
             raise NotImplementedError("minimal models only implemented over ZZ or QQ")
         if not self.is_morphism():
             raise TypeError("the function is not a morphism")

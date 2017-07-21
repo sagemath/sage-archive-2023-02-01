@@ -46,21 +46,22 @@ from sage.symbolic.ring import var
 
 class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
                              DynamicalSystem_generic):
-    r"""
-    An endomorphism of affine schemes determined by rational functions.
+    r"""An endomorphism of affine schemes determined by rational functions.
 
     .. WARNING::
 
-        You should not create objects of this class directly. The
-        preferred method to construct such dynamical systems is to use
+        You should not create objects of this class directly because
+        no type or consistency checking is performed. The preferred
+        method to construct such dynamical systems is to use
         :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_affine`
         function
 
     INPUT:
 
-    - ``morphism`` -- a SchemeMorphism_polynomial object representing
-      an endomorphism of an affine scheme. See
-      :class:`SchemeMorphism_polynomial` for details.
+    - ``polys_or_rat_fncts`` -- a list of ``n`` polynomials or rational
+      functions, all of which should have the same parent
+
+    - ``domain`` -- an affine scheme embedded in ``A^n``
 
     EXAMPLES::
 
@@ -71,10 +72,11 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
                     (x, y, 1)
 
     """
-    def __init__(self, morphism):
+    def __init__(self, polys_or_rat_fncts, domain):
         # Next attribute needed for _fast_eval and _fastpolys
-        self._is_prime_finite_field = is_PrimeFiniteField(morphism[0].base_ring()) 
-        DynamicalSystem_generic.__init__(self,morphism)
+        L = polys_or_rat_fncts
+        self._is_prime_finite_field = is_PrimeFiniteField(L[0].base_ring())
+        DynamicalSystem_generic.__init__(self,L,domain)
 
     def __copy__(self):
         r"""

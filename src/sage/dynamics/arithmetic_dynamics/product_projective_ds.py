@@ -29,22 +29,23 @@ from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_mor
 
 class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
                                              ProductProjectiveSpaces_morphism_ring):
-    r"""
-    The class of dynamical systems on products of projective spaces.
+    r"""The class of dynamical systems on products of projective spaces.
 
     .. WARNING::
 
-        You should not create objects of this class directly. The
-        preferred method to construct such dynamical systems is to use
+        You should not create objects of this class directly because
+        no type or consistency checking is performed. The preferred
+        method to construct such dynamical systems is to use
         :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_projective`
         function
 
     INPUT:
 
-    - ``morphism`` -- a SchemeMorphism_polynomial object representing
-      a rational endomorphism of a product of projective schemes. See
-      :class:`SchemeMorphism_polynomial` for details.
+    - ``polys`` -- a list of ``n_1 + \cdots + n_r`` multi-homogeneous polynomials, all
+      of which should have the same parent
 
+    - ``domain`` -- a projective scheme embedded in 
+    ``P^{n_1-1} \times \cdots \times P^{n_r-1}``
 
     EXAMPLES::
 
@@ -53,10 +54,11 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
         Dynamical System of Product of projective spaces P^2 x P^1 over Rational Field
               Defn: Defined by sending (x : y : z , w : u) to
                     (x^2 : y^2 : z^2 , w^2 : u^2).
+
     """
 
-    def __init__(self, morphism):
-        DynamicalSystem_generic.__init__(self, morphism)
+    def __init__(self, polys, domain):
+        DynamicalSystem_generic.__init__(self, polys, domain)
 
     def __call__(self, P, check=True):
         r"""

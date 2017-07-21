@@ -251,11 +251,11 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
             return self.poly_ring(self.base_ring.uniformizer())
         elif r < self.e:
             # Split modulus in half:
-            # modulus = p*c - π^r*d, where c and d are integral polynomials, and c has unit const term.
+            # modulus = -p*c + π^r*d, where c and d are integral polynomials, and c has unit const term.
             # Then p/π^r = d/c.
             R = self.modulus.parent()
             c = R(self._shift_seed.list()[:r])
-            d = -R(self.modulus.list()[r:])
+            d = R(self.modulus.list()[r:])
             c_inverse = self.invert(c, self.ram_prec_cap)
             return (d*c_inverse) % self.modulus
         elif r == self.e:

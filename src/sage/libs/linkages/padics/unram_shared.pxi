@@ -57,6 +57,20 @@ def frobenius_unram(self, arithmetic=True):
     coefs = unit.list()
     power_dict = {} # j : frob_a^j. cache powers of frob_a
     ans = 0
+
+    # Xavier's implementation based on Horner scheme
+    for i in range(R.f()-1, -1, -1):
+        update = 0
+        for j in range(len(coefs)-1, -1, -1):
+            update *= p
+            try:
+                update += coefs[j][i]
+            except IndexError:
+                pass
+        ans *= frob_a
+        ans += update
+    return ans << ppow
+
     for i in range(len(coefs)):
         update = 0
         for j in range(len(coefs[i])):
@@ -66,7 +80,7 @@ def frobenius_unram(self, arithmetic=True):
                 power_dict[j] = frob_a**j #We might be able to optimize this with smarts
                 update += coefs[i][j]*power_dict[j]
         ans += update*p**(i+ppow)
-    return ans
+    return ans 
 
 def norm_unram(self, base = None):
     """

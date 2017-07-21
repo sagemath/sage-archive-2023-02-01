@@ -1146,17 +1146,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                         N = 1
                     kwds.update({'error_bound': err})
                     kwds.update({'N': N})
-                for n in range(0, N):
+                for n in range(N):
                     x = A(x_i,y_i) % Res**(N-n)
                     y = B(x_i,y_i) % Res**(N-n)
                     g = gcd([x, y, Res])
                     H = H + R(g).abs().log()/(d**(n+1))
                     x_i = x/g
                     y_i = y/g
-            # Looks diffrent than Well's Algorithm because of the diffrence between what Well's calls H_infty,
-            # and what Green's Function returns for the infite place
-            h = self.green_function(F, 0 , **kwds) - H + R(t).log()
-            return h
+            # this looks different than Well's Algorithm because of the difference between what Well's calls H_infty,
+            # and what Green's Function returns for the infinite place
+            return self.green_function(F, 0 , **kwds) - H + R(t).log()
 
         if not K in _NumberFields:
             if not K is QQbar:

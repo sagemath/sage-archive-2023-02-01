@@ -609,9 +609,8 @@ class LocalGeneric(CommutativeRing):
         :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
         normal form over local rings and fields.
 
-        The entries of the Smith normal form are normalized such that the
-        diagonal only contains powers of the distinguished uniformizer of this
-        ring.
+        The entries of the Smith normal form are normalized such that non-zero
+        entries of the diagonal are powers of the distinguished uniformizer.
 
         INPUT:
 

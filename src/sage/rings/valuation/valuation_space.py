@@ -3,7 +3,7 @@ r"""
 Spaces of valuations
 
 This module provides spaces of exponential pseudo-valuations on integral
-domains. It currently, only provides support for such valuations if they are
+domains. It currently only provides support for such valuations if they are
 discrete, i.e., their image is a discrete additive subgroup of the rational
 numbers extended by `\infty`.
 
@@ -130,7 +130,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         """
         from operator import mul, div
         from sage.rings.all import QQ, InfinityRing, ZZ
-        if op == mul and not self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
+        if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
             return ScaleAction(S, self)
         if op == div and self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
             return InverseScaleAction(self, S)
@@ -173,9 +173,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: H = DiscretePseudoValuationSpace(QQ)
             sage: H.an_element() in H
             True
-
-        Elements of spaces which embed into this spaces are correctly handled::
-
             sage: QQ.valuation(2) in H
             True
 
@@ -226,12 +223,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: Z(Q(v)) in Z
             True
 
-        We support coercions and conversions, even though they are not
-        implemented here::
-
-            sage: Z(v)
-            2-adic valuation
-
         """
         if isinstance(x.parent(), DiscretePseudoValuationSpace):
             if x.domain() is not self.domain():
@@ -258,7 +249,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: QQ.valuation(2).is_discrete_pseudo_valuation() # indirect doctest
             True
 
-        The methods will be provided even if the concrete types is not created
+        The methods will be provided even if the concrete type is not created
         with :meth:`__make_element_class__`::
 
             sage: from sage.rings.valuation.valuation import DiscretePseudoValuation
@@ -470,10 +461,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             r"""
             Return the residue ring of this valuation, i.e., the elements of
             non-negative valuation modulo the elements of positive valuation.
-
-            This is identical to :meth:`residue_field` when a residue field
-            exists.
-
             EXAMPLES::
 
                 sage: QQ.valuation(2).residue_ring()
@@ -793,37 +780,42 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             assert(dd > 0)
             assert(d is not infinity)
             if d < 0:
-                return self.domain()(1/denominator)
+                # The following may fail if denominator is not inverible in the domain,
+                # but we don't have a better option this generically.
+                return self.domain()(~denominator)
 
             # We need non-negative integers a and b such that
             # a*n - b*d > 0 and a*nn - b*dd < 0
             if nn == 0:
                 # the above becomes b != 0 and a/b > d/n
                 b = 1
-                if d/n in ZZ:
-                    a = d/n + 1
-                else:
-                    a = (d/n).ceil()
+                a = (d/n + 1).floor()
             else:
                 # Since n,nn,d,dd are all non-negative this is essentially equivalent to
                 # a/b > d/n and b/a > nn/dd
                 # which is 
                 # dd/nn > a/b > d/n
                 assert(dd/nn > d/n)
-                for b in iter(NN):
-                    # we naĩvely find the smallest b which can satisfy such an equation
-                    # there are faster algorithms for this
-                    # https://dl.acm.org/citation.cfm?id=1823943&CFID=864015776&CFTOKEN=26270402
-                    if b == 0:
-                        continue
-                    assert(b <= n + nn) # (a+b)/(n+nn) is a solution
-                    if nn/dd/b in ZZ:
-                        a = nn/dd/b + 1
-                    else:
-                        a = (nn/dd/b).ceil()
-                    assert(a/b > d/n)
-                    if dd/nn > a/b:
-                        break
+                from sage.rings.continued_fraction import continued_fraction
+                ab_cf = []
+                dn_cf = continued_fraction(d/n)
+                ddnn_cf = continued_fraction(dd/nn)
+                for i, (x,y) in enumerate(zip(dn_cf, ddnn_cf)):
+                    if x == y:
+                        ab_cf.append(x)
+                    elif x < y:
+                        if y > x+1 or len(ddnn_cf) > i+1:
+                            ab_cf.append(x+1)
+                        else:
+                            # the expansion of dd/nn is ending, so we can't append x+1
+                            ab_cf.extend([x,1,1])
+                    elif y < x:
+                        if x > y+1 or len(dn_cf) > i+1:
+                            ab_cf.append(y+1)
+                        else:
+                            ab_cf.extend([y,1,1])
+                ab = continued_fraction(ab_cf).value()
+                a,b = ab.numerator(), ab.denominator()
                 
             ret = self.domain()(numerator**a / denominator**b)
             assert(self(ret) > 0)
@@ -905,11 +897,11 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return x * self.uniformizer()**s
             else: # s < 0
                 if ~self.uniformizer() in self.domain():
-                    return x / self.uniformizer()**(-s)
+                    return self.domain()(x / self.uniformizer()**(-s))
                 else:
                     for i in range(-s):
                         if self(x) < 0:
-                            raise NotImplementedError("can not compute general shifts over non-fields which do contain elements of negative valuation")
+                            raise NotImplementedError("can not compute general shifts over non-fields which contain elements of negative valuation")
                         x -= self.lift(self.reduce(x))
                         x //= self.uniformizer()
                     return x
@@ -921,6 +913,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Produce an element which differs from ``x`` by an element of
             valuation strictly greater than the valuation of ``x`` (or strictly
             greater than ``error`` if set.)
+            
+            If ``force`` is not set, then expensive simplifications may be avoided.
 
             EXAMPLES::
 
@@ -1095,7 +1089,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             try:
                 self.residue_ring()
-            except:
+            except Exception:
                 # it is not clear what a shift should be in this case
                 return
 

@@ -12,6 +12,8 @@ Relative extensions of `p`-adic rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.morphism import Morphism
+from sage.categories.homset import Hom
 from .generic_nodes import pAdicFixedModRingGeneric
 from .eisenstein_extension_generic import EisensteinExtensionGeneric
 from .relative_ramified_FM import RelativeRamifiedFixedModElement
@@ -27,4 +29,19 @@ class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFix
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFixedModElement)
         from .relative_ramified_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
         self.register_coercion(pAdicCoercion_ZZ_FM(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
         self.register_conversion(pAdicConvert_QQ_FM(self))
+
+class pAdicRelativeBaseringInjection(Morphism):
+    def __init__(self, R, S):
+        if not R.is_field() or S.is_field():
+            Morphism.__init__(self, Hom(R, S, R.category()))
+        else:
+            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+            Morphism.__init__(self, Hom(R, S, SetsWithPartialMaps()))
+
+    def _call_(self, x):
+        return self.codomain()([x])
+
+    def _call_with_extra_args(self, x, args=(), kwds={}):
+        return self.codomain()([x], *args, **kwds)

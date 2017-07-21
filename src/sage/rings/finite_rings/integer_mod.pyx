@@ -739,7 +739,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a.polynomial()
             1
             sage: type(a.polynomial())
-            <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmodmod_flint'>
+            <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
         """
         R = self.parent()[var]
         return R(self)

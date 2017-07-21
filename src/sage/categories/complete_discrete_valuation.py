@@ -56,6 +56,40 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 1
             """
 
+        def denominator(self):
+            """
+            Return the denominator of this element normalized
+            as a power of the uniformizer
+
+            EXAMPLES::
+
+                sage: K = Qp(7)
+                sage: x = K(1/21); x
+                7^-1 + O(7^19)
+                sage: x.denominator()
+                7 + O(7^21)
+
+                sage: x = K(7); x
+                7 + O(7^21)
+                sage: x.denominator()
+                1 + O(7^20)
+
+            Note that the denominator lives in the ring of integers::
+
+                sage: x.denominator().parent()
+                7-adic Ring with capped relative precision 20
+
+            An error is raised when the input is indistinguishable from 0::
+
+                sage: x = K(0,5); x
+                O(7^5)
+                sage: x.denominator()
+                Traceback (most recent call last):
+                ...
+                ValueError: Cannot determine the denominator of an element indistinguishable from 0
+            """
+            return self.parent()(1)
+
 
 class CompleteDiscreteValuationFields(Category_singleton):
     """
@@ -106,7 +140,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             EXAMPLES::
 
                 sage: K = Qp(7)
-                sage: x = K(1/7); x
+                sage: x = K(1/21); x
                 7^-1 + O(7^19)
                 sage: x.denominator()
                 7 + O(7^21)
@@ -115,6 +149,11 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 7 + O(7^21)
                 sage: x.denominator()
                 1 + O(7^20)
+
+            Note that the denominator lives in the ring of integers::
+
+                sage: x.denominator().parent()
+                7-adic Ring with capped relative precision 20
 
             An error is raised when the input is indistinguishable from 0::
 

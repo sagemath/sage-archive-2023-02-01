@@ -882,13 +882,14 @@ class SchemeMorphism_spec(SchemeMorphism):
 # of the class
 ############################################################################
 class SchemeMorphism_polynomial(SchemeMorphism):
-    """
+    r"""
     A morphism of schemes determined by polynomials that define what
     the morphism does on points in the ambient space.
 
     INPUT:
 
-    - ``parent`` -- Hom-set whose domain and codomain are affine schemes.
+    - ``parent`` -- Hom-set whose domain and codomain are affine or
+      projective schemes.
 
     - ``polys`` -- a list/tuple/iterable of polynomials defining the
       scheme morphism.
@@ -924,6 +925,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         ...
         TypeError: polys (=[e^x, e^y]) must be elements of
         Multivariate Polynomial Ring in x, y over Rational Field
+
     """
     def __init__(self, parent, polys, check=True):
         """

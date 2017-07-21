@@ -2261,20 +2261,20 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def smith_form(self, transformation=True):
         r"""
-        Return the smith normal form of this matrix, that is the
-        diagonal matrix S with diagonal entries the ordered elementary 
-        divisors of self.
+        Return the smith normal form of this matrix, that is the diagonal
+        matrix `S` with diagonal entries the ordered elementary divisors of
+        this matrix.
 
         INPUT:
 
-        - transformation -- a boolean (default: True)
-          Indicated whether the transformation matrices U and V such that 
-          `S = U\*self\*V` are also returned.
+        - ``transformation`` -- a boolean (default: ``True``); whether to
+          return the transformation matrices `U` and `V` such that `S=U\cdot
+          self\cdot V`.
 
-        .. warning::
+        .. NOTE::
 
-           The elementary_divisors function, which returns the
-           diagonal entries of S, is VASTLY faster than this function.
+           The :meth:`elementary_divisors` function, which returns the diagonal
+           entries of `S`, is VASTLY faster than this function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of this matrix. They are ordered in

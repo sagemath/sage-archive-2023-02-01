@@ -510,7 +510,7 @@ class AugmentedValuation_base(InductiveValuation):
             2
 
         """
-        if self.augmentation_chain()[-1].is_trivial():
+        if self.augmentation_chain()[-1]._base_valuation.is_trivial():
             raise NotImplementedError("ramification index is not defined over a trivial Gauss valuation")
         return self.value_group().index(self._base_valuation.value_group()) * self._base_valuation.E()
 

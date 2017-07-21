@@ -189,7 +189,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                     #must be a rational function since we cannot have
                     #rational functions for quotient rings
                     try:
-                        if not all(p.base_ring()==source_ring.base_ring() for p in polys):
+                        if not all(p.base_ring().fraction_field()==source_ring.base_ring().fraction_field() for p in polys):
                             raise TypeError("polys (=%s) must be rational functions in %s"%(polys, source_ring))
                         K = FractionField(source_ring)
                         polys = [K(p) for p in polys]

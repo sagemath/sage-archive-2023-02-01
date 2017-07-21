@@ -374,7 +374,7 @@ cdef class Morphism(Map):
         EXAMPLES::
 
             sage: f = Hom(ZZ,Zmod(1)).an_element()
-            sage; bool(f) # indirect doctest
+            sage: bool(f) # indirect doctest
             False
 
         """

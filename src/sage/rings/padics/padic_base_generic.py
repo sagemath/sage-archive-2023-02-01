@@ -172,7 +172,7 @@ class pAdicBaseGeneric(pAdicGeneric):
         from sage.rings.rational_field import QQ
         return QQ
 
-    def exact_ring():
+    def exact_ring(self):
 	"""
 	Returns the integer ring.  
 

@@ -59,8 +59,6 @@ from . import matrix_rational_sparse
 from . import matrix_polynomial_dense
 from . import matrix_mpolynomial_dense
 
-from . import matrix_cdv_dense
-
 # Sage imports
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
@@ -1102,10 +1100,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 return matrix_polynomial_dense.Matrix_polynomial_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
-            elif R in sage.categories.complete_discrete_valuation.CompleteDiscreteValuationRings():
-                return matrix_cdv_dense.Matrix_cdvr_dense
-            elif R in sage.categories.complete_discrete_valuation.CompleteDiscreteValuationFields():
-                return matrix_cdv_dense.Matrix_cdvf_dense
 
             from sage.symbolic.ring import SR   # causes circular imports
             if R is SR:

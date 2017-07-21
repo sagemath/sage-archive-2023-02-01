@@ -13153,7 +13153,7 @@ cdef class Matrix(Matrix1):
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
-    def smith_form(self, transformation=True):
+    def smith_form(self, transformation=True, integral=None):
         r"""
         Return a Smith normal form of this matrix.
 
@@ -13179,8 +13179,17 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
-        - ``transformation`` -- a boolean (default: True)
-           Indicates whether the matrices U and V are returned or not.
+        - ``transformation`` -- a boolean (default: ``True``); whether the
+        matrices `U` and `V` should be returned
+
+        - ``integral`` -- a subring of the base ring or ``True`` (default: ``None``); the
+        entries of `U` and `V` are taken from this subring. If ``True``, then
+        the entries are taken from the canonical ring of integers of the base ring.
+
+        OUTPUT:
+
+        The matrices `S, U, V` or the matrix `S` depending on
+        ``transformation``.
 
         ALGORITHM: 
 
@@ -13269,10 +13278,27 @@ cdef class Matrix(Matrix1):
             True
             sage: m = matrix(OE, 3, 3, [-5*w-1,-2*w-2,4*w-10,8*w,-w,w-1,-1,1,-8]); d,u,v = m.smith_form(); u*m*v == d
             True
+
+        Over local fields, we can request the transformation matrices to be integral:;
+
+            sage: K = Qp(2, 5, print_mode='terse')
+            sage: M = matrix(K, 2, 3, [1/2, 1, 2, 1/3, 1, 3])
+            sage: M.smith_form(integral=True)
+            (
+            [1/2 + O(2^4)            0            0]  [ 1 + O(2^4)  0 + O(2^4)]
+            [           0   1 + O(2^5)            0], [14 + O(2^4)  3 + O(2^4)],
+
+            [ 1 + O(2^5) 62 + O(2^6)  6 + O(2^6)]
+            [          0  1 + O(2^5) 27 + O(2^5)]
+            [          0           0  1 + O(2^5)]
+            )
+
         """
         R = self.base_ring()
         if hasattr(R, '_matrix_smith_form'):
-            return R._matrix_smith_form(self,transformation=transformation)
+            return R._matrix_smith_form(self,transformation=transformation,integral=integral)
+        if not (integral is None or integral is R):
+            raise NotImplementedError("Smith normal form with integral coefficients not implemented for this ring")
         if transformation:
             left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
             right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)

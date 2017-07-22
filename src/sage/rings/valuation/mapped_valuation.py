@@ -193,7 +193,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             u1
 
         """
-        return self._base_valuation.reduce(self._to_base_domain(f))
+        return self._from_base_residue_ring(self._base_valuation.reduce(self._to_base_domain(f)))
 
     def lift(self, F):
         r"""

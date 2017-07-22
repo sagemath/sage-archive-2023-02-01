@@ -277,6 +277,29 @@ class MappedValuation_base(DiscretePseudoValuation):
             tester.assertEqual(x, self._from_base_domain(self._to_base_domain(x)))
             # note that the converse might not be true
 
+    def _test_to_from_base_domain(self, **options):
+        r"""
+        Check the correctness of :meth:`to_base_residue_ring` and
+        :meth:`from_base_residue_ring`.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+
+            sage: v = K.valuation(0)
+            sage: w = v.extensions(L)[0]
+            sage: w._test_to_from_base_residue_ring()
+
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements(self.residue_ring().some_elements()):
+            tester.assertEqual(x, self._from_base_residue_ring(self._to_base_residue_ring(x)))
+        for x in tester.some_elements(self._base_valuation.residue_ring().some_elements()):
+            tester.assertEqual(x, self._to_base_residue_ring(self._from_base_residue_ring(x)))
+
 
 class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuation):
     r"""

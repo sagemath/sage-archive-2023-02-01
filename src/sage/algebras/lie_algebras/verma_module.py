@@ -127,15 +127,25 @@ class VermaModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: L = lie_algebras.sl(QQ, 3)
+            sage: La = L.cartan_type().root_system().weight_lattice().fundamental_weights()
+            sage: M = L.verma_module(La[1])
+            sage: sorted(L.basis().keys(), key=L._basis_key)
+            [alpha[2], alpha[1], alpha[1] + alpha[2],
+             alphacheck[1], alphacheck[2],
+             -alpha[2], -alpha[1], -alpha[1] - alpha[2]]
+            sage: sorted(L.basis().keys(), key=M._triangular_key)
+            [-alpha[2], -alpha[1], -alpha[1] - alpha[2],
+             alphacheck[1], alphacheck[2],
+             alpha[2], alpha[1], alpha[1] + alpha[2]]
+
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
-            sage: La = L.cartan_type().root_system().weight_lattice().fundamental_weights()
-            sage: M = L.verma_module(La[1], basis_key=neg_key)
             sage: sorted(L.basis().keys(), key=neg_key)
-            [alphacheck[2], alphacheck[1],
-             -alpha[1] - alpha[2], -alpha[1], -alpha[2],
+            [-alpha[1] - alpha[2], -alpha[1], -alpha[2],
+             alphacheck[2], alphacheck[1],
              alpha[1] + alpha[2], alpha[1], alpha[2]]
-            sage: sorted(L.basis().keys(), key=M._triangular_key)
+            sage: N = L.verma_module(La[1], basis_key=neg_key)
+            sage: sorted(L.basis().keys(), key=N._triangular_key)
             [-alpha[1] - alpha[2], -alpha[1], -alpha[2],
              alphacheck[2], alphacheck[1],
              alpha[1] + alpha[2], alpha[1], alpha[2]]
@@ -228,8 +238,9 @@ class VermaModule(CombinatorialFreeModule):
             sage: L = lie_algebras.sp(QQ, 4)
             sage: La = L.cartan_type().root_system().ambient_space().fundamental_weights()
             sage: M = L.verma_module(-1/2*La[1] + 3/7*La[2])
-            sage: G = list(M.pbw_basis().gens())
-            sage: v = G[7] * M.highest_weight_vector()
+            sage: f1, f2 = L.f(1), L.f(2)
+            sage: x = M.pbw_basis()(L([f1, [f1, f2]]))
+            sage: v = x * M.highest_weight_vector()
             sage: M._repr_generator(v.leading_support())
             'f[-2*alpha[1] - alpha[2]]*v[(-1/14, 3/7)]'
 
@@ -254,8 +265,9 @@ class VermaModule(CombinatorialFreeModule):
             sage: L = lie_algebras.sp(QQ, 4)
             sage: La = L.cartan_type().root_system().ambient_space().fundamental_weights()
             sage: M = L.verma_module(-1/2*La[1] + 3/7*La[2])
-            sage: G = list(M.pbw_basis().gens())
-            sage: v = G[7] * M.highest_weight_vector()
+            sage: f1, f2 = L.f(1), L.f(2)
+            sage: x = M.pbw_basis()(L([f1, [f1, f2]]))
+            sage: v = x * M.highest_weight_vector()
             sage: M._latex_generator(v.leading_support())
             f_{-2\alpha_{1} - \alpha_{2}} v_{-\frac{1}{14}e_{0} + \frac{3}{7}e_{1}}
 
@@ -365,7 +377,8 @@ class VermaModule(CombinatorialFreeModule):
 
             sage: pbw = M.pbw_basis()
             sage: G = list(pbw.gens())
-            sage: x = G[5] * G[4] * v
+            sage: f1, f2 = L.f()
+            sage: x = pbw(f1.bracket(f2)) * pbw(f1) * v
             sage: x.degree()
             -Lambda[1] + 3*Lambda[2]
         """
@@ -422,11 +435,11 @@ class VermaModule(CombinatorialFreeModule):
             [0,
              0,
              0,
+             v[Lambda[1] + 2*Lambda[2]],
+             2*v[Lambda[1] + 2*Lambda[2]],
              f[-alpha[2]]*v[Lambda[1] + 2*Lambda[2]],
              f[-alpha[1]]*v[Lambda[1] + 2*Lambda[2]],
-             f[-alpha[1] - alpha[2]]*v[Lambda[1] + 2*Lambda[2]],
-             v[Lambda[1] + 2*Lambda[2]],
-             2*v[Lambda[1] + 2*Lambda[2]]]
+             f[-alpha[1] - alpha[2]]*v[Lambda[1] + 2*Lambda[2]]]
         """
         if x in self.base_ring():
             return self._from_dict({self._indices.one(): x})

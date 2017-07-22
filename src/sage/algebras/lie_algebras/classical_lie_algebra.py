@@ -1209,10 +1209,10 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             [alpha[2], alpha[1], alpha[1] + alpha[2],
              2*alpha[1] + alpha[2], 3*alpha[1] + alpha[2],
              3*alpha[1] + 2*alpha[2],
+             0, 0,
              -alpha[2], -alpha[1], -alpha[1] - alpha[2],
              -2*alpha[1] - alpha[2], -3*alpha[1] - alpha[2],
-             -3*alpha[1] - 2*alpha[2],
-             0, 0]
+             -3*alpha[1] - 2*alpha[2]]
         """
         Q = self._cartan_type.root_system().root_lattice()
         if m.parent() is Q:

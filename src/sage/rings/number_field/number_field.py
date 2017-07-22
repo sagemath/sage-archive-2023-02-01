@@ -2148,10 +2148,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
         if t == 0:
             t = []
-        if isomorphism_maps:
-            return t != 0, t
+            res = False
         else:
-            return t != 0
+            res = True
+
+        if isomorphism_maps:
+            return res, t
+        else:
+            return res
 
     def is_totally_real(self):
         """

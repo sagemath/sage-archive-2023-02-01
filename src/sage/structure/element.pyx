@@ -387,11 +387,34 @@ cdef class Element(SageObject):
 
     def _set_parent(self, parent):
         r"""
+        Set the parent of ``self`` to ``parent``.
+
         INPUT:
 
-        - ``parent`` - a SageObject
+        - ``parent`` -- a :class:`Parent`
+
+        .. WARNING::
+
+            Changing the parent of an object is not something you
+            should normally need. It is mainly meant for constructing a
+            new element from scratch, when ``__new__`` or ``__init__``
+            did not set the right parent. Using this method incorrectly
+            can break things badly.
+
+        EXAMPLES::
+
+            sage: q = 3/5
+            sage: parent(q)
+            Rational Field
+            sage: q._set_parent(CC)
+            sage: parent(q)
+            Complex Field with 53 bits of precision
+            sage: q._set_parent(float)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert type to sage.structure.parent.Parent
         """
-        self._parent = parent
+        self._parent = <Parent?>parent
 
     def __getattr__(self, name):
         """

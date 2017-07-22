@@ -2,12 +2,12 @@ Discrete Valuations and Discrete Pseudo-Valuations
 ==================================================
 
 High-Level Interface
-====================
+--------------------
 Valuations can be defined conveniently on some Sage rings such as p-adic rings
 and function fields.
 
 p-adic valuations
------------------
+~~~~~~~~~~~~~~~~~
 Valuations on number fields can be easily specified if they uniquely extend
 the valuation of a rational prime::
 
@@ -34,7 +34,7 @@ extending a valuation from a smaller ring::
     (0, 1)
 
 Valuations on Function Fields
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Similarly, valuations can be defined on function fields::
 
     sage: K.<x> = FunctionField(QQ)
@@ -67,10 +67,10 @@ Valuations can also be extended from smaller function fields::
      [ (x - 4)-adic valuation, v(y + 2) = 1 ]-adic valuation]
 
 Low-Level Interface
-===================
+-------------------
 
 Mac Lane valuations
--------------------
+~~~~~~~~~~~~~~~~~~~
 Internally, all the above is backed by the algorithms described in
 [Mac1936I]_ and [Mac1936II]_. Let us consider the extensions of
 ``K.valuation(x - 4)`` to the field `L` above to outline how this works
@@ -107,7 +107,7 @@ valuation induced by it and augment it to approximate an extension to `L`::
     [ (x - 4)-adic valuation, v(y - 2) = 1 ]-adic valuation
 
 Limit valuations
-----------------
+~~~~~~~~~~~~~~~~
 In the previous example the final valuation ``ww`` is not merely given by
 evaluating ``w`` on the ring `K[y]`::
 
@@ -133,7 +133,7 @@ The terms of this infinite sequence are computed on demand::
     [ Gauss valuation induced by (x - 4)-adic valuation, v(y - 1/4*x - 1) = 2 ]
 
 Non-classical valuations
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 Using the low-level interface we are not limited to classical valuations on
 function fields that correspond to points on the corresponding projective
 curves. Instead we can start with a non-trivial valuation on the field of
@@ -148,7 +148,7 @@ constants::
     Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
 
 Mac Lane Approximants
-=====================
+---------------------
 The main tool underlying this package is an algorithm by Mac Lane to compute,
 starting from a Gauss valuation on a polynomial ring and a monic squarefree
 polynomial G, approximations to the limit valuation which send G to infinity::
@@ -173,9 +173,12 @@ pushed to arbitrary precision::
 Note that in the limit they are factors of `f`.
 
 References
-==========
+----------
 
 The theory was originally described in [Mac1936I]_ and [Mac1936II]_. A summary and some algorithmic details can also be found in Chapter 4 of [Rüt2014]_.
+
+More Details
+============
 
 .. toctree::
    :maxdepth: 2

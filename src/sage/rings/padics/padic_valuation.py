@@ -772,7 +772,7 @@ class pAdicValuation_base(DiscreteValuation):
                     from sage.categories.all import IntegralDomains
                     if ring in IntegralDomains():
                         return self._extensions_to_quotient(ring)
-                else:
+                elif self.domain().is_subring(ring.base_ring()):
                     return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])
             from sage.rings.number_field.number_field import is_NumberField
             if is_NumberField(ring.fraction_field()):

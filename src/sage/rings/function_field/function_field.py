@@ -628,10 +628,10 @@ class FunctionField(Field):
             sage: R.<w> = K[]
             sage: L.<w> = K.extension(w^3 - t)
             sage: N.<x> = FunctionField(L)
-            sage: w = v.extension(N) # optional: integrated
-            sage: w(x^3 - t) # optional: integrated
+            sage: w = v.extension(N)
+            sage: w(x^3 - t)
             1
-            sage: w(x - w) # optional: integrated
+            sage: w(x - w)
             1/3
 
         There are several ways to create valuations on extensions of rational

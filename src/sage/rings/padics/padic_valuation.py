@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 `p`-adic valuations on number fields and their subrings and completions.
 
 AUTHORS:
@@ -25,7 +25,7 @@ from sage.misc.fast_methods import WithEqualityById
 from sage.rings.all import infinity
 
 class PadicValuationFactory(UniqueFactory):
-    """
+    r"""
     Create a ``prime``-adic valuation on ``R``.
 
     INPUT:
@@ -145,6 +145,12 @@ class PadicValuationFactory(UniqueFactory):
         sage: R.<x> = K[]
         sage: L.<b> = R.quo(x^2 + a)
         sage: valuations.pAdicValuation(L, 2)
+        2-adic valuation
+
+    Valuations can also be defined on orders in number fields::
+
+        sage: O = K.order(2*a)
+        sage: valuations.pAdicValuation(O, 2)
         2-adic valuation
 
     """
@@ -307,7 +313,7 @@ class PadicValuationFactory(UniqueFactory):
         approximants = [approximant.extension(v.domain()) for approximant in approximants]
         approximant = vK.mac_lane_approximant(G, v, approximants=tuple(approximants))
 
-        return (R, approximant, L.construction()), {'approximants': approximants}
+        return (R, approximant), {'approximants': approximants}
 
     def create_key_and_extra_args_for_number_field_from_ideal(self, R, I, prime):
         r"""
@@ -344,15 +350,7 @@ class PadicValuationFactory(UniqueFactory):
         if len(candidates_for_I) > 1:
             raise ValueError("%s does not single out a unique extension of %s to %s"%(prime, vK, L))
         else:
-            # equality of number fields has it quirks since it says that two
-            # fields are == even if they are distinguishable (because they come
-            # from different constructions.)
-            # Including structure() into the key seems to be a way to distinguish such cases properly.
-            # This used to be an issue but seems to be fixed, namely, the
-            # absolute_field of a number field was deemed equivalent to the
-            # directly created absolute field, even though the absolute_field
-            # carried the information where it came from
-            return (R, candidates_for_I[0], L.construction()), {'approximants': candidates}
+            return (R, candidates_for_I[0]), {'approximants': candidates}
 
     def _normalize_number_field_data(self, R):
         r"""
@@ -430,7 +428,7 @@ class PadicValuationFactory(UniqueFactory):
 pAdicValuation = PadicValuationFactory("pAdicValuation")
 
 class pAdicValuation_base(DiscreteValuation):
-    """
+    r"""
     Abstract base class for `p`-adic valuations.
 
     INPUT:
@@ -463,7 +461,7 @@ class pAdicValuation_base(DiscreteValuation):
 
     """
     def __init__(self, parent, p):
-        """
+        r"""
         TESTS::
 
             sage: from sage.rings.padics.padic_valuation import pAdicValuation_base
@@ -477,7 +475,7 @@ class pAdicValuation_base(DiscreteValuation):
         self._p = ZZ(p)
 
     def p(self):
-        """
+        r"""
         Return the `p` of this `p`-adic valuation.
 
         EXAMPLES::
@@ -489,7 +487,7 @@ class pAdicValuation_base(DiscreteValuation):
         return self._p
 
     def reduce(self, x):
-        """
+        r"""
         Reduce ``x`` modulo the ideal of elements of positive valuation.
 
         INPUT:
@@ -515,7 +513,7 @@ class pAdicValuation_base(DiscreteValuation):
         return self.residue_field()(x)
 
     def lift(self, x):
-        """
+        r"""
         Lift ``x`` from the residue field to the domain of this valuation.
 
         INPUT:
@@ -535,7 +533,7 @@ class pAdicValuation_base(DiscreteValuation):
         return self.domain()(x)
 
     def is_unramified(self, G, include_steps=False, assume_squarefree=False):
-        """
+        r"""
         Return whether ``G`` defines a single unramified extension of the
         completion of the domain of this valuation.
 
@@ -612,7 +610,7 @@ class pAdicValuation_base(DiscreteValuation):
             return ret
 
     def is_totally_ramified(self, G, include_steps=False, assume_squarefree=False):
-        """
+        r"""
         Return whether ``G`` defines a single totally ramified extension of the
         completion of the domain of this valuation.
 
@@ -652,6 +650,14 @@ class pAdicValuation_base(DiscreteValuation):
             True
             sage: v.is_totally_ramified(G, include_steps=True)
             (True, [Gauss valuation induced by 5-adic valuation, [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x) = 1/2 ]])
+
+        We consider an extension as totally ramified if its ramification index
+        matches the degree. Hence, a trivial extension is totally ramified::
+
+            sage: R.<x> = QQ[]
+            sage: v = QQ.valuation(2)
+            sage: v.is_totally_ramified(x)
+            True
 
         """
         R = G.parent()
@@ -766,7 +772,7 @@ class pAdicValuation_base(DiscreteValuation):
                     from sage.categories.all import IntegralDomains
                     if ring in IntegralDomains():
                         return self._extensions_to_quotient(ring)
-                else:
+                elif self.domain().is_subring(ring.base_ring()):
                     return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])
             from sage.rings.number_field.number_field import is_NumberField
             if is_NumberField(ring.fraction_field()):
@@ -918,6 +924,12 @@ class pAdicValuation_padic(pAdicValuation_base):
             sage: v.element_with_valuation(3)
             3^3 + O(3^23)
 
+            sage: K = Qp(3)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 + 3*y + 3)
+            sage: L.valuation().element_with_valuation(3/2)
+            y^3 + O(y^43)
+
         """
         from sage.rings.all import QQ, ZZ
         v = QQ(v)
@@ -986,12 +998,16 @@ class pAdicValuation_padic(pAdicValuation_base):
             sage: v.shift(R.one(), -1)
             O(2^19)
 
+            sage: S.<y> = R[]
+            sage: S.<y> = R.extension(y^3 - 2)
+            sage: v = S.valuation()
+            sage: v.shift(1, 5)
+
         """
         from sage.rings.all import ZZ
         x = self.domain().coerce(x)
         s = self.value_group()(s)
-        v = ZZ(s / self.domain().ramification_index())
-        return x << v
+        return x << s
 
     def simplify(self, x, error=None, force=False):
         r"""
@@ -1147,7 +1163,7 @@ class pAdicValuation_int(pAdicValuation_base):
 
         """
         x = self.domain().coerce(x)
-        return x.numerator().nbits() + x.denominator().nbits() - 1
+        return (x.numerator().nbits() + x.denominator().nbits())//self.p().nbits()
 
     def simplify(self, x, error=None, force=False, size_heuristic_bound=32):
         r"""
@@ -1241,8 +1257,8 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
     def _to_base_domain(self, f):
         r"""
-        Return ``f``, an element of the domain of this valuation, as an element
-        of the domain of the underlying limit valuation.
+        Return ``f``, an element of the underlying limit valuation, as an
+        element of the domain of this valuation.
 
         EXAMPLES::
 

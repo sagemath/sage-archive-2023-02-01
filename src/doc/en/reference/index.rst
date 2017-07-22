@@ -100,8 +100,8 @@ Geometry and Topology
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
 
-Number Fields and Function Fields
----------------------------------
+Number Fields, Function Fields, and Valuations
+----------------------------------------------
 
 * :doc:`Number Fields <number_fields/index>`
 * :doc:`Function Fields <function_fields/index>`

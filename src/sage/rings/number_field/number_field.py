@@ -2107,7 +2107,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return NumberField(self.defining_polynomial(), names, check=False, structure=structure.NameChange(self))
 
-    def is_isomorphic(self, other, isomorphism_map = False):
+    def is_isomorphic(self, other, isomorphism_maps = False):
         """
         Return True if self is isomorphic as a number field to other.
 
@@ -2148,7 +2148,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
         if t == 0:
             t = []
-        if isomorphism_map:
+        if isomorphism_maps:
             return t != 0, t
         else:
             return t != 0

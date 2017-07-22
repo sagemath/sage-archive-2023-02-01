@@ -510,7 +510,7 @@ class AugmentedValuation_base(InductiveValuation):
             2
 
         """
-        if self.augmentation_chain()[-1].is_trivial():
+        if self.augmentation_chain()[-1]._base_valuation.is_trivial():
             raise NotImplementedError("ramification index is not defined over a trivial Gauss valuation")
         return self.value_group().index(self._base_valuation.value_group()) * self._base_valuation.E()
 
@@ -555,7 +555,7 @@ class AugmentedValuation_base(InductiveValuation):
             return [self]
 
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if is_PolynomialRing(ring) and ring.ngens() == 1:
+        if is_PolynomialRing(ring): # univariate
             base_valuations = self._base_valuation.extensions(ring)
             phi = self.phi().change_ring(ring.base_ring())
 
@@ -597,8 +597,8 @@ class AugmentedValuation_base(InductiveValuation):
             if ring.is_subring(self.domain().base_ring()):
                 return base
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if is_PolynomialRing(ring) and ring.ngens() == 1:
-                return base.augmentation(self.phi().change_ring(ring.base()), self._mu)
+            if is_PolynomialRing(ring): # univariate
+                return base.augmentation(self.phi().change_ring(ring.base_ring()), self._mu)
         return super(AugmentedValuation_base, self).restriction(ring)
 
     def uniformizer(self):
@@ -818,7 +818,7 @@ class AugmentedValuation_base(InductiveValuation):
 
         """
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if is_PolynomialRing(ring) and ring.ngens() == 1 and ring.variable_name() == self.domain().variable_name():
+        if is_PolynomialRing(ring) and ring.variable_name() == self.domain().variable_name():
             return self._base_valuation.change_domain(ring).augmentation(self.phi().change_ring(ring.base_ring()), self._mu, check=False)
         return super(AugmentedValuation_base, self).change_domain(ring)
 
@@ -1290,7 +1290,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
                 # the recursive call to reduce below
                 # replace f_i by f_i Q^{i tau}
                 if i//tau >= len(valuations):
-                    # we do not the correct valuation of the coefficient, but
+                    # we do not know the correct valuation of the coefficient, but
                     # the computation is faster if we know that the coefficient
                     # has positive valuation
                     valuations.append(self._base_valuation.lower_bound(c) + i*self._mu)
@@ -1435,7 +1435,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         tau = self.value_group().index(self._base_valuation.value_group())
         ret = RR(coeffs)(self.phi()**tau)
-        ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
+        ret = ret.map_coefficients(_lift_to_maximal_precision)
         return ret
 
     def lift_to_key(self, F, check=True):
@@ -1512,8 +1512,8 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         coefficients = self.lift(F, report_coefficients=True)[:-1]
         coefficients = [c*self._Q(F.degree()) for i,c in enumerate(coefficients)] + [self.domain().one()]
         if len(coefficients) >= 2:
-            # The second-highest coefficient could %phi spill over into the
-            # highest constant (which is a constant one) so we need to mod it
+            # After reduction modulo phi, the second-highest coefficient could spill over into the
+            # highest coefficient (which is a constant one) so we need to mod it
             # away.
             # This can not happen for other coefficients because self._Q() has
             # degree at most the degree of phi.
@@ -1522,7 +1522,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         vf = self._mu * tau * F.degree()
         ret = self.domain().change_ring(self.domain())([c for c in coefficients])(self.phi()**tau)
         ret = self.simplify(ret, error=vf, force=True)
-        ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
+        ret = ret.map_coefficients(_lift_to_maximal_precision)
         assert (ret == self.phi()) == (F == F.parent().gen())
         assert self.is_key(ret)
         return ret

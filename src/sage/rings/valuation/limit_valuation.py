@@ -636,7 +636,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
     def residue_ring(self):
         r"""
-        Return the residue field of this valuation.
+        Return the residue ring of this valuation, which is always a field.
 
         EXAMPLES::
 

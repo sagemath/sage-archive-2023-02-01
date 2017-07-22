@@ -286,7 +286,7 @@ class PadicValuationFactory(UniqueFactory):
                     from sage.rings.valuation.gauss_valuation import GaussValuation
                     v = GaussValuation(G.parent(), v)
             if v.domain() != G.parent():
-                # Then, we lift valuations defined on polynmial rings which are
+                # Then, we lift valuations defined on polynomial rings which are
                 # subrings of K[x] to K[x]
                 v = v.extension(G.parent())
         elif _fraction_field(v.domain()) == L:
@@ -578,7 +578,7 @@ class pAdicValuation_base(DiscreteValuation):
         R = G.parent()
 
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if not is_PolynomialRing(R) or R.base_ring() is not self.domain() or not len(R.gens()) == 1 or not G.is_monic():
+        if not is_PolynomialRing(R) or R.base_ring() is not self.domain() or not G.is_monic():
             raise ValueError("G must be a monic univariate polynomial over the domain of this valuation")
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
@@ -657,7 +657,7 @@ class pAdicValuation_base(DiscreteValuation):
         R = G.parent()
 
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if not is_PolynomialRing(R) or R.base_ring() is not self.domain() or not len(R.gens()) == 1 or not G.is_monic():
+        if not is_PolynomialRing(R) or R.base_ring() is not self.domain() or not G.is_monic():
             raise ValueError("G must be a monic univariate polynomial over the domain of this valuation")
         if not assume_squarefree and not G.is_squarefree():
             raise ValueError("G must be squarefree")
@@ -833,7 +833,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
     TESTS::
 
-        sage: TestSuite(v).run() # optional: integrated, long time
+        sage: TestSuite(v).run() # long time
 
     """
     def __init__(self, parent):

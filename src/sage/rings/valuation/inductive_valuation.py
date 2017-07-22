@@ -9,14 +9,24 @@ AUTHORS:
 
 - Julian Rüth (2016-11-01): initial version
 
+EXAMPLES:
+
+A :class:`GaussValuation` is an example of an inductive valuation::
+
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, QQ.valuation(2))
+
+Generally, an inductive valuation is an augmentation of an inductive valuation,
+i.e., a valuation that was created from a Gauss valuation in a finite number of
+augmentation steps::
+
+    sage: w = v.augmentation(x, 1)
+    sage: w = w.augmentation(x^2 + 2, 3)
+
 REFERENCES:
 
-.. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
-
-.. [ML1936'] MacLane, S. (1936). A construction for absolute values in
-polynomial rings. Transactions of the American Mathematical Society, 40(3),
-363-395.
+Inductive valuations are originally discussed in [Mac1936]_ and [Mac1936']. An
+introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
@@ -1191,12 +1201,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: v2 = V[0]
             sage: v2.equivalence_decomposition(G)
             (1/387420489) * (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
-
-        REFERENCES:
-
-        .. [ML1936'] MacLane, S. (1936). A construction for absolute values in
-        polynomial rings. Transactions of the American Mathematical Society, 40(3),
-        363-395.
 
         """
         f = self.domain().coerce(f)

@@ -1,3 +1,5 @@
+# not using absolute imports here as importing absolute_import would make
+# "absolute_import" show up in <TAB>-completion
 from sage.rings.padics.padic_valuation import pAdicValuation
 from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
 from sage.rings.valuation.gauss_valuation import GaussValuation

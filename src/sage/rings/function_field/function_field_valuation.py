@@ -2,6 +2,10 @@
 r"""
 Discrete valuations on function fields
 
+AUTHORS:
+
+- Julian Rüth (2016-10-16): initial version
+
 EXAMPLES:
 
 We can create classical valuations that correspond to finite and infinite
@@ -123,9 +127,11 @@ Run test suite for a valuation which sends an element to `-\infty`::
     sage: w = K.valuation(v)
     sage: TestSuite(w).run() # long time
 
-AUTHORS:
+REFERENCES:
 
-- Julian Rüth (2016-10-16): initial version
+An overview of some computational tools relating to valuations on function
+fields can be found in Section 4.6 of [Rüt2014]_. Most of this was originally
+developed for number fields in [Mac1936]_ and [Mac1936']_.
 
 """
 #*****************************************************************************

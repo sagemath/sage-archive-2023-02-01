@@ -2,7 +2,13 @@
 r"""
 Augmented valuations on polynomial rings
 
-Implements augmentations of valutions as defined in [ML1936].
+Implements augmentations of (inductive) valuations.
+
+AUTHORS:
+
+- Julian Rüth (2013-04-15): initial version
+
+EXAMPLES:
 
 Starting from a :class:`GaussValuation`, we can create augmented valuations on
 polynomial rings::
@@ -133,16 +139,8 @@ Run the test suite if the polynomial ring is not over a field::
 
 REFERENCES:
 
-.. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
-
-.. [ML1936'] MacLane, S. (1936). A construction for absolute values in
-polynomial rings. Transactions of the American Mathematical Society, 40(3),
-363-395.
-
-AUTHORS:
-
-- Julian Rüth (2013-04-15): initial version
+Augmentations are described originally in [ML1936]_ and [ML1936']_. An overview
+can also be found in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************

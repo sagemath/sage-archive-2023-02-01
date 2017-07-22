@@ -1,10 +1,31 @@
 # -*- coding: utf-8 -*-
 r"""
-`p`-adic valuations on number fields and their subrings and completions.
+`p`-adic valuations on number fields and their subrings and completions
+
+EXAMPLES::
+
+    sage: ZZ.valuation(2)
+    sage: QQ.valuation(3)
+    sage: GaussianIntegers().valuation(5)
+    sage: CyclotomicField(5).valuation(7)
+    sage: Zp(11).valuation()
+
+These valuations can then, e.g., be used to compute factorizations in the
+completion of a ring::
+
+    sage: v = ZZ.valuation(2)
+    sage: R.<x> = ZZ[]
+    sage: f = x^5 + x^4 + x^3 + x^2 + x - 1
+    sage: v.montes_factorization(f)
 
 AUTHORS:
 
 - Julian Rüth (2013-03-16): initial version
+
+REFERENCES:
+
+The theory used here was originally developed in [Mac1936]_ and [Mac1936']_. An
+overview can also be found in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************

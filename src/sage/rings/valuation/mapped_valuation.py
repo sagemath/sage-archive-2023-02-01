@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Valuations which are implemented through a map to another valuation.
+Valuations which are implemented through a map to another valuation
 
 EXAMPLES:
 
@@ -55,6 +55,14 @@ class MappedValuation_base(DiscretePseudoValuation):
     """
     def __init__(self, parent, base_valuation):
         r"""
+        .. TODO::
+
+            It is annoying that we have to wrap any possible method on
+            ``base_valuation`` in this class. It would be nice if this would
+            somehow be done automagically, e.g., by adding annotations to the
+            methods in ``base_valuation`` that explain which parameters and
+            return values need to be mapped and how.
+
         TESTS::
 
             sage: K.<x> = FunctionField(QQ)

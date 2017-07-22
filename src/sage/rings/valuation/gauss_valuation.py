@@ -10,7 +10,10 @@ AUTHORS:
 
 - Julian Rüth (2013-04-15): initial version
 
-EXAMPLES::
+EXAMPLES:
+
+A Gauss valuation maps a polynomial to the minimal valuation of any of its
+coefficients::
 
     sage: R.<x> = QQ[]
     sage: v0 = QQ.valuation(2)

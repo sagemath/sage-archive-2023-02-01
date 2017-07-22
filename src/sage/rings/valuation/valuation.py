@@ -8,6 +8,40 @@ AUTHORS:
 
 - Julian Rüth (2013-03-16): initial version
 
+EXAMPLES:
+
+Discrete valuations can be created on a variety of rings::
+
+    sage: ZZ.valuation(2)
+    2-adic valuation
+    sage: GaussianIntegers().valuation(3)
+    3-adic valuation
+    sage: QQ.valuation(5)
+    5-adic valuation
+    sage: Zp(7).valuation()
+    7-adic valuation
+
+::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: K.valuation(x)
+    x-adic valuation
+    sage: K.valuation(x^2 + 1)
+    (x^2 + 1)-adic valuation
+    sage: K.valuation(1/x)
+
+::
+
+    sage: R.<x> = QQ[]
+    sage: v = QQ.valuation(2)
+    sage: w = GaussValuation(R, v)
+    sage: w.augmentation(x, 3)
+
+We can also define discrete pseudo-valuations, i.e., discrete valuations that
+send more than just zero to infinity::
+
+    sage: w.augmentation(x, infinity)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2013-2017 Julian Rüth <julian.rueth@fsfe.org>
@@ -962,9 +996,8 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         REFERENCES:
 
-        .. [GMN2008] Jordi Guardia, Jesus Montes, Enric Nart (2008). Newton
-        polygons of higher order in algebraic number theory. arXiv:0807.2620
-        [math.NT]
+        The underlying algorithm is described in [Mac1936']_and thoroughly
+        analyzed in [GMN2008]_.
 
         """
         if required_precision is None:

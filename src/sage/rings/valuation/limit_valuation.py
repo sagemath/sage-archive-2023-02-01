@@ -20,6 +20,10 @@ limit of augmented valuations.
 The classes in this module provide the means of writing down such limits and
 resulting valuations on quotients.
 
+AUTHORS:
+
+- Julian Rüth (2016-10-19): initial version
+
 EXAMPLES:
 
 In this function field, the unique place of ``K`` which corresponds to the zero
@@ -62,9 +66,10 @@ The same phenomenon can be observed for valuations on number fields::
     sage: w._base_valuation._base_valuation._approximation
     [ Gauss valuation induced by Valuation at the infinite place, v(y) = 1/2, v(y^2 - 1/x) = +Infinity ]
 
-AUTHORS:
+REFERENCES:
 
-- Julian Rüth (2016-10-19): initial version
+Limits of inductive valuations are discussed in [Mac1936]_ and [Mac1936']_. An
+overview can also be found in Section 4.6 of [Rüt2014]_.
 
 """
 #*****************************************************************************

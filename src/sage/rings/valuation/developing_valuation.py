@@ -5,6 +5,10 @@ Valuations on polynomial rings based on `\phi`-adic expansions
 This file implements a base class for discrete valuations on polynomial rings,
 defined by a `\phi`-adic expansion.
 
+AUTHORS:
+
+- Julian Rüth (2013-04-15): initial version
+
 EXAMPLES:
 
 The :class:`GaussValuation` is a simple example of a valuation that relies on
@@ -32,10 +36,6 @@ Another example of a :class:`DevelopingValuation` is an
 Here, the expansion lists the remainders of repeated division by `x^2 + 2`::
 
     sage: list(w.coefficients(f))
-
-AUTHORS:
-
-- Julian Rüth (2013-04-15): initial version
 
 """
 #*****************************************************************************

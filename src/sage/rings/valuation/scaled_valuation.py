@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Valuations which are scaled versions of another valuation.
+Valuations which are scaled versions of another valuation
 
 EXAMPLES:
 
@@ -101,6 +101,14 @@ class ScaledValuation_generic(DiscreteValuation):
     """
     def __init__(self, parent, base_valuation, s):
         r"""
+        .. TODO::
+
+            It is annoying that we have to wrap any possible method on
+            ``base_valuation`` in this class. It would be nice if this would
+            somehow be done automagically, e.g., by adding annotations to the
+            methods in ``base_valuation`` that explain which parameters and
+            return values need to be scaled.
+
         TESTS::
 
             sage: v = 3*ZZ.valuation(2)

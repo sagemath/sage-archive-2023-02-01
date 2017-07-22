@@ -147,6 +147,12 @@ class PadicValuationFactory(UniqueFactory):
         sage: valuations.pAdicValuation(L, 2)
         2-adic valuation
 
+    Valuations can also be defined on orders in number fields::
+
+        sage: O = K.order(2*a)
+        sage: valuations.pAdicValuation(O, 2)
+        2-adic valuation
+
     """
     def create_key_and_extra_args(self, R, prime=None, approximants=None):
         r"""

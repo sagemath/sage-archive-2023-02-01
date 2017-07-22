@@ -924,6 +924,12 @@ class pAdicValuation_padic(pAdicValuation_base):
             sage: v.element_with_valuation(3)
             3^3 + O(3^23)
 
+            sage: K = Qp(3)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 + 3*y + 3)
+            sage: L.valuation().element_with_valuation(3/2)
+            y^3 + O(y^43)
+
         """
         from sage.rings.all import QQ, ZZ
         v = QQ(v)

@@ -1260,9 +1260,9 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             raise ValueError("not an element in the Cartan subalgebra")
         R = self.base_ring()
         # This is a little ugly way to make sure we have the correct
-        #   coroots. However, it does work as scalar is not smart enough
-        #   in the ambient space to correctly convert things to do the
-        #   scalar product.
+        #   coroots. However, it does work as :meth:`scalar` is not smart
+        #   enough in the ambient space to correctly convert things to do
+        #   the scalar product.
         alc = wt.parent().simple_coroots()
         return R(wt.scalar( alc[aci[m]] ))
 

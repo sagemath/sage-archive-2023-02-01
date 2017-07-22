@@ -4,6 +4,11 @@ The Poincare-Birkhoff-Witt Basis For A Universal Enveloping Algebra
 AUTHORS:
 
 - Travis Scrimshaw (2013-11-03): Initial version
+
+.. TODO::
+
+    Implement a :class:`sage.categories.pushout.ConstructionFunctor`
+    and return as the ``construction()``.
 """
 
 #*****************************************************************************
@@ -141,7 +146,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
     def _monoid_key(self, x):
         """
-        Comparison function for the underlying monoid.
+        Return a key for comparison in the underlying monoid of ``self``.
 
         EXAMPLES::
 

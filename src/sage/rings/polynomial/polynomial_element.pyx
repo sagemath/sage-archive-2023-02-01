@@ -10031,7 +10031,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f.quo_rem(g)
             Traceback (most recent call last):
             ...
-            ValueError: fraction must have unit denominator
+            ArithmeticError: Division non exact (consider coercing to polynomials over the fraction field)
             sage: g = 0
             sage: f.quo_rem(g)
             Traceback (most recent call last):

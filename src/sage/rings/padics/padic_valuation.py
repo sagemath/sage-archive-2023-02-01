@@ -651,6 +651,14 @@ class pAdicValuation_base(DiscreteValuation):
             sage: v.is_totally_ramified(G, include_steps=True)
             (True, [Gauss valuation induced by 5-adic valuation, [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x) = 1/2 ]])
 
+        We consider an extension as totally ramified if its ramification index
+        matches the degree. Hence, a trivial extension is totally ramified::
+
+            sage: R.<x> = QQ[]
+            sage: v = QQ.valuation(2)
+            sage: v.is_totally_ramified(x)
+            True
+
         """
         R = G.parent()
 

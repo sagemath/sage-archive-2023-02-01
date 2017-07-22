@@ -1201,16 +1201,15 @@ cdef class FpT_Polyring_section(Section):
 
     .. WARNING::
 
-        Comparison of FpT_Polyring_section objects is not currently 
+        Comparison of ``FpT_Polyring_section`` objects is not currently
         implemented. See :trac: `23469`. ::
-    
-   
-        sage: fprime = loads(dumps(f))
-        sage: fprime == f
-        False
 
-        sage: fprime(1+t) == f(1+t)
-        True
+            sage: fprime = loads(dumps(f))
+            sage: fprime == f
+            False
+
+            sage: fprime(1+t) == f(1+t)
+            True
 
     TESTS::
 
@@ -1502,16 +1501,15 @@ cdef class FpT_Fp_section(Section):
 
     .. WARNING::
 
-        Comparison of FpT_Fp_section objects is not currently 
+        Comparison of ``FpT_Fp_section`` objects is not currently
         implemented. See :trac: `23469`. ::
-    
-   
-        sage: fprime = loads(dumps(f))
-        sage: fprime == f
-        False
 
-        sage: fprime(3) == f(3)
-        True
+            sage: fprime = loads(dumps(f))
+            sage: fprime == f
+            False
+
+            sage: fprime(3) == f(3)
+            True
 
     TESTS::
 

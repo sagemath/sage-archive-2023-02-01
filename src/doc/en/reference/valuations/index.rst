@@ -1,4 +1,4 @@
-Discrete Valuations and Discrene Pseudo-Valuations
+Discrete Valuations and Discrete Pseudo-Valuations
 ==================================================
 
 High-Level Interface

@@ -457,8 +457,7 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
             if not all(split_d == domain._degree(f) for f in split_poly):
                 msg = 'polys (={}) must be multi-homogeneous of the same degrees (by component)'
                 raise TypeError(msg.format(polys))
-        return DynamicalSystem_product_projective_ring(polys,domain)
-            
+        return DynamicalSystem_product_projective_ring(polys, domain)
 
     # Now polys define an endomorphism of a scheme in P^n
     if not all(poly.is_homogeneous() for poly in polys):

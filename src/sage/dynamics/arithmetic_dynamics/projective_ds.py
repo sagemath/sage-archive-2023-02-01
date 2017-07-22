@@ -1561,14 +1561,14 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2+y^2, x*y]);
+            sage: f = DynamicalSystem_projective([x^2+y^2, x*y])
             sage: f.height_difference_bound()
             1.38629436111989
 
         This function does not automatically normalize. ::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: f = DynamicalSystem_projective([4*x^2+100*y^2, 210*x*y, 10000*z^2]);
+            sage: f = DynamicalSystem_projective([4*x^2+100*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
             11.0020998412042
             sage: f.normalize_coordinates()
@@ -1917,7 +1917,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         - a digraph representing the orbit the rational preperiodic points
           ``preper`` in projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
@@ -2236,7 +2236,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         OUTPUT: projective subscheme.
 
-        Examples::
+        EXAMPLES::
 
             sage: set_verbose(None)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
@@ -2306,7 +2306,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         OUTPUT: a list of projective space points defined over ``R``.
 
-        Examples::
+        EXAMPLES::
 
             sage: set_verbose(None)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
@@ -2354,7 +2354,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         OUTPUT: Boolean
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
@@ -2423,7 +2423,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         OUTPUT: a digraph.
 
-        Examples::
+        EXAMPLES::
 
             sage: R.<z> = QQ[]
             sage: K.<v> = NumberField(z^6 + 2*z^5 + 2*z^4 + 2*z^3 + z^2 + 1)
@@ -2494,7 +2494,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         OUTPUT: Real number
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^3+7*y^3, 11*y^3])
@@ -3494,7 +3494,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
         OUTPUT: a list of rational points in projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2-3/4*y^2, y^2])
@@ -3653,7 +3653,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
         - a list of rational points in the domain of this map.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([16*x^2 - 29*y^2, 16*y^2])
@@ -3756,7 +3756,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
         - a list of rational points in projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: f = DynamicalSystem_projective([x^2 -y^2, 3*x*y])
@@ -3908,7 +3908,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
         - a digraph representing the orbits of the rational preperiodic points in projective space.
 
-        Examples::
+        EXAMPLES::
 
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: f = DynamicalSystem_projective([7*x^2 - 28*y^2, 24*x*y])
@@ -3960,7 +3960,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
         - a list of points connected to ``P`` up to the specified distance.
 
-        Examples::
+        EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<w> = NumberField(x^3+1/4*x^2-41/16*x+23/64)
@@ -4752,7 +4752,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,\
 
         - a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
 
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(GF(23),1)
             sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
@@ -4865,3 +4865,4 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,\
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
+

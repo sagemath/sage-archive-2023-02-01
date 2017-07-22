@@ -603,21 +603,76 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         return DynamicalSystem_affine(list(self), domain=self.domain())
 
     def dynatomic_polynomial(self, period):
+        """
+        Return the dynatomic polynomial.
+
+        EXAMPLES::
+
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: H = End(A)
+            sage: f = H([x^2-10/9])
+            sage: f.dynatomic_polynomial([2, 1])
+            doctest:warning
+            ...
+            531441*x^4 - 649539*x^2 - 524880
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.dynatomic_polynomial instead")
         return self.as_dynamical_system().dynatomic_polynomial(period)
 
     def nth_iterate_map(self, n):
+        """
+        Return the symbolic nth iterate.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(ZZ, 2)
+            sage: H = End(A)
+            sage: f = H([(x^2-2)/(2*y), y^2-3*x])
+            sage: f.nth_iterate_map(2)
+            doctest:warning
+            ...
+            Dynamical System of Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x, y) to
+                    ((x^4 - 4*x^2 - 8*y^2 + 4)/(8*y^4 - 24*x*y^2), (2*y^5 - 12*x*y^3
+            + 18*x^2*y - 3*x^2 + 6)/(2*y))
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.nth_iterate_map instead")
         return self.as_dynamical_system().nth_iterate_map(n)
 
     def nth_iterate(self, P, n):
+        """
+        Return the nth iterate of the point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: H = End(A)
+            sage: f = H([(x-2*y^2)/x, 3*x*y])
+            sage: f.nth_iterate(A(9, 3), 3)
+            doctest:warning
+            ...
+            (-104975/13123, -9566667)
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.nth_iterate instead")
         return self.as_dynamical_system().nth_iterate(P, n)
 
     def orbit(self, P, n):
+        """
+        Return the orbit of the point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: H = End(A)
+            sage: f = H([(x-2*y^2)/x, 3*x*y])
+            sage: f.orbit(A(9, 3), 3)
+            doctest:warning
+            ...
+            [(9, 3), (-1, 81), (13123, -243), (-104975/13123, -9566667)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.orbit instead")
         return self.as_dynamical_system().orbit(P, n)
@@ -715,6 +770,20 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         return self.__jacobian
 
     def multiplier(self, P, n, check=True):
+        """
+        Return the multiplier of the point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: H = End(A)
+            sage: f = H([x^2, y^2])
+            sage: f.multiplier(A([1, 1]), 1)
+            doctest:warning
+            ...
+            [2 0]
+            [0 2]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.multiplier instead")
         return self.as_dynamical_system().multiplier(P, n, check)
@@ -780,11 +849,37 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
 class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynomial_affine_space_field):
 
     def orbit_structure(self, P):
+        """
+        Return the tail and period of the point.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(13), 2)
+            sage: H = End(A)
+            sage: f = H([x^2 - 1, y^2])
+            sage: f.orbit_structure(A(2, 3))
+            doctest:warning
+            ...
+            [1, 6]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.orbit_structures instead")
         return self.as_dynamical_system().orbit_structure(P)
 
     def cyclegraph(self):
+        """
+        Return the directed graph of the map.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(5), 2)
+            sage: H = End(A)
+            sage: f = H([x^2-y, x*y+1])
+            sage: f.cyclegraph()
+            doctest:warning
+            ...
+            Looped digraph on 25 vertices
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.cyclegraph instead")
         return self.as_dynamical_system().cyclegraph()

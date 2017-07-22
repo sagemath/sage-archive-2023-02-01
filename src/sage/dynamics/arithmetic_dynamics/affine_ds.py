@@ -597,8 +597,7 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine_ring,\
             sage: f(P).weil_restriction() == F(Q)
             True
         """
-        f = self.as_scheme_morphism()
-        F = f.weil_restriction()
+        F = self.as_scheme_morphism().weil_restriction()
         return(F.as_dynamical_system())
 
 class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,\

@@ -687,16 +687,60 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             self.scale_by(1 / GCD)
 
     def dynatomic_polynomial(self, period):
+        """
+        Return the dynatomic polynomial.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, y^2])
+            sage: f.dynatomic_polynomial(2)
+            doctest:warning
+            ...
+            x^2 + x*y + 2*y^2
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.dynatomic_polynomial instead")
         return self.as_dynamical_system().dynatomic_polynomial(period)
 
     def nth_iterate_map(self, n, normalize=False):
+        """
+        Return the nth iterate of the map.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, y^2])
+            sage: f.nth_iterate_map(2)
+            doctest:warning
+            ...
+            Dynamical System of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^4 + 2*x^2*y^2 + 2*y^4 : y^4)
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.nth_iterate_map instead")
         return self.as_dynamical_system().nth_iterate_map(n, normalize)
 
     def nth_iterate(self, P, n, **kwds):
+        """
+        Return the nth iterate of the point.
+
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, 2*y^2])
+            sage: Q = P(1,1)
+            sage: f.nth_iterate(Q,4)
+            doctest:warning
+            ...
+            (32768 : 32768)
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.nth_iterate instead")
         return self.as_dynamical_system().nth_iterate(P, n, **kwds)
@@ -749,14 +793,40 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         return(self._polys[0].degree())
 
     def degree_sequence(self, iterates=2):
+        """
+        Return the sequence of degrees of iterates.
+
+        EXAMPLES::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P2)
+            sage: f = H([Z^2, X*Y, Y^2])
+            sage: f.degree_sequence(15)
+            doctest:warning
+            ...
+            [2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.degree_sequence instead")
-        return self.as_dynamical_system().degree_sequence(P, iterates)
+        return self.as_dynamical_system().degree_sequence(iterates)
 
     def dynamical_degree(self, N=3, prec=53):
+        """
+        Return the dynamical degree.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + (x*y), y^2])
+            sage: f.dynamical_degree()
+            doctest:warning
+            ...
+            2.00000000000000
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.dynamical_degree instead")
-        return self.as_dynamical_system().dynamical_degree(P, N, prec)
+        return self.as_dynamical_system().dynamical_degree(N, prec)
 
     def dehomogenize(self, n):
         r"""
@@ -875,6 +945,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 return self.__dehomogenization[n]
 
     def orbit(self, P, N, **kwds):
+        """
+        Return the orbit of the point.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, y^2-z^2, 2*z^2])
+            sage: f.orbit(P(1,2,1), 3)
+            doctest:warning
+            ...
+            [(1 : 2 : 1), (5 : 3 : 2), (34 : 5 : 8), (1181 : -39 : 128)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.orbit instead")
         return self.as_dynamical_system().orbit(P, N, **kwds)
@@ -943,26 +1026,117 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             return True
 
     def resultant(self, normalize=False):
+        r"""
+        Computes the resultant of the defining polynomials of this dynamical system.
+
+        If ``normalize`` is ``True``, then first normalize the coordinate
+        functions with :meth:`normalize_coordinates`. Map must be an
+        endomorphism
+
+        INPUT:
+
+        - ``normalize`` -- Boolean (optional - default: ``False``).
+
+        OUTPUT: an element of the base ring of this map.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, 6*y^2])
+            sage: f.resultant()
+            doctest:warning
+            ...
+            36
+
+        ::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P1.<u,v> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P2,P1)
+            sage: f = H([x,y])
+            sage: f.resultant()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be an endomorphism
+        """
         from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.resultant instead")
-        return self.as_dynamical_system().resultant(normalize)
+        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.primes_of_bad_reduction instead")
+        if self.is_endomorphism():
+            return self.as_dynamical_system().resultant(normalize)
+        raise ValueError("must be an endomorphism")
 
     def primes_of_bad_reduction(self, check=True):
+        """
+        Return the primes of bad reduction.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([1/3*x^2+1/2*y^2, y^2])
+            sage: f.primes_of_bad_reduction()
+            doctest:warning
+            ...
+            [2, 3]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.primes_of_bad_reduction instead")
         return self.as_dynamical_system().primes_of_bad_reduction(check)
 
     def conjugate(self, M):
+        """
+        Return the conjugate of this map.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, y^2])
+            sage: f.conjugate(matrix([[1,2], [0,1]]))
+            doctest:warning
+            ...
+            Dynamical System of Projective Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^2 + 4*x*y + 3*y^2 : y^2)
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.conjugate instead")
         return self.as_dynamical_system().conjugate(M)
 
     def green_function(self, P, v, **kwds):
+        """
+        Return the value of the Green's function at the point.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, x*y]);
+            sage: Q = P(5, 1)
+            sage: f.green_function(Q, 0, N=30)
+            doctest:warning
+            ...
+            1.6460930159932946233759277576
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
         return self.as_dynamical_system().green_function(P, v, **kwds)
 
     def canonical_height(self, P, **kwds):
+        """
+        Return the canonical height of the point.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, 2*x*y]);
+            sage: f.canonical_height(P.point([5,4]), error_bound=0.001)
+            doctest:warning
+            ...
+            2.1970553519503404898926835324
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.canonical_height instead")
         return self.as_dynamical_system().canonical_height(P, **kwds)
@@ -1128,44 +1302,159 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
 
     def height_difference_bound(self, prec=None):
+        """
+        Return the bound on the difference of the height and canonical height.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, x*y])
+            sage: f.height_difference_bound()
+            doctest:warning
+            ...
+            1.38629436111989
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.height_difference_bound instead")
         return self.as_dynamical_system().height_difference_bound(prec)
 
     def multiplier(self, P, n, check=True):
+        """
+        Return the multiplier at the point.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2,y^2, 4*z^2]);
+            sage: Q = P.point([4,4,1], False);
+            sage: f.multiplier(Q,1)
+            doctest:warning
+            ...
+            [2 0]
+            [0 2]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier instead")
         return self.as_dynamical_system().multiplier(P, n, check)
 
     def _multipliermod(self, P, n, p, k):
+        """
+        Compute the multiplier mod p.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2-29/16*y^2, y^2])
+            sage: f._multipliermod(P(5,4), 3, 11, 1)
+            doctest:warning
+            ...
+            [3]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds._multipliermod instead")
         return self.as_dynamical_system()._multipliermod(P, n, p, k)
 
     def possible_periods(self, **kwds):
+        """
+        Return the possible periods of a rational periodic point.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2-29/16*y^2, y^2])
+            sage: f.possible_periods(ncpus=1)
+            doctest:warning
+            ...
+            [1, 3]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.possible_periods instead")
-        return self.as_dynamical_system().possible_periods(*kwds)
+        return self.as_dynamical_system().possible_periods(**kwds)
 
     def _preperiodic_points_to_cyclegraph(self, preper):
+        """
+        Return the directed graph of the given preperidoic points.
+
+        Examples::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2-2*y^2, y^2])
+            sage: preper = [P(-2, 1), P(1, 0), P(0, 1), P(1, 1), P(2, 1), P(-1, 1)]
+            sage: f._preperiodic_points_to_cyclegraph(preper)
+            doctest:warning
+            ...
+            Looped digraph on 6 vertices
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds._preperiodic_points_to_cyclegraph instead")
         return self.as_dynamical_system()._preperiodic_points_to_cyclegraph(preper)
 
     def is_PGL_minimal(self, prime_list=None):
+        """
+        Return whether the representation is PGL minimal.
+
+        EXAMPLES::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([X^2+3*Y^2, X*Y])
+            sage: f.is_PGL_minimal()
+            doctest:warning
+            ...
+            True
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_PGL_minimal instead")
         return self.as_dynamical_system().is_PGL_minimal(prime_list)
 
     def minimal_model(self, return_transformation=False, prime_list=None):
+        """
+        Return the minimal model.
+
+        EXAMPLES::
+
+            sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
+            sage: H = End(PS)
+            sage: f = H([X^2+3*Y^2, X*Y])
+            sage: f.minimal_model(return_transformation=True)
+            doctest:warning
+            ...
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (X : Y) to
+                    (X^2 + 3*Y^2 : X*Y)
+            ,
+            [1 0]
+            [0 1]
+            )
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.minimal_model instead")
         return self.as_dynamical_system().minimal_model(return_transformation, prime_list)
 
     def automorphism_group(self, **kwds):
+        """
+        Return the automorphism group.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([x^2-y^2, x*y])
+            sage: f.automorphism_group(return_functions=True)
+            doctest:warning
+            ...
+            [x, -x]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
-        return self.as_dynamical_system().automorphism_group(*kwds)
+        return self.as_dynamical_system().automorphism_group(**kwds)
 
     def wronskian_ideal(self):
         r"""
@@ -1207,46 +1496,187 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         return(R.ideal(J.minors(N)))
 
     def critical_subscheme(self):
+        """
+        Return the critical subscheme.
+
+        Examples::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^3-2*x*y^2 + 2*y^3, y^3])
+            sage: f.critical_subscheme()
+            doctest:warning
+            ...
+            Closed subscheme of Projective Space of dimension 1 over Rational Field
+            defined by:
+            9*x^2*y^2 - 6*y^4
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_points instead")
-        return self.as_dynamical_system().critical_points()
-
-    def critical_points(self, R=None):
-        from sage.misc.superseded import deprecation
-        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_subscheme instead")
         return self.as_dynamical_system().critical_subscheme()
 
+    def critical_points(self, R=None):
+        """
+        Return the critical points.
+
+        Examples::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^3-2*x*y^2 + 2*y^3, y^3])
+            sage: f.critical_points()
+            doctest:warning
+            ...
+            [(1 : 0)]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_subscheme instead")
+        return self.as_dynamical_system().critical_points()
+
     def is_postcritically_finite(self, err=0.01, embedding=None):
+        """
+        Return whether the map is postcritically finite.
+
+        Examples::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - y^2, y^2])
+            sage: f.is_postcritically_finite()
+            doctest:warning
+            ...
+            True
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_postcritically_finite instead")
         return self.as_dynamical_system().is_postcritically_finite(err, embedding)
 
     def critical_point_portrait(self, check=True, embedding=None):
+        """
+        Return the directed graph of critical point portrait.
+
+        EXAMPLES::
+
+            sage: R.<z> = QQ[]
+            sage: K.<v> = NumberField(z^6 + 2*z^5 + 2*z^4 + 2*z^3 + z^2 + 1)
+            sage: PS.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(PS)
+            sage: f = H([x^2+v*y^2, y^2])
+            sage: f.critical_point_portrait(check=False, embedding=K.embeddings(QQbar)[0]) # long time
+            doctest:warning
+            ...
+            Looped digraph on 6 vertices
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_point_portrait instead")
         return self.as_dynamical_system().critical_point_portrait(check, embedding)
 
     def critical_height(self, **kwds):
+        """
+        Return the critical height.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f =H([x^3+7*y^3, 11*y^3])
+            sage: f.critical_height()
+            doctest:warning
+            ...
+            1.1989273321156851418802151128
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.critical_height instead")
         return self.as_dynamical_system().critical_height(*kwds)
 
     def periodic_points(self, n, minimal=True, R=None, algorithm='variety', return_scheme=False):
+        """
+        Return the periodic points.
+
+        EXAMPLES::
+
+            sage: set_verbose(None)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: H = End(P)
+            sage: f = H([x^2-x*y+y^2, x^2-y^2+x*y])
+            sage: f.periodic_points(1)
+            doctest:warning
+            ...
+            [(-0.500000000000000? - 0.866025403784439?*I : 1), (-0.500000000000000? + 0.866025403784439?*I : 1),
+            (1 : 1)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.periodic_points instead")
         return self.as_dynamical_system().periodic_points(n, minimal, R, algorithm, return_scheme)
 
     def multiplier_spectra(self, n, formal=True, embedding=None):
+        """
+        Return the multiplier spectra.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([4608*x^10 - 2910096*x^9*y + 325988068*x^8*y^2 + 31825198932*x^7*y^3 - 4139806626613*x^6*y^4\
+            - 44439736715486*x^5*y^5 + 2317935971590902*x^4*y^6 - 15344764859590852*x^3*y^7 + 2561851642765275*x^2*y^8\
+            + 113578270285012470*x*y^9 - 150049940203963800*y^10, 4608*y^10])
+            sage: f.multiplier_spectra(1)
+            doctest:warning
+            ...
+            [0, -7198147681176255644585/256, 848446157556848459363/19683, -3323781962860268721722583135/35184372088832,
+            529278480109921/256, -4290991994944936653/2097152, 1061953534167447403/19683, -3086380435599991/9,
+            82911372672808161930567/8192, -119820502365680843999, 3553497751559301575157261317/8192]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier_spectra instead")
         return self.as_dynamical_system().multiplier_spectra(n, formal, embedding)
 
     def sigma_invariants(self, n, formal=True, embedding=None):
+        """
+        Return the sigma invariants.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3 - 2630045017*x*y^4\
+            + 28193217129*y^5, 512*y^5])
+            sage: f.sigma_invariants(1)
+            doctest:warning
+            ...
+            [19575526074450617/1048576, -9078122048145044298567432325/2147483648,
+            -2622661114909099878224381377917540931367/1099511627776,
+            -2622661107937102104196133701280271632423/549755813888,
+            338523204830161116503153209450763500631714178825448006778305/72057594037927936, 0]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.sigma_invariants instead")
         return self.as_dynamical_system().sigma_invariants(n, formal, embedding)
 
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
+        """
+        Return the reduced form of the map.
+
+        EXAMPLES::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(PS)
+            sage: f = H([x^3, 10794303*x^3 + 146526*x^2*y + 663*x*y^2 + y^3])
+            sage: f.reduced_form()
+            doctest:warning
+            ...
+            (
+            Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 : 3*x^2*y + y^3)
+            ,
+            <BLANKLINE>
+            [ -1   0]
+            [221  -1]
+            )
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.reduced_form instead")
         return self.as_dynamical_system().reduced_form(prec, return_conjugation, error_limit)
@@ -1255,14 +1685,40 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 
     def lift_to_rational_periodic(self, points_modp, B=None):
+        """
+        Return the rational lift of the modp periodic points.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - y^2, y^2])
+            sage: f.lift_to_rational_periodic([[P(0,1).change_ring(GF(7)), 4]])
+            doctest:warning
+            ...
+            [[(0 : 1), 2]]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.lift_to_rational_periodic instead")
-        return self.as_dynamical_system().lift_to_rational_periodic(poits_modp, B)
+        return self.as_dynamical_system().lift_to_rational_periodic(points_modp, B)
 
     def rational_periodic_points(self, **kwds):
+        """
+        Return the list of all rational periodic points.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2-3/4*y^2, y^2])
+            sage: sorted(f.rational_periodic_points(prime_bound=20, lifting_prime=7)) # long time
+            doctest_warning
+            ...
+            [(-1/2 : 1), (1 : 0), (3/2 : 1)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_periodic_points instead")
-        return self.as_dynamical_system().rational_periodic_points(*kwds)
+        return self.as_dynamical_system().rational_periodic_points(**kwds)
 
     def rational_preimages(self, Q, k=1):
         r"""
@@ -1426,21 +1882,89 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         return L
 
     def all_rational_preimages(self, points):
+        """
+        Return the list of all rational preimages.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([16*x^2 - 29*y^2, 16*y^2])
+            sage: sorted(f.all_rational_preimages([P(-1,4)]))
+            doctest:warning
+            ...
+            [(-7/4 : 1), (-5/4 : 1), (-3/4 : 1), (-1/4 : 1), (1/4 : 1), (3/4 : 1),
+            (5/4 : 1), (7/4 : 1)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_rational_preimages instead")
         return self.as_dynamical_system().all_rational_preimages(points)
 
     def rational_preperiodic_points(self, **kwds):
+        """
+        Return the list of all rational preperiodic points.
+
+        EXAMPLES::
+
+            sage: PS.<x,y> = ProjectiveSpace(1,QQ)
+            sage: H = End(PS)
+            sage: f = H([x^2 -y^2, 3*x*y])
+            sage: sorted(f.rational_preperiodic_points())
+            doctest:warning
+            ...
+            [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1/2 : 1), (1 : 0), (1 : 1),
+            (2 : 1)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_preperiodic_points instead")
-        return self.as_dynamical_system().rational_preperiodic_points(*kwds)
+        return self.as_dynamical_system().rational_preperiodic_points(**kwds)
 
     def rational_preperiodic_graph(self, **kwds):
+        """
+        Return the digraph of rational preperiodic points.
+
+        EXAMPLES::
+
+            sage: PS.<x,y> = ProjectiveSpace(1,QQ)
+            sage: H = End(PS)
+            sage: f = H([7*x^2 - 28*y^2, 24*x*y])
+            sage: f.rational_preperiodic_graph()
+            doctest:warning
+            ...
+            Looped digraph on 12 vertices
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.rational_preperiodic_graph instead")
-        return self.as_dynamical_system().rational_preperiodic_graph(*kwds)
+        return self.as_dynamical_system().rational_preperiodic_graph(**kwds)
 
     def connected_rational_component(self, P, n=0):
+        """
+        Return the component of all ratioanl preimage and forward images.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(x^3+1/4*x^2-41/16*x+23/64)
+            sage: PS.<x,y> = ProjectiveSpace(1,K)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 29/16*y^2, y^2])
+            sage: P = PS([w,1])
+            sage: f.connected_rational_component(P)
+            doctest:warning
+            ...
+            [(w : 1),
+             (w^2 - 29/16 : 1),
+             (w^2 + w - 25/16 : 1),
+             (-w^2 - w + 25/16 : 1),
+             (-w : 1),
+             (w + 1/2 : 1),
+             (-w - 1/2 : 1),
+             (-w^2 + 29/16 : 1),
+             (-w^2 + 21/16 : 1),
+             (w^2 - 21/16 : 1),
+             (w^2 + w - 33/16 : 1),
+             (-w^2 - w + 33/16 : 1)]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.connected_rational_component instead")
         return self.as_dynamical_system().connected_rational_component(P, n)
@@ -1509,21 +2033,82 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         return(H(F))
 
     def conjugating_set(self, other):
+        """
+        Return the set of PGL element that conjugate this map to ``other``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(7),1)
+            sage: H = End(P)
+            sage: D6 = H([y^2, x^2])
+            sage: D6.conjugating_set(D6)
+            doctest:warning
+            ...
+            [
+            [1 0]  [0 1]  [0 2]  [4 0]  [2 0]  [0 4]
+            [0 1], [1 0], [1 0], [0 1], [0 1], [1 0]
+            ]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.conjugating_set instead")
         return self.as_dynamical_system().conjugating_set(other)
 
     def is_conjugate(self, other):
+        """
+        Return if this map and ``other`` are conjugate.
+
+        EXAMPLES::
+
+            sage: K.<w> = CyclotomicField(3)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: D8 = H([y^2, x^2])
+            sage: D8.is_conjugate(D8)
+            doctest:warning
+            ...
+            True
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_conjugate instead")
         return self.as_dynamical_system().is_conjugate(other)
 
     def is_polynomial(self):
+        """
+        Return if this map is a polynomial.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = QuadraticField(7)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x**2 + 2*x*y - 5*y**2, 2*x*y])
+            sage: f.is_polynomial()
+            doctest:warning
+            ...
+            False
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.is_polynomial instead")
         return self.as_dynamical_system().is_polynomial()
 
     def normal_form(self, return_conjugation=False):
+        """
+        Return a normla form conjugate to this map.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^2 - 5)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + w*x*y, y^2])
+            sage: g,m,psi = f.normal_form(return_conjugation = True);m
+            doctest:warning
+            ...
+            [     1 -1/2*w]
+            [     0      1]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.normal_form instead")
         return self.as_dynamical_system().normal_form(return_conjugation)
@@ -1727,22 +2312,77 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         return P
 
     def orbit_structure(self, P):
+        """
+        Return the tail and period of the point.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2,y^2, z^2 + y*z])
+            sage: f.orbit_structure(P(2,1,2))
+            doctest:warning
+            ...
+            [0, 6]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.orbit_structure instead")
         return self.as_dynamical_system().orbit_structure(P)
 
     def cyclegraph(self):
+        """
+        Return the digraph of the map.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(13),1)
+            sage: H = End(P)
+            sage: f = H([x^2-y^2, y^2])
+            sage: f.cyclegraph()
+            doctest:warning
+            ...
+            Looped digraph on 14 vertices
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.cyclegraph instead")
         return self.as_dynamical_system().cyclegraph()
 
     def possible_periods(self, return_points=False):
+        """
+        Return the possible periods of a periodic point of this map.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(23),1)
+            sage: H = End(P)
+            sage: f = H([x^2-2*y^2, y^2])
+            sage: f.possible_periods()
+            doctest:warning
+            ...
+            [1, 5, 11, 22, 110]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.possible_periods instead")
         return self.as_dynamical_system().possible_periods(return_points)
 
     def automorphism_group(self, **kwds):
+        """
+        return the automorphism group of this map.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(7^3,'t'),1)
+            sage: H = End(R)
+            sage: f = H([x^2-y^2, x*y])
+            sage: f.automorphism_group()
+            doctest:warning
+            ...
+            [
+            [1 0]  [6 0]
+            [0 1], [0 1]
+            ]
+        """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
-        return self.as_dynamical_system().automorphism_group(*kwds)
+        return self.as_dynamical_system().automorphism_group(**kwds)
     

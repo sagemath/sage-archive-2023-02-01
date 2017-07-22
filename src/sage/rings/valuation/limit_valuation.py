@@ -55,16 +55,16 @@ The same phenomenon can be observed for valuations on number fields::
     valuation without using a limit. This is done to improve performance as many
     computations already can be done correctly with an approximation::
 
-    sage: K.<x> = FunctionField(QQ)
-    sage: R.<y> = K[]
-    sage: L.<y> = K.extension(y^2 - x)
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
 
-    sage: v = K.valuation(1/x)
-    sage: w = v.extension(L); w
-    Valuation at the infinite place
-    sage: w._base_valuation._base_valuation._improve_approximation()
-    sage: w._base_valuation._base_valuation._approximation
-    [ Gauss valuation induced by Valuation at the infinite place, v(y) = 1/2, v(y^2 - 1/x) = +Infinity ]
+        sage: v = K.valuation(1/x)
+        sage: w = v.extension(L); w
+        Valuation at the infinite place
+        sage: w._base_valuation._base_valuation._improve_approximation()
+        sage: w._base_valuation._base_valuation._approximation
+        [ Gauss valuation induced by Valuation at the infinite place, v(y) = 1/2, v(y^2 - 1/x) = +Infinity ]
 
 REFERENCES:
 

@@ -414,7 +414,6 @@ class PadicValuationFactory(UniqueFactory):
             return parent.__make_element_class__(pAdicValuation_int)(parent, prime)
         else:
             v = key[1]
-            _ = key[2] # ignored
             approximants = extra_args['approximants']
             parent = DiscretePseudoValuationSpace(R)
             if is_NumberField(K):

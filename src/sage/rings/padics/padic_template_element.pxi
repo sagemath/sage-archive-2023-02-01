@@ -453,13 +453,16 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None):
         r"""
         Reduce this element modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
         - ``absprec`` -- ``0`` or ``1``.
+
+        - ``field`` -- boolean (default ``None``).  For precision 1, whether to return
+          an element of the residue field or a residue ring.  Currently unused.
 
         OUTPUT:
 
@@ -502,7 +505,6 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: element must have non-negative valuation in order to compute residue.
-            
         """
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
@@ -510,6 +512,8 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             raise ValueError("element must have non-negative valuation in order to compute residue.")
         if absprec > self.precision_absolute():
             raise PrecisionError("insufficient precision to reduce modulo p^%s."%absprec)
+        if field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
         if absprec == 0:
             from sage.rings.all import IntegerModRing
             return IntegerModRing(1).zero()

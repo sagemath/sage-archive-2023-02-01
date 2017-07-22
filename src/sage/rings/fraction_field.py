@@ -979,7 +979,7 @@ class FractionFieldEmbeddingSection(Section):
         if self.codomain().is_exact() and x.denominator().is_one():
            return x.numerator()
         if check and not x.denominator().is_unit():
-            # This should probably a ValueError.
+            # This should probably be a ValueError.
             # However, too much existing code is expecting this to throw a
             # TypeError, so we decided to keep it for the time being.
             raise TypeError("fraction must have unit denominator")

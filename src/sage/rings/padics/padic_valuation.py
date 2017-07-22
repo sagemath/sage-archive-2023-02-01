@@ -83,8 +83,6 @@ class PadicValuationFactory(UniqueFactory):
         ...
         ValueError: prime must be specified for this ring
 
-        sage: TODO complete the sentence below
-
     It can sometimes be beneficial to define a number field extension as a
     quotient of a polynomial ring (since number field extensions always compute
     an absolute polynomial defining the extension which can be very costly)::

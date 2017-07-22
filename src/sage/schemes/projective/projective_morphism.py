@@ -68,6 +68,9 @@ from sage.misc.lazy_attribute import lazy_attribute
 import sys
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
+from sage.categories.fields import Fields
+_Fields = Fields()
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     r"""
@@ -539,8 +542,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
-        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
-        return DynamicalSystem_projective(list(self), domain=self.domain())
+        from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective_ring
+        from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective_field
+        from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective_finite_field
+        R = self.base_ring()
+        if R not in _Fields:
+            return DynamicalSystem_projective_ring(list(self), self.domain())
+        if is_FiniteField(R):
+            return DynamicalSystem_projective_finite_field(list(self), self.domain())
+        return DynamicalSystem_projective_field(list(self), self.domain())
 
     def scale_by(self, t):
         """

@@ -21,6 +21,9 @@ EXAMPLES::
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
+from sage.categories.fields import Fields
+_Fields = Fields()
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 
 class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
@@ -302,8 +305,8 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         """
         if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
-        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
-        return DynamicalSystem_projective(list(self), domain=self.domain())
+        from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective_ring
+        return DynamicalSystem_product_projective_ring(list(self), self.domain())
 
     def nth_iterate(self, P, n, normalize=False):
         """

@@ -44,6 +44,9 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.ext.fast_callable import fast_callable
 import sys
 from sage.symbolic.ring import var
+from sage.categories.fields import Fields
+_Fields = Fields()
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     """
@@ -599,8 +602,15 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         """
         if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
-        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_affine
-        return DynamicalSystem_affine(list(self), domain=self.domain())
+        from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_ring
+        from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_field
+        from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_finite_field
+        R = self.base_ring()
+        if R not in _Fields:
+            return DynamicalSystem_affine_ring(list(self), self.domain())
+        if is_FiniteField(R):
+                return DynamicalSystem_affine_finite_field(list(self), self.domain())
+        return DynamicalSystem_affine_field(list(self), self.domain())
 
     def dynatomic_polynomial(self, period):
         """

@@ -2134,7 +2134,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k = NumberField(x^2 - x - 1, 'b')
             sage: l = NumberField(x^2 - 7, 'a')
             sage: k.is_isomorphic(l, True)
-            (False, 0)
+            (False, [])
 
             sage: k = NumberField(x^2 - x - 1, 'b')
             sage: ky.<y> = k[];

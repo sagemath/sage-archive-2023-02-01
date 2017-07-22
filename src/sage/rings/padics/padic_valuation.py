@@ -307,7 +307,7 @@ class PadicValuationFactory(UniqueFactory):
         approximants = [approximant.extension(v.domain()) for approximant in approximants]
         approximant = vK.mac_lane_approximant(G, v, approximants=tuple(approximants))
 
-        return (R, approximant, L.construction()), {'approximants': approximants}
+        return (R, approximant), {'approximants': approximants}
 
     def create_key_and_extra_args_for_number_field_from_ideal(self, R, I, prime):
         r"""
@@ -344,15 +344,7 @@ class PadicValuationFactory(UniqueFactory):
         if len(candidates_for_I) > 1:
             raise ValueError("%s does not single out a unique extension of %s to %s"%(prime, vK, L))
         else:
-            # equality of number fields has it quirks since it says that two
-            # fields are == even if they are distinguishable (because they come
-            # from different constructions.)
-            # Including structure() into the key seems to be a way to distinguish such cases properly.
-            # This used to be an issue but seems to be fixed, namely, the
-            # absolute_field of a number field was deemed equivalent to the
-            # directly created absolute field, even though the absolute_field
-            # carried the information where it came from
-            return (R, candidates_for_I[0], L.construction()), {'approximants': candidates}
+            return (R, candidates_for_I[0]), {'approximants': candidates}
 
     def _normalize_number_field_data(self, R):
         r"""

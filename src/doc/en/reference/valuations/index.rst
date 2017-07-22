@@ -181,22 +181,22 @@ The theory was originally described in [Mac1936]_ and [Mac1936']_. A summary and
 .. toctree::
    :maxdepth: 2
 
-   sage/rings/valuation/value_group.py
-   sage/rings/valuation/valuation.py
-   sage/rings/valuation/valuation_space.py
+   sage/rings/valuation/value_group
+   sage/rings/valuation/valuation
+   sage/rings/valuation/valuation_space
 
-   sage/rings/valuation/trivial_valuation.py
-   sage/rings/valuation/gauss_valuation.py
+   sage/rings/valuation/trivial_valuation
+   sage/rings/valuation/gauss_valuation
 
-   sage/rings/valuation/developing_valuation.py
-   sage/rings/valuation/inductive_valuation.py
-   sage/rings/valuation/augmented_valuation.py
-   sage/rings/valuation/limit_valuation.py
+   sage/rings/valuation/developing_valuation
+   sage/rings/valuation/inductive_valuation
+   sage/rings/valuation/augmented_valuation
+   sage/rings/valuation/limit_valuation
 
-   sage/rings/valuation/mapped_valuation.py
-   sage/rings/valuation/scaled_valuation.py
+   sage/rings/valuation/mapped_valuation
+   sage/rings/valuation/scaled_valuation
 
-   sage/rings/function_field/function_field_valuation.py
-   sage/rings/padics/padic_valuation.py
+   sage/rings/function_field/function_field_valuation
+   sage/rings/padics/padic_valuation
 
 .. include:: ../footer.txt

@@ -103,9 +103,9 @@ class InductiveValuation(DevelopingValuation):
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
-            sage: h = v.equivalence_reciprocal(f); h # optional: integrated (needs xgcd for polynomials with p-adic coefficients)
+            sage: h = v.equivalence_reciprocal(f); h # (needs xgcd for polynomials with p-adic coefficients)
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
-            sage: v.is_equivalent(f*h, 1) # optional: integrated
+            sage: v.is_equivalent(f*h, 1)
             True
 
         In an extended valuation over an extension field::
@@ -828,7 +828,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     continue
 
                 for i, slope in enumerate(slopes):
-                    slope = slopes[i]
                     verbose("Slope = %s"%slope, level=12)
                     new_mu = old_mu - slope
                     new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity)) for j,val in enumerate(w_valuations)]

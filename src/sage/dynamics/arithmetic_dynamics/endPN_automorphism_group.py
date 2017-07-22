@@ -1,5 +1,5 @@
 r"""
-Automorphism groups of endomorphisms of the projective line
+Automorphism groups of dynamical systems of the projective line
 
 AUTHORS:
 
@@ -8,7 +8,6 @@ AUTHORS:
   Xander Faber, Michelle Manes, and Bianca Viray [FMV]_.
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
-
 """
 
 #*****************************************************************************

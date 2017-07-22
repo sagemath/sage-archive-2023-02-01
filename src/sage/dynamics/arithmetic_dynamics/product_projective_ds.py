@@ -2,6 +2,11 @@ r"""
 Dynamical systems for products of projective spaces
 
 This class builds on the prouct projective space class.
+The main constructor functions are given by ``DynamicalSystem`` and
+``DynamicalSystem_projective``. The constructors function can take either
+polynomials or a morphism from which to construct a dynamical system.
+
+The must be specified.
 
 EXAMPLES::
 
@@ -29,7 +34,8 @@ from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_mor
 
 class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
                                              ProductProjectiveSpaces_morphism_ring):
-    r"""The class of dynamical systems on products of projective spaces.
+    r"""
+    The class of dynamical systems on products of projective spaces.
 
     .. WARNING::
 
@@ -37,15 +43,15 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
         no type or consistency checking is performed. The preferred
         method to construct such dynamical systems is to use
         :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_projective`
-        function
+        function.
 
     INPUT:
 
     - ``polys`` -- a list of ``n_1 + \cdots + n_r`` multi-homogeneous polynomials, all
-      of which should have the same parent
+      of which should have the same parent.
 
-    - ``domain`` -- a projective scheme embedded in 
-    ``P^{n_1-1} \times \cdots \times P^{n_r-1}``
+    - ``domain`` -- a projective scheme embedded in
+      ``P^{n_1-1} \times \cdots \times P^{n_r-1}``.
 
     EXAMPLES::
 
@@ -54,15 +60,37 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
         Dynamical System of Product of projective spaces P^2 x P^1 over Rational Field
               Defn: Defined by sending (x : y : z , w : u) to
                     (x^2 : y^2 : z^2 , w^2 : u^2).
-
     """
 
     def __init__(self, polys, domain):
+        r"""
+        The Python constructor.
+
+        See :class:`DynamicalSystem_generic` for details.
+
+        INPUT:
+
+        - ``polys`` -- a list of homogeneosu polynomials.
+
+        - ``domain`` -- the domain of the map to be constructed.
+
+        OUTPUT:
+
+        - :class:`DynamicalSystem_projective`.
+
+        EXAMPLES::
+
+            sage: T.<x,y,w,u> = ProductProjectiveSpaces([1, 1], QQ)
+            sage: DynamicalSystem_projective([x^2, y^2, w^2, u^2], domain=T)
+            Dynamical System of Product of projective spaces P^1 x P^1 over Rational Field
+              Defn: Defined by sending (x : y , w : u) to
+                    (x^2 : y^2 , w^2 : u^2).
+        """
         DynamicalSystem_generic.__init__(self, polys, domain)
 
-    def __call__(self, P, check=True):
+    def _call_with_args(self, P, check=True):
         r"""
-        Make dynamical systemsof products of projective spaces callable.
+        Make dynamical systems of products of projective spaces callable.
 
         INPUT:
 
@@ -80,8 +108,8 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
             sage: F(T([2, 1, 3, 0, 1]))
             (4/9 : 0 : 1 , 0 : 1)
         """
-        from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring
         if check:
+            from sage.schemes.product_projective.point import ProductProjectiveSpaces_point_ring
             if not isinstance(P, ProductProjectiveSpaces_point_ring):
                 try:
                     P = self.domain()(P)
@@ -267,7 +295,7 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
 
         while D:
             if D&1:
-                PHI = [poly(*F) for poly in PHI]                
+                PHI = [poly(*F) for poly in PHI]
             if D > 1: #avoid extra iterate
                 F = [poly(*F) for poly in F] #'square'
             D >>= 1

@@ -600,7 +600,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: type(f.as_dynamical_system())
             <class 'sage.dynamics.arithmetic_dynamics.affine_ds.DynamicalSystem_affine_finite_field'>
         """
-        if not self.is_endomorphism():
+        if not self.domain() == self.codomain():
             raise TypeError("must be an endomorphism")
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_ring
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_field

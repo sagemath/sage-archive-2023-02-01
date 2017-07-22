@@ -1,7 +1,7 @@
 r"""
-Morphisms on projective varieties (Cython helper)
+Dynamical systems on projective varieties (Cython helper)
 
-This is the helper file providing functionality for projective_morphism.py.
+This is the helper file providing functionality for projective_ds.py.
 
 AUTHORS:
 

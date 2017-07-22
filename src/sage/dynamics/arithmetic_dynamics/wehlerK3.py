@@ -8,7 +8,7 @@ AUTHORS:
 
 .. TODO::
 
-    Riemann Zeta Function
+    Hasse-Weil Zeta Function
 
     Picard Number
 

@@ -263,6 +263,11 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [BM2012] \N. Bruin and A. Molnar, *Minimal models for rational
+            functions in a dynamical setting*,
+            LMS Journal of Computation and Mathematics, Volume 15
+            (2012), pp 400-417.
+
 .. [BN2008] Victor V. Batyrev and Benjamin Nill. Combinatorial aspects
             of mirror symmetry. In *Integer points in polyhedra ---
             geometry, number theory, representation theory, algebra,
@@ -665,14 +670,6 @@ REFERENCES:
 
 **F**
 
-.. [FMV2014] Xander Faber, Michelle Manes, and Bianca Viray. Computing
-             Conjugating Sets and Automorphism Groups of Rational Functions.
-             Journal of Algebra, 423 (2014), 1161-1190.
-
-.. [FH2015]     \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
-            Wehler K3 Surfaces over finite fields. New Zealand Journal
-            of Mathematics 45 (2015), 19–31.
-
 .. [Fe1997] Stefan Felsner, "On the Number of Arrangements of
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
             Computational Geometry 18 (1997),
@@ -692,11 +689,19 @@ REFERENCES:
              und Geometrie", Dissertation, University of
              Bayreuth, 2013.
 
+.. [FH2015]     \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
+            Wehler K3 Surfaces over finite fields. New Zealand Journal
+            of Mathematics 45 (2015), 19–31.
+
 .. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
             automorphic forms, and the canonical embedding of Shimura
             curves". LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
+
+.. [FMV2014] Xander Faber, Michelle Manes, and Bianca Viray. Computing
+             Conjugating Sets and Automorphism Groups of Rational Functions.
+             Journal of Algebra, 423 (2014), 1161-1190.
 
 .. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
              Kirillov-Reshetikhin crystals for nonexceptional types*.
@@ -886,9 +891,6 @@ REFERENCES:
 .. [HP2003] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
             Codes, Cambridge Univ. Press, 2003.
 
-.. [Hutz2007] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
-              than one. PhD Thesis, Brown University 2007
-
 .. [HP2016] \S. Hopkins, D. Perkinson. "Bigraphical
             Arrangements". Transactions of the American Mathematical
             Society 368 (2016), 709-725. :arxiv:`1212.4398`
@@ -918,6 +920,9 @@ REFERENCES:
              (ed.), Geometric Galois Actions II: Dessins d'Enfants,
              Mapping Class Groups and Moduli, volume 243 of LMS
              Lect. Notes, 67-77, Cambridge Univ. Press (1997)
+
+.. [Hutz2007] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
+              than one. PhD Thesis, Brown University 2007
 
 .. [Hutz2009] \B. Hutz. Good reduction of periodic points, Illinois Journal of
               Mathematics 53 (Winter 2009), no. 4, 1109-1126.
@@ -1297,6 +1302,9 @@ REFERENCES:
              *Yangians and Classical Lie Algebras*.
              Mathematical Surveys and Monographs.
              Providence, RI: American Mathematical Society. (2007)
+
+.. [Mol2015] \A. Molnar, Fractional Linear Minimal Models of Rational Functions,
+             M.Sc. Thesis.
 
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure

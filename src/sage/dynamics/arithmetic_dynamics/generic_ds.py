@@ -1,5 +1,5 @@
 r"""
-Dynamical Systems of Schemes
+Generic dynamical systems on schemes
 
 This is the generic class for dynamical systems and contains the exported
 constructor functions. The constructor functions can take either polynomials
@@ -50,13 +50,9 @@ def is_DynamicalSystem(f):
     r"""
     Test whether ``f`` is a dynamical system.
 
-    INPUT:
+    INPUT: ``f`` -- any object.
 
-    - ``f`` -- any object.
-
-    OUTPUT:
-
-    Boolean. Return ``True`` if ``f`` is a dynamical system.
+    OUTPUT: Boolean. Return ``True`` if ``f`` is a dynamical system.
 
     EXAMPLES::
 
@@ -132,9 +128,7 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
         1-dimensional affine space over the base ring of
         ``morphism_or_polys``.
 
-    OUTPUT:
-
-    :class:`DynamicalSystem_affine`.
+    OUTPUT: :class:`DynamicalSystem_affine`.
 
     EXAMPLES::
 
@@ -348,9 +342,7 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
         1-dimensional projective space over the base ring of
         ``morphism_or_polys`` with coordinate names given by ``names``.
 
-    OUTPUT:
-
-    :class:`DynamicalSystem_projectve`.
+    OUTPUT: :class:`DynamicalSystem_projectve`.
 
     EXAMPLES::
 
@@ -656,7 +648,7 @@ def DynamicalSystem(morphism_or_polys, domain=None, names=None):
 
     OUTPUT:
 
-    :class:`DynamicalSystem_projectve` or :class:`DynamicalSystem_affine`.
+    :class:`DynamicalSystem_projective` or :class:`DynamicalSystem_affine`.
 
     EXAMPLES::
 

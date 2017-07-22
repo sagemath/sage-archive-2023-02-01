@@ -1,9 +1,19 @@
 r"""
-Dynamical systems on affine varieties
+Dynamical systems on affine schemes
 
-An endomorphism of an affine subscheme determined by rational functions
-can be iterated to create a dynamical system.
+An endomorphism of an affine scheme or subscheme determined by polynomials
+or rational functions.
 
+The main constructor function is given by ``DynamicalSystem_affine``.
+The constructor function can take polynomials, rational functions, or
+morphisms from which to construct a dynamical system. If the domain is
+not specified, it is constructed. However, if you plan on working with
+points or subvarieties in the domain, it recommended to specify the
+domain.
+
+The initialization checks are always performed by the constructor functions. It is
+possible, but not recommended, to skip these checks by calling the class initialization
+directly.
 
 AUTHORS:
 
@@ -46,7 +56,8 @@ from sage.symbolic.ring import var
 
 class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
                              DynamicalSystem_generic):
-    r"""An endomorphism of affine schemes determined by rational functions.
+    r"""
+    An endomorphism of affine schemes determined by rational functions.
 
     .. WARNING::
 
@@ -54,14 +65,14 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
         no type or consistency checking is performed. The preferred
         method to construct such dynamical systems is to use
         :func:`~sage.dynamics.arithmetic_dynamics.generic_ds.DynamicalSystem_affine`
-        function
+        function.
 
     INPUT:
 
     - ``polys_or_rat_fncts`` -- a list of ``n`` polynomials or rational
-      functions, all of which should have the same parent
+      functions, all of which should have the same parent.
 
-    - ``domain`` -- an affine scheme embedded in ``A^n``
+    - ``domain`` -- an affine scheme embedded in `\mathbb{A}^n`.
 
     EXAMPLES::
 
@@ -71,10 +82,40 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x, y, 1)
 
+    ::
+
+        sage: R.<x,y> = QQ[]
+        sage: DynamicalSystem_affine([x/y, y^2 + 1])
+        Dynamical System of Affine Space of dimension 2 over Rational Field
+          Defn: Defined on coordinates by sending (x, y) to
+                (x/y, y^2 + 1)
     """
     def __init__(self, polys_or_rat_fncts, domain):
-        # Next attribute needed for _fast_eval and _fastpolys
+        r"""
+        The Python constructor.
+
+        See :class:`DynamicalSystem_generic` for details.
+
+        INPUT:
+
+        - ``polys_or_rat_fncts`` -- a list of polynomials or rational functions.
+
+        - ``domain`` -- the domain of the map to be constructed.
+
+        OUTPUT:
+
+        - :class:`DynamicalSystem_affine`.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: DynamicalSystem_affine([3/5*x^2, y^2/(2*x^2)], domain=A)
+            Dynamical System of Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x, y) to
+                    (3/5*x^2, y^2/(2*x^2))
+        """
         L = polys_or_rat_fncts
+        # Next attribute needed for _fast_eval and _fastpolys
         self._is_prime_finite_field = is_PrimeFiniteField(L[0].base_ring())
         DynamicalSystem_generic.__init__(self,L,domain)
 
@@ -84,7 +125,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_affine`
+        - :class:`DynamicalSystem_affine`.
 
         EXAMPLES::
 
@@ -95,9 +136,8 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
             True
             sage: f is g
             False
-
         """
-        return DynamicalSystem_affine(self._polys, domain=self.domain())
+        return DynamicalSystem_affine(self._polys, self.domain())
 
     def homogenize(self, n):
         r"""
@@ -115,7 +155,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_projective_ring`.
+        - :class:`DynamicalSystem_projective`.
 
         EXAMPLES::
 
@@ -174,9 +214,8 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
             sage: f.homogenize(2).dehomogenize(2) == f
             True
         """
-        import sage.schemes.affine.affine_morphism as aff_morph
-        F = aff_morph.SchemeMorphism_polynomial_affine_space.homogenize(self, n)
-        return DynamicalSystem_projective(F, domain=F.domain())
+        F = self.as_scheme_morphism().homogenize(n)
+        return F.as_dynamical_system()
 
     def dynatomic_polynomial(self, period):
         r"""
@@ -198,7 +237,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
         OUTPUT:
 
-        - If possible, a single variable polynomial in the coordinate ring of the polynomial. \
+        - If possible, a single variable polynomial in the coordinate ring of the polynomial.
           Otherwise a fraction field element of the coordinate ring of the polynomial.
 
         EXAMPLES::
@@ -273,9 +312,9 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
             (0.125000000000000*x^4 + 0.366025403784439*x^2 + 1.50000000000000)/(0.500000000000000*x^2 - x + 1.73205080756888)
         """
         from sage.schemes.affine.affine_space import is_AffineSpace
-        if is_AffineSpace(self.domain())==False:
+        if not is_AffineSpace(self.domain()):
             raise NotImplementedError("not implemented for subschemes")
-        if self.domain().dimension_relative()>1:
+        if self.domain().dimension_relative() > 1:
             raise TypeError("does not make sense in dimension >1")
         G = self.homogenize(1)
         F = G.dynatomic_polynomial(period)
@@ -295,7 +334,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
     def nth_iterate_map(self, n):
         r"""
-        Return the ``n``-th iterate of self
+        Return the ``n``-th iterate of self.
 
         ALGORITHM:
 
@@ -365,7 +404,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
     def nth_iterate(self, P, n):
         r"""
-        Returns the ``n``-th iterate of the point ``P`` by this dynamical system.
+        Return the ``n``-th iterate of the point ``P`` by this dynamical system.
 
         INPUT:
 
@@ -598,7 +637,7 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine_ring,\
             True
         """
         F = self.as_scheme_morphism().weil_restriction()
-        return(F.as_dynamical_system())
+        return F.as_dynamical_system()
 
 class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,\
                                     SchemeMorphism_polynomial_affine_space_finite_field):

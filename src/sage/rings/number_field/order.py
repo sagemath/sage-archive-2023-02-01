@@ -995,9 +995,58 @@ class Order(IntegralDomain):
         r"""
         Return the `p`-adic valuation on this order.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        ``prime`` can be an integer that is completely ramified in the number field::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: O = K.order(2*a)
+            sage: valuations.pAdicValuation(O, 2)
+            2-adic valuation
 
             sage: GaussianIntegers().valuation(2)
+            2-adic valuation
+
+        ``prime`` can be an integer that is unramified::
+
+            sage: GaussianIntegers().valuation(3)
+            3-adic valuation
+
+        This is only supported if ``prime`` does not factor into
+        pairwise distinct factors::
+
+            sage: GaussianIntegers().valuation(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        ``prime`` can also be specified by providing a valuation on a base ring
+        that has a unique extension::
+
+            sage: CyclotomicField(5).ring_of_integers().valuation(ZZ.valuation(5))
+            5-adic valuation
+
+        When the extension is not unique, this does not work::
+
+            sage: GaussianIntegers().valuation(ZZ.valuation(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        If the fraction field is of the form `K[x]/(G)`, you can specify a
+        valuation by providing a discrete pseudo-valuation on `K[x]` which
+        sends `G` to `\infty`::
+
+            sage: R.<x> = QQ[]
+            sage: v = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
+            sage: w = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 1/2, infinity))
+            sage: v == w
+            False
+
+        SEEALSO::
+
+            :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
+            :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`
 
         """
         from sage.rings.padics.padic_valuation import pAdicValuation

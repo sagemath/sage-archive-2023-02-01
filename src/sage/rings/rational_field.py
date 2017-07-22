@@ -1302,6 +1302,11 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: v(1/3)
             -1
 
+        SEEALSO::
+
+            :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
+            :meth:`sage.rings.integer_ring.IntegerRing.valuation`
+
         """
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self, p)

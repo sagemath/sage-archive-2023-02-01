@@ -83,79 +83,7 @@ class PadicValuationFactory(UniqueFactory):
         ...
         ValueError: prime must be specified for this ring
 
-    For number fields, ``prime`` can be an integer that is completely ramified
-    in ``R``::
-
-        sage: GaussianIntegers().fraction_field().valuation(2)
-        2-adic valuation
-
-    For number fields, ``prime`` can be an integer that is unramified in ``R``:
-
-        sage: GaussianIntegers().fraction_field().valuation(3)
-        3-adic valuation
-
-    The same applies if ``R`` is a subring of a number field::
-    
-        sage: GaussianIntegers().valuation(3)
-        3-adic valuation
-
-    However, this is only supported if ``prime`` does not factor into
-    pairwise distinct factors::
-
-        sage: GaussianIntegers().valuation(5)
-        Traceback (most recent call last):
-        ...
-        ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
-
-    When ``R`` is an absolute or relative number field, or a subring thereof,
-    ``prime`` can also be specified by providing a valuation on the base ring
-    that has a unique extension::
-
-        sage: CyclotomicField(5).valuation(ZZ.valuation(5))
-        5-adic valuation
-
-    When the extension is not unique, this does not work::
-
-        sage: GaussianIntegers().valuation(ZZ.valuation(5))
-        Traceback (most recent call last):
-        ...
-        ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
-
-    For a number field which is of the form `K[x]/(G)`, you can specify a
-    valuation by providing a discrete pseudo-valuation on `K[x]` which sends
-    `G` to `\infty`. This lets us specify which extension of the 5-adic
-    valuation we care about in the above example::
-
-        sage: R.<x> = QQ[]
-        sage: v = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
-        sage: w = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 1/2, infinity))
-        sage: v == w
-        False
-
-    Note that you get the same valuation, even if you write down the
-    pseudo-valuation differently::
-
-        sage: ww = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 3, infinity))
-        sage: w is ww
-        True
-
-    The valuation ``prime`` does not need to send the defining polynomial `G`
-    to `\infty`. It is sufficient if it singles out one of the valuations on
-    the number field.  This is important if the prime only factors over the
-    completion, i.e., if it is not possible to write down one of the factors
-    within the number field::
-
-        sage: v = GaussValuation(R, QQ.valuation(5)).augmentation(x + 3, 1)
-        sage: GaussianIntegers().fraction_field().valuation(v)
-        [ 5-adic valuation, v(x + 3) = 1 ]-adic valuation
-
-    Finally, ``prime`` can also be a fractional ideal of a number field if it
-    singles out an extension of a `p`-adic valuation of the base field::
-
-        sage: R = GaussianIntegers()
-        sage: I = R.fraction_field().gen()
-        sage: R.valuation(R.fractional_ideal(I + 1))
-        2-adic valuation
+        sage: TODO complete the sentence below
 
     It can sometimes be beneficial to define a number field extension as a
     quotient of a polynomial ring (since number field extensions always compute
@@ -168,11 +96,14 @@ class PadicValuationFactory(UniqueFactory):
         sage: valuations.pAdicValuation(L, 2)
         2-adic valuation
 
-    Valuations can also be defined on orders in number fields::
+    SEEALSO::
 
-        sage: O = K.order(2*a)
-        sage: valuations.pAdicValuation(O, 2)
-        2-adic valuation
+    For more examples, see
+    :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
+    :meth:`sage.rings.order.Order.valuation`,
+    :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`,
+    :meth:`sage.rings.rational_field.RationalField.valuation`,
+    :meth:`sage.rings.integer_ring.IntegerRing.valuation`.
 
     """
     def create_key_and_extra_args(self, R, prime=None, approximants=None):

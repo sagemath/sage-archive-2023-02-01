@@ -105,6 +105,7 @@ Number Fields and Function Fields
 
 * :doc:`Number Fields <number_fields/index>`
 * :doc:`Function Fields <function_fields/index>`
+* :doc:`Discrete Valuations <valuation/index>`
 
 Number Theory
 -------------

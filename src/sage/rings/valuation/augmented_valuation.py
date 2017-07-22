@@ -358,7 +358,6 @@ class AugmentedValuation_base(InductiveValuation):
             residue = self.reduce(ret*self._base_valuation.element_with_valuation(-s), check=False)
             assert residue.is_constant()
             ret *= self.lift(~(residue[0]))
-            #ret = self.equivalence_reciprocal(self.equivalence_unit(-s))
         else:
             ret = self._base_valuation.element_with_valuation(s)
 

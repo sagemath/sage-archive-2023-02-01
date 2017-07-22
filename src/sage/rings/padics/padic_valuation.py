@@ -24,7 +24,7 @@ AUTHORS:
 
 REFERENCES:
 
-The theory used here was originally developed in [Mac1936]_ and [Mac1936']_. An
+The theory used here was originally developed in [Mac1936I]_ and [Mac1936II]_. An
 overview can also be found in Chapter 4 of [Rüt2014]_.
 
 """

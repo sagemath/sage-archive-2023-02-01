@@ -1,4 +1,4 @@
-Discrete Valuations and Discrene Pseudo-Valuations
+Discrete Valuations and Discrete Pseudo-Valuations
 ==================================================
 
 High-Level Interface
@@ -46,9 +46,8 @@ Similarly, valuations can be defined on function fields::
     sage: v(1/x)
     1
 
-On extensions of function fields, valuations can be specified explicitly by
-providing a prime on the underlying rational function field when the extension
-is unique::
+On extensions of function fields, valuations can be created by providing a
+prime on the underlying rational function field when the extension is unique::
 
     sage: K.<x> = FunctionField(QQ)
     sage: R.<y> = K[]
@@ -73,13 +72,13 @@ Low-Level Interface
 Mac Lane valuations
 -------------------
 Internally, all the above is backed by the algorithms described in
-[Mac1936]_ and [Mac1936']_. Let us consider the extensions of
+[Mac1936I]_ and [Mac1936II]_. Let us consider the extensions of
 ``K.valuation(x - 4)`` to the field `L` above to outline how this works
 internally.
 
-First, the valuation on `K` is induced by a valuation on `\Q[x]`. To construct
-this valuation, we start from the trivial valuation on `\Q` and consider its
-induced Gauss valuation on `\Q[x]`, i.e., the valuation that assigns to a
+First, the valuation on `K` is induced by a valuation on `\QQ[x]`. To construct
+this valuation, we start from the trivial valuation on `\QQ` and consider its
+induced Gauss valuation on `\QQ[x]`, i.e., the valuation that assigns to a
 polynomial the minimum of the coefficient valuations::
 
     sage: R.<x> = QQ[]
@@ -176,7 +175,7 @@ Note that in the limit they are factors of `f`.
 References
 ==========
 
-The theory was originally described in [Mac1936]_ and [Mac1936']_. A summary and some algorithmic details can also be found in Chapter 4 of [Rü2014]_.
+The theory was originally described in [Mac1936I]_ and [Mac1936II]_. A summary and some algorithmic details can also be found in Chapter 4 of [Rü2014]_.
 
 .. toctree::
    :maxdepth: 2

@@ -998,12 +998,16 @@ class pAdicValuation_padic(pAdicValuation_base):
             sage: v.shift(R.one(), -1)
             O(2^19)
 
+            sage: S.<y> = R[]
+            sage: S.<y> = R.extension(y^3 - 2)
+            sage: v = S.valuation()
+            sage: v.shift(1, 5)
+
         """
         from sage.rings.all import ZZ
         x = self.domain().coerce(x)
         s = self.value_group()(s)
-        v = ZZ(s / self.domain().ramification_index())
-        return x << v
+        return x << s
 
     def simplify(self, x, error=None, force=False):
         r"""

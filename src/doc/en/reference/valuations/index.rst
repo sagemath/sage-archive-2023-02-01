@@ -73,7 +73,7 @@ Low-Level Interface
 Mac Lane valuations
 -------------------
 Internally, all the above is backed by the algorithms described in
-[MacLane1936]_ and [MacLane1936']_. Let us consider the extensions of
+[Mac1936]_ and [Mac1936']_. Let us consider the extensions of
 ``K.valuation(x - 4)`` to the field `L` above to outline how this works
 internally.
 

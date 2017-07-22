@@ -31,7 +31,7 @@ class DevelopingValuation(DiscretePseudoValuation):
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = valuations.GaussValuation(R, QQ.valuation(7))
+        sage: v = GaussValuation(R, QQ.valuation(7))
 
     TESTS::
 
@@ -43,7 +43,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, QQ.valuation(7))
+            sage: v = GaussValuation(R, QQ.valuation(7))
             sage: from sage.rings.valuation.developing_valuation import DevelopingValuation
             sage: isinstance(v, DevelopingValuation)
             True
@@ -284,7 +284,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S, R.valuation())
+            sage: v = GaussValuation(S, R.valuation())
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]

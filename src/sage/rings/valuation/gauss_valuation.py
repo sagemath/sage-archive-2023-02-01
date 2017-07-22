@@ -606,7 +606,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v.is_trivial()
             True
 

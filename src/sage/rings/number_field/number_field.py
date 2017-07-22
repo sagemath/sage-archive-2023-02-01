@@ -2146,6 +2146,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if not isinstance(other, NumberField_generic):
             raise ValueError("other must be a generic number field.")
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
+        if t == 0:
+            t = []
         if isomorphism_map:
             return t != 0, t
         else:

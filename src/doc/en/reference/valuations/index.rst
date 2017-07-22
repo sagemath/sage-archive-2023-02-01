@@ -175,7 +175,7 @@ Note that in the limit they are factors of `f`.
 References
 ==========
 
-The theory was originally described in [Mac1936I]_ and [Mac1936II]_. A summary and some algorithmic details can also be found in Chapter 4 of [Rü2014]_.
+The theory was originally described in [Mac1936I]_ and [Mac1936II]_. A summary and some algorithmic details can also be found in Chapter 4 of [Rüt2014]_.
 
 .. toctree::
    :maxdepth: 2

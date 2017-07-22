@@ -7,14 +7,14 @@ domains. It currently only provides support for such valuations if they are
 discrete, i.e., their image is a discrete additive subgroup of the rational
 numbers extended by `\infty`.
 
+AUTHORS:
+
+- Julian Rüth (2016-10-14): initial version
+
 EXAMPLES::
 
     sage: QQ.valuation(2).parent()
     Discrete pseudo-valuations on Rational Field
-
-AUTHORS:
-
-- Julian Rüth (2016-10-14): initial version
 
 """
 #*****************************************************************************

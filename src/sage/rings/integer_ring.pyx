@@ -1525,6 +1525,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: v(3)
             1
 
+        SEEALSO::
+
+            :meth:`sage.rings.number_field.order.Order.valuation`,
+            :meth:`sage.rings.rational_field.RationalField.valuation`
+
         """
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self, p)

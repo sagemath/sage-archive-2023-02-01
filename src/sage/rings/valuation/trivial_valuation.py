@@ -2,6 +2,10 @@
 r"""
 Trivial valuations
 
+AUTHORS:
+
+- Julian Rüth (2016-10-14): initial version
+
 EXAMPLES::
 
     sage: v = valuations.TrivialValuation(QQ); v
@@ -9,37 +13,33 @@ EXAMPLES::
     sage: v(1)
     0
 
-.. NOTE:
+.. NOTE::
 
-Note that the tests in this module do not create instances of valuations
-directly since this gives the wrong inheritance structure on the resulting
-objects::
-
-    sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
-    sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
-    sage: H = DiscretePseudoValuationSpace(QQ)
-    sage: v = TrivialDiscretePseudoValuation(H)
-    sage: v._test_category()
-    Traceback (most recent call last):
-    ...
-    AssertionError: False is not true
-
-Instead, the valuations need to be created through the
-``__make_element_class__`` of the containing space::
-
-    sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
-    sage: v = H.__make_element_class__(TrivialDiscretePseudoValuation)(H)
-    sage: v._test_category()
-
-The factories ``TrivialValuation`` and ``TrivialPseudoValuation`` provide the
-right inheritance structure::
-
-    sage: v = valuations.TrivialPseudoValuation(QQ)
-    sage: v._test_category()
-
-AUTHORS:
-
-- Julian Rüth (2016-10-14): initial version
+    Note that the tests in this module do not create instances of valuations
+    directly since this gives the wrong inheritance structure on the resulting
+    objects::
+    
+        sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
+        sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
+        sage: H = DiscretePseudoValuationSpace(QQ)
+        sage: v = TrivialDiscretePseudoValuation(H)
+        sage: v._test_category()
+        Traceback (most recent call last):
+        ...
+        AssertionError: False is not true
+    
+    Instead, the valuations need to be created through the
+    ``__make_element_class__`` of the containing space::
+    
+        sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
+        sage: v = H.__make_element_class__(TrivialDiscretePseudoValuation)(H)
+        sage: v._test_category()
+    
+    The factories ``TrivialValuation`` and ``TrivialPseudoValuation`` provide the
+    right inheritance structure::
+    
+        sage: v = valuations.TrivialPseudoValuation(QQ)
+        sage: v._test_category()
 
 """
 #*****************************************************************************

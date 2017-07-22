@@ -9,14 +9,24 @@ AUTHORS:
 
 - Julian Rüth (2016-11-01): initial version
 
+EXAMPLES:
+
+A :class:`GaussValuation` is an example of an inductive valuation::
+
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(R, QQ.valuation(2))
+
+Generally, an inductive valuation is an augmentation of an inductive valuation,
+i.e., a valuation that was created from a Gauss valuation in a finite number of
+augmentation steps::
+
+    sage: w = v.augmentation(x, 1)
+    sage: w = w.augmentation(x^2 + 2, 3)
+
 REFERENCES:
 
-.. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
-
-.. [ML1936'] MacLane, S. (1936). A construction for absolute values in
-polynomial rings. Transactions of the American Mathematical Society, 40(3),
-363-395.
+Inductive valuations are originally discussed in [Mac1936]_ and [Mac1936']. An
+introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
@@ -103,9 +113,9 @@ class InductiveValuation(DevelopingValuation):
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
-            sage: h = v.equivalence_reciprocal(f); h # optional: integrated (needs xgcd for polynomials with p-adic coefficients)
+            sage: h = v.equivalence_reciprocal(f); h # (needs xgcd for polynomials with p-adic coefficients)
             2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
-            sage: v.is_equivalent(f*h, 1) # optional: integrated
+            sage: v.is_equivalent(f*h, 1)
             True
 
         In an extended valuation over an extension field::
@@ -418,7 +428,7 @@ class InductiveValuation(DevelopingValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_augmentation_chain()
             
         """
@@ -436,7 +446,7 @@ class InductiveValuation(DevelopingValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_equivalence_unit()
 
         """
@@ -468,7 +478,7 @@ class InductiveValuation(DevelopingValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_is_equivalence_unit()
 
         """
@@ -482,7 +492,7 @@ class InductiveValuation(DevelopingValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_equivalence_reciprocal()
 
         """
@@ -512,7 +522,7 @@ class InductiveValuation(DevelopingValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_inductive_valuation_inheritance()
 
         """
@@ -530,7 +540,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+        sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
 
     """
     def __init__(self, parent, phi):
@@ -538,7 +548,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: from sage.rings.valuation.inductive_valuation import FiniteInductiveValuation
             sage: isinstance(v, FiniteInductiveValuation)
             True
@@ -554,7 +564,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(ZZ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(ZZ))
             sage: K.<x> = FunctionField(QQ)
             sage: v.extensions(K)
             [Trivial valuation on Rational Field]
@@ -578,7 +588,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         sage: R.<u> = Qq(4,5)
         sage: S.<x> = R[]
-        sage: v = valuations.GaussValuation(S)
+        sage: v = GaussValuation(S)
         sage: v = v.augmentation(x^2 + x + u, 1)
 
     """
@@ -588,7 +598,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v = v.augmentation(x^2 + x + u, 1)
             sage: from sage.rings.valuation.inductive_valuation import NonFinalInductiveValuation
             sage: isinstance(v, NonFinalInductiveValuation)
@@ -619,7 +629,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v = v.augmentation(x^2 + x + u, 1)
             sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
             sage: v
@@ -634,7 +644,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             
             sage: v_K = QQ.valuation(3)
             sage: A.<t> = QQ[]
-            sage: v0 = valuations.GaussValuation(A,v_K)
+            sage: v0 = GaussValuation(A,v_K)
 
             sage: v1 = v0.augmentation(t, 1/12)
             sage: v2 = v1.augmentation(t^12 + 3, 7/6)
@@ -691,10 +701,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: K.<x> = FunctionField(QQ)
             sage: S.<y> = K[]
             sage: F = y^2 - x^2 - x^3 - 3
-            sage: v0 = valuations.GaussValuation(K._ring, QQ.valuation(3))
+            sage: v0 = GaussValuation(K._ring, QQ.valuation(3))
             sage: v1 = v0.augmentation(K._ring.gen(), 1/3)
             sage: mu0 = K.valuation(v1)
-            sage: eta0 = valuations.GaussValuation(S, mu0)
+            sage: eta0 = GaussValuation(S, mu0)
             sage: eta1 = eta0.mac_lane_step(F)[0]
             sage: eta2 = eta1.mac_lane_step(F)[0]
             sage: eta2
@@ -828,7 +838,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     continue
 
                 for i, slope in enumerate(slopes):
-                    slope = slopes[i]
                     verbose("Slope = %s"%slope, level=12)
                     new_mu = old_mu - slope
                     new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity)) for j,val in enumerate(w_valuations)]
@@ -869,7 +878,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v.is_key(x)
             True
             sage: v.is_key(2*x, explain = True)
@@ -918,7 +927,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v.is_minimal(x + 1)
             True
             sage: w = v.augmentation(x, 1)
@@ -930,7 +939,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: K = Qp(2, 10)
             sage: R.<x> = K[]
             sage: vp = K.valuation()
-            sage: v0 = valuations.GaussValuation(R, vp)
+            sage: v0 = GaussValuation(R, vp)
             sage: v1 = v0.augmentation(x, 1/4)
             sage: v2 = v1.augmentation(x^4 + 2, 5/4)
             sage: v2.is_minimal(x^5 + x^4 + 2)
@@ -1005,7 +1014,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, QQ.valuation(2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: v._equivalence_reduction(2*x^6 + 4*x^5 + 2*x^4 + 8)
             (1, 4, x^2 + 1)
 
@@ -1064,7 +1073,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v.is_equivalence_irreducible(x)
             True
             sage: v.is_equivalence_irreducible(x^2)
@@ -1132,7 +1141,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v.equivalence_decomposition(S.zero())
             Traceback (most recent call last):
             ...
@@ -1185,19 +1194,13 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: R.<x>=K[]
             sage: vp = Q.valuation(2)
             sage: vp = vp.extension(K)
-            sage: v0 = valuations.GaussValuation(R, vp)
+            sage: v0 = GaussValuation(R, vp)
             sage: G=x^36 + 36*x^35 + 630*x^34 + 7144*x^33 + 59055*x^32 + 379688*x^31 +1978792*x^30 + 8604440*x^29 + 31895428*x^28 + 102487784*x^27 + 289310720*x^26 + 725361352*x^25 + 1629938380*x^24 + 3307417800*x^23 + 6098786184*x^22+10273444280*x^21 + 15878121214*x^20 + 22596599536*x^19 + 29695703772*x^18 +36117601976*x^17 + 40722105266*x^16 + 42608585080*x^15 + 41395961848*x^14 +37344435656*x^13 + 31267160756*x^12 + 24271543640*x^11 + 17439809008*x^10 + 11571651608*x^9 + 7066815164*x^8 + 3953912472*x^7 + 2013737432*x^6 + 925014888*x^5 + 378067657*x^4 + 134716588*x^3 + 40441790*x^2 + 9532544*x + 1584151
             sage: v1 = v0.mac_lane_step(G)[0]
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
             sage: v2.equivalence_decomposition(G)
             (1/387420489) * (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
-
-        REFERENCES:
-
-        .. [ML1936'] MacLane, S. (1936). A construction for absolute values in
-        polynomial rings. Transactions of the American Mathematical Society, 40(3),
-        363-395.
 
         """
         f = self.domain().coerce(f)
@@ -1286,7 +1289,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: v.minimal_representative(x + 2)
             (1 + O(2^10))*x
 
@@ -1361,7 +1364,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
-            sage: v = valuations.GaussValuation(S)
+            sage: v = GaussValuation(S)
             sage: y = v.residue_ring().gen()
             sage: u0 = v.residue_ring().base_ring().gen()
             sage: f = v.lift_to_key(y^2 + y + u0); f
@@ -1376,7 +1379,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_lift_to_key()
 
         """
@@ -1425,7 +1428,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+            sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
             sage: v._test_is_equivalence_irreducible()
 
         """
@@ -1451,7 +1454,7 @@ class FinalInductiveValuation(InductiveValuation):
     TESTS::
 
         sage: R.<x> = QQ[]
-        sage: v = valuations.GaussValuation(R, valuations.TrivialValuation(QQ))
+        sage: v = GaussValuation(R, valuations.TrivialValuation(QQ))
         sage: w = v.augmentation(x^2 + x + 1, infinity)
         sage: from sage.rings.valuation.inductive_valuation import FinalInductiveValuation
         sage: isinstance(w, FinalInductiveValuation)
@@ -1468,7 +1471,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
     EXAMPLES::
 
         sage: R.<x> = QQ[]
-        sage: v = valuations.GaussValuation(R, QQ.valuation(2))
+        sage: v = GaussValuation(R, QQ.valuation(2))
         sage: w = v.augmentation(x^2 + x + 1, infinity)
 
     """
@@ -1477,7 +1480,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
         TESTS::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, QQ.valuation(2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, infinity)
             sage: from sage.rings.valuation.inductive_valuation import InfiniteInductiveValuation
             sage: isinstance(w, InfiniteInductiveValuation)
@@ -1496,7 +1499,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
         We can turn an infinite valuation into a valuation on the quotient::
 
             sage: R.<x> = QQ[]
-            sage: v = valuations.GaussValuation(R, QQ.valuation(2))
+            sage: v = GaussValuation(R, QQ.valuation(2))
             sage: w = v.augmentation(x^2 + x + 1, infinity)
             sage: w.change_domain(R.quo(x^2 + x + 1))
             2-adic valuation

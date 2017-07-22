@@ -770,6 +770,9 @@ REFERENCES:
             of Hecke points. Forum Mathematicum, 15:2, pp. 165--189,
             De Gruyter, 2003.
 
+.. [GMN2008] Jordi Guardia, Jesus Montes, Enric Nart. *Newton polygons of higher
+             order in algebraic number theory* (2008). arXiv:0807.2620 [math.NT]
+
 .. [Go1967] Solomon Golomb, Shift register sequences, Aegean Park
             Press, Laguna Hills, Ca, 1967
 
@@ -1230,6 +1233,14 @@ REFERENCES:
             Atoms, Journal of Algebraic Combinatorics, Vol. 29,
             (2009), No. 3, p.295-313. :arXiv:`0707.4267`
 
+.. [Mac1936] Saunders MacLane, *A construction for prime ideals as absolute
+             values of an algebraic field*. Duke Mathematical Journal, 2(3)
+             (1936), 492-510.
+
+.. [Mac1936'] Saunders MacLane, *A construction for absolute values in
+              polynomial rings*. Transactions of the American Mathematical
+              Society, 40(3)(1936), 363-395.
+
 .. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
              Cambridge University Press (1915--1916).
              (Reprinted: Chelsea, New York, 1960).
@@ -1506,6 +1517,10 @@ REFERENCES:
 
 .. [Rud1958] \M. E. Rudin. *An unshellable triangulation of a
              tetrahedron*. Bull. Amer. Math. Soc. 64 (1958), 90-91.
+
+.. [Rüt2014] Julian Rüth, *Models of Curves and Valuations*. Open Access
+             Repositorium der Universität Ulm. Dissertation (2014).
+             http://dx.doi.org/10.18725/OPARU-3275
 
 .. _ref-S:
 

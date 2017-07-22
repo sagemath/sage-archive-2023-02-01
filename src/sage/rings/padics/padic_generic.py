@@ -978,6 +978,11 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: v.restriction(K) == K.valuation()
             True
 
+        SEEALSO::
+
+            :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
+            :meth:`sage.rings.number_field.order.Order.valuation`
+
         """
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self)

@@ -560,6 +560,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         """
         return self.value[self._parent._indices.index(i)]
 
+
 cdef class UntwistedAffineLieAlgebraElement(Element):
     """
     An element of an untwisted affine Lie algebra.
@@ -798,9 +799,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
         """
         return bool(self._t_dict) or bool(self._c_coeff) or bool(self._d_coeff)
 
-    __bool__ = __nonzero__
-
-    cdef _add_(self, other):
+    cpdef _add_(self, other):
         """
         Add ``self`` and ``other``.
 
@@ -816,7 +815,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
                           self._c_coeff + rt._c_coeff,
                           self._d_coeff + rt._d_coeff)
 
-    cdef _sub_(self, other):
+    cpdef _sub_(self, other):
         """
         Subtract ``self`` and ``other``.
 
@@ -838,7 +837,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
                           self._c_coeff - rt._c_coeff,
                           self._d_coeff - rt._d_coeff)
 
-    cdef _neg_(self):
+    cpdef _neg_(self):
         """
         Negate ``self``.
 

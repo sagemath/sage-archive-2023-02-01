@@ -25,7 +25,7 @@ augmentation steps::
 
 REFERENCES:
 
-Inductive valuations are originally discussed in [Mac1936]_ and [Mac1936']. An
+Inductive valuations are originally discussed in [Mac1936I]_ and [Mac1936II]. An
 introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """

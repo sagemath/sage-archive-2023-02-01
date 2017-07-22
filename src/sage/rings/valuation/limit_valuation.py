@@ -68,7 +68,7 @@ The same phenomenon can be observed for valuations on number fields::
 
 REFERENCES:
 
-Limits of inductive valuations are discussed in [Mac1936]_ and [Mac1936']_. An
+Limits of inductive valuations are discussed in [Mac1936I]_ and [Mac1936II]_. An
 overview can also be found in Section 4.6 of [Rüt2014]_.
 
 """

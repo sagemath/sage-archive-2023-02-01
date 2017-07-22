@@ -72,7 +72,7 @@ Low-Level Interface
 Mac Lane valuations
 -------------------
 Internally, all the above is backed by the algorithms described in
-[Mac1936]_ and [Mac1936']_. Let us consider the extensions of
+[Mac1936I]_ and [Mac1936II]_. Let us consider the extensions of
 ``K.valuation(x - 4)`` to the field `L` above to outline how this works
 internally.
 
@@ -175,7 +175,7 @@ Note that in the limit they are factors of `f`.
 References
 ==========
 
-The theory was originally described in [Mac1936]_ and [Mac1936']_. A summary and some algorithmic details can also be found in Chapter 4 of [Rü2014]_.
+The theory was originally described in [Mac1936I]_ and [Mac1936II]_. A summary and some algorithmic details can also be found in Chapter 4 of [Rü2014]_.
 
 .. toctree::
    :maxdepth: 2

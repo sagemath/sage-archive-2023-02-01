@@ -1233,11 +1233,11 @@ REFERENCES:
             Atoms, Journal of Algebraic Combinatorics, Vol. 29,
             (2009), No. 3, p.295-313. :arXiv:`0707.4267`
 
-.. [Mac1936] Saunders MacLane, *A construction for prime ideals as absolute
+.. [Mac1936I] Saunders MacLane, *A construction for prime ideals as absolute
              values of an algebraic field*. Duke Mathematical Journal, 2(3)
              (1936), 492-510.
 
-.. [Mac1936'] Saunders MacLane, *A construction for absolute values in
+.. [Mac1936II] Saunders MacLane, *A construction for absolute values in
               polynomial rings*. Transactions of the American Mathematical
               Society, 40(3)(1936), 363-395.
 

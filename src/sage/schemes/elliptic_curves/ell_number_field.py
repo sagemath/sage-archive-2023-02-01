@@ -86,13 +86,18 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import operator
 from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
+from sage.arith.misc import primes
+from sage.rings.polynomial.polynomial_ring import polygen
 from six import reraise as raise_
+
+
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -3223,9 +3228,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Return Billerey's `P_l^*` as defined in (9).
         """
         P = polygen(ZZ)-1
+        K = self.base_field()
         for q in self.base_field().primes_above(l):
             e = K(l).valuation(q)
-	    P = P.composed_op(r(self.reduction(q).frobenius_polynomial(),12*e), operator.mul, monic=True)
+	    P = P.composed_op(self.reduction(q).frobenius_polynomial().adams_operator(12*e), operator.mul, monic=True)
         return P
 
 
@@ -3244,9 +3250,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         K = self.base_field()
         d = K.absolute_degree()
         h = K.class_number()
-        P = r(self.reduction(q).frobenius_polynomial(),12*h)
-        Q = r(((q**h).gens_reduced()[0]).absolute_minpoly(),12)
-        return prod([ P.resultant(star_iterate(Q,k)) for k in range(1+d//2) ])
+        P = self.reduction(q).frobenius_polynomial().adams_operator(12*h)
+        Q = ((q**h).gens_reduced()[0]).absolute_minpoly().adams_operator(12)
+        return prod([ P.resultant(Q.compose_power(k)) for k in range(1+d//2) ])
 
     def _B_bound(self, max_l=200, num_l=6, verbose=True):
         """
@@ -3309,8 +3315,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         DK = K.discriminant()
         ED = self.discriminant().norm()
         B0 = ZZ(6*DK*ED)
-        ll = primes(5,max_l) # iterator
-        while len(ells)<num_l and B!=1:
+        ll = primes(5, max_q) # iterator
+        while len(ells) < num_q and B != 1:
             try:
                 l = ll.next()
                 while B0.valuation(l):
@@ -3353,13 +3359,44 @@ class EllipticCurve_number_field(EllipticCurve_field):
         size up to max_l.  If that fails we compute Billeray's R_bound
         using at most num_q primes of size up to max_q.  If that also
         fails we return [0].
+    
+        EXAMPLES::
+    
+            sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
+            sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes()
+            [3, 5]
+            sage: E.reducible_primes()
+            [3, 5]
+            sage: K = NumberField(x**2 + 1, 'a')
+            sage: E = EllipticCurve_from_j(K(1728)) # CM over K
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes()
+            [0]
+            sage: E.reducible_primes()
+            [0]
+            sage: E = EllipticCurve_from_j(K(0)) # CM but NOT over K
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes()
+            [2, 3]
+            sage: E.reducible_primes()
+            [2, 3]
+            sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
+            sage: rho = E.galois_representation()
+            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
+            [7]
+            sage: rho.reducible_primes()
+            []
+            sage: E.reducible_primes()
+            [7]
         """
         if verbose:
             print("E = {}, seeking isogeny bound".format(self.ainvs()))
         K = self.base_field()
         DK = K.discriminant()
         ED = self.discriminant().norm()
-        B0 = ZZ(6*DK*ED).prime_divisors()
+        B0 = ZZ(6*DK*ED).prime_divisors()  # TODO: only works if discriminant is integral
         B1 = self._B_bound(max_l, num_l, verbose)
         if B1 == [0]:
             print("...  B_bound ineffective using max_l={}, moving on to R-bound".format(max_l))
@@ -3372,7 +3409,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         else:
             if verbose:
                 print("... B_bound = {}".format(B1))
-        B = sorted(Set(B0 + B1))
+        B = sorted(set(B0 + B1))
         if verbose:
             print("... combined bound = {}".format(B))
         from sage.schemes.elliptic_curves.gal_reps_number_field import _maybe_borels

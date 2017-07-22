@@ -1163,7 +1163,7 @@ class pAdicValuation_int(pAdicValuation_base):
 
         """
         x = self.domain().coerce(x)
-        return x.numerator().nbits() + x.denominator().nbits() - 1
+        return (x.numerator().nbits() + x.denominator().nbits())//self.p().nbits()
 
     def simplify(self, x, error=None, force=False, size_heuristic_bound=32):
         r"""

@@ -118,7 +118,8 @@ class DevelopingValuation(DiscretePseudoValuation):
         This method does not compute the exact value of `f^e` but only an
         element that differs from the correct result by an error with valuation
         at least ``error``. The output is assumed to have at most
-        ``effective_degree``.
+        ``effective_degree``. If the effective degree is higher than
+        ``effective_degree``, then the result may not be correct.
 
         EXAMPLES::
 

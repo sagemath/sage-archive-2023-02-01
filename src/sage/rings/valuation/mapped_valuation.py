@@ -93,7 +93,7 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     def residue_ring(self):
         r"""
-        Return the residue field of this valuation.
+        Return the residue ring of this valuation.
 
         EXAMPLES::
 
@@ -388,12 +388,12 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
         Return an estimate on the coefficient size of ``x``.
 
         The number returned is an estimate on the factor between the number of
-        Bits used by ``x`` and the minimal number of bits used by an element
-        Congruent to ``x``.
+        bits used by ``x`` and the minimal number of bits used by an element
+        congruent to ``x``.
 
         This is used by :meth:`simplify` to decide whether simplification of
-        Coefficients is going to lead to a significant shrinking of the
-        Coefficients of ``x``.
+        coefficients is going to lead to a significant shrinking of the
+        coefficients of ``x``.
 
         EXAMPLES:: 
 

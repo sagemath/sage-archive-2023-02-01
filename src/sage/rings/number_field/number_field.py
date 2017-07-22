@@ -2719,7 +2719,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         If check_abelian is set to false and the field is not an
         abelian extension of `\mathbb{Q}`, the output is not meaningful.
 
-        INPUT: Integer which is the conductor of the field.
+        INPUT:
             - ``check_abelian`` - a boolean (default: ``True``); check to see that this is an abelian extension of `\mathbb{Q}`
 
         OUTPUT: Integer which is the conductor of the field.

@@ -126,6 +126,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: v = QQ.valuation(2)
             sage: from operator import mul
             sage: v.parent().get_action(ZZ, mul) # indirect doctest
+            Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
         """
         from operator import mul, div

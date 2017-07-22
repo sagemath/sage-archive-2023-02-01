@@ -384,6 +384,10 @@ REFERENCES:
            *Les Treillis Pseudocomplémentés Finis*
            Europ. J. Combinatorics (1992) 13, 89-107.
 
+.. [ChLi] \F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
+          operad*, International Math. Research Notices (2001) no 8, pages 395-408.
+          Preprint: :arxiv:`math/0002069v2`.
+
 .. [Cha2006] Ruth Charney. *An introduction to right-angled Artin
              groups*. http://people.brandeis.edu/~charney/papers/RAAGfinal.pdf,
              :arxiv:`math/0610668`.
@@ -1163,6 +1167,10 @@ REFERENCES:
 
 .. [Lin1999] \J. van Lint, Introduction to coding theory, 3rd ed.,
              Springer-Verlag GTM, 86, 1999.
+
+.. [Liv2006] \M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
+             Algebra 207 (2006), no 1, pages 1-18.
+             Preprint: :arxiv:`math/0504296v2`.
 
 .. [LLZ2014] \K. Lee, \L. Li, and \A. Zelevinsky, *Greedy elements in rank 2
              cluster algebras*, Selecta Math. 20 (2014), 57-82.

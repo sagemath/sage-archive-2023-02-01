@@ -95,7 +95,12 @@ library_dirs = [os.path.join(SAGE_LOCAL, "lib")]
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
-extra_compile_args = [ "-fno-strict-aliasing" ]
+#
+# Add -DCYTHON_CLINE_IN_TRACEBACK=1 which causes the .c line number to
+# always appear in exception tracebacks (by default, this is a runtime
+# setting in Cython which causes some overhead every time an exception
+# is raised).
+extra_compile_args = ["-fno-strict-aliasing", "-DCYTHON_CLINE_IN_TRACEBACK=1"]
 extra_link_args = [ ]
 
 DEVEL = False
@@ -336,6 +341,7 @@ class sage_build_cython(Command):
 
         # Cython compiler directives
         self.cython_directives = dict(
+            auto_pickle=False,
             autotestdict=False,
             cdivision=True,
             embedsignature=True,

@@ -1257,8 +1257,8 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
 
     def _to_base_domain(self, f):
         r"""
-        Return ``f``, an element of the domain of this valuation, as an element
-        of the domain of the underlying limit valuation.
+        Return ``f``, an element of the underlying limit valuation, as an
+        element of the domain of this valuation.
 
         EXAMPLES::
 

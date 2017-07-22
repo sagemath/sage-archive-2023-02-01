@@ -127,6 +127,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         if basis_key is not None:
             self._basis_key = basis_key
+        else:
+            self._basis_key = g._basis_key
 
         R = g.base_ring()
         self._g = g
@@ -136,52 +138,6 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
                                          prefix='', bracket=False, latex_bracket=False,
                                          sorting_key=self._monomial_key,
                                          category=Algebras(R).WithBasis().Filtered())
-
-    def _basis_key(self, x):
-        """
-        Return a key for sorting for the index ``x``.
-
-        TESTS::
-
-            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
-            sage: PBW = L.pbw_basis()
-            sage: PBW._basis_key('E') < PBW._basis_key('H')
-            True
-
-        ::
-
-            sage: L = lie_algebras.sl(QQ, 2)
-            sage: def neg_key(x):
-            ....:     return -L.basis().keys().index(x)
-            sage: PBW = L.pbw_basis(basis_key=neg_key)
-            sage: prod(PBW.gens())  # indirect doctest
-            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
-             - 4*PBW[-alpha[1]]*PBW[alpha[1]]
-             + PBW[alphacheck[1]]^2
-             - 2*PBW[alphacheck[1]]
-
-        Check that :trac:`23266` is fixed::
-
-            sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
-            sage: sl2.indices()
-            {'e1', 'f1', 'h1'}
-            sage: type(sl2.basis().keys())
-            <type 'list'>
-            sage: Usl2 = sl2.pbw_basis()
-            sage: Usl2._basis_key(2)
-            2
-            sage: Usl2._basis_key(3)
-            Traceback (most recent call last):
-            ...
-            ValueError: 3 is not in list
-        """
-        K = self._g.basis().keys()
-        if isinstance(K, (list, tuple)):
-            return K.index(x)
-        if K.cardinality() == float('inf'):
-            return x
-        lst = list(K)
-        return lst.index(x)
 
     def _monoid_key(self, x):
         """

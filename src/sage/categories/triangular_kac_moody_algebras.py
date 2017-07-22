@@ -77,11 +77,15 @@ class TriangularKacMoodyAlgebras(Category_over_base_ring):
             Return the Lie algebra generators for the positive or
             negative half of ``self``.
 
-            If the positive/negative generators correspond to the
-            generators with (negative) simple roots, then this method
-            will find them. If they do not, then this method *must*
-            be overwritten. One should also overwrite this method in
-            object classes when there is a better method to obtain them.
+            .. NOTE::
+
+                If the positive/negative generators correspond to the
+                generators with (negative) simple roots, then this method
+                will find them. If they do not, then this method *must*
+                be overwritten. One should also overwrite this method in
+                object classes when there is a better method to obtain them.
+                Furthermore, this assumes that :meth:`lie_algebra_generators`
+                is a finite set.
 
             INPUT:
 

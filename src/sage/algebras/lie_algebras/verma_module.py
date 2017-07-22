@@ -97,6 +97,8 @@ class VermaModule(CombinatorialFreeModule):
         """
         if basis_key is not None:
             self._basis_key = basis_key
+        else:
+            self._basis_key = g._basis_key
 
         self._weight = weight
 
@@ -119,21 +121,6 @@ class VermaModule(CombinatorialFreeModule):
         the triangular decomposition by `U^-, U^0, U^+`.
         """
         return (self._g._part_on_basis(x), self._basis_key(x))
-
-    # TODO: Move this method to the Lie algebra
-    def _basis_key(self, x):
-        """
-        Return a key for sorting for the index ``x``.
-
-        TESTS::
-        """
-        K = self._g.basis().keys()
-        if isinstance(K, (list, tuple)):
-            return K.index(x)
-        if K.cardinality() == float('inf'):
-            return x
-        lst = list(K)
-        return lst.index(x)
 
     # TODO: Move this method to the Lie algebra or as a stand-alone function
     def _monoid_key(self, x):

@@ -734,7 +734,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 return self._relations_commutative
 
             from sage.algebras.free_algebra import FreeAlgebra
-            A = FreeAlgebra( self.base_ring(), self.ngens(), self.gens() )
+            A = FreeAlgebra( self.base_ring(), self.ngens(), self.variable_names() )
 
             res = {}
             n = self.ngens()
@@ -748,7 +748,7 @@ cdef class NCPolynomialRing_plural(Ring):
             return self._relations
 
         from sage.algebras.free_algebra import FreeAlgebra
-        A = FreeAlgebra( self.base_ring(), self.ngens(), self.gens() )
+        A = FreeAlgebra( self.base_ring(), self.ngens(), self.variable_names() )
 
         res = {}
         n = self.ngens()

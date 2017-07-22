@@ -873,7 +873,7 @@ class PiecewiseFunction(BuiltinFunction):
                 True
             """
             from sage.calculus.calculus import maxima
-            x = QQ[self.default_variable()].gen()
+            x = self.default_variable()
             crit_pts = []
             for domain, f in parameters:
                 for interval in domain:

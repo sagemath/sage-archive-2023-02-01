@@ -46,9 +46,8 @@ Similarly, valuations can be defined on function fields::
     sage: v(1/x)
     1
 
-On extensions of function fields, valuations can be specified explicitly by
-providing a prime on the underlying rational function field when the extension
-is unique::
+On extensions of function fields, valuations can be created by providing a
+prime on the underlying rational function field when the extension is unique::
 
     sage: K.<x> = FunctionField(QQ)
     sage: R.<y> = K[]

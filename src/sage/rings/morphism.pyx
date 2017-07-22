@@ -509,7 +509,7 @@ cdef class RingMap_lift(RingMap):
         _slots['S'] = self.S
         return Morphism._extra_slots(self, _slots)
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Compare a ring lifting maps ``self`` to ``other``.
 
@@ -906,7 +906,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return "Ring Coercion"
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Compare a ring coercion morphism ``self`` to ``other``.
 
@@ -1599,7 +1599,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         return self.codomain().defining_ideal()
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -1796,7 +1796,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         """
         return self.phi
 
-    def __richcmp__(self, other, op):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` to ``other``.
 

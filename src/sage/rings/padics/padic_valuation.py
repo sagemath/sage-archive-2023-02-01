@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 `p`-adic valuations on number fields and their subrings and completions.
 
 AUTHORS:
@@ -25,7 +25,7 @@ from sage.misc.fast_methods import WithEqualityById
 from sage.rings.all import infinity
 
 class PadicValuationFactory(UniqueFactory):
-    """
+    r"""
     Create a ``prime``-adic valuation on ``R``.
 
     INPUT:
@@ -430,7 +430,7 @@ class PadicValuationFactory(UniqueFactory):
 pAdicValuation = PadicValuationFactory("pAdicValuation")
 
 class pAdicValuation_base(DiscreteValuation):
-    """
+    r"""
     Abstract base class for `p`-adic valuations.
 
     INPUT:
@@ -463,7 +463,7 @@ class pAdicValuation_base(DiscreteValuation):
 
     """
     def __init__(self, parent, p):
-        """
+        r"""
         TESTS::
 
             sage: from sage.rings.padics.padic_valuation import pAdicValuation_base
@@ -477,7 +477,7 @@ class pAdicValuation_base(DiscreteValuation):
         self._p = ZZ(p)
 
     def p(self):
-        """
+        r"""
         Return the `p` of this `p`-adic valuation.
 
         EXAMPLES::
@@ -489,7 +489,7 @@ class pAdicValuation_base(DiscreteValuation):
         return self._p
 
     def reduce(self, x):
-        """
+        r"""
         Reduce ``x`` modulo the ideal of elements of positive valuation.
 
         INPUT:
@@ -515,7 +515,7 @@ class pAdicValuation_base(DiscreteValuation):
         return self.residue_field()(x)
 
     def lift(self, x):
-        """
+        r"""
         Lift ``x`` from the residue field to the domain of this valuation.
 
         INPUT:
@@ -535,7 +535,7 @@ class pAdicValuation_base(DiscreteValuation):
         return self.domain()(x)
 
     def is_unramified(self, G, include_steps=False, assume_squarefree=False):
-        """
+        r"""
         Return whether ``G`` defines a single unramified extension of the
         completion of the domain of this valuation.
 
@@ -612,7 +612,7 @@ class pAdicValuation_base(DiscreteValuation):
             return ret
 
     def is_totally_ramified(self, G, include_steps=False, assume_squarefree=False):
-        """
+        r"""
         Return whether ``G`` defines a single totally ramified extension of the
         completion of the domain of this valuation.
 

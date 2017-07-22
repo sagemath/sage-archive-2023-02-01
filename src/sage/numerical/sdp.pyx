@@ -682,7 +682,7 @@ cdef class SemidefiniteProgram(SageObject):
         print("  ", end=" ")
         for 0<= i < b.ncols()-1:
             print(str(varid_name[i]) + ", ", end=" ")
-        print(str(varid_name[b.ncols()-1]), end=" ")
+        print(str(varid_name[b.ncols()-1]))
 
 
     def get_values(self, *lists):

@@ -822,7 +822,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         Coercion map:
           From: Univariate Polynomial Ring in x over Rational Field
           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
-    
+ 
     TESTS::
 
         sage: from sage.rings.fraction_field import FractionFieldEmbedding
@@ -897,7 +897,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             sage: f = R.fraction_field().coerce_map_from(R)
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S)
-            
+ 
             sage: f == g # indirect doctest
             False
             sage: f == f
@@ -938,7 +938,7 @@ class FractionFieldEmbeddingSection(Section):
         Section map:
           From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
           To:   Univariate Polynomial Ring in x over Rational Field
-    
+ 
     TESTS::
 
         sage: from sage.rings.fraction_field import FractionFieldEmbeddingSection
@@ -1008,7 +1008,7 @@ class FractionFieldEmbeddingSection(Section):
             sage: f = R.fraction_field().coerce_map_from(R).section()
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S).section()
-            
+ 
             sage: f == g # indirect doctest
             False
             sage: f == f

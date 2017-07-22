@@ -972,7 +972,7 @@ class FractionFieldEmbeddingSection(Section):
             sage: R=ZpCR(2)
             sage: S.<x> = R[]
             sage: f = x/S(R(3,absprec=2))
-            sage: R(f)
+            sage: S(f)
             (1 + 2 + O(2^2))*x
 
         """

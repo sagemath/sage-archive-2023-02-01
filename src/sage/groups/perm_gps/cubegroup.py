@@ -98,6 +98,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_ge
 import random
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp, richcmp_method
 
 from sage.rings.all      import RationalField, Integer, RDF
 #from sage.matrix.all     import MatrixSpace
@@ -1154,6 +1155,7 @@ cubie_face_list = cubie_faces()
 rand_colors = [(RDF.random_element(), RDF.random_element(), RDF.random_element()) for _ in range(56)]
 
 
+@richcmp_method
 class RubiksCube(SageObject):
     r"""
     The Rubik's cube (in a given state).
@@ -1360,9 +1362,15 @@ class RubiksCube(SageObject):
         """
         return self.plot3d().show()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Comparison.
+
+        INPUT:
+
+        - ``other`` -- anything
+
+        - ``op`` -- comparison operator
 
         EXAMPLES::
 
@@ -1377,11 +1385,9 @@ class RubiksCube(SageObject):
             sage: C != D
             True
         """
-        c = cmp(type(self), type(other))
-        if c == 0:
-            return cmp(self._state, other._state)
-        else:
-            return c
+        if not isinstance(other, RubiksCube):
+            return NotImplemented
+        return richcmp(self._state, other._state, op)
 
     def solve(self, algorithm="hybrid", timeout=15):
         r"""

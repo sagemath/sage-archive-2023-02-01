@@ -24,6 +24,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.interfaces.gap import gap, GapElement
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
@@ -77,6 +78,8 @@ def ClassFunction(group, values):
 ###
 #####################################################################
 
+
+@richcmp_method
 class ClassFunction_gap(SageObject):
     """
     A wrapper of GAP's ClassFunction function.
@@ -184,13 +187,12 @@ class ClassFunction_gap(SageObject):
         for v in self._gap_classfunction:
             yield self._base_ring(v)
 
-
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Rich comparison for class functions.
 
         Compares groups and then the values of the class function on the
-        conjugacy classes. Otherwise, compares types of objects.
+        conjugacy classes.
 
         EXAMPLES::
 
@@ -208,14 +210,12 @@ class ClassFunction_gap(SageObject):
             False
             sage: xi < chi
             True
-
         """
         if isinstance(other, ClassFunction_gap):
-            return cmp((self._group, self.values()),
-                       (other._group, other.values()))
+            return richcmp((self._group, self.values()),
+                           (other._group, other.values()), op)
         else:
-            return cmp(type(self), type(other))
-
+            return NotImplemented
 
     def __reduce__(self):
         r"""
@@ -806,6 +806,8 @@ class ClassFunction_gap(SageObject):
 ###
 #####################################################################
 
+
+@richcmp_method
 class ClassFunction_libgap(SageObject):
     """
     A wrapper of GAP's ``ClassFunction`` function.
@@ -905,13 +907,12 @@ class ClassFunction_libgap(SageObject):
         for v in self._gap_classfunction.List():
             yield v.sage(ring=self._base_ring)
 
-
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Rich comparison for class functions.
 
         Compares groups and then the values of the class function on the
-        conjugacy classes. Otherwise, compares types of objects.
+        conjugacy classes.
 
         EXAMPLES::
 
@@ -929,14 +930,12 @@ class ClassFunction_libgap(SageObject):
             False
             sage: xi < chi
             True
-
         """
         if isinstance(other, ClassFunction_libgap):
-            return cmp((self._group, self.values()),
-                       (other._group, other.values()))
+            return richcmp((self._group, self.values()),
+                           (other._group, other.values()), op)
         else:
-            return cmp(type(self), type(other))
-
+            return NotImplemented
 
     def __reduce__(self):
         r"""

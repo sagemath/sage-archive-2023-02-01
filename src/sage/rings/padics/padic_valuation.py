@@ -658,6 +658,16 @@ class pAdicValuation_base(DiscreteValuation):
             sage: v.is_totally_ramified(x)
             True
 
+        TESTS:
+
+        An example that Sebastian Pauli used at Sage Days 87::
+
+            sage: R = ZpFM(3, 20)
+            sage: S.<x> = R[]
+            sage: f = x^9 + 9*x^2 + 3
+            sage: R.valuation().is_totally_ramified(f)
+            True
+
         """
         R = G.parent()
 

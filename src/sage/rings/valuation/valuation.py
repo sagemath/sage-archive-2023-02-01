@@ -658,6 +658,25 @@ class DiscreteValuation(DiscretePseudoValuation):
             ...
             ValueError: G must be integral
 
+        Some examples that Sebastian Pauli used in a talk at Sage Days 87.
+
+        ::
+
+            sage: R = ZpFM(3, 7, print_mode='terse')
+            sage: S.<x> = R[]
+            sage: v = R.valuation()
+            sage: f = x^4 + 234
+            sage: v.mac_lane_approximants(f) # is_squarefree() not implemented in this ring
+            sage: v.mac_lane_approximants(f, assume_squarefree=True)
+
+        ::
+
+            sage: R = ZpFM(2, 500, print_mode='terse')
+            sage: S.<x> = R[]
+            sage: v = R.valuation()
+            sage: v.mac_lane_approximants(f) # is_squarefree() is not yet implemented on this ring
+            sage: v.mac_lane_approximants(f, assume_squarefree=True)
+
         """
         R = G.parent()
         if R.base_ring() is not self.domain():
@@ -919,6 +938,27 @@ class DiscreteValuation(DiscretePseudoValuation):
 
             sage: v.montes_factorization(x^2 - 1, required_precision=5)
             (x + 1) * (x + 31)
+
+        TESTS:
+
+        Some examples that Sebastian Pauli used in a talk at Sage Days 87.
+
+        In this example, ``f`` factors as three factors of degree 50 over an unramified extension::
+
+            sage: R.<u> = ZqFM(125, 500)
+            sage: S.<x> = R[]
+            sage: f = (x^6+2)^25 + 5
+            sage: v = R.valuation()
+            sage: v.montes_factorization(f)
+
+        In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
+
+            sage: R = Zp(5, 50)
+            sage: R.<w> = R[]
+            sage: R.<w> = R.extension(w^3 + 5)
+            sage: S.<x> = R[]
+            sage: f = (x^3 + 5)*(x^5 + w) + 625
+            sage: v.montes_factorization(f)
 
         REFERENCES:
 

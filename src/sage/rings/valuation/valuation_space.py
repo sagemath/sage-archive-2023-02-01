@@ -1103,7 +1103,11 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if self(x) < 0 and ~self.uniformizer() not in self.domain():
                     # it is not clear what a shift should be in this case
                     continue
-                self.shift(x, s)
+                y = self.shift(x, s)
+                if s >= 0:
+                    self(y) >= self(x)
+                if self.domain().is_exact():
+                    x == self.shift(y, -s)
 
         def _test_scale(self, **options):
             r"""

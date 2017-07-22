@@ -901,10 +901,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     def is_minimal(self, f, assume_equivalence_irreducible=False):
         r"""
         Return whether the polynomial ``f`` is minimal with respect to this
-        valuation, i.e., whether ``f`` is not constant any non-constant
-        polynomial `h` has at least the degree of ``f`` or ``f`` is not
-        divisible by `h` with respect to this valuation, i.e., there is no `c`
-        such that `c h` :meth:`is_equivalent` to `f`.
+        valuation.
+        
+        A polynomial `f` is minimal with respect to `v` if it is not a constant
+        and any non-zero polynomial `h` which is `v`-divisible by `f` has at
+        least the degree of `f`.
+
+        A polynomial `h` is `v`-divisible by `f` if there is a polynomial `c`
+        such that `fc` :meth:`is_equivalent` to `h`.
 
         ALGORITHM:
 

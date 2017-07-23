@@ -42,7 +42,7 @@ cdef class DefaultConvertMap(Map):
             sage: f.parent()
             Set of Morphisms from Finite Field of size 7 to Finite Field of size 11 in Category of sets with partial maps
 
-        Test that `trac`:23211 is resolved::
+        Test that :trac:`23211` is resolved::
 
             sage: f._is_coercion
             False

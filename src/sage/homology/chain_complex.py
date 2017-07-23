@@ -237,7 +237,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
     if grading_group is None:
         grading_group = ZZ
     if degree_of_differential != 1 and degree != 1:
-        raise(ValueError, 'specify only one of degree_of_differential or degree, not both')
+        raise ValueError('specify only one of degree_of_differential or degree, not both')
     if degree_of_differential != 1:
         degree = degree_of_differential
     try:

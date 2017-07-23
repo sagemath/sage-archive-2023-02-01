@@ -11,7 +11,7 @@ AUTHORS:
 
 EXAMPLES:
 
-The :class:`^sage.rings.valuation.gauss_valuation.GaussValuation` is a simple example of a valuation that relies on
+The :class:`~sage.rings.valuation.gauss_valuation.GaussValuation` is a simple example of a valuation that relies on
 `\phi`-adic expansions::
 
     sage: R.<x> = QQ[]

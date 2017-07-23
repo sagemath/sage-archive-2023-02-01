@@ -237,7 +237,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         - ``f`` -- a polynomial in the domain of this valuation
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`developing_valuation.DevelopingValuation.coefficients` or ``None`` (default: ``None``); this can be
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients` or ``None`` (default: ``None``); this can be
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
 
@@ -317,7 +317,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
           result which can speed up the computation (default: not set)
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`developing_valuation.DevelopingValuation.coefficients` or ``None`` (default: ``None``); ignored
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients` or ``None`` (default: ``None``); ignored
 
         - ``valuations`` -- the valuations of ``coefficients`` or ``None``
           (default: ``None``); ignored

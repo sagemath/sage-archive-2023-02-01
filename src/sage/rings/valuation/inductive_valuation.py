@@ -3,7 +3,7 @@ r"""
 Inductive valuations on polynomial rings
 
 This module provides functionality for inductive valuations, i.e., finite
-chains of :class:`AugmentedValuation`s on top of a :class:`GaussValuation`.
+chains of :mod:`augmented_valuation augmented valuation` on top of a :class:`gauss_valuation.GaussValuation`.
 
 AUTHORS:
 
@@ -45,7 +45,7 @@ from sage.misc.abstract_method import abstract_method
 
 class InductiveValuation(DevelopingValuation):
     r"""
-    Abstract base class for iterated :class:`AugmentedValuation` on top of a
+    Abstract base class for iterated :mod:`augmented valuations <augmented_valuation>` on top of a
     :class:`GaussValuation`.
 
     EXAMPLES::

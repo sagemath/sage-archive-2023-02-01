@@ -1304,8 +1304,8 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
-            :meth:`sage.rings.integer_ring.IntegerRing.valuation`
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`IntegerRing_class.valuation() <sage.rings.integer_ring.IntegerRing_class.valuation>`
 
         """
         from sage.rings.padics.padic_valuation import pAdicValuation

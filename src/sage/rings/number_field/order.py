@@ -997,7 +997,8 @@ class Order(IntegralDomain):
 
         EXAMPLES:
 
-        ``prime`` can be an integer that is completely ramified in the number field::
+        The valuation can be specified with an integer ``prime`` that is
+        completely ramified or unramified::
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: O = K.order(2*a)
@@ -1007,21 +1008,20 @@ class Order(IntegralDomain):
             sage: GaussianIntegers().valuation(2)
             2-adic valuation
 
-        ``prime`` can be an integer that is unramified::
+        ::
 
             sage: GaussianIntegers().valuation(3)
             3-adic valuation
 
-        This is only supported if ``prime`` does not factor into
-        pairwise distinct factors::
+        A ``prime`` that factors into pairwise distinct factors, results in an error::
 
             sage: GaussianIntegers().valuation(5)
             Traceback (most recent call last):
             ...
             ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
 
-        ``prime`` can also be specified by providing a valuation on a base ring
-        that has a unique extension::
+        The valuation can also be selected by giving a valuation on the base
+        ring that extends uniquely::
 
             sage: CyclotomicField(5).ring_of_integers().valuation(ZZ.valuation(5))
             5-adic valuation
@@ -1045,8 +1045,8 @@ class Order(IntegralDomain):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
-            :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`
 
         """
         from sage.rings.padics.padic_valuation import pAdicValuation

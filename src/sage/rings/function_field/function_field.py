@@ -550,11 +550,10 @@ class FunctionField(Field):
 
         EXAMPLES::
         
-            sage: K.<x> = FunctionField(QQ)
-        
         We create a valuation that correspond to a finite rational place of a function
         field::
 
+            sage: K.<x> = FunctionField(QQ)
             sage: v = K.valuation(1); v
             (x - 1)-adic valuation
             sage: v(x)

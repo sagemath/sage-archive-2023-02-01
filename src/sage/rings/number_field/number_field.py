@@ -6488,27 +6488,27 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         EXAMPLES:
     
-        ``prime`` can be an integer that is completely ramified in ``R``::
+        The valuation can be specified with an integer ``prime`` that is
+        completely ramified in ``R``::
 
             sage: K.<a> = NumberField(x^2 + 1)
             sage: K.valuation(2)
             2-adic valuation
 
-        ``prime`` can be an integer that is unramified in ``R``::
+        It can also be unramified in ``R``::
 
             sage: K.valuation(3)
             3-adic valuation
 
-        This is only supported if ``prime`` does not factor into
-        pairwise distinct factors::
+        A ``prime`` that factors into pairwise distinct factors, results in an error::
 
             sage: K.valuation(5)
             Traceback (most recent call last):
             ...
             ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
 
-        ``prime`` can also be specified by providing a valuation on a base ring
-        that has a unique extension::
+        The valuation can also be selected by giving a valuation on the base
+        ring that extends uniquely::
 
             sage: CyclotomicField(5).valuation(ZZ.valuation(5))
             5-adic valuation
@@ -6522,7 +6522,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         For a number field which is of the form `K[x]/(G)`, you can specify a
         valuation by providing a discrete pseudo-valuation on `K[x]` which sends
-        `G` to `\infty`. This lets us specify which extension of the 5-adic
+        `G` to infinity. This lets us specify which extension of the 5-adic
         valuation we care about in the above example::
 
             sage: R.<x> = QQ[]
@@ -6539,7 +6539,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             True
 
         The valuation ``prime`` does not need to send the defining polynomial `G`
-        to `\infty`. It is sufficient if it singles out one of the valuations on
+        to infinity. It is sufficient if it singles out one of the valuations on
         the number field.  This is important if the prime only factors over the
         completion, i.e., if it is not possible to write down one of the factors
         within the number field::
@@ -6556,8 +6556,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.number_field.order.Order.valuation`,
-            :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`
+            :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+            :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`
 
         """
         from sage.rings.padics.padic_valuation import pAdicValuation

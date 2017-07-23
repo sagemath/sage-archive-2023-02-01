@@ -1086,7 +1086,7 @@ class Homset(Set_generic):
             sage: H.natural_map()
             Traceback (most recent call last):
             ...
-            TypeError: Natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined.
+            TypeError: natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined
         """
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
@@ -1109,7 +1109,7 @@ class Homset(Set_generic):
             ...
             TypeError: Identity map only defined for endomorphisms. Try natural_map() instead.
             sage: H.natural_map()
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """

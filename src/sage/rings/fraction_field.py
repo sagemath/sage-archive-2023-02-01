@@ -822,7 +822,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         Coercion map:
           From: Univariate Polynomial Ring in x over Rational Field
           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
-    
+ 
     TESTS::
 
         sage: from sage.rings.fraction_field import FractionFieldEmbedding
@@ -897,7 +897,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             sage: f = R.fraction_field().coerce_map_from(R)
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S)
-            
+ 
             sage: f == g # indirect doctest
             False
             sage: f == f
@@ -932,7 +932,7 @@ class FractionFieldEmbeddingSection(Section):
         Section map:
           From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
           To:   Univariate Polynomial Ring in x over Rational Field
-    
+ 
     TESTS::
 
         sage: from sage.rings.fraction_field import FractionFieldEmbeddingSection
@@ -941,7 +941,7 @@ class FractionFieldEmbeddingSection(Section):
         sage: TestSuite(f).run()
 
     """
-    def _call_(self, x):
+    def _call_(self, x, check=True):
         r"""
         Evaluate this map at ``x``.
 
@@ -956,12 +956,41 @@ class FractionFieldEmbeddingSection(Section):
             sage: f(1/x)
             Traceback (most recent call last):
             ...
-            ValueError: fraction must have unit denominator
+            TypeError: fraction must have unit denominator
+
+        TESTS:
+
+        Over inexact rings, we have to take the precision of the denominators
+        into account::
+
+            sage: R=ZpCR(2)
+            sage: S.<x> = R[]
+            sage: f = x/S(R(3,absprec=2))
+            sage: S(f)
+            (1 + 2 + O(2^2))*x
 
         """
-        if not x.denominator().is_unit():
-            raise ValueError("fraction must have unit denominator")
+        if self.codomain().is_exact() and x.denominator().is_one():
+           return x.numerator()
+        if check and not x.denominator().is_unit():
+            # This should probably be a ValueError.
+            # However, too much existing code is expecting this to throw a
+            # TypeError, so we decided to keep it for the time being.
+            raise TypeError("fraction must have unit denominator")
         return x.numerator() * x.denominator().inverse_of_unit()
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        r"""
+        Evaluation this map at ``x``.
+
+        INPUT:
+
+        - ``check`` -- whether or not to check
+        """
+        check = kwds.pop('check', True)
+        if args or kwds:
+            raise NotImplementedError("__call__ can not be called with additional arguments other than check=True/False")
+        return self._call_(x, check=check)
 
     def _richcmp_(self, other, op):
         r"""
@@ -973,7 +1002,7 @@ class FractionFieldEmbeddingSection(Section):
             sage: f = R.fraction_field().coerce_map_from(R).section()
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S).section()
-            
+ 
             sage: f == g # indirect doctest
             False
             sage: f == f

@@ -168,7 +168,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         r"""
         Return whether ``x`` is a valuation in this space.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: H = DiscretePseudoValuationSpace(QQ)
@@ -188,7 +188,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         r"""
         Create an element in this space from ``x``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
             sage: H = DiscretePseudoValuationSpace(QQ)
@@ -347,8 +347,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         @abstract_method
         def uniformizer(self):
             r"""
-            Return an element in :meth:`domain` which has positive valuation
-            and generates the value group of this valuation.
+            Return an element in the domain which has positive valuation and
+            generates the value group of this valuation.
 
             EXAMPLES::
 
@@ -602,7 +602,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             r"""
             Return this valuation over ``ring``.
 
-            Unlike :meth:`extension` or meth:`reduction`, this might not be
+            Unlike :meth:`extension` or :meth:`reduction`, this might not be
             completely sane mathematically. It is essentially a conversion of
             this valuation into another space of valuations.
 

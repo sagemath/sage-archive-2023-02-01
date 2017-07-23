@@ -11,7 +11,7 @@ AUTHORS:
 
 EXAMPLES:
 
-The :class:`GaussValuation` is a simple example of a valuation that relies on
+The :class:`gauss_valuation.GaussValuation` is a simple example of a valuation that relies on
 `\phi`-adic expansions::
 
     sage: R.<x> = QQ[]
@@ -29,7 +29,7 @@ performance reasons, coefficients are computed lazily::
     sage: v.coefficients(f)
 
 Another example of a :class:`DevelopingValuation` is an
-:class:`AugmentedValuation`::
+:class:`augmented_valuation.AugmentedValuation`::
 
     sage: w = v.augmentation(x^2 + 2, 3)
 
@@ -111,7 +111,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         The effective degree of `f` is the largest `i` such that the valuation
         of `f` and the valuation of `f_i\phi^i` in the development `f=\sum_j
-        f_j\phi^j` coincide (see [Mac1936II] p.497.)
+        f_j\phi^j` coincide (see [Mac1936II]_ p.497.)
 
         INPUT:
 

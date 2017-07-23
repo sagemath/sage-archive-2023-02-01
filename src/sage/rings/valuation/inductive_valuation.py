@@ -1155,7 +1155,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             ((1 + O(2^10))*x + 1 + O(2^10))^2
 
         A polynomial that is an equivalence unit, is returned as the unit part
-        of a :class:`sage.structure.factorization.Factorization`, leading to a unit
+        of a :class:`~sage.structure.factorization.Factorization`, leading to a unit
         non-minimal degree::
 
             sage: w = v.augmentation(x, 1)

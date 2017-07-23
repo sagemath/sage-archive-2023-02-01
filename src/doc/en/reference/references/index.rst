@@ -554,6 +554,10 @@ REFERENCES:
               orderings II. The parabolic analogue of Kazhdan-Lusztig
               polynomials, J. Alg. 111 (1987) 483-506.
 
+.. [DG1982] Louise Dolan and Michael Grady.
+            *Conversed charages from self-duality*,
+            Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
+
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
               two-player games.*
@@ -1379,6 +1383,10 @@ REFERENCES:
 
 .. [ONe1983] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
              (San Diego) (1983)
+
+.. [Onsager1944] Lars Onsager. *Crystal statistics. I. A two-dimensional
+                 model with an order-disorder transition*, Phys. Rev.
+                 (2) **65** (1944), pp. 117-149.
 
 .. [Or2016] \M. Orlitzky. The Lyapunov rank of an improper
             cone. Citation: Optimization Methods and Software

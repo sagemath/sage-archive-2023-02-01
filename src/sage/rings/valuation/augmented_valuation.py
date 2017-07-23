@@ -139,8 +139,8 @@ Run the test suite if the polynomial ring is not over a field::
 
 REFERENCES:
 
-Augmentations are described originally in [ML1936]_ and [ML1936']_. An overview
-can also be found in Chapter 4 of [Rüt2014]_.
+Augmentations are described originally in [Mac1936I]_ and [Mac1936II]_. An
+overview can also be found in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
@@ -1203,7 +1203,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         ALGORITHM:
 
-        We follow the algorithm given in the proof of Theorem 12.1 of [ML1936]:
+        We follow the algorithm given in the proof of Theorem 12.1 of [Mac1936]:
         If ``f`` has positive valuation, the reduction is simply zero.
         Otherwise, let `f=\sum f_i\phi^i` be the expansion of `f`, as computed
         by :meth:`coefficients`. Since the valuation is zero, the exponents `i`
@@ -1211,7 +1211,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         valuation in the value group of this valuation.
         Hence, there is an :meth:`equivalence_unit` `Q` with the same valuation
         as `\phi^\tau`. Let `Q'` be its :meth:`reciprocal_inverse`.
-        Now, rewrite each term `f_i\phi^{i\tau}=(f_iQ^i)(\phi^\tauQ^{-1})^i`;
+        Now, rewrite each term `f_i\phi^{i\tau}=(f_iQ^i)(\phi^\tau Q^{-1})^i`;
         it turns out that the second factor in this expression is a lift of the
         generator of the :meth:`residue_field`. The reduction of the first
         factor can be computed recursively.
@@ -1455,7 +1455,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         ALGORITHM:
 
-        We follow the algorithm described in Theorem 13.1 [ML1936] which, after
+        We follow the algorithm described in Theorem 13.1 [Mac1936] which, after
         a :meth:`lift` of ``F``, essentially shifts the valuations of all terms
         in the `\phi`-adic expansion up and then kills the leading coefficient.
 
@@ -1662,7 +1662,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
 
-        - ``call_error` -- whether or not to speed up the computation by
+        - ``call_error`` -- whether or not to speed up the computation by
           assuming that the result is only used to compute the valuation of
           ``f`` (default: ``False``)
 
@@ -1729,7 +1729,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           ``effective_degree`` in the :meth:`phi`-adic development can be
           safely dropped (default: ``None``)
 
-        - ``size_heuristic_bound` -- when ``force`` is not set, the expected
+        - ``size_heuristic_bound`` -- when ``force`` is not set, the expected
           factor by which the coefficients need to shrink to perform an actual
           simplification (default: 32)
 
@@ -1963,7 +1963,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
 
-        - ``call_error` -- whether or not to speed up the computation by
+        - ``call_error`` -- whether or not to speed up the computation by
           assuming that the result is only used to compute the valuation of
           ``f`` (default: ``False``)
 

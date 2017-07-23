@@ -978,7 +978,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: v.restriction(K) == K.valuation()
             True
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
             :meth:`sage.rings.number_field.order.Order.valuation`

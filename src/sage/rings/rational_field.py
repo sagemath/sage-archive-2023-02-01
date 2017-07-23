@@ -1293,7 +1293,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     def valuation(self, p):
         r"""
-        Return the discrete valuation with uniformizer `p`.
+        Return the discrete valuation with uniformizer ``p``.
 
         EXAMPLES::
 
@@ -1302,7 +1302,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: v(1/3)
             -1
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
             :meth:`sage.rings.integer_ring.IntegerRing.valuation`

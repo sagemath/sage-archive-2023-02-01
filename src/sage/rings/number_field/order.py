@@ -993,7 +993,7 @@ class Order(IntegralDomain):
 
     def valuation(self, p):
         r"""
-        Return the `p`-adic valuation on this order.
+        Return the ``p``-adic valuation on this order.
 
         EXAMPLES:
 
@@ -1035,7 +1035,7 @@ class Order(IntegralDomain):
 
         If the fraction field is of the form `K[x]/(G)`, you can specify a
         valuation by providing a discrete pseudo-valuation on `K[x]` which
-        sends `G` to `\infty`::
+        sends `G` to infinity::
 
             sage: R.<x> = QQ[]
             sage: v = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
@@ -1043,7 +1043,7 @@ class Order(IntegralDomain):
             sage: v == w
             False
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
             :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`

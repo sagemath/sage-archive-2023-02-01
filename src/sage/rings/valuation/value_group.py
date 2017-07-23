@@ -2,7 +2,7 @@
 r"""
 Value groups of discrete valuations
 
-This file defines additive sub(semi-)groups of `\Q` and related structures.
+This file defines additive sub(semi-)groups of `\QQ` and related structures.
 
 AUTHORS:
 

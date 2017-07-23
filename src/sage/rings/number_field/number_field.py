@@ -6494,7 +6494,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.valuation(2)
             2-adic valuation
 
-        ``prime`` can be an integer that is unramified in ``R``:
+        ``prime`` can be an integer that is unramified in ``R``::
 
             sage: K.valuation(3)
             3-adic valuation
@@ -6554,7 +6554,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.valuation(K.fractional_ideal(a + 1))
             2-adic valuation
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.rings.number_field.order.Order.valuation`,
             :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`

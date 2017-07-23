@@ -111,7 +111,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         The effective degree of `f` is the largest `i` such that the valuation
         of `f` and the valuation of `f_i\phi^i` in the development `f=\sum_j
-        f_j\phi^j` coincide (see [ML1936'] p.497.)
+        f_j\phi^j` coincide (see [Mac1936II] p.497.)
 
         INPUT:
 
@@ -177,7 +177,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         OUTPUT:
 
-        An iterator `[f_0,f_1,\dots]` of polynomials in the domain of this
+        An iterator `f_0, f_1, \dots, f_n` of polynomials in the domain of this
         valuation such that `f=\sum_i f_i\phi^i`
 
         EXAMPLES::
@@ -228,7 +228,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         r"""
         Return the newton polygon of the `\phi`-adic development of ``f``.
 
-        INPUT::
+        INPUT:
 
         - ``f`` -- a polynomial in the domain of this valuation
 

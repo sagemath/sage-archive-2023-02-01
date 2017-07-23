@@ -21,7 +21,7 @@ i.e., a valuation that was created from a Gauss valuation in a finite number of
 augmentation steps::
 
     sage: w = v.augmentation(x, 1)
-    sage: w = w.augmentation(x^2 + 2, 3)
+    sage: w = w.augmentation(x^2 + 2*x + 4, 3)
 
 REFERENCES:
 

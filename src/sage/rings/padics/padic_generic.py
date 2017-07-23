@@ -108,7 +108,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             print_mode = {}
         elif isinstance(print_mode, str):
             print_mode = {'mode': print_mode}
-        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec']:
             if option not in print_mode:
                 print_mode[option] = self._printer.dict()[option]
         return print_mode
@@ -172,14 +172,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         rx = other.prime()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
-
-        try:
-            lx = self.halting_parameter()
-            rx = other.halting_parameter()
-            if lx != rx:
-                return richcmp_not_equal(lx, rx, op)
-        except AttributeError:
-            pass
 
         lx = self.precision_cap()
         rx = other.precision_cap()
@@ -365,6 +357,84 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return [self(i) for i in self.residue_class_field()]
 
+    def fraction_field(self, print_mode=None):
+        r"""
+        Returns the fraction field of this ring or field.
+
+        For `\ZZ_p`, this is the `p`-adic field with the same options,
+        and for extensions, it is just the extension of the fraction
+        field of the base determined by the same polynomial.
+
+        The fraction field of a capped absolute ring is capped relative,
+        and that of a fixed modulus ring is floating point.
+
+        INPUT:
+
+        - ``print_mode`` -- a dictionary containing print options.
+          Defaults to the same options as this ring.
+
+        OUTPUT:
+
+        - the fraction field of this ring.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, print_mode='digits')
+            sage: K = R.fraction_field(); repr(K(1/3))[3:]
+            '31313131313131313132'
+            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
+            '3132'
+            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
+            sage: U.fraction_field()
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
+            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            False
+        """
+        if self.is_field() and print_mode is None:
+            return self
+        if print_mode is None:
+            return self.change(field=True)
+        else:
+            return self.change(field=True, **print_mode)
+
+    def integer_ring(self, print_mode=None):
+        r"""
+        Returns the ring of integers of this ring or field.
+
+        For `\QQ_p`, this is the `p`-adic ring with the same options,
+        and for extensions, it is just the extension of the ring
+        of integers of the base determined by the same polynomial.
+
+        INPUT:
+
+        - ``print_mode`` -- a dictionary containing print options.
+          Defaults to the same options as this ring.
+
+        OUTPUT:
+
+        - the ring of elements of this field with nonnegative valuation.
+
+        EXAMPLES::
+
+            sage: K = Qp(5, print_mode='digits')
+            sage: R = K.integer_ring(); repr(R(1/3))[3:]
+            '31313131313131313132'
+            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
+            '3132'
+            sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
+            sage: U.integer_ring()
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
+            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            False
+        """
+        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
+        if not self.is_field() and print_mode is None:
+            return self
+        if print_mode is None:
+            return self.change(field=False)
+        else:
+            return self.change(field=False, **print_mode)
+
     def teichmuller(self, x, prec = None):
         r"""
         Returns the teichmuller representative of x.
@@ -473,7 +543,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 #         """
 #         raise NotImplementedError
 
-    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, implementation='FLINT', **kwds):
+    def extension(self, modulus, prec = None, names = None, print_mode = None, implementation='FLINT', **kwds):
         """
         Create an extension of this p-adic ring.
 
@@ -482,12 +552,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k = Qp(5)
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
-            Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + (O(5^21))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21))
+            Eisenstein Extension in w defined by x^2 - 5 with capped relative precision 40 over 5-adic Field
 
             sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
             sage: L = Qp(19).extension(F, names='a')
             sage: L
-            Unramified Extension of 19-adic Field with capped relative precision 20 in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + (1 + O(19^20))
+            Unramified Extension in a defined by x^2 + 8751674996211859573806383*x + 1 with capped relative precision 20 over 19-adic Field
         """
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
@@ -512,7 +582,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                         print_mode[option] = kwds[option]
                     else:
                         print_mode[option] = self._printer.dict()[option]
-        return ExtensionFactory(base=self, premodulus=modulus, prec=prec, halt=halt, names=names, check = True, implementation=implementation, **print_mode)
+        return ExtensionFactory(base=self, modulus=modulus, prec=prec, names=names, check = True, implementation=implementation, **print_mode)
 
     def _test_add(self, **options):
         """
@@ -894,7 +964,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
     def frobenius_endomorphism(self, n=1):
         """
         INPUT:
-                     
+
         -  ``n`` -- an integer (default: 1)
 
         OUTPUT:
@@ -906,21 +976,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: K.<a> = Qq(3^5)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: Frob(a) == a.frobenius()
             True
 
-        We can specify a power:: 
+        We can specify a power::
 
             sage: K.frobenius_endomorphism(2)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^(3^2) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(3^2) on the residue field
 
         The result is simplified if possible::
 
             sage: K.frobenius_endomorphism(6)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: K.frobenius_endomorphism(5)
-            Identity endomorphism of Unramified Extension of 3-adic Field ...
+            Identity endomorphism of Unramified Extension ...
 
         Comparisons work::
 

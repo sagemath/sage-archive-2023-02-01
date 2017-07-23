@@ -627,10 +627,13 @@ class FunctionField(Field):
             sage: R.<w> = K[]
             sage: L.<w> = K.extension(w^3 - t)
             sage: N.<x> = FunctionField(L)
-            sage: w = v.extension(N)
-            sage: w(x^3 - t)
+            sage: w = v.extension(N) # missing factorization, :trac:`16572`
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: w(x^3 - t) # not tested
             1
-            sage: w(x - w)
+            sage: w(x - w) # not tested
             1/3
 
         There are several ways to create valuations on extensions of rational

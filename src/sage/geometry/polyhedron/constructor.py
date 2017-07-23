@@ -426,17 +426,18 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     TESTS:
 
-    Check that giving ``float`` and ``int`` input gets converted to `\RDF`,
-    see :trac:`22605`::
+    Check that giving ``float`` input gets converted to ``RDF`` (see :trac:`22605`)::
 
         sage: f = float(1.1)
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
+
+    Check that giving ``int`` input gets converted to ``ZZ`` (see :trac:`22605`)::
+
         sage: Polyhedron(vertices=[[int(42)]])
         A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
 
-    Check that giving ``Fraction`` input gets converted to `\QQ`, see
-    ticket :trac:`22605`::
+    Check that giving ``Fraction`` input gets converted to ``QQ`` (see :trac:`22605`)::
 
         sage: from fractions import Fraction
         sage: f = Fraction(int(6), int(8))

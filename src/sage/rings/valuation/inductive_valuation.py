@@ -45,7 +45,7 @@ from sage.misc.abstract_method import abstract_method
 
 class InductiveValuation(DevelopingValuation):
     r"""
-    Abstract base class for iterated :mod:`sage.rings.valuation.augmented_valuation <augmented valuations>` on top of a :class:`~sage.rings.valuation.gauss_valuation.GaussValuation`.
+    Abstract base class for iterated :mod:`augmented valuations <sage.rings.valuation.augmented_valuation>` on top of a :class:`~sage.rings.valuation.gauss_valuation.GaussValuation`.
 
     EXAMPLES::
 

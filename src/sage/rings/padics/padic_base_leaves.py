@@ -281,6 +281,26 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: Zp(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring with capped relative precision 20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
+
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
     r"""
     An implementation of the `p`-adic integers with capped absolute precision.
@@ -359,6 +379,26 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: ZpCA(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring with capped absolute precision 20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
+
 class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric):
     r"""
     An implementation of the `p`-adic integers with floating point
@@ -432,6 +472,26 @@ class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric
                 return True
             elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
                 return True
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: ZpFP(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring with floating precision 20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
@@ -509,6 +569,26 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             elif (R.precision_cap() == self.precision_cap() and
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: ZpFM(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring of fixed modulus 7^20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
     def fraction_field(self, print_mode = None):
         r"""
@@ -619,6 +699,26 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: Qp(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Field with capped relative precision 20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
+
     def random_element(self, algorithm='default'):
         r"""
         Returns a random element of ``self``, optionally using the ``algorithm``
@@ -719,3 +819,23 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
                 return True
             elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
                 return True
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: QpFP(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Field with floating precision 20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)

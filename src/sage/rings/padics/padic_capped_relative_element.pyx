@@ -311,6 +311,9 @@ cdef class pAdicCappedRelativeElement(CRElement):
             ...
             PrecisionError: not enough precision known in order to compute residue.
 
+            sage: a.residue(field=True).parent()
+            Finite Field of size 7
+
         .. SEEALSO::
 
             :meth:`_mod_`

@@ -238,7 +238,7 @@ cdef class pAdicFloatingPointElement(FPElement):
 
         INPUT:
 
-        - ``absprec`` - a non-negative integer (default: ``1``)
+        - ``absprec`` -- a non-negative integer (default: ``1``)
 
         - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
 
@@ -283,6 +283,8 @@ cdef class pAdicFloatingPointElement(FPElement):
             ...
             PrecisionError: not enough precision known in order to compute residue.
 
+            sage: a.residue(field=True).parent()
+            Finite Field of size 7
         """
         cdef Integer selfvalue, modulus
         cdef long aprec

@@ -171,7 +171,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
         INPUT:
 
-        - ``absprec`` - a non-negative integer (default: 1)
+        - ``absprec`` -- a non-negative integer (default: 1)
 
         - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
 
@@ -217,6 +217,9 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision known in order to compute residue.
+
+            sage: a.residue(field=True).parent()
+            Finite Field of size 7
 
         .. SEEALSO::
 

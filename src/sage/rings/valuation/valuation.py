@@ -1054,7 +1054,7 @@ class MacLaneApproximantNode(object):
 
     TESTS::
 
-        sage: v = pAdicValuation(ZZ, 3)
+        sage: v = ZZ.valuation(3)
         sage: v.extension(GaussianIntegers()) # indirect doctest
 
     """
@@ -1063,7 +1063,7 @@ class MacLaneApproximantNode(object):
         TESTS::
 
             sage: from sage.rings.valuation.valuation import MacLaneApproximantNode
-            sage: node = MacLaneApproximantNode(pAdicValuation(QQ, 2), None, 1, None, None, None)
+            sage: node = MacLaneApproximantNode(QQ.valuation(2), None, 1, None, None, None)
             sage: TestSuite(node).run()
 
         """

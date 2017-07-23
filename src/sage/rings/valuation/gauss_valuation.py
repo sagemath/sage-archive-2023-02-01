@@ -124,7 +124,7 @@ class GaussValuationFactory(UniqueFactory):
         parent = DiscretePseudoValuationSpace(domain)
         return parent.__make_element_class__(GaussValuation_generic)(parent, v)
 
-GaussValuation = GaussValuationFactory("GaussValuation")
+GaussValuation = GaussValuationFactory("sage.rings.valuation.gauss_valuation.GaussValuation")
 
 class GaussValuation_generic(NonFinalInductiveValuation):
     """

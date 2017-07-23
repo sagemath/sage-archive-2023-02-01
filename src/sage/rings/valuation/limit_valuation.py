@@ -149,7 +149,7 @@ class LimitValuationFactory(UniqueFactory):
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         return parent.__make_element_class__(MacLaneLimitValuation)(parent, base_valuation, G)
 
-LimitValuation = LimitValuationFactory("LimitValuation")
+LimitValuation = LimitValuationFactory("sage.rings.valuation.limit_valuation.LimitValuation")
 
 class LimitValuation_generic(DiscretePseudoValuation):
     r"""

@@ -403,6 +403,6 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
             return True
         return False
 
-TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscretePseudoValuationSpace, "TrivialValuation")
-TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "TrivialPseudoValuation")
+TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscretePseudoValuationSpace, "sage.rings.valuation.trivial_valuation.TrivialValuation")
+TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "sage.rings.valuation.trivial_valuation.TrivialPseudoValuation")
 

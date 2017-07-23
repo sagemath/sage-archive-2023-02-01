@@ -83,7 +83,7 @@ class ScaledValuationFactory(UniqueFactory):
         return parent.__make_element_class__(ScaledValuation_generic)(parent, base, s)
 
 
-ScaledValuation = ScaledValuationFactory("ScaledValuation")
+ScaledValuation = ScaledValuationFactory("sage.rings.valuation.scaled_valuation.ScaledValuation")
 
 class ScaledValuation_generic(DiscreteValuation):
     r"""

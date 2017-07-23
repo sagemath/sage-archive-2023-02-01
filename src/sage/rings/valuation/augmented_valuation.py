@@ -776,7 +776,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: w._relative_size(x^2 + x + 1)
             1
             sage: w._relative_size(1048576*x^2 + 1048576*x + 1048576)
-            21
+            11
 
         """
         return self._base_valuation._relative_size(f)

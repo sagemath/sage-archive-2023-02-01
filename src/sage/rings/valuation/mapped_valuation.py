@@ -434,7 +434,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: v = valuations.pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
             sage: w._relative_size(1024*t + 1024)
-            11
+            6
 
         """
         return self._base_valuation._relative_size(self._to_base_domain(x))

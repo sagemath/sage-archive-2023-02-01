@@ -840,7 +840,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u._relative_size(1024*t + 1024)
-            11
+            6
 
         """
         return self._initial_approximation._relative_size(f)

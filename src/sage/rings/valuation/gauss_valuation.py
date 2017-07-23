@@ -712,7 +712,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, QQ.valuation(2))
             sage: v._relative_size(x + 1024)
-            11
+            6
 
         For performance reasons, only the constant coefficient is considered.
         (In common appplications, the constant coefficient shows the most

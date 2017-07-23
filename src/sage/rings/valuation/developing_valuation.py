@@ -29,7 +29,7 @@ performance reasons, coefficients are computed lazily::
     sage: v.coefficients(f)
 
 Another example of a :class:`DevelopingValuation` is an :mod:`augmented
-valuation <augmented_valuation>`::
+valuation <sage.rings.valuation.augmented_valuation>`::
 
     sage: w = v.augmentation(x^2 + 2, 3)
 

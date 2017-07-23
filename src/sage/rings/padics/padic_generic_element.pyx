@@ -27,10 +27,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 
+from cysignals.memory cimport sig_free, sig_malloc
 from sage.ext.stdsage cimport PY_NEW
+
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si, mpz_fits_slong_p, mpz_get_si,mpz_mul_si, mpz_mul, mpz_set
 from sage.libs.gmp.mpq cimport mpq_init, mpq_set_si, mpq_clear, mpq_add, mpq_set, mpq_canonicalize, mpq_denref, mpq_numref
@@ -48,17 +48,12 @@ cdef long floorlogp(long x, long b):
     """
     a fast way to find the floor of the log base b of x
     """
-    cdef long t
-    cdef long n
-    if x < b:
-        return 0
-    else:        
-        t = b
-        n = 0
-        while t <= x:
-            t = t * b
-            n += 1
-        return n
+    cdef long t = b
+    cdef long n = 0
+    while t <= x:
+        t *= b
+        n += 1
+    return n
 
 
 cdef class pAdicGenericElement(LocalGenericElement):
@@ -649,13 +644,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
         .. [Conr] K. Conrad, *Artin-Hasse-Type Series and Roots of Unity*
            http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/AHrootofunity.pdf
         """
-        if self.valuation() < 1:
+        if self.valuation_c() < 1:
             raise ValueError("series does not converge")
 
         cdef long hi, q, qpow, r, s
-        cdef Rational c = PY_NEW(Rational)
+        cdef Rational c = Rational.__new__(Rational)
         cdef mpq_t *a
-        cdef sage.rings.integer.Integer p_as_Integer
+        cdef Integer p_as_Integer
         from sage.rings.integer_ring import ZZ
 
         if prec == 0:
@@ -669,7 +664,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         for r in range(prec):
             mpq_init(a[r])
 
-        p_as_Integer = self.parent().prime()
+        p_as_Integer = self._parent.prime()
         if not mpz_fits_slong_p(p_as_Integer.value):
             q = prec + 1
             # if your prime is really big, it does not come up in the

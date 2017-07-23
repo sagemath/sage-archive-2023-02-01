@@ -25,8 +25,8 @@ augmentation steps::
 
 REFERENCES:
 
-Inductive valuations are originally discussed in [Mac1936I]_ and [Mac1936II]. An
-introduction is also given in Chapter 4 of [Rüt2014]_.
+Inductive valuations are originally discussed in [Mac1936I]_ and [Mac1936II]_.
+An introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
 #*****************************************************************************
@@ -61,7 +61,7 @@ class InductiveValuation(DevelopingValuation):
     def is_equivalence_unit(self, f, valuations=None):
         r"""
         Return whether ``f`` is an equivalence unit, i.e., an element of
-        :meth:`effective_degree` zero (see [Mac1936II] p.497.)
+        :meth:`effective_degree` zero (see [Mac1936II]_ p.497.)
 
         INPUT:
 
@@ -91,7 +91,7 @@ class InductiveValuation(DevelopingValuation):
         Return an equivalence reciprocal of ``f``.
 
         An equivalence reciprocal of `f` is a polynomial `h` such that `f\cdot
-        h` is equivalent to 1 modulo this valuation (see [Mac1936II] p.497.)
+        h` is equivalent to 1 modulo this valuation (see [Mac1936II]_ p.497.)
 
         INPUT:
 
@@ -921,7 +921,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ALGORITHM:
 
-        Based on Theorem 9.4 of [Mac1936II].
+        Based on Theorem 9.4 of [Mac1936II]_.
 
         EXAMPLES::
 
@@ -1128,7 +1128,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ALGORITHM:
 
-        We use the algorithm described in Theorem 4.4 of [Mac1936II]. After
+        We use the algorithm described in Theorem 4.4 of [Mac1936II]_. After
         removing all factors `\phi` from a polynomial `f`, there is an
         equivalence unit `R` such that `Rf` has valuation zero. Now `Rf` can be
         factored as `\prod_i \alpha_i` over the :meth:`residue_field`. Lifting
@@ -1279,7 +1279,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ALGORITHM:
 
-        We use the algorithm described in the proof of Lemma 4.1 of [Mac1936II].
+        We use the algorithm described in the proof of Lemma 4.1 of [Mac1936II]_.
         In the expansion `f=\sum_i f_i\phi^i` take `e=f_i` for the largest `i`
         with `f_i\phi^i` minimal (see :meth:`effective_degree`).
         Let `h` be the :meth:`equivalence_reciprocal` of `e` and take `a` given

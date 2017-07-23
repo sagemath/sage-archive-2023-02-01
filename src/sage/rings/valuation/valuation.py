@@ -996,7 +996,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         REFERENCES:
 
-        The underlying algorithm is described in [Mac1936II]_and thoroughly
+        The underlying algorithm is described in [Mac1936II]_ and thoroughly
         analyzed in [GMN2008]_.
 
         """

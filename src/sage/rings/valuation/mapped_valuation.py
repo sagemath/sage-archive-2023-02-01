@@ -285,7 +285,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             tester.assertEqual(x, self._from_base_domain(self._to_base_domain(x)))
             # note that the converse might not be true
 
-    def _test_to_from_base_domain(self, **options):
+    def _test_to_from_base_residue_ring(self, **options):
         r"""
         Check the correctness of :meth:`to_base_residue_ring` and
         :meth:`from_base_residue_ring`.

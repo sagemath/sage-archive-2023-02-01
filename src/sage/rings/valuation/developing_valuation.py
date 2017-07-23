@@ -22,20 +22,23 @@ polynomial::
 
     sage: f = x^2 + 2*x + 2
     sage: list(v.coefficients(f))
+    [2, 2, 1]
 
 Often only the first few coefficients are necessary in computations, so for
 performance reasons, coefficients are computed lazily::
 
     sage: v.coefficients(f)
+    <generator object coefficients at 0x...>
 
 Another example of a :class:`DevelopingValuation` is an :mod:`augmented
 valuation <sage.rings.valuation.augmented_valuation>`::
 
-    sage: w = v.augmentation(x^2 + 2, 3)
+    sage: w = v.augmentation(x^2 + x + 1, 3)
 
-Here, the expansion lists the remainders of repeated division by `x^2 + 2`::
+Here, the expansion lists the remainders of repeated division by `x^2 + x + 1`::
 
     sage: list(w.coefficients(f))
+    [x + 1, 1]
 
 """
 #*****************************************************************************

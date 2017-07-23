@@ -718,14 +718,14 @@ class pAdicValuation_base(DiscreteValuation):
         domain_fraction_field = _fraction_field(self.domain())
         if domain_fraction_field is not self.domain():
             if domain_fraction_field.is_subring(ring):
-                return domain_fraction_field.valuation(self).extensions(ring)
+                return pAdicValuation(domain_fraction_field, self).extensions(ring)
         if self.domain().is_subring(ring):
             from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
             if is_PolynomialQuotientRing(ring):
                 if is_PolynomialQuotientRing(self.domain()):
                     if self.domain().modulus() == ring.modulus():
                         base_extensions = self._base_valuation.extensions(self._base_valuation.domain().change_ring(self._base_valuation.domain().base_ring().fraction_field()))
-                        return [ring.valuation(base._initial_approximation) for base in base_extensions]
+                        return [pAdicValuation(ring, base._initial_approximation) for base in base_extensions]
                 if ring.base_ring() is self.domain():
                     from sage.categories.all import IntegralDomains
                     if ring in IntegralDomains():

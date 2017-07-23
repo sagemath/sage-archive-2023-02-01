@@ -78,7 +78,7 @@ from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
-from sage.structure.richcmp import richcmp_not_equal, op_EQ, op_NE
+from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields
@@ -904,13 +904,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             True
 
         """
-        if isinstance(other, FractionFieldEmbedding) and other.domain() is self.domain() and other.codomain() is self.codomain():
-            if op == op_EQ:
-                return True
-            if op == op_NE:
-                return False
-        else:
-            return richcmp_not_equal(self, other, op)
+        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
 
     def __hash__(self):
         r"""
@@ -992,6 +986,14 @@ class FractionFieldEmbeddingSection(Section):
         INPUT:
 
         - ``check`` -- whether or not to check
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K = R.fraction_field()
+            sage: R(K.gen(), check=True)
+            x
+
         """
         check = kwds.pop('check', True)
         if args or kwds:
@@ -1015,13 +1017,7 @@ class FractionFieldEmbeddingSection(Section):
             True
 
         """
-        if isinstance(other, FractionFieldEmbeddingSection) and other.domain() is self.domain() and other.codomain() is self.codomain():
-            if op == op_EQ:
-                return True
-            if op == op_NE:
-                return False
-        else:
-            return richcmp_not_equal(self, other, op)
+        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
 
     def __hash__(self):
         r"""

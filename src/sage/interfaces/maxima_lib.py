@@ -86,14 +86,17 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
 
 from sage.symbolic.ring import SR
 
 from sage.libs.ecl import EclObject, ecl_eval
 
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
-  MaximaAbstractElement, MaximaAbstractFunctionElement,
-  MaximaAbstractElementFunction)
+    MaximaAbstractElement, MaximaAbstractFunctionElement,
+    MaximaAbstractElementFunction)
+from sage.docs.instancedoc import instancedoc
+
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
@@ -230,6 +233,8 @@ cadadr=EclObject("CADADR")
 max_integrate=EclObject("$INTEGRATE")
 max_sum=EclObject("$SUM")
 max_simplify_sum=EclObject("$SIMPLIFY_SUM")
+max_prod=EclObject("$PRODUCT")
+max_simplify_prod=EclObject("$SIMPLIFY_PRODUCT")
 max_ratsimp=EclObject("$RATSIMP")
 max_limit=EclObject("$LIMIT")
 max_tlimit=EclObject("$TLIMIT")
@@ -500,7 +505,7 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib.get('xxxxx')
             '2'
         """
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         self.eval(cmd)
@@ -615,7 +620,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaLibFunction
 
@@ -647,7 +652,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_element_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaLibFunctionElement
 
@@ -896,6 +901,32 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
+    def sr_prod(self,*args):
+        """
+        Helper function to wrap calculus use of Maxima's product.
+
+        TESTS::
+
+            sage: from sage.calculus.calculus import symbolic_product
+            sage: _ = var('n')
+            sage: symbolic_product(x,x,1,n)
+            factorial(n)
+            sage: symbolic_product(2*x,x,1,n)
+            2^n*factorial(n)
+
+        """
+        try:
+            return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));
+        except RuntimeError as error:
+            s = str(error)
+            if "divergent" in s:
+                raise ValueError("Product is divergent.")
+            elif "Is" in s: # Maxima asked for a condition
+                self._missing_assumption(s)
+            else:
+                raise
+
+
     def sr_limit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's limits.
@@ -1032,6 +1063,8 @@ def is_MaximaLibElement(x):
     """
     return isinstance(x, MaximaLibElement)
 
+
+@instancedoc
 class MaximaLibElement(MaximaAbstractElement):
     r"""
     Element of Maxima through library interface.
@@ -1134,14 +1167,10 @@ class MaximaLibElement(MaximaAbstractElement):
             return s
 
 
-class MaximaLibFunctionElement(MaximaAbstractFunctionElement):
-    pass
+MaximaLibFunctionElement = MaximaAbstractFunctionElement
+MaximaLibFunction = MaximaAbstractFunction
 
-
-class MaximaLibFunction(MaximaAbstractFunction):
-    pass
-
-
+@instancedoc
 class MaximaLibElementFunction(MaximaLibElement, MaximaAbstractElementFunction):
     pass
 
@@ -1208,7 +1237,7 @@ sage_op_dict = {
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
-    sage.functions.other.erf : "%ERF",
+    sage.functions.error.erf : "%ERF",
     sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary

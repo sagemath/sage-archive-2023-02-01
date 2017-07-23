@@ -55,7 +55,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
            :widths: 30, 70
            :delim: @
         <BLANKLINE>
-           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ The Petersen Graph is a named graph that consists of 10 vertices...
+           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ Returns the Petersen Graph.
 
     The table of a module::
 

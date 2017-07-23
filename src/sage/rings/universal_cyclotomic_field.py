@@ -156,7 +156,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
-from sage.structure.sage_object import rich_to_bool
+from sage.structure.richcmp import rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, parent
 from sage.structure.coerce import py_scalar_to_element
@@ -346,8 +346,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if parent(self) is not parent(other):
-            from sage.structure.element import get_coercion_model
-            cm = get_coercion_model()
+            from sage.structure.element import coercion_model as cm
             try:
                 self, other = cm.canonical_coercion(self, other)
             except TypeError:

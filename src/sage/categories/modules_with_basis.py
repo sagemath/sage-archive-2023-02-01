@@ -195,7 +195,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         """
         return self.base_ring().is_field()
 
-    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis', at_startup=True)
     Filtered = LazyImport('sage.categories.filtered_modules_with_basis', 'FilteredModulesWithBasis')
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
     Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')
@@ -863,6 +863,24 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 return Infinity
             return self.base_ring().cardinality() ** self.dimension()
 
+        def is_finite(self):
+            r"""
+            Return whether ``self`` is finite.
+
+            This is true if and only if ``self.basis().keys()`` and
+            ``self.base_ring()`` are both finite.
+
+            EXAMPLES::
+
+                sage: GroupAlgebra(SymmetricGroup(2), IntegerModRing(10)).is_finite()
+                True
+                sage: GroupAlgebra(SymmetricGroup(2)).is_finite()
+                False
+                sage: GroupAlgebra(AbelianGroup(1), IntegerModRing(10)).is_finite()
+                False
+            """
+            return (self.base_ring().is_finite() and self.group().is_finite())
+
         def monomial(self, i):
             """
             Return the basis element indexed by ``i``.
@@ -1104,6 +1122,97 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             mc = x.monomial_coefficients(copy=False)
             return self.linear_combination( (on_basis(key), coeff)
                                             for key, coeff in six.iteritems(mc) )
+
+        def dimension(self):
+            """
+            Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: A.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: A.dimension()
+                +Infinity
+            """
+            try:
+                return self.basis().cardinality()
+            except (AttributeError, TypeError):
+                from sage.rings.integer_ring import ZZ
+                return ZZ(len(self.basis()))
+
+        def _from_dict(self, d, coerce=True, remove_zeros=True):
+            """
+            Construct an element of ``self`` from the dictionary ``d``.
+
+            INPUT:
+
+            - ``coerce`` -- boolean; coerce the coefficients to the base ring
+            - ``remove_zeroes`` -- boolean; remove zeros from the dictionary
+
+            EXAMPLES::
+
+                sage: A.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: K = A.basis().keys()
+                sage: d = {K[0]: 3, K[12]: -4/3}
+                sage: A._from_dict(d)
+                -4/3*dx^2 + 3
+
+                sage: R.<x,y> = QQ[]
+                sage: d = {K[0]: y, K[12]: -4/3}
+                sage: A._from_dict(d, coerce=False)
+                -4/3*dx^2 + y
+                sage: A._from_dict(d, coerce=True)
+                Traceback (most recent call last):
+                ...
+                TypeError: not a constant polynomial
+            """
+            R = self.base_ring()
+            B = self.basis()
+            if coerce:
+                zero = R.zero()
+                temp = {}
+                if remove_zeros:
+                    for k in d:
+                        y = R(d[k])
+                        if y != zero:
+                            temp[k] = y
+                else:
+                    for k in d:
+                        temp[k] = R(d[k])
+                return self.sum(temp[i] * B[i] for i in temp)
+            if remove_zeros:
+                return self.sum(d[i] * B[i] for i in d if d[i] != 0)
+            return self.sum(d[i] * B[i] for i in d)
+
+        def random_element(self, n=2):
+            r"""
+            Return a 'random' element of ``self``.
+
+            INPUT:
+
+            - ``n`` -- integer (default: 2); number of summands
+
+            ALGORITHM:
+
+            Return a sum of ``n`` terms, each of which is formed by
+            multiplying a random element of the base ring by a random
+            element of the group.
+
+            EXAMPLES::
+
+                sage: DihedralGroup(6).algebra(QQ).random_element()
+                -1/95*() - 1/2*(1,4)(2,5)(3,6)
+                sage: SU(2, 13).algebra(QQ).random_element(1)
+                1/2*[       3        0]
+                [11*a + 1        9]
+                sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
+                2*B[[2, 1, 1]] + B[[2, 2]]
+            """
+            indices = self.basis().keys()
+            a = self(0)
+            for i in range(n):
+                a += self.term(indices.random_element(),
+                               self.base_ring().random_element())
+            return a
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in

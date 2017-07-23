@@ -179,24 +179,24 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The classical bases
 
-    In addition to the power sum basis, the other classical bases of the
-    symmetric function algebra are the elementary, complete homogeneous,
-    monomial, and Schur bases.  These can be defined as follows::
+    In addition to the power sum basis, other classical bases of the
+    symmetric function algebra include the elementary, complete
+    homogeneous, monomial, and Schur bases::
 
         sage: e = Sym.elementary()
         sage: h = Sym.homogeneous()
         sage: m = Sym.monomial()
         sage: s = Sym.schur()
 
-    These can be defined all at once with the single command
-    ::
+    These and others can be defined all at once with the single command::
 
         sage: Sym.inject_shorthands()
-        doctest:...: RuntimeWarning: redefining global value `h`
-        doctest:...: RuntimeWarning: redefining global value `s`
-        doctest:...: RuntimeWarning: redefining global value `e`
-        doctest:...: RuntimeWarning: redefining global value `m`
-        doctest:...: RuntimeWarning: redefining global value `p`
+        Defining e as shorthand for Symmetric Functions over Rational Field in the elementary basis
+        Defining f as shorthand for Symmetric Functions over Rational Field in the forgotten basis
+        Defining h as shorthand for Symmetric Functions over Rational Field in the homogeneous basis
+        Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
+        Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
+        Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
 
     We can then do conversions from one basis to another::
 
@@ -1370,50 +1370,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         else:
             morphism.codomain().register_coercion(morphism)
 
-    _shorthands = set(['e', 'h', 'm', 'p', 's'])
-
-    def inject_shorthands(self, shorthands = _shorthands):
-        """
-        Imports standard shorthands into the global namespace
-
-        INPUT:
-
-        - ``shorthands`` -- a list (or iterable) of strings (default: ['e', 'h', 'm', 'p', 's'])
-
-        EXAMPLES::
-
-            sage: S = SymmetricFunctions(ZZ)
-            sage: S.inject_shorthands()
-            sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
-            s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
-            sage: e
-            Symmetric Functions over Integer Ring in the elementary basis
-            sage: p
-            Symmetric Functions over Integer Ring in the powersum basis
-            sage: s
-            Symmetric Functions over Integer Ring in the Schur basis
-
-            sage: e == S.e(), h == S.h(), m == S.m(), p == S.p(), s == S.s()
-            (True, True, True, True, True)
-
-        One can also just import a subset of the shorthands::
-
-            sage: S = SymmetricFunctions(QQ)
-            sage: S.inject_shorthands(['p', 's'])
-            sage: p
-            Symmetric Functions over Rational Field in the powersum basis
-            sage: s
-            Symmetric Functions over Rational Field in the Schur basis
-
-        Note that ``e`` is left unchanged::
-
-            sage: e
-            Symmetric Functions over Integer Ring in the elementary basis
-        """
-        from sage.misc.misc import inject_variable
-        for shorthand in shorthands:
-            assert shorthand in self._shorthands
-            inject_variable(shorthand, getattr(self, shorthand)())
+    _shorthands = ['e', 'f', 'h', 'm', 'p', 's']
+    _shorthands_all = sorted(_shorthands + ['ht', 'o', 'sp', 'st', 'w'])
 
     def __init_extra__(self):
         """

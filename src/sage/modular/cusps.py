@@ -28,13 +28,14 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import integer_types
 
 from sage.rings.all import Rational, Integer, ZZ, QQ
 from sage.rings.infinity import is_Infinite, Infinity
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix
@@ -66,9 +67,9 @@ class Cusps_class(ParentWithBase):
         """
         ParentWithBase.__init__(self, self)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Return equality only if right is the set of cusps.
+        Return equality only if ``right`` is the set of cusps.
 
         EXAMPLES::
 
@@ -77,7 +78,20 @@ class Cusps_class(ParentWithBase):
             sage: Cusps == QQ
             False
         """
-        return cmp(type(self), type(right))
+        return isinstance(right, Cusps_class)
+
+    def __ne__(self, right):
+        """
+        Check that ``self`` is not equal to ``right``.
+
+        EXAMPLES::
+
+            sage: Cusps != Cusps
+            False
+            sage: Cusps != QQ
+            True
+        """
+        return not (self == right)
 
     def _repr_(self):
         """
@@ -161,16 +175,15 @@ class Cusps_class(ParentWithBase):
         """
         Return the zero cusp.
 
-        NOTE:
+        .. NOTE::
 
-        The existence of this method is assumed by some
-        parts of Sage's coercion model.
+            The existence of this method is assumed by some
+            parts of Sage's coercion model.
 
         EXAMPLES::
 
             sage: Cusps.zero()
             0
-
         """
         return Cusp(0, parent=self)
 
@@ -306,7 +319,7 @@ class Cusp(Element):
             elif isinstance(a, Cusp):
                 self.__a = a.__a
                 self.__b = a.__b
-            elif isinstance(a, (int, long)):
+            elif isinstance(a, integer_types):
                 self.__a = ZZ(a)
                 self.__b = ZZ.one()
             elif isinstance(a, (tuple, list)):
@@ -357,7 +370,7 @@ class Cusp(Element):
                 self.__a = ZZ.one()
                 self.__b = ZZ.zero()
                 return
-        elif isinstance(a, (int, long)):
+        elif isinstance(a, integer_types):
             r = ZZ(a) / b
         elif isinstance(a, (tuple, list)):
             if len(a) != 2:
@@ -372,10 +385,10 @@ class Cusp(Element):
         self.__a = r.numer()
         self.__b = r.denom()
 
-
     def __hash__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: hash(Cusp(1/3))
             1298787075             # 32-bit
             3713081631933328131    # 64-bit
@@ -1017,7 +1030,7 @@ class Cusp(Element):
             Modular curves can have multiple non-isomorphic models over `\QQ`.
             The action of Galois depends on such a model. The model over `\QQ`
             of `X(G)` used here is the model where the function field
-            `\QQ(X(G))` is given by the functions whose fourier expansion at
+            `\QQ(X(G))` is given by the functions whose Fourier expansion at
             `\infty` have their coefficients in `\QQ`. For `X(N):=X(\Gamma(N))`
             the corresponding moduli interpretation over `\ZZ[1/N]` is that
             `X(N)` parametrizes pairs `(E,a)` where `E` is a (generalized)

@@ -708,7 +708,7 @@ class RewritingSystem(object):
         Note that this method does not return any object, just changes the
         rewriting system internally.
 
-        .. WARNING:
+        .. WARNING::
 
             This algorithm is not granted to finish. Although it may be useful
             in some occasions to run it, interrupt it manually after some time
@@ -994,12 +994,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         ALGORITHM:
 
-            Uses GAP's coset enumeration on the trivial subgroup.
+        Uses GAP's coset enumeration on the trivial subgroup.
 
         .. WARNING::
 
             This is in general not a decidable problem (in fact, it is
-            not even posible to check if the group is finite or
+            not even possible to check if the group is finite or
             not). If the group is infinite, or too big, you should be
             prepared for a long computation that consumes all the
             memory without finishing if you do not set a sensible
@@ -1496,38 +1496,36 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         This matrix is given by the fox derivatives of the relations
         with respect to the generators.
 
-        - ``im_gens`` -- (optional) the images of the generators.
+        - ``im_gens`` -- (optional) the images of the generators
 
         OUTPUT:
 
-        A matrix with coefficients in the group algebra. If ``im_gens`` is given,
-        the coefficients will live in the same algebra as the given values.
-        The result depends on the (fixed) choice of presentation.
+        A matrix with coefficients in the group algebra. If ``im_gens`` is
+        given, the coefficients will live in the same algebra as the given
+        values. The result depends on the (fixed) choice of presentation.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: G.<a,b,c> = FreeGroup()
             sage: H = G.quotient([a*b/a/b, a*c/a/c, c*b/c/b])
             sage: H.alexander_matrix()
-            [     B[1] - B[a*b*a^-1] B[a] - B[a*b*a^-1*b^-1]                       0]
-            [     B[1] - B[a*c*a^-1]                       0 B[a] - B[a*c*a^-1*c^-1]]
-            [                      0 B[c] - B[c*b*c^-1*b^-1]      B[1] - B[c*b*c^-1]]
+            [     1 - a*b*a^-1 a - a*b*a^-1*b^-1                 0]
+            [     1 - a*c*a^-1                 0 a - a*c*a^-1*c^-1]
+            [                0 c - c*b*c^-1*b^-1      1 - c*b*c^-1]
 
-
-        If we introduce the images of the generators, we obtain the result in the corresponding algebra.
+        If we introduce the images of the generators, we obtain the
+        result in the corresponding algebra.
 
         ::
 
             sage: G.<a,b,c,d,e> = FreeGroup()
             sage: H = G.quotient([a*b/a/b, a*c/a/c, a*d/a/d, b*c*d/(c*d*b), b*c*d/(d*b*c)])
             sage: H.alexander_matrix()
-            [              B[1] - B[a*b*a^-1]          B[a] - B[a*b*a^-1*b^-1]                                0                                0                                0]
-            [              B[1] - B[a*c*a^-1]                                0          B[a] - B[a*c*a^-1*c^-1]                                0                                0]
-            [              B[1] - B[a*d*a^-1]                                0                                0          B[a] - B[a*d*a^-1*d^-1]                                0]
-            [                               0             B[1] - B[b*c*d*b^-1]   B[b] - B[b*c*d*b^-1*d^-1*c^-1]      B[b*c] - B[b*c*d*b^-1*d^-1]                                0]
-            [                               0        B[1] - B[b*c*d*c^-1*b^-1]             B[b] - B[b*c*d*c^-1] B[b*c] - B[b*c*d*c^-1*b^-1*d^-1]                                0]
+            [              1 - a*b*a^-1          a - a*b*a^-1*b^-1                          0                          0                          0]
+            [              1 - a*c*a^-1                          0          a - a*c*a^-1*c^-1                          0                          0]
+            [              1 - a*d*a^-1                          0                          0          a - a*d*a^-1*d^-1                          0]
+            [                         0             1 - b*c*d*b^-1   b - b*c*d*b^-1*d^-1*c^-1      b*c - b*c*d*b^-1*d^-1                          0]
+            [                         0        1 - b*c*d*c^-1*b^-1             b - b*c*d*c^-1 b*c - b*c*d*c^-1*b^-1*d^-1                          0]
             sage: R.<t1,t2,t3,t4> = LaurentPolynomialRing(ZZ)
             sage: H.alexander_matrix([t1,t2,t3,t4])
             [    -t2 + 1      t1 - 1           0           0           0]

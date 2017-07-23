@@ -1819,6 +1819,9 @@ class HasseDiagram(DiGraph):
             sage: list(H.antichains_iterator())
             [[]]
         """
+        # NOTE: Ordering of antichains as a prefix tree is crucial for
+        # congruences_iterator() to work. Change it, if you change this.
+
         # Complexity note:
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then
@@ -2802,6 +2805,66 @@ class HasseDiagram(DiGraph):
                 c = self.congruence([achain[-1]], start=c)
                 yield c
                 congs[achain] = c
+
+    def is_congruence_normal(self):
+        """
+        Return ``True`` if the lattice can be constructed from the one-element
+        lattice with Day doubling constructions of convex subsets.
+
+        Subsets to double does not need to be lower nor upper pseudo-intervals.
+        On the other hand they must be convex, i.e. doubling a non-convex but
+        municipal subset will give a lattice that returns ``False`` from
+        this function.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram('IX?Q@?AG?OG?W?O@??')
+            sage: H.is_congruence_normal()
+            True
+
+        The 5-element diamond is the smallest non-example::
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.is_congruence_normal()
+            False
+
+        This is done by doubling a non-convex subset::
+
+            sage: H = HasseDiagram('OQC?a?@CO?G_C@?GA?O??_??@?BO?A_?G??C??_?@???')
+            sage: H.is_congruence_normal()
+            False
+
+        TESTS::
+
+            sage: HasseDiagram().is_congruence_normal()
+            True
+            sage: HasseDiagram({0: []}).is_congruence_normal()
+            True
+
+        ALGORITHM:
+
+        See http://www.math.hawaii.edu/~jb/inflation.pdf
+        """
+        from sage.combinat.set_partition import SetPartition
+
+        n = self.order()
+        congs_ji = {}
+
+        for ji in range(n):
+            if self.in_degree(ji) == 1:
+                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))
+                if cong not in congs_ji:
+                    congs_ji[cong] = []
+                congs_ji[cong].append(ji)
+
+        for mi in range(n):
+            if self.out_degree(mi) == 1:
+                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))
+                if any(self.is_lequal(ji, mi) for ji in congs_ji[cong]):
+                    return False
+
+        return True
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

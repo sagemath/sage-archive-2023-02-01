@@ -267,11 +267,11 @@ from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
 
-    sage: FiniteGroups()
-    Category of finite groups
-    sage: FiniteGroups() is Groups().Finite()
+    sage: FiniteCoxeterGroups()
+    Category of finite coxeter groups
+    sage: FiniteCoxeterGroups() is CoxeterGroups().Finite()
     True
-    sage: FiniteGroups._base_category_class_and_axiom_origin
+    sage: FiniteCoxeterGroups._base_category_class_and_axiom_origin
     'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)
@@ -1790,8 +1790,9 @@ def base_category_class_and_axiom(cls):
             except (ImportError,AttributeError):
                 pass
     raise TypeError("""Could not retrieve the base category class and axiom for {}.
-Please specify it explictly using the attribute _base_category_class_and_axiom.
+Please specify it explicitly using the attribute _base_category_class_and_axiom.
 See CategoryWithAxiom for details.""".format(cls))
+
 
 @cached_function
 def axiom_of_nested_class(cls, nested_cls):
@@ -2101,7 +2102,7 @@ class CategoryWithAxiom(Category):
 
         This check that an axiom category of a
         :class:`Category_singleton` is a singleton category, and
-        similarwise for :class`Category_over_base_ring`.
+        similarwise for :class:`Category_over_base_ring`.
 
         EXAMPLES::
 

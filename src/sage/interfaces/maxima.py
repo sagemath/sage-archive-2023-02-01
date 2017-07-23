@@ -463,19 +463,16 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import string_types
 
 import os
 import re
 import pexpect
-#cygwin = os.uname()[0][:6]=="CYGWIN"
 
 from random import randrange
 
 from sage.env import DOT_SAGE, SAGE_LOCAL
-
-##import sage.rings.all
 
 from .expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled)
@@ -484,6 +481,8 @@ from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
                              MaximaAbstractFunctionElement,
                              MaximaAbstractElementFunction)
+from sage.docs.instancedoc import instancedoc
+
 
 # Thanks to the MRO for multiple inheritance used by the Sage's Python,
 # this should work as expected
@@ -640,7 +639,7 @@ class Maxima(MaximaAbstract, Expect):
         """
         return reduce_load_Maxima, tuple([]) #(self.__init_code,)
 
-    def _sendline(self, str):
+    def _sendline(self, string):
         """
         Send a string followed by a newline character.
 
@@ -650,7 +649,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima.get('t')
             '9'
         """
-        self._sendstr(str)
+        self._sendstr(string)
         os.write(self._expect.child_fd, os.linesep)
 
     def _expect_expr(self, expr=None, timeout=None):
@@ -996,7 +995,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima.get('xxxxx')
             '2'
         """
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         if len(cmd) > self.__eval_using_file_cutoff:
@@ -1046,7 +1045,7 @@ class Maxima(MaximaAbstract, Expect):
         EXAMPLES::
 
             sage: maxima._function_class()
-            <class 'sage.interfaces.maxima.MaximaFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaFunction
 
@@ -1068,7 +1067,7 @@ class Maxima(MaximaAbstract, Expect):
         EXAMPLES::
 
             sage: maxima._function_element_class()
-            <class 'sage.interfaces.maxima.MaximaFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaFunctionElement
 
@@ -1119,8 +1118,8 @@ def is_MaximaElement(x):
     """
     return isinstance(x, MaximaElement)
 
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
+
+@instancedoc
 class MaximaElement(MaximaAbstractElement, ExpectElement):
     """
     Element of Maxima through Pexpect interface.
@@ -1186,26 +1185,11 @@ class MaximaElement(MaximaAbstractElement, ExpectElement):
             return s
 
 
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
-class MaximaFunctionElement(MaximaAbstractFunctionElement, FunctionElement):
-    pass
-#    def __init__(self, obj, name):
-#        MaximaAbstractFunctionElement.__init__(self, obj, name)
-#        FunctionElement.__init__(self, obj, name)
+MaximaFunctionElement = MaximaAbstractFunctionElement
+MaximaFunction = MaximaAbstractFunction
 
 
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
-class MaximaFunction(MaximaAbstractFunction, ExpectFunction):
-    pass
-#    def __init__(self, parent, name):
-#        MaximaAbstractFunction.__init__(self, parent, name)
-#        ExpectFunction.__init__(self, parent, name)
-
-
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
+@instancedoc
 class MaximaElementFunction(MaximaElement, MaximaAbstractElementFunction):
     """
     Maxima user-defined functions.

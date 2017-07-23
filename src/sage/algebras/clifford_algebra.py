@@ -7,12 +7,17 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
+from sage.misc.six import with_metaclass
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
@@ -31,8 +36,6 @@ from sage.combinat.subset import SubsetsSorted
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-
-import six
 
 
 class CliffordAlgebraElement(CombinatorialFreeModule.Element):
@@ -117,7 +120,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 # the dictionary describing the element
                 # ``e[i]`` * (the element described by the dictionary ``cur``)
                 # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr,cr in six.iteritems(cur):
+                for mr,cr in iteritems(cur):
                     # Commute the factor as necessary until we are in order
                     pos = 0
                     for j in mr:
@@ -153,7 +156,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 cur = next
 
             # Add the distributed terms to the total
-            for index,coeff in six.iteritems(cur):
+            for index,coeff in iteritems(cur):
                 d[index] = d.get(index, zero) + cl * coeff
                 if d[index] == zero:
                     del d[index]
@@ -727,8 +730,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-                return self.element_class(self, {(i,): c for i,c in six.iteritems(x)})
-            return self.element_class(self, {(i,): R(c) for i,c in six.iteritems(x) if R(c) != R.zero()})
+                return self.element_class(self, {(i,): c for i,c in iteritems(x)})
+            return self.element_class(self, {(i,): R(c) for i,c in iteritems(x) if R(c) != R.zero()})
 
         if isinstance(x, CliffordAlgebraElement):
             if x.parent() is self:
@@ -1204,7 +1207,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                 for m,c in (Bi*Bj - Bj*Bi):
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in iteritems(x)),
                                                   distinct=True)
         return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1218,7 +1221,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         #         v = B[i]*B[j] - B[j]*B[i]
         #         eqns[a].extend([v[k] for k in K])
         # m = Matrix(R, eqns)
-        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in iteritems(x)),
         #                                           distinct=True)
         # return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1301,7 +1304,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                 for m,c in supercommutator:
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in iteritems(x)),
                                                   distinct=True)
         return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1315,7 +1318,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         #         v = B[i].supercommutator(B[j])   # or better an if-loop as above
         #         eqns[a].extend([v[k] for k in K])
         # m = Matrix(R, eqns)
-        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in iteritems(x)),
         #                                           distinct=True)
         # return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -2158,7 +2161,10 @@ class ExteriorAlgebra(CliffordAlgebra):
 #####################################################################
 ## Differentials
 
-class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentation):
+class ExteriorAlgebraDifferential(with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        ModuleMorphismByLinearity, UniqueRepresentation
+    )):
     r"""
     Internal class to store the data of a boundary or coboundary of
     an exterior algebra `\Lambda(L)` defined by the structure
@@ -2173,8 +2179,6 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
         This is not a general class for differentials on the exterior
         algebra.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, E, s_coeff):
         """
@@ -2199,13 +2203,13 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
         """
         d = {}
 
-        for k,v in six.iteritems(dict(s_coeff)):
+        for k,v in iteritems(dict(s_coeff)):
             if not v: # Strip terms with 0
                 continue
 
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({(i,): R(c) for i,c in six.iteritems(v)})
+                v = E._from_dict({(i,): R(c) for i,c in iteritems(v)})
             else:
                 # Make sure v is in ``E``
                 v = E(v)
@@ -2624,7 +2628,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         self._cos_coeff = {}
         zero = E.zero()
         B = E.basis()
-        for k,v in six.iteritems(dict(s_coeff)):
+        for k, v in iteritems(dict(s_coeff)):
             k = B[k]
             for m,c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k

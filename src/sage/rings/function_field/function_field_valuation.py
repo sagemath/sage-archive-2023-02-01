@@ -654,7 +654,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
 
     def lift(self, F):
         r"""
-        Return a lift of ``F`` to the :meth:`domain` of this valuation such
+        Return a lift of ``F`` to the domain of this valuation such
         that :meth:`reduce` returns the original element.
 
         EXAMPLES::
@@ -749,7 +749,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
     def extensions(self, L):
         r"""
         Return all extensions of this valuation to ``L`` which has a larger
-        constant field than the :meth:`domain` of this valuation.
+        constant field than the domain of this valuation.
 
         EXAMPLES::
 

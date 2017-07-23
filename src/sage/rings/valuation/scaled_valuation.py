@@ -188,7 +188,8 @@ class ScaledValuation_generic(DiscreteValuation):
 
     def lift(self, F):
         r"""
-        Lift ``F`` from the :meth;`residue_field` of this valuation into its
+        Lift ``F`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`
+        of this valuation into its
         domain.
 
         EXAMPLES::

@@ -96,12 +96,11 @@ class PadicValuationFactory(UniqueFactory):
 
     .. SEEALSO::
 
-        For more examples, see
-        :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
-        :meth:`sage.rings.order.Order.valuation`,
-        :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`,
-        :meth:`sage.rings.rational_field.RationalField.valuation`,
-        :meth:`sage.rings.integer_ring.IntegerRing.valuation`.
+        :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+        :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+        :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`,
+        :meth:`RationalField.valuation() <sage.rings.rational_field.RationalField.valuation>`,
+        :meth:`IntegerRing_class.valuation() <sage.rings.integer_ring.IntegerRing_class.valuation>`.
 
     """
     def create_key_and_extra_args(self, R, prime=None, approximants=None):

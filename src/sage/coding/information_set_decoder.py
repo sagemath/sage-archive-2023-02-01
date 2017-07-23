@@ -535,23 +535,17 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             sage: A.time_estimate() #random
             0.0008162108571427874
 
-        A long test which verifies that the calibration is not too far from
-        reality. The constructed code has minimum distance 10::
+        If we specify the parameter at construction time, calibrate does not override this choice::
 
-            sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
-            sage: C = codes.QuadraticResidueCode(37, GF(3))
-            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 4)
-            sage: A = LeeBrickellISDAlgorithm(C, (0,4))
-            sage: import time
-            sage: def time_50():
-            ....:     A.calibrate()
-            ....:     zero = C.ambient_space().zero()
-            ....:     before = time.clock()
-            ....:     for i in range(50): A.decode(Chan(zero)); None
-            ....:     return time.clock() - before
-            sage: avg = (time_50() + time_50() + time_50())/150 # long time (1 s)
-            sage: A.time_estimate()/5 < avg and avg < A.time_estimate() * 5 # long time
-            True
+            sage: A = LeeBrickellISDAlgorithm(C, (0,3), search_size=2); A
+            ISD Algorithm (Lee-Brickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
+            sage: A.parameters()
+            {'search_size': 2}
+            sage: A.calibrate()
+            sage: A.parameters()
+            {'search_size': 2}
+            sage: A.time_estimate() #random
+            0.0008162108571427874
         """
         from sage.all import sample, mean, random_vector, random_matrix, randint
         import time
@@ -595,13 +589,41 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
         if self._parameters_specified:
             self._time_estimate = compute_estimate(self._parameters['search_size'])
         else:
-            estimates = [ compute_estimate(p) for p in range(tau+1) ]
-            search_size = 0
-            for p in range(1, len(estimates)):
-                if estimates[p] < estimates[search_size]:
-                    search_size = p
-            self._parameters = { 'search_size': search_size }
-            self._time_estimate = estimates[search_size]
+            self._calibrate_select([ compute_estimate(p) for p in range(tau+1) ])
+
+    def _calibrate_select(self, estimates):
+        r"""
+        Internal method used by ``self.calibrate()``.
+
+        Given the timing estimates, select the best parameter and set the
+        appropriate private fields.
+
+        INPUT:
+
+        - `estimates` - list of time estimates, for the search size set to the
+                        index of the list entry.
+
+        OUTPUT: None, but sets the private fields `self._parameters` and
+        `self._time_estimate`.
+
+        TESTS::
+
+            sage: from sage.coding.information_set_decoder import LeeBrickellISDAlgorithm
+            sage: C = codes.GolayCode(GF(2))
+            sage: A = LeeBrickellISDAlgorithm(C, (0,3)); A
+            ISD Algorithm (Lee-Brickell) for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
+            sage: A._calibrate_select([ 1.0, 2.0, 3.0, 0.5, 0.6, 1.0 ])
+            sage: A._time_estimate
+            0.500000000000000
+            sage: A._parameters
+            {'search_size': 3}
+        """
+        search_size = 0
+        for p in range(1, len(estimates)):
+            if estimates[p] < estimates[search_size]:
+                search_size = p
+        self._parameters = { 'search_size': search_size }
+        self._time_estimate = estimates[search_size]
 
 
 

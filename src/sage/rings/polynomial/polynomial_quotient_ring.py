@@ -1608,14 +1608,7 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
             True
 
         """
-        from sage.structure.richcmp import op_EQ, op_NE
-        if op not in [op_EQ, op_NE]:
-            return NotImplemented
-
-        if not isinstance(other, PolynomialQuotientRing_coercion):
-            return (op == Py_NE)
-
-        return richcmp(self.parent(), other.parent(), op)
+        return richcmp((type(self), self.parent()), (type(other), other.parent()), op)
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """

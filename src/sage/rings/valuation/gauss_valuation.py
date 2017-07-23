@@ -444,7 +444,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         - ``s`` -- an element of the :meth:`value_group`
 
         - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
-          return the equivalence unit as the :meth:`inductive_valuation.InductiveValuation.equivalence_reciprocal` of
+          return the equivalence unit as the :meth:`~sage.rings.valuation.inductive_valuation.InductiveValuation.equivalence_reciprocal` of
           the equivalence unit of valuation ``-s``
 
         EXAMPLES::

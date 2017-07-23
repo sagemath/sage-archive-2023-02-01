@@ -107,14 +107,19 @@ class InductiveValuation(DevelopingValuation):
         - ``check`` -- whether or not to check the validity of ``f`` (default:
           ``True``)
 
+        .. WARNING::
+
+            This method may not work over `p`-adic rings due to problems with
+            the xgcd implementation there.
+
         EXAMPLES::
 
             sage: R = Zp(3,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
-            sage: h = v.equivalence_reciprocal(f); h # (needs xgcd for polynomials with p-adic coefficients)
-            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            sage: h = v.equivalence_reciprocal(f); h
+            (2 + O(3^5))
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -160,11 +165,6 @@ class InductiveValuation(DevelopingValuation):
 
         """
         f = self.domain().coerce(f)
-
-        from sage.categories.fields import Fields
-        if not self.domain().base_ring() in Fields():
-            # the xgcd does in general not work, i.e., return 1, unless over a field
-            raise NotImplementedError("only implemented for polynomial rings over fields")
 
         if check:
             if coefficients is None:

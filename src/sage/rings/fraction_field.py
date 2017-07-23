@@ -986,6 +986,14 @@ class FractionFieldEmbeddingSection(Section):
         INPUT:
 
         - ``check`` -- whether or not to check
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K = R.fraction_field()
+            sage: R(K.gen(), check=True)
+            x
+
         """
         check = kwds.pop('check', True)
         if args or kwds:

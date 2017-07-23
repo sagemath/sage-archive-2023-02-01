@@ -1383,6 +1383,40 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         for t in MonotoneTriangles(self._n):
             yield self.from_monotone_triangle(t, check=False)
 
+    def first(self):
+        r"""
+        Return the first alternating sign matrix
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(5).first()
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+        """
+        return self.element_class(self, self._matrix_space.one())
+
+    def last(self):
+        r"""
+        Return the last alternating sign matrix
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(5).last()
+            [0 0 0 0 1]
+            [0 0 0 1 0]
+            [0 0 1 0 0]
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+        """
+        m = self._matrix_space.zero().__copy__()
+        for i in range(self._n):
+            m[i, self._n - i - 1] = 1
+        m.set_immutable()
+        return self.element_class(self, m)
+
     def _lattice_initializer(self):
         r"""
         Return a 2-tuple to use in argument of ``LatticePoset``.

@@ -163,14 +163,12 @@ polynomial G, approximations to the limit valuation which send G to infinity::
 
 From these approximants one can already see the residual degrees and
 ramification indices of the corresponding extensions. The approximants can be
-pushed to arbitrary precision::
+pushed to arbitrary precision, corresponding to a factorization of ``f``::
 
     sage: v.mac_lane_approximants(f, required_precision=10)
     [[ Gauss valuation induced by 2-adic valuation, v(x^2 + 193*x + 13/21) = 10 ],
      [ Gauss valuation induced by 2-adic valuation, v(x + 86) = 10 ],
      [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2, v(x^2 + 36/11*x + 2/17) = 11 ]]
-
-Note that in the limit they are factors of `f`.
 
 References
 ----------

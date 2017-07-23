@@ -61,7 +61,7 @@ class InductiveValuation(DevelopingValuation):
     def is_equivalence_unit(self, f, valuations=None):
         r"""
         Return whether ``f`` is an equivalence unit, i.e., an element of
-        :meth:`effective_degree` zero (see [ML1936'] p.497.)
+        :meth:`effective_degree` zero (see [Mac1936II] p.497.)
 
         INPUT:
 
@@ -91,7 +91,7 @@ class InductiveValuation(DevelopingValuation):
         Return an equivalence reciprocal of ``f``.
 
         An equivalence reciprocal of `f` is a polynomial `h` such that `f\cdot
-        h` is equivalent to 1 modulo this valuation (see [ML1936'] p.497.)
+        h` is equivalent to 1 modulo this valuation (see [Mac1936II] p.497.)
 
         INPUT:
 
@@ -686,7 +686,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         - ``report_degree_bounds_and_caches`` -- whether or not to include internal state with the returned value (used by :meth:`mac_lane_approximants` to speed up sequential calls)
 
-         - ``coefficients`` -- the coefficients of ``G`` in the
+        - ``coefficients`` -- the coefficients of ``G`` in the
            :meth:`phi`-adic expansion if known (default: ``None``)
 
         - ``valauations`` -- the valuations of ``coefficients`` if known
@@ -921,7 +921,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ALGORITHM:
 
-        Based on Theorem 9.4 of [ML1936'].
+        Based on Theorem 9.4 of [Mac1936II].
 
         EXAMPLES::
 
@@ -994,7 +994,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         else:
             tau = self.value_group().index(self._base_valuation.value_group())
-            # see Theorem 9.4 of [ML1936']
+            # see Theorem 9.4 of [Mac1936II]
             return list(self.valuations(f))[-1] == self(f) and \
                    list(self.coefficients(f))[-1].is_constant() and \
                    list(self.valuations(f))[0] == self(f) and \
@@ -1128,7 +1128,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ALGORITHM:
 
-        We use the algorithm described in Theorem 4.4 of [ML1936']. After
+        We use the algorithm described in Theorem 4.4 of [Mac1936II]. After
         removing all factors `\phi` from a polynomial `f`, there is an
         equivalence unit `R` such that `Rf` has valuation zero. Now `Rf` can be
         factored as `\prod_i \alpha_i` over the :meth:`residue_field`. Lifting
@@ -1172,7 +1172,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: F.unit()
             1 + O(2^10)
 
-        Examples over an iterated unramified extension:
+        Examples over an iterated unramified extension::
 
             sage: v = v.augmentation(x^2 + x + u, 1)
             sage: v = v.augmentation((x^2 + x + u)^2 + 2*x*(x^2 + x + u) + 4*x, 3)
@@ -1279,7 +1279,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         ALGORITHM:
 
-        We use the algorithm described in the proof of Lemma 4.1 of [ML1936'].
+        We use the algorithm described in the proof of Lemma 4.1 of [Mac1936II].
         In the expansion `f=\sum_i f_i\phi^i` take `e=f_i` for the largest `i`
         with `f_i\phi^i` minimal (see :meth:`effective_degree`).
         Let `h` be the :meth:`equivalence_reciprocal` of `e` and take `a` given

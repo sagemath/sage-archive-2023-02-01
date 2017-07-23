@@ -423,7 +423,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         Return a lift of ``F`` from the :meth:`residue_ring` to the
         :meth:`domain` of this valuatiion.
 
-        EXAMPLES;;
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
@@ -563,12 +563,12 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             `v(a_0) < v(a_i\phi^i)` for all `i\ne 0`. If we denote the limit
             valuation as `w`, then `v(a_i\phi^i)=w(a_i\phi^i)` since the
             valuation of key polynomials does not change during augmentations
-            (Theorem 6.4 in [ML1936'].) By the strict triangle inequality,
+            (Theorem 6.4 in [Mac1936II].) By the strict triangle inequality,
             `w(g)=v(g)`.
             Note that any `g` which is coprime to `G` is an equivalence-unit
             after finitely many steps of the Mac Lane algorithm. Indeed,
             otherwise the valuation of `g` would be infinite (follows from
-            Theorem 5.1 in [ML1936']) since the valuation of the key
+            Theorem 5.1 in [Mac1936II]) since the valuation of the key
             polynomials increases.
             When `f` is not coprime to `G`, consider `s=gcd(f,G)` and write
             `G=st`. Since `G` is squarefree, either `s` or `t` have finite

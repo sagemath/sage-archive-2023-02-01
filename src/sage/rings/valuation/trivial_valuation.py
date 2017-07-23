@@ -151,7 +151,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
         r"""
         Return whether this valuatios attains the value `-\infty`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: v = valuations.TrivialPseudoValuation(QQ)
             sage: v.is_negative_pseudo_valuation()

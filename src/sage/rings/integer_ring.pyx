@@ -1516,7 +1516,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def valuation(self, p):
         r"""
-        Return the discrete valuation with uniformizer `p`.
+        Return the discrete valuation with uniformizer ``p``.
 
         EXAMPLES::
 
@@ -1525,7 +1525,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: v(3)
             1
 
-        SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.rings.number_field.order.Order.valuation`,
             :meth:`sage.rings.rational_field.RationalField.valuation`

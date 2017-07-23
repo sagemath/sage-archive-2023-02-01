@@ -2,7 +2,7 @@
 r"""
 Valuations which are scaled versions of another valuation
 
-EXAMPLES:
+EXAMPLES::
 
     sage: 3*ZZ.valuation(3)
     3 * 3-adic valuation

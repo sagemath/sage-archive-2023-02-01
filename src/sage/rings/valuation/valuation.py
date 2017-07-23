@@ -385,7 +385,7 @@ class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
     and `-\infty`, i.e., whose domain contains an element of valuation `\infty`
     and its inverse.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x, infinity)
@@ -460,7 +460,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         INPUT:
 
         - ``G`` -- a monic squarefree integral polynomial in a
-          univariate polynomial ring over the :meth:`domain` of this valuation.
+          univariate polynomial ring over the :meth:`domain` of this valuation
 
         - ``assume_squarefree`` -- a boolean (default: ``False``), whether to
           assume that ``G`` is squarefree. If ``True``, the squafreeness of
@@ -834,9 +834,9 @@ class DiscreteValuation(DiscretePseudoValuation):
         INPUT:
 
         - ``G`` -- a monic squarefree integral polynomial in a
-          univariate polynomial ring over the :meth:`domain` of this valuation.
+          univariate polynomial ring over the :meth:`domain` of this valuation
 
-        - ``valuation`` -- a valuation on the parent of ``G``.
+        - ``valuation`` -- a valuation on the parent of ``G``
 
         - ``approximants`` -- the output of :meth:`mac_lane_approximants`.
           If not given, it is computed.
@@ -947,8 +947,8 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         ALGORITHM:
 
-            We compute :meth:`mac_lane_approximants` with ``required_precision``.
-            The key polynomials approximate factors of ``G``.
+        We compute :meth:`mac_lane_approximants` with ``required_precision``.
+        The key polynomials approximate factors of ``G``.
 
         EXAMPLES::
 

@@ -205,7 +205,7 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     def lift(self, F):
         r"""
-        Lift ``F`` from the :meth;`residue_field` of this valuation into its
+        Lift ``F`` from the :meth:`residue_field` of this valuation into its
         domain.
 
         EXAMPLES::
@@ -321,7 +321,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
       discrete valuations on `L`)
 
     - ``base_valuation`` -- an infinite valuation on `K[x]` which takes `G` to
-      infinity.
+      infinity
 
     EXAMPLES::
 

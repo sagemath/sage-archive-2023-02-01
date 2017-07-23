@@ -622,8 +622,8 @@ class FunctionField(Field):
 
         However, if such a valuation comes out of a base change of the ground
         field, this is not the case anymore. In the example below, the unique
-        extension of ``v`` to ``L`` still has valuation 1 on ``x^3 - t`` but it has
-        valuation ``1/3`` on its uniformizing element  ``x - w``::
+        extension of ``v`` to ``L`` still has valuation 1 on `x^3 - t` but it has
+        valuation ``1/3`` on its uniformizing element  `x - w`::
 
             sage: R.<w> = K[]
             sage: L.<w> = K.extension(w^3 - t)

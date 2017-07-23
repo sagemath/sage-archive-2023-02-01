@@ -52,7 +52,7 @@ class PadicValuationFactory(UniqueFactory):
     INPUT:
 
     - ``R`` -- a subring of a number field or a subring of a local field in
-      characteristic zero.
+      characteristic zero
 
     - ``prime`` -- a prime that does not split, a discrete (pseudo-)valuation,
       a fractional ideal, or ``None`` (default: ``None``)
@@ -94,7 +94,7 @@ class PadicValuationFactory(UniqueFactory):
         sage: valuations.pAdicValuation(L, 2)
         2-adic valuation
 
-    SEEALSO::
+    .. SEEALSO::
 
         For more examples, see
         :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
@@ -208,7 +208,7 @@ class PadicValuationFactory(UniqueFactory):
         .. NOTE::
 
             ``prime``, the original parameter that was passed to
-            :meth:`create_key_and_extra_args``, is only used to provide more
+            :meth:`create_key_and_extra_args`, is only used to provide more
             meaningful error messages
 
         EXAMPLES::
@@ -273,7 +273,7 @@ class PadicValuationFactory(UniqueFactory):
         .. NOTE::
 
             ``prime``, the original parameter that was passed to
-            :meth:`create_key_and_extra_args``, is only used to provide more
+            :meth:`create_key_and_extra_args`, is only used to provide more
             meaningful error messages
 
         EXAMPLES::
@@ -1141,7 +1141,7 @@ class pAdicValuation_int(pAdicValuation_base):
 
         - ``force`` -- ignored
 
-        - ``size_heuristic_bound` -- when ``force`` is not set, the expected
+        - ``size_heuristic_bound`` -- when ``force`` is not set, the expected
           factor by which the ``x`` need to shrink to perform an actual
           simplification (default: 32)
 

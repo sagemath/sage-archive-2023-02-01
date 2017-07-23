@@ -241,7 +241,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
 
-        - ``call_error` -- whether or not to speed up the computation by
+        - ``call_error`` -- whether or not to speed up the computation by
           assuming that the result is only used to compute the valuation of
           ``f`` (default: ``False``)
 
@@ -346,7 +346,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         .. SEEALSO::
 
-            :meth: `lift`
+            :meth:`lift`
 
         """
         f = self.domain().coerce(f)
@@ -365,7 +365,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         Return a lift of ``F``.
 
-        INPUT::
+        INPUT:
 
         - ``F`` -- a polynomial over the :meth:`residue_ring` of this valuation
 
@@ -445,7 +445,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
 
         - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
           return the equivalence unit as the :meth:`equivalence_reciprocal` of
-          the equivalence unit of valuation ``-s``.
+          the equivalence unit of valuation ``-s``
 
         EXAMPLES::
 
@@ -746,7 +746,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         - ``effective_degree`` -- when set, assume that coefficients beyond
           ``effective_degree`` can be safely dropped (default: ``None``)
 
-        - ``size_heuristic_bound` -- when ``force`` is not set, the expected
+        - ``size_heuristic_bound`` -- when ``force`` is not set, the expected
           factor by which the coefficients need to shrink to perform an actual
           simplification (default: 32)
 

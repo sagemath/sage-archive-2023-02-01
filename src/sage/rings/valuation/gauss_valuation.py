@@ -237,7 +237,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         - ``f`` -- a polynomial in the domain of this valuation
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`coefficients` or ``None`` (default: ``None``); this can be
+          :meth:`developing_valuation.DevelopingValuation.coefficients` or ``None`` (default: ``None``); this can be
           used to speed up the computation when the expansion of ``f`` is
           already known from a previous computation.
 
@@ -317,7 +317,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
           result which can speed up the computation (default: not set)
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`coefficients` or ``None`` (default: ``None``); ignored
+          :meth:`developing_valuation.DevelopingValuation.coefficients` or ``None`` (default: ``None``); ignored
 
         - ``valuations`` -- the valuations of ``coefficients`` or ``None``
           (default: ``None``); ignored
@@ -444,7 +444,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         - ``s`` -- an element of the :meth:`value_group`
 
         - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
-          return the equivalence unit as the :meth:`equivalence_reciprocal` of
+          return the equivalence unit as the :meth:`inductive_valuation.InductiveValuation.equivalence_reciprocal` of
           the equivalence unit of valuation ``-s``
 
         EXAMPLES::
@@ -588,7 +588,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
     def augmentation_chain(self):
         r"""
         Return a list with the chain of augmentations down to the underlying
-        :class:`GaussValuation`.
+        Gauss valuation.
 
         EXAMPLES::
 

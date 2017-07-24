@@ -619,6 +619,9 @@ cdef class Function(SageObject):
             sage: g._sympy_init_()
             'gg'
             sage: g(x)._sympy_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: SymPy function 'gg' doesn't exist
             gg(x)
         """
         return self._conversions.get('sympy', self._name)

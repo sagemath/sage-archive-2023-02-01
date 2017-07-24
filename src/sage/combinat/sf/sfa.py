@@ -2871,22 +2871,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             degree_one = [g for g in degree_one if g not in exclude]
 
         degree_one = [g for g in degree_one if g != R.one()]
-            
-        # Takes in n, and returns a function which takes in a partition and
-        # scales all of the parts of that partition by n
-        
-        def scale_part(n):
-            return lambda m: m.__class__(m.parent(), [i * n for i in m])
 
         def raise_c(n):
             return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
-
-        # Takes n an symmetric function f, and an n and returns the
-        # symmetric function with all of its basis partitions scaled
-        # by n
-
-        def pn_pleth(f, n):
-            return f.map_support(scale_part(n))
 
         if tensorflag:
             tparents = list(x.parent().__dict__['_sets'])
@@ -2894,6 +2881,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 [parent(p[r].plethysm(base(la))) for (base,la)
                 in zip(tparents,trm)]) for (trm,c) in x) for r in mu)
                 for (mu, d) in p(self))
+
+        # Takes in n, and returns a function which takes in a partition and
+        # scales all of the parts of that partition by n
+        def scale_part(n):
+            return lambda m: m.__class__(m.parent(), [i * n for i in m])
+
+        # Takes n an symmetric function f, and an n and returns the
+        # symmetric function with all of its basis partitions scaled
+        # by n
+        def pn_pleth(f, n):
+            return f.map_support(scale_part(n))
 
         # Takes in a partition and applies
         p_x = p(x)

@@ -372,11 +372,11 @@ class FunctionField(Field):
         from .function_field_order import FunctionFieldOrder
         if isinstance(source, FunctionFieldOrder):
             K = source.fraction_field()
-            source_to_K = K._generic_convert_map(source)
             if K is self:
-                return source_to_K
+                return self._generic_coerce_map(source)
+            source_to_K = K.coerce_map_from(source)
             K_to_self = self.coerce_map_from(K)
-            if K_to_self:
+            if source_to_K and K_to_self:
                 return K_to_self * source_to_K
         from sage.categories.function_fields import FunctionFields
         if source in FunctionFields():
@@ -550,11 +550,10 @@ class FunctionField(Field):
 
         EXAMPLES::
         
-            sage: K.<x> = FunctionField(QQ)
-        
         We create a valuation that correspond to a finite rational place of a function
         field::
 
+            sage: K.<x> = FunctionField(QQ)
             sage: v = K.valuation(1); v
             (x - 1)-adic valuation
             sage: v(x)
@@ -628,10 +627,13 @@ class FunctionField(Field):
             sage: R.<w> = K[]
             sage: L.<w> = K.extension(w^3 - t)
             sage: N.<x> = FunctionField(L)
-            sage: w = v.extension(N)
-            sage: w(x^3 - t)
+            sage: w = v.extension(N) # missing factorization, :trac:`16572`
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: w(x^3 - t) # not tested
             1
-            sage: w(x - w)
+            sage: w(x - w) # not tested
             1/3
 
         There are several ways to create valuations on extensions of rational

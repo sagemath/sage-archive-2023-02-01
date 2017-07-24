@@ -781,7 +781,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
               To:   Algebraic Field
               Defn: e |--> 2*I
             sage: G.root_extension_embedding(4)
-            Ring Coercion morphism:
+            Coercion map:
               From: Rational Field
               To:   Algebraic Real Field
 

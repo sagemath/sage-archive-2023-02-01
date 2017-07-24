@@ -124,7 +124,7 @@ class GaussValuationFactory(UniqueFactory):
         parent = DiscretePseudoValuationSpace(domain)
         return parent.__make_element_class__(GaussValuation_generic)(parent, v)
 
-GaussValuation = GaussValuationFactory("GaussValuation")
+GaussValuation = GaussValuationFactory("sage.rings.valuation.gauss_valuation.GaussValuation")
 
 class GaussValuation_generic(NonFinalInductiveValuation):
     """
@@ -712,7 +712,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, QQ.valuation(2))
             sage: v._relative_size(x + 1024)
-            11
+            6
 
         For performance reasons, only the constant coefficient is considered.
         (In common appplications, the constant coefficient shows the most

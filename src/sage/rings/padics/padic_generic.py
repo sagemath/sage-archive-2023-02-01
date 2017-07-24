@@ -980,8 +980,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
-            :meth:`sage.rings.number_field.order.Order.valuation`
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`
 
         """
         from sage.rings.padics.padic_valuation import pAdicValuation

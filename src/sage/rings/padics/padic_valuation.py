@@ -96,12 +96,11 @@ class PadicValuationFactory(UniqueFactory):
 
     .. SEEALSO::
 
-        For more examples, see
-        :meth:`sage.rings.number_field.number_field.NumberField.valuation`,
-        :meth:`sage.rings.order.Order.valuation`,
-        :meth:`sage.rings.padics.padic_generic.pAdicGeneric.valuation`,
-        :meth:`sage.rings.rational_field.RationalField.valuation`,
-        :meth:`sage.rings.integer_ring.IntegerRing.valuation`.
+        :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+        :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+        :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`,
+        :meth:`RationalField.valuation() <sage.rings.rational_field.RationalField.valuation>`,
+        :meth:`IntegerRing_class.valuation() <sage.rings.integer_ring.IntegerRing_class.valuation>`.
 
     """
     def create_key_and_extra_args(self, R, prime=None, approximants=None):
@@ -374,7 +373,7 @@ class PadicValuationFactory(UniqueFactory):
                 raise NotImplementedError
             return parent.__make_element_class__(pAdicFromLimitValuation)(parent, v, G.change_ring(R.base_ring()), approximants)
 
-pAdicValuation = PadicValuationFactory("pAdicValuation")
+pAdicValuation = PadicValuationFactory("sage.rings.padics.padic_valuation.pAdicValuation")
 
 class pAdicValuation_base(DiscreteValuation):
     r"""
@@ -719,14 +718,14 @@ class pAdicValuation_base(DiscreteValuation):
         domain_fraction_field = _fraction_field(self.domain())
         if domain_fraction_field is not self.domain():
             if domain_fraction_field.is_subring(ring):
-                return domain_fraction_field.valuation(self).extensions(ring)
+                return pAdicValuation(domain_fraction_field, self).extensions(ring)
         if self.domain().is_subring(ring):
             from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
             if is_PolynomialQuotientRing(ring):
                 if is_PolynomialQuotientRing(self.domain()):
                     if self.domain().modulus() == ring.modulus():
                         base_extensions = self._base_valuation.extensions(self._base_valuation.domain().change_ring(self._base_valuation.domain().base_ring().fraction_field()))
-                        return [ring.valuation(base._initial_approximation) for base in base_extensions]
+                        return [pAdicValuation(ring, base._initial_approximation) for base in base_extensions]
                 if ring.base_ring() is self.domain():
                     from sage.categories.all import IntegralDomains
                     if ring in IntegralDomains():

@@ -13,34 +13,6 @@ EXAMPLES::
     sage: v(1)
     0
 
-.. NOTE::
-
-    Note that the tests in this module do not create instances of valuations
-    directly since this gives the wrong inheritance structure on the resulting
-    objects::
-    
-        sage: from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
-        sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
-        sage: H = DiscretePseudoValuationSpace(QQ)
-        sage: v = TrivialDiscretePseudoValuation(H)
-        sage: v._test_category()
-        Traceback (most recent call last):
-        ...
-        AssertionError: False is not true
-    
-    Instead, the valuations need to be created through the
-    ``__make_element_class__`` of the containing space::
-    
-        sage: from sage.rings.valuation.trivial_valuation import TrivialDiscretePseudoValuation
-        sage: v = H.__make_element_class__(TrivialDiscretePseudoValuation)(H)
-        sage: v._test_category()
-    
-    The factories ``TrivialValuation`` and ``TrivialPseudoValuation`` provide the
-    right inheritance structure::
-    
-        sage: v = valuations.TrivialPseudoValuation(QQ)
-        sage: v._test_category()
-
 """
 #*****************************************************************************
 #       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
@@ -431,6 +403,6 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
             return True
         return False
 
-TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscretePseudoValuationSpace, "TrivialValuation")
-TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "TrivialPseudoValuation")
+TrivialValuation = TrivialValuationFactory(TrivialDiscreteValuation, DiscretePseudoValuationSpace, "sage.rings.valuation.trivial_valuation.TrivialValuation")
+TrivialPseudoValuation = TrivialValuationFactory(TrivialDiscretePseudoValuation, DiscretePseudoValuationSpace, "sage.rings.valuation.trivial_valuation.TrivialPseudoValuation")
 

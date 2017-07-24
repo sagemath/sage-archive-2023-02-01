@@ -3,7 +3,7 @@ r"""
 Inductive valuations on polynomial rings
 
 This module provides functionality for inductive valuations, i.e., finite
-chains of :mod:`sage.rings.valuation.augmented_valuation <augmented valuation>` on top of a :class:`~sage.rings.valuation.gauss_valuation.GaussValuation`.
+chains of :mod:`augmented valuations <sage.rings.valuation.augmented_valuation>` on top of a :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>`.
 
 AUTHORS:
 
@@ -11,7 +11,7 @@ AUTHORS:
 
 EXAMPLES:
 
-A :class:`GaussValuation` is an example of an inductive valuation::
+A :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>` is an example of an inductive valuation::
 
     sage: R.<x> = QQ[]
     sage: v = GaussValuation(R, QQ.valuation(2))
@@ -21,7 +21,7 @@ i.e., a valuation that was created from a Gauss valuation in a finite number of
 augmentation steps::
 
     sage: w = v.augmentation(x, 1)
-    sage: w = w.augmentation(x^2 + 2, 3)
+    sage: w = w.augmentation(x^2 + 2*x + 4, 3)
 
 REFERENCES:
 
@@ -45,7 +45,7 @@ from sage.misc.abstract_method import abstract_method
 
 class InductiveValuation(DevelopingValuation):
     r"""
-    Abstract base class for iterated :mod:`augmented valuations <sage.rings.valuation.augmented_valuation>` on top of a :class:`~sage.rings.valuation.gauss_valuation.GaussValuation`.
+    Abstract base class for iterated :mod:`augmented valuations <sage.rings.valuation.augmented_valuation>` on top of a :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>`.
 
     EXAMPLES::
 
@@ -59,8 +59,9 @@ class InductiveValuation(DevelopingValuation):
     """
     def is_equivalence_unit(self, f, valuations=None):
         r"""
-        Return whether ``f`` is an equivalence unit, i.e., an element of
-        :meth:`effective_degree` zero (see [Mac1936II]_ p.497.)
+        Return whether the polynomial ``f`` is an equivalence unit, i.e., an
+        element of :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.effective_degree`
+        zero (see [Mac1936II]_ p.497.)
 
         INPUT:
 
@@ -97,7 +98,7 @@ class InductiveValuation(DevelopingValuation):
         - ``f`` -- a polynomial in the domain of this valuation which is an
           :meth:`equivalence_unit`
 
-        - ``coefficients`` -- the coefficients of ``f`` in the :meth:`phi`-adic
+        - ``coefficients`` -- the coefficients of ``f`` in the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic
           expansion if known (default: ``None``)
 
         - ``valuations`` -- the valuations of ``coefficients`` if known
@@ -106,14 +107,19 @@ class InductiveValuation(DevelopingValuation):
         - ``check`` -- whether or not to check the validity of ``f`` (default:
           ``True``)
 
+        .. WARNING::
+
+            This method may not work over `p`-adic rings due to problems with
+            the xgcd implementation there.
+
         EXAMPLES::
 
             sage: R = Zp(3,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
-            sage: h = v.equivalence_reciprocal(f); h # (needs xgcd for polynomials with p-adic coefficients)
-            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
+            sage: h = v.equivalence_reciprocal(f); h
+            (2 + O(3^5))
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -159,11 +165,6 @@ class InductiveValuation(DevelopingValuation):
 
         """
         f = self.domain().coerce(f)
-
-        from sage.categories.fields import Fields
-        if not self.domain().base_ring() in Fields():
-            # the xgcd does in general not work, i.e., return 1, unless over a field
-            raise NotImplementedError("only implemented for polynomial rings over fields")
 
         if check:
             if coefficients is None:
@@ -230,7 +231,7 @@ class InductiveValuation(DevelopingValuation):
 
         INPUT:
 
-        - ``s`` -- an element of the :meth:`~sage.rings.valuation.valuation.DiscreteValuation.value_group`
+        - ``s`` -- an element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.value_group`
 
         - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
           return the equivalence unit as the :meth:`equivalence_reciprocal` of
@@ -264,7 +265,7 @@ class InductiveValuation(DevelopingValuation):
     def augmentation_chain(self):
         r"""
         Return a list with the chain of augmentations down to the underlying
-        :class:`~sage.rings.valuation.gauss_valuation.GaussValuation`.
+        :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>`.
 
         EXAMPLES::
 
@@ -532,9 +533,9 @@ class InductiveValuation(DevelopingValuation):
 
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
     r"""
-    Abstract base class for iterated :class:`AugmentedValuation` on top of a
-    :class:`GaussValuation` which is a discrete valuation, i.e., the last key
-    polynomial has finite valuation.
+    Abstract base class for iterated :mod:`augmented valuations <sage.rings.valuation.augmented_valuation>`
+    on top of a :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>` which is a discrete valuation,
+    i.e., the last key polynomial has finite valuation.
 
     EXAMPLES::
 
@@ -579,9 +580,9 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
 class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     r"""
-    Abstract base class for iterated :class:`AugmentedValuation` on top of a
-    :class:`GaussValuation` which can be extended further through
-    :meth:`augmentation`.
+    Abstract base class for iterated :mod:`augmented valuations <sage.rings.valuation.augmented_valuation>`
+    on top of a :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>` which can be extended further
+    through :meth:`augmentation`.
 
     EXAMPLES::
 
@@ -663,15 +664,15 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
-        integral polynomial ``G`` which is not an :meth:`is_equivalence_unit <equivalence unit>`.
+        integral polynomial ``G`` which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`.
 
         This performs the individual steps that are used in
-        :meth:`mac_lane_approximants`.
+        :meth:`~sage.rings.valuation.valuation.DiscreteValuation.mac_lane_approximants`.
 
         INPUT:
 
         - ``G`` -- a sqaurefree monic non-constant integral polynomial ``G``
-          which is not an :meth:`is_equivalence_unit <equivalence unit>`
+          which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
 
         - ``principal_part_bound`` -- an integer or ``None`` (default:
           ``None``), a bound on the length of the principal part, i.e., the
@@ -683,16 +684,15 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         - ``assume_equivalence_irreducible`` -- whether or not to assume that
           ``G`` is equivalence irreducible (default: ``False``)
 
-        - ``report_degree_bounds_and_caches`` -- whether or not to include internal state with the returned value (used by :meth:`mac_lane_approximants` to speed up sequential calls)
+        - ``report_degree_bounds_and_caches`` -- whether or not to include internal state with the returned value (used by :meth:`~sage.rings.valuation.valuation.DiscreteValuation.mac_lane_approximants` to speed up sequential calls)
 
-        - ``coefficients`` -- the coefficients of ``G`` in the
-           :meth:`phi`-adic expansion if known (default: ``None``)
+        - ``coefficients`` -- the coefficients of ``G`` in the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic expansion if known (default: ``None``)
 
         - ``valauations`` -- the valuations of ``coefficients`` if known
           (default: ``None``)
 
         - ``check`` -- whether to check that ``G`` is a squarefree monic
-          non-constant  integral polynomial and not an :meth:`is_equivalence_unit <equivalence_unit>`
+          non-constant  integral polynomial and not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
           (default: ``True``)
 
         TESTS::
@@ -923,7 +923,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         least the degree of `f`.
 
         A polynomial `h` is `v`-divisible by `f` if there is a polynomial `c`
-        such that `fc` :meth:`is_equivalent` to `h`.
+        such that `fc` :meth:`~sage.rings.valuation.valuation.DiscretePseudoValuation.is_equivalent` to `h`.
 
         ALGORITHM:
 
@@ -1109,20 +1109,20 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     def equivalence_decomposition(self, f, assume_not_equivalence_unit=False, coefficients=None, valuations=None, compute_unit=True, degree_bound=None):
         r"""
         Return an equivalence decomposition of ``f``, i.e., a polynomial
-        `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an equivalence unit (see
-        :meth:`is_equivalence_unit`) and the `\phi_i` key polynomials (see
-        :meth:`is_key`) such that ``f``
-        :meth:`~sage.rings.valuation.valuation.DiscretePseudoValuation.is_equivalent`
-        to `g`.
+        `g(x)=e(x)\prod_i \phi_i(x)` with `e(x)` an :meth:`equivalence unit
+        <InductiveValuation.is_equivalence_unit>` and the `\phi_i` :meth:`key
+        polynomials <is_key>` such that ``f`` :meth:`~sage.rings.valuation.valuation.DiscretePseudoValuation.is_equivalent` to `g`.
 
         INPUT:
 
         - ``f`` -- a non-zero polynomial in the domain of this valuation
 
         - ``assume_not_equivalence_unit`` -- whether or not to assume that
-          ``f`` is not an :meth:`equivalence_unit` (default: ``False``)
+          ``f`` is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
+          (default: ``False``)
 
-        - ``coefficients`` -- the coefficients of ``f`` in the :meth:`phi`-adic
+        - ``coefficients`` -- the coefficients of ``f`` in the
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic
           expansion if known (default: ``None``)
 
         - ``valuations`` -- the valuations of ``coefficients`` if known
@@ -1139,10 +1139,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         We use the algorithm described in Theorem 4.4 of [Mac1936II]_. After
         removing all factors `\phi` from a polynomial `f`, there is an
         equivalence unit `R` such that `Rf` has valuation zero. Now `Rf` can be
-        factored as `\prod_i \alpha_i` over the :meth:`residue_field`. Lifting
+        factored as `\prod_i \alpha_i` over the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`. Lifting
         all `\alpha_i` to key polynomials `\phi_i` gives `Rf=\prod_i R_i f_i`
         for suitable equivalence units `R_i` (see :meth:`lift_to_key`). Taking
-        `R'` an :meth:`equivalence_reciprocal` of `R`, we have `f` equivalent
+        `R'` an :meth:`~InductiveValuation.equivalence_reciprocal` of `R`, we have `f` equivalent
         to `(R'\prod_i R_i)\prod_i\phi_i`.
 
         EXAMPLES::
@@ -1200,15 +1200,17 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: K1.<pi>=NumberField(x^3 - 2)
             sage: K.<alpha>=K1.galois_closure()
             sage: R.<x>=K[]
-            sage: vp = Q.valuation(2)
+            sage: vp = QQ.valuation(2)
             sage: vp = vp.extension(K)
             sage: v0 = GaussValuation(R, vp)
             sage: G=x^36 + 36*x^35 + 630*x^34 + 7144*x^33 + 59055*x^32 + 379688*x^31 +1978792*x^30 + 8604440*x^29 + 31895428*x^28 + 102487784*x^27 + 289310720*x^26 + 725361352*x^25 + 1629938380*x^24 + 3307417800*x^23 + 6098786184*x^22+10273444280*x^21 + 15878121214*x^20 + 22596599536*x^19 + 29695703772*x^18 +36117601976*x^17 + 40722105266*x^16 + 42608585080*x^15 + 41395961848*x^14 +37344435656*x^13 + 31267160756*x^12 + 24271543640*x^11 + 17439809008*x^10 + 11571651608*x^9 + 7066815164*x^8 + 3953912472*x^7 + 2013737432*x^6 + 925014888*x^5 + 378067657*x^4 + 134716588*x^3 + 40441790*x^2 + 9532544*x + 1584151
             sage: v1 = v0.mac_lane_step(G)[0]
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
-            sage: v2.equivalence_decomposition(G)
-            (1/387420489) * (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
+            sage: F = v2.equivalence_decomposition(G); F
+            (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
+            sage: v2.is_equivalent(F.prod(), G)
+            True
 
         """
         f = self.domain().coerce(f)
@@ -1274,8 +1276,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     def minimal_representative(self, f):
         r"""
         Return a minimal representative for ``f``, i.e., a pair `e, a` such
-        that ``f`` :meth:`is_equivalent` to `e a`, `e` is an
-        :meth:`equivalence_unit`, and `a` :meth:`is_minimal` and monic.
+        that ``f`` :meth:`~sage.rings.valuation.valuation.DiscretePseudoValuation.is_equivalent` to `e a`, `e` is an
+        :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`, and `a` :meth:`is_minimal` and monic.
 
         INPUT:
 
@@ -1290,7 +1292,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         We use the algorithm described in the proof of Lemma 4.1 of [Mac1936II]_.
         In the expansion `f=\sum_i f_i\phi^i` take `e=f_i` for the largest `i`
         with `f_i\phi^i` minimal (see :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.effective_degree`).
-        Let `h` be the :meth:`equivalence_reciprocal` of `e` and take `a` given
+        Let `h` be the :meth:`~InductiveValuation.equivalence_reciprocal` of `e` and take `a` given
         by the terms of minimal valuation in the expansion of `e f`.
 
         EXAMPLES::
@@ -1348,24 +1350,26 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
     @abstract_method
     def lift_to_key(self, F):
         """
-        Lift the irreducible polynomial ``F`` from the :meth:`residue_ring` to
-        a key polynomial over this valuation.
+        Lift the irreducible polynomial ``F`` from the
+        :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`
+        to a key polynomial over this valuation.
 
         INPUT:
 
         - ``F`` -- an irreducible non-constant monic polynomial in
-          :meth:`residue_ring` of this valuation
+          :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`
+          of this valuation
 
         OUTPUT:
 
         A polynomial `f` in the domain of this valuation which is a key
         polynomial for this valuation and which is such that an
         :meth:`augmentation` with this polynomial adjoins a root of ``F`` to
-        the resulting :meth:`residue_ring`.
+        the resulting :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`.
 
         More specifically, if ``F`` is not the generator of the residue ring,
-        then multiplying ``f`` with the :meth:`equivalence_reciprocal` of the
-        :meth:`equivalence_unit` of the valuation of ``f``, produces a unit
+        then multiplying ``f`` with the :meth:`~InductiveValuation.equivalence_reciprocal` of the
+        :meth:`~InductiveValuation.equivalence_unit` of the valuation of ``f``, produces a unit
         which reduces to ``F``.
 
         EXAMPLES::

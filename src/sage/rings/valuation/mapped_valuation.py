@@ -205,8 +205,8 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     def lift(self, F):
         r"""
-        Lift ``F`` from the :meth:`residue_field` of this valuation into its
-        domain.
+        Lift ``F`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`
+        of this valuation into its domain.
 
         EXAMPLES::
 
@@ -227,8 +227,8 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     def _to_base_residue_ring(self, F):
         r"""
-        Return ``F``, an element of :meth:`residue_ring`, as an element of the
-        residue ring of the ``_base_valuation``.
+        Return ``F``, an element of :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`,
+        as an element of the residue ring of the ``_base_valuation``.
 
         EXAMPLES::
 
@@ -247,7 +247,7 @@ class MappedValuation_base(DiscretePseudoValuation):
     def _from_base_residue_ring(self, F):
         r"""
         Return ``F``, an element of the residue ring of ``_base_valuation``, as
-        an element of this valuation's :meth:`residue_ring`.
+        an element of this valuation's :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`.
 
         EXAMPLES::
 
@@ -285,7 +285,7 @@ class MappedValuation_base(DiscretePseudoValuation):
             tester.assertEqual(x, self._from_base_domain(self._to_base_domain(x)))
             # note that the converse might not be true
 
-    def _test_to_from_base_domain(self, **options):
+    def _test_to_from_base_residue_ring(self, **options):
         r"""
         Check the correctness of :meth:`to_base_residue_ring` and
         :meth:`from_base_residue_ring`.
@@ -434,7 +434,7 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: v = valuations.pAdicValuation(QQ, 2)
             sage: w = v.extension(L)
             sage: w._relative_size(1024*t + 1024)
-            11
+            6
 
         """
         return self._base_valuation._relative_size(self._to_base_domain(x))

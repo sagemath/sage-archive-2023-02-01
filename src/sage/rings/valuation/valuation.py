@@ -1042,7 +1042,7 @@ class MacLaneApproximantNode(object):
     A node in the tree computed by :meth:`DiscreteValuation.mac_lane_approximants`
 
     Leaves in the computation of the tree of approximants
-    :meth:`DiscreteValuation.mac_lane_approximants`. Each vertex consists of a
+    :meth:`~DiscreteValuation.mac_lane_approximants`. Each vertex consists of a
     tuple ``(v,ef,p,coeffs,vals)`` where ``v`` is an approximant, i.e., a
     valuation, ef is a boolean, ``p`` is the parent of this vertex, and
     ``coeffs`` and ``vals`` are cached values. (Only ``v`` and ``ef`` are

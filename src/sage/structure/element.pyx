@@ -960,15 +960,31 @@ cdef class Element(SageObject):
 
     def __nonzero__(self):
         r"""
-        Return ``True`` if ``self`` does not equal self.parent()(0).
+        Return whether this element is equal to ``self.parent()(0)``.
 
         Note that this is automatically called when converting to
         boolean, as in the conditional of an if or while statement.
 
-        TESTS:
-        Verify that :trac:`5185` is fixed.
+        EXAMPLES::
 
-        ::
+            sage: bool(1) # indirect doctest
+            True
+
+        If ``self.parent()(0)`` raises an exception (because there is no
+        meaningful zero element,) then this method returns ``True``. Here,
+        there is no zero morphism of rings that goes to a non-trivial ring::
+
+            sage: bool(Hom(ZZ, Zmod(2)).an_element())
+            True
+
+        But there is a zero morphism to the trivial ring::
+
+            sage: bool(Hom(ZZ, Zmod(1)).an_element())
+            False
+
+        TESTS:
+
+        Verify that :trac:`5185` is fixed::
 
             sage: v = vector({1: 1, 3: -1})
             sage: w = vector({1: -1, 3: 1})
@@ -980,8 +996,14 @@ cdef class Element(SageObject):
             False
             sage: (v+w).__nonzero__()
             False
+
         """
-        return self != self._parent.zero()
+        try:
+            zero = self._parent.zero()
+        except Exception:
+            return True # by convention
+
+        return self != zero
 
     def is_zero(self):
         """

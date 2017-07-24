@@ -13,8 +13,8 @@ finite length.
 More specifically, let `v` be a discrete valuation on `K` and let `L=K[x]/(G)`
 a finite extension thereof. An extension of `v` to `L` can be represented as a
 discrete pseudo-valuation `w'` on `K[x]` which sends `G` to infinity.
-However, such `w'` might not be described by an :class:`AugmentedValuation`
-over a :class:`GaussValuation` anymore. Instead, we may need to write is as a
+However, such `w'` might not be described by an :mod:`augmented valuation <sage.rings.valuation.augmented_valuation>`
+over a :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>` anymore. Instead, we may need to write is as a
 limit of augmented valuations.
 
 The classes in this module provide the means of writing down such limits and
@@ -149,7 +149,7 @@ class LimitValuationFactory(UniqueFactory):
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         return parent.__make_element_class__(MacLaneLimitValuation)(parent, base_valuation, G)
 
-LimitValuation = LimitValuationFactory("LimitValuation")
+LimitValuation = LimitValuationFactory("sage.rings.valuation.limit_valuation.LimitValuation")
 
 class LimitValuation_generic(DiscretePseudoValuation):
     r"""
@@ -420,8 +420,8 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
     def lift(self, F):
         r"""
-        Return a lift of ``F`` from the :meth:`residue_ring` to the
-        :meth:`domain` of this valuatiion.
+        Return a lift of ``F`` from the :meth:`residue_ring` to the domain of
+        this valuatiion.
 
         EXAMPLES::
 
@@ -840,7 +840,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: v = QQ.valuation(2)
             sage: u = v.extension(L)
             sage: u._relative_size(1024*t + 1024)
-            11
+            6
 
         """
         return self._initial_approximation._relative_size(f)

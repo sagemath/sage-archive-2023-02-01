@@ -10,7 +10,7 @@ AUTHORS:
 
 EXAMPLES:
 
-Starting from a :class:`GaussValuation`, we can create augmented valuations on
+Starting from a :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>`, we can create augmented valuations on
 polynomial rings::
 
     sage: R.<x> = QQ[]
@@ -166,7 +166,8 @@ class AugmentedValuationFactory(UniqueFactory):
     EXAMPLES:
 
     This factory is not meant to be called directly. Instead,
-    :meth:`augmentation` of a valuation should be called::
+    :meth:`~sage.rings.valuation.inductive_valuation.NonFinalInductiveValuation.augmentation`
+    of a valuation should be called::
 
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, QQ.valuation(2))
@@ -247,10 +248,10 @@ class AugmentedValuationFactory(UniqueFactory):
         else:
             return parent.__make_element_class__(InfiniteAugmentedValuation)(parent, base_valuation, phi, mu)
 
-AugmentedValuation = AugmentedValuationFactory("AugmentedValuation")
+AugmentedValuation = AugmentedValuationFactory("sage.rings.valuation.augmented_valuation.AugmentedValuation")
 
 class AugmentedValuation_base(InductiveValuation):
-    """
+    r"""
     An augmented valuation is a discrete valuation on a polynomial ring. It
     extends another discrete valuation `v` by setting the valuation of a
     polynomial `f` to the minumum of `v(f_i)i\mu` when writing `f=\sum_i
@@ -258,9 +259,9 @@ class AugmentedValuation_base(InductiveValuation):
 
     INPUT:
 
-    - ``v`` -- a :class:`InductiveValuation` on a polynomial ring
+    - ``v`` -- a :class:`~sage.rings.valuation.inductive_valuation.InductiveValuation` on a polynomial ring
 
-    - ``phi`` -- a key polynomial over ``v`` (see :meth:`is_key`)
+    - ``phi`` -- a :meth:`key polynomial <sage.rings.valuation.augmented_valuation.NonFinalFiniteAugmentedValuation.is_key>` over ``v``
 
     - ``mu`` -- a rational number such that ``mu > v(phi)`` or ``infinity``
 
@@ -281,7 +282,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     """
     def __init__(self, parent, v, phi, mu):
-        """
+        r"""
         TESTS::
 
             sage: K.<u> = Qq(4, 5)
@@ -303,7 +304,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     @cached_method
     def equivalence_unit(self, s, reciprocal=False):
-        """
+        r"""
         Return an equivalence unit of minimal degree and valuation ``s``.
 
         INPUT:
@@ -311,13 +312,13 @@ class AugmentedValuation_base(InductiveValuation):
         - ``s`` -- a rational number
 
         - ``reciprocal`` -- a boolean (default: ``False``); whether or not to
-          return the equivalence unit as the :meth:`equivalence_reciprocal` of
-          the equivalence unit of valuation ``-s``.
+          return the equivalence unit as the :meth:`~sage.rings.valuation.inductive_valuation.InductiveValuation.equivalence_reciprocal`
+          of the equivalence unit of valuation ``-s``.
 
         OUTPUT:
 
         A polynomial in the domain of this valuation which
-        :meth:`is_equivalence_unit` for this valuation.
+        :meth:`~sage.rings.valuation.inductive_valuation.InductiveValuation.is_equivalence_unit` for this valuation.
 
         EXAMPLES::
 
@@ -367,7 +368,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     @cached_method
     def element_with_valuation(self, s):
-        """
+        r"""
         Create an element of minimal degree and of valuation ``s``.
 
         INPUT:
@@ -412,7 +413,7 @@ class AugmentedValuation_base(InductiveValuation):
         return self.simplify(ret, error=error)
 
     def _repr_(self):
-        """
+        r"""
         Return a printable representation of this valuation.
 
         EXAMPLES::
@@ -432,8 +433,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     def augmentation_chain(self):
         r"""
-        Return a list with the chain of augmentations down to the underlying
-        :class:`GaussValuation`.
+        Return a list with the chain of augmentations down to the underlying :mod:`Gauss valuation <sage.rings.valuation.gauss_valuation>`.
 
         EXAMPLES::
 
@@ -459,7 +459,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     @cached_method
     def psi(self):
-        """
+        r"""
         Return the minimal polynomial of the residue field extension of this valuation.
 
         OUTPUT:
@@ -488,7 +488,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     @cached_method
     def E(self):
-        """
+        r"""
         Return the ramification index of this valuation over its underlying
         Gauss valuation.
 
@@ -513,7 +513,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     @cached_method
     def F(self):
-        """
+        r"""
         Return the degree of the residue field extension of this valuation
         over the underlying Gauss valuation.
 
@@ -776,7 +776,7 @@ class AugmentedValuation_base(InductiveValuation):
             sage: w._relative_size(x^2 + x + 1)
             1
             sage: w._relative_size(1048576*x^2 + 1048576*x + 1048576)
-            21
+            11
 
         """
         return self._base_valuation._relative_size(f)
@@ -925,9 +925,10 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
           result which can speed up the computation (default: not set)
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`coefficients` or ``None`` (default: ``None``); this can be
-          used to speed up the computation when the expansion of ``f`` is
-          already known from a previous computation.
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients`
+          or ``None`` (default: ``None``); this can be used to speed up the
+          computation when the expansion of ``f`` is already known from a
+          previous computation.
 
         - ``valuations`` -- the valuations of ``coefficients`` or ``None``
           (default: ``None``); ignored
@@ -1044,8 +1045,8 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
         return ret
 
     def lift(self, F):
-        """
-        Return a polynomial which :meth:`reduce`s to ``F``.
+        r"""
+        Return a polynomial which reduces to ``F``.
 
         INPUT:
 
@@ -1189,9 +1190,10 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
           result which can speed up the computation (default: not set)
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`coefficients` or ``None`` (default: ``None``); this can be
-          used to speed up the computation when the expansion of ``f`` is
-          already known from a previous computation.
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients`
+          or ``None`` (default: ``None``); this can be used to speed up the
+          computation when the expansion of ``f`` is already known from a
+          previous computation.
 
         - ``valuations`` -- the valuations of ``coefficients`` or ``None``
           (default: ``None``)
@@ -1206,15 +1208,18 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         We follow the algorithm given in the proof of Theorem 12.1 of [Mac1936]_:
         If ``f`` has positive valuation, the reduction is simply zero.
         Otherwise, let `f=\sum f_i\phi^i` be the expansion of `f`, as computed
-        by :meth:`coefficients`. Since the valuation is zero, the exponents `i`
-        must all be multiples of `\tau`, the index the value group of the base
-        valuation in the value group of this valuation.
-        Hence, there is an :meth:`equivalence_unit` `Q` with the same valuation
-        as `\phi^\tau`. Let `Q'` be its :meth:`reciprocal_inverse`.
+        by
+        :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients`.
+        Since the valuation is zero, the exponents `i` must all be multiples of
+        `\tau`, the index the value group of the base valuation in the value
+        group of this valuation.  Hence, there is an
+        :meth:`~sage.rings.valuation.inductive_valuation.InductiveValuation.equivalence_unit`
+        `Q` with the same valuation as `\phi^\tau`. Let `Q'` be its
+        :meth:`~sage.rings.valuation.inductive_valuation.InductiveValuation.equivalence_reciprocal`.
         Now, rewrite each term `f_i\phi^{i\tau}=(f_iQ^i)(\phi^\tau Q^{-1})^i`;
         it turns out that the second factor in this expression is a lift of the
-        generator of the :meth:`residue_field`. The reduction of the first
-        factor can be computed recursively.
+        generator of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`.
+        The reduction of the first factor can be computed recursively.
 
         EXAMPLES::
 
@@ -1333,15 +1338,15 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         return ret
 
     def lift(self, F, report_coefficients=False):
-        """
-        Return a polynomial which :meth:`reduce`s to ``F``.
+        r"""
+        Return a polynomial which reduces to ``F``.
 
         INPUT:
 
         - ``F`` -- an element of the :meth:`residue_ring`
 
         - ``report_coefficients`` -- whether to return the coefficients of the
-          :meth:`phi`-adic expansion or the actual polynomial (default:
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic expansion or the actual polynomial (default:
           ``False``, i.e., return the polynomial)
 
         OUTPUT:
@@ -1436,7 +1441,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         return ret
 
     def lift_to_key(self, F, check=True):
-        """
+        r"""
         Lift the irreducible polynomial ``F`` to a key polynomial.
 
         INPUT:
@@ -1607,7 +1612,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
 
     @cached_method
     def value_group(self):
-        """
+        r"""
         Return the value group of this valuation.
 
         EXAMPLES::
@@ -1649,7 +1654,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         return self._base_valuation.value_semigroup() + self._mu
 
     def valuations(self, f, coefficients=None, call_error=False):
-        """
+        r"""
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum_i
         f_i\phi^i`.
 
@@ -1658,9 +1663,10 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         - ``f`` -- a polynomial in the domain of this valuation
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`coefficients` or ``None`` (default: ``None``); this can be
-          used to speed up the computation when the expansion of ``f`` is
-          already known from a previous computation.
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients`
+          or ``None`` (default: ``None``); this can be used to speed up the
+          computation when the expansion of ``f`` is already known from a
+          previous computation.
 
         - ``call_error`` -- whether or not to speed up the computation by
           assuming that the result is only used to compute the valuation of
@@ -1726,7 +1732,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           (default: ``False``)
 
         - ``effective_degree`` -- when set, assume that coefficients beyond
-          ``effective_degree`` in the :meth:`phi`-adic development can be
+          ``effective_degree`` in the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic development can be
           safely dropped (default: ``None``)
 
         - ``size_heuristic_bound`` -- when ``force`` is not set, the expected
@@ -1768,10 +1774,12 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         ALGORITHM:
 
         The main cost of evaluation is the computation of the
-        :meth:`coefficients` of the :meth:`phi`-adic expansion of ``f`` (which
-        often leads to coefficient bloat.) So unless :meth:`phi` is trivial, we
-        fall back to valuation which this valuation augments since it is
-        guaranteed to be smaller everywhere.
+        :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients`
+        of the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic
+        expansion of ``f`` (which often leads to coefficient bloat.) So unless
+        :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`
+        is trivial, we fall back to valuation which this valuation augments
+        since it is guaranteed to be smaller everywhere.
 
         EXAMPLES::
 
@@ -1809,10 +1817,11 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         ALGORITHM:
 
         Any entry of :meth:`valuations` serves as an upper bound. However,
-        computation of the :meth:`phi`-adic expansion of ``f`` is quite costly.
+        computation of the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic
+        expansion of ``f`` is quite costly.
         Therefore, we produce an upper bound on the last entry of
         :meth:`valuations`, namely the valuation of the leading coefficient of
-        ``f`` plus the valuation of the appropriate power of :meth:`phi`.
+        ``f`` plus the valuation of the appropriate power of :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`.
 
         EXAMPLES::
 
@@ -1917,7 +1926,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
     @cached_method
     def value_group(self):
-        """
+        r"""
         Return the value group of this valuation.
 
         EXAMPLES::
@@ -1934,7 +1943,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
 
     @cached_method
     def value_semigroup(self):
-        """
+        r"""
         Return the value semigroup of this valuation.
 
         EXAMPLES::
@@ -1950,7 +1959,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         return self._base_valuation.value_semigroup()
 
     def valuations(self, f, coefficients=None, call_error=False):
-        """
+        r"""
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum_i
         f_i\phi^i`.
 
@@ -1959,9 +1968,10 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         - ``f`` -- a polynomial in the domain of this valuation
 
         - ``coefficients`` -- the coefficients of ``f`` as produced by
-          :meth:`coefficients` or ``None`` (default: ``None``); this can be
-          used to speed up the computation when the expansion of ``f`` is
-          already known from a previous computation.
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.coefficients`
+          or ``None`` (default: ``None``); this can be used to speed up the
+          computation when the expansion of ``f`` is already known from a
+          previous computation.
 
         - ``call_error`` -- whether or not to speed up the computation by
           assuming that the result is only used to compute the valuation of

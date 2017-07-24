@@ -355,24 +355,38 @@ def can_convert_to_singular(R):
         sage: can_convert_to_singular(PolynomialRing(QQ, names=[]))
         False
 
+    TESTS:
+
+    Avoid non absolute number fields (see :trac:`23535`)::
+
+        sage: K.<a,b> = NumberField([x^2-2,x^2-5])
+        sage: can_convert_to_singular(K['s,t'])
+        False
     """
     if R.ngens() == 0:
         return False;
 
     base_ring = R.base_ring()
-    return ( sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
-             or is_RationalField(base_ring)
-             or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
-             or is_RealField(base_ring)
-             or is_ComplexField(base_ring)
-             or is_RealDoubleField(base_ring)
-             or is_ComplexDoubleField(base_ring)
-             or number_field.number_field_base.is_NumberField(base_ring)
-             or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ or is_FiniteField(base_ring.base_ring()) ) )
-             or base_ring is ZZ
-             or is_IntegerModRing(base_ring)
-             or (is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field()) )
-
+    if (base_ring is ZZ
+        or sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
+        or is_RationalField(base_ring)
+        or is_IntegerModRing(base_ring)
+        or is_RealField(base_ring)
+        or is_ComplexField(base_ring)
+        or is_RealDoubleField(base_ring)
+        or is_ComplexDoubleField(base_ring)):
+        return True
+    elif base_ring.is_prime_field():
+        return base_ring.characteristic() <= 2147483647
+    elif number_field.number_field_base.is_NumberField(base_ring):
+        return base_ring.is_absolute()
+    elif sage.rings.fraction_field.is_FractionField(base_ring):
+        B = base_ring.base_ring()
+        return B.is_prime_field() or B is ZZ or is_FiniteField(B)
+    elif is_RationalFunctionField(base_ring):
+        return base_ring.constant_field().is_prime_field()
+    else:
+        return False
 
 class Polynomial_singular_repr:
     """

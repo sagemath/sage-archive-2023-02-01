@@ -38,8 +38,7 @@ static bool is_rational_linear(const ex& the_ex)
         if (is_exactly_a<symbol>(the_ex))
                 return true;
         if (is_exactly_a<numeric>(the_ex))
-                return (ex_to<numeric>(the_ex).is_mpz()
-                                or ex_to<numeric>(the_ex).is_mpq());
+                return ex_to<numeric>(the_ex).is_rational();
 
         if (is_exactly_a<mul>(the_ex)) {
                 const mul& m = ex_to<mul>(the_ex);
@@ -50,8 +49,7 @@ static bool is_rational_linear(const ex& the_ex)
                 }
                 const ex& oc = m.op(m.nops());
                 return (is_exactly_a<numeric>(oc)
-                       and (ex_to<numeric>(oc).is_mpz()
-                            or ex_to<numeric>(oc).is_mpq()));
+                       and ex_to<numeric>(oc).is_rational());
         }
         if (is_exactly_a<add>(the_ex)) {
                 const add& a = ex_to<add>(the_ex);
@@ -61,8 +59,7 @@ static bool is_rational_linear(const ex& the_ex)
                 }
                 const ex& oc = a.op(a.nops());
                 return (is_exactly_a<numeric>(oc)
-                       and (ex_to<numeric>(oc).is_mpz()
-                            or ex_to<numeric>(oc).is_mpq()));
+                       and ex_to<numeric>(oc).is_rational());
         }
         return false;
 }
@@ -144,8 +141,7 @@ static bool has_suitable_form(ex the_ex)
                 }
                 const ex& oc = m.op(m.nops());
                 return (is_exactly_a<numeric>(oc)
-                       and (ex_to<numeric>(oc).is_mpz()
-                            or ex_to<numeric>(oc).is_mpq()));
+                       and ex_to<numeric>(oc).is_rational());
         }
         if (is_exactly_a<add>(the_ex)) {
                 const add& m = ex_to<add>(the_ex);
@@ -155,8 +151,7 @@ static bool has_suitable_form(ex the_ex)
                 }
                 const ex& oc = m.op(m.nops());
                 return (is_exactly_a<numeric>(oc)
-                       and (ex_to<numeric>(oc).is_mpz()
-                            or ex_to<numeric>(oc).is_mpq()));
+                       and ex_to<numeric>(oc).is_rational());
         }
         return false;
 }
@@ -267,7 +262,7 @@ static void collect_gamma_args(ex the_ex, ex_intset_map& map)
                                 if (not is_exactly_a<numeric>(oc))
                                         return;
                                 numeric noc = ex_to<numeric>(oc);
-                                if (not noc.is_mpz()) {
+                                if (not noc.is_mpz() and not noc.is_long()) {
                                         if (not noc.is_mpq())
                                                 return;
                                         oc = numeric(noc.to_int());
@@ -394,7 +389,7 @@ static matrix solve_system(ex mpoly,
                 if (not is_exactly_a<numeric>(expo))
                         throw std::runtime_error("can't happen in solve_system()");
                 numeric nume = ex_to<numeric>(expo);
-                if (not nume.is_mpz())
+                if (not nume.is_mpz() and not nume.is_long())
                         throw std::runtime_error("can't happen in solve_system()");
                 int e = nume.to_int();
                 for (const ex& sym : syms) {

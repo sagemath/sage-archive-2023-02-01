@@ -51,7 +51,7 @@ namespace GiNaC {
 
 static CanonicalForm num2canonical(const numeric& n)
 {
-        if (n.is_mpz() or n.is_mpq())
+        if (n.is_long() or n.is_mpz() or n.is_mpq())
                 return n.to_canonical();
 
         std::cerr << "\nn = " << n << "\n";

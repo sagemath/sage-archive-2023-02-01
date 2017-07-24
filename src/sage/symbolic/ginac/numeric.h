@@ -108,11 +108,18 @@ class numeric : public basic {
 public:
 	numeric(const numeric&);
 	numeric(int i) : basic(&numeric::tinfo_static), t(LONG), v(i)
-        { setflag(status_flags::evaluated | status_flags::expanded); }
-	numeric(unsigned int i) : basic(&numeric::tinfo_static), t(LONG), v(i)
+        {
+                hash = (i<0) ? i-1 : i;
+                setflag(status_flags::evaluated | status_flags::expanded);
+        }
+	numeric(unsigned int i) : 
+                basic(&numeric::tinfo_static), t(LONG), v(i), hash(i)
         { setflag(status_flags::evaluated | status_flags::expanded); }
 	numeric(long i) : basic(&numeric::tinfo_static), t(LONG), v(i)
-        { setflag(status_flags::evaluated | status_flags::expanded); }
+        {
+                hash = (i<0) ? i-1 : i;
+                setflag(status_flags::evaluated | status_flags::expanded);
+        }
 	numeric(long numer, long denom);
 	numeric(double d);
 	numeric(mpz_t bigint);
@@ -232,6 +239,7 @@ public:
 	}
 	long to_long() const;
 	double to_double() const;
+        bool is_long() const { return t == LONG; }
 	bool is_mpz() const { return t == MPZ; }
 	bool is_mpq() const { return t == MPQ; }
         const numeric to_bigint() const;

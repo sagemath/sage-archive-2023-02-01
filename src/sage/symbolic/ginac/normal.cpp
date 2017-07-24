@@ -105,7 +105,7 @@ numeric add::integer_content() const
 	}
 	c = gcd(overall_coeff.numer(), c);
 	l = lcm(overall_coeff.denom(), l);
-	return c/l;
+	return (c/l).abs();
 }
 
 numeric mul::integer_content() const
@@ -118,7 +118,7 @@ numeric mul::integer_content() const
 		++it;
 	}
 #endif // def DO_GINAC_ASSERT
-	return abs(overall_coeff);
+	return overall_coeff.abs();
 }
 
 

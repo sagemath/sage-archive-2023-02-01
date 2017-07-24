@@ -754,7 +754,8 @@ ex mul::eval(int level) const
 			// very unlucky event it can even loop forever). Hopefully the main
 			// variable will be the same for all terms in *this
 			const bool unit_normal = lead_coeff.is_pos_integer();
-			if (likely((c.is_inexact_one()) && ((! canonicalizable) || unit_normal))) {
+			if (likely(((not canonicalizable) or unit_normal)
+                                   and c.is_inexact_one() )) {
 				++i;
 				continue;
 			}

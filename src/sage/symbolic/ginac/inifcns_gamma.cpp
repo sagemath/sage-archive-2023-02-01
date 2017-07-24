@@ -176,13 +176,13 @@ static ex tgamma_eval(const ex & x)
 			// trap positive x==(n+1/2)
 			// tgamma(n+1/2) -> Pi^(1/2)*(1*3*..*(2*n-1))/(2^n)
 			if (two_x.is_positive()) {
-				const numeric n = ex_to<numeric>(x).sub(*_num1_2_p).to_bigint();
-				return (doublefactorial(n.mul(*_num2_p).sub(*_num1_p)).div(_num2_p->pow_intexp(n))) * sqrt(Pi);
+				long n = ex_to<numeric>(x).sub(*_num1_2_p).to_long();
+				return (doublefactorial(n+n-1).div(_num2_p->pow_intexp(n))) * sqrt(Pi);
 			} else {
 				// trap negative x==(-n+1/2)
 				// tgamma(-n+1/2) -> Pi^(1/2)*(-2)^n/(1*3*..*(2*n-1))
-				const numeric n = abs(ex_to<numeric>(x).sub(*_num1_2_p).to_bigint());
-				return _num_2_p->pow_intexp(n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p)))*sqrt(Pi);
+				long n = std::labs(ex_to<numeric>(x).sub(*_num1_2_p).to_long());
+				return _num_2_p->pow_intexp(n).div(doublefactorial(n+n-1))*sqrt(Pi);
 			}
 		}
 		if (!ex_to<numeric>(x).is_exact())

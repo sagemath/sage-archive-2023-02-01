@@ -659,6 +659,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                 if (PyInt_Check(o)) {
                         t = LONG;
                         v._long = PyInt_AsLong(o);
+                        hash = (v._long<0) ? v._long-1 : v._long;
                         setflag(status_flags::evaluated | status_flags::expanded);
                         Py_DECREF(o);
                         return;
@@ -697,10 +698,18 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
 }
 
 numeric::numeric(mpz_t bigint) : basic(&numeric::tinfo_static) {
-        t = MPZ;
-        mpz_init_set(v._bigint, bigint);
-        mpz_clear(bigint);
-        hash = _mpz_pythonhash(v._bigint);
+        if (mpz_fits_sint_p(bigint)) {
+                t = LONG;
+                v._long = mpz_get_si(bigint);
+                hash = (v._long<0) ? v._long-1 : v._long;
+                mpz_clear(bigint);
+        }
+        else {
+                t = MPZ;
+                mpz_init_set(v._bigint, bigint);
+                mpz_clear(bigint);
+                hash = _mpz_pythonhash(v._bigint);
+        }
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -722,6 +731,7 @@ numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
         if ((num%den) == 0) {
                 t = LONG;
                 v._long = num/den;
+                hash = (v._long<0) ? v._long-1 : v._long;
         }
         else
         {
@@ -776,6 +786,7 @@ inherited(n, sym_lst) {
         switch (t) {
                 case LONG:
                         v._long = std::stol(str);
+                        hash = (v._long<0) ? v._long-1 : v._long;
                         return;
                 case MPZ:
                         mpz_init(v._bigint);
@@ -821,7 +832,7 @@ void numeric::archive(archive_node &n) const {
         switch (t) {
                 case LONG:
                         tstr = new std::string(std::to_string(v._long));
-                        return;
+                        break;
                 case MPZ:
                 {
                         std::vector<char> cp(2 + mpz_sizeinbase(v._bigint, 10));
@@ -1093,7 +1104,7 @@ bool numeric::is_equal_same_type(const basic &other) const {
 long numeric::calchash() const {
         switch (t) {
                 case LONG:
-                        return v._long;
+                        return (v._long<0) ? v._long-1 : v._long;
                 case MPZ:
                 case MPQ:
                 case PYOBJECT:
@@ -1288,6 +1299,10 @@ const numeric numeric::div(const numeric &other) const {
         verbose("operator/");
         if (other.is_zero())
                 throw std::overflow_error("numeric::div(): division by zero");
+        if (is_zero())
+                return *_num0_p;
+        if (other.is_one())
+                return *this;
         if (t != other.t) {
                 numeric a, b;
                 coerce(a, b, *this, other);
@@ -1296,6 +1311,8 @@ const numeric numeric::div(const numeric &other) const {
         switch (t) {
                 case LONG:
                         {
+                        if (v._long == 1 and other.v._long == 2)
+                                return *_num1_2_p;
                         auto ld = std::div(v._long, other.v._long);
                         if (ld.rem == 0)
                                 return ld.quot;
@@ -1303,7 +1320,7 @@ const numeric numeric::div(const numeric &other) const {
                                 mpq_t bigrat, obigrat;
                                 mpq_init(bigrat);
                                 mpq_init(obigrat);
-                                mpq_set_z(bigrat, v._bigint);
+                                mpq_set_si(bigrat, v._long, 1);
                                 mpq_set_si(obigrat, other.v._long, 1);
                                 mpq_div(bigrat, bigrat, obigrat);
                                 mpq_clear(obigrat);
@@ -1465,7 +1482,7 @@ bool numeric::integer_rational_power(numeric& res,
 void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 numeric& c, numeric& d, bool& c_unit)
 {
-        if (b_orig.t == MPZ) {
+        if (b_orig.t == LONG or b_orig.t == MPZ) {
                 c = a_orig.pow_intexp(b_orig);
                 d = *_num1_p;
                 c_unit = c.is_one();
@@ -1511,8 +1528,8 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 d = a;
                 return;
         }
-        long denoml = mpz_get_si(denom.v._bigint);
-        if (a.is_minus_one() and denoml > 1) {
+        long denoml = denom.to_long();
+        if (denoml > 1 and a.is_minus_one()) {
                 c = *_num1_p;
                 c_unit = true;
                 d = *_num_1_p;
@@ -1854,6 +1871,7 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                             or (lh.v._long < 0
                              and ll > std::numeric_limits<long>::min())) {
                                 lh.v._long = ll;
+                                lh.hash = (ll<0) ? ll-1 : ll;
                                 return lh;
                         }
                         lh.t = MPZ;
@@ -1933,6 +1951,7 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                             or (lh.v._long < 0
                              and ll > std::numeric_limits<long>::min())) {
                                 lh.v._long = ll;
+                                lh.hash = (ll<0) ? ll-1 : ll;
                                 return lh;
                         }
                         lh.t = MPZ;
@@ -2029,6 +2048,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                             or (lh.v._long < 0
                              and ll > std::numeric_limits<long>::min())) {
                                 lh.v._long = ll;
+                                lh.hash = (ll<0) ? ll-1 : ll;
                                 return lh;
                         }
                         lh.t = MPZ;
@@ -2123,6 +2143,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         auto ld = std::div(lh.v._long, rh.v._long);
                         if (ld.rem == 0) {
                                 lh.v._long = ld.quot;
+                                lh.hash = (ld.quot<0) ? ld.quot-1 : ld.quot;
                                 return lh;
                         }
                         else {
@@ -2663,6 +2684,10 @@ bool numeric::operator==(const numeric &right) const {
 bool numeric::operator!=(const numeric &right) const {
         verbose("operator!=");
         if (t != right.t) {
+                if (t == LONG and right.t == MPZ)
+                        return mpz_cmp_si(right.v._bigint, v._long) !=0;
+                if (right.t == LONG and t == MPZ)
+                        return mpz_cmp_si(v._bigint, right.v._long) !=0;
                 if (t == MPZ and right.t == MPQ) {
                         if (mpz_cmp_ui(mpq_denref(right.v._bigrat), 1) != 0)
                                 return true;
@@ -2731,6 +2756,10 @@ bool numeric::is_crational() const {
  *  @exception invalid_argument (complex inequality) */
 bool numeric::operator<(const numeric &right) const {
         verbose("operator<");
+        if (t == MPZ and right.t == LONG)
+                return mpz_cmp_si(v._bigint, right.v._long) < 0;
+        if (t == LONG and right.t == MPZ)
+                return mpz_cmp_si(right.v._bigint, v._long) > 0;
         if (t != right.t) {
                 numeric a, b;
                 coerce(a, b, *this, right);
@@ -2756,6 +2785,10 @@ bool numeric::operator<(const numeric &right) const {
  *  @exception invalid_argument (complex inequality) */
 bool numeric::operator<=(const numeric &right) const {
         verbose("operator<=");
+        if (t == MPZ and right.t == LONG)
+                return mpz_cmp_si(v._bigint, right.v._long) <= 0;
+        if (t == LONG and right.t == MPZ)
+                return mpz_cmp_si(right.v._bigint, v._long) >= 0;
         if (t != right.t) {
                 numeric a, b;
                 coerce(a, b, *this, right);
@@ -2780,6 +2813,10 @@ bool numeric::operator<=(const numeric &right) const {
  *  @exception invalid_argument (complex inequality) */
 bool numeric::operator>(const numeric &right) const {
         verbose("operator>");
+        if (t == MPZ and right.t == LONG)
+                return mpz_cmp_si(v._bigint, right.v._long) > 0;
+        if (t == LONG and right.t == MPZ)
+                return mpz_cmp_si(right.v._bigint, v._long) < 0;
         if (t != right.t) {
                 numeric a, b;
                 coerce(a, b, *this, right);
@@ -2804,6 +2841,10 @@ bool numeric::operator>(const numeric &right) const {
  *  @exception invalid_argument (complex inequality) */
 bool numeric::operator>=(const numeric &right) const {
         verbose("operator>=");
+        if (t == MPZ and right.t == LONG)
+                return mpz_cmp_si(v._bigint, right.v._long) >= 0;
+        if (t == LONG and right.t == MPZ)
+                return mpz_cmp_si(right.v._bigint, v._long) <= 0;
         if (t != right.t) {
                 numeric a, b;
                 coerce(a, b, *this, right);
@@ -2858,9 +2899,13 @@ long numeric::to_long() const {
 const numeric numeric::to_bigint() const {
         switch (t) {
                 case LONG:
-                        mpz_t bigint;
-                        mpz_init_set_si(bigint, v._long);
-                        return bigint;
+                {
+                        numeric nu;
+                        mpz_init_set_si(nu.v._bigint, v._long);
+                        nu.t = MPZ;
+                        nu.hash = _mpz_pythonhash(nu.v._bigint);
+                        return nu;
+                }
                 case MPZ: return *this;
                 case MPQ: 
                         if (not denom().is_one())
@@ -3676,7 +3721,12 @@ const numeric numeric::abs() const {
                 }
                 case PYOBJECT:
                 {
-                        PY_RETURN(py_funcs.py_abs);
+                        PyObject* ret = PyNumber_Absolute(v._pyobject);
+                        if (ret == NULL) {
+                                PyErr_Clear();
+                                return *this;
+                        }
+                        return ret;
                 }
                 default:
                         stub("invalid type: type not handled");
@@ -3878,7 +3928,7 @@ const numeric numeric::lcm(const numeric &b) const {
 // version of factor for factors fitting into long
 void numeric::factorsmall(std::vector<std::pair<long, int>>& factors, long range) const
 {
-        if (is_one() or is_minus_one())
+        if (is_one() or is_zero() or is_minus_one())
                 return;
         switch (t) {
                 case LONG:
@@ -3986,7 +4036,7 @@ static void setDivisors(long n, int i, std::set<int>& divisors,
 void numeric::divisors(std::set<int>& divs) const
 {
         divs.insert(1);
-        if (is_one() or is_minus_one())
+        if (is_one() or is_zero() or is_minus_one())
                 return;
         switch (t) {
                 case LONG:
@@ -3995,6 +4045,7 @@ void numeric::divisors(std::set<int>& divs) const
                         std::vector<std::pair<long, int>> factors;
                         factorsmall(factors);
                         setDivisors(1, 0, divs, factors);
+                        return;
                 }
                 case MPQ:
                         return to_bigint().divisors(divs);
@@ -4023,10 +4074,19 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 case LONG:
                         switch (right.t) {
                                 case MPZ:
-                                        mpz_init(bigint);
-                                        mpz_set_si(bigint, left.v._long);
-                                        new_left = numeric(bigint);
-                                        new_right = right;
+                                        if (mpz_fits_sint_p(right.v._bigint)) {
+                                                new_right = numeric(mpz_get_si(right.v._bigint));
+                                                new_left = left;
+                                        }
+                                        else {
+                                                numeric n;
+                                                mpz_init(n.v._bigint);
+                                                n.t = MPZ;
+                                                mpz_set_si(n.v._bigint, left.v._long);
+                                                n.hash = left.v._long<0? left.v._long-1 : left.v._long;
+                                                new_left = n;
+                                                new_right = right;
+                                        }
                                         return;
                                 case MPQ:
                                         mpq_init(bigrat);
@@ -4035,7 +4095,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         new_right = right;
                                         return;
                                 case PYOBJECT:
-                                        mpz_init_set_ui(bigint, left.v._long);
+                                        mpz_init_set_si(bigint, left.v._long);
                                         o = py_funcs.py_integer_from_mpz(bigint);
                                         new_left = numeric(o, true);
                                         new_right = right;
@@ -4048,10 +4108,19 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 case MPZ:
                         switch (right.t) {
                                 case LONG:
-                                        mpz_init(bigint);
-                                        mpz_set_si(bigint, right.v._long);
-                                        new_right = numeric(bigint);
-                                        new_left = left;
+                                        if (mpz_fits_sint_p(left.v._bigint)) {
+                                                new_left = numeric(mpz_get_si(left.v._bigint));
+                                                new_right = right;
+                                        }
+                                        else {
+                                                numeric n;
+                                                mpz_init(n.v._bigint);
+                                                n.t = MPZ;
+                                                mpz_set_si(n.v._bigint, right.v._long);
+                                                n.hash = right.v._long<0? right.v._long-1 : right.v._long;
+                                                new_right = n;
+                                                new_left = left;
+                                        }
                                         return;
                                 case MPQ:
                                         mpq_init(bigrat);

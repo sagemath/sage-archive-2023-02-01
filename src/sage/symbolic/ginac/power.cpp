@@ -558,7 +558,7 @@ ex power::eval(int level) const
 		return ebasis;
 
 	// ^(0,c1) -> 0 or exception  (depending on real value of c1)
-	if (ebasis.is_zero() && exponent_is_numerical) {
+	if (exponent_is_numerical and ebasis.is_zero() ) {
 		if ((num_exponent.real()).is_zero())
 			throw (std::domain_error("power::eval(): pow(0,I) is undefined"));
 		else if ((num_exponent.real()).is_negative())

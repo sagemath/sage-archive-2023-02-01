@@ -1007,6 +1007,8 @@ class pAdicValuation_padic(pAdicValuation_base):
         from sage.rings.all import infinity
         if error is infinity:
             return x
+        # we need to scale by the ramification index because p-adics use a
+        # different normalization
         normalized_error = (error / self.value_group().gen()).ceil()
         return x.add_bigoh(normalized_error + 1).lift_to_precision()
 

@@ -828,8 +828,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                             for j in range(i):
                                 if w(q[j]) < w(q[best]):
                                     best = j
-                            # now add the right O() to phi in degree i - best
-                            phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
+                            # now add the right O() to phi in degree i - best (note that p-adics use a different normalization)
+                            precision_absolute = (w(c) - w(q[best]))/w.value_group().gen()
+                            phi[i-best] = phi[i-best].add_bigoh(precision_absolute)
 
                     phi = G.parent()(phi)
                     w = self._base_valuation.augmentation(phi, infinity, check=False)
@@ -842,6 +843,12 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity)) for j,val in enumerate(w_valuations)]
                     base = self
                     if phi.degree() == base.phi().degree():
+                        # very frequently, the degree of the key polynomials
+                        # stagnate for a bit while the valuation of the key
+                        # polynomial is slowly increased.
+                        # In this case, we can drop previous key polynomials
+                        # of the same degree. (They have no influence on the
+                        # phi-adic expansion.)
                         assert new_mu > self(phi)
                         if not base.is_gauss_valuation():
                             base = base._base_valuation

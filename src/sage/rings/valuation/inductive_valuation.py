@@ -828,8 +828,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                             for j in range(i):
                                 if w(q[j]) < w(q[best]):
                                     best = j
-                            # now add the right O() to phi in degree i - best
-                            phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
+                            # now add the right O() to phi in degree i - best (note that p-adics use a different normalization)
+                            precision_absolute = (w(c) - w(q[best]))/w.value_group().gen()
+                            phi[i-best] = phi[i-best].add_bigoh(precision_absolute)
 
                     phi = G.parent()(phi)
                     w = self._base_valuation.augmentation(phi, infinity, check=False)

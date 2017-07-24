@@ -357,7 +357,6 @@ class PadicValuationFactory(UniqueFactory):
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         from sage.rings.number_field.number_field import is_NumberField
         R = key[0]
-        K = R.fraction_field()
         parent = DiscretePseudoValuationSpace(R)
         if isinstance(R, pAdicGeneric):
             assert(len(key)==1)
@@ -370,6 +369,7 @@ class PadicValuationFactory(UniqueFactory):
             v = key[1]
             approximants = extra_args['approximants']
             parent = DiscretePseudoValuationSpace(R)
+            K = R.fraction_field()
             if is_NumberField(K):
                 G = K.relative_polynomial()
             elif is_PolynomialQuotientRing(R):

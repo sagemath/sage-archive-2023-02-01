@@ -1078,3 +1078,42 @@ class MacLaneApproximantNode(object):
         self.coefficients = coefficients
         self.valuations = valuations
         self.forced_leaf = False
+
+    def __eq__(self, other):
+        r"""
+        Return whether this node is equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.valuation.valuation import MacLaneApproximantNode
+            sage: n = MacLaneApproximantNode(QQ.valuation(2), None, 1, None, None, None)
+            sage: m = MacLaneApproximantNode(QQ.valuation(3), None, 1, None, None, None)
+            sage: n == m
+            False
+            sage: n == n
+            True
+
+        """
+        if type(self) != type(other):
+            return False
+        return (self.valuation, self.parent, self.ef, self.principal_part_bound, self.coefficients, self.valuations, self.forced_leaf) == (other.valuation, other.parent, other.ef, other.principal_part_bound, other.coefficients, other.valuations, other.forced_leaf)
+
+    def __ne__(self, other):
+        r"""
+        Return whether this node is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.valuation.valuation import MacLaneApproximantNode
+            sage: n = MacLaneApproximantNode(QQ.valuation(2), None, 1, None, None, None)
+            sage: m = MacLaneApproximantNode(QQ.valuation(3), None, 1, None, None, None)
+            sage: n != m
+            True
+            sage: n != n
+            False
+
+        """
+        return not (self == other)
+
+    # mutable object - not hashable
+    __hash__ = None

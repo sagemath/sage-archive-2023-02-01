@@ -813,30 +813,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     slopes = [-infinity] + slopes
                     multiplicities[-infinity] = 1
 
-                if not slopes:
-                    q,r = G.quo_rem(phi)
-                    assert not r.is_zero()
-                    phi = phi.coefficients(sparse=False)
-                    for i,c in enumerate(r.coefficients(sparse=False)):
-                        if not c.is_zero():
-                            v = w(c)
-                            # for a correct result we need to add O(pi^v) in degree i
-                            # we try to find the coefficient of phi where such an
-                            # error can be introduced without losing much absolute
-                            # precision on phi
-                            best = i
-                            for j in range(i):
-                                if w(q[j]) < w(q[best]):
-                                    best = j
-                            # now add the right O() to phi in degree i - best (note that p-adics use a different normalization)
-                            precision_absolute = (w(c) - w(q[best]))/w.value_group().gen()
-                            phi[i-best] = phi[i-best].add_bigoh(precision_absolute)
-
-                    phi = G.parent()(phi)
-                    w = self._base_valuation.augmentation(phi, infinity, check=False)
-                    ret.append((w, phi.degree(), principal_part_bound, None, None))
-                    continue
-
                 for i, slope in enumerate(slopes):
                     verbose("Slope = %s"%slope, level=12)
                     new_mu = old_mu - slope

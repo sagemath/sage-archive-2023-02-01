@@ -8310,9 +8310,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # a square-free polynomial has a square-free content
         if not B.is_field():
-            content = self.content()
-            if content not in self._parent.base_ring():
-                content = content.gen()
+            content = self.content_ideal().gen()
             if not content.is_squarefree():
                 return False
 

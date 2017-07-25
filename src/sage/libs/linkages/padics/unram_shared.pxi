@@ -1,8 +1,3 @@
-def frobenius_gen(K):
-    f = K.defining_polynomial()
-    
-
-
 
 def frobenius_unram(self, arithmetic=True):
     """
@@ -55,7 +50,6 @@ def frobenius_unram(self, arithmetic=True):
     ppow = self.valuation()
     unit = self.unit_part()
     coefs = unit.list()
-    power_dict = {} # j : frob_a^j. cache powers of frob_a
     ans = 0
 
     # Xavier's implementation based on Horner scheme
@@ -70,17 +64,6 @@ def frobenius_unram(self, arithmetic=True):
         ans *= frob_a
         ans += update
     return ans << ppow
-
-    for i in range(len(coefs)):
-        update = 0
-        for j in range(len(coefs[i])):
-            if j in power_dict.keys():
-                update += coefs[i][j]*power_dict[j]
-            else:
-                power_dict[j] = frob_a**j #We might be able to optimize this with smarts
-                update += coefs[i][j]*power_dict[j]
-        ans += update*p**(i+ppow)
-    return ans 
 
 def norm_unram(self, base = None):
     """

@@ -1639,6 +1639,15 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         See http://trac.sagemath.org/23411 for details.
         True
 
+    Unpickling would even work in the case that the machine creating
+    the deprecated pickle had ``sizeof(long)==9``::
+
+        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: len(t)
+        18
+        sage: N == mtx_unpickle(MS, 2, 5, t, True)           # optional: meataxe
+        True
+
     The data may be empty, which results in the zero matrix::
 
         sage: mtx_unpickle(MS, 2, 5, '', True)               # optional: meataxe
@@ -1654,11 +1663,6 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         Traceback (most recent call last):
         ...
         ValueError: Expected a pickle with 3*2 bytes per row, got 17 instead
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00\x00'
-        sage: mtx_unpickle(MS, 2, 5, t, True)                # optional: meataxe
-        Traceback (most recent call last):
-        ...
-        ValueError: Expected a pickle with 3*2 bytes per row, got 18 instead
         sage: MS = MatrixSpace(GF(13), 0, 5)
         sage: mtx_unpickle(MS, 0, 5, s, True)                # optional: meataxe
         Traceback (most recent call last):
@@ -1705,9 +1709,16 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
                 memcpy(pt,x,FfCurrentRowSizeIo)
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&(pt))
-        elif pickled_rowsize == FfCurrentRowSize:
+        elif pickled_rowsize >= FfCurrentRowSizeIo:
             deprecation(23411, "Reading this pickle may be machine dependent")
-            memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+            if pickled_rowsize == FfCurrentRowSize:
+                memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+            else:
+                pt = OUT.Data.Data
+                for i in range(nr):
+                    memcpy(pt,x,FfCurrentRowSizeIo)
+                    x += pickled_rowsize
+                    FfStepPtr(&(pt))
         else:
-            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {lenData} instead")
+            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {pickled_rowsize}*{nr} instead")
     return OUT

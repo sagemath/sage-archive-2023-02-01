@@ -54,8 +54,10 @@ Classes and methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
-from c_graph cimport CGraphBackend
-from c_graph cimport CGraph
+from __future__ import absolute_import
+
+from .c_graph cimport CGraphBackend, CGraph
+
 
 cdef class GenericGraphBackend(SageObject):
     """
@@ -670,9 +672,9 @@ cdef class GenericGraphBackend(SageObject):
             sage: loads(dumps(gi)) == gi
             True
         """
-        from static_sparse_backend import StaticSparseBackend
-        from sparse_graph import SparseGraphBackend
-        from dense_graph import DenseGraphBackend
+        from .static_sparse_backend import StaticSparseBackend
+        from .sparse_graph import SparseGraphBackend
+        from .dense_graph import DenseGraphBackend
 
         # implementation, data_structure, multiedges, directed, loops
         if isinstance(self, CGraphBackend):
@@ -682,7 +684,7 @@ cdef class GenericGraphBackend(SageObject):
             elif isinstance(self,DenseGraphBackend):
                 data_structure = "dense"
             elif isinstance(self,StaticSparseBackend):
-                implementaton = "static_sparse"
+                implementation = "static_sparse"
             else:
                 raise Exception
             multiedges = (<CGraphBackend> self)._multiple_edges
@@ -736,7 +738,7 @@ def unpickle_graph_backend(directed,vertices,edges,kwds):
     This function builds a :class:`Graph` or :class:`DiGraph` from its data, and
     returns the ``_backend`` attribute of this object.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.graph_backends import unpickle_graph_backend
         sage: b = unpickle_graph_backend(0,[0,1,2,3],[(0,3,'label'),(0,0,1)],{'loops':True})
@@ -770,7 +772,7 @@ class NetworkXGraphDeprecated(SageObject):
         """
         Issue deprecation warnings for the old networkx XGraph formats
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated
             sage: NetworkXGraphDeprecated()
@@ -837,7 +839,7 @@ class NetworkXDiGraphDeprecated(SageObject):
         """
         Issue deprecation warnings for the old networkx XDiGraph formats
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.graph_backends import NetworkXDiGraphDeprecated
             sage: NetworkXDiGraphDeprecated()
@@ -934,7 +936,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         r"""
         Fix the deprecated class if necessary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
@@ -1223,6 +1225,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
             ...
             NetworkXError: Edge (1,2) requested via get_edge_label does not exist.
         """
+        cdef dict E
         try:
             E = self._nxg.edge[u][v]
         except KeyError:
@@ -1256,10 +1259,12 @@ class NetworkXGraphBackend(GenericGraphBackend):
             return False
         if l is None:
             return True
+        cdef dict E = self._nxg.adj[u][v]
         if self._nxg.is_multigraph():
-            return any( e.get('weight',None) == l for e in self._nxg.adj[u][v].itervalues() )
+            return any(e.get('weight', None) == l
+                       for e in E.itervalues())
         else:
-            return any( e == l for e in self._nxg.adj[u][v].itervalues() )
+            return any(e == l for e in E.itervalues())
 
     def has_vertex(self, v):
         """
@@ -1314,7 +1319,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Iterate over the incoming edges incident to a sequence of vertices.
         Special case, only for internal use.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), implementation="networkx")._backend
             doctest:...: DeprecationWarning: The 'implementation' keyword is deprecated, and the graphs has been stored as a 'c_graph'
@@ -1356,7 +1361,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Iterate over the outbound edges incident to a sequence of vertices.
         Special case, only for internal use.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), implementation="networkx")._backend
             doctest:...: DeprecationWarning: The 'implementation' keyword is deprecated, and the graphs has been stored as a 'c_graph'

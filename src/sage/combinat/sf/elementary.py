@@ -1,6 +1,7 @@
 """
 Elementary symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -17,7 +18,7 @@ Elementary symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import multiplicative, classical
+from . import multiplicative, classical
 from sage.combinat.partition import Partition
 
 
@@ -127,7 +128,7 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
             `s` = Schur).
 
-            :meth:`omega_involution()` is a synonym for the :meth`omega()`
+            :meth:`omega_involution` is a synonym for the :meth:`omega`
             method.
 
             EXAMPLES::
@@ -242,7 +243,7 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             TESTS:
 
             Let us check that this method on the elementary basis gives the
-            same result as the implementation in :module`sage.combinat.sf.sfa`
+            same result as the implementation in :mod:`sage.combinat.sf.sfa`
             on the complete homogeneous basis::
 
                 sage: Sym = SymmetricFunctions(QQ)

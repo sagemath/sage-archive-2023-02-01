@@ -108,6 +108,7 @@ cdef class Ring(ParentWithGens):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -119,6 +120,7 @@ cdef class Ring(ParentWithGens):
         running ._test_eq() . . . pass
         running ._test_euclidean_degree() . . . pass
         running ._test_gcd_vs_xgcd() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -140,7 +142,7 @@ cdef class Ring(ParentWithGens):
         Join of Category of unique factorization domains
              and Category of commutative algebras over (quotient fields and metric spaces)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over (algebras over
+        Category of algebras over (finite dimensional algebras with basis over
          (quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
@@ -835,7 +837,16 @@ cdef class Ring(ParentWithGens):
             sage: ZZ.is_subring(GF(19))
             False
 
-        TESTS:
+        TESTS::
+
+            sage: QQ.is_subring(QQ['x'])
+            True
+            sage: QQ.is_subring(GF(7))
+            False
+            sage: QQ.is_subring(CyclotomicField(7))
+            True
+            sage: QQ.is_subring(ZZ)
+            False
 
         Every ring is a subring of itself, :trac:`17287`::
 
@@ -983,8 +994,17 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        Forward the proof flag to ``is_field``, see :trac:`22910`::
+
+            sage: R1.<x> = GF(5)[]
+            sage: F1 = R1.quotient_ring(x^2+x+1)
+            sage: R2.<x> = F1[]
+            sage: F2 = R2.quotient_ring(x^2+x+1)
+            sage: F2.is_integral_domain(False)
+            False
         """
-        if self.is_field():
+        if self.is_field(proof):
             return True
 
         if self.is_zero():
@@ -1044,7 +1064,8 @@ cdef class Ring(ParentWithGens):
         - ``n`` -- positive integer
 
         - ``all`` -- bool (default: False) - whether to return
-          a list of all primitive `n`-th roots of unity.
+          a list of all primitive `n`-th roots of unity. If True, raise a ``ValueError``
+          if ``self`` is not an integral domain.
 
         OUTPUT:
 
@@ -1092,7 +1113,13 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             ValueError: no 3rd root of unity in Rational Field
+            sage: IntegerModRing(8).zeta(2, all = True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ring is not an integral domain
         """
+        if all and not self.is_integral_domain():
+            raise ValueError("ring is not an integral domain")
         if n == 2:
             if all:
                 return [self(-1)]
@@ -2225,7 +2252,7 @@ cdef class Field(PrincipalIdealDomain):
         """
         Return the gcd of ``a`` and ``b`` as a monic polynomial.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.
@@ -2281,7 +2308,7 @@ cdef class Field(PrincipalIdealDomain):
         greatest common divisor (monic or zero) of ``a`` and ``b``,
         and ``u``, ``v`` satisfy ``d = u*a + v*b``.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.
@@ -2400,7 +2427,7 @@ cdef class Algebra(Ring):
         except AttributeError:
             raise AttributeError("Basis is not yet implemented for this algebra.")
         try:
-            # TODO: The following code is specific to the quaterion algebra
+            # TODO: The following code is specific to the quaternion algebra
             #   and should belong there
             #step 1
             for i in range(1,4):
@@ -2438,7 +2465,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.ring.CommutativeAlgebra(QQ) # indirect doctest
             <type 'sage.rings.ring.CommutativeAlgebra'>

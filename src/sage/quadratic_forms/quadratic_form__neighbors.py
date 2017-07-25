@@ -76,7 +76,7 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
     Finds the next `p`-primitive vector (up to scaling) in `L/pL` whose
     value is `p`-divisible, where the last vector returned was `v`.  For
-    an intial call, no `v` needs to be passed.
+    an initial call, no `v` needs to be passed.
 
     Returns vectors whose last non-zero entry is normalized to 0 or 1 (so no
     lines are counted repeatedly).  The ordering is by increasing the

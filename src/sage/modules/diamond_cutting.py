@@ -137,7 +137,7 @@ def diamond_cut(V, GM, C, verbose=False):
 
     OUTPUT:
 
-    A :class:``Polyhedron`` instance.
+    A :class:`Polyhedron` instance.
 
     EXAMPLES::
 
@@ -149,7 +149,7 @@ def diamond_cut(V, GM, C, verbose=False):
         (A vertex at (2), A vertex at (0))
     """
     # coerce to floats
-    GM = GM.N()
+    GM = GM.n()
     C = float(C)
     if verbose:
         print("Cut\n{}\nwith radius {}".format(GM, C))
@@ -166,11 +166,11 @@ def diamond_cut(V, GM, C, verbose=False):
     # calculate the Gram matrix
     q = matrix([[sum(GM[i][k] * GM[j][k] for k in range(dim)) for j in range(dim)] for i in range(dim)])
     if verbose:
-        print( "q:\n{}".format(q.N()) )
+        print( "q:\n{}".format(q.n()) )
     # apply Cholesky/Jacobi decomposition
     q = jacobi(q)
     if verbose:
-        print( "q:\n{}".format(q.N()) )
+        print( "q:\n{}".format(q.n()) )
 
     i = dim - 1
     T[i] = C
@@ -246,7 +246,7 @@ def calculate_voronoi_cell(basis, radius=None, verbose=False):
 
     OUTPUT:
 
-    A :class:``Polyhedron`` instance.
+    A :class:`Polyhedron` instance.
 
     EXAMPLES::
 

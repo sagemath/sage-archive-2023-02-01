@@ -423,8 +423,10 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         cdef int i
         for i in range(4):
-            c = cmp(self[i], right[i])
-            if c: return c
+            if self[i] < right[i]:
+                return -1
+            elif self[i] > right[i]:
+                return 1
         return 0
 
     cpdef conjugate(self):
@@ -522,7 +524,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return ~self.reduced_norm() * self.conjugate()
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Return left*self, where left is in the base ring.
 
@@ -536,7 +538,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
         """
         return self.__class__(self._parent, (left*self[0], left*self[1], left*self[2], left*self[3]), check=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Return self*right, where right is in the base ring.
 

@@ -60,13 +60,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import time
 
 import sage.repl.interpreter as interpreter
-import latex
-import misc
+from . import latex
+from . import misc
 
 from   sage.misc.viewer  import browser, dvi_viewer
 

@@ -32,7 +32,7 @@ function).
     sage: QQ((3*x)/(4*x))
     3/4
 
-TEST::
+TESTS::
 
     sage: Q = RationalField()
     sage: Q == loads(dumps(Q))
@@ -57,6 +57,7 @@ from .integer import Integer
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.sequence import Sequence
 import sage.rings.number_field.number_field_base as number_field_base
 from sage.misc.fast_methods import Singleton
 
@@ -87,6 +88,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         Traceback (most recent call last):
         ...
         TypeError: unable to convert 'sage' to a rational
+        sage: QQ(u'-5/7')
+        -5/7
 
     Conversion from the reals to the rationals is done by default using
     continued fractions.
@@ -589,6 +592,25 @@ class RationalField(Singleton, number_field_base.NumberField):
             raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
 
+    def automorphisms(self):
+        r"""
+        Return all Galois automorphisms of ``self``.
+
+        OUTPUT:
+
+        - a sequence containing just the identity morphism
+
+        EXAMPLES::
+
+            sage: QQ.automorphisms()
+            [
+            Ring endomorphism of Rational Field
+              Defn: 1 |--> 1
+            ]
+        """
+        return Sequence([self.hom(1, self)], cr=True, immutable=False,
+                        check=False)
+
     def places(self, all_complex=False, prec=None):
         r"""
         Return the collection of all infinite places of self, which
@@ -754,38 +776,6 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.is_absolute()
             True
         """
-        return True
-
-    def is_subring(self, K):
-        r"""
-        Return ``True`` if `\QQ` is a subring of `K`.
-
-        We are only able to determine this in some cases, e.g., when
-        `K` is a field or of positive characteristic.
-
-        EXAMPLES::
-
-            sage: QQ.is_subring(QQ)
-            True
-            sage: QQ.is_subring(QQ['x'])
-            True
-            sage: QQ.is_subring(GF(7))
-            False
-            sage: QQ.is_subring(CyclotomicField(7))
-            True
-            sage: QQ.is_subring(ZZ)
-            False
-            sage: QQ.is_subring(Frac(ZZ))
-            True
-        """
-        if K.is_field():
-            return K.characteristic() == 0
-        if K.characteristic() != 0:
-            return False
-        try:
-            self.embeddings(K)
-        except (TypeError, ValueError):
-            return False
         return True
 
     def is_field(self, proof = True):
@@ -984,7 +974,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         Return an random element of `\QQ`.
 
         Elements are constructed by randomly choosing integers
-        for the numerator and denominator, not neccessarily coprime.
+        for the numerator and denominator, not necessarily coprime.
 
         INPUT:
 
@@ -1225,6 +1215,18 @@ class RationalField(Singleton, number_field_base.NumberField):
         return 'Fraction Integer'
 
     _fricas_init_ = _axiom_init_
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of `\QQ`.
+
+        EXAMPLES::
+
+            sage: polymake(QQ)    #optional - polymake # indirect doctest
+            Rational
+
+        """
+        return '"Rational"'
 
     def _sage_input_(self, sib, coerced):
         r"""

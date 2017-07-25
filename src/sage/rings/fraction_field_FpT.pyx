@@ -3,9 +3,9 @@ from __future__ import print_function
 
 import sys
 
-include "sage/ext/cdefs.pxi"
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
+from sage.libs.gmp.mpz cimport *
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport n_jacobi
@@ -645,7 +645,9 @@ cdef class FpTElement(RingElement):
 
     cpdef _sqrt_or_None(self):
         """
-        Returns the squre root of self, or None. Differs from sqrt() by not raising an exception.
+        Return the square root of ``self``, or ``None``.
+
+        Differs from sqrt() by not raising an exception.
 
         TESTS::
 

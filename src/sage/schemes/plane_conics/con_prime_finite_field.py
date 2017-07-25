@@ -7,6 +7,7 @@ AUTHORS:
 
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 Marco Streng <marco.streng@gmail.com>
 #
@@ -23,7 +24,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_prime_finite_field
-from con_finite_field import ProjectiveConic_finite_field
+from .con_finite_field import ProjectiveConic_finite_field
 
 class ProjectiveConic_prime_finite_field(ProjectiveConic_finite_field, ProjectivePlaneCurve_prime_finite_field):
     r"""

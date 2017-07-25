@@ -21,6 +21,9 @@ lazy_import('sage.rings.integer_ring', 'ZZ')
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
 
+import six
+
+
 class Algebras(AlgebrasCategory):
     """
     The category of group algebras of root lattice realizations.
@@ -40,9 +43,9 @@ class Algebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: RootSystem(["A",2,1]).ambient_space().algebra(QQ) # indirect doctest
-                Group algebra of the Ambient space of the Root system of type ['A', 2, 1] over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2, 1] over Rational Field
             """
-            return "Group algebra of the %s over %s"%(self.basis().keys(),self.base_ring())
+            return "Algebra of the %s over %s"%(self.basis().keys(),self.base_ring())
 
         def some_elements(self):
             r"""
@@ -116,7 +119,7 @@ class Algebras(AlgebrasCategory):
             .. TODO:: make this work for Laurent polynomials too
             """
             L = self.basis().keys()
-            return self.sum_of_terms((L.from_vector(vector(t)), c) for (t,c) in p.dict().iteritems())
+            return self.sum_of_terms((L.from_vector(vector(t)), c) for (t,c) in six.iteritems(p.dict()))
 
         @cached_method
         def divided_difference_on_basis(self, weight, i):
@@ -864,7 +867,7 @@ class Algebras(AlgebrasCategory):
 
                 sage: KL = RootSystem(["A",2,1]).ambient_space().algebra(QQ)
                 sage: KL.classical()
-                Group algebra of the Ambient space of the Root system of type ['A', 2] over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2] over Rational Field
             """
             return self.basis().keys().classical().algebra(self.base_ring())
 

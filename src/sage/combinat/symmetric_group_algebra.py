@@ -8,13 +8,14 @@ Symmetric Group Algebra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from .combinatorial_algebra import CombinatorialAlgebra
 from .free_module import CombinatorialFreeModule
+from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
-from sage.combinat.permutation import (Permutation, Permutations,
-     from_permutation_group_element, PermutationOptions)
+from sage.combinat.permutation import Permutation, Permutations, from_permutation_group_element
 from . import partition
 from .tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
@@ -22,12 +23,10 @@ from sage.rings.all import QQ, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.modules.all import vector
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import itertools
 from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
-
-permutation_options = PermutationOptions
+import six
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
@@ -159,8 +158,8 @@ def SymmetricGroupAlgebra(R, W, category=None):
         to "in such a way that multiplication is associative with
         permutations acting on integers from the right", but can be
         changed to the opposite order at runtime by setting the global
-        variable ``Permutations.global_options['mult']`` (see
-        :meth:`sage.combinat.permutation.Permutations.global_options` ).
+        variable ``Permutations.options['mult']`` (see
+        :meth:`sage.combinat.permutation.Permutations.options` ).
         On the other hand, the semantics of multiplication in symmetric
         group algebras with index set ``SymmetricGroup(n)`` does not
         depend on this global variable. (This has the awkward
@@ -219,7 +218,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         category = W.category()
     return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
 
-class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
+class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
     def __init__(self, R, W, category):
         """
@@ -247,6 +246,27 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [1, 2, 3, 4] + 2*[2, 1, 3, 4] + 4*[2, 3, 4, 1]
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
+
+        Checking the recovery of `n`:
+
+            sage: SymmetricGroup(4).algebra(QQ).n
+            4
+            sage: SymmetricGroup(1).algebra(QQ).n
+            1
+            sage: SymmetricGroup(0).algebra(QQ).n
+            0
+            sage: Permutations(4).algebra(QQ).n
+            4
+            sage: Permutations(1).algebra(QQ).n
+            1
+            sage: Permutations(0).algebra(QQ).n
+            0
+            sage: SymmetricGroupAlgebra(QQ, WeylGroup(["A",3])).n
+            4
+            sage: SymmetricGroupAlgebra(QQ, WeylGroup(["A",1])).n
+            2
+            sage: SymmetricGroupAlgebra(QQ, WeylGroup(["A",0])).n # todo: not implemented
+            1
         """
         if not W in WeylGroups or W.cartan_type().type() != 'A':
             raise ValueError("W (=%s) should be a symmetric group or a nonnegative integer")
@@ -255,11 +275,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             # The following trick works for both SymmetricGroup(n) and
             # Permutations(n) and it's currently not possible to
             # construct the WeylGroup for n=0
-            self.n = len(W.one().fixed_points())
+            self.n = W.degree()
         else:
             self.n = W.cartan_type().rank() + 1
-        CombinatorialFreeModule.__init__(self, R, W, prefix='',
-                                         latex_prefix='', category=category)
+        GroupAlgebra_class.__init__(self, R, W, prefix='',
+                                    latex_prefix='', category=category)
 
     def _repr_(self):
         """
@@ -704,7 +724,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = RSm.group()
         pairs = []
         P = Permutations(self.n)
-        for (p, coeff) in f.monomial_coefficients().iteritems():
+        for (p, coeff) in six.iteritems(f.monomial_coefficients()):
             p_ret = P(p).retract_plain(m)
             if p_ret is not None:
                 pairs.append((I(p_ret), coeff))
@@ -770,7 +790,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = RSm.group()
         dct = {}
         P = Permutations(self.n)
-        for (p, coeff) in f.monomial_coefficients().iteritems():
+        for (p, coeff) in six.iteritems(f.monomial_coefficients()):
             p_ret = P(p).retract_direct_product(m)
             if p_ret is not None:
                 p_ret = I(p_ret)
@@ -833,7 +853,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = RSm.group()
         dct = {}
         P = Permutations(self.n)
-        for (p, coeff) in f.monomial_coefficients().iteritems():
+        for (p, coeff) in six.iteritems(f.monomial_coefficients()):
             p_ret = I(P(p).retract_okounkov_vershik(m))
             if not p_ret in dct:
                 dct[p_ret] = coeff
@@ -968,10 +988,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         from sage.sets.family import Family
         if self.n <= 1:
             return Family([])
-        a = range(1, self.n+1)
+        a = list(range(1, self.n + 1))
         a[0] = 2
         a[1] = 1
-        b = range(2, self.n+2)
+        b = list(range(2, self.n + 2))
         b[self.n-1] = 1
         return Family([self.monomial(self._indices(a)), self.monomial(self._indices(b))])
 
@@ -1151,7 +1171,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if n < k:
             return self.zero()
         def complement(xs):
-            res = range(1, n+1)
+            res = list(range(1, n + 1))
             for x in xs:
                 res.remove(x)
             return res
@@ -1243,7 +1263,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if n < k:
             return self.zero()
         def complement(xs):
-            res = range(1, n+1)
+            res = list(range(1, n + 1))
             for x in xs:
                 res.remove(x)
             return res
@@ -1303,7 +1323,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         res = self.zero()
 
         for i in range(1, k):
-            p = range(1, self.n+1)
+            p = list(range(1, self.n + 1))
             p[i-1] = k
             p[k-1] = i
             res += self.monomial(self._indices(p))
@@ -1682,7 +1702,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = self._indices
         z_elts = {}
         epik = epsilon_ik(it, kt, star=star)
-        for m,c in epik._monomial_coefficients.iteritems():
+        for m,c in six.iteritems(epik._monomial_coefficients):
             z_elts[I(m)] = BR(c)
         z = self._from_dict(z_elts)
 
@@ -2286,7 +2306,7 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
         The multiplication on the Hecke algebra of the symmetric group
         does *not* follow the global option ``mult`` of the
         :class:`Permutations` class (see
-        :meth:`~sage.combinat.permutation.Permutations.global_options`).
+        :meth:`~sage.combinat.permutation.Permutations.options`).
         It is always as defined above. It does not match the default
         option (``mult=l2r``) of the symmetric group algebra!
 
@@ -2381,7 +2401,8 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         if x == []:
             return self.one()
         if len(x) < self.n and x in Permutations():
-            return self.monomial(self._indices( list(x) + range(len(x)+1, self.n+1) ))
+            return self.monomial(self._indices(list(x) +
+                                               list(range(len(x)+1, self.n+1))))
         raise TypeError
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
@@ -2424,7 +2445,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         # This used to be perm_i = t_i * perm. I have changed it to
         # perm_i = t_i.right_action_product(perm) because it would
         # otherwise cause TestSuite(H3) to fail when
-        # Permutations.global_options(mult) would be set to "r2l".
+        # Permutations.options(mult) would be set to "r2l".
         # -- Darij, 19 Nov 2013
 
         if perm[i-1] < perm[i]:
@@ -2494,7 +2515,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             raise ValueError("i (= %(i)d) must be between 1 and n-1 (= %(nm)d)" % {'i': i, 'nm': self.n - 1})
 
         P = self.basis().keys()
-        return self.monomial(P( range(1, i) + [i+1, i] + range(i+2, self.n+1) ))
+        return self.monomial(P(list(range(1, i)) + [i+1, i] + list(range(i+2, self.n+1))))
         # The permutation here is simply the transposition (i, i+1).
 
     def algebra_generators(self):
@@ -2558,7 +2579,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
         q = self.q()
         P = self._indices
-        v = self.sum_of_terms( ( ( P(range(1, l) + [k] + range(l+1, k) + [l]),
+        v = self.sum_of_terms( ( ( P(list(range(1, l)) + [k] + list(range(l+1, k)) + [l]),
                                    q ** l - q ** (l-1) )
                                  for l in range(1, k) ),
                                distinct=True )

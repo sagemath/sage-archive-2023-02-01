@@ -80,16 +80,16 @@ class PolynomialRing_singular_repr:
 
             sage: R.<x,y> = PolynomialRing(CC,'x',2)
             sage: singular(R)
-            //   characteristic : 0 (complex:15 digits, additional 0 digits)
-            //   1 parameter    : I
-            //   minpoly        : (I^2+1)
+            polynomial ring, over a field, global ordering
+            //   coefficients: float[I](complex:15 digits, additional 0 digits)/(I^2+1)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
             sage: R.<x,y> = PolynomialRing(RealField(100),'x',2)
             sage: singular(R)
-            //   characteristic : 0 (real:29 digits, additional 0 digits)
+            polynomial ring, over a field, global ordering
+            //   coefficients: float
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -98,9 +98,8 @@ class PolynomialRing_singular_repr:
             sage: w = var('w')
             sage: R.<x> = PolynomialRing(NumberField(w^2+1,'s'))
             sage: singular(R)
-            //   characteristic : 0
-            //   1 parameter    : s
-            //   minpoly        : (s^2+1)
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ[s]/(s^2+1)
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -108,7 +107,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(GF(127),1,'x')
             sage: singular(R)
-            //   characteristic : 127
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/127
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -116,7 +116,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(QQ,1,'x')
             sage: singular(R)
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -124,7 +125,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(QQ,'x')
             sage: singular(R)
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -132,7 +134,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(GF(127),'x')
             sage: singular(R)
-            //   characteristic : 127
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/127
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -140,9 +143,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = Frac(ZZ['a,b'])['x,y']
             sage: singular(R)
-            //   characteristic : 0
-            //   2 parameter    : a b
-            //   minpoly        : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ(a, b)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -151,7 +153,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = IntegerModRing(1024)['x,y']
             sage: singular(R)
-            //   coeff. ring is : Z/2^10
+            polynomial ring, over a ring (with zero-divisors), global ordering
+            //   coefficients: ZZ/(2^10)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -159,7 +162,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
-            //   coeff. ring is : Z/15
+            polynomial ring, over a ring (with zero-divisors), global ordering
+            //   coefficients: ZZ/bigint(15)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -167,7 +171,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = ZZ['x,y']
             sage: singular(R)
-            //   coeff. ring is : Integers
+            polynomial ring, over a domain, global ordering
+            //   coefficients: ZZ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -178,9 +183,8 @@ class PolynomialRing_singular_repr:
             sage: K = R.fraction_field()
             sage: S = K['y']
             sage: singular(S)
-            //   characteristic : 5
-            //   1 parameter    : x
-            //   minpoly        : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/5(x)
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    a y
@@ -221,7 +225,8 @@ class PolynomialRing_singular_repr:
         EXAMPLES::
 
             sage: PolynomialRing(QQ,'u_ba')._singular_init_()
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    u_ba

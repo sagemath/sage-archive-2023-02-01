@@ -10,14 +10,16 @@ Root system data for reducible Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple, CartanType_finite, CartanType_simply_laced, CartanType_crystallographic
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.sets.family import Family
-import ambient_space
+from . import ambient_space
 import sage.combinat.root_system as root_system
 from sage.structure.sage_object import SageObject
+
 
 class CartanType(SageObject, CartanType_abstract):
     r"""
@@ -54,7 +56,7 @@ class CartanType(SageObject, CartanType_abstract):
     super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
 
         sage: t.__class__.mro()
-        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
+        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <... 'object'>]
 
     The index set of the reducible Cartan type is obtained by
     relabelling successively the nodes of the Dynkin diagrams of
@@ -82,7 +84,7 @@ class CartanType(SageObject, CartanType_abstract):
         Internally, this relabelling is stored as a dictionary::
 
             sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
-            sage: sorted(t._index_relabelling.iteritems())
+            sage: sorted(t._index_relabelling.items())
             [((0, 1), 1), ((0, 2), 2), ((0, 3), 3), ((0, 4), 4),
              ((1, 0), 5), ((1, 1), 6), ((1, 2), 7), ((1, 3), 8), ((1, 4), 9), ((1, 5), 10),
              ((2, 1), 11), ((2, 2), 12), ((2, 3), 13)]
@@ -296,7 +298,7 @@ class CartanType(SageObject, CartanType_abstract):
             F4xA2
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         relabelling = self._index_relabelling
         g = DynkinDiagram_class(self)
         for i in range(len(self._types)):

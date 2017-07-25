@@ -724,7 +724,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
 
         sage: S = Yinf.subcrystal(max_depth=3)
         sage: G = Yinf.digraph(subset=S) # long time
-        sage: view(G, tightpage=True) # not tested
+        sage: view(G) # not tested
     """
 
     @staticmethod
@@ -786,18 +786,6 @@ class InfinityCrystalOfGeneralizedYoungWalls(UniqueRepresentation, Parent):
             Crystal of generalized Young walls of type ['A', 4, 1]
         """
         return "Crystal of generalized Young walls of type {}".format(self._cartan_type)
-
-    def weight_lattice_realization(self):
-        r"""
-        Return the extended affine weight lattice of ``self``.
-
-        EXAMPLES::
-
-            sage: Y = crystals.infinity.GeneralizedYoungWalls(3)
-            sage: Y.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['A', 3, 1]
-        """
-        return RootSystem(self._cartan_type).weight_lattice(extended=True)
 
 
 ########################
@@ -934,7 +922,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
         sage: S = YLa.subcrystal(max_depth=4)
         sage: G = YLa.digraph(subset=S)
-        sage: view(G, tightpage=True) # not tested
+        sage: view(G) # not tested
     """
     @staticmethod
     def __classcall_private__(cls, n, La):

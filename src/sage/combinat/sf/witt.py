@@ -1,6 +1,7 @@
 """
 Witt symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -17,7 +18,7 @@ Witt symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import multiplicative
+from . import multiplicative
 from sage.matrix.all import matrix
 
 class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_multiplicative):
@@ -993,7 +994,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         # symmetric basis and the complete homogeneous basis (over the same base
         # ring as self), respectively (but they are only set if the respective
         # arguments ``coerce_p``, ``coerce_e`` and ``coerce_h`` are True).
-        # self._friendly will be the one avaliable basis which makes computations
+        # self._friendly will be the one available basis which makes computations
         # the easiest.
 
         self._friendly = None

@@ -14,8 +14,8 @@
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -327,7 +327,7 @@ cdef class ntl_ZZ_p(object):
             sage: x.__int__()
             3
             sage: type(x.__int__())
-            <type 'int'>
+            <... 'int'>
         """
         return self.get_as_int()
 
@@ -352,7 +352,7 @@ cdef class ntl_ZZ_p(object):
             sage: i
             2
             sage: type(i)
-            <type 'int'>
+            <... 'int'>
         """
         self.c.restore_c()
         return self.get_as_int()

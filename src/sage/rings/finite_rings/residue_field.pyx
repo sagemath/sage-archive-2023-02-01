@@ -171,7 +171,8 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 class ResidueFieldFactory(UniqueFactory):
@@ -464,9 +465,11 @@ class ResidueField_generic(Field):
             sage: k.<a> = P.residue_field() # indirect doctest
 
             sage: k.category()
-            Category of finite fields
+            Category of finite enumerated fields
             sage: F.category()
-            Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of finite enumerated fields
+             and Category of subquotients of monoids
+             and Category of quotients of semigroups
 
         TESTS::
 
@@ -542,7 +545,7 @@ class ResidueField_generic(Field):
             4
         """
         K = OK = self.p.ring()
-        R = parent_c(x)
+        R = parent(x)
         if OK.is_field():
             OK = OK.ring_of_integers()
         else:
@@ -718,7 +721,7 @@ class ResidueField_generic(Field):
             OK = OK.ring_of_integers()
         return self._internal_coerce_map_from(OK).section()
 
-    def __cmp__(self, x):
+    def _richcmp_(self, x, op):
         """
         Compares two residue fields: they are equal iff the primes
         defining them are equal and they have the same variable name.
@@ -743,12 +746,13 @@ class ResidueField_generic(Field):
             sage: ll == l
             False
         """
-        c = cmp(type(self), type(x))
-        if c: return c
-        c = cmp(self.p, x.p)
-        if c: return c
-        c = cmp(self.variable_name(), x.variable_name())
-        return c
+        if not isinstance(x, ResidueField_generic):
+            return NotImplemented
+        lp = self.p
+        rp = x.p
+        if lp != rp:
+            return richcmp_not_equal(lp, rp, op)
+        return richcmp(self.variable_name(), x.variable_name(), op)
 
     def __hash__(self):
         r"""
@@ -926,7 +930,7 @@ cdef class ReductionMap(Map):
             sage: f(1/h)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         An example to show that the issue raised in :trac:`1951`
         has been fixed::

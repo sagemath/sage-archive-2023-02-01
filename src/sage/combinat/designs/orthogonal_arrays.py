@@ -55,14 +55,18 @@ Functions
 ---------
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
+from builtins import zip
+from six import itervalues, iteritems
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from designs_pyx import is_orthogonal_array
-from group_divisible_designs import GroupDivisibleDesign
-from designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
+from .designs_pyx import is_orthogonal_array
+from .group_divisible_designs import GroupDivisibleDesign
+from .designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
 
 def transversal_design(k,n,resolvable=False,check=True,existence=False):
     r"""
@@ -245,7 +249,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
     For small values of the parameter ``n`` we check the coherence of the
     function :func:`transversal_design`::
 
-        sage: for n in xrange(2,25):                               # long time -- 15 secs
+        sage: for n in range(2,25):                               # long time -- 15 secs
         ....:     i = 2
         ....:     while designs.transversal_design(i, n, existence=True) is True:
         ....:         i += 1
@@ -348,7 +352,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
     if n == 1:
         if existence:
             return True
-        TD = [range(k)]
+        TD = [list(range(k))]
 
     elif k >= n+2:
         if existence:
@@ -427,7 +431,7 @@ class TransversalDesign(GroupDivisibleDesign):
 
         GroupDivisibleDesign.__init__(self,
                                       k*n,
-                                      [range(i*n,(i+1)*n) for i in range(k)],
+                                      [list(range(i*n,(i+1)*n)) for i in range(k)],
                                       blocks,
                                       check=False,
                                       **kwds)
@@ -609,10 +613,10 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
 
     if OA is None:
         master_design = orthogonal_array(k+n_trunc,r,check=False)
-        matrix = [range(r)]*k
+        matrix = [list(range(r))]*k
         for uu in u:
             uu = sum(x[1] for x in uu)
-            matrix.append(range(uu)+[None]*(r-uu))
+            matrix.append(list(range(uu))+[None]*(r-uu))
         master_design = OA_relabel(master_design, k+n_trunc, r, matrix=matrix)
     else:
         master_design = OA
@@ -634,7 +638,7 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
         for mij,h_size in partition:
             for _ in range(h_size):
                 column_i_point_to_mij.append(mij)
-                column_i_point_to_point_set.append(range(n,n+mij))
+                column_i_point_to_point_set.append(list(range(n,n+mij)))
                 n+=mij
         point_to_mij.append(column_i_point_to_mij)
         point_to_point_set.append(column_i_point_to_point_set)
@@ -662,7 +666,7 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
 
         # We replace the block of profile m_{ij(0)},...,m_{ij(s)} with a
         # OA(k,m+\sum_i m_ij(i)) properly relabelled
-        matrix = [range(i*m,(i+1)*m) for i in B[:k]]
+        matrix = [list(range(i*m,(i+1)*m)) for i in B[:k]]
         profile = []
         for i,j in block_to_ij(B):
             profile.append(point_to_mij[i][j])
@@ -680,7 +684,7 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
                              matrix=[sum(point_to_point_set[i],[])]*k))
 
     if check:
-        from designs_pyx import is_orthogonal_array
+        from .designs_pyx import is_orthogonal_array
         assert is_orthogonal_array(OA,k,n,2)
 
     return OA
@@ -727,7 +731,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
     TD = []
     for X1 in TD1:
         for X2 in TD2:
-            TD.append([x1*n2+(x2%n2) for x1,x2 in zip(X1,X2)])
+            TD.append([x1 * n2 + (x2 % n2) for x1, x2 in zip(X1, X2)])
     if check:
         assert is_transversal_design(TD,k,N)
 
@@ -866,11 +870,11 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     if existence and _OA_cache_get(k,n) is not None and t == 2:
         return _OA_cache_get(k,n)
 
-    from block_design import projective_plane
-    from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions, MOLS_constructions, QDM
-    from orthogonal_arrays_find_recursive import find_recursive_construction
-    from difference_matrices import difference_matrix
+    from .block_design import projective_plane
+    from .latin_squares import mutually_orthogonal_latin_squares
+    from .database import OA_constructions, MOLS_constructions, QDM
+    from .orthogonal_arrays_find_recursive import find_recursive_construction
+    from .difference_matrices import difference_matrix
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
@@ -915,7 +919,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
             return True
         if explain_construction:
             return "Cyclic latin square"
-        return [[i,j,(i+j)%n] for i in xrange(n) for j in xrange(n)]
+        return [[i,j,(i+j)%n] for i in range(n) for j in range(n)]
 
     # projective spaces are equivalent to OA(n+1,n,2)
     elif (projective_plane(n, existence=True) or
@@ -926,7 +930,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
                 return projective_plane(n, existence=True)
             if explain_construction:
                 return "From a projective plane of order {}".format(n)
-            from block_design import projective_plane_to_OA
+            from .block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = projective_plane_to_OA(p, check=False)
         else:
@@ -934,7 +938,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
                 return True
             if explain_construction:
                 return "From a projective plane of order {}".format(n)
-            from block_design import projective_plane_to_OA
+            from .block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
@@ -1025,7 +1029,7 @@ def largest_available_k(n,t=2):
 
     - ``t`` -- (integer; default: 2) -- strength of the array
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: designs.orthogonal_arrays.largest_available_k(0)
         +Infinity
@@ -1042,7 +1046,7 @@ def largest_available_k(n,t=2):
         ...
         ValueError: n(=-1) was expected to be >=0
     """
-    from block_design import projective_plane
+    from .block_design import projective_plane
     if n<0:
         raise ValueError("n(={}) was expected to be >=0".format(n))
     if t<0:
@@ -1127,7 +1131,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
 
     Affine planes and projective planes::
 
-        sage: for q in xrange(2,100):
+        sage: for q in range(2,100):
         ....:     if is_prime_power(q):
         ....:         assert designs.incomplete_orthogonal_array(q,q,[1]*q,existence=True)
         ....:         assert not designs.incomplete_orthogonal_array(q+1,q,[1]*2,existence=True)
@@ -1327,7 +1331,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             IOA.remove(h2)
 
         holes = sum(holes,[])
-        holes = map(list,zip(*holes))
+        holes = map(list, list(zip(*holes)))
 
         # Building the relabel matrix
         for l in holes:
@@ -1370,9 +1374,11 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
-    elif number_of_holes==1 and any(uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
-        for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
-            if uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
+    elif (number_of_holes == 1 and
+          any(uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1
+              for (nn,lmbda,mu,uu),(kk,_) in iteritems(QDM.get((n,1),{})))):
+        for (nn,lmbda,mu,uu),(kk,f) in iteritems(QDM[n,1]):
+            if uu == sum_of_holes and mu <= 1 and lmbda == 1 and k <= kk + 1:
                 break
         G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
@@ -1418,7 +1424,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     `x` blocks of an `OA` are said to be disjoint if they all have
     different values for a every given index, i.e. if they correspond to
-    disjoint blocks in the `TD` assciated with the `OA`.
+    disjoint blocks in the `TD` associated with the `OA`.
 
     INPUT:
 
@@ -1616,7 +1622,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
         - :func:`~sage.combinat.designs.database.OA_11_640`
         - :func:`~sage.combinat.designs.database.OA_15_896`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_n_times_2_pow_c_from_matrix
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
@@ -1659,8 +1665,8 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.integer import Integer
-    from itertools import izip,combinations
-    from designs_pyx import is_difference_matrix
+    from itertools import combinations
+    from .designs_pyx import is_difference_matrix
 
     G_card = G.cardinality()
 
@@ -1674,12 +1680,12 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
-    r = {i:w**i for i in xrange(2**c-1)}
+    r = {i:w**i for i in range(2**c-1)}
     r[None] = F.zero()
 
     # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
     B = [[G(a) for a,b in R] for R in A]
-    if check and not is_difference_matrix(zip(*B),G,k-1,2):
+    if check and not is_difference_matrix(list(zip(*B)),G,k-1,2):
         raise ValueError("the first part of the matrix A must be a "
                          "(G,k-1,2)-difference matrix")
 
@@ -1704,7 +1710,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
                 Hij = set([(Y[i] - Y[j]) * v for v in H])
                 for s in range(2 * G_card):
                     g_to_col_indices[B[i][s] - B[j][s]].append(s)
-                for s1,s2 in g_to_col_indices.itervalues():
+                for s1, s2 in itervalues(g_to_col_indices):
                     v1 = A[i][s1][1] - A[j][s1][1]
                     v2 = A[i][s2][1] - A[j][s2][1]
 
@@ -1714,8 +1720,8 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
                               " the required condition".format(i,s1,j,s1,i,s2,j,s2))
 
     # build the quasi difference matrix and return the associated OA
-    Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
-    return OA_from_quasi_difference_matrix(zip(*Mb),GG,add_col=True)
+    Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x, R in zip(Y, A)]
+    return OA_from_quasi_difference_matrix(list(zip(*Mb)),GG,add_col=True)
 
 def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     r"""
@@ -1795,17 +1801,16 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
 
         sage: _ = designs.orthogonal_arrays.build(6,20) # indirect doctest
     """
-    from itertools import izip
     Gn = int(G.cardinality())
     k = len(M[0])+bool(add_col)
 
     G_to_int = {x:i for i,x in enumerate(G)}
 
     # A cache for addition in G
-    G_sum = [[0]*Gn for _ in range(Gn)]
-    for x,i in G_to_int.iteritems():
-        for xx,ii in G_to_int.iteritems():
-            G_sum[i][ii] = G_to_int[x+xx]
+    G_sum = [[0] * Gn for _ in range(Gn)]
+    for x, i in iteritems(G_to_int):
+        for xx, ii in iteritems(G_to_int):
+            G_sum[i][ii] = G_to_int[x + xx]
 
     # Convert M to integers
     M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]
@@ -1813,7 +1818,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
     # Each line is expanded by [g+x for x in line for g in G] then relabeled
     # with integers. Missing values are also handled.
     new_M = []
-    for line in izip(*M):
+    for line in zip(*M):
         inf = Gn
         new_line = []
         for x in line:
@@ -1828,7 +1833,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True,fill_hole=True):
         new_M.append([i//Gn for i in range(len(new_line))])
 
     # new_M = transpose(new_M)
-    new_M = zip(*new_M)
+    new_M = list(zip(*new_M))
 
     # Filling holes with a smaller orthogonal array
     if inf > Gn and fill_hole:
@@ -1983,7 +1988,7 @@ def OA_from_PBD(k,n,PBD, check=True):
     K = set(map(len,PBD))
 
     if check:
-        from designs_pyx import is_pairwise_balanced_design
+        from .designs_pyx import is_pairwise_balanced_design
         if not is_pairwise_balanced_design(PBD, n, K):
             raise RuntimeError("PBD is not a valid Pairwise Balanced Design on [0,...,{}]".format(n-1))
 
@@ -2115,7 +2120,7 @@ class OAMainFunctions():
 
         - ``k,n,t`` (integers) -- parameters of the orthogonal array.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.explain_construction(9,565)
             "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
@@ -2184,7 +2189,7 @@ class OAMainFunctions():
 
             :meth:`is_available`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.exists(3,6) # indirect doctest
             True
@@ -2208,7 +2213,7 @@ class OAMainFunctions():
 
             :meth:`exists`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.is_available(3,6) # indirect doctest
             True

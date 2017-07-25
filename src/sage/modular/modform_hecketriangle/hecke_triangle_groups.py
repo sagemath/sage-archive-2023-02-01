@@ -16,6 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, PolynomialRing, NumberField
 from sage.functions.all import cos,exp,sec
@@ -29,7 +30,7 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
+from .hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
@@ -740,7 +741,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             #return NumberField(L.absolute_polynomial(), 'e', structure=AbsoluteFromRelative(L), embedding=(???))
             return L
 
-    # We cache this method for performance reasons (it is repeatadly reused)
+    # We cache this method for performance reasons (it is repeatedly reused)
     @cached_method
     def root_extension_embedding(self, D, K=None):
         r"""
@@ -867,12 +868,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: G = HeckeTriangleGroup(n=5)
             sage: G.element_repr_method("conj")
             sage: G._elliptic_conj_reps()
-            sage: sorted(G._conj_prim.iteritems())
+            sage: sorted(G._conj_prim.items())
             [(-4, [[S], [S]]), (lam - 3, [[U], [U]]), (0, [[V(4)]])]
-            sage: sorted(G._conj_nonprim.iteritems())
+            sage: sorted(G._conj_nonprim.items())
             [(-lam - 2, [[U^(-2)], [U^2], [U^(-2)], [U^2]]), (lam - 3, [[U^(-1)], [U^(-1)]])]
         """
-
         if not hasattr(self, "_max_block_length"):
             self._conjugacy_representatives()
         elif ZZ(-4) in self._conj_prim:

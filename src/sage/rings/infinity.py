@@ -93,11 +93,12 @@ well-defined::
     sage: unsigned_oo/0
     Traceback (most recent call last):
     ...
-    ValueError: unsigned oo times smaller number not defined
+    ValueError: quotient of number < oo by number < oo not defined
 
-What happened above is that 0 is canonically coerced to "a number
-less than infinity" in the unsigned infinity ring, and the quotient
-is then not well-defined.
+What happened above is that 0 is canonically coerced to "A number less
+than infinity" in the unsigned infinity ring. Next, Sage tries to divide
+by multiplying with its inverse. Finally, this inverse is not
+well-defined.
 
 ::
 
@@ -215,6 +216,7 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
+from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -224,7 +226,7 @@ from sage.misc.fast_methods import Singleton
 import sage.rings.integer
 import sage.rings.rational
 
-from sage.rings.integer_ring import ZZ
+import sage.rings.integer_ring
 
 _obj = {}
 class _uniq(object):
@@ -232,7 +234,7 @@ class _uniq(object):
         """
         This ensures uniqueness of these objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
@@ -283,9 +285,11 @@ class AnInfinity(object):
         TESTS::
 
             sage: fricas(-oo)           # optional - fricas
-            %minusInfinity
+            - infinity
             sage: [x._fricas_init_() for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
             ['%infinity', '%plusInfinity', '%minusInfinity']
+            sage: [fricas(x) for x in [unsigned_infinity, oo, -oo]]   # optional - fricas
+            [infinity,  + infinity, - infinity]
         """
         if self._sign_char == '':
             return r"%infinity"
@@ -294,7 +298,7 @@ class AnInfinity(object):
         else:
             return r"%minusInfinity"
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a Pari object.
 
@@ -481,7 +485,7 @@ class AnInfinity(object):
             sage: SR(infinity) / unsigned_infinity
             Traceback (most recent call last):
             ...
-            ValueError: unsigned oo times smaller number not defined
+            RuntimeError: indeterminate expression: 0 * infinity encountered.
         """
         return self * ~other
 
@@ -541,6 +545,25 @@ class AnInfinity(object):
         else:
             return abs(self)
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: sage_input(-oo)
+            -oo
+            sage: sage_input(oo)
+            oo
+            sage: sage_input(unsigned_infinity)
+            unsigned_infinity
+        """
+        if self._sign == 0:
+            return sib.name('unsigned_infinity')
+        elif self._sign > 0:
+            return sib.name('oo')
+        else:
+            return -sib.name('oo')
 
 class UnsignedInfinityRing_class(Singleton, Ring):
 
@@ -741,7 +764,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in (int, long, float, complex)
+        return isinstance(R, Ring) or R in  integer_types + (float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
 
@@ -836,7 +859,7 @@ class LessThanInfinity(_uniq, RingElement):
             0
         """
         if isinstance(other, UnsignedInfinity):
-            return ZZ(0)
+            return sage.rings.integer_ring.ZZ(0)
         raise ValueError("quotient of number < oo by number < oo not defined")
 
     def __cmp__(self, other):
@@ -904,7 +927,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         """
         Converts ``unsigned_infinity`` to sympy ``zoo``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: sympy.sympify(unsigned_infinity)
@@ -971,7 +994,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         This isn't really a ring, let alone an integral domain.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing.fraction_field()
             Traceback (most recent call last):
@@ -1060,7 +1083,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         Return a string representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing._repr_()
             'The Infinity Ring'
@@ -1186,7 +1209,7 @@ class InfinityRing_class(Singleton, Ring):
             sage: cm = get_coercion_model()
             sage: cm.explain(AA(3), oo, operator.lt)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Algebraic Real Field
                   To:   The Infinity Ring
             Arithmetic performed after coercions.
@@ -1280,6 +1303,20 @@ class FiniteNumber(RingElement):
             Traceback (most recent call last):
             ...
             SignError: cannot add positive finite value to negative finite value
+
+        Subtraction is implemented by adding the negative::
+
+            sage: P = InfinityRing
+            sage: 4 - oo # indirect doctest
+            -Infinity
+            sage: 5 - -oo
+            +Infinity
+            sage: P(44) - P(4)
+            Traceback (most recent call last):
+            ...
+            SignError: cannot add positive finite value to negative finite value
+            sage: P(44) - P(-1)
+            A positive finite number
         """
         if isinstance(other, InfinityElement):
             return other
@@ -1312,7 +1349,7 @@ class FiniteNumber(RingElement):
         if other.is_zero():
             if isinstance(self, InfinityElement):
                 raise SignError("cannot multiply infinity by zero")
-            return ZZ(0)
+            return sage.rings.integer_ring.ZZ(0)
         if self.value < 0:
             if isinstance(other, InfinityElement):
                 return -other
@@ -1324,7 +1361,7 @@ class FiniteNumber(RingElement):
         if self.value == 0:
             if isinstance(other, InfinityElement):
                 raise SignError("cannot multiply infinity by zero")
-            return ZZ(0)
+            return sage.rings.integer_ring.ZZ(0)
 
     def _div_(self, other):
         """
@@ -1341,24 +1378,6 @@ class FiniteNumber(RingElement):
             A negative finite number
         """
         return self * ~other
-
-    def _sub_(self, other):
-        """
-        EXAMPLES::
-
-            sage: P = InfinityRing
-            sage: 4 - oo # indirect doctest
-            -Infinity
-            sage: 5 - -oo
-            +Infinity
-            sage: P(44) - P(4)
-            Traceback (most recent call last):
-            ...
-            SignError: cannot add positive finite value to negative finite value
-            sage: P(44) - P(-1)
-            A positive finite number
-        """
-        return self._add_(-other)
 
     def __invert__(self):
         """
@@ -1594,7 +1613,7 @@ class PlusInfinity(_uniq, AnInfinity, InfinityElement):
         Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: bool(oo == sympy.oo) # indirect doctest

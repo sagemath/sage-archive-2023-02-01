@@ -22,7 +22,10 @@ import logging
 log = logging.getLogger()
 
 # Note that argparse is not part of Python 2.6, so we bundle it
-from sage_bootstrap.compat import argparse
+try:
+    import argparse
+except ImportError:
+    from sage_bootstrap.compat import argparse
 
 from sage_bootstrap.download.app import Application
 from sage_bootstrap.env import SAGE_DISTFILES
@@ -104,7 +107,7 @@ def format_error(message):
         import traceback
         traceback.print_exc(file=sys.stderr)
         sys.stderr.write(stars)
-    except:
+    except BaseException:
         pass
     sys.stderr.write(message)
     sys.stderr.write(stars)

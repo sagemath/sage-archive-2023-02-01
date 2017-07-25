@@ -26,11 +26,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-
-from sage.structure.sage_object import SageObject
+from six.moves import range
+from six import iteritems, add_metaclass
 
 from copy import copy
 
+from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.combinat.words.alphabet import Alphabet
 from sage.graphs.graph import DiGraph
@@ -300,7 +301,7 @@ class Permutation(SageObject):
             return ''
 
         elif self._repr_type == 'reduced':
-            return ''.join(map(str,self[1]))
+            return ''.join(map(str, self[1]))
 
         else:
             f = getattr(self, self._repr_type)
@@ -352,8 +353,8 @@ class Permutation(SageObject):
 
         """
         l = self.list()
-        s0 = ' '.join(map(str,l[0]))
-        s1 = ' '.join(map(str,l[1]))
+        s0 = ' '.join(map(str, l[0]))
+        s1 = ' '.join(map(str, l[1]))
         return s0 + sep + s1
 
     _repr_type = 'str'
@@ -893,7 +894,7 @@ class PermutationIET(Permutation):
 
         This `d*d` antisymmetric matrix is given by the rule :
 
-        .. math::
+        .. MATH::
 
             m_{ij} = \begin{cases}
                 1 & \text{$i < j$ and $\pi(i) > \pi(j)$} \\
@@ -1059,7 +1060,7 @@ class PermutationIET(Permutation):
             sage: iet.Permutation('a b c d','d c b a').separatrix_diagram()
             [[('d', 'a'), 'b', 'c', ('d', 'a'), 'b', 'c']]
         """
-        separatrices = range(len(self)) # bottom intervals
+        separatrices = list(range(len(self))) # bottom intervals
         labels = self[1] # their labels
 
         singularities = []
@@ -1266,23 +1267,23 @@ class PermutationIET(Permutation):
             a = C.row(i)
 
             a_indices = []
-            for k in xrange(n):
+            for k in range(n):
                 if a[k] != 0: a_indices.append(k)
 
             t_a = len(a_indices) % 2
-            for j1 in xrange(len(a_indices)):
-                for j2 in xrange(j1+1,len(a_indices)):
+            for j1 in range(len(a_indices)):
+                for j2 in range(j1+1,len(a_indices)):
                     t_a = (t_a + M[a_indices[j1], a_indices[j2]]) % 2
 
             b = C.row(g+i)
 
             b_indices = []
-            for k in xrange(n):
+            for k in range(n):
                 if b[k] != 0: b_indices.append(k)
 
             t_b = len(b_indices) % 2
-            for j1 in xrange(len(b_indices)):
-                for j2 in xrange(j1+1,len(b_indices)):
+            for j1 in range(len(b_indices)):
+                for j2 in range(j1+1,len(b_indices)):
                     t_b = (t_b + M[b_indices[j1],b_indices[j2]]) % 2
 
             s = (s + t_a * t_b) % 2
@@ -1482,14 +1483,14 @@ class PermutationIET(Permutation):
         Acta Arith. 34, no. 3, 203-212, 1980
 
         M. Kontsevich, A. Zorich "Connected components of the moduli space
-        of Abelian differentials with prescripebd singularities" Invent. math.
+        of Abelian differentials with prescribed singularities" Invent. math.
         153, 631-678 (2003)
         """
         test = self.erase_marked_points()
 
         n = test.length_top()
         cylindric = test.cylindric()
-        return cylindric._twin[0] == range(n-1,-1,-1)
+        return cylindric._twin[0] == list(range(n - 1, -1, -1))
 
     def cylindric(self):
         r"""
@@ -1595,7 +1596,7 @@ class PermutationLI(Permutation):
         r"""
         Initialization of the twin data.
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b',reduced=True)   #indirect doctest
             sage: p._twin
@@ -1625,7 +1626,7 @@ class PermutationLI(Permutation):
         r"""
         Intialization procedure of the alphabet of self from intervals list
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')   #indirect doctest
             sage: p.alphabet()
@@ -1645,7 +1646,7 @@ class PermutationLI(Permutation):
         A quadratic (or generalized) permutation is *reducible* if there exists
         a decomposition
 
-        .. math::
+        .. MATH::
 
            A1 u B1 | ... | B1 u A2
 
@@ -1653,7 +1654,7 @@ class PermutationLI(Permutation):
 
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the
-        right or on the left. The definition is due to [BL08]_ where they prove
+        right or on the left. The definition is due to [BL2008]_ where they prove
         that the property of being irreducible is stable under Rauzy induction.
 
         INPUT:
@@ -1746,17 +1747,17 @@ class PermutationLI(Permutation):
                 break
             A11 = s0[:i11]
 
-            for i21 in xrange(0, l1) :
+            for i21 in range(0, l1) :
                 if i21 > 0 and s1[i21-1] in A21:
                     break
                 A21 = s1[:i21]
 
-                for i12 in xrange(l0 - 1, i11 - 1, -1) :
+                for i12 in range(l0 - 1, i11 - 1, -1) :
                     if s0[i12] in A12 or s0[i12] in A21:
                         break
                     A12 = s0[i12:]
 
-                    for i22 in xrange(l1 - 1, i21 - 1, -1) :
+                    for i22 in range(l1 - 1, i21 - 1, -1) :
                         if s1[i22] in A22 or s1[i22] in A11:
                             break
                         A22 = s1[i22:]
@@ -1978,6 +1979,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         return list(set(res))
 
 
+@add_metaclass(NestedClassMetaclass)
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
@@ -1991,7 +1993,6 @@ class RauzyDiagram(SageObject):
     - Vincent Delecroix (2008-12-20): initial version
     """
     # TODO: pickle problem of Path (it does not understand what is its parent)
-    __metaclass__ = NestedClassMetaclass
 
     class Path(SageObject):
         r"""
@@ -2007,7 +2008,7 @@ class RauzyDiagram(SageObject):
             r"""
             Constructor of the path.
 
-            TEST::
+            TESTS::
 
                 sage: p = iet.Permutation('a b c', 'c b a')
                 sage: r = p.rauzy_diagram()
@@ -2053,7 +2054,7 @@ class RauzyDiagram(SageObject):
             r"""
             Returns a representation of the path.
 
-            TEST::
+            TESTS::
 
                 sage: p = iet.Permutation('a b','b a')
                 sage: r = p.rauzy_diagram()
@@ -2115,7 +2116,7 @@ class RauzyDiagram(SageObject):
             r"""
             Tests equality
 
-            TEST::
+            TESTS::
 
                 sage: p1 = iet.Permutation('a b','b a')
                 sage: r1 = p1.rauzy_diagram()
@@ -2138,7 +2139,7 @@ class RauzyDiagram(SageObject):
             r"""
             Tests inequality
 
-            TEST::
+            TESTS::
 
                 sage: p1 = iet.Permutation('a b','b a')
                 sage: r1 = p1.rauzy_diagram()
@@ -2320,7 +2321,7 @@ class RauzyDiagram(SageObject):
             r"""
             Returns the length of the path.
 
-            TEST::
+            TESTS::
 
 
                 sage: p = iet.Permutation('a b c','c b a')
@@ -2569,7 +2570,7 @@ class RauzyDiagram(SageObject):
 
             - ``composition`` - the composition function for the function. * if None (default None)
 
-            TEST::
+            TESTS::
 
                 sage: p = iet.Permutation('a b','b a')
                 sage: r = p.rauzy_diagram()
@@ -2743,7 +2744,7 @@ class RauzyDiagram(SageObject):
         Tests difference.
 
 
-        TEST::
+        TESTS::
 
             sage: iet.RauzyDiagram('a b','b a') != iet.RauzyDiagram('a b c','c b a')
             True
@@ -2789,16 +2790,14 @@ class RauzyDiagram(SageObject):
         ::
 
             sage: r = iet.RauzyDiagram('a b c d','d c b a')
-            sage: from itertools import ifilter
-            sage: r_1n = ifilter(lambda x: x.is_cylindric(), r)
+            sage: from six.moves import filter
+            sage: r_1n = filter(lambda x: x.is_cylindric(), r)
             sage: for p in r_1n: print(p)
             a b c d
             d c b a
         """
-        from itertools import imap
-        return imap(
-            lambda x: self._vertex_to_permutation(x),
-            self._succ.keys())
+        for x in self._succ.keys():
+            yield self._vertex_to_permutation(x)
 
     def edges(self,labels=True):
         r"""
@@ -3157,7 +3156,7 @@ class RauzyDiagram(SageObject):
         r"""
         Return the corresponding winner
 
-        TEST::
+        TESTS::
 
             sage: r = iet.RauzyDiagram('a b','b a')
             sage: r.edge_to_winner(None,None)
@@ -3179,7 +3178,7 @@ class RauzyDiagram(SageObject):
         r"""
         Return the corresponding loser
 
-        TEST::
+        TESTS::
 
             sage: r = iet.RauzyDiagram('a b','b a')
             sage: r.edge_to_loser(None,None)
@@ -3313,7 +3312,7 @@ class RauzyDiagram(SageObject):
             H(0, 0)
             H(0, 0)
         """
-        for data in self._succ.iterkeys():
+        for data in self._succ:
             yield self._vertex_to_permutation(data)
 
     def __contains__(self, element):
@@ -3335,7 +3334,7 @@ class RauzyDiagram(SageObject):
             sage: q in s
             True
         """
-        for p in self._succ.iterkeys():
+        for p in self._succ:
             if self._vertex_to_permutation(p) == element:
                 return True
 
@@ -3345,7 +3344,7 @@ class RauzyDiagram(SageObject):
         r"""
         Returns a representation of self
 
-        TEST::
+        TESTS::
 
             sage: iet.RauzyDiagram('a b','b a')   #indirect doctest
             Rauzy diagram with 1 permutation
@@ -3441,7 +3440,7 @@ class RauzyDiagram(SageObject):
         functions __getitem__ and has_rauzy_move and rauzy_move which must
         be defined for child and their corresponding permutation types.
 
-        TEST::
+        TESTS::
 
             sage: r = iet.RauzyDiagram('a b c','c b a')   #indirect doctest
             sage: r = iet.RauzyDiagram('a b c','c b a',left_induction=True) #indirect doctest
@@ -3520,16 +3519,17 @@ class RauzyDiagram(SageObject):
             Looped multi-digraph on 3 vertices
 
         """
-        G = DiGraph(loops=True,multiedges=True)
+        G = DiGraph(loops=True, multiedges=True)
 
-        for p,neighbours in self._succ.iteritems():
+        for p, neighbours in iteritems(self._succ):
             p = self._vertex_to_permutation(p)
-            for i,n in enumerate(neighbours):
+            for i, n in enumerate(neighbours):
                 if n is not None:
                     q = self._vertex_to_permutation(n)
-                    G.add_edge(p,q,i)
+                    G.add_edge(p, q, i)
 
         return G
+
 
 class FlippedRauzyDiagram(RauzyDiagram):
     r"""

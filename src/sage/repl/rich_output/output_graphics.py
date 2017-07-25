@@ -17,6 +17,7 @@ and raster graphics.
 
 
 import os
+import base64
 
 from sage.repl.rich_output.output_basic import OutputBase
 from sage.repl.rich_output.buffer import OutputBuffer
@@ -128,6 +129,25 @@ class OutputImageGif(OutputBase):
         with open(filename) as f:
             return cls(f.read())
 
+    def html_fragment(self):
+        """
+        Return a self-contained HTML fragment displaying the image
+
+        This is a workaround for the Jupyter notebook which doesn't support GIF directly.
+
+        OUTPUT:
+
+        String. HTML fragment for displaying the GIF image.
+
+        EXAMPLES::
+        
+            sage: from sage.repl.rich_output.output_catalog import OutputImageGif
+            sage: OutputImageGif.example().html_fragment()
+            '<img src="data:image/gif;base64,R0lGODl...zd3t/g4eLj5OVDQQA7"/>'
+        """
+        return '<img src="data:image/gif;base64,{0}"/>'.format(
+            base64.b64encode(self.gif.get()))
+
 
 class OutputImageJpg(OutputBase):
 
@@ -137,7 +157,7 @@ class OutputImageJpg(OutputBase):
 
         INPUT:
 
-        - ``jpeg`` --
+        - ``jpg`` --
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
           a string (bytes) can be passed directly which will then be
           converted into an
@@ -188,7 +208,7 @@ class OutputImageSvg(OutputBase):
 
         INPUT:
 
-        - ``SVG`` --
+        - ``svg`` --
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
           a string (bytes) can be passed directly which will then be
           converted into an

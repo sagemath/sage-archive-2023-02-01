@@ -97,6 +97,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module
@@ -107,9 +108,7 @@ from sage.structure.sequence import Sequence
 from sage.rings.all import QQ, ZZ, QQbar, Integer
 from sage.arith.all import gcd, lcm
 from sage.misc.all import prod
-from sage.structure.element import get_coercion_model
-
-import abvar as abelian_variety
+from sage.structure.element import coercion_model
 
 
 class FiniteSubgroup(Module):
@@ -153,10 +152,10 @@ class FiniteSubgroup(Module):
         from sage.categories.fields import Fields
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         from sage.categories.modules import Modules
-
+        from .abvar import is_ModularAbelianVariety
         if field_of_definition not in Fields():
             raise TypeError("field_of_definition must be a field")
-        if not abelian_variety.is_ModularAbelianVariety(abvar):
+        if not is_ModularAbelianVariety(abvar):
             raise TypeError("abvar must be a modular abelian variety")
         category = Category.join((Modules(ZZ), FiniteEnumeratedSets()))
         Module.__init__(self, ZZ, category=category)
@@ -234,10 +233,6 @@ class FiniteSubgroup(Module):
             True
             sage: H.is_subgroup(G)
             True
-            sage: H < 5 #random (meaningless since it depends on memory layout)
-            False
-            sage: 5 < H #random (meaningless since it depends on memory layout)
-            True
 
         The ambient varieties are compared::
 
@@ -305,7 +300,7 @@ class FiniteSubgroup(Module):
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
             raise ValueError("self and other must be in the same ambient Jacobian")
-        K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
+        K = coercion_model.common_parent(self.field_of_definition(), other.field_of_definition())
         lattice = self.lattice() + other.lattice()
         if A != B:
             lattice += C.lattice()
@@ -386,21 +381,23 @@ class FiniteSubgroup(Module):
             sage: A.intersection(B)[0]
             Finite subgroup with invariants [3, 3] over QQ of Abelian subvariety of dimension 2 of J0(33)
         """
+        from .abvar import is_ModularAbelianVariety
         A = self.abelian_variety()
-        if abelian_variety.is_ModularAbelianVariety(other):
+        if is_ModularAbelianVariety(other):
             amb = other
             B = other
             M = B.lattice().scale(Integer(1)/self.exponent())
-            K = get_coercion_model().common_parent(self.field_of_definition(), other.base_field())
+            K = coercion_model.common_parent(self.field_of_definition(), other.base_field())
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
-                raise TypeError("only addition of two finite subgroups is defined")
+                raise TypeError("only intersection with a finite subgroup or "
+                        "modular abelian variety is defined")
             B = other.abelian_variety()
             if A.ambient_variety() != B.ambient_variety():
                 raise TypeError("finite subgroups must be in the same ambient product Jacobian")
             M = other.lattice()
-            K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
+            K = coercion_model.common_parent(self.field_of_definition(), other.field_of_definition())
 
         L = self.lattice()
         if A != B:
@@ -834,9 +831,10 @@ class FiniteSubgroup_lattice(FiniteSubgroup):
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
         """
         if check:
+            from .abvar import is_ModularAbelianVariety
             if not is_FreeModule(lattice) or lattice.base_ring() != ZZ:
                 raise TypeError("lattice must be a free module over ZZ")
-            if not abelian_variety.is_ModularAbelianVariety(abvar):
+            if not is_ModularAbelianVariety(abvar):
                 raise TypeError("abvar must be a modular abelian variety")
             if not abvar.lattice().is_submodule(lattice):
                 lattice += abvar.lattice()

@@ -33,6 +33,7 @@ TESTS::
 
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2010 Jason Grout <jason-sage@creativetrax.com>
@@ -49,14 +50,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import free_module_element
+from . import free_module_element
 from sage.symbolic.ring import SR
 
 
 class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_generic_dense):
-
-
-
     def _repr_(self):
         """
         Returns the string representation of the vector
@@ -78,7 +76,6 @@ class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_gener
         else:
             args = ", ".join(map(str, args))
             return "(%s) |--> %s" % (args, repr_x)
-
 
     def _latex_(self):
         """

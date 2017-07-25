@@ -33,10 +33,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 from __future__ import print_function
+from __future__ import absolute_import
 
 import pexpect
 import time
-import cleaner
+from . import cleaner
 
 from sage.groups.perm_gps.cubegroup import index2singmaster
 
@@ -65,7 +66,8 @@ class SingNot:
     This class is to resolve difference between various Singmaster notation.
     Case is ignored, and the second and third letters may be swapped.
 
-    EXAMPLE:
+    EXAMPLES::
+
         sage: from sage.interfaces.rubik import SingNot
         sage: SingNot("acb") == SingNot("ACB")
         True
@@ -127,7 +129,8 @@ class OptimalSolver:
 
         TODO: Let it keep searching once it found a solution?
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.rubik import *
             sage: solver = DikSolver()
             sage: solver = OptimalSolver()  # long time (28s on sage.math, 2012)
@@ -184,7 +187,8 @@ class CubexSolver:
 
     def solve(self, facets):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.rubik import *
             sage: C = RubiksCube("R U")
             sage: CubexSolver().solve(C.facets())
@@ -238,7 +242,8 @@ class DikSolver:
 
     def solve(self, facets, timeout=10, extra_time=2):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.rubik import *
             sage: C = RubiksCube().move("R U")
             sage: DikSolver().solve(C.facets())

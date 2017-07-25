@@ -8,8 +8,9 @@ dimension `k=\frac{q^{r}-1}{q-1} - r` and minimum distance
 
 REFERENCES:
 
-    .. [R] Introduction to Coding Theory, Ron Roth, Cambridge University Press, 2006
+- [Rot2006]_
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
@@ -21,10 +22,11 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
+from .linear_code import (AbstractLinearCode,
                          LinearCodeParityCheckEncoder)
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.ring import Field
 from copy import copy
@@ -43,7 +45,7 @@ class HammingCode(AbstractLinearCode):
 
         sage: C = codes.HammingCode(GF(7), 3)
         sage: C
-        [57, 54] Hamming Code over Finite Field of size 7
+        [57, 54] Hamming Code over GF(7)
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -79,7 +81,7 @@ class HammingCode(AbstractLinearCode):
 
         q = base_field.order()
         length = Integer((q ** order - 1) / (q - 1))
-        super(HammingCode, self).__init__(base_field, length, "ParityCheck", "Syndrome")
+        super(HammingCode, self).__init__(base_field, length, "Systematic", "Syndrome")
         self._dimension = length - order
 
     def __eq__(self, other):
@@ -105,10 +107,10 @@ class HammingCode(AbstractLinearCode):
 
             sage: C = codes.HammingCode(GF(7), 3)
             sage: C
-            [57, 54] Hamming Code over Finite Field of size 7
+            [57, 54] Hamming Code over GF(7)
         """
-        return "[%s, %s] Hamming Code over %s"\
-                % (self.length(), self.dimension(), self.base_field())
+        return "[%s, %s] Hamming Code over GF(%s)"\
+                % (self.length(), self.dimension(), self.base_field().cardinality())
 
     def _latex_(self):
         r"""
@@ -118,12 +120,13 @@ class HammingCode(AbstractLinearCode):
 
             sage: C = codes.HammingCode(GF(7), 3)
             sage: latex(C)
-            [57, 54] \textnormal{ Hamming Code over Finite Field of size 7}
+            [57, 54] \textnormal{ Hamming Code over }\Bold{F}_{7}
         """
-        return "[%s, %s] \\textnormal{ Hamming Code over %s}"\
-                % (self.length(), self.dimension(), self.base_field())
+        return "[%s, %s] \\textnormal{ Hamming Code over }%s"\
+                % (self.length(), self.dimension(), self.base_field()._latex_())
 
 
+    @cached_method
     def parity_check_matrix(self):
         r"""
         Returns a parity check matrix of ``self``.
@@ -132,8 +135,8 @@ class HammingCode(AbstractLinearCode):
         is not a binary code is not really well documented.
         Regarding the choice of projective geometry, one might check:
 
-        - the note over section 2.3 in [R]_, pages 47-48
-        - the dedicated paragraph in [HP]_, page 30
+        - the note over section 2.3 in [Rot2006]_, pages 47-48
+        - the dedicated paragraph in [HP2003]_, page 30
 
         EXAMPLES::
 
@@ -142,6 +145,7 @@ class HammingCode(AbstractLinearCode):
             [1 0 1 1 0 1 0 1 1 1 0 1 1]
             [0 1 1 2 0 0 1 1 2 0 1 1 2]
             [0 0 0 0 1 1 1 1 1 2 2 2 2]
+
         """
         n = self.length()
         F = self.base_field()
@@ -152,7 +156,7 @@ class HammingCode(AbstractLinearCode):
 
         H = MS(PFn).transpose()
         H = H[::-1, :]
-
+        H.set_immutable()
         return H
 
     def minimum_distance(self):

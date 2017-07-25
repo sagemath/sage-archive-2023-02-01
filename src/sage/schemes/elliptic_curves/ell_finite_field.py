@@ -27,19 +27,19 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
+from __future__ import print_function, absolute_import
+from six.moves import range
 from sage.misc.randstate import current_randstate
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
-from ell_field import EllipticCurve_field
-from constructor import EllipticCurve, EllipticCurve_from_j
+from .ell_field import EllipticCurve_field
+from .constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
-import ell_point
+from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
 from sage.structure.sequence import Sequence
 
@@ -125,7 +125,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: len(S)
             100
 
-        See trac #4687, where the following example did not work::
+        See :trac:`4687`, where the following example did not work::
 
             sage: E=EllipticCurve(GF(2),[0, 0, 1, 1, 1])
             sage: E.points()
@@ -153,13 +153,15 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         H0=[self(0)]
         if ngens == 0:    # trivial group
             return H0
-        for m in range(1,ni[0]): H0.append(H0[-1]+pts[0])
+        for m in range(1,ni[0]):
+            H0.append(H0[-1]+pts[0])
         if ngens == 1:    # cyclic group
             return H0
 
         # else noncyclic group
         H1=[self(0)]
-        for m in range(1,ni[1]): H1.append(H1[-1]+pts[1])
+        for m in range(1,ni[1]):
+            H1.append(H1[-1]+pts[1])
         return [P+Q for P in H0 for Q in H1]
 
     def points(self):
@@ -263,13 +265,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         except TypeError:
             raise TypeError("n must be a positive integer")
 
-        if n<1:
+        if n < 1:
             raise ValueError("n must be a positive integer")
 
-        if n==1:
+        if n == 1:
             return self.cardinality()
-        else:
-            return [ self.cardinality(extension_degree=i) for  i in range(1,n+1)]
+
+        return [self.cardinality(extension_degree=i) for i in range(1, n + 1)]
 
     def random_element(self):
         """
@@ -341,7 +343,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         TESTS:
 
-        See trac #8311::
+        See :trac:`8311`::
 
             sage: E = EllipticCurve(GF(3), [0,0,0,2,2])
             sage: E.random_element()
@@ -399,7 +401,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.trace_of_frobenius()
             802
 
-        The following shows that the issue from trac #2849 is fixed::
+        The following shows that the issue from :trac:`2849` is fixed::
 
             sage: E=EllipticCurve(GF(3^5,'a'),[-1,-1])
             sage: E.trace_of_frobenius()
@@ -1080,7 +1082,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         k = self.base_ring()
         p = k.characteristic()
         if k.degree()==1:
-            return ZZ(p + 1 - int(self._pari_().ellap(p)))
+            return ZZ(p + 1 - int(self.__pari__().ellap(p)))
         else:
             raise ValueError("cardinality_pari() only works over prime fields.")
 
@@ -1278,7 +1280,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the n'th point in self's __points list. This enables users
         to iterate over the curve's point set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E=EllipticCurve(GF(97),[2,3])
             sage: S=E.points()
@@ -1372,17 +1374,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.cardinality(extension_degree=100)
             1267650600228231653296516890625
 
-        This tests the patch for trac #3111, using 10 primes randomly
+        This tests the patch for :trac:`3111`, using 10 primes randomly
         selected::
 
             sage: E = EllipticCurve('389a')
             sage: for p in [5927, 2297, 1571, 1709, 3851, 127, 3253, 5783, 3499, 4817]:
-            ...       G = E.change_ring(GF(p)).abelian_group()
+            ....:     G = E.change_ring(GF(p)).abelian_group()
             sage: for p in prime_range(10000):  # long time (19s on sage.math, 2011)
-            ...       if p != 389:
-            ...           G = E.change_ring(GF(p)).abelian_group()
+            ....:     if p != 389:
+            ....:         G = E.change_ring(GF(p)).abelian_group()
 
-        This tests that the bug reported in trac #3926 has been fixed::
+        This tests that the bug reported in :trac:`3926` has been fixed::
 
             sage: K.<i> = QuadraticField(-1)
             sage: OK = K.ring_of_integers()
@@ -1670,7 +1672,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E1.is_isogenous(E7,GF(13^30,'j'))
             False
         """
-        from ell_generic import is_EllipticCurve
+        from .ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
             raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
@@ -1715,7 +1717,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
         - ``proof`` (boolean, default True) -- If True, returns a
           proved result.  If False, then a return value of False is
           certain but a return value of True may be based on a
-          probabilistic test.  See the documentaion of the function
+          probabilistic test.  See the documentation of the function
           :meth:`is_j_supersingular` for more details.
 
         EXAMPLES::
@@ -1750,7 +1752,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
         - ``proof`` (boolean, default True) -- If True, returns a
           proved result.  If False, then a return value of True is
           certain but a return value of False may be based on a
-          probabilistic test.  See the documentaion of the function
+          probabilistic test.  See the documentation of the function
           :meth:`is_j_supersingular` for more details.
 
         EXAMPLES::
@@ -1921,7 +1923,7 @@ def supersingular_j_polynomial(p):
 
     First compute H(X) whose roots are the Legendre
     `\lambda`-invariants of supersingular curves (Silverman V.4.1(b))
-    in charactersitic `p`.  Then, using a resultant computation with
+    in characteristic `p`.  Then, using a resultant computation with
     the polynomial relating `\lambda` and `j` (Silverman III.1.7(b)),
     we recover the polynomial (in variable ``j``) whose roots are the
     `j`-invariants.  Factors of `j` and `j-1728` are removed if
@@ -1961,7 +1963,7 @@ def supersingular_j_polynomial(p):
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()
-    H = sum([binomial(m,i)**2 * T**i for i in xrange(m+1)])
+    H = sum(binomial(m, i) ** 2 * T ** i for i in range(m + 1))
     F = T**2 * (T-1)**2 * X - 256*(T**2-T+1)**3
     R = F.resultant(H,T)
     R =  prod([fi for fi,e in R([J,0]).factor()])

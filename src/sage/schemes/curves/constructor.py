@@ -6,7 +6,10 @@ AUTHORS:
 - William Stein (2005-11-13)
 
 - David Kohel (2006-01)
+
+- Grayson Jorgenson (2016-6)
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -39,12 +42,12 @@ from sage.schemes.affine.all import AffineSpace
 from sage.schemes.projective.all import ProjectiveSpace
 
 
-from projective_curve import (ProjectivePlaneCurve,
+from .projective_curve import (ProjectivePlaneCurve,
                               ProjectiveCurve,
                               ProjectivePlaneCurve_finite_field,
                               ProjectivePlaneCurve_prime_finite_field)
 
-from affine_curve import (AffinePlaneCurve,
+from .affine_curve import (AffinePlaneCurve,
                           AffineCurve,
                           AffinePlaneCurve_finite_field,
                           AffinePlaneCurve_prime_finite_field)
@@ -72,7 +75,7 @@ def Curve(F, A=None):
 
     - ``A`` -- (default: None) an ambient space in which to create the curve.
 
-    EXAMPLE: A projective plane curve
+    EXAMPLES: A projective plane curve
 
     ::
 
@@ -82,7 +85,7 @@ def Curve(F, A=None):
         sage: C.genus()
         1
 
-    EXAMPLE: Affine plane curves
+    EXAMPLES: Affine plane curves
 
     ::
 
@@ -95,7 +98,7 @@ def Curve(F, A=None):
         sage: Curve(x^3 + y^3 + 1)
         Affine Plane Curve over Rational Field defined by x^3 + y^3 + 1
 
-    EXAMPLE: A projective space curve
+    EXAMPLES: A projective space curve
 
     ::
 
@@ -105,7 +108,7 @@ def Curve(F, A=None):
         sage: C.genus()
         13
 
-    EXAMPLE: An affine space curve
+    EXAMPLES: An affine space curve
 
     ::
 
@@ -115,7 +118,7 @@ def Curve(F, A=None):
         sage: C.genus()
         47
 
-    EXAMPLE: We can also make non-reduced non-irreducible curves.
+    EXAMPLES: We can also make non-reduced non-irreducible curves.
 
     ::
 
@@ -125,7 +128,7 @@ def Curve(F, A=None):
         sage: Curve((x-y)^2*(x+y)^2)
         Projective Plane Curve over Rational Field defined by x^4 - 2*x^2*y^2 + y^4
 
-    EXAMPLE: A union of curves is a curve.
+    EXAMPLES: A union of curves is a curve.
 
     ::
 
@@ -154,7 +157,7 @@ def Curve(F, A=None):
         sage: I = X.defining_ideal(); I
         Ideal (x^3 + y^3 + z^3, x^4 + y^4 + z^4) of Multivariate Polynomial Ring in x, y, z over Rational Field
 
-    EXAMPLE: In three variables, the defining equation must be
+    EXAMPLES: In three variables, the defining equation must be
     homogeneous.
 
     If the parent polynomial ring is in three variables, then the

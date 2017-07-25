@@ -48,6 +48,7 @@ AUTHORS:
 
 - William Stein
 """
+from __future__ import absolute_import
 
 
 #*****************************************************************************
@@ -67,9 +68,9 @@ AUTHORS:
 
 from sage.rings.all import RDF
 from sage.matrix.constructor import matrix
-from shapes import Box, ColorCube
-from shapes2 import frame3d
-from index_face_set import IndexFaceSet
+from .shapes import Box, ColorCube
+from .shapes2 import frame3d
+from .index_face_set import IndexFaceSet
 
 
 def index_face_set(face_list, point_list, enclosed, **kwds):
@@ -434,6 +435,7 @@ def octahedron(center=(0, 0, 0), size=1, **kwds):
         sphinx_plot(G)
 
     """
+    kwds['enclosed'] = True
     if 'aspect_ratio' not in kwds:
         kwds['aspect_ratio'] = [1, 1, 1]
     return prep(Box(1,1,1).dual(**kwds), center, size, kwds)
@@ -591,6 +593,7 @@ def icosahedron(center=(0, 0, 0), size=1, **kwds):
         sphinx_plot(p)
 
     """
+    kwds['enclosed'] = True
     if 'aspect_ratio' not in kwds:
         kwds['aspect_ratio'] = [1, 1, 1]
     return prep(dodecahedron().dual(**kwds), center, size, kwds)

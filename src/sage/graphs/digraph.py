@@ -104,11 +104,13 @@ graphs. Here is what they can do
     :delim: |
 
     :meth:`~DiGraph.flow_polytope` | Computes the flow polytope of a digraph
+    :meth:`~DiGraph.degree_polynomial` | Returns the generating polynomial of degrees of vertices in ``self``.
 
 Methods
 -------
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -466,8 +468,8 @@ class DiGraph(GenericGraph):
             sage: DiGraph(a,sparse=True).adjacency_matrix() == a
             True
 
-        The positions are copied when the DiGraph is built from
-        another DiGraph or from a Graph ::
+        The positions are copied when the DiGraph is built from another DiGraph
+        or from a Graph ::
 
             sage: g = DiGraph(graphs.PetersenGraph())
             sage: h = DiGraph(g)
@@ -476,13 +478,14 @@ class DiGraph(GenericGraph):
             sage: g.get_pos() == graphs.PetersenGraph().get_pos()
             True
 
-        Invalid sequence of edges given as an input (they do not all
-        have the same length)::
+        The position dictionary is not the input one (:trac:`22424`)::
 
-            sage: g = DiGraph([(1,2),(2,3),(2,3,4)])
-            Traceback (most recent call last):
-            ...
-            ValueError: too many values to unpack
+            sage: my_pos = {0:(0,0), 1:(1,1)}
+            sage: D = DiGraph([[0,1], [(0,1)]], pos=my_pos)
+            sage: my_pos == D._pos
+            True
+            sage: my_pos is D._pos
+            False
 
         Detection of multiple edges::
 
@@ -491,7 +494,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph({1:{2:0}})
             Digraph on 2 vertices
 
-        An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
+        An empty list or dictionary defines a simple graph (:trac:`10441` and :trac:`12910`)::
 
             sage: DiGraph([])
             Digraph on 0 vertices
@@ -669,15 +672,15 @@ class DiGraph(GenericGraph):
             if weighted   is None: self._weighted   = False
             self.allow_loops(True if loops else False,check=False)
             self.allow_multiple_edges(True if multiedges else False,check=False)
-            from graph_input import from_dig6
+            from .graph_input import from_dig6
             from_dig6(self, data)
 
         elif format == 'adjacency_matrix':
-            from graph_input import from_adjacency_matrix
+            from .graph_input import from_adjacency_matrix
             from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'incidence_matrix':
-            from graph_input import from_oriented_incidence_matrix
+            from .graph_input import from_oriented_incidence_matrix
             from_oriented_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'DiGraph':
@@ -694,7 +697,7 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             if weighted is None: weighted = data.weighted()
             if data.get_pos() is not None:
-                pos = data.get_pos().copy()
+                pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
@@ -714,12 +717,12 @@ class DiGraph(GenericGraph):
             self.add_edges(data[1])
 
         elif format == 'dict_of_dicts':
-            from graph_input import from_dict_of_dicts
+            from .graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
                                convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
         elif format == 'dict_of_lists':
-            from graph_input import from_dict_of_lists
+            from .graph_input import from_dict_of_lists
             from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'NX':
@@ -797,7 +800,7 @@ class DiGraph(GenericGraph):
         # weighted, multiedges, loops, verts and num_verts should now be set
         self._weighted = weighted
 
-        self._pos = pos
+        self._pos = copy(pos)
 
         if format != 'DiGraph' or name is not None:
             self.name(name)
@@ -813,18 +816,33 @@ class DiGraph(GenericGraph):
     ### Formats
     def dig6_string(self):
         """
-        Returns the dig6 representation of the digraph as an ASCII string.
-        Valid for single (no multiple edges) digraphs on 0 to 262143
-        vertices.
+        Return the dig6 representation of the digraph as an ASCII string.
+
+        This is only valid for single (no multiple edges) digraphs
+        on at most `2^{18}-1=262143` vertices.
+
+        .. NOTE::
+
+            As the dig6 format only handles graphs with vertex set
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` will
+            be encoded, if necessary.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.graph.Graph.graph6_string` --
+              a similar string format for undirected graphs
 
         EXAMPLES::
 
-            sage: D = DiGraph()
+            sage: D = DiGraph({0: [1, 2], 1: [2], 2: [3], 3: [0]})
             sage: D.dig6_string()
+            'CW`_'
+
+        TESTS::
+
+            sage: DiGraph().dig6_string()
             '?'
-            sage: D.add_edge(0,1)
-            sage: D.dig6_string()
-            'AO'
         """
         n = self.order()
         if n > 262143:
@@ -911,13 +929,13 @@ class DiGraph(GenericGraph):
         Checking acyclic graphs are indeed acyclic ::
 
             sage: def random_acyclic(n, p):
-            ...    g = graphs.RandomGNP(n, p)
-            ...    h = DiGraph()
-            ...    h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
-            ...    return h
+            ....:  g = graphs.RandomGNP(n, p)
+            ....:  h = DiGraph()
+            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ....:  return h
             ...
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
-            ...        for i in range(50))                              # long time
+            ....:      for i in range(50))                              # long time
             True
 
         TESTS:
@@ -1370,6 +1388,41 @@ class DiGraph(GenericGraph):
         """
         return [x for x in self if self.out_degree(x)==0]
 
+    def degree_polynomial(self):
+        r"""
+        Return the generating polynomial of degrees of vertices in ``self``.
+
+        This is the sum
+
+        .. MATH::
+
+            \sum_{v \in G} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
+
+        where ``in(v)`` and ``out(v)`` are the number of incoming and
+        outgoing edges at vertex `v` in the digraph `G`.
+
+        Because this polynomial is multiplicative for Cartesian
+        product of digraphs, it is useful to help see if the digraph can
+        be isomorphic to a Cartesian product.
+
+        .. SEEALSO::
+
+            :meth:`num_verts` for the value at `(x, y) = (1, 1)`
+
+        EXAMPLES::
+
+            sage: G = posets.PentagonPoset().hasse_diagram()
+            sage: G.degree_polynomial()
+            x^2 + 3*x*y + y^2
+
+            sage: G = posets.BooleanLattice(4).hasse_diagram()
+            sage: G.degree_polynomial().factor()
+            (x + y)^4
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(ZZ, 'x,y')
+        x, y = R.gens()
+        return R.sum(x ** self.in_degree(v) * y ** self.out_degree(v) for v in self)
 
     def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""
@@ -1856,8 +1909,8 @@ class DiGraph(GenericGraph):
 
             sage: D = DiGraph ([(0,1,'A'),(1,0,'B'),(1,2,'C')])
             sage: re = D.reverse_edges( [ (0,1), (1,2) ],
-            ...                         inplace = False,
-            ...                         multiedges = True)
+            ....:                       inplace = False,
+            ....:                       multiedges = True)
             sage: re.edges()
             [(1, 0, 'A'), (1, 0, 'B'), (2, 1, 'C')]
             sage: D.edges()
@@ -2713,7 +2766,7 @@ class DiGraph(GenericGraph):
         EXAMPLES::
 
             sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
-            ...     5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            ....:   5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
             sage: D.plot(layout='circular').show()
             sage: D.topological_sort()
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
@@ -2751,7 +2804,7 @@ class DiGraph(GenericGraph):
 
               sage: import networkx
               sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
-              ...     5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+              ....:   5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
               sage: N = D.networkx_graph()
               sage: networkx.topological_sort(N)
               [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
@@ -3014,7 +3067,7 @@ class DiGraph(GenericGraph):
 
         - ``v`` -- a vertex
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the symmetric digraph of a graph, the strongly connected components are the connected
         components::
@@ -3038,7 +3091,7 @@ class DiGraph(GenericGraph):
         r"""
         Returns the strongly connected components as a list of subgraphs.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the symmetric digraph of a graph, the strongly connected components are the connected
         components::
@@ -3064,7 +3117,7 @@ class DiGraph(GenericGraph):
         is an edge from a component `C_1` to a component `C_2` if there is
         an edge from one to the other in `G`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Such a digraph is always acyclic ::
 
@@ -3129,16 +3182,14 @@ class DiGraph(GenericGraph):
             g.add_vertices(range(len(scc)))
 
             g.add_edges( set((d[u], d[v], label) for (u,v,label) in self.edges() ) )
-            g.relabel(scc_set, inplace = True)
+            g.relabel(scc_set, inplace=True)
 
         else:
             g = DiGraph(multiedges=False, loops=False)
             g.add_vertices(range(len(scc)))
 
-            for u,v in self.edges(labels=False):
-                g.add_edge(d[u], d[v])
-
-            g.relabel(scc_set, inplace = True)
+            g.add_edges(((d[u], d[v]) for u, v in self.edges(labels=False)), loops=False)
+            g.relabel(scc_set, inplace=True)
 
         return g
 
@@ -3146,7 +3197,7 @@ class DiGraph(GenericGraph):
         r"""
         Returns whether the current ``DiGraph`` is strongly connected.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The circuit is obviously strongly connected ::
 

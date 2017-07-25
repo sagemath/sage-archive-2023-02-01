@@ -211,9 +211,9 @@ class QuiverHomSpace(Homset):
             sage: H1 = P.Hom(S)
             sage: H2 = (P/P.radical()).Hom(S)
             sage: H1.coerce_map_from(H2) # indirect doctest
-            Conversion map:
-                  From: Dimension 1 QuiverHomSpace
-                  To:   Dimension 1 QuiverHomSpace
+            Coercion map:
+              From: Dimension 1 QuiverHomSpace
+              To:   Dimension 1 QuiverHomSpace
         """
 
         if not isinstance(other, QuiverHomSpace):

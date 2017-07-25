@@ -1,6 +1,7 @@
 """
 Symmetric functions, with their multiple realizations
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2009-2012 Jason Bandlow <jbandlow@gmail.com>
@@ -28,15 +29,15 @@ from sage.combinat.partition import Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
 
-import schur
-import monomial
-import powersum
-import elementary
-import homogeneous
-import hall_littlewood
-import jack
-import macdonald
-import llt
+from . import schur
+from . import monomial
+from . import powersum
+from . import elementary
+from . import homogeneous
+from . import hall_littlewood
+from . import jack
+from . import macdonald
+from . import llt
 
 class SymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -178,24 +179,24 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The classical bases
 
-    In addition to the power sum basis, the other classical bases of the
-    symmetric function algebra are the elementary, complete homogeneous,
-    monomial, and Schur bases.  These can be defined as follows::
+    In addition to the power sum basis, other classical bases of the
+    symmetric function algebra include the elementary, complete
+    homogeneous, monomial, and Schur bases::
 
         sage: e = Sym.elementary()
         sage: h = Sym.homogeneous()
         sage: m = Sym.monomial()
         sage: s = Sym.schur()
 
-    These can be defined all at once with the single command
-    ::
+    These and others can be defined all at once with the single command::
 
         sage: Sym.inject_shorthands()
-        doctest:...: RuntimeWarning: redefining global value `h`
-        doctest:...: RuntimeWarning: redefining global value `s`
-        doctest:...: RuntimeWarning: redefining global value `e`
-        doctest:...: RuntimeWarning: redefining global value `m`
-        doctest:...: RuntimeWarning: redefining global value `p`
+        Defining e as shorthand for Symmetric Functions over Rational Field in the elementary basis
+        Defining f as shorthand for Symmetric Functions over Rational Field in the forgotten basis
+        Defining h as shorthand for Symmetric Functions over Rational Field in the homogeneous basis
+        Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
+        Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
+        Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
 
     We can then do conversions from one basis to another::
 
@@ -628,6 +629,18 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         ks6[3, 3, 1, 1] + ks6[4, 2, 1, 1] + (t+1)*ks6[4, 3, 1] + t*ks6[4, 4]
         + ks6[5, 1, 1, 1] + ks6[5, 2, 1] + t*ks6[5, 3] + ks6[6, 1, 1]
 
+    The `k`-split basis is a second basis of the ring spanned by the `k`-Schur
+    functions with a parameter `t`.  The `k`-split basis has the property that
+    `Q'_\lambda[X;t]` expands positively in the `k`-split basis and the
+    `k`-split basis conjecturally expands positively in the `k`-Schur functions.
+    The definition can be found in [LLMSSZ]_ p. 81.::
+
+        sage: ksp3 = SymS3.ksplit()
+        sage: ksp3(Qp[2,1,1,1])
+        ksp3[2, 1, 1, 1] + t^2*ksp3[2, 2, 1] + (t^3+t^2)*ksp3[3, 1, 1] + t^4*ksp3[3, 2]
+        sage: [ks(ksp3(la)) for la in ksp3(Qp[2,1,1,1]).support()]
+        [ks3[2, 2, 1], ks3[2, 1, 1, 1] + t*ks3[2, 2, 1], ks3[3, 2], ks3[3, 1, 1]]
+
     .. rubric:: dual `k`-Schur functions
 
     The dual space to the subspace spanned by the `k`-Schur functions is most naturally
@@ -939,7 +952,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: SymmetricFunctions(QQ).witt(coerce_h=False, coerce_e=True, coerce_p=True)
             Symmetric Functions over Rational Field in the Witt basis
         """
-        import witt
+        from . import witt
         return witt.SymmetricFunctionAlgebra_witt(self, coerce_h=coerce_h, coerce_e=coerce_e, coerce_p=coerce_p)
     w = witt
     # Currently needed by sfa.GradedSymmetricFunctionsBases.corresponding_basis_over
@@ -984,7 +997,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             ....:   for rho in Partitions(5)]))
             [4, 2, 0, 1, -1, 0, -1]
         """
-        from character import irreducible_character_basis
+        from .character import irreducible_character_basis
         return irreducible_character_basis(self, 'st')
     st = irreducible_symmetric_group_character
 
@@ -1039,7 +1052,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: [ht([1]).eval_at_permutation_roots(rho) for rho in Partitions(5)]
             [0, 1, 0, 2, 1, 3, 5]
         """
-        from character import character_basis
+        from .character import character_basis
         return character_basis(self, self.h(), "induced trivial character", 'ht')
     ht = induced_trivial_character
 
@@ -1139,7 +1152,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: SymmetricFunctions(QQ).symplectic()
             Symmetric Functions over Rational Field in the symplectic basis
         """
-        import symplectic
+        from . import symplectic
         return symplectic.SymmetricFunctionAlgebra_symplectic(self)
     sp = symplectic
 
@@ -1154,7 +1167,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: SymmetricFunctions(QQ).orthogonal()
             Symmetric Functions over Rational Field in the orthogonal basis
         """
-        import orthogonal
+        from . import orthogonal
         return orthogonal.SymmetricFunctionAlgebra_orthogonal(self)
     o = orthogonal
 
@@ -1357,50 +1370,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         else:
             morphism.codomain().register_coercion(morphism)
 
-    _shorthands = set(['e', 'h', 'm', 'p', 's'])
-
-    def inject_shorthands(self, shorthands = _shorthands):
-        """
-        Imports standard shorthands into the global namespace
-
-        INPUT:
-
-        - ``shorthands`` -- a list (or iterable) of strings (default: ['e', 'h', 'm', 'p', 's'])
-
-        EXAMPLES::
-
-            sage: S = SymmetricFunctions(ZZ)
-            sage: S.inject_shorthands()
-            sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
-            s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
-            sage: e
-            Symmetric Functions over Integer Ring in the elementary basis
-            sage: p
-            Symmetric Functions over Integer Ring in the powersum basis
-            sage: s
-            Symmetric Functions over Integer Ring in the Schur basis
-
-            sage: e == S.e(), h == S.h(), m == S.m(), p == S.p(), s == S.s()
-            (True, True, True, True, True)
-
-        One can also just import a subset of the shorthands::
-
-            sage: S = SymmetricFunctions(QQ)
-            sage: S.inject_shorthands(['p', 's'])
-            sage: p
-            Symmetric Functions over Rational Field in the powersum basis
-            sage: s
-            Symmetric Functions over Rational Field in the Schur basis
-
-        Note that ``e`` is left unchanged::
-
-            sage: e
-            Symmetric Functions over Integer Ring in the elementary basis
-        """
-        from sage.misc.misc import inject_variable
-        for shorthand in shorthands:
-            assert shorthand in self._shorthands
-            inject_variable(shorthand, getattr(self, shorthand)())
+    _shorthands = ['e', 'f', 'h', 'm', 'p', 's']
+    _shorthands_all = sorted(_shorthands + ['ht', 'o', 'sp', 'st', 'w'])
 
     def __init_extra__(self):
         """
@@ -1432,7 +1403,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         from sage.combinat.sf.classical import conversion_functions
 
-        for (basis1_name, basis2_name) in conversion_functions.keys():
+        for (basis1_name, basis2_name) in conversion_functions:
             basis1 = getattr(self, basis1_name)()
             basis2 = getattr(self, basis2_name)()
             on_basis = SymmetricaConversionOnBasis(t = conversion_functions[basis1_name,basis2_name], domain = basis1, codomain = basis2)
@@ -1462,7 +1433,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         the ring of symmetric functions generated by the complete homogeneous symmetric functions
         `h_i` for `1\le i \le k`.
 
-        .. seealso:: :meth:`sage.combinat.sf.new_kschur.KBoundedSubspace`
+        .. SEEALSO:: :meth:`sage.combinat.sf.new_kschur.KBoundedSubspace`
 
         EXAMPLES::
 
@@ -1502,6 +1473,26 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.kBoundedSubspace(k, t=t).kschur()
 
+    def ksplit(self, k, t ='t'):
+        r"""
+        Returns the `k`-split basis of the `k`-bounded subspace.
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: ksp = Sym.ksplit(3,1)
+            sage: ksp[2]*ksp[2]
+            ksp3[2, 2] + ksp3[3, 1]
+            sage: ksp[2,1,1].lift()
+            s[2, 1, 1] + s[2, 2] + s[3, 1]
+
+            sage: Sym = SymmetricFunctions(QQ['t'])
+            sage: ksp = Sym.ksplit(3)
+            sage: ksp[2,1,1].lift()
+            s[2, 1, 1] + t*s[2, 2] + t*s[3, 1]
+        """
+        return self.kBoundedSubspace(k, t=t).ksplit()
+
     def khomogeneous(self, k):
         r"""
         Returns the homogeneous symmetric functions in the `k`-bounded subspace.
@@ -1527,7 +1518,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         The quotient of the ring of symmetric functions ...
 
-        .. seealso:: :meth:`sage.combinat.sf.k_dual.KBoundedQuotient`
+        .. SEEALSO:: :meth:`sage.combinat.sf.k_dual.KBoundedQuotient`
 
         EXAMPLES::
 

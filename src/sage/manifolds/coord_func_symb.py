@@ -195,7 +195,7 @@ class CoordFunctionSymb(CoordFunction):
         sage: g = function('g')(x, y)
         sage: f0(x,y) = diff(g, x) + diff(g, y)
         sage: f0
-        (x, y) |--> D[0](g)(x, y) + D[1](g)(x, y)
+        (x, y) |--> diff(g(x, y), x) + diff(g(x, y), y)
 
     while for coordinate functions, the display is more "textbook" like::
 
@@ -206,8 +206,7 @@ class CoordFunctionSymb(CoordFunction):
     The difference is even more dramatic on LaTeX outputs::
 
         sage: latex(f0)
-        \left( x, y \right) \ {\mapsto} \ D[0]\left(g\right)\left(x, y\right)
-         + D[1]\left(g\right)\left(x, y\right)
+        \left( x, y \right) \ {\mapsto} \ \frac{\partial}{\partial x}g\left(x, y\right) + \frac{\partial}{\partial y}g\left(x, y\right)
         sage: latex(f)
         \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
 
@@ -216,14 +215,14 @@ class CoordFunctionSymb(CoordFunction):
     for the symbolic expression stored in ``f``::
 
         sage: f.expr()
-        D[0](g)(x, y) + D[1](g)(x, y)
+        diff(g(x, y), x) + diff(g(x, y), y)
 
-    One can switch to Pynac notation by changing the global options::
+    One can switch to Pynac notation by changing the options::
 
-        sage: Manifold.global_options(textbook_output=False)
+        sage: Manifold.options.textbook_output=False
         sage: latex(f)
-        D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
-        sage: Manifold.global_options.reset()
+        \frac{\partial}{\partial x}g\left(x, y\right) + \frac{\partial}{\partial y}g\left(x, y\right)
+        sage: Manifold.options._reset()
         sage: latex(f)
         \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
 
@@ -242,7 +241,7 @@ class CoordFunctionSymb(CoordFunction):
     `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
     tensor expressions. We can switch it off by::
 
-        sage: Manifold.global_options(omit_function_arguments=True)
+        sage: Manifold.options.omit_function_arguments=True
         sage: f
         u*v
 
@@ -256,7 +255,7 @@ class CoordFunctionSymb(CoordFunction):
 
     We revert to the default behavior by::
 
-        sage: Manifold.global_options.reset()
+        sage: Manifold.options._reset()
         sage: f
         u(x, y)*v(x, y)
 
@@ -319,7 +318,7 @@ class CoordFunctionSymb(CoordFunction):
             x*y + 1
 
         """
-        if self.parent()._chart.manifold().global_options('textbook_output'):
+        if self.parent()._chart.manifold().options.textbook_output:
             return str(ExpressionNice(self._express))
         else:
             return str(self._express)
@@ -340,7 +339,7 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         from sage.misc.latex import latex
-        if self.parent()._chart.manifold().global_options('textbook_output'):
+        if self.parent()._chart.manifold().options.textbook_output:
             return latex(ExpressionNice(self._express))
         else:
             return latex(self._express)
@@ -483,9 +482,12 @@ class CoordFunctionSymb(CoordFunction):
         else:
             return self._simplify(resu)
 
-    def is_zero(self):
+
+    def __bool__(self):
         r"""
-        Return ``True`` if the function is zero and ``False`` otherwise.
+        Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
+
+        This method is called by :meth:`~sage.structure.element.Element.is_zero()`.
 
         EXAMPLES:
 
@@ -494,11 +496,15 @@ class CoordFunctionSymb(CoordFunction):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1)
+            sage: bool(f)
+            True
             sage: f.is_zero()
             False
             sage: f == 0
             False
             sage: g = X.function(0)
+            sage: bool(g)
+            False
             sage: g.is_zero()
             True
             sage: g == 0
@@ -509,7 +515,9 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return self._express.is_zero()
+        return not self._express.is_zero()
+
+    __nonzero__ = __bool__   # For Python2 compatibility
 
     def copy(self):
         r"""
@@ -763,10 +771,10 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         res = self._simplify(self._express + other._express)
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def _sub_(self, other):
         r"""
@@ -807,10 +815,10 @@ class CoordFunctionSymb(CoordFunction):
             True
         """
         res = self._simplify(self._express - other._express)
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def _mul_(self, other):
         r"""
@@ -844,10 +852,10 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         res = self._simplify(self._express * other._express)
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def _rmul_(self, other):
         """
@@ -939,10 +947,10 @@ class CoordFunctionSymb(CoordFunction):
         if other._express.is_zero():
             raise ZeroDivisionError("division of a coordinate function by zero")
         res = self._simplify(self._express / SR(other))
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def exp(self):
         r"""
@@ -1758,4 +1766,3 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
     is_field = is_integral_domain
 
     Element = CoordFunctionSymb
-

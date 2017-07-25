@@ -29,8 +29,8 @@ speed, we provide a class that wraps our struct.
 #  Copyright 2010, Tom Boothby
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
 from cpython.list cimport *
+from cysignals.memory cimport sig_malloc, sig_free
 
 ##########################################################
 #
@@ -59,7 +59,7 @@ cdef void reset_swap(int n, int *c, int *o):
 
 cdef int next_swap(int n, int *c, int *o):
     """
-    Here's the traslation of Algorithm P.  We've modified
+    Here's the translation of Algorithm P.  We've modified
     it to
 
        a) work on zero-indexed lists

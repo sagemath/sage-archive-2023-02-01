@@ -9,6 +9,7 @@ Root system data for dual Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
@@ -172,8 +173,8 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
            sage: CartanType(['F', 4, 1]).dual()._repr_(compact = True)
            'F4~*'
         """
-        dual_str = self.global_options('dual_str')
-        if self.is_affine() and self.global_options('notation') == "Kac":
+        dual_str = self.options.dual_str
+        if self.is_affine() and self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
                     return 'A%s^2'%(self.classical().rank()*2-1)
@@ -197,7 +198,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
             sage: latex(CartanType(['F', 4, 1]).dual())
             F_4^{(1)\vee}
         """
-        return self._type._latex_()+"^"+self.global_options('dual_latex')
+        return self._type._latex_()+"^"+self.options.dual_latex
 
     def __reduce__(self):
         """
@@ -270,29 +271,45 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         res = res.replace("=?=", "=>=")
         return res
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
+        Return whether ``self`` is equal to ``other``.
+        
         EXAMPLES::
 
-            sage: B41     = CartanType(['B', 4, 1])
+            sage: B41 = CartanType(['B', 4, 1])
             sage: B41dual = CartanType(['B', 4, 1]).dual()
             sage: F41dual = CartanType(['F', 4, 1]).dual()
-            sage: cmp(F41dual, F41dual)
-            0
 
-        Whether ``cmp()`` returns 1 or -1 doesn't matter, just check
-        that the following are non-zero::
+            sage: F41dual == F41dual
+            True
+            sage: F41dual == B41dual
+            False
+            sage: B41dual == B41
+            False
+        """
+        if not isinstance(other, CartanType):
+            return False
+        return self._type == other._type
 
-            sage: cmp(F41dual, B41dual) != 0
+    def __ne__(self, other):
+        """
+        Return whether ``self`` is equal to ``other``.
+        
+        EXAMPLES::
+
+            sage: B41 = CartanType(['B', 4, 1])
+            sage: B41dual = CartanType(['B', 4, 1]).dual()
+            sage: F41dual = CartanType(['F', 4, 1]).dual()
+
+            sage: F41dual != F41dual
+            False
+            sage: F41dual != B41dual
             True
-            sage: cmp(B41dual, F41dual) * cmp(F41dual, B41dual) < 0
-            True
-            sage: cmp(B41dual, B41) != 0
+            sage: B41dual != B41
             True
         """
-        if other.__class__ != self.__class__:
-            return cmp(self.__class__, other.__class__)
-        return cmp(self._type, other._type)
+        return not (self == other)
 
     def dual(self):
         """
@@ -526,7 +543,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             sage: CartanType(['D', 4, 3]).basic_untwisted()
             ['D', 4]
         """
-        import cartan_type
+        from . import cartan_type
         if self.dual().type() == 'B':
             return cartan_type.CartanType(['A', self.classical().rank()*2-1])
         elif self.dual().type() == 'BC':
@@ -568,8 +585,8 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
            sage: CartanType(['F', 4, 1]).dual()._repr_(compact = True)
            'F4~*'
         """
-        dual_str = self.global_options('dual_str')
-        if self.global_options('notation') == "Kac":
+        dual_str = self.options.dual_str
+        if self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
                     return 'A%s^2'%(self.classical().rank()*2-1)
@@ -599,7 +616,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             sage: latex(CartanType(['G',2,1]).dual())
             G_2^{(1)\vee}
 
-            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: CartanType.options['notation'] = 'Kac'
             sage: latex(CartanType(['A',7,2]))
             A_{7}^{(2)}
             sage: latex(CartanType(['B',4,1]).dual())
@@ -612,9 +629,9 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             E_6^{(2)}
             sage: latex(CartanType(['D',5,2]))
             D_{5}^{(2)}
-            sage: CartanType.global_options.reset()
+            sage: CartanType.options._reset()
         """
-        if self.global_options('notation') == "Kac":
+        if self.options('notation') == "Kac":
             if self._type.type() == 'B':
                 return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
@@ -626,9 +643,9 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         result = self._type._latex_()
         import re
         if re.match(".*\^{\(\d\)}$", result):
-            return "%s%s}"%(result[:-1], self.global_options('dual_latex'))
+            return "%s%s}"%(result[:-1], self.options('dual_latex'))
         else:
-            return "{%s}^%s"%(result, self.global_options('dual_latex'))
+            return "{%s}^%s"%(result, self.options('dual_latex'))
 
     def _default_folded_cartan_type(self):
         """

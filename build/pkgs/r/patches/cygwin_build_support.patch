@@ -1,0 +1,108 @@
+Patches required to explicitly support Cygwin when building R.
+diff --git a/configure b/configure
+index 5d80a54..805aa0f 100755
+--- a/configure
++++ b/configure
+@@ -28124,6 +28124,15 @@ case "${host_os}" in
+       shlib_cxxldflags="-shared ${shlib_cxxldflags}"
+     fi
+     ;;
++  cygwin*)
++    ## All Windows binaries are PIC
++    cpicflags=
++    cxxpicflags=
++    fpicflags=
++    fcpicflags=
++    SHLIB_EXT=".dll"
++    dylib_undefined_allowed=no
++    ;;
+   darwin*)
+     darwin_pic="-fPIC"
+     dylib_undefined_allowed=no
+@@ -28400,7 +28409,7 @@ fi
+ : ${CPICFLAGS="${cpicflags}"}
+ if test -z "${CPICFLAGS}"; then
+   case "${host_os}" in
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
+       ;;
+     *)
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I could not determine CPICFLAGS." >&5
+@@ -28413,7 +28422,7 @@ fi
+ : ${FPICFLAGS="${fpicflags}"}
+ if test -z "${FPICFLAGS}"; then
+   case "${host_os}" in
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
+       ;;
+     *)
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I could not determine FPICFLAGS." >&5
+@@ -28426,7 +28435,7 @@ fi
+ : ${CXXPICFLAGS="${cxxpicflags}"}
+ if test -z "${CXXPICFLAGS}"; then
+   case "${host_os}" in
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
+       ;;
+     *)
+       warn_cxxpicflags="I could not determine CXXPICFLAGS."
+diff --git a/configure.ac b/configure.ac
+index 4c6d7f1..005e940 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1324,6 +1324,15 @@ case "${host_os}" in
+       shlib_cxxldflags="-shared ${shlib_cxxldflags}"
+     fi 
+     ;;
++  cygwin*)
++    ## All Windows binaries are PIC
++    cpicflags=
++    cxxpicflags=
++    fpicflags=
++    fcpicflags=
++    SHLIB_EXT=".dll"
++    dylib_undefined_allowed=no
++    ;;
+   darwin*)
+     darwin_pic="-fPIC"
+     dylib_undefined_allowed=no
+@@ -1584,7 +1593,7 @@ R_SH_VAR_ADD(MAIN_LDFLAGS, [${main_ldflags}])
+ : ${CPICFLAGS="${cpicflags}"}
+ if test -z "${CPICFLAGS}"; then
+   case "${host_os}" in
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
+       ;;
+     *)
+       AC_MSG_WARN([I could not determine CPICFLAGS.])
+@@ -1596,7 +1605,7 @@ fi
+ : ${FPICFLAGS="${fpicflags}"}
+ if test -z "${FPICFLAGS}"; then
+   case "${host_os}" in
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
+       ;;
+     *)
+       AC_MSG_WARN([I could not determine FPICFLAGS.])
+@@ -1608,7 +1617,7 @@ fi
+ : ${CXXPICFLAGS="${cxxpicflags}"}
+ if test -z "${CXXPICFLAGS}"; then
+   case "${host_os}" in
+-    aix*|mingw*)
++    aix*|cygwin*|mingw*)
+       ;;
+     *)
+       warn_cxxpicflags="I could not determine CXXPICFLAGS."
+diff --git a/src/library/tools/R/install.R b/src/library/tools/R/install.R
+index cdfd6dd..c99cde3 100644
+--- a/src/library/tools/R/install.R
++++ b/src/library/tools/R/install.R
+@@ -828,7 +828,7 @@
+                             setwd(owd)
+                             test_archs <- archs
+                             for(arch in archs) {
+-                                if (arch == "R") {
++                                if (arch == "R" || arch == "R.exe") {
+                                     ## top-level, so one arch without subdirs
+                                     has_error <- run_shlib(pkg_name, srcs, instdir, "")
+                                 } else {

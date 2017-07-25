@@ -84,7 +84,6 @@ def test_packages(packages, only_failures=False):
     return table(rows, header_row=True)
 
 
-
 def all_installed_packages(ignore_dot_gap=False):
     """
     Return list of all installed packages.
@@ -103,7 +102,7 @@ def all_installed_packages(ignore_dot_gap=False):
 
         sage: from sage.tests.gap_packages import all_installed_packages
         sage: all_installed_packages()
-        (...'GAPDoc',...)
+        (...'GAPDoc'...)
     """
     packages = []
     for path in libgap.eval('GAP_ROOT_PATHS').sage():

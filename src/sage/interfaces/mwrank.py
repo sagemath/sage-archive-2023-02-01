@@ -17,10 +17,11 @@ Interface to mwrank
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import weakref
-from expect import Expect
+from .expect import Expect
 
 instances={}
 def Mwrank(options="", server=None, server_tmpdir=None):
@@ -325,7 +326,7 @@ class Mwrank_class(Expect):
         """
         Start the mwrank console.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mwrank.console() # not tested: expects console input
             Program mwrank: ...
@@ -354,7 +355,7 @@ def mwrank_console():
     """
     Start the mwrank console.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: mwrank_console() # not tested: expects console input
         Program mwrank: ...

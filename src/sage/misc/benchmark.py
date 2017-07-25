@@ -1,7 +1,8 @@
 "Benchmarks"
 from __future__ import print_function
+from __future__ import absolute_import
 
-from misc import cputime
+from .misc import cputime
 
 from sage.all import *
 
@@ -20,7 +21,7 @@ def benchmark(n=-1):
         list -- summary of timings for each benchmark.
         int -- if n == -1, also return the total time
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.benchmark import *
         sage: _ = benchmark()

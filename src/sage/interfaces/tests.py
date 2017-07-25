@@ -39,12 +39,13 @@ Test that write errors to stderr are handled gracefully by GAP
     0
     sage: subprocess.call("echo syntax error | ipython", **kwds) in (0,1)
     True
-    sage: subprocess.call("echo syntax error | singular", **kwds)
+    sage: subprocess.call("echo syntax error | Singular", **kwds)
     0
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
-from all import *
+from .all import *
 from sage.misc.misc import cputime, walltime
 import sys
 

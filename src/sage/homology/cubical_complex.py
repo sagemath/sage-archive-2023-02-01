@@ -8,7 +8,7 @@ AUTHORS:
 
 This module implements the basic structure of finite cubical
 complexes.  For full mathematical details, see Kaczynski, Mischaikow,
-and Mrozek [KMM]_, for example.
+and Mrozek [KMM2004]_, for example.
 
 Cubical complexes are topological spaces built from gluing together
 cubes of various dimensions; the collection of cubes must be closed
@@ -55,11 +55,6 @@ square in `\RR^3`: the same unit square as ``S1``, but embedded in
 ``S1`` (in fact, they're "cubically equivalent"), and this is
 reflected in the fact that they have isomorphic homology groups.
 
-REFERENCES:
-
-.. [KMM] Tomasz Kaczynski, Konstantin Mischaikow, and Marian Mrozek,
-         "Computational Homology", Springer-Verlag (2004).
-
 .. note::
 
    This class derives from
@@ -68,7 +63,8 @@ REFERENCES:
    see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
    page instead.
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six.moves import zip
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
@@ -93,7 +89,7 @@ class Cube(SageObject):
     endpoints, each of which is either a unit interval or a degenerate
     (length 0) interval; for example,
 
-    .. math::
+    .. MATH::
 
        [0,1] \times [3,4] \times [2,2] \times [1,2]
 
@@ -232,8 +228,8 @@ class Cube(SageObject):
         t = t + ((0,0),) * (embed-len(t))
         vec = tuple(vec) + (0,) * (embed-len(vec))
         new = []
-        for (a,b) in zip(t, vec):
-            new.append([a[0]+b, a[1]+b])
+        for (a, b) in zip(t, vec):
+            new.append([a[0] + b, a[1] + b])
         return Cube(new)
 
     def __getitem__(self, n):
@@ -399,9 +395,9 @@ class Cube(SageObject):
             sage: C.faces_as_pairs()
             [([2,2] x [3,4], [1,1] x [3,4]), ([1,2] x [4,4], [1,2] x [3,3])]
         """
-        upper = [self.face(i,True) for i in range(self.dimension())]
-        lower = [self.face(i,False) for i in range(self.dimension())]
-        return zip(upper,lower)
+        upper = [self.face(i, True) for i in range(self.dimension())]
+        lower = [self.face(i, False) for i in range(self.dimension())]
+        return list(zip(upper, lower))
 
     def _compare_for_gluing(self, other):
         r"""
@@ -435,7 +431,7 @@ class Cube(SageObject):
         In the example below, this method is called with arguments
         ``C1`` and ``C2``, where
 
-        .. math::
+        .. MATH::
 
             C1 = [0,1] \times [3] \times [4] \times [6,7] \\
             C2 = [2] \times [7,8] \times [9] \times [1,2] \times [0] \times [5]
@@ -466,8 +462,8 @@ class Cube(SageObject):
         translate = []
         self_tuple = self.tuple()
         other_tuple = other.tuple()
-        nondegen = (zip(self.nondegenerate_intervals(),
-                        other.nondegenerate_intervals())
+        nondegen = (list(zip(self.nondegenerate_intervals(),
+                        other.nondegenerate_intervals()))
                     + [(len(self_tuple), len(other_tuple))])
         old = (-1, -1)
         self_added = 0
@@ -512,7 +508,7 @@ class Cube(SageObject):
 
         If the cube is given by
 
-        .. math::
+        .. MATH::
 
            C = [i_1, j_1] \times [i_2, j_2] \times ... \times [i_k, j_k]
 
@@ -570,7 +566,7 @@ class Cube(SageObject):
 
         - a list containing triples ``(coeff, left, right)``
 
-        This uses the algorithm described by Pilarczyk and Réal [PR]_
+        This uses the algorithm described by Pilarczyk and Réal [PR2015]_
         on p. 267; the formula is originally due to Serre.  Calling
         this method ``alexander_whitney`` is an abuse of notation,
         since the actual Alexander-Whitney map goes from `C(K \times
@@ -1604,7 +1600,7 @@ class CubicalComplex(GenericCellComplex):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 
@@ -1651,7 +1647,7 @@ class CubicalComplex(GenericCellComplex):
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from algebraic_topological_model import algebraic_topological_model
+        from .algebraic_topological_model import algebraic_topological_model
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model(self, base_ring)
@@ -1685,7 +1681,7 @@ class CubicalComplex(GenericCellComplex):
         ordering of the vertices of the cubical complex.  Then for
         each maximal face
 
-        .. math::
+        .. MATH::
 
            C = [i_1, j_1] \times [i_2, j_2] \times ... \times [i_k, j_k]
 

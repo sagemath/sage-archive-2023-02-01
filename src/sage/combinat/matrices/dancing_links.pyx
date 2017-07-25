@@ -14,11 +14,9 @@ Dancing Links internal pyx code
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-
-from sage.structure.sage_object cimport rich_to_bool
-
+from cpython.object cimport PyObject_RichCompare
 from libcpp.vector cimport vector
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "dancing_links_c.h":
     ctypedef struct dancing_links:
@@ -138,7 +136,7 @@ cdef class dancing_linksWrapper:
             sage: X == Y
             0
         """
-        return rich_to_bool(op, cmp(left._rows, right._rows))
+        return PyObject_RichCompare(left._rows, right._rows, op)
 
     def _init_rows(self, rows):
         """
@@ -285,7 +283,7 @@ cdef class dancing_linksWrapper:
             [[0, 1], [2, 3], [4, 5]]
 
         After the split each subproblem has the same number of columns and
-        rows as the orginal one::
+        rows as the original one::
 
             sage: D = d.split(0)
             sage: D
@@ -339,7 +337,7 @@ cdef class dancing_linksWrapper:
         - ``column`` -- integer (default: ``0``), the column used to split
           the problem
 
-        OUPUT:
+        OUTPUT:
 
             iterator of tuples (row number, number of solutions)
 
@@ -354,7 +352,7 @@ cdef class dancing_linksWrapper:
         ::
 
             sage: S = Subsets(range(5))
-            sage: rows = map(list, S)
+            sage: rows = [list(x) for x in S]
             sage: d = dlx_solver(rows)
             sage: d.number_of_solutions()
             52
@@ -363,10 +361,11 @@ cdef class dancing_linksWrapper:
         """
         D = self.split(column)
         from sage.parallel.decorate import parallel
+
         @parallel(ncpus=ncpus)
         def nb_sol(i):
             return dlx_solver(D[i]).number_of_solutions()
-        K = sorted(D.keys())
+        K = sorted(D)
         for ((args, kwds), val) in nb_sol(K):
             yield args[0], val
 
@@ -383,9 +382,9 @@ cdef class dancing_linksWrapper:
         - ``column`` -- integer (default: ``0``), the column used to split
           the problem (ignored if ``ncpus`` is ``1``)
 
-        OUPUT:
+        OUTPUT:
 
-            integer
+        integer
 
         EXAMPLES::
 

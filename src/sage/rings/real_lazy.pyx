@@ -29,6 +29,7 @@ from operator import add, sub, mul, div, pow, neg, inv
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
 from sage.structure.all import parent
+from sage.structure.richcmp cimport richcmp
 
 import sage.categories.map
 from sage.categories.morphism cimport Morphism
@@ -657,7 +658,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self._new_unop(self, inv)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         If things are being wrapped, tries to compare values. That failing, it
         tries to compare intervals, which may return a false negative.
@@ -693,11 +694,11 @@ cdef class LazyFieldElement(FieldElement):
         try:
             if isinstance(self, LazyWrapper) and isinstance(other, LazyWrapper):
                 left, right = canonical_coercion((<LazyWrapper>self)._value, (<LazyWrapper>other)._value)
-                return cmp(left, right)
+                return richcmp(left, right, op)
         except TypeError:
             pass
         left, right = self.approx(), other.approx()
-        return cmp(left, right)
+        return richcmp(left.endpoints(), right.endpoints(), op)
 
     def __hash__(self):
         """
@@ -915,7 +916,7 @@ def make_element(parent, *args):
     EXAMPLES::
 
         sage: a = RLF(pi) + RLF(sqrt(1/2)) # indirect doctest
-        sage: loads(dumps(a)) == a
+        sage: bool(loads(dumps(a)) == a)
         True
     """
     return parent(*args)
@@ -1155,7 +1156,7 @@ cdef class LazyBinop(LazyFieldElement):
             sage: float(a)
             2.5
             sage: type(float(a))
-            <type 'float'>
+            <... 'float'>
         """
         cdef double left = self._left
         cdef double right = self._right
@@ -1631,7 +1632,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
 #                 self._prec = R.prec()
 #                 return R(self._root_approx)
             if self._root is None:
-                # This could be done much more efficiently with newton iteration,
+                # This could be done much more efficiently with Newton iteration,
                 # but will require some care to make sure we get the right root, and
                 # to the correct precision.
                 from sage.rings.qqbar import AA, QQbar

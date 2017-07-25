@@ -24,6 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
@@ -31,12 +32,13 @@ from sage.misc.misc import some_tuples
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
-from local_generic import LocalGeneric
+from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import richcmp_not_equal
 
 
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
@@ -143,9 +145,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return [self.gen()]
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return 0 if self == other, and 1 or -1 otherwise.
 
         We consider two p-adic rings or fields to be equal if they are
         equal mathematically, and also have the same precision cap and
@@ -163,25 +165,28 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        if self.prime() < other.prime():
-            return -1
-        elif self.prime() > other.prime():
-            return 1
+        if not isinstance(other, pAdicGeneric):
+            return NotImplemented
+
+        lx = self.prime()
+        rx = other.prime()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         try:
-            if self.halting_parameter() < other.halting_parameter():
-                return -1
-            elif self.halting_parameter() > other.halting_parameter():
-                return 1
+            lx = self.halting_parameter()
+            rx = other.halting_parameter()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
-        if self.precision_cap() < other.precision_cap():
-            return -1
-        elif self.precision_cap() > other.precision_cap():
-            return 1
-        return self._printer.cmp_modes(other._printer)
+
+        lx = self.precision_cap()
+        rx = other.precision_cap()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return self._printer.richcmp_modes(other._printer, op)
 
     #def ngens(self):
     #    return 1
@@ -538,12 +543,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x + y
             tester.assertIs(z.parent(), self)
-            tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
+            zprec = min(x.precision_absolute(), y.precision_absolute())
+            if not self.is_floating_point():
+                tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assertEqual(z - x, y)
-            tester.assertEqual(z - y, x)
+            tester.assert_(y.is_equal_to(z-x,zprec))
+            tester.assert_(x.is_equal_to(z-y,zprec))
 
     def _test_sub(self, **options):
         """
@@ -574,12 +581,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x - y
             tester.assertIs(z.parent(), self)
-            tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
+            zprec = min(x.precision_absolute(), y.precision_absolute())
+            if not self.is_floating_point():
+                tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assertEqual(z - x, -y)
-            tester.assertEqual(z + y, x)
+            tester.assert_((-y).is_equal_to(z - x,zprec))
+            tester.assert_(x.is_equal_to(z + y,zprec))
 
     def _test_invert(self, **options):
         """
@@ -608,13 +617,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 tester.assertFalse(x.is_unit())
                 if not self.is_fixed_mod(): tester.assertTrue(x.is_zero())
             else:
-                e = y * x
-
-                tester.assertFalse(x.is_zero())
-                tester.assertIs(y.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                tester.assertTrue(e.is_one())
-                tester.assertEqual(e.precision_relative(), x.precision_relative())
-                tester.assertEqual(y.valuation(), -x.valuation())
+                try:
+                    e = y * x
+                except ZeroDivisionError:
+                    tester.assertTrue(self.is_floating_point() and (x.is_zero() or y.is_zero()))
+                else:
+                    tester.assertFalse(x.is_zero())
+                    tester.assertIs(y.parent(), self if self.is_fixed_mod() else self.fraction_field())
+                    tester.assertTrue(e.is_one())
+                    tester.assertEqual(e.precision_relative(), x.precision_relative())
+                    tester.assertEqual(y.valuation(), -x.valuation())
 
     def _test_mul(self, **options):
         """
@@ -639,7 +651,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x * y
             tester.assertIs(z.parent(), self)
-            tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+            if self.is_capped_relative() or self.is_floating_point():
+                tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+            else:
+                tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
             if not z.is_zero():
                 tester.assertEqual(z.valuation(), x.valuation() + y.valuation())
 
@@ -670,10 +685,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 if self.is_fixed_mod(): tester.assertFalse(y.is_unit())
                 else: tester.assertTrue(y.is_zero())
             else:
-                tester.assertFalse(y.is_zero())
-                tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
-                tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                try:
+                    xx = z*y
+                except ZeroDivisionError:
+                    tester.assertTrue(self.is_floating_point() and (z.is_zero() or y.is_zero()))
+                else:
+                    tester.assertFalse(y.is_zero())
+                    tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
+                    tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+                    tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                    tester.assertEqual(xx, x)
 
     def _test_neg(self, **options):
         """
@@ -702,6 +723,52 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_log(self, **options):
+        """
+        Test the log operator on elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_log()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+        for x in tester.some_elements():
+            if x.is_zero(): continue
+            l = x.log(p_branch=0)
+            tester.assertIs(l.parent(), self)
+            tester.assertGreater(l.valuation(), 0)
+            if self.is_capped_absolute() or self.is_capped_relative():
+                tester.assertEqual(x.precision_relative(), l.precision_absolute())
+
+        if self.is_capped_absolute() or self.is_capped_relative():
+            # In the fixed modulus setting, rounding errors may occur
+            elements = list(tester.some_elements())
+            for x, y, b in some_tuples(elements, 3, tester._max_runs):
+                if x.is_zero() or y.is_zero(): continue
+                r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
+                r2 = (x*y).log(pi_branch=b)
+                tester.assertEqual(r1, r2)
+
+            p = self.prime()
+            for x in tester.some_elements():
+                if x.is_zero(): continue
+                if p == 2:
+                    a = 4 * x.unit_part()
+                else:
+                    a = p * x.unit_part()
+                b = a.exp().log()
+                c = (1+a).log().exp()
+                tester.assertEqual(a, b)
+                tester.assertEqual(1+a, c)
+
     def _test_teichmuller(self, **options):
         """
         Test Teichmuller lifts.
@@ -717,7 +784,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         .. SEEALSO::
 
             :class:`TestSuite`
-
         """
         tester = self._tester(**options)
 
@@ -732,6 +798,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 except (NotImplementedError, AttributeError):
                     pass
                 tester.assertEqual(y**self.residue_field().order(), y)
+
+    def _test_convert_residue_field(self, **options):
+        r"""
+        Test that conversion of residue field elements back to this ring works.
+
+        INPUT:
+
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_convert_residue_field()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            if x.valuation() < 0:
+                continue
+            if x.precision_absolute() <= 0:
+                continue
+            y = x.residue()
+            z = self(y)
+            tester.assertEqual(z.residue(), y)
 
     @cached_method
     def _log_unit_part_p(self):
@@ -834,7 +927,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K.frobenius_endomorphism(6) == Frob
             True
         """
-        from morphism import FrobeniusEndomorphism_padics
+        from .morphism import FrobeniusEndomorphism_padics
         return FrobeniusEndomorphism_padics(self, n)
 
     def _test_elements_eq_transitive(self, **options):

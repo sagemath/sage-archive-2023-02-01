@@ -26,33 +26,6 @@ Check the fix from :trac:`8323`::
     False
     sage: 'func' in globals()
     False
-
-Test deprecation::
-
-    sage: sage.misc.misc.srange(5)
-    doctest:...: DeprecationWarning:
-    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20094 for details.
-    [0, 1, 2, 3, 4]
-    sage: sage.misc.all.srange(5)
-    doctest:...: DeprecationWarning:
-    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20334 for details.
-    [0, 1, 2, 3, 4]
-    sage: sage.misc.misc.sxrange(5)
-    doctest:...: DeprecationWarning:
-    Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20094 for details.
-    <generator object at 0x...>
-    sage: sage.misc.misc.mul([3,4])
-    doctest:...: DeprecationWarning:
-    Importing prod from here is deprecated. If you need to use it, please import it directly from sage.misc.all
-    See http://trac.sagemath.org/17460 for details.
-    12
-    sage: sage.misc.misc.cancel_alarm()
-    doctest:...: DeprecationWarning:
-    Importing cancel_alarm from here is deprecated. If you need to use it, please import it directly from cysignals.alarm
-    See http://trac.sagemath.org/20002 for details.
 """
 
 #*****************************************************************************
@@ -64,29 +37,18 @@ Test deprecation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six.moves import range
+from six import integer_types
 
-__doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
-               "generic_cmp", "to_gmp_hex", "todo",
-               "typecheck", "prop", "strunc",
-               "assert_attribute", "LOGFILE"]
-
-from warnings import warn
-import os, stat, sys, signal, time, resource, math
+import os
+import stat
+import sys
+import time
+import resource
 import sage.misc.prandom as random
-from lazy_string import lazy_string
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)
-lazy_import('sage.arith.srange', 'xsrange', 'sxrange', deprecation=20094)
-lazy_import('sage.misc.temporary_file', ('tmp_dir', 'tmp_filename', 'delete_tmpfiles'), deprecation=17460)
-lazy_import('sage.misc.banner', ('version', 'banner'), deprecation=17460)
-lazy_import('sage.env', '*', deprecation=17460)
-lazy_import('sage.misc.decorators', ('infix_operator', 'decorator_defaults', 'sage_wraps'), deprecation=17460)
-lazy_import('sage.misc.all', ('prod', 'running_total', 'balanced_sum', 'is_64_bit', 'is_32_bit'), deprecation=17460)
-lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
-mul = prod
-
+import warnings
+from .lazy_string import lazy_string
 
 from sage.env import DOT_SAGE, HOSTNAME
 
@@ -134,12 +96,18 @@ def sage_makedirs(dir):
 
 sage_makedirs(DOT_SAGE)
 
-_mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 0o40700     # drwx------
-if _mode != _desired_mode:
-    print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
-    # Change mode of DOT_SAGE.
-    os.chmod(DOT_SAGE, _desired_mode)
+if hasattr(os, 'chmod'):
+    _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
+    _desired_mode = 0o40700     # drwx------
+    if _mode != _desired_mode:
+        # On Cygwin, if the sage directory is not in a filesystem mounted with
+        # 'acl' support, setting the permissions may fail silently, so only
+        # print the message after we've changed the permissions and confirmed
+        # that the change succeeded
+        os.chmod(DOT_SAGE, _desired_mode)
+        if os.stat(DOT_SAGE)[stat.ST_MODE] == _desired_mode:
+            print("Setting permissions of DOT_SAGE directory so only you "
+                  "can read and write it.")
 
 
 #################################################
@@ -197,6 +165,8 @@ except KeyError:
 # uses the GMP library
 #################################################################
 def to_gmp_hex(n):
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "to_gmp_hex() is deprecated")
     return hex(n).replace("L","").replace("0x","")
 
 #################################################################
@@ -250,11 +220,11 @@ def cputime(t=0, subprocesses=False):
         sage: walltime(w)         # somewhat random
         0.58425593376159668
 
-    .. note ::
+    .. NOTE::
 
-      Even with ``subprocesses=True`` there is no guarantee that the
-      CPU time is reported correctly because subprocesses can be
-      started and terminated at any given time.
+        Even with ``subprocesses=True`` there is no guarantee that the
+        CPU time is reported correctly because subprocesses can be
+        started and terminated at any given time.
     """
     if isinstance(t, GlobalCputime):
         subprocesses=True
@@ -302,7 +272,7 @@ class GlobalCputime:
 
     - Martin Albrecht - (2008-12): initial version
 
-    EXAMPLE:
+    EXAMPLES:
 
     Objects of this type are returned if ``subprocesses=True`` is
     passed to :func:`cputime`::
@@ -327,7 +297,7 @@ class GlobalCputime:
         sage: float(t) #output somewhat random
         2.1088339999999999
 
-    .. seealso::
+    .. SEEALSO::
 
       :func:`cputime`
     """
@@ -336,7 +306,7 @@ class GlobalCputime:
         Create a new CPU time object which also keeps track of
         subprocesses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.misc import GlobalCputime
             sage: ct = GlobalCputime(0.0); ct
@@ -348,7 +318,7 @@ class GlobalCputime:
 
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: cputime(subprocesses=True) # indirect doctest, output random
             0.2347431
@@ -357,7 +327,7 @@ class GlobalCputime:
 
     def __add__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
@@ -373,7 +343,7 @@ class GlobalCputime:
 
     def __sub__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
@@ -389,7 +359,7 @@ class GlobalCputime:
 
     def __float__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: float(t) #output somewhat random
@@ -422,10 +392,6 @@ def walltime(t=0):
     """
     return time.time() - t
 
-#def clock(cmd):
-#    t=cputime()
-#    eval(compile(cmd,"clock",'single'))
-#    return cputime(t)
 
 #################################################################
 # simple verbosity system
@@ -458,7 +424,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     OUTPUT: possibly prints a message to stdout; also returns
     cputime()
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: set_verbose(1)
         sage: t = cputime()
@@ -501,10 +467,11 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         s = s + " (time = %s)"%cputime(t)
     print(s)
     sys.stdout.flush()
-    #open(LOGFILE,"a").write(s+"\n")
     return cputime()
 
 def todo(mesg=""):
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "todo() is deprecated")
     caller_name = sys._getframe(1).f_code.co_name
     raise NotImplementedError("{}: todo -- {}".format(caller_name, mesg))
 
@@ -595,17 +562,24 @@ def generic_cmp(x,y):
     This is similar to x.__cmp__(y), but works even in some cases
     when a .__cmp__ method isn't defined.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "generic_cmp() is deprecated")
     if x<y:
         return -1
     elif x==y:
         return 0
     return 1
 
+
 def cmp_props(left, right, props):
+    from sage.misc.superseded import deprecation
+    deprecation(23149, "cmp_props is deprecated")
     for a in props:
         c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c: return c
+        if c:
+            return c
     return 0
+
 
 def union(x, y=None):
     """
@@ -660,7 +634,7 @@ def coeff_repr(c, is_latex=False):
             return c._coeff_repr()
         except AttributeError:
             pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()
@@ -673,7 +647,7 @@ def coeff_repr(c, is_latex=False):
             return "(%s)"%s
     return s
 
-def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_one=False, repr_monomial = None, latex_scalar_mult = None):
+def repr_lincomb(terms, is_latex=False, scalar_mult="*", strip_one=False, repr_monomial = None, latex_scalar_mult = None):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
@@ -750,23 +724,7 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
 
         sage: repr_lincomb([('a',1), ('b',2), ('c',3)], repr_monomial = lambda s: s+"1")
         'a1 + 2*b1 + 3*c1'
-
-
-    TESTS:
-
-    For backward compatibility (will be deprecated)::
-
-        sage: repr_lincomb(['a','b','c'], [1,2,3])
-        doctest:...: DeprecationWarning: calling `repr_lincomb(monoms, coeffs)` is deprecated; please specify a list of tuples (monom, coeff) instead
-        See http://trac.sagemath.org/12484 for details.
-        'a + 2*b + 3*c'
     """
-    # For backward compatibility
-    if coeffs is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(12484, "calling `repr_lincomb(monoms, coeffs)` is deprecated; please specify a list of tuples (monom, coeff) instead")
-        terms = zip(terms, coeffs)
-
     # Setting scalar_mult: symbol used for scalar multiplication
     if is_latex:
         if latex_scalar_mult is not None:
@@ -905,6 +863,8 @@ def assert_attribute(x, attr, init=None):
     If the object x has the attribute attr, do nothing. If not, set
     x.attr to init.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "assert_attribute() is deprecated")
     if attr in x.__dict__: return
     if attr[:2] == "__":
         z = str(x.__class__).split("'")
@@ -920,7 +880,7 @@ def compose(f, g):
     """
     Return the composition of one-variable functions: `f \circ g`
 
-    See also :func:`self_compose()` and :func:`nest()`
+    See also :func:`nest()`
 
     INPUT:
         - `f` -- a function of one variable
@@ -971,6 +931,8 @@ def self_compose(f, n):
 
         sage: def f(x): return x^2 + 1
         sage: g = self_compose(f, 3)
+        doctest:... DeprecationWarning: self_compose() is deprecated, use nest() instead
+        See http://trac.sagemath.org/21926 for details.
         sage: x = var('x')
         sage: g(x)
         ((x^2 + 1)^2 + 1)^2 + 1
@@ -989,9 +951,11 @@ def self_compose(f, n):
         x
 
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "self_compose() is deprecated, use nest() instead")
     from sage.rings.all import Integer
+    n = Integer(n)
 
-    typecheck(n, (int, long, Integer), 'n')
     if n < 0:
         raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
@@ -1035,12 +999,12 @@ def nest(f, n, x):
 
     """
     from sage.rings.all import Integer
+    n = Integer(n)
 
-    typecheck(n, (int, long, Integer), 'n')
     if n < 0:
         raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
-    for i in xrange(n):
+    for i in range(n):
         x = f(x)
     return x
 
@@ -1126,11 +1090,11 @@ def is_iterator(it):
         True
 
         sage: class wrong():
-        ...      def __init__(self): self.n = 5
-        ...      def next(self):
-        ...          self.n -= 1
-        ...          if self.n == 0: raise StopIteration
-        ...          return self.n
+        ....:    def __init__(self): self.n = 5
+        ....:    def next(self):
+        ....:        self.n -= 1
+        ....:        if self.n == 0: raise StopIteration
+        ....:        return self.n
         sage: x = wrong()
         sage: is_iterator(x)
         False
@@ -1140,7 +1104,7 @@ def is_iterator(it):
         TypeError: iteration over non-sequence
 
         sage: class good(wrong):
-        ...      def __iter__(self): return self
+        ....:    def __iter__(self): return self
         sage: x = good()
         sage: is_iterator(x)
         True
@@ -1275,7 +1239,7 @@ def powerset(X):
     pairs = []
     for x in X:
         pairs.append((2**len(pairs),x))
-        for w in xrange(2**(len(pairs)-1), 2**(len(pairs))):
+        for w in range(2**(len(pairs)-1), 2**(len(pairs))):
             yield [x for m, x in pairs if m & w]
 
 subsets = powerset
@@ -1288,6 +1252,8 @@ def typecheck(x, C, var="x"):
     Check that x is of instance C. If not raise a TypeError with an
     error message.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "typecheck is deprecated, use isinstance instead")
     if not isinstance(x, C):
         raise TypeError("{} (={}) must be of type {}.".format(var, x, C))
 
@@ -1301,6 +1267,8 @@ class cached_attribute(object):
     Computes attribute value and caches it in the instance.
     """
     def __init__(self, method, name=None):
+        from sage.misc.superseded import deprecation
+        deprecation(21926, "cached_attribute is deprecated")
         # record the unbound-method and the name
         self.method = method
         self.name = name or method.__name__
@@ -1315,6 +1283,8 @@ class cached_attribute(object):
 
 class lazy_prop(object):
     def __init__(self, calculate_function):
+        from sage.misc.superseded import deprecation
+        deprecation(21926, "lazy_prop is deprecated")
         self._calculate = calculate_function
         self.__doc__ = calculate_function.__doc__
 
@@ -1326,6 +1296,8 @@ class lazy_prop(object):
         return value
 
 def prop(f):
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "prop() is deprecated")
     return property(f, None, None, f.__doc__)
 
 
@@ -1448,6 +1420,8 @@ def sourcefile(object):
     """
     Work out which source or compiled file an object was defined in.
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "sourcefile(x) is deprecated, use inspect.getfile(x) instead")
     return inspect.getfile(object)
 
 
@@ -1514,8 +1488,12 @@ def getitem(v, n):
     ::
 
         sage: getitem(v, ZZ(1))
+        doctest:... DeprecationWarning: getitem(v, n) is deprecated, use v[n] instead
+        See http://trac.sagemath.org/21926 for details.
         2
     """
+    from sage.misc.superseded import deprecation
+    deprecation(21926, "getitem(v, n) is deprecated, use v[n] instead")
     try:
         return v[n]
     except TypeError:
@@ -1657,7 +1635,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <type 'int'>
+            <... 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True
@@ -1814,7 +1792,7 @@ def get_main_globals():
     return G
 
 
-def inject_variable(name, value):
+def inject_variable(name, value, warn=True):
     """
     Inject a variable into the main global namespace.
 
@@ -1822,6 +1800,7 @@ def inject_variable(name, value):
 
     - ``name``  -- a string
     - ``value`` -- anything
+    - ``warn`` -- a boolean (default: :obj:`False`)
 
     EXAMPLES::
 
@@ -1847,6 +1826,13 @@ def inject_variable(name, value):
         doctest:...: UserWarning: blah
         sage: warn("blah")
 
+    Warnings can be disabled::
+
+        sage: b = 3
+        sage: inject_variable("b", 42, warn=False)
+        sage: b
+        42
+
     Use with care!
     """
     assert isinstance(name, str)
@@ -1854,8 +1840,8 @@ def inject_variable(name, value):
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.
     G = get_main_globals()
-    if name in G:
-        warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+    if name in G and warn:
+        warnings.warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
     G[name] = value
 
 

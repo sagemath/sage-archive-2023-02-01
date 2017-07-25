@@ -24,7 +24,7 @@ If `E` is supersingular, the series will have coefficients in a quadratic
 extension of `\QQ_p`, and the coefficients will be unbounded. In this case we
 have only implemented the series for `\eta = 0`. We have also implemented the
 `p`-adic L-series as formulated by Perrin-Riou [BP], which has coefficients in
-the Dieudonne module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
+the Dieudonné module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
 description by Pollack [Po] which is not available here.
 
 According to the `p`-adic version of the Birch and Swinnerton-Dyer conjecture
@@ -160,15 +160,15 @@ class pAdicLseries(SageObject):
         sage: lp == loads(dumps(lp))
         True
     """
-    def __init__(self, E, p, use_eclib=True, normalize='L_ratio'):
+    def __init__(self, E, p, implementation = 'eclib', normalize='L_ratio'):
         r"""
         INPUT:
 
         -  ``E`` - an elliptic curve
         -  ``p`` - a prime of good reduction
-        -  ``use_eclib`` - bool (default:True); whether or not to use
+        -  ``implementation`` - string (default:'eclib'); either 'eclib' to use
            John Cremona's ``eclib`` for the computation of modular
-           symbols
+           symbols or 'sage' to use Sage's own implementation
         -  ``normalize`` - ``'L_ratio'`` (default), ``'period'`` or ``'none'``;
            this is describes the way the modular symbols
            are normalized. See ``modular_symbol`` of
@@ -184,7 +184,9 @@ class pAdicLseries(SageObject):
         self._E = E
         self._p = ZZ(p)
         self._normalize = normalize
-        self._use_eclib = use_eclib
+        if implementation not in ['eclib', 'sage']:
+            raise ValueError("Implementation should be one of 'eclib' or 'sage'")
+        self._implementation = implementation
         if not self._p.is_prime():
             raise ValueError("p (=%s) must be a prime"%p)
         if E.conductor() % (self._p)**2 == 0:
@@ -195,7 +197,7 @@ class pAdicLseries(SageObject):
         except RuntimeError :
             print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
-        self._modular_symbol = E.modular_symbol(sign=+1, use_eclib = use_eclib, normalize=normalize)
+        self._modular_symbol = E.modular_symbol(sign=+1, implementation=implementation, normalize=normalize)
 
     def __add_negative_space(self):
         r"""
@@ -212,10 +214,7 @@ class pAdicLseries(SageObject):
         -1/2
 
         """
-        if self._use_eclib:
-            verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
-            # once there is a eclib implementation of -1, this should be changed.
-        self._negative_modular_symbol = self._E.modular_symbol(sign=-1, use_eclib = False, normalize=self._normalize)
+        self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
     def __cmp__(self,other):
         r"""
@@ -290,7 +289,7 @@ class pAdicLseries(SageObject):
         This is used to compute this `p`-adic
         L-series.
 
-        Note that the normalisation is not correct at this
+        Note that the normalization is not correct at this
         stage: use ``_quotient_of periods_to_twist`` to correct.
 
         Note also that this function does not check if the condition
@@ -376,7 +375,7 @@ class pAdicLseries(SageObject):
         for the twist. Quadratic twists are only implemented if the sign is
         `+1`.
 
-        Note that the normalisation is not correct at this
+        Note that the normalization is not correct at this
         stage: use  ``_quotient_of periods`` and ``_quotient_of periods_to_twist``
         to correct.
 
@@ -545,8 +544,8 @@ class pAdicLseries(SageObject):
           Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
 
         - [Ka] Kayuza Kato, `p`-adic Hodge theory and values of zeta functions of modular
-          forms, Cohomologies `p`-adiques et applications arithmetiques III,
-          Asterisque vol 295, SMF, Paris, 2004.
+          forms, Cohomologies `p`-adiques et applications arithmétiques III,
+          Astérisque vol 295, SMF, Paris, 2004.
 
         EXAMPLES::
 
@@ -571,7 +570,7 @@ class pAdicLseries(SageObject):
             sage: L = EllipticCurve('389a').padic_lseries(5)
             sage: L.order_of_vanishing()
             2
-            sage: L = EllipticCurve('5077a').padic_lseries(5, use_eclib=True)
+            sage: L = EllipticCurve('5077a').padic_lseries(5, implementation = 'eclib')
             sage: L.order_of_vanishing()
             3
         """
@@ -674,7 +673,7 @@ class pAdicLseries(SageObject):
         except AttributeError:
             self.__series = {}
         except KeyError:
-            for _n, _prec, _D, _eta in self.__series.keys():
+            for _n, _prec, _D, _eta in self.__series:
                 if _n == n and _D == D and _eta == eta and _prec >= prec:
                     return self.__series[(_n,_prec,_D,_eta)].add_bigoh(prec)
         return None
@@ -713,7 +712,9 @@ class pAdicLseries(SageObject):
           On `p`-adic analogues of the conjectures of Birch and
           Swinnerton-Dyer, Invertiones mathematicae 84, (1986), 1-48.
 
-        .. note: No check on precision is made, so this may fail for huge `D`.
+        .. note::
+
+            No check on precision is made, so this may fail for huge `D`.
 
         EXAMPLES::
 
@@ -774,7 +775,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
         where `\alpha` is the unit root of the characteristic
         polynomial of Frobenius on `T_pE` and `\Omega_E` is the
-        Neron period of `E`.
+        Néron period of `E`.
 
         INPUT:
 
@@ -1096,7 +1097,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         such that `L_p(E,1) = (1-1/\alpha)^2 L(E,1)/\Omega_E`
         where `\alpha` is a root of the characteristic
         polynomial of Frobenius on `T_pE` and `\Omega_E` is the
-        Neron period of `E`.
+        Néron period of `E`.
 
         INPUT:
 
@@ -1119,7 +1120,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         ALIAS: power_series is identical to series.
 
         EXAMPLES:
-        A superingular example, where we must compute to higher precision to see anything::
+
+        A supersingular example, where we must compute to higher precision to see anything::
 
             sage: e = EllipticCurve('37a')
             sage: L = e.padic_lseries(3); L
@@ -1344,7 +1346,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             `(1-\varphi)^{-2}\cdot L_p(E,T) =` ``v[1]`` `\cdot \omega +` ``v[2]`` `\cdot \varphi(\omega)`
 
-        as an element of the Dieudonne module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
+        as an element of the Dieudonné module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
         `\omega` is the invariant differential and `\varphi` is the Frobenius on `D_p(E)`.
         According to the `p`-adic Birch and Swinnerton-Dyer
         conjecture [BP] this function has a zero of order
@@ -1398,18 +1400,18 @@ class pAdicLseriesSupersingular(pAdicLseries):
     @rename_keyword(deprecation=6094, method="algorithm")
     def frobenius(self, prec=20, algorithm = "mw"):
         r"""
-        This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`
+        Return a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
+
         It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         INPUT:
 
         - ``prec`` - (default: 20) a positive integer
 
-        - ``algorithm`` - either 'mw' (default) for Monsky-Washintzer
+        - ``algorithm`` - either 'mw' (default) for Monsky-Washnitzer
           or 'approx' for the algorithm described by Bernardi and Perrin-Riou
           (much slower and not fully tested)
-
 
         EXAMPLES::
 
@@ -1465,13 +1467,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def __phi_bpr(self, prec=0):
         r"""
-        This returns a geometric Frobenius `\varphi` on the Dieudonne module `D_p(E)`
+        This returns a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
         It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         The algorithm used here is described in bernardi-perrin-riou on page 232.
 
-        .. note: Warning. This function has not been sufficiently tested. It is very slow.
+        .. WARNING::
+
+            This function has not been sufficiently tested. It is very slow.
 
         EXAMPLES::
 
@@ -1588,7 +1592,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def Dp_valued_height(self,prec=20):
         r"""
-        Return the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
+        Return the canonical `p`-adic height with values in the Dieudonné module `D_p(E)`.
         It is defined to be
 
             `h_{\eta} \cdot \omega - h_{\omega} \cdot \eta`
@@ -1645,11 +1649,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         return height
 
-
-
     def Dp_valued_regulator(self,prec=20,v1=0,v2=0):
         r"""
-        Return the canonical `p`-adic regulator with values in the Dieudonne module `D_p(E)`
+        Return the canonical `p`-adic regulator with values in the Dieudonné module `D_p(E)`
         as defined by Perrin-Riou using the `p`-adic height with values in `D_p(E)`.
         The result is written in the basis `\omega`, `\varphi(\omega)`, and hence the
         coordinates of the result are independent of the chosen Weierstrass equation.
@@ -1660,7 +1662,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         REFERENCES:
 
-        - [PR] Perrin Riou, Arithmetique des courbes elliptiques a reduction supersinguliere en `p`,
+        - [PR] Perrin Riou, Arithmétique des courbes elliptiques à réduction supersingulière en `p`,
           Experiment. Math. 12 (2003), no. 2, 155-186.
 
         - [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups

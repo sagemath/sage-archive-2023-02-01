@@ -39,6 +39,8 @@ described throughout the file.
 from __future__ import print_function
 
 from libc.string cimport memcpy
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 cimport sage.combinat.permutation_cython
 
@@ -46,10 +48,6 @@ from sage.combinat.permutation_cython cimport next_swap, reset_swap
 
 from sage.graphs.base.dense_graph cimport DenseGraph
 from sage.graphs.graph import Graph
-
-
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 
 cdef inline int edge_map(int i):
@@ -689,9 +687,9 @@ def simple_connected_graph_genus(G, set_embedding = False, check = True, minimal
         sage: genus(G)
         1
 
-    REFERENCS::
+    REFERENCES:
 
-        [1] http://www.springerlink.com/content/0776127h0r7548v7/
+    [1] http://www.springerlink.com/content/0776127h0r7548v7/
 
     """
     cdef int style, cutoff

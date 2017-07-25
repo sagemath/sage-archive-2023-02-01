@@ -47,7 +47,7 @@ from cpython.object cimport *
 from cpython.list cimport PyList_New
 from cpython.mem cimport *
 from cpython.weakref cimport PyWeakref_GetObject
-from cpython.string cimport PyString_FromString
+from cpython.bytes cimport PyBytes_FromString
 from cpython cimport Py_XINCREF, Py_XDECREF
 from libc.string cimport memset
 from weakref import KeyedRef, ref
@@ -75,7 +75,7 @@ cdef extern from "pyx_visit.h":
 #must be a unique sentinel. We could reuse the "dummy" sentinel
 #that is defined in python's dictobject.c
 
-cdef object dummy_object = PyString_FromString("dummy")
+cdef object dummy_object = PyBytes_FromString(b"dummy")
 cdef PyObject* dummy = <PyObject*><void *>dummy_object
 
 cdef struct mono_cell:
@@ -292,7 +292,7 @@ cdef class MonoDict:
         sage: len(L)
         2
         sage: for i in range(1000):
-        ...       L[i] = i
+        ....:     L[i] = i
         sage: len(L)
         1002
         sage: L['a']
@@ -310,10 +310,10 @@ cdef class MonoDict:
 
         sage: K = GF(1<<55,'t')
         sage: for i in range(50):
-        ...     a = K.random_element()
-        ...     E = EllipticCurve(j=a)
-        ...     P = E.random_point()
-        ...     Q = 2*P
+        ....:   a = K.random_element()
+        ....:   E = EllipticCurve(j=a)
+        ....:   P = E.random_point()
+        ....:   Q = 2*P
         sage: import gc
         sage: n = gc.collect()
         sage: from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_field
@@ -1020,7 +1020,7 @@ cdef class TripleDict:
         sage: len(L)
         1
         sage: for i in range(1000):
-        ...       L[i,i,i] = i
+        ....:     L[i,i,i] = i
         sage: len(L)
         1001
         sage: L = TripleDict(L)
@@ -1047,10 +1047,10 @@ cdef class TripleDict:
 
         sage: K = GF(1<<55,'t')
         sage: for i in range(50):
-        ...     a = K.random_element()
-        ...     E = EllipticCurve(j=a)
-        ...     P = E.random_point()
-        ...     Q = 2*P
+        ....:   a = K.random_element()
+        ....:   E = EllipticCurve(j=a)
+        ....:   P = E.random_point()
+        ....:   Q = 2*P
         sage: import gc
         sage: n = gc.collect()
         sage: from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_field

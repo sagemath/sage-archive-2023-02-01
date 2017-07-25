@@ -46,7 +46,9 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import iteritems
+from six.moves import range, zip
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
@@ -55,7 +57,7 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      OA_from_PBD,
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
-from orthogonal_arrays import wilson_construction
+from .orthogonal_arrays import wilson_construction
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -741,7 +743,7 @@ def OA_15_112():
     ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 4, 5, 10, 8, 6]
 
-    return OA_n_times_2_pow_c_from_matrix(15,4,FiniteField(7),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(15,4,FiniteField(7),list(zip(*A)),Y,check=False)
 
 def OA_9_120():
     r"""
@@ -771,7 +773,7 @@ def OA_9_120():
         sage: designs.orthogonal_arrays.is_available(9,120)
         True
     """
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     RBIBD_120 = RBIBD_120_8_1()
     equiv = [RBIBD_120[i*15:(i+1)*15] for i in range(17)]
 
@@ -827,8 +829,8 @@ def OA_9_135():
         sage: G
         Ring of integers modulo 273
     """
-    from bibd import BIBD_from_difference_family
-    from difference_family import singer_difference_set
+    from .bibd import BIBD_from_difference_family
+    from .difference_family import singer_difference_set
     G,B = singer_difference_set(16,2)
     PG16 = BIBD_from_difference_family(G,B)
 
@@ -917,7 +919,7 @@ def OA_11_160():
 
     Y = [None, 0, 1, 2, 15, 27, 22, 12, 3, 28]
 
-    return OA_n_times_2_pow_c_from_matrix(11,5,FiniteField(5),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(11,5,FiniteField(5),list(zip(*A)),Y,check=False)
 
 def OA_16_176():
     r"""
@@ -971,7 +973,7 @@ def OA_16_176():
     ]
 
     Y = [None, 0, 1, 2, 8, 6, 9, 4, 10, 3, 5, 11, 13, 14, 12]
-    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),list(zip(*A)),Y,check=False)
 
 def OA_11_185():
     r"""
@@ -1016,7 +1018,7 @@ def OA_11_185():
     # Lines of the Fano subplane that are contained in blocks
     fano_lines = [B for B in BIBD if sum(x%39==0 for x in B) == 3]
 
-    # Points on a line of the Fano sublane
+    # Points on a line of the Fano subplane
     on_a_fano_line = set().union(*fano_lines)
 
     # Not on a line of the Fano plane
@@ -1175,7 +1177,7 @@ def OA_16_208():
 
     Y = [None, 0, 1, 2, 12, 9, 13, 11, 7, 4, 8, 5, 14, 6, 3]
 
-    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),list(zip(*A)),Y,check=False)
 
 def OA_15_224():
     r"""
@@ -1222,7 +1224,7 @@ def OA_15_224():
 
     Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
 
-    return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),list(zip(*A)),Y,check=False)
 
 def OA_11_254():
     r"""
@@ -1320,7 +1322,7 @@ def OA_20_352():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(11),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(11),list(zip(*A)),Y,check=False)
 
 def OA_20_416():
     r"""
@@ -1380,7 +1382,7 @@ def OA_20_416():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),list(zip(*A)),Y,check=False)
 
 def OA_20_544():
     r"""
@@ -1449,7 +1451,7 @@ def OA_20_544():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),list(zip(*A)),Y,check=False)
 
 def OA_17_560():
     r"""
@@ -1506,7 +1508,7 @@ def OA_17_560():
         for i,x in enumerate(C):
             C[i] = relabel[x]
 
-    OA=zip(*OA)
+    OA = list(zip(*OA))
 
     return wilson_construction(OA,k,n,m,[p**beta]*3,check=False)
 
@@ -1550,7 +1552,7 @@ def OA_11_640():
     ]
     Y = [None, 0, 1, 2, 121, 66, 77, 78, 41, 100]
 
-    return OA_n_times_2_pow_c_from_matrix(11,7,FiniteField(5),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(11,7,FiniteField(5),list(zip(*A)),Y,check=False)
 
 def OA_10_796():
     r"""
@@ -1586,13 +1588,13 @@ def OA_10_796():
     """
     from sage.combinat.designs.orthogonal_arrays import OA_relabel
     from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .orthogonal_arrays import incomplete_orthogonal_array
 
     OA = orthogonal_array(17,47)
     OA = OA_relabel(OA,17,47,blocks=[OA[0]]) # making sure [46]*17 is a block
     PBD = [[i*47+x for i,x in enumerate(B) if (x<46 or i<13)] for B in OA]
     extra_point = 10000
-    PBD.extend([range(i*47,(i+1)*47-int(i>=13))+[extra_point] for i in range(17)]) # Adding the columns
+    PBD.extend([list(range(i*47,(i+1)*47-int(i>=13)))+[extra_point] for i in range(17)]) # Adding the columns
 
     rel = {v:i for i,v in enumerate(set(range(17*47)).difference([(i+1)*47-1 for i in range(13,17)]))}
     rel[extra_point] = len(rel)
@@ -1662,8 +1664,8 @@ def OA_10_469():
         sage: designs.orthogonal_arrays.is_available(10,469)
         True
     """
-    from orthogonal_arrays_build_recursive import _reorder_matrix
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .orthogonal_arrays_build_recursive import _reorder_matrix
+    from .orthogonal_arrays import incomplete_orthogonal_array
 
     OA = []
 
@@ -1683,7 +1685,7 @@ def OA_10_469():
         blocks[len(B)].append(B)
 
     # Product of each symmetric design with the OA
-    for b_size,symmetric_design in blocks.iteritems():
+    for b_size,symmetric_design in iteritems(blocks):
         matrix = _reorder_matrix(symmetric_design)
         OA.extend([[B[xx] for xx in R]
                    for R in incomplete_orthogonal_array(9,b_size,[1]*b_size)
@@ -1701,7 +1703,7 @@ def OA_520_plus_x(x):
     r"""
     Return an `OA(10+x,520+x)`.
 
-    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    The construction shared by Julian R. Abel works for :func:`OA(10,520)
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
     <OA_14_524>`.
 
@@ -1729,7 +1731,7 @@ def OA_520_plus_x(x):
     This construction is used in :func:`OA(10,520) <OA_10_520>`,
     :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_14_524>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
@@ -1738,7 +1740,7 @@ def OA_520_plus_x(x):
         True
 
     """
-    from orthogonal_arrays import incomplete_orthogonal_array
+    from .orthogonal_arrays import incomplete_orthogonal_array
     k = 9+x+1
 
     # The OA(17,31) with a block [30,30,...]
@@ -1750,7 +1752,7 @@ def OA_520_plus_x(x):
     # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
     new_point = 31*17
     PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+    PBD.extend([list(range(i*31,i*31+30+bool(i<9+x)))+[new_point] for i in range(17)]) # extended (+truncated) groups
 
     relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
     PBD = [[relabel[xx] for xx in B] for B in PBD]
@@ -1882,7 +1884,7 @@ def OA_15_896():
 
     Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
 
-    return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
+    return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),list(zip(*A)),Y,check=False)
 
 def OA_9_1078():
     r"""
@@ -2064,7 +2066,7 @@ def QDM_19_6_1_1_1():
 
     Given in the Handbook III.3.49 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_19_6_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2098,7 +2100,7 @@ def QDM_21_5_1_1_1():
 
     Given in the Handbook III.3.51 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_21_5_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2145,7 +2147,7 @@ def QDM_21_6_1_1_5():
 
     Given in the Handbook III.3.53 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_21_6_1_1_5
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2185,7 +2187,7 @@ def QDM_25_6_1_1_5():
 
     Given in the Handbook III.3.55 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_25_6_1_1_5
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2230,7 +2232,7 @@ def QDM_33_6_1_1_1():
 
     Given in the Handbook III.3.57 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_33_6_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2273,7 +2275,7 @@ def QDM_37_6_1_1_1():
 
     Given in the Handbook III.3.60 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_37_6_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2311,7 +2313,7 @@ def QDM_35_7_1_1_7():
 
     As explained in the Handbook III.3.63 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_35_7_1_1_7
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2348,7 +2350,7 @@ def QDM_45_7_1_1_9():
 
     As explained in the Handbook III.3.71 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_45_7_1_1_9
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2385,7 +2387,7 @@ def QDM_54_7_1_1_8():
 
     As explained in the Handbook III.3.74 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_54_7_1_1_8
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2422,7 +2424,7 @@ def QDM_57_9_1_1_8():
 
     Construction shared by Julian R. Abel
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_57_9_1_1_8
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2693,7 +2695,7 @@ Vmt_vectors = {
     (12,413) : ((0,1,436,546,977,467,242,3695,682,483,3026,461,1334),     _ref_Abel_v_12_t),
 }
 # Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors
-for (m,t),(vec,source) in Vmt_vectors.iteritems():
+for (m,t),(vec,source) in iteritems(Vmt_vectors):
     n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
     if not (n+u,lmbda) in QDM:
         QDM[n+u,lmbda] = {}
@@ -3027,6 +3029,7 @@ DF = {
 
 ( 11, 4,6):
   {(11,): [[0,1,8,9],[0,2,5,7],[0,1,4,5],[0,2,3,5],[0,4,5,9]]},
+
 ( 15, 4,6):
   {(15,): [[0,1,2,3],[0,2,4,6],[0,4,8,12],[0,8,1,9],
            [3,6,9,12],[0,1,5,10],[0,2,5,10]]},
@@ -3062,6 +3065,9 @@ DF = {
 ( 43,15,10):
   {(43,): [[1,3,6,13,18,21,22,25,26,27,33,35,36,38,40],
            [9,10,11,13,16,17,19,23,26,27,28,33,35,38,39]]},
+( 45,12, 3):
+  {(3,3,5): [[(0,0,0),(0,0,1),(0,0,2),(0,2,1),(0,0,3),(0,1,1),
+              (1,0,0),(1,1,2),(1,2,3),(2,0,0),(2,1,3),(2,2,2)]]},
 ( 46,10, 6):
   {(46,): [[0,2,11,13,21,22,30,33,34,40],[0,2,6,7,22,23,28,32,35,38],
            [0,2,4,7,8,9,12,23,26,41]]},
@@ -3361,7 +3367,7 @@ def DM_35_6_1():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(35)
 
-    return G, zip(*M)
+    return G, list(zip(*M))
 
 def DM_36_9_1():
     r"""
@@ -4086,7 +4092,7 @@ def RBIBD_120_8_1():
 
         sage: _ = designs.balanced_incomplete_block_design(120,8)
     """
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     n=273
 
     # Base block of a cyclic BIBD(273,16,1)
@@ -4136,7 +4142,7 @@ def BIBD_45_9_8(from_code=False):
     - ``from_code`` (boolean) -- whether to build the design from hardcoded data
       (default) or from the code object (much longer).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_45_9_8
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4196,9 +4202,10 @@ def BIBD_45_9_8(from_code=False):
          '6q533lm6w', '6rsie7cbk', '6tjgpxic0', '70k7ao9m0', '7103zqlvk', '71i1x52bm', '7447g0dfw', '7sogja9z4',
          '7up5z9m9u', '7w7esu6fm', '7zmqtlrpd', '81tsbnzsw', '8kofgi1he', '8mhi35nc1', '9cv1pjiaw', '9d6ef1dah',
          '9dftsor9c', '9du8c1vcw', '9jr5vsnj4', 'a8b405mps', 'ajqhmxkj4', 'ax2xsvfic']
-    B = [Integer(x,base=36) for x in B]
+    B = [Integer(x, base=36) for x in B]
     return [[i for i in range(45) if x&(1<<i)]
             for x in B]
+
 
 def BIBD_66_6_1():
     r"""
@@ -4207,7 +4214,7 @@ def BIBD_66_6_1():
     This BIBD was obtained from La Jolla covering repository
     (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_66_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4217,11 +4224,12 @@ def BIBD_66_6_1():
     BIBD = [frozenset([(x+i*5)%65 if x<65 else x for x in b])
             for i in range(65)
             for b in
-            [6, 38, 42, 46, 53, 62], [9, 11, 21, 49, 56, 60], [18, 31, 37, 44, 52, 60],
+            [[6, 38, 42, 46, 53, 62], [9, 11, 21, 49, 56, 60], [18, 31, 37, 44, 52, 60],
             [0, 12, 29, 46, 51, 63], [0, 6, 21, 30, 43, 48], [4, 17, 22, 36, 47, 59],
             [0, 1, 2, 3, 4, 65], [23, 39, 44, 53, 59, 63], [12, 22, 28, 48, 55, 60],
-            [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]
-    return map(list,frozenset(BIBD))
+            [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]]
+    return [list(t) for t in frozenset(BIBD)]
+
 
 def BIBD_76_6_1():
     r"""
@@ -4230,7 +4238,7 @@ def BIBD_76_6_1():
     This BIBD was obtained from La Jolla covering repository
     (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_76_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4244,7 +4252,8 @@ def BIBD_76_6_1():
              [10, 20, 61, 63, 71, 72], [13, 26, 30, 39, 45, 67], [11, 21, 25, 30, 55, 58],
              [2, 5, 34, 52, 54, 70], [6, 8, 29, 48, 70, 71], [10, 15, 36, 41, 44, 56],
              [0, 6, 13, 27, 44, 72]]]
-    return map(list,frozenset(BIBD))
+    return [list(t) for t in frozenset(BIBD)]
+
 
 def BIBD_96_6_1():
     r"""
@@ -4253,7 +4262,7 @@ def BIBD_96_6_1():
     This BIBD was obtained from La Jolla covering repository
     (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_96_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4266,7 +4275,8 @@ def BIBD_96_6_1():
             [[3, 13, 32, 47, 68, 87], [9, 36, 70, 75, 81, 88], [22, 52, 72, 76, 78, 79],
              [15, 23, 41, 43, 46, 58], [7, 8, 21, 57, 66, 94], [8, 22, 30, 51, 55, 93],
              [15, 31, 47, 63, 79, 95], [2, 18, 34, 50, 66, 82]]]
-    return map(list,frozenset(BIBD))
+    return [list(t) for t in frozenset(BIBD)]
+
 
 def BIBD_106_6_1():
     r"""
@@ -4274,7 +4284,7 @@ def BIBD_106_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_106_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4297,7 +4307,7 @@ def BIBD_111_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_111_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4305,7 +4315,7 @@ def BIBD_111_6_1():
         (111,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     bibd = [(( 0,0), ( 1,0), ( 3,0), ( 7,0), (17,0), ( 0,1)),
             (( 0,0), ( 5,0), (19,1), (28,1), (10,2), (30,2)),
             (( 5,0), (33,0), (13,1), (34,1), (19,2), ( 7,2)),
@@ -4324,7 +4334,7 @@ def BIBD_126_6_1():
 
     This constructions appears in VI.16.92 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_126_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4351,7 +4361,7 @@ def BIBD_136_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_136_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4359,7 +4369,7 @@ def BIBD_136_6_1():
         (136,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     inf=(None,None)
     bibd = [((0,0), ( 3,0), (15,0), (35,0), ( 6,2), (10,2)),
             ((0,0), (22,0), (11,1), (30,1), ( 1,2), (18,2)),
@@ -4379,7 +4389,7 @@ def BIBD_141_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_141_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4387,7 +4397,7 @@ def BIBD_141_6_1():
         (141,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     a = 'a'
     inf = (None,None)
     bibd = [((0,0), (16,0), (24,0), (24,1), (15,2), (25,2)),
@@ -4410,7 +4420,7 @@ def BIBD_171_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_171_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4418,7 +4428,7 @@ def BIBD_171_6_1():
         (171,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     bibd = [(( 0,0), (19,0), (39,0), (41,0), (14,1), (38,2)),
             (( 0,0), (21,0), (44,0), (48,0), (26,1), (11,2)),
             (( 0,0), ( 1,0), (43,0), ( 8,2), (15,2), (44,2)),
@@ -4450,7 +4460,7 @@ def HigmanSimsDesign():
     blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
     construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: H = designs.HigmanSimsDesign(); H  # optional - gap_packages
         Incidence structure with 176 points and 176 blocks
@@ -4476,7 +4486,7 @@ def HigmanSimsDesign():
        https://www.rose-hulman.edu/mathjournal/archives/2004/vol5-n2/paper9/v5n2-9pd.pdf
     """
     from sage.combinat.designs.block_design import WittDesign
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     W = WittDesign(24)
     a,b = 0,1
     Wa = [set(B) for B in W
@@ -4499,7 +4509,7 @@ def BIBD_196_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_196_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4507,7 +4517,7 @@ def BIBD_196_6_1():
         (196,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     a = 'a'
     bibd = [((0,0), ( 2,0), (12,0), (45,0), ( 3,1), (11,a)),
             ((0,0), ( 3,0), ( 8,0), ( 5,1), (17,1), (39,a)),
@@ -4531,7 +4541,7 @@ def BIBD_201_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_201_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4539,7 +4549,7 @@ def BIBD_201_6_1():
         (201,6,1)-Balanced Incomplete Block Design
     """
     from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-    from incidence_structures import IncidenceStructure
+    from .incidence_structures import IncidenceStructure
     bibd = [((0,0), ( 1,0), ( 4,2), ( 9,2), (34,2), (62,2)),
             ((0,1), ( 2,1), (15,1), ( 8,2), (27,2), (49,2)),
             ((0,0), ( 3,0), (22,0), (54,1), (13,2), (40,2)),

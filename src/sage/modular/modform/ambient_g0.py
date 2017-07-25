@@ -7,6 +7,7 @@ TESTS::
     sage: loads(dumps(m)) == m
     True
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -20,9 +21,9 @@ import sage.rings.all as rings
 
 import sage.modular.arithgroup.all as arithgroup
 
-import ambient
-import cuspidal_submodule
-import eisenstein_submodule
+from . import ambient
+from . import cuspidal_submodule
+from . import eisenstein_submodule
 
 class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
     """
@@ -90,7 +91,7 @@ class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
         where d is a divisor of the level.  This is only implemented in the
         (trivial) level 1 case.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(1, 30).atkin_lehner_operator()
             Hecke module morphism Atkin-Lehner operator W_1 defined by the matrix

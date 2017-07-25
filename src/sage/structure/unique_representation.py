@@ -561,11 +561,12 @@ accordingly, for example by inheriting from
 #******************************************************************************
 from __future__ import print_function
 
+from sage.misc import six
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
 
-class CachedRepresentation:
+class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
     """
     Classes derived from CachedRepresentation inherit a weak cache for their
     instances.
@@ -1000,8 +1001,6 @@ class CachedRepresentation:
     unprocessed arguments will be passed down to
     :meth:`__init__<object.__init__>`.
     """
-    __metaclass__ = ClasscallMetaclass
-
     _included_private_doc_ = ["__classcall__"]
 
     @weak_cached_function # automatically a staticmethod
@@ -1109,7 +1108,7 @@ class CachedRepresentation:
                 cache = C.__classcall__.cache
             except AttributeError:
                 pass
-        for k in cache.iterkeys():
+        for k in cache:
             if issubclass(k[0][0],cls):
                 del_list.append(k)
         for k in del_list:

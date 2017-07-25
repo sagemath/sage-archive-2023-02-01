@@ -13,6 +13,7 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
+from sage.rings.all import AA, UniversalCyclotomicField, QQbar
 
 class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
@@ -718,7 +719,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: W = CoxeterGroup(['I',7])
                 sage: W.permutahedron()
-                A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
+                A 2-dimensional polyhedron in AA^2 defined as the convex hull of 14 vertices
                 sage: W.permutahedron(base_ring=RDF)
                 A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 14 vertices
 
@@ -754,7 +755,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 point = [ZZ.one()] * n
             v = sum(point[i-1] * weights[i] for i in weights.keys())
             from sage.geometry.polyhedron.constructor import Polyhedron
-            vertices = [v*w for w in self]
+            if base_ring is None:
+                base_ring = self.base_ring()
+            if base_ring in [UniversalCyclotomicField(), QQbar]:
+                vertices = [(v*w).change_ring(AA) for w in self]
+                base_ring = AA
+            else:
+                vertices = [v*w for w in self]
             return Polyhedron(vertices=vertices, base_ring=base_ring)
 
     class ElementMethods:

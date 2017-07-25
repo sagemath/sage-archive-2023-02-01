@@ -220,7 +220,7 @@ from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Parti
 from sage.categories.algebras import Algebras
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
-from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.tensor import tensor
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -2843,7 +2843,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         """
         parent = self.parent()
         R = parent.base_ring()
-        tHA = TensorProductsCategory.category_of(HopfAlgebrasWithBasis(R))
+        tHA = HopfAlgebrasWithBasis(R).TensorProducts()
         tensorflag = tHA in x.parent().categories()
         if not (is_SymmetricFunction(x) or tensorflag):
             raise TypeError("only know how to compute plethysms "
@@ -2876,11 +2876,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
 
         if tensorflag:
-            tparents = list(x.parent().__dict__['_sets'])
-            return sum(d*prod(sum(raise_c(r)(c)*tensor(
-                [parent(p[r].plethysm(base(la))) for (base,la)
-                in zip(tparents,trm)]) for (trm,c) in x) for r in mu)
-                for (mu, d) in p(self))
+            tparents = x.parent()._sets
+            return sum(d*prod(sum(raise_c(r)(c)
+                                  * tensor([parent(p[r].plethysm(base(la)))
+                                           for (base,la) in zip(tparents,trm)])
+                                  for (trm,c) in x)
+                              for r in mu)
+                       for (mu, d) in p(self))
 
         # Takes in n, and returns a function which takes in a partition and
         # scales all of the parts of that partition by n

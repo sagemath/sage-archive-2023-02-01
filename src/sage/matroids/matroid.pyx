@@ -127,10 +127,13 @@ additional functionality (e.g. linear extensions).
 - Invariants
     - :meth:`tutte_polynomial() <sage.matroids.matroid.Matroid.tutte_polynomial>`
     - :meth:`flat_cover() <sage.matroids.matroid.Matroid.flat_cover>`
-    
+
 - Visualization
     - :meth:`show() <sage.matroids.matroid.Matroid.show>`
     - :meth:`plot() <sage.matroids.matroid.Matroid.plot>`
+
+- Construction
+    - :meth:`union() <sage.matroids.matroid.Matroid.union>`
 
 - Misc
     - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
@@ -138,6 +141,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
     - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
+
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -7743,3 +7747,44 @@ cdef class Matroid(SageObject):
         """
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
+
+    def union(self, matroids):
+        r"""
+        Return the matroid union with another matroid or a list of matroids.
+
+        Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_i`
+        has ground set `E_i`. The *matroid
+        union* `M` of `(M_1, M_2, \ldots, M_k)` has ground set `E = \cup E_i`.
+        Moreover, a set `I \subseteq E` is independent in `M` if and only if the
+        restriction of `I` to `E_i` is independent in `M_i` for every `i`.
+
+        INPUT:
+
+        - ``matroids`` - a matroid or a list of matroids
+
+        OUTPUT:
+
+        An instance of MatroidUnion.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: N = M.union(matroids.named_matroids.NonFano()); N
+            Matroid of rank 6 on 7 elements as matroid union of
+            Binary matroid of rank 3 on 7 elements, type (3, 0)
+            Ternary matroid of rank 3 on 7 elements, type 0-
+        """
+        from . import union_matroid
+        if isinstance(matroids, Matroid):
+            matroids = [matroids]
+        else:
+            for M in matroids:
+                if not isinstance(M, Matroid):
+                    raise TypeError("can only take the union with a "
+                                     + "matroid or list of matroids")
+        matroids = [M for M in matroids if M]
+        if not matroids:
+            return self
+        # place this matroid at the beginning of the list
+        matroids.insert(0,self)
+        return union_matroid.MatroidUnion(iter(matroids))

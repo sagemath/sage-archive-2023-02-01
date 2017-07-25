@@ -26,7 +26,7 @@ import sage.modules.free_module
 from sage.structure.element cimport coercion_model
 
 
-cdef class Matrix(matrix0.Matrix):
+cdef class Matrix(Matrix0):
     ###################################################
     # Coercion to Various Systems
     ###################################################
@@ -1647,11 +1647,12 @@ cdef class Matrix(matrix0.Matrix):
         """
         from sage.matrix.constructor import matrix
 
-        if hasattr(right, '_vector_'):
-            right = right.column()
         if not isinstance(right, sage.matrix.matrix1.Matrix):
-            raise TypeError("a matrix must be augmented with another matrix, "
-                "or a vector")
+            if hasattr(right, '_vector_'):
+                right = right.column()
+            else:
+                raise TypeError("a matrix must be augmented with another matrix, "
+                    "or a vector")
 
         cdef Matrix other
         other = right
@@ -1697,10 +1698,9 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if isinstance(columns, xrange):
+        if not isinstance(columns, (list, tuple)):
             columns = list(columns)
-        elif not isinstance(columns, (list, tuple)):
-            raise TypeError("columns (=%s) must be a list of integers" % columns)
+
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
 
@@ -1711,7 +1711,7 @@ cdef class Matrix(matrix0.Matrix):
             if columns[i] < 0 or columns[i] >= self._ncols:
                 raise IndexError("column %s out of range" % columns[i])
             for r from 0 <= r < self._nrows:
-                A.set_unsafe(r,k, self.get_unsafe(r,columns[i]))
+                A.set_unsafe(r, k, self.get_unsafe(r,columns[i]))
             k = k + 1
         return A
 
@@ -1752,7 +1752,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: A.delete_columns([-1,2,4])
             Traceback (most recent call last):
             ...
-            IndexError: [4, -1] contains invalid indices.
+            IndexError: [-1, 4] contains invalid indices
             sage: A.delete_columns([-1,2,4], check=False)
             [ 0  1  3]
             [ 4  5  7]
@@ -1762,24 +1762,24 @@ cdef class Matrix(matrix0.Matrix):
 
         The list of indices is checked.  ::
 
-            sage: A.delete_columns('junk')
+            sage: A.delete_columns("junk")
             Traceback (most recent call last):
             ...
-            TypeError: The argument must be a list or a tuple, not junk
+            IndexError: ['j', 'k', 'n', 'u'] contains invalid indices
 
         AUTHORS:
-            - Wai Yan Pong (2012-03-05)
+
+        - Wai Yan Pong (2012-03-05)
         """
-        if isinstance(dcols, xrange):
+        if not isinstance(dcols, (list, tuple)):
             dcols = list(dcols)
-        elif not isinstance(dcols, (list, tuple)):
-            raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
+
         cdef list cols, diff_cols
 
         if check:
-            diff_cols = list(set(dcols).difference(set(range(self._ncols))))
-            if not (diff_cols == []):
-                raise IndexError("{d} contains invalid indices.".format(d=diff_cols))
+            diff_cols = sorted(set(dcols).difference(set(range(self._ncols))))
+            if diff_cols:
+                raise IndexError("{d} contains invalid indices".format(d=diff_cols))
         cols = [k for k in range(self._ncols) if not k in dcols]
         return self.matrix_from_columns(cols)
 
@@ -1799,10 +1799,9 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if isinstance(rows, xrange):
+        if not isinstance(rows, (list, tuple)):
             rows = list(rows)
-        elif not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
 
@@ -1853,7 +1852,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: A.delete_rows([-1,2,4])
             Traceback (most recent call last):
             ...
-            IndexError: [4, -1] contains invalid indices.
+            IndexError: [-1, 4] contains invalid indices
             sage: A.delete_rows([-1,2,4], check=False)
             [ 0  1  2]
             [ 3  4  5]
@@ -1863,24 +1862,24 @@ cdef class Matrix(matrix0.Matrix):
 
         The list of indices is checked.  ::
 
-            sage: A.delete_rows('junk')
+            sage: A.delete_rows("junk")
             Traceback (most recent call last):
             ...
-            TypeError: The argument must be a list or a tuple, not junk
+            IndexError: ['j', 'k', 'n', 'u'] contains invalid indices
 
-        AUTHORS:
-            - Wai Yan Pong (2012-03-05)
+        AUTHORS
+
+        - Wai Yan Pong (2012-03-05)
         """
-        if isinstance(drows, xrange):
+        if not isinstance(drows, (list, tuple)):
             drows = list(drows)
-        elif not isinstance(drows, (list, tuple)):
-            raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
+
         cdef list rows, diff_rows
 
         if check:
-            diff_rows = list(set(drows).difference(set(range(self._nrows))))
-            if not (diff_rows == []):
-                raise IndexError("{d} contains invalid indices.".format(d=diff_rows))
+            diff_rows = sorted(set(drows).difference(set(range(self._nrows))))
+            if diff_rows:
+                raise IndexError("{d} contains invalid indices".format(d=diff_rows))
         rows = [k for k in range(self._nrows) if not k in drows]
         return self.matrix_from_rows(rows)
 
@@ -1924,15 +1923,12 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if isinstance(rows, xrange):
-            rows = list(rows)
-        elif not isinstance(rows, list):
-            raise TypeError("rows must be a list of integers")
 
-        if isinstance(columns, xrange):
+        if not isinstance(rows, (list, tuple)):
+            rows = list(rows)
+
+        if not isinstance(columns, (list, tuple)):
             columns = list(columns)
-        elif not isinstance(columns, list):
-            raise TypeError("columns must be a list of integers")
 
         cdef Matrix A
         cdef Py_ssize_t nrows, ncols,k,r,i,j

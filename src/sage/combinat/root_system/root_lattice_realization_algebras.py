@@ -43,9 +43,9 @@ class Algebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: RootSystem(["A",2,1]).ambient_space().algebra(QQ) # indirect doctest
-                Group algebra of the Ambient space of the Root system of type ['A', 2, 1] over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2, 1] over Rational Field
             """
-            return "Group algebra of the %s over %s"%(self.basis().keys(),self.base_ring())
+            return "Algebra of the %s over %s"%(self.basis().keys(),self.base_ring())
 
         def some_elements(self):
             r"""
@@ -867,7 +867,7 @@ class Algebras(AlgebrasCategory):
 
                 sage: KL = RootSystem(["A",2,1]).ambient_space().algebra(QQ)
                 sage: KL.classical()
-                Group algebra of the Ambient space of the Root system of type ['A', 2] over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2] over Rational Field
             """
             return self.basis().keys().classical().algebra(self.base_ring())
 

@@ -403,7 +403,8 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
 
         OUTPUT: float
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = maxima.cputime()
             sage: _ = maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
             sage: maxima.cputime(t) # output random

@@ -759,6 +759,10 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                 EXAMPLES::
 
+                    sage: W = WeylGroup(['G', 2])
+                    sage: W.noncrossing_partition_lattice()
+                    Finite lattice containing 8 elements
+
                     sage: W = ReflectionGroup((1,1,3))                          # optional - gap3
 
                     sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice() ) # optional - gap3
@@ -782,8 +786,11 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 R = self.reflections()
                 if L is None:
                     L = self.elements_below_coxeter_element(c=c)
-                    if c.is_coxeter_element():
-                        smart_covers = in_unitary_group = True
+                    try:
+                        if c.is_coxeter_element():
+                            smart_covers = in_unitary_group = True
+                    except AttributeError:
+                        pass
                 rels = []
                 ref_lens = {w: w.reflection_length(in_unitary_group=in_unitary_group)
                             for w in L}
@@ -961,10 +968,16 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 Return the (unique) conjugacy class in ``self`` containing all
                 Coxeter elements.
 
-                .. NOTE::
+                A Coxeter element is an element that has an eigenvalue
+                `e^{2\pi i/h}` where `h` is the Coxeter number.
 
-                    Beyond real reflection groups, the conjugacy class
-                    is not unique and we only obtain one such class.
+                In case of finite Coxeter groups, these are exactly the
+                elements that are conjugate to one (or, equivalently,
+                all) standard Coxeter element, this is, to an element
+                that is the product of the simple generators in some
+                order.
+
+                .. SEEALSO:: :meth:`~sage.categories.coxeter_groups.standard_coxeter_elements`
 
                 EXAMPLES::
 

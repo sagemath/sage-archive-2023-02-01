@@ -24,7 +24,7 @@ provide a method
 
 * ``myscheme._homset(*args, **kwds)`` returning a
   Hom-set, which must be an element of a derived class of
-  `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
+  :class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
   new Hom-set class does not use ``myscheme._morphism`` then you
   do not have to provide it.
 

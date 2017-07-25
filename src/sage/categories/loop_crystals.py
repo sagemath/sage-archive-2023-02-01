@@ -969,7 +969,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K,K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
-                    ....:     print b, b.affine_grading()
+                    ....:     print("{} {}".format(b, b.affine_grading()))
                     [[[1]], [[1]], [[1]]] 3
                     [[[2]], [[1]], [[1]]] 2
                     [[[1]], [[2]], [[1]]] 1
@@ -979,7 +979,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     sage: T = crystals.TensorProduct(K,K,K)
                     sage: hw = T.classically_highest_weight_vectors()
                     sage: for b in hw:
-                    ....:     print b, b.affine_grading()
+                    ....:     print("{} {}".format(b, b.affine_grading()))
                     [[[1]], [[1]], [[1]]] 2
                     [[[2]], [[1]], [[1]]] 1
                     [[[-1]], [[1]], [[1]]] 1

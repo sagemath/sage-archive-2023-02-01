@@ -330,6 +330,7 @@ arrangements.
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method
@@ -547,7 +548,7 @@ class HyperplaneArrangementElement(Element):
         normals = [h.normal() for h in self]
         return matrix(R, normals).rank()
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two hyperplane arrangements.
 
@@ -556,11 +557,13 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: H(x) == H(y)
             False
+
+        TESTS::
+
             sage: H(x) == 0
             False
         """
-        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
-        return cmp(self._hyperplanes, other._hyperplanes)
+        return richcmp(self._hyperplanes, other._hyperplanes, op)
 
     def union(self, other):
         r"""
@@ -3102,15 +3105,13 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
 
             sage: L.coerce_map_from(ZZ)
-            Conversion map:
+            Coercion map:
               From: Integer Ring
               To:   Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
             sage: M.coerce_map_from(L)
-            Conversion map:
-              From: Hyperplane arrangements in 1-dimensional linear space over
-                    Rational Field with coordinate x
-              To:   Hyperplane arrangements in 1-dimensional linear space over
-                    Real Field with 53 bits of precision with coordinate y
+            Coercion map:
+              From: Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
+              To:   Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
             sage: L.coerce_map_from(M)
         """
         if self.ambient_space().has_coerce_map_from(P):

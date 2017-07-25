@@ -746,7 +746,7 @@ class FullyPackedLoop(Element):
     @options(link=True, loop=True, loop_fill=False)
     def plot(self, **options):
         r"""
-        Return a graphical object of the Fully Packed Loop
+        Return a graphical object of the Fully Packed Loop.
 
         Each option can be specified separately for links (the curves that join
         boundary points) and the loops. In order to do so, you need to prefix
@@ -972,7 +972,7 @@ class FullyPackedLoop(Element):
 
     def _link_or_loop_from(self, pos, d0=None):
         r"""
-        Return the coordinates of the line passing through ``pos``
+        Return the coordinates of the line passing through ``pos``.
 
         EXAMPLES:
 
@@ -1449,7 +1449,7 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
 
     def _boundary(self, k):
         r"""
-        Return the coordinates of the ``i``-th boundary
+        Return the coordinates of the ``k``-th boundary.
 
         TESTS::
 
@@ -1482,7 +1482,7 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
 
     def _boundary_index(self, pos):
         r"""
-        Return the index of the boundary at position ``pos``
+        Return the index of the boundary at position ``pos``.
 
         TESTS::
 
@@ -1509,9 +1509,9 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         elif j == -1:
             return 3 * n // 2 + (n - i) // 2
 
-    def _boundaries(self, side=None):
+    def _boundaries(self):
         r"""
-        Return the list of coordinates for the link in the boundaries
+        Return the list of coordinates for the link in the boundaries.
 
         TESTS::
 
@@ -1526,15 +1526,11 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         n = self._n
         boundaries = []
         # left side: j = 0 mod 2
-        if side is None or side == 'left':
-            boundaries.extend((-1, j) for j in range(0, n, 2))
+        boundaries.extend((-1, j) for j in range(0, n, 2))
         # top side: i = n mod 2
-        if side is None or side == 'top':
-            boundaries.extend((i, n) for i in range(n % 2, n, 2))
+        boundaries.extend((i, n) for i in range(n % 2, n, 2))
         # right side: j = n+1 mod 2
-        if side is None or side == 'right':
-            boundaries.extend((n, j) for j in range(n - 1, -1, -2))
+        boundaries.extend((n, j) for j in range(n - 1, -1, -2))
         # bottom side: i = 1 mod 2
-        if side is None or side == 'bottom':
-            boundaries.extend((i, -1) for i in range(n - 1 - n % 2, -1, -2))
+        boundaries.extend((i, -1) for i in range(n - 1 - n % 2, -1, -2))
         return boundaries

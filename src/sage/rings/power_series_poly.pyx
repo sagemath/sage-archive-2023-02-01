@@ -1123,6 +1123,12 @@ cdef class PowerSeries_poly(PowerSeries):
             Traceback (most recent call last):
             ...
             ValueError: the precision of the series is not large enough
+        
+        Check that `trac`:21212 is fixed::
+            sage: QQx.<x> = QQ[[]]
+            sage: (1+x+O(x^100)).pade(2,2)
+            x + 1
+
         """
         if self.precision_absolute() < n + m + 2:
             raise ValueError("the precision of the series is not large enough")

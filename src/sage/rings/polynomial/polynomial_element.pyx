@@ -9383,7 +9383,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
-
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 

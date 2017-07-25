@@ -2262,7 +2262,7 @@ def __internal_tests():
         ''
 
         sage: sage_getsource(sage)
-        "...all..."
+        '...all...'
 
     A cython function with default arguments (one of which is a string)::
 

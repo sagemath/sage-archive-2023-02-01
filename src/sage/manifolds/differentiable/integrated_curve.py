@@ -54,12 +54,12 @@ required to plot::
 .. PLOT::
 
     M = Manifold(2, 'M')
-    X = M.chart('x y')
-    x,y,t = var('x y t')
+    X = M.chart('x y'); x, y = X[:]
     g = M.metric('g')
     g[0,0], g[1,1] = 1/y**2, 1/y**2
     p = M((0,1), name='p')
     v = M.tangent_space(p)((1,3/2), name='v')
+    t = var('t')
     c = M.integrated_geodesic(g, (t, 0, 10), v, name='c')
     sol = c.solve()
     interp = c.interpolate()
@@ -258,8 +258,8 @@ class IntegratedCurve(DifferentiableCurve):
     .. PLOT::
 
         M = Manifold(3, 'M')
-        X = M.chart('x1 x2 x3')
-        x1,x2,x3,t,B_0,m,q,L,T = var('x1 x2 x3 t B_0 m q L T')
+        X = M.chart('x1 x2 x3'); x1, x2, x3 = X[:]
+        t, B_0, m, q, L, T = var('t B_0 m q L T')
         B = B_0*t/T*exp(-(x1**2 + x2**2)/L**2)
         D = X.symbolic_velocities()
         eqns = [q*B/m*D[1], -q*B/m*D[0], 0]
@@ -270,8 +270,8 @@ class IntegratedCurve(DifferentiableCurve):
         sol = c.solve(step=0.2,
                       parameters_values={B_0:1, m:1, q:1, L:10, T:1},
                       solution_key='carac time 1')
-        interp c.interpolate(solution_key='carac time 1',
-                             interpolation_key='interp 1')
+        interp = c.interpolate(solution_key='carac time 1',
+                               interpolation_key='interp 1')
         c_plot_2d_1 = c.plot_integrated(ambient_coords=[x1, x2],
                         interpolation_key='interp 1', thickness=2.5,
                         display_tangent=True, plot_points=200,
@@ -303,8 +303,8 @@ class IntegratedCurve(DifferentiableCurve):
     .. PLOT::
 
         M = Manifold(3, 'M')
-        X = M.chart('x1 x2 x3')
-        x1,x2,x3,t,B_0,m,q,L,T = var('x1 x2 x3 t B_0 m q L T')
+        X = M.chart('x1 x2 x3'); x1, x2, x3 = X[:]
+        t, B_0, m, q, L, T = var('t B_0 m q L T')
         B = B_0*t/T*exp(-(x1**2 + x2**2)/L**2)
         D = X.symbolic_velocities()
         eqns = [q*B/m*D[1], -q*B/m*D[0], 0]
@@ -758,7 +758,7 @@ class IntegratedCurve(DifferentiableCurve):
         EXAMPLES:
 
         Analytical expression of the trajectory of a charged particle in
-        a uniform, stationnary magnetic field::
+        a uniform, stationary magnetic field::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x1,x2,x3> = M.chart()
@@ -1748,7 +1748,7 @@ class IntegratedCurve(DifferentiableCurve):
         EXAMPLES:
 
         Trajectory of a particle of unit mass and unit charge in an
-        unit, axial, uniform, stationnary magnetic field::
+        unit, axial, uniform, stationary magnetic field::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x1,x2,x3> = M.chart()
@@ -1779,13 +1779,13 @@ class IntegratedCurve(DifferentiableCurve):
         .. PLOT::
 
             M = Manifold(3, 'M')
-            X = M.chart('x1 x2 x3')
-            x1,x2,x3,t = var('x1 x2 x3 t')
+            X = M.chart('x1 x2 x3'); x1, x2, x3 = X[:]
             D = X.symbolic_velocities()
             eqns = [D[1], -D[0], 0]
             p = M.point((0,0,0), name='p')
             Tp = M.tangent_space(p)
             v = Tp((1,0,1))
+            t = var('t')
             c = M.integrated_curve(eqns, D, (t, 0, 6), v, name='c')
             sol = c.solve()
             interp = c.interpolate()
@@ -1947,7 +1947,7 @@ class IntegratedCurve(DifferentiableCurve):
                     # greater than self.domain.upper_bound().
                     # Hence the line below that subtract 1% of the
                     # step to compute even more safely the last point
-                    t = param_max - 0.01*dt 
+                    t = param_max - 0.01*dt
                     if verbose:
                         print("A tiny final offset equal to " +
                               "{} ".format(0.01*dt)+
@@ -2460,8 +2460,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        th, ph = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         ch_basis = S2.automorphism_field()
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
@@ -2522,8 +2521,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        th, ph = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         ch_basis = S2.automorphism_field()
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
@@ -2539,8 +2537,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         dict_params = {'latit':{tmin:0,tmax:3,th0:pi/4,ph0:0.1,v_th0:0,v_ph0:1},
                        'longi':{tmin:0,tmax:3,th0:0.1,ph0:0.1,v_th0:1,v_ph0:0}}
         R3 = Manifold(3, 'R3', start_index=1)
-        cart = R3.chart('X Y Z')
-        X,Y,Z = var('X Y Z')
+        cart = R3.chart('X Y Z'); X, Y, Z = cart[:]
         euclid_embedding = S2.diff_map(R3,
               {(polar, cart): [sin(th)*cos(ph),sin(th)*sin(ph),cos(th)]})
         graph3D_embedded_curves = Graphics()
@@ -2581,8 +2578,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        th, ph = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         ch_basis = S2.automorphism_field()
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
@@ -2596,7 +2592,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         c = S2.integrated_autoparallel_curve(nab, (t, tmin, tmax), v,
                                                   chart=polar, name='c')
         mercator = S2.chart(r'xi:(-oo,oo):\xi ze:(0,2*pi):\zeta')
-        xi, ze = var('xi ze')
+        xi, ze = mercator[:]
         trans_map = polar.transition_map(mercator, (log(tan(th/2)), ph))
         identity = S2.identity_map()
         _ = identity.coord_functions(polar, mercator)
@@ -2621,8 +2617,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        th, ph = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         ch_basis = S2.automorphism_field()
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
@@ -2637,7 +2632,6 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
                                                   chart=polar, name='c')
         R3 = Manifold(3, 'R3', start_index=1)
         cart = R3.chart('X Y Z')
-        X,Y,Z = var('X Y Z')
         euclid_embedding = S2.diff_map(R3,
               {(polar, cart):[sin(th)*cos(ph),sin(th)*sin(ph),cos(th)]})
         sol = c.solve(solution_key='sol-angle',
@@ -2714,8 +2708,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        th, ph = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         ch_basis = S2.automorphism_field()
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
@@ -2730,7 +2723,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         c = S2.integrated_autoparallel_curve(nab, (t, tmin, tmax), v,
                                                   chart=polar, name='c')
         mercator = S2.chart(r'xi:(-oo,oo):\xi ze:(0,2*pi):\zeta')
-        xi,ze = var('xi ze')
+        xi, ze = mercator[:]
         trans_map = polar.transition_map(mercator, (log(tan(th/2)), ph))
         identity = S2.identity_map()
         _ = identity.coord_functions(polar, mercator)
@@ -2763,8 +2756,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        th, ph = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         ch_basis = S2.automorphism_field()
         ch_basis[1,1], ch_basis[2,2] = 1, 1/sin(th)
@@ -2780,7 +2772,6 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
                                              chart=polar, name='c')
         R3 = Manifold(3, 'R3', start_index=1)
         cart = R3.chart('X Y Z')
-        X,Y,Z = var('X Y Z')
         euclid_embedding = S2.diff_map(R3,
               {(polar, cart):[sin(th)*cos(ph),sin(th)*sin(ph),cos(th)]})
         sol = c.solve(solution_key='sol-angle',
@@ -2918,8 +2909,8 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
              (Set of Morphisms from Real interval (0, 5) to
               3-dimensional differentiable manifold M in Category of
               homsets of subobjects of sets and topological spaces which
-              actually are integrated autoparallel curves w.r.t a
-              certain affine connection,
+              actually are integrated autoparallel curves with respect to
+              a certain affine connection,
               Affine connection nabla on the 3-dimensional
               differentiable manifold M,
               t,
@@ -3172,8 +3163,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
     .. PLOT::
 
         S2 = Manifold(2, 'S^2', start_index=1)
-        polar = S2.chart('th ph')
-        [th, ph] = var('th ph')
+        polar = S2.chart('th ph'); th, ph = polar[:]
         epolar = polar.frame()
         g = S2.metric('g')
         g[1,1], g[2,2] = 1, (sin(th))**2
@@ -3188,7 +3178,6 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
                      'angle':{tmin:0,tmax:3,th0:pi/4,ph0:0.1,v_th0:1,v_ph0:1}}
         R3 = Manifold(3, 'R3', start_index=1)
         cart = R3.chart('X Y Z')
-        X,Y,Z = var('X Y Z')
         euclid_embedding = S2.diff_map(R3,
               {(polar, cart): [sin(th)*cos(ph),sin(th)*sin(ph),cos(th)]})
         graph3D_embedded_geods = Graphics()
@@ -3299,8 +3288,10 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
              (Set of Morphisms from Real interval (0, pi) to
               2-dimensional differentiable manifold S^2 in Category of
               homsets of subobjects of sets and topological spaces which
-              actually are integrated geodesics w.r.t a certain metric,
-              Riemannian metric g on the 2-dimensional differentiable manifold S^2,
+              actually are integrated geodesics with respect to a certain
+              metric,
+              Riemannian metric g on the 2-dimensional differentiable
+              manifold S^2,
               t,
               Tangent vector at Point p on the 2-dimensional
                differentiable manifold S^2,

@@ -1,13 +1,13 @@
 r"""
 Sets of Morphisms between Differentiable Manifolds
 
-The class :class:`DifferentiableManifoldHomset` implements sets of morphisms between
-two differentiable manifolds over the same topological field `K` (in most
-applications, `K = \RR` or `K = \CC`), a morphism being a *differentiable map*
-for the category of differentiable manifolds.
+The class :class:`DifferentiableManifoldHomset` implements sets of morphisms
+between two differentiable manifolds over the same topological field `K`
+(in most applications, `K = \RR` or `K = \CC`), a morphism being a
+*differentiable map* for the category of differentiable manifolds.
 
-The subclass :class:`DifferentiableCurveSet` is devoted to the specific case of
-differential curves, i.e. morphisms whose domain is an open interval of
+The subclass :class:`DifferentiableCurveSet` is devoted to the specific case
+of differential curves, i.e. morphisms whose domain is an open interval of
 `\RR`.
 
 The subclass :class:`IntegratedCurveSet` is devoted to differentiable
@@ -15,16 +15,18 @@ curves that are defined as a solution to a system of second order
 differential equations.
 
 The subclass :class:`IntegratedAutoparallelCurveSet` is devoted to
-differentiable curves that are defined as autoparallel curves w.r.t a
-certain affine connection.
+differentiable curves that are defined as autoparallel curves with respect to
+a certain affine connection.
 
 The subclass :class:`IntegratedGeodesicSet` is devoted to differentiable
-curves that are defined as geodesics w.r.t to a certain metric.
+curves that are defined as geodesics with respect to to a certain metric.
 
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Karim Van Aelst (2017): sets of integrated curves
+
 
 REFERENCES:
 
@@ -583,13 +585,13 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: sys = d.system(verbose=True)
         Curve in the 2-dimensional differentiable manifold M integrated
          over the Real interval (-1, 2) as a solution to the following
-         system, written w.r.t. Chart (M, (x, y)):
+         system, written with respect to Chart (M, (x, y)):
         <BLANKLINE>
         Initial point: Point on the 2-dimensional differentiable
-         manifold M with coordinates [0, 0] w.r.t. Chart (M, (x, y))
+         manifold M with coordinates [0, 0] with respect to Chart (M, (x, y))
         Initial tangent vector: Tangent vector at Point on the
          2-dimensional differentiable manifold M with components
-         [1/4, 0] w.r.t. Chart (M, (x, y))
+         [1/4, 0] with respect to Chart (M, (x, y))
         <BLANKLINE>
         d(x)/dt = Dx
         d(y)/dt = Dy
@@ -602,7 +604,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: TestSuite(H).run()
 
     More generally, an instance of this class may be defined with
-    abstract bounds :MATH:`(a,b)`::
+    abstract bounds `(a,b)`::
 
         sage: [a,b] = var('a b')
         sage: J = R.open_interval(a, b)
@@ -619,13 +621,13 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: sys = f.system(verbose=True)
         Curve in the 2-dimensional differentiable manifold M integrated
          over the Real interval (a, b) as a solution to the following
-         system, written w.r.t. Chart (M, (x, y)):
+         system, written with respect to Chart (M, (x, y)):
         <BLANKLINE>
         Initial point: Point on the 2-dimensional differentiable
-         manifold M with coordinates [0, 0] w.r.t. Chart (M, (x, y))
+         manifold M with coordinates [0, 0] with respect to Chart (M, (x, y))
         Initial tangent vector: Tangent vector at Point on the
          2-dimensional differentiable manifold M with components
-         [1/4, 0] w.r.t. Chart (M, (x, y))
+         [1/4, 0] with respect to Chart (M, (x, y))
         <BLANKLINE>
         d(x)/dt = Dx
         d(y)/dt = Dy
@@ -658,7 +660,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         True
 
     Although it is a monoid, no identity map is implemented via the
-    'one' method of this class or any of its subclasses.
+    ``one`` method of this class or any of its subclasses.
     This is justified by the lack of relevance of the identity map
     within the framework of this parent class and its subclasses, whose
     purpose is mainly devoted to numerical issues (therefore, the user
@@ -677,18 +679,19 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: sys = g.system(verbose=True)
         Curve in the Real interval (a, b) integrated over the Real
          interval (a, b) as a solution to the following system, written
-         w.r.t. Chart ((a, b), (t,)):
+         with respect to Chart ((a, b), (t,)):
         <BLANKLINE>
         Initial point: Point on the Real number line R with coordinates
-         [0] w.r.t. Chart ((a, b), (t,))
+         [0] with respect to Chart ((a, b), (t,))
         Initial tangent vector: Tangent vector at Point on the Real
-         number line R with components [1/4] w.r.t. Chart ((a, b), (t,))
+         number line R with components [1/4] with respect to
+         Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
         d(Dt)/ds = -1/4*sin(-a + s)
         <BLANKLINE>
 
-    The test suite is passed, tests '_test_one' and '_test_prod' being
+    The test suite is passed, tests ``_test_one`` and ``_test_prod`` being
     skipped for reasons mentioned above::
 
         sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
@@ -836,13 +839,14 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: sys = c.system(verbose=True)
             Curve in the 2-dimensional differentiable manifold M
              integrated over the Real interval (-1, 2) as a solution to
-             the following system, written w.r.t. Chart (M, (x, y)):
+             the following system, written with respect to Chart (M, (x, y)):
             <BLANKLINE>
             Initial point: Point on the 2-dimensional differentiable
-             manifold M with coordinates [0, 0] w.r.t. Chart (M, (x, y))
+             manifold M with coordinates [0, 0] with respect to
+             Chart (M, (x, y))
             Initial tangent vector: Tangent vector at Point on the
              2-dimensional differentiable manifold M with components
-             [1/4, 0] w.r.t. Chart (M, (x, y))
+             [1/4, 0] with respect to Chart (M, (x, y))
             <BLANKLINE>
             d(x)/dt = Dx
             d(y)/dt = Dy
@@ -861,12 +865,12 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: sys = c.system(verbose=True)
             Curve in the Real interval (-1, 2) integrated over the Real
              interval (-1, 2) as a solution to the following system,
-             written w.r.t. Chart ((-1, 2), (t,)):
+             written with respect to Chart ((-1, 2), (t,)):
             <BLANKLINE>
             Initial point: Point on the Real number line R with
-             coordinates [1/2] w.r.t. Chart ((-1, 2), (t,))
+             coordinates [1/2] with respect to Chart ((-1, 2), (t,))
             Initial tangent vector: Tangent vector at Point on the Real
-             number line R with components [3/8] w.r.t.
+             number line R with components [3/8] with respect to
              Chart ((-1, 2), (t,))
             <BLANKLINE>
             d(t)/ds = Dt
@@ -948,10 +952,10 @@ class IntegratedCurveSet(DifferentiableCurveSet):
     def one(self):
         r"""
         Raise an error refusing to provide the identity element.
-        This overrides the 'one' method of class
-        'TopologicalManifoldHomset', which would actually raise an error
-        as well due to lack of option 'is_identity' in
-        'element_constructor' method of 'self'.
+        This overrides the ``one`` method of class
+        :class:`~sage.manifolds.manifold_homset.TopologicalManifoldHomset`,
+        which would actually raise an error as well, due to lack of option
+        ``is_identity`` in ``element_constructor`` method of ``self``.
 
         TESTS::
 
@@ -1027,15 +1031,15 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
          of a Homset of integrated autoparallel curves need to be finite
 
     An instance whose domain is an interval with finite bounds allows to
-    build a curve that is autoparallel w.r.t a connection defined on the
-    codomain::
+    build a curve that is autoparallel with respect to a connection
+    defined on the codomain::
 
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
          differentiable manifold M in Category of homsets of subobjects
          of sets and topological spaces which actually are integrated
-         autoparallel curves w.r.t a certain affine connection
+         autoparallel curves with respect to a certain affine connection
         sage: nab = M.affine_connection('nabla')
         sage: nab[0,1,0], nab[0,0,1] = 1,2
         sage: nab.torsion()[:]
@@ -1058,14 +1062,14 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
          M equipped with Affine connection nab on the 2-dimensional
          differentiable manifold M, and integrated over the Real
          interval (-1, 2) as a solution to the following equations,
-         written w.r.t. Chart (M, (x, y)):
+         written with respect to Chart (M, (x, y)):
         <BLANKLINE>
         Initial point: Point on the 2-dimensional differentiable
-         manifold M with coordinates [0, -1/2] w.r.t.
+         manifold M with coordinates [0, -1/2] with respect to
          Chart (M, (x, y))
         Initial tangent vector: Tangent vector at Point on the
          2-dimensional differentiable manifold M with components
-         [-1/6/(e^(-1) - 1), 1/3] w.r.t. Chart (M, (x, y))
+         [-1/6/(e^(-1) - 1), 1/3] with respect to Chart (M, (x, y))
         <BLANKLINE>
         d(x)/dt = Dx
         d(y)/dt = Dy
@@ -1078,7 +1082,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         sage: TestSuite(H).run()
 
     For any open interval `J` with finite bounds `(a,b)`, all curves are
-    autoparallel w.r.t any connection.
+    autoparallel with respect to any connection.
     Therefore, the set of autoparallel curves `J \longrightarrow J` is a
     set of numerical (manifold) endomorphisms that is a monoid for the
     law of morphism composition::
@@ -1089,14 +1093,14 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         Set of Morphisms from Real interval (a, b) to Real interval
          (a, b) in Category of endsets of subobjects of sets and
          topological spaces which actually are integrated autoparallel
-         curves w.r.t a certain affine connection
+         curves with respect to a certain affine connection
         sage: H.category()
         Category of endsets of subobjects of sets and topological spaces
         sage: H in Monoids()
         True
 
     Although it is a monoid, no identity map is implemented via the
-    'one' method of this class or its subclass devoted to geodesics.
+    ``one`` method of this class or its subclass devoted to geodesics.
     This is justified by the lack of relevance of the identity map
     within the framework of this parent class and its subclass, whose
     purpose is mainly devoted to numerical issues (therefore, the user
@@ -1116,20 +1120,20 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         Autoparallel curve in the Real interval (a, b) equipped with
          Affine connection nab on the Real interval (a, b), and
          integrated over the Real interval (a, b) as a solution to the
-         following equations, written w.r.t. Chart ((a, b), (t,)):
+         following equations, written with respect to Chart ((a, b), (t,)):
         <BLANKLINE>
         Initial point: Point on the Real number line R with coordinates
-         [0] w.r.t. Chart ((a, b), (t,))
+         [0] with respect to Chart ((a, b), (t,))
         Initial tangent vector: Tangent vector at Point on the Real
          number line R with components
-         [-(e^(1/2) - 1)/(a - b)] w.r.t.
+         [-(e^(1/2) - 1)/(a - b)] with respect to
          Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
         d(Dt)/ds = -Dt^2
         <BLANKLINE>
 
-    The test suite is passed, tests '_test_one' and '_test_prod' being
+    The test suite is passed, tests ``_test_one`` and ``_test_prod`` being
     skipped for reasons mentioned above::
 
         sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
@@ -1159,13 +1163,14 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Category of homsets of
              subobjects of sets and topological spaces which actually are
-             integrated autoparallel curves w.r.t a certain affine connection
+             integrated autoparallel curves with respect to a certain
+             affine connection
             sage: TestSuite(H).run()
             sage: H = IntegratedAutoparallelCurveSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
              (-1, 2) in Category of endsets of subobjects of sets and
              topological spaces which actually are integrated
-             autoparallel curves w.r.t a certain affine connection
+             autoparallel curves with respect to a certain affine connection
             sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
         """
@@ -1211,8 +1216,8 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Category of homsets of
              subobjects of sets and topological spaces which actually
-             are integrated autoparallel curves w.r.t a certain affine
-             connection
+             are integrated autoparallel curves with respect to a certain
+             affine connection
 
         """
 
@@ -1220,7 +1225,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         description += "from {} to {} in {} ".format(self._domain,
                                         self._codomain, self.category())
         description += "which actually are integrated autoparallel "
-        description += "curves w.r.t a certain affine connection"
+        description += "curves with respect to a certain affine connection"
         return description
 
 
@@ -1287,14 +1292,14 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
              manifold M equipped with Affine connection nab on the
              2-dimensional differentiable manifold M, and integrated
              over the Real interval (a, b) as a solution to the
-             following equations, written w.r.t. Chart (M, (x, y)):
+             following equations, written with respect to Chart (M, (x, y)):
             <BLANKLINE>
             Initial point: Point on the 2-dimensional differentiable
              manifold M with coordinates [0, -1/2]
-             w.r.t. Chart (M, (x, y))
+             with respect to Chart (M, (x, y))
             Initial tangent vector: Tangent vector at Point on the
              2-dimensional differentiable manifold M with components
-             [1/2/((a - b)*(e^(-1) - 1)), -1/(a - b)] w.r.t.
+             [1/2/((a - b)*(e^(-1) - 1)), -1/(a - b)] with respect to
              Chart (M, (x, y))
             <BLANKLINE>
             d(x)/dt = Dx
@@ -1316,14 +1321,14 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             Autoparallel curve in the Real interval (-1, 2) equipped
              with Affine connection nab on the Real interval (-1, 2),
              and integrated over the Real interval (-1, 2) as a solution
-             to the following equations, written w.r.t.
+             to the following equations, written with respect to
              Chart ((-1, 2), (t,)):
             <BLANKLINE>
             Initial point: Point on the Real number line R with
-             coordinates [1/2] w.r.t. Chart ((-1, 2), (t,))
+             coordinates [1/2] with respect to Chart ((-1, 2), (t,))
             Initial tangent vector: Tangent vector at Point on the Real
-             number line R with components [1/3*e^(3/4) - 1/3] w.r.t.
-             Chart ((-1, 2), (t,))
+             number line R with components [1/3*e^(3/4) - 1/3]
+             with respect to Chart ((-1, 2), (t,))
             <BLANKLINE>
             d(t)/ds = Dt
             d(Dt)/ds = -Dt^2
@@ -1491,14 +1496,14 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
          of a Homset of integrated geodesics need to be finite
 
     An instance whose domain is an interval with finite bounds allows to
-    build a geodesic w.r.t. a metric defined on the codomain::
+    build a geodesic with respect to a metric defined on the codomain::
 
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedGeodesicSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
          differentiable manifold M in Category of homsets of subobjects
          of sets and topological spaces which actually are integrated
-         geodesics w.r.t a certain metric
+         geodesics with respect to a certain metric
         sage: g = M.metric('g')
         sage: g[0,0], g[1,1], g[0,1] = 1, 1, 2
         sage: t = var('t')
@@ -1518,15 +1523,15 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         Geodesic in the 2-dimensional differentiable manifold M equipped
          with Riemannian metric g on the 2-dimensional differentiable
          manifold M, and integrated over the Real interval (-1, 2) as a
-         solution to the following geodesic equations, written w.r.t.
-         Chart (M, (x, y)):
+         solution to the following geodesic equations, written
+         with respect to Chart (M, (x, y)):
         <BLANKLINE>
         Initial point: Point on the 2-dimensional differentiable
-         manifold M with coordinates [0, 0] w.r.t.
+         manifold M with coordinates [0, 0] with respect to
          Chart (M, (x, y))
         Initial tangent vector: Tangent vector at Point on the
          2-dimensional differentiable manifold M with components
-         [1/3*e^(1/2) - 1/3, 0] w.r.t. Chart (M, (x, y))
+         [1/3*e^(1/2) - 1/3, 0] with respect to Chart (M, (x, y))
         <BLANKLINE>
         d(x)/dt = Dx
         d(y)/dt = Dy
@@ -1538,7 +1543,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         sage: TestSuite(H).run()
 
     For any open interval `J` with finite bounds `(a,b)`, all curves are
-    geodesics w.r.t any metric.
+    geodesics with respect to any metric.
     Therefore, the set of geodesics `J \longrightarrow J` is a set of
     numerical (manifold) endomorphisms that is a monoid for the law of
     morphism composition::
@@ -1549,14 +1554,14 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         Set of Morphisms from Real interval (a, b) to Real interval
          (a, b) in Category of endsets of subobjects of sets and
          topological spaces which actually are integrated geodesics
-         w.r.t a certain metric
+         with respect to a certain metric
         sage: H.category()
         Category of endsets of subobjects of sets and topological spaces
         sage: H in Monoids()
         True
 
     Although it is a monoid, no identity map is implemented via the
-    'one' method of this class.
+    ``one`` method of this class.
     This is justified by the lack of relevance of the identity map
     within the framework of this parent class, whose purpose is mainly
     devoted to numerical issues (therefore, the user is left free to set
@@ -1576,19 +1581,19 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         Geodesic in the Real interval (a, b) equipped with Riemannian
          metric g on the Real interval (a, b), and integrated over the
          Real interval (a, b) as a solution to the following geodesic
-         equations, written w.r.t. Chart ((a, b), (t,)):
+         equations, written with respect to Chart ((a, b), (t,)):
         <BLANKLINE>
         Initial point: Point on the Real number line R with coordinates
-         [0] w.r.t. Chart ((a, b), (t,))
+         [0] with respect to Chart ((a, b), (t,))
         Initial tangent vector: Tangent vector at Point on the Real
-         number line R with components [-(e^(1/2) - 1)/(a - b)] w.r.t.
-         Chart ((a, b), (t,))
+         number line R with components [-(e^(1/2) - 1)/(a - b)]
+         with respect to Chart ((a, b), (t,))
         <BLANKLINE>
         d(t)/ds = Dt
         d(Dt)/ds = -Dt^2
         <BLANKLINE>
 
-    The test suite is passed, tests '_test_one' and '_test_prod' being
+    The test suite is passed, tests ``_test_one`` and ``_test_prod`` being
     skipped for reasons mentioned above::
 
         sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
@@ -1618,13 +1623,13 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Category of homsets of
              subobjects of sets and topological spaces which actually
-             are integrated geodesics w.r.t a certain metric
+             are integrated geodesics with respect to a certain metric
             sage: TestSuite(H).run()
             sage: H = IntegratedGeodesicSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
              (-1, 2) in Category of endsets of subobjects of sets and
              topological spaces which actually are integrated geodesics
-             w.r.t a certain metric
+             with respect to a certain metric
             sage: TestSuite(H).run(skip=["_test_one", "_test_prod"])
 
         """
@@ -1669,14 +1674,14 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Category of homsets of
              subobjects of sets and topological spaces which actually
-             are integrated geodesics w.r.t a certain metric
+             are integrated geodesics with respect to a certain metric
 
         """
         description = "Set of Morphisms "
         description += "from {} to {} in {} ".format(self._domain,
                                         self._codomain, self.category())
         description += "which actually are integrated geodesics "
-        description += "w.r.t a certain metric"
+        description += "with respect to a certain metric"
         return description
 
     def _element_constructor_(self, metric, curve_parameter,
@@ -1740,14 +1745,14 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
              equipped with Riemannian metric g on the 4-dimensional
              differentiable manifold M, and integrated over the Real
              interval (a, b) as a solution to the following geodesic
-             equations, written w.r.t. Chart (M, (w, x, y, z)):
+             equations, written with respect to Chart (M, (w, x, y, z)):
             <BLANKLINE>
             Initial point: Point on the 4-dimensional differentiable
-             manifold M with coordinates [0, 0, 0, 0] w.r.t.
+             manifold M with coordinates [0, 0, 0, 0] with respect to
              Chart (M, (w, x, y, z))
             Initial tangent vector: Tangent vector at Point on the
              4-dimensional differentiable manifold M with components
-             [-(e^(1/2) - 1)/(a - b), 0, 0, 0] w.r.t.
+             [-(e^(1/2) - 1)/(a - b), 0, 0, 0] with respect to
              Chart (M, (w, x, y, z))
             <BLANKLINE>
             d(w)/dt = Dw
@@ -1773,14 +1778,14 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             Geodesic in the Real interval (-1, 2) equipped with
              Riemannian metric g on the Real interval (-1, 2), and
              integrated over the Real interval (-1, 2) as a solution to
-             the following geodesic equations, written w.r.t.
+             the following geodesic equations, written with respect to
              Chart ((-1, 2), (t,)):
             <BLANKLINE>
             Initial point: Point on the Real number line R with
-             coordinates [1/2] w.r.t. Chart ((-1, 2), (t,))
+             coordinates [1/2] with respect to Chart ((-1, 2), (t,))
             Initial tangent vector: Tangent vector at Point on the Real
-             number line R with components [1/3*e^(3/4) - 1/3] w.r.t.
-             Chart ((-1, 2), (t,))
+             number line R with components [1/3*e^(3/4) - 1/3]
+             with respect to Chart ((-1, 2), (t,))
             <BLANKLINE>
             d(t)/ds = Dt
             d(Dt)/ds = -Dt^2

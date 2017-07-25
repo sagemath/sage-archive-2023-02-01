@@ -22,7 +22,7 @@ AUTHORS:
 
 -  Kiran Kedlaya (2016-03): Added root counting.
 
--  Edgar Costa (2017-07): Added ratioanal recosntruction
+-  Edgar Costa (2017-07): Added rational reconstruction.
 
 TESTS::
 

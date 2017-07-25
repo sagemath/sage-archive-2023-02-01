@@ -7866,7 +7866,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Examples:
 
-        Over `\\QQ[z]`:
+        Over `\\QQ[z]`::
             sage: z  = PolynomialRing(QQ, 'z').gen()
             sage: p = -z**16 - z**15 - z**14 + z**13 + z**12 + z**11 - z**5 - z**4 - z**3 + z**2 + z + 1
             sage: m = z**21
@@ -7876,7 +7876,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
              
-        Over `\\ZZ[z]`:
+        Over `\\ZZ[z]`::
             sage: z  = PolynomialRing(ZZ, 'z').gen();
             sage: p = -z**16 - z**15 - z**14 + z**13 + z**12 + z**11 - z**5 - z**4 - z**3 + z**2 + z + 1
             sage: m = z**21
@@ -7886,7 +7886,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        now ``n`` and ``d`` do not need to be monic:
+        Over an integral domain ``d`` might not be monic::
             sage: P = PolynomialRing(ZZ,'x');
             sage: x = P.gen()
             sage: p = 7*x^5 - 10*x^4 + 16*x^3 - 32*x^2 + 128*x + 256
@@ -7902,7 +7902,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        Over `\\QQ(t)[z]`:
+        Over `\\QQ(t)[z]`::
             sage: P = PolynomialRing(QQ, 't')
             sage: t = P.gen()
             sage: z = PolynomialRing(P.fraction_field(), 'z').gen()
@@ -7915,7 +7915,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        Over `\\QQ[t][z]`:
+        Over `\\QQ[t][z]`::
             sage: P = PolynomialRing(QQ, 't')
             sage: t = P.gen()
             sage: z = PolynomialRing(P, 'z').gen()
@@ -7929,7 +7929,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
 
-        Over `\\Q_5`:
+        Over `\\Q_5`::
             sage: x = PolynomialRing(Qp(5),'x').gen()
             sage: p = 4*x^5 + 3*x^4 + 2*x^3 + 2*x^2 + 4*x + 2
             sage: m = x^6
@@ -7937,7 +7937,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        Can also be used to obtain known Padé approximations:
+        Can also be used to obtain known Padé approximations::
             sage: z = PowerSeriesRing(QQ, 'z').gen()
             sage: P = PolynomialRing(QQ,'x');
             sage: x = P.gen()
@@ -7976,7 +7976,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        Over `\\RR[z]`:
+        Over `\\RR[z]`::
             sage: z = PowerSeriesRing(RR, 'z').gen()
             sage: P = PolynomialRing(RR,'x');
             sage: x = P.gen()

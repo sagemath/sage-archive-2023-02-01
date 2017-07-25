@@ -491,8 +491,8 @@ class HasseDiagram(DiGraph):
 
     def _alternate_interval(self, x, y):
         """
-        Return the list of the elements greater than or equal to `x`
-        and less than or equal to `y`.
+        Return the list of the elements greater than or equal to ``x``
+        and less than or equal to ``y``.
 
         The list is sorted by numerical value, which is one linear
         extension for the elements of the interval, but not necessary

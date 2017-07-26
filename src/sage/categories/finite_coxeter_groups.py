@@ -755,13 +755,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 point = [ZZ.one()] * n
             v = sum(point[i-1] * weights[i] for i in weights.keys())
             from sage.geometry.polyhedron.constructor import Polyhedron
-            if base_ring is None:
-                base_ring = self.base_ring()
-                if base_ring is ZZ:
-                    base_ring = QQ
-            if base_ring in [UniversalCyclotomicField(), QQbar]:
-                vertices = [(v*w).change_ring(AA) for w in self]
-                base_ring = AA
+            if base_ring is None and v.base_ring() in [UniversalCyclotomicField(), QQbar]:
+                    vertices = [(v*w).change_ring(AA) for w in self]
+                    base_ring = AA
             else:
                 vertices = [v*w for w in self]
             return Polyhedron(vertices=vertices, base_ring=base_ring)

@@ -622,7 +622,6 @@ cdef class Function(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: SymPy function 'gg' doesn't exist
-            gg(x)
         """
         return self._conversions.get('sympy', self._name)
 

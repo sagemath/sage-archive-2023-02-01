@@ -2877,12 +2877,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         if tensorflag:
             tparents = x.parent()._sets
-            return sum(d*prod(sum(raise_c(r)(c)
-                                  * tensor([parent(p[r].plethysm(base(la)))
+            return tensor([parent]*len(tparents))(sum(d*prod(sum(raise_c(r)(c)
+                                  * tensor([p[r].plethysm(base(la))
                                            for (base,la) in zip(tparents,trm)])
                                   for (trm,c) in x)
                               for r in mu)
-                       for (mu, d) in p(self))
+                       for (mu, d) in p(self)))
 
         # Takes in n, and returns a function which takes in a partition and
         # scales all of the parts of that partition by n

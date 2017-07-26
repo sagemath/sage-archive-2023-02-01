@@ -1656,13 +1656,18 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
 
     We test further corner cases. A ``ValueError`` is raised if the number
     of bytes in the pickle does not comply with either the old or the new
-    pickle format (we test two code paths here)::
+    pickle format (we test several code paths here)::
 
         sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: mtx_unpickle(MS, 2, 5, t, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
-        ValueError: Expected a pickle with 3*2 bytes per row, got 17 instead
+        ValueError: Expected a pickle with 3*2 bytes, got 17 instead
+        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: mtx_unpickle(MS, 2, 5, t[:4], True)                # optional: meataxe
+        Traceback (most recent call last):
+        ...
+        ValueError: Expected a pickle with 3*2 bytes, got 2*2 instead
         sage: MS = MatrixSpace(GF(13), 0, 5)
         sage: mtx_unpickle(MS, 0, 5, s, True)                # optional: meataxe
         Traceback (most recent call last):
@@ -1701,7 +1706,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
             raise ValueError("This matrix pickle contains data, thus, the number of rows and columns must be positive")
         pickled_rowsize = lenData//nr
         if lenData != pickled_rowsize*nr:
-            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {lenData} instead")
+            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes, got {lenData} instead")
         x = PyBytes_AsString(Data)
         if pickled_rowsize == FfCurrentRowSizeIo:
             pt = OUT.Data.Data
@@ -1720,5 +1725,5 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
                     x += pickled_rowsize
                     FfStepPtr(&(pt))
         else:
-            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes per row, got {pickled_rowsize}*{nr} instead")
+            raise ValueError(f"Expected a pickle with {FfCurrentRowSizeIo}*{nr} bytes, got {pickled_rowsize}*{nr} instead")
     return OUT

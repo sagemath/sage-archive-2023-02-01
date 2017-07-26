@@ -25,7 +25,7 @@ from sage.repl.image import Image
 from copy import copy
 from cysignals.signals cimport sig_check
 from sage.rings.complex_field import ComplexField
-from sage.functions.log import exp
+from sage.functions.log import exp, log
 from sage.symbolic.constants import pi
 
 def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
@@ -135,7 +135,8 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
                     pixel[col,row] = color_list[-1]
     return M
 
-def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixel_count = 500, long prec = 300):
+cpdef fast_external_ray(double theta, long D=30, long S=10, long R=100,
+ long pixel_count=500, double image_width=4, long prec=300):
     r"""
     Returns a list of points that approximate the external ray for a given angle.
 
@@ -151,6 +152,8 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
 
     - ``pixel_count`` -- long (optional - default: ``500``) side length of image in number of pixels.
 
+    - ``image_width`` -- double (optional - default: ``4``) width of the image in the complex plane.
+
     - ``prec`` -- long (optional - default: ``300``) specifies the bits of precision used by the Complex Field when using Newton's method to compute points on the external ray.
 
     OUTPUT:
@@ -163,8 +166,9 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
         sage: fast_external_ray(0,S=1,D=1)
         [(100.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
           0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000),
-         (9.51254777713729104959838878130540251731872558593750000000000000000000000000000000000000000,
+         (9.51254777713729174697578576623132297117784691109499464854806785133621315075854778426714908,
           0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)]
+
 
     ::
 
@@ -172,8 +176,8 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
         sage: fast_external_ray(1/3,S=1,D=1)
         [(-49.9999999999999786837179271969944238662719726562500000000000000000000000000000000000000000,
           86.6025403784438765342201804742217063903808593750000000000000000000000000000000000000000000),
-         (-5.50628047023173028406972662196494638919830322265625000000000000000000000000000000000000000,
-          8.64947510053972479227013536728918552398681640625000000000000000000000000000000000000000000)]
+         (-5.50628047023173006234970878097113901879832542655926629309001652388544528575532346900138516,
+          8.64947510053972513843999918917106032664030380426885745306040284140385975750462108180377187)]
 
     ::
 
@@ -181,18 +185,20 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
         sage: fast_external_ray(0.75234,S=1,D=1)
         [(1.47021239172637052661229972727596759796142578125000000000000000000000000000000000000000000,
           -99.9891917935294287644865107722580432891845703125000000000000000000000000000000000000000000),
-         (-0.352790406744857509835355813265778124332427978515625000000000000000000000000000000000000000,
-          -9.98646630765023601838947797659784555435180664062500000000000000000000000000000000000000000)]
+         (-0.352790406744857508500937144524776555433184352559852962308757189778284058275081335121601384,
+          -9.98646630765023514178761177926164047797465369576787921409326037870837930920646860774032363)]
     """
 
     cdef:
         CF = ComplexField(prec)
         PI = CF.pi()
         I = CF.gen()
-        c_0, r_m, t_m, temp_c, C_k, D_k, old_c, x, y
+        c_0, r_m, t_m, temp_c, C_k, D_k, old_c, x, y, dist
         int k, j, t
         double difference, m
         double error = pixel_count * 0.0001
+
+        double pixel_width = image_width / pixel_count
 
         # initialize list with c_0
         c_list = [CF(R*exp(2*PI*I*theta))]
@@ -201,8 +207,8 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
     for k in range(1,D+1):
         for j in range(1,S+1):
             m = (k-1)*S + j
-            r_m = R**(2**(-m/S))
-            t_m = r_m**(2**k) * exp(2*PI*I*theta * 2**k)
+            r_m = CF(R**(2**(-m/S)))
+            t_m = CF(r_m**(2**k) * exp(2*PI*I*theta * 2**k))
             temp_c = c_list[-1]
             difference = error
 
@@ -211,12 +217,18 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
                 sig_check()
                 old_c = temp_c
                 # Recursive formula for iterates of q(z) = z^2 + c
-                C_k, D_k = old_c, 1.0
+                C_k, D_k = CF(old_c), CF(1)
                 for t in range(k):
-                    C_k, D_k = C_k**2 + old_c, 2*D_k*C_k + 1.0
+                    C_k, D_k = C_k**2 + old_c, CF(2)*D_k*C_k + CF(1)
                 temp_c = old_c - (C_k - t_m) / D_k   # Newton map
                 difference = abs(old_c) - abs(temp_c)
+
+            dist = (2*C_k.abs()*(C_k.abs()).log()) / D_k.abs()
+            if dist < pixel_width:
+                break
             c_list.append(CF(temp_c))
+        if dist < pixel_width:
+            break
 
     # Convert Complex Field elements into tuples.
     for k in range(len(c_list)):
@@ -225,7 +237,8 @@ def fast_external_ray(double theta, long D = 30, long S = 10, long R = 100, pixe
 
     return c_list
 
-def convert_to_pixels(point_list, double x_0, double y_0, double width, long number_of_pixels):
+cpdef convert_to_pixels(point_list, double x_0, double y_0, double width,
+ long number_of_pixels):
     r"""
     Converts cartesian coordinates to pixels within a specified window.
 
@@ -253,7 +266,7 @@ def convert_to_pixels(point_list, double x_0, double y_0, double width, long num
     """
     cdef:
         k, pixel_list, x_corner, y_corner, step_size
-        int x_pixel, y_pixel
+        long x_pixel, y_pixel
     pixel_list = []
 
     # Compute top left corner of window and step size
@@ -269,7 +282,7 @@ def convert_to_pixels(point_list, double x_0, double y_0, double width, long num
         pixel_list.append((x_pixel, y_pixel))
     return pixel_list
 
-def get_line(start, end):
+cpdef get_line(start, end):
     r"""
     Produces a list of pixel coordinates approximating a line from a starting
     point to an ending point using the Bresenham's Line Algorithm.
@@ -327,7 +340,7 @@ def get_line(start, end):
     dx, dy = x2 - x1, y2 - y1
 
     # Calculate error
-    error = int(dx / 2.0) #TODO: Do I want true division here?
+    error = int(dx / 2.0)
     ystep = 1 if y1 < y2 else -1
 
     # Iterate over bounding box generating points between start and end

@@ -917,7 +917,11 @@ class MathematicaElement(ExpectElement):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
-            sage: P._rich_repr_(dm)                              # optional - mathematica
+
+        The following test requires a working X display on Linux so that the
+        Mathematica frontend can do the rendering (:trac:`23112`)::
+
+            sage: P._rich_repr_(dm)                              # optional - mathematica mathematicafrontend
             OutputImagePng container
         """
         if self._is_graphics():

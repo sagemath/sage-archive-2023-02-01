@@ -1004,7 +1004,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         self._element_to_vertex_dict = dict( (self._elements[i], i)
                                              for i in range(len(self._elements)) )
         self._is_facade = facade
-        self._hasse_diagram._precompute_intervals()
 
     @lazy_attribute
     def _list(self):

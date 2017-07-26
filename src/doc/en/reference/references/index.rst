@@ -242,6 +242,10 @@ REFERENCES:
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
+.. [BK2017] Pascal Baseilhac and Stefan Kolb. *Braid group action
+            and root vectors for the* `q`-*Onsager algebra*.
+            Preprint, (2017) :arxiv:`1706.08747`.
+
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
             Poincaré homology 3-sphere", Experiment. Math. 9 (2000),

@@ -6866,12 +6866,6 @@ class Graph(GenericGraph):
         r"""
         Returns the modular decomposition of the current graph.
 
-        .. NOTE::
-
-            In order to use this method you must install the
-            ``modular_decomposition`` optional package. See
-            :mod:`sage.misc.package`.
-
         Crash course on modular decomposition:
 
         A module `M` of a graph `G` is a proper subset of its vertices
@@ -6936,12 +6930,12 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition() # optional -- modular_decomposition
+            sage: graphs.BullGraph().modular_decomposition()
             ('Prime', [3, 4, 0, 1, 2])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition() # optional -- modular_decomposition
+            sage: graphs.PetersenGraph().modular_decomposition()
             ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
@@ -6950,7 +6944,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(5)
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
-            sage: g.modular_decomposition() # optional -- modular_decomposition
+            sage: g.modular_decomposition()
             ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
 
         ALGORITHM:
@@ -6988,22 +6982,16 @@ class Graph(GenericGraph):
 
         TESTS::
 
-            sage: graphs.EmptyGraph().modular_decomposition() # optional -- modular_decomposition
+            sage: graphs.EmptyGraph().modular_decomposition()
             ()
         """
-        try:
-            from sage.graphs.modular_decomposition import modular_decomposition
-        except ImportError:
-            raise RuntimeError("In order to use this method you must "
-                               "install the modular_decomposition package")
+        from sage.graphs.modular_decomposition import modular_decomposition
 
         self._scream_if_not_simple()
-        from sage.misc.stopgap import stopgap
-        stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
         if self.order() == 0:
             return tuple()
-        
+
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))
@@ -7030,14 +7018,14 @@ class Graph(GenericGraph):
 
         The Petersen Graph and the Bull Graph are both prime::
 
-            sage: graphs.PetersenGraph().is_prime() # optional - modular_decomposition
+            sage: graphs.PetersenGraph().is_prime()
             True
-            sage: graphs.BullGraph().is_prime()     # optional - modular_decomposition
+            sage: graphs.BullGraph().is_prime()
             True
 
         Though quite obviously, the disjoint union of them is not::
 
-            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
+            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime()
             False
 
         TESTS::

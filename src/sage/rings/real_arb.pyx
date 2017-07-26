@@ -2259,59 +2259,18 @@ cdef class RealBall(RingElement):
         lt = left
         rt = right
 
-        if arb_is_finite(lt.value) or arb_is_finite(rt.value):
-            if lt is rt:
-                return op == Py_EQ or op == Py_GE or op == Py_LE
-            if op == Py_EQ:
-                return arb_is_exact(lt.value) and arb_equal(lt.value, rt.value)
-            arb_init(difference)
-            arb_sub(difference, lt.value, rt.value, prec(lt))
-            if op == Py_NE:
-                result = arb_is_nonzero(difference)
-            elif op == Py_GT:
-                result = arb_is_positive(difference)
-            elif op == Py_GE:
-                result = arb_is_nonnegative(difference)
-            elif op == Py_LT:
-                result = arb_is_negative(difference)
-            elif op == Py_LE:
-                result = arb_is_nonpositive(difference)
-            arb_clear(difference)
-            return result
-        elif arf_is_nan(arb_midref(lt.value)) or arf_is_nan(arb_midref(rt.value)):
-            return False
-        elif mag_is_inf(arb_radref(lt.value)):
-            # left is the whole extended real line
-            if op == Py_GE:
-                return arf_is_neg_inf(arb_midref(rt.value)) and mag_is_finite(arb_radref(rt.value))
-            elif op == Py_LE:
-                return arf_is_pos_inf(arb_midref(rt.value)) and mag_is_finite(arb_radref(rt.value))
-            else:
-                return False
-        elif mag_is_inf(arb_radref(rt.value)):
-            # right is the whole extended real line
-            if op == Py_GE:
-                return arf_is_pos_inf(arb_midref(lt.value)) and mag_is_finite(arb_radref(lt.value))
-            elif op == Py_LE:
-                return arf_is_neg_inf(arb_midref(lt.value)) and mag_is_finite(arb_radref(lt.value))
-            else:
-                return False
-        else:
-            # both left and right are special, neither is nan, and neither is
-            # [-∞,∞], so they are both points at infinity
-            if op == Py_EQ:
-                return arf_equal(arb_midref(lt.value), arb_midref(rt.value))
-            elif op == Py_NE:
-                return not arf_equal(arb_midref(lt.value), arb_midref(rt.value))
-            elif op == Py_GT:
-                return (arf_is_pos_inf(arb_midref(lt.value))
-                        and arf_is_neg_inf(arb_midref(rt.value)))
-            elif op == Py_LT:
-                return (arf_is_neg_inf(arb_midref(lt.value))
-                        and arf_is_pos_inf(arb_midref(rt.value)))
-            elif op == Py_GE or op == Py_LE:
-                return True
-        assert False, "not reached"
+        if op == Py_EQ:
+            return arb_eq(lt.value, rt.value)
+        elif op == Py_NE:
+            return arb_ne(lt.value, rt.value)
+        elif op == Py_GT:
+            return arb_gt(lt.value, rt.value)
+        elif op == Py_LT:
+            return arb_lt(lt.value, rt.value)
+        elif op == Py_GE:
+            return arb_ge(lt.value, rt.value)
+        elif op == Py_LE:
+            return arb_le(lt.value, rt.value)
 
     def min(self, *others):
         """

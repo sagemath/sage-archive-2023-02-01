@@ -229,7 +229,7 @@ if [ -z "$CXX" ]; then
     if [ -x "$SAGE_LOCAL/bin/g++" ]; then
         CXX=g++
     else
-        CXX="CONFIGURED_CXX"
+        CXX="$CONFIGURED_CXX"
     fi
     export CXX
 fi
@@ -237,13 +237,13 @@ if [ -z "$FC" ]; then
     if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
         FC=gfortran
     else
-        FC="CONFIGURED_FC"
+        FC="$CONFIGURED_FC"
     fi
     export FC
 fi
 if [ "$UNAME" = "Darwin" ]; then
-    OBJC="CONFIGURED_OBJC"
-    OBJCXX="CONFIGURED_OBJCXX"
+    OBJC="$CONFIGURED_OBJC"
+    OBJCXX="$CONFIGURED_OBJCXX"
     export OBJC OBJCXX
 fi
 

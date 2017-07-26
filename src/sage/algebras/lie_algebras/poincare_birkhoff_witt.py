@@ -412,9 +412,10 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: E,H,F = PBW.algebra_generators()
             sage: PBW.degree_on_basis(E.leading_support())
             1
-            sage: PBW.degree_on_basis(((H*F)^10).trailing_support())
+            sage: m = ((H*F)^10).trailing_support(key=PBW._monomial_key)  # long time
+            sage: PBW.degree_on_basis(m)  # long time
             20
-            sage: ((H*F*E)^4).maximal_degree()
+            sage: ((H*F*E)^4).maximal_degree()  # long time
             12
         """
         return m.length()

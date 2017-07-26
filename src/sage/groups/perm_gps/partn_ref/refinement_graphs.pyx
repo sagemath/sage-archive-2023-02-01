@@ -9,7 +9,6 @@ REFERENCE:
 
 - [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
   Vol. 30 (1981), pp. 45-87.
-
 """
 
 #*****************************************************************************
@@ -36,7 +35,7 @@ from .double_coset cimport double_coset
 
 def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=False):
     """
-    Tests whether two graphs are isomorphic.
+    Test whether two graphs are isomorphic.
 
     EXAMPLES::
 
@@ -190,7 +189,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     - ``G_in`` -- a Sage graph
     - ``partition`` -- a list of lists representing a partition of the vertices
     - ``lab`` -- if True, compute and return the canonical label in addition to the
-      automorphism group.
+      automorphism group
     - ``dig`` -- set to True for digraphs and graphs with loops.  If True, does not
       use optimizations based on Lemma 2.25 in [1] that are valid only for
       simple graphs.
@@ -515,15 +514,15 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
 
 cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     r"""
-    Refines the input partition by checking degrees of vertices to the given
+    Refine the input partition by checking degrees of vertices to the given
     cells.
 
     INPUT:
 
     - ``PS`` -- a partition stack, whose finest partition is the partition to be
-      refined.
+      refined
     - ``S`` -- a graph struct object, which contains scratch space, the graph in
-      question, and some flags.
+      question, and some flags
     - ``cells_to_refine_by`` -- a list of pointers to cells to check degrees against
       in refining the other cells (updated in place). Must be allocated to
       length at least the degree of PS, since the array may grow
@@ -534,7 +533,6 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
     An integer invariant under the orbits of $S_n$.  That is, if $\gamma$ is a
     permutation of the vertices, then
     $$ I(G, PS, cells_to_refine_by) = I( \gamma(G), \gamma(PS), \gamma(cells_to_refine_by) ) .$$
-
     """
     cdef GraphStruct GS = <GraphStruct> S
     cdef CGraph G = GS.G
@@ -724,7 +722,7 @@ cdef bint all_children_are_equivalent(PartitionStack *PS, void *S):
 
 cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, bint reverse):
     """
-    Returns the number of edges from the vertex corresponding to entry to
+    Return the number of edges from the vertex corresponding to entry to
     vertices in the cell corresponding to cell_index.
 
     INPUT:
@@ -758,9 +756,10 @@ cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, 
 
 def all_labeled_graphs(n):
     """
-    Returns all labeled graphs on n vertices {0,1,...,n-1}. Used in
-    classifying isomorphism types (naive approach), and more importantly
-    in benchmarking the search algorithm.
+    Return all labeled graphs on n vertices {0,1,...,n-1}.
+
+    Used in classifying isomorphism types (naive approach), and more
+    importantly in benchmarking the search algorithm.
 
     EXAMPLES::
 
@@ -906,10 +905,9 @@ def orbit_partition(gamma, list_perm=False):
 
     INPUT:
 
-
-    - ``list_perm`` - if True, assumes
+    - ``list_perm`` - if ``True``, assumes
       ``gamma`` is a list representing the map
-      `i \mapsto ``gamma``[i]`.
+      `i \mapsto ``gamma``[i]`
 
     EXAMPLES::
 
@@ -957,7 +955,7 @@ def orbit_partition(gamma, list_perm=False):
 
 def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
     """
-    Returns the coarsest equitable refinement of ``partition`` for ``G``.
+    Return the coarsest equitable refinement of ``partition`` for ``G``.
 
     This is a helper function for the graph function of the same name.
 
@@ -967,7 +965,6 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: coarsest_equitable_refinement(SparseGraph(7), [[0], [1,2,3,4], [5,6]], 0)
         [[0], [1, 2, 3, 4], [5, 6]]
-
     """
     cdef int i, j = 0, k = 0, n = G.num_verts
 
@@ -1032,7 +1029,6 @@ def get_orbits(list gens, int n):
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
         sage: get_orbits([[1,2,3,0,4,5], [0,1,2,3,5,4]], 6)
         [[0, 1, 2, 3], [4, 5]]
-
     """
     cdef int i, j
     if len(gens) == 0:
@@ -1061,9 +1057,6 @@ def get_orbits(list gens, int n):
     sig_free(perm_ints)
 
     return orbit_dict.values()
-
-
-
 
 
 

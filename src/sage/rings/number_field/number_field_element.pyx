@@ -2870,7 +2870,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: hash(K(-2/3)) == hash(-2/3)
             True
 
-        Look for small collisions::
+        No collisions (even on low bits)::
 
             sage: from itertools import product
             sage: elts = []
@@ -2883,6 +2883,8 @@ cdef class NumberFieldElement(FieldElement):
             ....:         elts.append(x / 3)
             sage: len(set(map(hash, elts))) == len(elts)
             True
+            sage: len(set(hash(x)%(2^18) for x in elts)) == len(elts)
+            True
         """
         cdef Py_hash_t h
         cdef int i
@@ -2894,12 +2896,12 @@ cdef class NumberFieldElement(FieldElement):
 
         for i from 1 <= i <= ZZX_deg(self.__numerator):
             ZZX_getitem_as_mpz(z, &self.__numerator, i)
-            # magic number below is floor(2^64 / (1+sqrt(5)))
-            h ^= mpz_pythonhash(z) + (<Py_hash_t> 5700357409661599242) + (h << 6) + (h >> 2)
+            # magic number below is floor(2^63 / (2+sqrt(2)))
+            h ^= mpz_pythonhash(z) + (<Py_hash_t> 2701463124188384701) + (h << 16) + (h >> 2)
 
         ZZ_to_mpz(z, &self.__denominator)
         # magic number below is floor((1+sqrt(5)) * 2^63)
-        h += (mpz_pythonhash(z) - 1) * (<Py_hash_t> (7461864723258187525))
+        h += (mpz_pythonhash(z) - 1) * (<Py_hash_t> 7461864723258187525)
 
         mpz_clear(z)
 

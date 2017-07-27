@@ -1608,7 +1608,9 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
             True
 
         """
-        return richcmp((type(self), self.parent()), (type(other), other.parent()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.parent(), other.parent(), op)
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """

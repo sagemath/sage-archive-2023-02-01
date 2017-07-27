@@ -1032,7 +1032,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         The sum of the Green's function at the archimedean places and the places of bad reduction.
 
-        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
+        If function is defined over ``QQ`` uses Wells' Algorithm, which allows us to
         not have to factor the resultant.
 
         INPUT:
@@ -1056,7 +1056,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - Original algorithm written by Elliot Wells [WELLS]_
 
-        - Wells Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+        - Wells' Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
 
         EXAMPLES::
@@ -1116,7 +1116,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
 
-        #Well's Algorithm
+        #Wells' Algorithm
         if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
             # write our point with coordinates whose gcd is 1
             self.normalize_coordinates()
@@ -1153,7 +1153,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                     H = H + R(g).abs().log()/(d**(n+1))
                     x_i = x/g
                     y_i = y/g
-            # this looks different than Well's Algorithm because of the difference between what Well's calls H_infty,
+            # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
             # and what Green's Function returns for the infinite place
             return self.green_function(F, 0 , **kwds) - H + R(t).log()
 

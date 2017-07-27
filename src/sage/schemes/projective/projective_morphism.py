@@ -1992,7 +1992,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         The sum of the Green's function at the archimedean places and the places of bad reduction.
 
-        If function is defined over ``QQ`` uses Wells Algorithm, which allows us to
+        If function is defined over ``QQ`` uses Wells' Algorithm, which allows us to
         not have to factor the resultant.
 
         INPUT:
@@ -2018,7 +2018,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - Original algorithm written by Elliot Wells [WELLS]_
 
-        - Well's Algorithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+        - Wells' Algorithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
         EXAMPLES::
 

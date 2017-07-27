@@ -904,7 +904,9 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             True
 
         """
-        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
     def __hash__(self):
         r"""
@@ -1017,7 +1019,9 @@ class FractionFieldEmbeddingSection(Section):
             True
 
         """
-        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
     def __hash__(self):
         r"""

@@ -13,7 +13,7 @@ Sage now does have rich representations.
 All codes available here can be accessed through the ``codes`` object::
 
     sage: codes.GolayCode(GF(2),extended=False)
-    [23, 12, 7]  Golay code over Finite Field of size 2
+    [23, 12, 7]  Golay code over GF(2)
 
 REFERENCES:
 

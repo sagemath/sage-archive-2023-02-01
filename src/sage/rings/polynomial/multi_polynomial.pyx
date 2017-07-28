@@ -864,7 +864,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.change_ring(K.embeddings(CC)[1])
             x^2 + (-0.500000000000000 + 0.866025403784439*I)*y
         """
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
         #if we're given a hom of the base ring extend to a poly hom
             if R.domain() == self.base_ring():
                 R = self.parent().hom(R, self.parent().change_ring(R.codomain()))

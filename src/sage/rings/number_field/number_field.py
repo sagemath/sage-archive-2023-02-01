@@ -8693,8 +8693,10 @@ class NumberField_absolute(NumberField_generic):
         if P is None:
             return pari(self).nfhilbert(a, b)
 
-        from sage.rings.morphism import is_RingHomomorphism
-        if is_RingHomomorphism(P):
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
+        if isinstance(P, Map) and P.category_for().is_subcategory(Rings()):
+            # P is a morphism of Rings
             if P.domain() is not self:
                 raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()

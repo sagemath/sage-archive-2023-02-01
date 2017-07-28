@@ -104,7 +104,7 @@ cdef extern from "meataxe.h":
     Matrix_t *MatCutRows(Matrix_t *src, int row1, int nrows) except NULL
     Matrix_t *MatDup(Matrix_t *src) except NULL
     Matrix_t *MatId(int fl, int nor) except NULL
-    Matrix_t *MatLoad(char *fn) except NULL
+    Matrix_t *MatLoad(char *fn) except? NULL
     int MatSave(Matrix_t *mat, char *fn) except -1
 
 
@@ -123,7 +123,7 @@ cdef extern from "meataxe.h":
     ## "Higher" Arithmetic
     Matrix_t *MatTensor(Matrix_t *m1, Matrix_t *m2) except NULL
     Matrix_t *TensorMap(Matrix_t *vec, Matrix_t *a, Matrix_t *b) except NULL
-    
+
     int MatClean(Matrix_t *mat, Matrix_t *sub) except -1
     int MatEchelonize(Matrix_t *mat) except -1
     int MatOrder(Matrix_t *mat) except? -1

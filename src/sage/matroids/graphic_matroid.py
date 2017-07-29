@@ -1367,6 +1367,12 @@ class GraphicMatroid(Matroid):
         of vertices in the input, skipping pairs of vertices with an edge already
         between them if ``simple == True``.
 
+        This method only considers the current graph presentation, and
+        does not take 2-isomorphism into account. Use
+        :meth:`twist <sage.matroids.graphic_matroid.GraphicMatroid.twist>` or
+        :meth:`one_sum <sage.matroids.graphic_matroid.GraphicMatroid.one_sum>`
+        if you wish to change the graph presentation.
+
         INPUT:
 
         - ``element`` -- (optional) The name of the newly added element in
@@ -1441,6 +1447,11 @@ class GraphicMatroid(Matroid):
     def graphic_coextension(self, u, v=None, X=None, element=None):
         """
         Return a matroid coextended by a new element.
+
+        A coextension in a graphic matroid is the opposite of contracting an edge;
+        that is, vertices are merged, and a new edge is added between them. This
+        method will split a vertex, and move the edges indicated by ``X`` to the
+        new vertex.
 
         INPUT:
 

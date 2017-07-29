@@ -26,6 +26,13 @@ by using the ``regular`` keyword when constructing the matroid::
 
     sage: M = Matroid(graphs.DiamondGraph(), regular = True)
 
+It is also possible to cast a GraphicMatroid as a RegularMatroid with the
+:meth:`regular_matroid <sage.matroids.graphic_matroids.GraphicMatroid.regular_matroid>`
+method.
+
+    sage: M = Matroid(graphs.DiamondGraph())
+    sage: N = M.regular_matroid()
+
 Below are some examples of constructing a graphic matroid.
 
 ::

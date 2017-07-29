@@ -353,6 +353,21 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: sorted(M.groundset())
             [0, 1, 2]
 
+        The GraphicMatroid object forces its graph to be connected. If a
+        disconnected graph is used as input, it will connect the components.
+
+            sage: G1 = graphs.CycleGraph(3); G2 = graphs.DiamondGraph()
+            sage: G = G1.disjoint_union(G2)
+            sage: M = Matroid(G)
+            sage: M
+            Graphic matroid of rank 5 on 8 elements
+            sage: M.graph()
+            Looped multi-graph on 6 vertices
+            sage: M.graph().is_connected()
+            True
+            sage: M.is_connected()
+            False
+
 
         If the keyword ``regular`` is set to ``True``, the output will instead
         be an instance of ``RegularMatroid``.

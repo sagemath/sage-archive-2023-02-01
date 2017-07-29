@@ -725,7 +725,7 @@ def lift_map(target):
 
     raise NotImplementedError(target)
 
-def split_vertex(G, u, v = None, edges = None):
+def split_vertex(G, u, v=None, edges=None):
     """
     Split a vertex in a graph.
 
@@ -736,7 +736,7 @@ def split_vertex(G, u, v = None, edges = None):
 
     - ``G`` -- A SageMath Graph.
     - ``u`` -- A vertex in ``G``.
-    - ``v`` -- (optional) the name of the new vertex after the splitting. If
+    - ``v`` -- (optional) The name of the new vertex after the splitting. If
       ``v`` is specified and already in the graph, it must be an isolated vertex.
     - ``edges`` -- (optional) An iterable container of edges on ``u`` that
       move to ``v`` after the splitting. If ``None``, ``v`` will be an isolated

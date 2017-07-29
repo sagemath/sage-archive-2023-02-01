@@ -501,7 +501,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
           elements. If provided, the columns (and, in case of a reduced
           representation, rows) will be presented in the given order.
         - ``lift_map`` -- (default: ``None``) a dictionary containing the cross
-          ratios of the representing matrix in it's domain. If provided, the
+          ratios of the representing matrix in its domain. If provided, the
           representation will be transformed by mapping its cross ratios according
           to ``lift_map``.
 

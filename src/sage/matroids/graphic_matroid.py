@@ -79,7 +79,6 @@ Methods
 from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2017 Zachary Gershkoff <zgersh2@lsu.edu>
-#       Copyright (C) 2017 Stefan van Zwam <stefanvanzwam@gmail.com>
 #
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -104,7 +103,18 @@ class GraphicMatroid(Matroid):
 
     - ``G`` -- a SageMath graph
     - ``groundset`` -- (optional) a list in 1-1 correspondence with
-      ``G.edges()``
+      ``G.edge_iterator()``
+
+    OUTPUT:
+
+    A ``GraphicMatroid`` instances where the ground set elements are
+    the edges of ``G``.
+
+    ..NOTE::
+
+        If a disconnected graph is given as input, the instance of
+        ``GraphicMatroid`` will connect the graph components and store
+        this as its graph.
 
     EXAMPLES::
 
@@ -113,6 +123,36 @@ class GraphicMatroid(Matroid):
         Graphic matroid of rank 4 on 5 elements
         sage: N = GraphicMatroid(graphs.CompleteBipartiteGraph(3,3)); N
         Graphic matroid of rank 5 on 9 elements
+
+    A disconnected input will get converted to a connected graph internally::
+
+        sage: G1 = graphs.CycleGraph(3); G2 = graphs.DiamondGraph()
+        sage: G = G1.disjoint_union(G2)
+        sage: len(G)
+        7
+        sage: G.is_connected()
+        False
+        sage: M = GraphicMatroid(G)
+        sage: M
+        Graphic matroid of rank 5 on 8 elements
+        sage: H = M.graph()
+        sage: H
+        Looped multi-graph on 6 vertices
+        sage: H.is_connected()
+        True
+        sage: M.is_connected()
+        False
+
+    You can still locate an edge using the vertices of the input graph::
+
+        sage: G1 = graphs.CycleGraph(3); G2 = graphs.DiamondGraph()
+        sage: G = G1.disjoint_union(G2)
+        sage: M = Matroid(G)
+        sage: H = M.graph()
+        sage: vm = M.vertex_map()
+        sage: (u, v, l) = G.random_edge()
+        sage: H.has_edge(vm[u], vm[v])
+        True
     """
 
     # Necessary:
@@ -232,7 +272,7 @@ class GraphicMatroid(Matroid):
         """
         edges = self.groundset_to_edges(X)
         vertices = set([u for (u, v, l) in edges]).union(
-            set([v for (u, v, l) in edges]))
+            [v for (u, v, l) in edges])
         # This counts components:
         DS_vertices = DisjointSet(vertices)
         for (u, v, l) in edges:
@@ -333,6 +373,9 @@ class GraphicMatroid(Matroid):
         """
         Compare two matroids.
 
+        For two graphic matroids must be equal, all attributes of the underlying
+        graphs must be equal.
+
         INPUT:
 
         - ``other`` -- A matroid.
@@ -354,6 +397,17 @@ class GraphicMatroid(Matroid):
             False
             sage: M == P
             False
+
+        A more subtle example where the vertex labels differ::
+
+            sage: G1 = Graph([(0,1,0),(0,2,1),(1,2,2)])
+            sage: G2 = Graph([(3,4,3),(3,5,4),(4,5,5),(4,6,6),(5,6,7)])
+            sage: G = G1.disjoint_union(G2)
+            sage: H = G2.disjoint_union(G1)
+            sage: Matroid(G) == Matroid(H)
+            False
+            sage: Matroid(G).equals(Matroid(H))
+            True
 
         """
         # Graph.__eq__() will ignore edge labels unless we turn on weighted()
@@ -526,11 +580,21 @@ class GraphicMatroid(Matroid):
             False
             sage: N.has_minor(M, certificate = True)
             (False, None)
+
+        If the matroids are not 3-connected, then the default matroid algorithms
+        are used::
+
+            sage: M = matroids.CompleteGraphic(6)
+            sage: N = Matroid(graphs.CycleGraph(4))
+            sage: M.has_minor(N)
+            True
+            sage: N.has_minor(M)
+            False
         """
         # The graph minor algorithm is faster but it doesn't make sense
         # to use it if M(H) is not 3-connected, because of all the possible
         # Whitney switches or 1-sums that will give the same matroid.
-        if isinstance(N,GraphicMatroid) and N.is_3connected():
+        if isinstance(N, GraphicMatroid) and N.is_3connected():
             # Graph.minor() does not work with multigraphs
             G = self.graph()
             G.allow_loops(False)
@@ -730,8 +794,8 @@ class GraphicMatroid(Matroid):
             frozenset()
         """
         edges = self.groundset_to_edges(X)
-        vertices = set([u for (u, v, l) in edges]).union(
-            set([v for (u, v, l) in edges]))
+        vertices = set([u for (u, v, l) in edges])
+        vertices.update([v for (u, v, l) in edges])
 
         our_set = set()
         DS_vertices = DisjointSet(vertices)
@@ -790,7 +854,7 @@ class GraphicMatroid(Matroid):
 
         OUTPUT:
 
-        ``frozenset`` instance containing a subset of the groundset.
+        ``frozenset`` instance containing a subset of ``X``.
         A ``ValueError`` is raised if the set contains no circuit.
 
         EXAMPLES::
@@ -827,9 +891,6 @@ class GraphicMatroid(Matroid):
             frozenset({4, 5})
 
         """
-        if self._is_independent(X):
-            raise ValueError("no circuit in independent set")
-
         edges = self.groundset_to_edges(X)
         vertices = set([u for (u, v, l) in edges]).union(
             set([v for (u, v, l) in edges]))
@@ -842,6 +903,8 @@ class GraphicMatroid(Matroid):
             else:
                 last_edge = (u, v, l)
                 break
+        else:
+            raise ValueError("no circuit in independent set")
 
         vertex_list = ([u for (u, v, l) in edge_set]
             + [v for (u, v, l) in edge_set])
@@ -1173,12 +1236,7 @@ class GraphicMatroid(Matroid):
             sage: M._groundset_to_edges([2,3,4])
             [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
         """
-        edge_list = []
-        for x in X:
-            v0 = self._groundset_edge_map[x][0]
-            v1 = self._groundset_edge_map[x][1]
-            edge_list.append((v0, v1, x))
-        return edge_list
+        return [(self._groundset_edge_map[x][0], self._groundset_edge_map[x][1], x) for x in X]
 
     def subgraph_from_set(self, X):
         """
@@ -1210,7 +1268,7 @@ class GraphicMatroid(Matroid):
 
     def _subgraph_from_set(self, X):
         """
-        Return the subgraph corresponding to M restricted to X.
+        Return the subgraph corresponding to `M` restricted to `X`.
 
         INPUT:
 
@@ -1649,10 +1707,10 @@ class GraphicMatroid(Matroid):
         # Determine the vertices
         X_edges = self.groundset_to_edges(X)
         X_vertices = set([e[0] for e in X_edges]).union(
-            set([e[1] for e in X_edges]))
+            [e[1] for e in X_edges])
         Y_edges = self.groundset_to_edges(self.groundset().difference(set(X)))
         Y_vertices = set([e[0] for e in Y_edges]).union(
-            set([e[1] for e in Y_edges]))
+            [e[1] for e in Y_edges])
         vertices = X_vertices.intersection(Y_vertices)
         if len(vertices) != 2:
             raise ValueError("too many vertices in the intersection")
@@ -1781,12 +1839,12 @@ class GraphicMatroid(Matroid):
         # Determine the vertex
         X_edges = self.groundset_to_edges(X)
         X_vertices = set([e[0] for e in X_edges]).union(
-            set([e[1] for e in X_edges]))
+            [e[1] for e in X_edges])
         if u not in X_vertices:
             raise ValueError("first vertex must be spanned by the input")
         Y_edges = self.groundset_to_edges(self.groundset().difference(set(X)))
         Y_vertices = set([e[0] for e in Y_edges]).union(
-            set([e[1] for e in Y_edges]))
+            [e[1] for e in Y_edges])
         if v not in Y_vertices:
             raise ValueError("second vertex must be spanned by " +
                 "the rest of the graph")
@@ -1797,7 +1855,7 @@ class GraphicMatroid(Matroid):
         b = G.add_vertex()
 
         edgeset = set(X_edges).intersection(set(G.edges_incident(a)))
-        split_vertex(G, u = a, v = b, edges = edgeset)
+        split_vertex(G, a, b, edgeset)
         # If u was the cut vertex, u is now detached from our component
         # so we merge the new vertex. Otherwise we can merge u
         if u == a:

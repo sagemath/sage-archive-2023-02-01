@@ -1694,7 +1694,6 @@ class GraphicMatroid(Matroid):
         else:
             if not cosimple:
                 # First extend by a coloop on the first vertex.
-                G.add_vertex(v)
                 G.add_edge(vertices[0], v, element)
                 yield GraphicMatroid(G)
                 G.delete_vertex(v)
@@ -1702,7 +1701,6 @@ class GraphicMatroid(Matroid):
                 # Next do a series extension on every edge incident with the vertices
                 for (u0, v0, l) in G.edges_incident(vertices):
                     G.delete_edge(u0, v0, l)
-                    G.add_vertex(v)
                     if v0 in vertices:
                         G.add_edge(u0, v, l)
                         G.add_edge(v, v0, element)

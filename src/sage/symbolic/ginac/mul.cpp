@@ -739,6 +739,10 @@ ex mul::eval(int level) const
 
 			// XXX: What is the best way to check if the polynomial is a primitive? 
 			numeric c = i->rest.integer_content();
+#ifdef DO_GINAC_ASSERT
+                        if (c.is_zero())
+                                std::cerr << i->rest << "\n" << std::flush;
+#endif
 			const numeric lead_coeff =
 				ex_to<numeric>(ex_to<add>(i->rest).\
 						lead_coeff()).div(c);

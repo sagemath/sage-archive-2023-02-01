@@ -409,6 +409,13 @@ class GraphicMatroid(Matroid):
             sage: Matroid(G).equals(Matroid(H))
             True
 
+        Same except for vertex labels::
+
+            sage: G1 = Graph([(0,1,0),(1,2,1),(2,0,2)])
+            sage: G2 = Graph([(3,4,0),(4,5,1),(5,3,2)])
+            sage: Matroid(G1) == Matroid(G2)
+            False
+
         """
         # Graph.__eq__() will ignore edge labels unless we turn on weighted()
         # This will be done in __init__()
@@ -557,7 +564,7 @@ class GraphicMatroid(Matroid):
             sage: N1 = Matroid(groundset = range(3), graph = graphs.CycleGraph(3),
             ....: regular = True)
             sage: M._has_minor(N1, certificate = True)
-            (True, (frozenset({0, 1, 3}), frozenset({2, 4, 6}), {0: 5, 1: 7, 2: 8}))
+            (True, (frozenset({0, 2, 3}), frozenset({4, 5, 8}), {0: 1, 1: 6, 2: 7}))
             sage: M._has_minor(N)
             True
             sage: M._has_minor(N1)
@@ -654,8 +661,11 @@ class GraphicMatroid(Matroid):
             else:
                 return True
         else:
-            # otherwise use the default method for abstract matroids
-            return Matroid._has_minor(self, N, certificate=certificate)
+            # otherwise send it to regular matroids
+            M = self.regular_matroid()
+            if isinstance(N, GraphicMatroid):
+                N = N.regular_matroid()
+            return M._has_minor(N, certificate=certificate)
 
     def _corank(self, X):
         """
@@ -1075,7 +1085,10 @@ class GraphicMatroid(Matroid):
             return (True, elt_certif)
 
         else:
-            return Matroid._is_isomorphic(self, other, certificate=certificate)
+            M = self.regular_matroid()
+            if isinstance(other,GraphicMatroid):
+                other = other.regular_matroid()
+            return M._is_isomorphic(other, certificate=certificate)
 
     def _isomorphism(self, other):
         """
@@ -1113,10 +1126,7 @@ class GraphicMatroid(Matroid):
             sage: M._isomorphism(O)
             {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
         """
-        if isinstance(other,GraphicMatroid) and other.is_3connected():
-            return self.is_isomorphic(other, certificate=True)[1]
-        else:
-            return Matroid._isomorphism(self, other)
+        return self.is_isomorphic(other, certificate=True)[1]
 
     def is_valid(self):
         """
@@ -1901,3 +1911,22 @@ class GraphicMatroid(Matroid):
             G.merge_vertices([v, u])
 
         return GraphicMatroid(G)
+
+    def regular_matroid(self):
+        """
+        Return an instance of RegularMatroid isomorphic to this GraphicMatroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.CompleteGraphic(5); M
+            M(K5): Graphic matroid of rank 4 on 10 elements
+            sage: N = M.regular_matroid(); N
+            Regular matroid of rank 4 on 10 elements with 125 bases
+            sage: M.equals(N)
+            True
+            sage: M == N
+            False
+        """
+        from sage.matroids.constructor import Matroid as ConstructorMatroid
+        return ConstructorMatroid(groundset=self._groundset, graph=self._G,
+            regular=True)

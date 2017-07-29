@@ -13,7 +13,7 @@ The recommended way to create a graphic matroid is by using the
 graph `G` as input. This function can accept many different kinds of input
 to get a graphic matroid if the ``graph`` keyword is used, similar to the
 :func:`Graph() <sage.graphs.graph.Graph>` constructor. However,
-invoking the classes directly is possible too. To get access to them, type::
+invoking the class directly is possible too. To get access to it, type::
 
     sage: from sage.matroids.advanced import *
 

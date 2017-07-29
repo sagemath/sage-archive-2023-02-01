@@ -8,7 +8,7 @@ AUTHORS:
 
 .. SEEALSO::
 
-    For infromation on PBW datum, see
+    For information on PBW datum, see
     :ref:`sage.combinat.crystals.pbw_datum`.
 """
 

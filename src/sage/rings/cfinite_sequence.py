@@ -338,7 +338,7 @@ class CFiniteSequence(FieldElement):
         INPUT:
 
         - ``ogf`` -- the ordinary generating function, a fraction of polynomials over the rationals
-        - ``parent`` --  the parent of the C-Finite sequence, an occurence of :class:`CFiniteSequences`
+        - ``parent`` --  the parent of the C-Finite sequence, an occurrence of :class:`CFiniteSequences`
 
         OUTPUT:
 

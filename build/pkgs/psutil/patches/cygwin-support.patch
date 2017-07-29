@@ -819,7 +819,7 @@ index 0000000..ffba639
 +            raise
 +        # Process name is between parentheses. It can contain spaces and
 +        # other parentheses. This is taken into account by looking for
-+        # the first occurrence of "(" and the last occurence of ")".
++        # the first occurrence of "(" and the last occurrence of ")".
 +        rpar = data.rfind(b')')
 +        name = data[data.find(b'(') + 1:rpar]
 +        fields_after_name = data[rpar + 2:].split()

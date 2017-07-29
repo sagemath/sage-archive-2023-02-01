@@ -1138,7 +1138,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         -  ``choose_degree`` - choose degree of monomials
            randomly first, rather than monomials uniformly random
 
-        -  ``vars_set`` - list of integer indicies of
+        -  ``vars_set`` - list of integer indices of
            generators of self to use in the generated polynomial
 
 
@@ -1246,7 +1246,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         -  ``monom_counts`` - a list containing total number
            of monomials up to given degree
 
-        -  ``vars_set`` - list of variable indicies to use in
+        -  ``vars_set`` - list of variable indices to use in
            the generated polynomial
 
         -  ``dfirst`` - if ``True`` choose degree
@@ -1289,7 +1289,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         -  ``monom_counts`` - list of number of monomials up
            to given degree
 
-        -  ``vars_set`` - list of variable indicies to use in
+        -  ``vars_set`` - list of variable indices to use in
            the generated monomial
 
 
@@ -1330,7 +1330,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         -  ``degree`` - maximum degree
 
-        -  ``vars_set`` - list of variable indicies of self
+        -  ``vars_set`` - list of variable indices of self
 
 
         EXAMPLES::
@@ -2305,7 +2305,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         INPUT:
 
-        -  ``d`` - dictionary with integer indicies
+        - ``d`` -- dictionary with integer indices
 
         EXAMPLES::
 

@@ -1554,10 +1554,10 @@ class GraphicMatroid(Matroid):
             sage: for N in I:
             ....:     N.graph().edges_incident(0)
             [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
-            [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 0)]
-            [(0, 1, 0), (0, 3, 2), (0, 4, 3), (0, 5, 1)]
-            [(0, 1, 0), (0, 2, 1), (0, 4, 3), (0, 5, 2)]
-            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 3)]
+            [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
+            [(0, 1, 0), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
+            [(0, 1, 0), (0, 2, 1), (0, 4, 3), (0, 5, 'a')]
+            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 'a')]
             [(0, 2, 1), (0, 3, 2), (0, 5, 'a')]
             [(0, 1, 0), (0, 3, 2), (0, 5, 'a')]
             [(0, 1, 0), (0, 2, 1), (0, 5, 'a')]
@@ -1652,23 +1652,14 @@ class GraphicMatroid(Matroid):
         for u in vertices:
             if G.degree(u) > 3:
                 elts_incident = [l for (u0, v0, l) in G.edges_incident(u)]
-                half_elts = len(elts_incident) / Integer(2)
-                for i in range(2, (half_elts + Integer(1))):
-                    if i == half_elts:
-                    # This is so we don't get two of the same coextensions
-                    # If this happens, it will be after the else: part
-                        x = elts_incident.pop()
-                        groups = combinations(elts_incident, (i - 1))
-                        for g in groups:
-                            g = list(g)
-                            g.append(x)
-                            yield self.graphic_coextension(
-                                X = g, u = u, v = v, element = element)
-                    else:
-                        groups = combinations(elts_incident, i)
-                        for g in groups:
-                            yield self.graphic_coextension(
-                                X = g, u = u, v = v, element = element)
+                x = elts_incident.pop()
+                for i in range(1, (len(elts_incident) - Integer(1))):
+                    groups = combinations(elts_incident, i)
+                    for g in groups:
+                        g = list(g)
+                        g.append(x)
+                        yield self.graphic_coextension(
+                            X = g, u = u, v = v, element = element)
 
     def twist(self, X):
         """

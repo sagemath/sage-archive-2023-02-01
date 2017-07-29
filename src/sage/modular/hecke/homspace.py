@@ -152,10 +152,12 @@ class HeckeModuleHomspace(HomsetWithBase):
             dim_dom = self.domain().rank()
             dim_codom = self.codomain().rank()
             MS = MatrixSpace(self.base_ring(), dim_dom, dim_codom)
-            if A == 0:
+            if self.domain() == self.codomain():
+                A = A * MS.identity_matrix()
+            elif A == 0:
                 A = MS.zero()
             else:
-                A = A * MS.identity_matrix()
+                raise ValueError('scalars do not coerce to this homspace')
         elif isinstance(A, (list, tuple)):
             A = matrix([self.codomain().coordinate_vector(f) for f in A])
         return HeckeModuleMorphism_matrix(self, A, name)

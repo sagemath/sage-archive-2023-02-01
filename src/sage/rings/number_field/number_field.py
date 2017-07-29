@@ -2758,7 +2758,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         m = 1
         if check_abelian:
             if not self.is_abelian():
-                raise ValueError, "The conductor is only defined for abelian fields"
+                raise ValueError("The conductor is only defined for abelian fields")
 
         try:
             De = self.__disc

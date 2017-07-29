@@ -1302,6 +1302,10 @@ class GraphicMatroid(Matroid):
         """
         Return a graphic matroid extended by a new element.
 
+        A new edge will be added between ``u`` and ``v``. If ``v`` is not
+        specified, then a loop is added on ``u``. If both ``u`` and ``v`` are new
+        vertices, then vertices will be merged so the graph still has one component.
+
         INPUT:
 
         - ``u`` -- a vertex in the matroid's graph.
@@ -1324,6 +1328,16 @@ class GraphicMatroid(Matroid):
             sage: M2 = M1.graphic_extension(3); M2
             Graphic matroid of rank 3 on 8 elements
 
+        ::
+
+            sage: M = Matroid(graphs.PetersenGraph())
+            sage: M.graphic_extension(0, 'b', 'c').graph().vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'b']
+            sage: M.graphic_extension('a', 'b', 'c').graph().vertices()
+            Traceback (most recent call last):
+            ...
+            ValueError: u must be an existing vertex
+
         TESTS::
 
             sage: M = Matroid(graphs.EmptyGraph())
@@ -1331,19 +1345,16 @@ class GraphicMatroid(Matroid):
             Graphic matroid of rank 0 on 1 elements
 
         """
-        # __init()__ forces the graph to be connected, so this should
-        # never make a coloop
+        # This will possibly make a coloop if v is a new vertex
         if element is None:
             element = newlabel(self.groundset())
         elif element in self.groundset():
-            raise ValueError("cannot extend by element already in groundset")
-        # If u or v are not already vertices, the graph package will
-        # make them into vertices
-        # If v is None, make a loop at u, not a coloop
-        # Since this is extension, not coextension.
+            raise ValueError("cannot extend by element already in ground set")
         if v is None:
             v = u
         G = self.graph()
+        if u not in G and G.vertices():
+            raise ValueError("u must be an existing vertex")
         G.add_edge(u, v, element)
         return GraphicMatroid(G)
 
@@ -1402,7 +1413,7 @@ class GraphicMatroid(Matroid):
         if element is None:
             element = newlabel(self.groundset())
         elif element in self.groundset():
-            raise ValueError("cannot extend by element already in groundset")
+            raise ValueError("cannot extend by element already in ground set")
         if vertices is None:
             vertices = self._G.vertices()
         elif not set(vertices).issubset(self._G.vertices()):

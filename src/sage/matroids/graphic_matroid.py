@@ -157,7 +157,7 @@ class GraphicMatroid(Matroid):
 
     # Necessary:
 
-    def __init__(self, G, groundset = None):
+    def __init__(self, G, groundset=None):
         """
         See class definition for full documentation.
 
@@ -541,7 +541,7 @@ class GraphicMatroid(Matroid):
 
         return GraphicMatroid(g)
 
-    def _has_minor(self, N, certificate = False):
+    def _has_minor(self, N, certificate=False):
         """
         Check if the matroid has a minor isomoprhic to M(H).
 
@@ -643,7 +643,7 @@ class GraphicMatroid(Matroid):
                 # then use method from abstract matroid class
                 conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
                 M = self.minor(contractions = conset, deletions = delset)
-                (should_be_true, elements) =  Matroid._has_minor(M, N, certificate = True)
+                (should_be_true, elements) =  Matroid._has_minor(M, N, certificate=True)
 
                 # elements is a tuple (contractions, deletions, dict)
                 # There should be no more contractions
@@ -655,7 +655,7 @@ class GraphicMatroid(Matroid):
                 return True
         else:
             # otherwise use the default method for abstract matroids
-            return Matroid._has_minor(self, N, certificate = certificate)
+            return Matroid._has_minor(self, N, certificate=certificate)
 
     def _corank(self, X):
         """
@@ -1004,7 +1004,7 @@ class GraphicMatroid(Matroid):
                 return False
         return True
 
-    def _is_isomorphic(self, other, certificate = False):
+    def _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -1061,7 +1061,7 @@ class GraphicMatroid(Matroid):
             H.allow_loops(False)
             H.allow_multiple_edges(False)
 
-            result = G.is_isomorphic(H, certificate = certificate)
+            result = G.is_isomorphic(H, certificate=certificate)
             if not certificate or result[0] is False:
                 return result
             # If they are isomorphic and the user wants a certificate,
@@ -1075,7 +1075,7 @@ class GraphicMatroid(Matroid):
             return (True, elt_certif)
 
         else:
-            return Matroid._is_isomorphic(self, other, certificate = certificate)
+            return Matroid._is_isomorphic(self, other, certificate=certificate)
 
     def _isomorphism(self, other):
         """
@@ -1114,7 +1114,7 @@ class GraphicMatroid(Matroid):
             {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
         """
         if isinstance(other,GraphicMatroid) and other.is_3connected():
-            return self.is_isomorphic(other, certificate = True)[1]
+            return self.is_isomorphic(other, certificate=True)[1]
         else:
             return Matroid._isomorphism(self, other)
 
@@ -1288,7 +1288,7 @@ class GraphicMatroid(Matroid):
         edge_list = self._groundset_to_edges(X)
         return Graph(edge_list, loops=True, multiedges=True)
 
-    def graphic_extension(self, u, v = None, element = None):
+    def graphic_extension(self, u, v=None, element=None):
         """
         Return a graphic matroid extended by a new element.
 
@@ -1659,7 +1659,7 @@ class GraphicMatroid(Matroid):
                         g = list(g)
                         g.append(x)
                         yield self.graphic_coextension(
-                            X = g, u = u, v = v, element = element)
+                            X=g, u=u, v=v, element=element)
 
     def twist(self, X):
         """

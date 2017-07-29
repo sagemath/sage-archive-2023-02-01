@@ -164,22 +164,22 @@ class HeckeModuleHomspace(HomsetWithBase):
         """
         Return an element.
 
+        If the domain is equal to the codomain, this returns the
+        action of the Hecke operator of index 2. Otherwise, this returns zero.
+
         EXAMPLES::
 
-            sage: M = ModularSymbols(Gamma0(3),weight=22,sign=1)
+            sage: M = ModularSymbols(Gamma0(2), weight=12, sign=1)
             sage: S = M.cuspidal_subspace()
             sage: S.Hom(S).an_element()
             Hecke module morphism defined by the matrix
-            [1 0 0 0 0 0]
-            [0 0 0 0 0 0]
-            [0 0 0 0 0 0]
-            [0 0 0 0 0 0]
-            [0 0 0 0 0 0]
-            [0 0 0 0 0 0]
-            Domain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
-            Codomain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
+            [      260 -2108/135]
+            [     4860      -284]
+            Domain: Modular Symbols subspace of dimension 2 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 2 of Modular Symbols space ...
         """
-        dim_dom = self.domain().rank()
-        dim_codom = self.codomain().rank()
-        A = MatrixSpace(self.base_ring(), dim_dom, dim_codom).an_element()
-        return HeckeModuleMorphism_matrix(self, A)
+        if self.domain() != self.codomain():
+            return self.zero()
+        else:
+            A = self.domain().hecke_operator(2).matrix()
+            return HeckeModuleMorphism_matrix(self, A)

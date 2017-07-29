@@ -1463,7 +1463,7 @@ class GraphicMatroid(Matroid):
 
         - ``u`` -- The vertex to be split. If ``u`` is not a vertex of the
           matroid's graph, then the new element will be a coloop.
-        - ``v`` -- (optional) the name of the new vertex after splitting.
+        - ``v`` -- (optional) The name of the new vertex after splitting.
         - ``X`` -- (optional) A list of the matroid elements corresponding to
           edges of ``u`` that move to the new vertex after splitting. If ``None``,
           the new element will be a coloop.
@@ -1528,12 +1528,29 @@ class GraphicMatroid(Matroid):
             sage: N = M.graphic_coextension(0,'q')
             sage: N.graph().vertices()
             [0, 1, 2, 3, 'q']
+
+        ::
+
+            sage: M = Matroid(graphs.DiamondGraph())
+            sage: N = M.graphic_coextension(u=4, v=5, element='a')
+            sage: N.graph().edges()
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (3, 5, 'a')]
+            sage: N = M.graphic_coextension(u=4, element='a')
+            sage: N.graph().edges()
+            [(0, 1, 0), (0, 2, 1), (0, 4, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
+            sage: N = M.graphic_coextension(u=4, v=4, element='a')
+            Traceback (most recent call last):
+            ...
+            ValueError: u and v must be distinct
         """
         if element is None:
             element = newlabel(self.groundset())
         else:
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in ground set")
+
+        if v == u:
+            raise ValueError("u and v must be distinct")
         # To prevent an error for iterating over None:
         if X is None:
             X = []
@@ -1542,6 +1559,16 @@ class GraphicMatroid(Matroid):
         vertices = G.vertices()
         if v is None:
             v = G.add_vertex()
+            # We have to prevent an error here if the new vertex label is u
+            if u == v:
+                # Then u wasn't already in the graph, so we get a coloop
+                if vertices:
+                    G.add_edge(vertices[0], u, element)
+                else:
+                    v2 = G.add_vertex()
+                    G.add_edge(v, v2, element)
+                return GraphicMatroid(G)
+
         elif v in G:
             raise ValueError("vertex is already in the graph")
         if u not in vertices:

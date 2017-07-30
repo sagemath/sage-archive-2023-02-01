@@ -946,7 +946,7 @@ class RiemannSurface(object):
 
         The permutations give the local monodromy generators for the branch points::
 
-            sage: zip(S.branch_locus + [unsigned_infinity], G) #abs tol 0.0000001
+            sage: list(zip(S.branch_locus + [unsigned_infinity], G)) #abs tol 0.0000001
             [(0.000000000000000, (0,1,2)),
              (-1.31362670141929, (0,1)),
              (-0.819032851784253 - 1.02703471138023*I, (0,2)),

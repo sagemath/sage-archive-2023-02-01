@@ -41,6 +41,7 @@ import sage.modular.modsym.ghlist as ghlist
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
 from sage.structure.sage_object import register_unpickle_override
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from .apply import apply_to_monomial
@@ -48,6 +49,7 @@ from .apply import apply_to_monomial
 from sage.modular.modsym.manin_symbol import ManinSymbol
 
 
+@richcmp_method
 class ManinSymbolList(Parent):
     """
     Base class for lists of all Manin symbols for a given weight, group or character.
@@ -102,7 +104,7 @@ class ManinSymbolList(Parent):
             x = x.tuple()
         return self.element_class(self, x)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         Comparison function for ManinSymbolList objects.
 
@@ -120,9 +122,9 @@ class ManinSymbolList(Parent):
             False
         """
         if not isinstance(right, ManinSymbolList):
-            return cmp(type(self), type(right))
-        return cmp((self._weight, self._symbol_list),
-                   (right._weight, right._symbol_list))
+            return NotImplemented
+        return richcmp((self._weight, self._symbol_list),
+                       (right._weight, right._symbol_list), op)
 
     def symbol_list(self):
         """

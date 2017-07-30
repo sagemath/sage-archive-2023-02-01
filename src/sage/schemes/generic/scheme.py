@@ -27,7 +27,6 @@ from sage.rings.all import (IntegerRing,
                             ZZ, GF, PowerSeriesRing,
                             Rationals, CommutativeRing)
 from sage.rings.ideal import is_Ideal
-from sage.rings.morphism import is_RingHomomorphism
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
@@ -105,6 +104,8 @@ class Scheme(Parent):
 
         """
         from sage.schemes.generic.morphism import is_SchemeMorphism
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
 
         if X is None:
             self._base_ring = ZZ
@@ -114,7 +115,8 @@ class Scheme(Parent):
             self._base_morphism = X
         elif isinstance(X, CommutativeRing):
             self._base_ring = X
-        elif is_RingHomomorphism(X):
+        elif isinstance(X, Map) and X.category_for().is_subcategory(Rings()):
+            # X is a morphism of Rings
             self._base_ring = X.codomain()
         else:
             raise ValueError('The base must be define by a scheme, '
@@ -1153,7 +1155,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
 
@@ -1171,8 +1173,12 @@ class AffineScheme(UniqueRepresentation, Scheme):
               Defn: Defined on coordinates by sending (r) to
                     (2, r)
         """
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
+
         if is_Scheme(x):
             return self.Hom(x).natural_map()
-        if Y is None and is_RingHomomorphism(x):
+        if Y is None and isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
+            # x is a morphism of Rings
             Y = AffineScheme(x.domain())
         return Scheme.hom(self, x, Y)

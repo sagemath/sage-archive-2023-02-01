@@ -858,13 +858,13 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = F(3/847); repr(y)[3:]
             '5563A4105291255628.148272'
             sage: repr(y*847)[3:]
-            '3'
+            '000000000000000000000003'
             sage: repr(W(77/3, relprec=0))[3:]
-            ''
+            '000'
             sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
-            '11111.01A'
+            '011111.01A'
             sage: repr(c * 11)[3:]
-            '1'
+            '000000001'
         """
         if mpq_sgn(x) == 0:
             self._set_exact_zero()

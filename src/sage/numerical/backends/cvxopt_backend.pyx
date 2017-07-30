@@ -500,7 +500,7 @@ cdef class CVXOPTBackend(GenericBackend):
         for eq_index in range(self.nrows()):
             h.append(self.row_upper_bound[eq_index])
             #upper bound is already in G
-            if self.row_lower_bound[eq_index] != None:
+            if self.row_lower_bound[eq_index] is not None:
                 h.append(-1 * self.row_lower_bound[eq_index])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == eq_index:
@@ -512,14 +512,14 @@ cdef class CVXOPTBackend(GenericBackend):
 
         #for the upper bounds (if there are any)
         for i in range(len(self.col_upper_bound)):
-            if self.col_upper_bound[i] != None:
+            if self.col_upper_bound[i] is not None:
                 h.append(self.col_upper_bound[i])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == i:
                         self.G_matrix[cindex].append(1)
                     else:
                         self.G_matrix[cindex].append(0)
-            if self.col_lower_bound[i] != None:
+            if self.col_lower_bound[i] is not None:
                 h.append(self.col_lower_bound[i])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == i:

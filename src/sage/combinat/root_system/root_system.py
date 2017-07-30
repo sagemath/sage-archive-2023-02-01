@@ -24,6 +24,7 @@ from sage.misc.all import cached_method
 from .root_space import RootSpace
 from .weight_space import WeightSpace
 
+
 class RootSystem(UniqueRepresentation, SageObject):
     r"""
     A class for root systems.
@@ -278,6 +279,22 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         sage: for T in CartanType.samples(crystallographic=True):  # long time (13s on sage.math, 2012)
         ....:     TestSuite(RootSystem(T)).run()
+
+    Some checks for equality::
+
+        sage: r1 = RootSystem(['A',3])
+        sage: r2 = RootSystem(['B',3])
+        sage: r1 == r1
+        True
+        sage: r1 == r2
+        False
+        sage: r1 != r1
+        False
+
+    Check that root systems inherit a hash method from ``UniqueRepresentation``::
+
+        sage: hash(r1)  # random
+        42
     """
 
     @staticmethod
@@ -437,28 +454,6 @@ class RootSystem(UniqueRepresentation, SageObject):
             False
         """
         return self.cartan_type().is_irreducible()
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: r1 = RootSystem(['A',3])
-            sage: r2 = RootSystem(['B',3])
-            sage: r1 == r1
-            True
-            sage: r1 == r2
-            False
-
-        Check that they inherit a hash method from ``UniqueRepresentation``::
-
-            sage: hash(r1)  # random
-            42
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self._cartan_type != other._cartan_type:
-            return cmp(self._cartan_type, other._cartan_type)
-        return 0
 
     def root_lattice(self):
         """

@@ -16,8 +16,7 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 15 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
+- Chap. 15 of R. Godement : *Algebra* [God1968]_
 
 """
 #******************************************************************************
@@ -34,9 +33,6 @@ from sage.structure.parent import Parent
 from sage.categories.groups import Groups
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
-
-import six
-
 
 class FreeModuleLinearGroup(UniqueRepresentation, Parent):
     r"""
@@ -117,7 +113,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         sage: a(v).display()
         e_0 - e_1 + e_2
 
-    An automorphism can also be viewed as a tensor of type (1,1) on `M`::
+    An automorphism can also be viewed as a tensor of type `(1,1)` on `M`::
 
         sage: a.tensor_type()
         (1, 1)
@@ -213,19 +209,19 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
          Integer Ring is not invertible
 
     Similarly, there is a coercion `\mathrm{GL}(M)\rightarrow T^{(1,1)}(M)`
-    (module of type-(1,1) tensors)::
+    (module of type-`(1,1)` tensors)::
 
         sage: M.tensor_module(1,1).has_coerce_map_from(GL)
         True
 
     (see :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule` for
-    details), but not in the reverse direction, since not every type-(1,1)
+    details), but not in the reverse direction, since not every type-`(1,1)`
     tensor can be considered as an automorphism::
 
         sage: GL.has_coerce_map_from(M.tensor_module(1,1))
         False
 
-    Invertible type-(1,1) tensors can be converted to automorphisms::
+    Invertible type-`(1,1)` tensors can be converted to automorphisms::
 
         sage: t = M.tensor((1,1), name='t')
         sage: t[e,:] = [[-1,0,0], [0,1,2], [0,1,3]]
@@ -353,7 +349,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
             sage: a.matrix(e) == phi.matrix(e)
             True
 
-        Construction from an invertible tensor of type (1,1)::
+        Construction from an invertible tensor of type `(1,1)`::
 
             sage: t = M.tensor((1,1), name='t')
             sage: t[e,:] = [[1,1], [2,3]]
@@ -374,7 +370,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
             if tens.tensor_type() == (1,1):
                 resu = self.element_class(self._fmodule, name=tens._name,
                                           latex_name=tens._latex_name)
-                for basis, comp in six.iteritems(tens._components):
+                for basis, comp in tens._components.items():
                     resu._components[basis] = comp.copy()
                 # Check whether the tensor is invertible:
                 try:
@@ -391,7 +387,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
             if endo.is_endomorphism() and self._fmodule is endo.domain():
                 resu = self.element_class(self._fmodule, name=endo._name,
                                           latex_name=endo._latex_name)
-                for basis, mat in six.iteritems(endo._matrices):
+                for basis, mat in endo._matrices.items():
                     resu.add_comp(basis[0])[:] = mat
                 # Check whether the endomorphism is invertible:
                 try:

@@ -191,8 +191,7 @@ cdef class GenericSDPBackend:
             sage: [p.objective_coefficient(x) for x in range(5)]  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
 
-        Constants in the objective function are respected::
-
+        Constants in the objective function are respected.
         """
         raise NotImplementedError()
 
@@ -674,7 +673,7 @@ def default_sdp_solver(solver = None):
 
 cpdef GenericSDPBackend get_solver(solver = None):
     """
-    Return a solver according to the given preferences
+    Return a solver according to the given preferences.
 
     INPUT:
 
@@ -688,7 +687,7 @@ cpdef GenericSDPBackend get_solver(solver = None):
 
     .. SEEALSO::
 
-    - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
+        - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
 
     EXAMPLES::
 

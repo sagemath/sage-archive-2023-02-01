@@ -121,20 +121,6 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         return hash((self.base_ring(), self.__level))
 
-    def __cmp__(self, other):
-        r"""
-        Compare self to other. This must be overridden in all subclasses.
-
-        EXAMPLES::
-
-            sage: M = ModularForms(Gamma0(3))
-            sage: sage.modular.hecke.module.HeckeModule_generic.__cmp__(M, M)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ...
-        """
-        raise NotImplementedError("Derived class %s should implement __cmp__" % type(self))
-
     def _compute_hecke_matrix_prime_power(self, p, r, **kwds):
         r"""
         Compute the Hecke matrix T_{p^r}, where `p` is prime and `r \ge 2`, assuming that

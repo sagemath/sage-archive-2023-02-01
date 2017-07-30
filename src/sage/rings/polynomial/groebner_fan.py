@@ -819,7 +819,7 @@ class GroebnerFan(SageObject):
         self.__verbose = verbose
         if not is_MPolynomialIdeal(I):
             raise TypeError("I must be a multivariate polynomial ideal")
-        if prefix_check([str(R_gen) for R_gen in I.ring().gens()]) != True:
+        if not prefix_check([str(R_gen) for R_gen in I.ring().gens()]):
             raise RuntimeError("Ring variables cannot contain each other as prefixes")
         S = I.ring()
         R = S.base_ring()

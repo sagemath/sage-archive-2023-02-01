@@ -8,6 +8,7 @@ AUTHORS:
 - Travis Scrimshaw (2013-28-03): Added element class for ASM's and made
   :class:`MonotoneTriangles` inherit from :class:`GelfandTsetlinPatterns`
 - Jessica Striker (2013): Added additional methods
+- Vincent Delecroix (2017): cleaning
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -15,6 +16,7 @@ AUTHORS:
 #                          Luis Serrano <luisgui.serrano@gmail.com>
 #                     2013 Travis Scrimshaw <tscrim@ucdavis.edu>
 #                     2013 Jessica Striker <jessicapalencia@gmail.com>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -55,6 +57,26 @@ from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFu
 from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
 from sage.misc.decorators import rename_keyword
+
+
+def _inplace_height_function_gyration(hf):
+    k = hf.nrows() - 1
+    for i in range(1,k):
+        for j in range(1,k):
+            if (i+j) % 2 == 0 \
+                    and hf[i-1,j] == hf[i+1,j] == hf[i,j+1] == hf[i,j-1]:
+                if hf[i,j] < hf[i+1,j]:
+                    hf[i,j] += 2
+                else:
+                    hf[i,j] -= 2
+    for i in range(1,k):
+        for j in range(1,k):
+            if (i+j) % 2 == 1 \
+                    and hf[i-1,j] == hf[i+1,j] == hf[i,j+1] == hf[i,j-1]:
+                if hf[i,j] < hf[i+1,j]:
+                    hf[i,j] += 2
+                else:
+                    hf[i,j] -= 2
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class AlternatingSignMatrix(Element):
@@ -156,8 +178,6 @@ class AlternatingSignMatrix(Element):
             sage: M <= A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             False
         """
-        if not isinstance(other, AlternatingSignMatrix):
-            return op == op_NE
         return richcmp(self._matrix, other._matrix, op)
 
     def _latex_(self):
@@ -323,7 +343,7 @@ class AlternatingSignMatrix(Element):
 
     def corner_sum_matrix(self):
         r"""
-        Return the corner sum matrix from ``self``.
+        Return the corner sum matrix of ``self``.
 
         EXAMPLES::
 
@@ -365,11 +385,16 @@ class AlternatingSignMatrix(Element):
             [0 1 1 2 2]
             [0 1 2 2 3]
             [0 1 2 3 4]
-
         """
-        asm = self.to_matrix()
-        n = asm.nrows() + 1
-        return matrix([[nw_corner_sum(asm,i,j) for j in range(n)] for i in range(n)])
+        asm = self._matrix
+        n = asm.nrows()
+        ans = matrix(ZZ, n + 1)
+        col_sum = [ZZ.zero()] * n
+        for i in range(n):
+            for j in range(n):
+                col_sum[j] += asm[i,j]
+                ans[i+1, j+1] = ans[i+1, j] + col_sum[j]
+        return ans
 
     def height_function(self):
         r"""
@@ -399,10 +424,22 @@ class AlternatingSignMatrix(Element):
             [1 2 1 2]
             [2 3 2 1]
             [3 2 1 0]
+
+            sage: A = AlternatingSignMatrices(4)
+            sage: all(A.from_height_function(a.height_function()) == a for a in A)
+            True
         """
-        asm = self.to_matrix()
-        n = asm.nrows() + 1
-        return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
+        asm = self._matrix
+        n = asm.nrows()
+        ans = matrix(ZZ, n + 1)
+        for i in range(1, n+1):
+            ans[0, i] = ans[i, 0] = i
+        col_sum = [ZZ.zero()] * n
+        for i in range(n):
+            for j in range(n):
+                col_sum[j] += asm[i,j]
+                ans[i+1, j+1] = ans[i+1, j] + 1 - 2 * col_sum[j]
+        return ans.transpose()
 
     def to_six_vertex_model(self):
         r"""
@@ -432,7 +469,6 @@ class AlternatingSignMatrix(Element):
             ....:     for x in ASM)
             True
         """
-
         asm = self.to_matrix()
         n = asm.nrows()
         M = SquareIceModel(n)
@@ -536,27 +572,16 @@ class AlternatingSignMatrix(Element):
             [0 0 0 1]
             [0 1 0 0]
             [0 0 1 0]
+
+            sage: a0 = a = AlternatingSignMatrices(5).random_element()
+            sage: for i in range(10):
+            ....:     a = a.gyration()
+            sage: a == a0
+            True
         """
-        A = self.parent()
-        hf = list(self.height_function())
-        k = len(hf) - 1
-        for i in range(1,k):
-            for j in range(1,k):
-                if (i+j) % 2 == 0 \
-                        and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
-                    if hf[i][j] < hf[i+1][j]:
-                        hf[i][j] += 2
-                    else:
-                        hf[i][j] -= 2
-        for i in range(1,k):
-            for j in range(1,k):
-                if (i+j) % 2 == 1 \
-                        and hf[i-1][j] == hf[i+1][j] == hf[i][j+1] == hf[i][j-1]:
-                    if hf[i][j] < hf[i+1][j]:
-                        hf[i][j] += 2
-                    else:
-                        hf[i][j] -= 2
-        return A.from_height_function(matrix(hf))
+        hf = self.height_function()
+        _inplace_height_function_gyration(hf)
+        return  self.parent().from_height_function(hf)
 
     def gyration_orbit(self):
         r"""
@@ -583,12 +608,20 @@ class AlternatingSignMatrix(Element):
             [0,1,0,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0]]).gyration_orbit())
             12
         """
-        cyc = [self]
-        B = self.gyration()
-        while self != B:
-            cyc.append(B)
-            B = B.gyration()
-        return cyc
+        hf = self.height_function()
+
+        cyc = [hf.__copy__()]
+        cyc[-1].set_immutable()
+
+        _inplace_height_function_gyration(hf)
+
+        while hf != cyc[0]:
+            cyc.append(hf.__copy__())
+            cyc[-1].set_immutable()
+            _inplace_height_function_gyration(hf)
+
+        P = self.parent()
+        return [P.from_height_function(hf) for hf in cyc]
 
     def ASM_compatible(self, B):
         r"""
@@ -640,33 +673,37 @@ class AlternatingSignMatrix(Element):
 
         EXAMPLES::
 
-            sage: A = AlternatingSignMatrix(matrix([[1,0],[0,1]]))
+            sage: A = AlternatingSignMatrix([[1,0],[0,1]])
             sage: A.ASM_compatible_bigger()
             [
             [ 0  1  0]  [1 0 0]  [0 1 0]  [1 0 0]
             [ 1 -1  1]  [0 0 1]  [1 0 0]  [0 1 0]
             [ 0  1  0], [0 1 0], [0 0 1], [0 0 1]
             ]
-            sage: B = AlternatingSignMatrix(matrix([[0,1],[1,0]]))
+            sage: B = AlternatingSignMatrix([[0,1],[1,0]])
             sage: B.ASM_compatible_bigger()
             [
             [0 0 1]  [0 0 1]  [0 1 0]  [ 0  1  0]
             [0 1 0]  [1 0 0]  [0 0 1]  [ 1 -1  1]
             [1 0 0], [0 1 0], [1 0 0], [ 0  1  0]
             ]
+
+            sage: B = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: len(B.ASM_compatible_bigger()) == 2**4
+            True
         """
         n = self.parent()._n + 1
         M = AlternatingSignMatrices(n)
         sign = []
         asm = self.to_matrix()
         B = matrix(n+1)
-        A = matrix([[2*(i+j-2*nw_corner_sum(asm,i,j))+1 for i in range(n)]
-                    for j in range(n)])
+        A = 2 * self.height_function()
+        for i in range(n):
+            for j in range(n):
+                A.add_to_entry(i, j, ZZ.one())
         for a in range(n+1):
-            B[a,0] = 2*a
-            B[0,a] = 2*a
-            B[a,n] = 2*(n-a)
-            B[n,a] = 2*(n-a)
+            B[a,0] = B[0,a] = 2*a
+            B[a,n] = B[n,a] = 2*(n-a)
 
         for i in range(1,n):
             for j in range(1,n):
@@ -674,7 +711,9 @@ class AlternatingSignMatrix(Element):
                     B[i,j] = -A[i,j]
                     sign.append([i,j])
                 else:
-                    B[i,j] = list({A[i-1,j-1]-1,A[i-1,j-1]+3} & {A[i-1,j]-3,A[i-1,j]+1} & {A[i,j-1]-3,A[i,j-1]+1} & {A[i,j]-1,A[i,j]+3})[0]
+                    s = {A[i-1,j-1]-1,A[i-1,j-1]+3} & {A[i-1,j]-3,A[i-1,j]+1} & {A[i,j-1]-3,A[i,j-1]+1} & {A[i,j]-1,A[i,j]+3}
+                    assert len(s) == 1
+                    B[i,j] = s.pop()
 
         output = [B]
         for b in range(len(sign)):
@@ -719,7 +758,7 @@ class AlternatingSignMatrix(Element):
         M = AlternatingSignMatrices(n)
         A = matrix(n)
         asm = self.to_matrix()
-        B = matrix([[2*(i+j-2*nw_corner_sum(asm,i,j)) for i in range(n)] for j in range(n)])
+        B = 2*self.height_function()[:n,:n]
         sign = []
         for a in range(n):
             A[a,0] = 2*a + 1
@@ -826,7 +865,7 @@ class AlternatingSignMatrix(Element):
             1
         """
         a = self._matrix
-        return sum(1 for (i,j) in a.nonzero_positions() if a[i,j] == -1)
+        return ZZ((len(a.nonzero_positions()) - a.nrows()) // 2)
 
     def is_permutation(self):
         """
@@ -892,8 +931,6 @@ class AlternatingSignMatrix(Element):
             for j in range(len(mt[i])):
                 ssyt[i][j] = mt[j][-(i+1)]
         return SemistandardTableau(ssyt)
-
-
 
     def left_key(self):
         r"""
@@ -1383,6 +1420,40 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         for t in MonotoneTriangles(self._n):
             yield self.from_monotone_triangle(t, check=False)
 
+    def first(self):
+        r"""
+        Return the first alternating sign matrix
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(5).first()
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+        """
+        return self.element_class(self, self._matrix_space.one())
+
+    def last(self):
+        r"""
+        Return the last alternating sign matrix
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrices(5).last()
+            [0 0 0 0 1]
+            [0 0 0 1 0]
+            [0 0 1 0 0]
+            [0 1 0 0 0]
+            [1 0 0 0 0]
+        """
+        m = self._matrix_space.zero().__copy__()
+        for i in range(self._n):
+            m[i, self._n - i - 1] = 1
+        m.set_immutable()
+        return self.element_class(self, m)
+
     def _lattice_initializer(self):
         r"""
         Return a 2-tuple to use in argument of ``LatticePoset``.
@@ -1458,8 +1529,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             )
 
         """
-        (_, rels) = self._lattice_initializer()
-        return (_ for _ in rels)
+        return iter(self._lattice_initializer()[1])
 
     def lattice(self):
         r"""
@@ -1975,19 +2045,3 @@ class TruncatedStaircases_nlastcolumn(TruncatedStaircases):
         for _ in self:
             c += 1
         return c
-
-def nw_corner_sum(M,i,j):
-    r"""
-    Return the sum of entries to the northwest of `(i,j)` in matrix.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.alternating_sign_matrix import nw_corner_sum
-        sage: A = matrix.ones(3,3)
-        sage: nw_corner_sum(A,2,2)
-        4
-    """
-    if i >= 0 and j >= 0:
-        return sum([sum(M[i2][:j]) for i2 in range(i)])
-    return 0
-

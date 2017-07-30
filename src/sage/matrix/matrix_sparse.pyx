@@ -295,7 +295,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Left scalar multiplication. Internal usage only.
 
@@ -838,16 +838,16 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         We must pass in a list of indices::
 
-            sage: A=random_matrix(ZZ,100,density=.02,sparse=True)
+            sage: A = random_matrix(ZZ,100,density=.02,sparse=True)
             sage: A.matrix_from_rows_and_columns(1,[2,3])
             Traceback (most recent call last):
             ...
-            TypeError: rows must be a list of integers
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
+
             sage: A.matrix_from_rows_and_columns([1,2],3)
             Traceback (most recent call last):
             ...
-            TypeError: columns must be a list of integers
-
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
 
         AUTHORS:
 
@@ -857,15 +857,11 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if isinstance(rows, xrange):
+        if not isinstance(rows, (list, tuple)):
             rows = list(rows)
-        elif not isinstance(rows, list):
-            raise TypeError("rows must be a list of integers")
 
-        if isinstance(columns, xrange):
+        if not isinstance(columns, (list, tuple)):
             columns = list(columns)
-        elif not isinstance(columns, list):
-            raise TypeError("columns must be a list of integers")
 
         cdef Py_ssize_t nrows, ncols,k,r,i,j
 
@@ -1036,10 +1032,11 @@ cdef class Matrix_sparse(matrix.Matrix):
             [1 0 1 0]
             [0 1 0 1]
         """
-        if hasattr(right, '_vector_'):
-            right = right.column()
         if not isinstance(right, matrix.Matrix):
-            raise TypeError("right must be a matrix")
+            if hasattr(right, '_vector_'):
+                right = right.column()
+            else:
+                raise TypeError("right must be a matrix")
 
         if not (self._base_ring is right.base_ring()):
             right = right.change_ring(self._base_ring)

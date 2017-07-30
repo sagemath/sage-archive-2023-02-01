@@ -470,9 +470,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.has_coerce_map_from(ZZ['t'])
             False
             sage: R.coerce_map_from(ZZ['x'])
-            Conversion map:
-            From: Univariate Polynomial Ring in x over Integer Ring
-            To:   Multivariate Polynomial Ring in x, y over Rational Field
+            Coercion map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
 
         """
         base_ring = self.base_ring()
@@ -1949,7 +1949,7 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     # sage version, the unpickled ring will belong the new implementation.
     return _multi_variate(base_ring, tuple(names), len(names), False, term_order, None)
 
-cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
+cdef class MPolynomial_libsingular(MPolynomial):
     """
     A multivariate polynomial implemented using libSINGULAR.
     """
@@ -2270,7 +2270,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                                 _ring)
         return new_MP((<MPolynomial_libsingular>left)._parent, _p)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply self with a base ring element.
 

@@ -474,6 +474,10 @@ REFERENCES:
             the minimum number of vertices", Topology 40 (2001),
             753--772.
 
+.. [CKS1999] Felipe Cucker, Pascal Koiran, and Stephen Smale. *A polynomial-time
+             algorithm for diophantine equations in one variable*, J. Symbolic
+             Computation 27 (1), 21-29, 1999.
+
 .. [CK2015] \J. Campbell and V. Knight. *On testing degeneracy of
             bi-matrix
             games*. http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/ (2015)
@@ -803,6 +807,10 @@ REFERENCES:
             solutions of some problems of computational
             algebra". Proceedings of the seventeenth annual ACM
             symposium on Theory of computing. ACM, 1985.
+
+.. [FRT1990] Faddeev, Reshetikhin and Takhtajan.
+             *Quantization of Lie Groups and Lie Algebras*.
+             Leningrad Math. J. vol. **1** (1990), no. 1.
 
 .. [FST2012] \A. Felikson, \M. Shapiro, and \P. Tumarkin, *Cluster Algebras of
             Finite Mutation Type Via Unfoldings*, Int Math Res Notices (2012)
@@ -1200,6 +1208,10 @@ REFERENCES:
 .. [Kr1971] \D. Kraines, "On excess in the Milnor basis," Bull. London
             Math. Soc. 3 (1971), 363-365.
 
+.. [Kr2016] Stefan Kranich, An epsilon-delta bound for plane algebraic curves
+            and its use for certified homotopy continuation of systems of plane
+            algebraic curves, arXiv:1505.03432
+
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
             (2001). http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
@@ -1429,6 +1441,15 @@ REFERENCES:
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
+
+.. [MNO1994] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
+             *Yangians and classical Lie algebras*. (1994)
+             :arxiv:`hep-th/9409025`
+
+.. [Mol2007] Alexander Ivanovich Molev.
+             *Yangians and Classical Lie Algebras*.
+             Mathematical Surveys and Monographs.
+             Providence, RI: American Mathematical Society. (2007)
 
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure
@@ -2039,5 +2060,11 @@ REFERENCES:
 
 .. [Zor] Anton Zorich, "Generalized Permutation software"
          (http://perso.univ-rennes1.fr/anton.zorich)
+
+.. [ZZ2005] Hechun Zhang and R. B. Zhang.
+            *Dual canonical bases for the quantum special linear group
+            and invariant subalgebras*.
+            Lett. Math. Phys. **73** (2005), pp. 165-181.
+            :arxiv:`math/0509651`.
 
 .. include:: ../footer.txt

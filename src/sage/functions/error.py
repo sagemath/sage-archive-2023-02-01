@@ -9,7 +9,7 @@ The main objects which are exported from this module are:
 
  * :meth:`erf <Function_erf>` -- The error function
  * :meth:`erfc <Function_erfc>` -- The complementary error function
- * :meth:`erfi <Function_erfi>` -- The imagnary error function
+ * :meth:`erfi <Function_erfi>` -- The imaginary error function
  * :meth:`erfinv <Function_erfinv>` -- The inverse error function
 
 AUTHORS:

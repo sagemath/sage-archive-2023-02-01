@@ -422,8 +422,8 @@ class ClusterAlgebraElement(ElementWrapper):
         .. WARNING::
 
             The result of a division is not guaranteed to be inside
-            meth:`parent` therefore this method does not return an
-            instance of class:`ClusterAlgebraElement`.
+            :meth:`parent` therefore this method does not return an
+            instance of :class:`ClusterAlgebraElement`.
 
         EXAMPLES::
 

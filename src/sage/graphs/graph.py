@@ -6931,12 +6931,12 @@ class Graph(GenericGraph):
         The Bull Graph is prime::
 
             sage: graphs.BullGraph().modular_decomposition()
-            ('Prime', [3, 4, 0, 1, 2])
+            (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
             sage: graphs.PetersenGraph().modular_decomposition()
-            ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
+            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::
@@ -6945,7 +6945,7 @@ class Graph(GenericGraph):
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
             sage: g.modular_decomposition()
-            ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
+            (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         ALGORITHM:
 
@@ -6996,7 +6996,7 @@ class Graph(GenericGraph):
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x[1][0],list) else id_label[x[1][0]]
 
         return relabel(D)
 
@@ -7033,12 +7033,14 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
+        from sage.graphs.modular_decomposition import PRIME
+
         if self.order() == 0:
             return True
 
         D = self.modular_decomposition()
 
-        return D[0] == "Prime" and len(D[1]) == self.order()
+        return D[0].node_type == PRIME and len(D[1]) == self.order()
 
     @rename_keyword(deprecation=19550, method='algorithm')
     def _gomory_hu_tree(self, vertices, algorithm=None):

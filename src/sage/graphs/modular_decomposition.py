@@ -174,7 +174,81 @@ def modular_decomposition(graph):
 
     A nested list representing the modular decomposition tree computed
     for the graph
-    """
+
+    EXAMPLES:
+
+    The Icosahedral graph is Prime:
+
+        sage: from sage.graphs.modular_decomposition import \
+              modular_decomposition, test_modular_decomposition, print_md_tree
+        sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()), 0)
+        PRIME
+              8
+              5
+              1
+              11
+              7
+              0
+              6
+              9
+              2
+              4
+              10
+              3
+
+    The Octahedral graph is not Prime:
+
+        sage: print_md_tree(modular_decomposition(graphs.OctahedralGraph()), 0)
+        SERIES
+              PARALLEL
+                2
+                3
+              PARALLEL
+                1
+                4
+              PARALLEL
+                0
+                5
+
+    TESTS:
+
+        sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
+                    3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
+                    7:[6,8,9,1], 8:[6,7,9,1], 9:[6,7,8,5,4,3,1], 10:[1], \
+                    11:[12,1], 12:[11,1], 13:[14,16,17,1], 14:[13,17,1], \
+                    16:[13,17,1], 17:[13,14,16,18,1], 18:[17], 24:[5,4,3,1]}
+        sage: g = Graph(d)
+        sage: test_modular_decomposition(modular_decomposition(g), g)
+        True
+
+        sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
+                    5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
+                    7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
+                    10:[6,7,8,9], 11:[6,7,8,9]}
+        sage: g = Graph(d)
+        sage: test_modular_decomposition(modular_decomposition(g), g)
+        True
+
+        sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()), 0)
+        SERIES
+              3
+              2
+              1
+              0
+
+        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
+        sage: g = Graph(d)
+        sage: print_md_tree(modular_decomposition(g), 0)
+        SERIES
+              5
+              PARALLEL
+                3
+                4
+              PARALLEL
+                1
+                2
+
+   """
     if graph._directed:
         return ValueError("Graph must be undirected")
 
@@ -274,6 +348,14 @@ def test_modular_decomposition(tree, graph):
     OUTPUT:
 
     ``True`` if input ``tree`` is a modular decomposition else ``False``
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import \
+              modular_decomposition, test_modular_decomposition
+        sage: g = graphs.HexahedralGraph()
+        sage: test_modular_decomposition(modular_decomposition(g), g)
+        True
 
     """
     if tree[0].node_type != NORMAL:

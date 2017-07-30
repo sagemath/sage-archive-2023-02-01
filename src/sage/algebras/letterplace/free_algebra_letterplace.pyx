@@ -173,7 +173,9 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
     for i from 1<=i<blocks:
         T += T0
         names.extend([x+'_'+str(i) for x in names0])
-    return PolynomialRing(base_ring.base_ring(),len(names),names,order=T)
+    return PolynomialRing(base_ring.base_ring(), names, order=T,
+            implementation="singular")
+
 
 #####################
 # The free algebra

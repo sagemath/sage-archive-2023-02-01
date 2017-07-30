@@ -78,7 +78,7 @@ def _fast_possible_periods(self, return_points=False):
     if not self._is_prime_finite_field:
         raise TypeError("must be prime field")
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
-    if is_ProjectiveSpace(self.domain()) == False or self.domain()!=self.codomain():
+    if not is_ProjectiveSpace(self.domain()) or self.domain()!=self.codomain():
         raise NotImplementedError("must be an endomorphism of projective space")
 
     PS = self.domain()
@@ -148,7 +148,7 @@ def _fast_possible_periods(self, return_points=False):
                             periods.add(period*r*8)
                             points_periods.append([P_proj, period*r*8])
 
-    if return_points == False:
+    if not return_points:
         return sorted(periods)
     else:
         return(points_periods)

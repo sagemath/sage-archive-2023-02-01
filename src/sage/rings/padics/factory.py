@@ -379,7 +379,7 @@ class Qp_class(UniqueFactory):
     alphabet tuple (default alphabet has length 62).::
 
         sage: R = Qp(5, print_mode='digits'); a = R(70700); repr(a)
-        '...4230300'
+        '...0000000000000004230300'
         sage: b = R(-70700); repr(b)
         '...4444444444444440214200'
         sage: c = R(-707/5); repr(c)
@@ -387,8 +387,22 @@ class Qp_class(UniqueFactory):
         sage: d = R(-707/5^2); repr(d)
         '...444444444444444341.33'
 
-    Note that it's not possible to read off the precision from the
-    representation in this mode.
+    Observe that the significant 0's are printed even if they are
+    located in front of the number. On the contrary, unknown digits 
+    located after the comma appears as question marks.
+    The precision can therefore be read in this mode as well. 
+    Here are more examples::
+
+        sage: p = 7
+        sage: K = Qp(p, prec=10, print_mode='digits')
+        sage: repr(K(1))
+        '...0000000001'
+        sage: repr(K(p^2))
+        '...000000000100'
+        sage: repr(K(p^-5))
+        '...00000.00001'
+        sage: repr(K(p^-20))
+        '...?.??????????0000000001'
 
     *print_max_terms* limits the number of digits that are printed.
     Note that if the valuation of the element is very negative, more
@@ -2334,6 +2348,22 @@ class pAdicExtension_class(UniqueFactory):
             sage: S.<x> = ZZ[]
             sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w')
             (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1, 'NTL'), {'shift_seed': (3 + O(5^3))})
+
+            sage: A = Qp(3,5)
+            sage: Po.<X> = A[]
+            sage: f = Po([3,0,-1])
+            sage: K.<a> = A.ext(f)
+            sage: -a^2+3
+            O(a^12)
+            sage: K.defining_polynomial() == f/f.leading_coefficient()
+            True
+
+            sage: g = Po([6,3,2])
+            sage: H.<b> = A.ext(g)
+            sage: 2*b^2+3*b+6
+            O(b^12)
+            sage: H.defining_polynomial() == g/g.leading_coefficient()
+            True
         """
         if print_mode is None:
             print_mode = base.print_mode()
@@ -2435,7 +2465,7 @@ class pAdicExtension_class(UniqueFactory):
                 shift_seed = -preseed.polynomial(base)
             else: # a polynomial
                 if not premodulus.is_monic():
-                    preseed = preseed / premodulus.leading_coefficient()
+                    preseed = premodulus / premodulus.leading_coefficient()
                 else:
                     preseed = premodulus
                 preseed = preseed[:preseed.degree()]

@@ -237,7 +237,7 @@ ELIF PY_VERSION_HEX>=0x03060000:
         else:
             i = 8
         return i
-        
+
     cdef inline PyDictKeyEntry * DK_ENTRIES(MyPyDictKeysObject *keys):
         return <PyDictKeyEntry*> &(keys.dk_indices.as_1[keys.dk_size * DK_IXSIZE(keys)])
 
@@ -281,7 +281,7 @@ ELIF PY_VERSION_HEX>=0x03060000:
         PyDict_GetItemWithError(D,None)
         #which we store in a global variable
         lookdict=DK_LOOKUP(<PyDictObject *>D)
-        
+
     init_lookdict()
 
     cdef ensure_allows_deletions(PyDictObject *mp):
@@ -292,7 +292,7 @@ ELIF PY_VERSION_HEX>=0x03060000:
             PyDict_GetItemWithError(<dict>mp,None)
             #this can actually fail if mp is a dictionary with split table
             assert DK_LOOKUP(mp) == lookdict
-                
+
     cdef del_dictitem_by_exact_value(PyDictObject *mp, PyObject *value, Py_hash_t hash):
         """
         This is used in callbacks for the weak values of :class:`WeakValueDictionary`.
@@ -349,11 +349,11 @@ ELIF PY_VERSION_HEX>=0x03060000:
         cdef size_t mask = <size_t> keys.dk_size-1
         cdef PyDictKeyEntry *entries, *ep
         entries = DK_ENTRIES(keys)
-        
+
         if mp.ma_values != NULL:
             print ("del_dictitem_by_exact_value cannot be applied to a shared key dict")
             return
-        
+
         i = <size_t>hash & mask
         ix = dk_get_index(keys, i)
 
@@ -411,7 +411,7 @@ def test_del_dictitem_by_exact_value(D, value, h):
     See :trac:`13394` for a discussion.
     ::
 
-        sage: from sage.misc.dict_del_by_value import test_del_dictitem_by_exact_value
+        sage: from sage.cpython.dict_del_by_value import test_del_dictitem_by_exact_value
         sage: B=1000
         sage: L=list(range(B))
         sage: D1=dict()

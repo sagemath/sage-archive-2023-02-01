@@ -111,7 +111,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         from .congroup_sl2z import SL2Z
         oldparent, kwdict = state
-        self._set_parent(SL2Z)
+        self._parent = SL2Z
         if '_ArithmeticSubgroupElement__x' in kwdict:
             self.__x = M2Z(kwdict['_ArithmeticSubgroupElement__x'])
         elif '_CongruenceSubgroupElement__x' in kwdict:

@@ -42,16 +42,17 @@ Test NumPy conversions::
 
 from __future__ import print_function
 
+cimport libc.math
+from libc.string cimport memcpy
 from cpython.object cimport *
 from cpython.float cimport *
 
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/ext/python_debug.pxi"
 from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gsl.all cimport *
-cimport libc.math
-from libc.string cimport memcpy
 
 gsl_set_error_handler_off()
 

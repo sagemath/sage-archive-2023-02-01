@@ -497,7 +497,7 @@ class RiggedPartitionTypeB(RiggedPartition):
         ret_str = ""
 
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        if RiggedConfigurations.options.half_width_boxes_type_B == True:
+        if RiggedConfigurations.options.half_width_boxes_type_B:
             box_str = "[]"
         else:
             box_str = "[ ]"
@@ -545,7 +545,7 @@ class RiggedPartitionTypeB(RiggedPartition):
             return "{\\emptyset}"
         
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        if RiggedConfigurations.options.half_width_boxes_type_B == True:
+        if RiggedConfigurations.options.half_width_boxes_type_B:
             box_str = "\\phantom{a}&"
         else:
             box_str = "\\phantom{X|}&"

@@ -40,7 +40,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import CachedRepresentation
 from sage.groups.matrix_gps.matrix_group import (
     MatrixGroup_generic, MatrixGroup_gap )
 
@@ -118,7 +118,7 @@ def normalize_args_vectorspace(*args, **kwds):
     return (ZZ(degree), ring)
 
 
-class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
+class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
 
     def __init__(self, degree, base_ring, special, sage_name, latex_string):
         """
@@ -193,7 +193,7 @@ class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
         """
         return self._latex_string
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         """
         Override comparison.
 
@@ -207,8 +207,15 @@ class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
             sage: G = GL(2,3)
             sage: G == MatrixGroup(G.gens())
             True
+
+            sage: G = groups.matrix.GL(4,2)
+            sage: H = MatrixGroup(G.gens())
+            sage: G == H
+            True
+            sage: G != H
+            False
         """
-        return self.__cmp__(other) == 0
+        return MatrixGroup_generic.__richcmp__(self, other, op)
 
 
 class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):

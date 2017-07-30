@@ -169,7 +169,9 @@ def QuotientRing(R, I, names=None):
     With polynomial rings (note that the variable name of the quotient
     ring can be specified as shown below)::
 
-        sage: R.<xx> = QuotientRing(QQ[x], QQ[x].ideal(x^2 + 1)); R
+        sage: P.<x> = QQ[]
+        sage: R.<xx> = QuotientRing(P, P.ideal(x^2 + 1))
+        sage: R
         Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
         sage: R.gens(); R.gen()
         (xx,)
@@ -860,7 +862,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: R.is_noetherian()
             True
 
-            sage: R = QuotientRing(QQ[x], x^2+1)
+            sage: P.<x> = QQ[]
+            sage: R = QuotientRing(P, x^2+1)
             sage: R.is_noetherian()
             True
 
@@ -898,7 +901,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         ::
 
-            sage: Q = QuotientRing(QQ[x], x^2 + 1)
+            sage: P.<x> = QQ[]
+            sage: Q = QuotientRing(P, x^2 + 1)
             sage: Q.cover_ring()
             Univariate Polynomial Ring in x over Rational Field
         """

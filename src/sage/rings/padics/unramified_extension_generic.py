@@ -23,6 +23,7 @@ from __future__ import absolute_import
 
 from .padic_extension_generic import pAdicExtensionGeneric
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.misc.cachefunc import cached_method
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     """
@@ -212,6 +213,28 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         if n != 0:
             raise IndexError("only one generator")
         return self([0,1])
+
+    @cached_method
+    def _frob_gen(self, arithmetic = True):
+        """
+        Returns frobenius of the generator for this unramified extension
+
+        EXAMPLES::
+            sage: R.<a> = Zq(9)
+            sage: R._frob_gen()
+            (2*a + 1) + (2*a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + (2*a + 2)*3^4 + (2*a + 2)*3^5 + (2*a + 2)*3^6 + (2*a + 2)*3^7 + (2*a + 2)*3^8 + (2*a + 2)*3^9 + (2*a + 2)*3^10 + (2*a + 2)*3^11 + (2*a + 2)*3^12 + (2*a + 2)*3^13 + (2*a + 2)*3^14 + (2*a + 2)*3^15 + (2*a + 2)*3^16 + (2*a + 2)*3^17 + (2*a + 2)*3^18 + (2*a + 2)*3^19 + O(3^20)
+        """
+        p = self.prime()
+        exp = p
+        a = self.gen()
+        if not arithmetic:
+            exp = p**(self.degree()-1)
+        approx = (self(a.residue()**exp)).lift_to_precision(self.precision_cap()) #first approximation
+        f = self.defining_polynomial()
+        g = f.derivative()
+        while(f(approx) != 0): #hensel lift frobenius(a)
+            approx = approx - f(approx)/g(approx)
+        return approx
 
     def uniformizer_pow(self, n):
         """

@@ -122,14 +122,48 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         y = self._printing_ring.gen()
         x = self._printing_ring.base_ring().gen()
         if h == 0:
-            return "Hyperelliptic Curve over %s defined by %s = %s"%(R, y**2, f(x))
+            return "Hyperelliptic Curve over %s defined by %s = %s" % (R, y**2, f(x))
         else:
-            return "Hyperelliptic Curve over %s defined by %s + %s = %s"%(R, y**2, h(x)*y, f(x))
+            return "Hyperelliptic Curve over %s defined by %s + %s = %s" % (R, y**2, h(x)*y, f(x))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        """
+        Test of equality.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+            sage: C0 = HyperellipticCurve(f0)
+            sage: f1 = x^5 - x^3 + x - 22
+            sage: C1 = HyperellipticCurve(f1)
+            sage: C0 == C1
+            False
+            sage: C0 == C0
+            True
+        """
         if not isinstance(other, HyperellipticCurve_generic):
-            return -1
-        return cmp(self._hyperelliptic_polynomials, other._hyperelliptic_polynomials)
+            return False
+        return (self._hyperelliptic_polynomials ==
+                other._hyperelliptic_polynomials)
+
+    def __ne__(self, other):
+        """
+        Test of not equality.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: f0 = 4*x^5 - 30*x^3 + 45*x - 22
+            sage: C0 = HyperellipticCurve(f0)
+            sage: f1 = x^5 - x^3 + x - 22
+            sage: C1 = HyperellipticCurve(f1)
+            sage: C0 != C1
+            True
+            sage: C0 != C0
+            False
+        """
+        return not self == other
 
     def hyperelliptic_polynomials(self, K=None, var='x'):
         """
@@ -145,7 +179,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         else:
             f, h = self._hyperelliptic_polynomials
             P = PolynomialRing(K, var)
-            return (P(f),P(h))
+            return (P(f), P(h))
 
     def is_singular(self):
         r"""

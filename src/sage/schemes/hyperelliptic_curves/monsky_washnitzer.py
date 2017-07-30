@@ -61,6 +61,7 @@ from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
@@ -406,7 +407,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     __nonzero__ = __bool__
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -419,7 +420,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: x == x + x - x
             True
         """
-        return cmp(self._triple, other._triple)
+        return richcmp(self._triple, other._triple, op)
 
     def _repr_(self):
         """

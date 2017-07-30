@@ -2293,8 +2293,12 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             True
             sage: mod(0,5).is_one()
             False
+            sage: mod(1, 1).is_one()
+            True
+            sage: Zmod(1).one().is_one()
+            True
         """
-        return self.ivalue == 1
+        return self.ivalue == 1 or self.__modulus.int32 == 1
 
     def __nonzero__(IntegerMod_int self):
         """

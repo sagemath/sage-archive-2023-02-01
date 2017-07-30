@@ -636,13 +636,6 @@ def Matroid(groundset=None, data=None, **kwds):
         Traceback (most recent call last):
         ...
         TypeError: input 'rubbish' is not a matroid
-
-    REFERENCES:
-
-    .. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
-       Matroid Enumeration for Incidence Geometry, Discrete and Computational Geometry, vol. 47, issue 1, pp. 17-43, 2012.
-
-    .. [MatroidDatabase] `Database of Matroids <http://www-imai.is.s.u-tokyo.ac.jp/~ymatsu/matroid/index.html>`_
     """
     # process options
     want_regular = kwds.pop('regular', False)

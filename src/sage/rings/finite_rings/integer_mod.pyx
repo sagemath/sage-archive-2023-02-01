@@ -3813,8 +3813,7 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     if p is None:
         p = a._parent.order()
-    if p < PyInt_GetMax():
-        p = int(p)
+    p = Integer(p)
 
     cdef int p_mod_16 = p % 16
     cdef double bits = log(float(p))/log(2)

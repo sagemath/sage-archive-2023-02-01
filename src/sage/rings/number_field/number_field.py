@@ -10780,3 +10780,45 @@ def refine_embedding(e, prec=None):
     # field with lower precision will equal the lower-precision root!
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
     return elist[min(zip(diffs, count()))[1]]
+
+def is_real_place(v):
+    r"""
+    Return ``True`` if ``v`` is real, ``False`` if ``v`` is complex
+
+    INPUT:
+
+    - ``v`` -- an infinite place of ``K``
+
+    OUTPUT:
+
+    A boolean indicating whether a place is real (``True``) or complex (``False``).
+
+    EXAMPLES::
+
+        sage: K.<xi> = NumberField(x^3-3)
+        sage: phi_real = K.places()[0]
+        sage: phi_complex = K.places()[1]
+        sage: v_fin = tuple(K.primes_above(3))[0]
+
+        sage: is_real_place(phi_real)
+        True
+
+        sage: is_real_place(phi_complex)
+        False
+
+    It is an error to put in a finite place
+
+    ::
+
+        sage: is_real_place(v_fin)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'NumberFieldFractionalIdeal' object has no attribute 'im_gens'
+
+    """
+    RR = sage.rings.real_mpfr.RealField(53)
+    try:
+        RR(v.im_gens()[0])
+        return True
+    except TypeError:
+        return False

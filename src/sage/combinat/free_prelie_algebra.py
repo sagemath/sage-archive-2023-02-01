@@ -17,6 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.magmatic_algebras import MagmaticAlgebras
+from sage.categories.lie_algebras import LieAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.rooted_tree import (RootedTrees, RootedTree,
@@ -88,30 +89,70 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: x * y * z * x == ((x * y) * z) * x
         True
 
-    The NAP product as defined in [Liv]_ is also implemented on the same
+    The NAP product as defined in [Liv2006]_ is also implemented on the same
     vector space::
 
         sage: N = F.nap_product
         sage: N(x*y,z*z)
         B[x[y[], z[z[]]]]
 
-    When there is only one generator, unlabelled trees are used instead::
+    When ``None`` is given as input, unlabelled trees are used instead::
 
-        sage: F1 = algebras.FreePreLie(QQ, 'w')
+        sage: F1 = algebras.FreePreLie(QQ, None)
         sage: w = F1.gen(0); w
         B[[]]
         sage: w * w * w * w
         B[[[[[]]]]] + B[[[[], []]]] + 3*B[[[], [[]]]] + B[[[], [], []]]
 
+    However, it is equally possible to use labelled trees instead::
+
+        sage: F1 = algebras.FreePreLie(QQ, 'q')
+        sage: w = F1.gen(0); w
+        B[q[]]
+        sage: w * w * w * w
+        B[q[q[q[q[]]]]] + B[q[q[q[], q[]]]] + 3*B[q[q[], q[q[]]]] + B[q[q[], q[], q[]]]
+
+    The set `E` can be infinite::
+
+        sage: F = algebras.FreePreLie(QQ, ZZ)
+        sage: w = F.gen(1); w
+        B[1[]]
+        sage: x = F.gen(2); x
+        B[-1[]]
+        sage: y = F.gen(3); y
+        B[2[]]
+        sage: w*x
+        B[1[-1[]]]
+        sage: (w*x)*y
+        B[1[-1[2[]]]] + B[1[-1[], 2[]]]
+        sage: w*(x*y)
+        B[1[-1[2[]]]]
+
+    .. NOTE::
+
+        Variables names can be ``None``, a list of strings, a string
+        or an integer. When ``None`` is given, unlabelled rooted
+        trees are used. When a single string is given, each letter is taken
+        as a variable. See
+        :func:`sage.combinat.words.alphabet.build_alphabet`.
+
+    .. WARNING::
+
+        Beware that the underlying combinatorial free module is based
+        either on ``RootedTrees`` or on ``LabelledRootedTrees``, with no
+        restriction on the labellings. This means that all code calling
+        the :meth:`basis` method would not give meaningful results, since
+        :meth:`basis` returns many "chaff" elements that do not belong to
+        the algebra.
+
     REFERENCES:
 
-    .. [ChLi] \F. Chapoton and M. Livernet, *Pre-Lie algebras and the rooted trees
-       operad*, International Math. Research Notices (2001) no 8, pages 395-408.
-    .. [Liv] \M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
-       Algebra 207 (2006), no 1, pages 1-18.
+    - [ChLi]_
+
+    - [Liv2006]_
     """
     @staticmethod
-    def __classcall_private__(cls, R, names):
+    def __classcall_private__(cls, R, names=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -123,10 +164,12 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: F1 is F2 and F1 is F3
             True
         """
+        if names is not None:
+            names = Alphabet(names)
+
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        return super(FreePreLieAlgebra, cls).__classcall__(cls, R,
-                                                           Alphabet(names))
+        return super(FreePreLieAlgebra, cls).__classcall__(cls, R, names)
 
     def __init__(self, R, names=None):
         """
@@ -138,24 +181,24 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             Free PreLie algebra on one generator ['@'] over Rational Field
             sage: TestSuite(A).run()
 
+            sage: A = algebras.FreePreLie(QQ, None); A
+            Free PreLie algebra on one generator ['o'] over Rational Field
+
             sage: F = algebras.FreePreLie(QQ, 'xy')
             sage: TestSuite(F).run() # long time
-
-            sage: F = algebras.FreePreLie(QQ, ZZ)
-            sage: elts = F.some_elements()[:-1] # Skip the last element
-            sage: TestSuite(F).run(some_elements=elts) # long time
         """
-        if names.cardinality() == 1:
+        if names is None:
             Trees = RootedTrees()
             key = RootedTree.sort_key
+            self._alphabet = Alphabet(['o'])
         else:
             Trees = LabelledRootedTrees()
             key = LabelledRootedTree.sort_key
+            self._alphabet = names
         # Here one would need LabelledRootedTrees(names)
         # so that one can restrict the labels to some fixed set
-
-        self._alphabet = names
-        cat = MagmaticAlgebras(R).WithBasis().Graded()
+        
+        cat = MagmaticAlgebras(R).WithBasis().Graded() & LieAlgebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
                                          sorting_key=key,
@@ -170,6 +213,10 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: R = algebras.FreePreLie(QQ, 'xy')
             sage: R.variable_names()
             {'x', 'y'}
+
+            sage: R = algebras.FreePreLie(QQ, None)
+            sage: R.variable_names()
+            {'o'}
         """
         return self._alphabet
 
@@ -261,7 +308,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreePreLie(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ, None)
             sage: RT = A.basis().keys()
             sage: A.degree_on_basis(RT([RT([])]))
             2
@@ -288,7 +335,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreePreLie(QQ,'@')
+            sage: A = algebras.FreePreLie(QQ, None)
             sage: A.some_elements()
             [B[[]], B[[[]]], B[[[[[]]]]] + B[[[], [[]]]], B[[[[]]]] + B[[[], []]], B[[[]]]]
 
@@ -329,7 +376,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreePreLie(QQ, '@')
+            sage: A = algebras.FreePreLie(QQ, None)
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.product_on_basis(x, x)
@@ -350,7 +397,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreePreLie(QQ, '@')
+            sage: A = algebras.FreePreLie(QQ, None)
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.pre_Lie_product(x, x)
@@ -360,6 +407,27 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         return self._module_morphism(self._module_morphism(plb, position=0,
                                                            codomain=self),
                                      position=1)
+
+    def bracket_on_basis(self, x, y):
+        r"""
+        Return the Lie bracket of two trees.
+
+        This is the commutator `[x, y] = x * y - y * x` of the pre-Lie product.
+
+        .. SEEALSO::
+
+            :meth:`pre_Lie_product_on_basis`
+
+        EXAMPLES::
+
+            sage: A = algebras.FreePreLie(QQ, None)
+            sage: RT = A.basis().keys()
+            sage: x = RT([RT([])])
+            sage: y = RT([x])
+            sage: A.bracket_on_basis(x, y)
+            -B[[[[], [[]]]]] + B[[[], [[[]]]]] - B[[[[]], [[]]]]
+        """
+        return self.product_on_basis(x, y) - self.product_on_basis(y, x)
 
     def nap_product_on_basis(self, x, y):
         """
@@ -374,7 +442,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreePreLie(QQ, '@')
+            sage: A = algebras.FreePreLie(QQ, None)
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.nap_product_on_basis(x, x)
@@ -393,7 +461,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreePreLie(QQ, '@')
+            sage: A = algebras.FreePreLie(QQ, None)
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.nap_product(x, x)
@@ -405,7 +473,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                                                            codomain=self),
                                      position=1)
 
-    # after this line : coercion
     def _element_constructor_(self, x):
         r"""
         Convert ``x`` into ``self``.
@@ -426,17 +493,30 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: X, Y = D.gens()
             sage: R(X-Y).parent()
             Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
+
+        TESTS::
+
+            sage: R.<x,y> = algebras.FreePreLie(QQ)
+            sage: S.<z> = algebras.FreePreLie(GF(3))
+            sage: R(z)
+            Traceback (most recent call last):
+            ...
+            TypeError: not able to convert this to this algebra
         """
-        if x in self.basis().keys():
+        if (isinstance(x, (RootedTree, LabelledRootedTree))
+                and x in self.basis().keys()):
             return self.monomial(x)
         try:
             P = x.parent()
             if isinstance(P, FreePreLieAlgebra):
                 if P is self:
                     return x
-                return self.element_class(self, x.monomial_coefficients())
+                if self._coerce_map_from_(P):
+                    return self.element_class(self, x.monomial_coefficients())
         except AttributeError:
-            raise TypeError('not able to coerce this in this algebra')
+            raise TypeError('not able to convert this to this algebra')
+        else:
+            raise TypeError('not able to convert this to this algebra')
         # Ok, not a pre-Lie algebra element (or should not be viewed as one).
 
     def _coerce_map_from_(self, R):
@@ -446,8 +526,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - free pre-Lie algebras in the same variables over a base with
-          a coercion map into ``self.base_ring()``
+        - free pre-Lie algebras whose set `E` of labels is
+          a subset of the corresponding self of ``set`, and whose base
+          ring has a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 
@@ -492,7 +573,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: G._coerce_map_from_(F)
             True
             sage: F._coerce_map_from_(H)
-            False
+            True
             sage: F._coerce_map_from_(QQ)
             False
             sage: G._coerce_map_from_(QQ)
@@ -500,10 +581,10 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # free prelie algebras in the same variables
+        # free prelie algebras in a subset of variables
         # over any base that coerces in:
         if isinstance(R, FreePreLieAlgebra):
-            if R.variable_names() == self.variable_names():
+            if all(x in self.variable_names() for x in R.variable_names()):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False

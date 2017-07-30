@@ -1143,9 +1143,8 @@ class CombinatorialObject(SageObject):
                 ....:         CombinatorialObject.__init__(self, l)
                 sage: b = Bar([4])
                 sage: not b
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'NoneType' object has no attribute 'zero'
+                False
+
         """
         return bool(self._list)
 

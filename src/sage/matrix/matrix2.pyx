@@ -1647,7 +1647,7 @@ cdef class Matrix(Matrix1):
         # resulted in further exceptions/ errors.
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
         try:
             c = self.charpoly(var, algorithm="df")[0]
         except ValueError:
@@ -12372,6 +12372,11 @@ cdef class Matrix(Matrix1):
             sage: A == L*D*L.transpose()
             True
 
+        This works correctly for the 0x0 matrix::
+
+            sage: Matrix(0).indefinite_factorization()
+            ([], ())
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12544,6 +12549,11 @@ cdef class Matrix(Matrix1):
             ValueError: Could not see Finite Field in a of size 5^3 as a subring
             of the real or complex numbers
 
+        The 0x0 matrix is trivially positive definite::
+
+            sage: Matrix(0).is_positive_definite()
+            True
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12694,7 +12704,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t size,i,j
         cdef object M
 
-        if indices is False:
+        if not indices:
             L = self._list()
             size = PyList_GET_SIZE(L)
             M = PyList_New(0)
@@ -14871,7 +14881,7 @@ def _smith_onestep(m):
             isdone = False
 
     # if not we recurse -- algorithm must terminate if R is Noetherian.
-    if isdone == False:
+    if not isdone:
         s,t,u = _smith_onestep(a.transpose())
         left_mat = u.transpose() * left_mat
         a = t.transpose()

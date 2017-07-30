@@ -186,7 +186,7 @@ cdef class Lfunction:
             sage: chi=DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi,type="complex")
             sage: L.hardy_z_function(0)
-            0.7939675904771...
+            0.793967590477...
             sage: L.hardy_z_function(.5).imag().abs() < 1.0e-16
             True
             sage: E=EllipticCurve([-82,0])

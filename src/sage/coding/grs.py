@@ -201,7 +201,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             except (TypeError, ValueError) as e:
                 raise ValueError("Failed converting all evaluation points to the same field (%s)" % e.message)
 
-        if F.is_finite() == False or F.is_field() == False:
+        if not F.is_finite() or not F.is_field():
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
         super(GeneralizedReedSolomonCode, self).__init__(F,
                 len(self._evaluation_points), "EvaluationVector", "Gao")
@@ -470,6 +470,19 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.weight_distribution()
             [1, 0, 0, 0, 0, 0, 2100, 6000, 29250, 61500, 62200]
+
+        TESTS:
+
+        Test that this method agrees with the generic algorithm::
+        
+            sage: F = GF(7)
+            sage: C = codes.GeneralizedReedSolomonCode(F.list(), 3)
+            sage: C.weight_distribution() == super(codes.GeneralizedReedSolomonCode, C).weight_distribution() # long time
+            True
+            sage: F = GF(8)
+            sage: C = codes.GeneralizedReedSolomonCode(F.list(), 3)
+            sage: C.weight_distribution() == super(codes.GeneralizedReedSolomonCode, C).weight_distribution() # long time
+            True
         """
         d = self.minimum_distance()
         n = self.length()
@@ -480,36 +493,6 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             tmp = binomial(n, i) * (q - 1)
             wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1)**s * q**(i - d - s), s, 0, i-d))
         return wd
-
-    def weight_enumerator(self):
-        r"""
-        Return the generating function of the weight distribution of ``self``.
-
-        The generating function of the weight distribution of a GRS code `c`
-        is the polynomial whose coefficient of degree `i` is the number of
-        codewords of weight `i` in `c`.
-
-        Computing the weight enumerator for a GRS code is very fast.
-        Note that for random linear codes, it is computationally hard.
-
-        EXAMPLES::
-
-            sage: F = GF(11)
-            sage: n, k = 10, 5
-            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
-            sage: C.weight_enumerator()
-            62200*x^10 + 61500*x^9 + 29250*x^8 + 6000*x^7 + 2100*x^6 + 1
-        """
-        PolRing = ZZ['x']
-        x = PolRing.gen()
-        s = var('s')
-        wd = self.weight_distribution()
-        d = self.minimum_distance()
-        n = self.length()
-        w_en = PolRing(1)
-        for i in range(n + 1 - d):
-            w_en += wd[i + d] * x ** (i + d)
-        return w_en
 
     def _punctured_form(self, points):
         r"""
@@ -2300,11 +2283,11 @@ GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluat
 GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder
 
 GeneralizedReedSolomonCode._registered_decoders["BerlekampWelch"] = GRSBerlekampWelchDecoder
-GRSBerlekampWelchDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GRSBerlekampWelchDecoder._decoder_type = {"hard-decision", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["Gao"] = GRSGaoDecoder
-GRSGaoDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GRSGaoDecoder._decoder_type = {"hard-decision", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["ErrorErasure"] = GRSErrorErasureDecoder
-GRSErrorErasureDecoder._decoder_type = {"error-erasure", "unique", "always-succeed"}
+GRSErrorErasureDecoder._decoder_type = {"error-erasure", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["KeyEquationSyndrome"] = GRSKeyEquationSyndromeDecoder
-GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "always-succeed"}
 

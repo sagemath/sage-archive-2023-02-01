@@ -2154,7 +2154,197 @@ cdef class pAdicGenericElement(LocalGenericElement):
             retval=R(retval)
         return retval.add_bigoh(aprec)
 
-    def exp(self, aprec = None):
+
+    def _exp_generic(self, aprec):
+        r"""
+        Compute the exponential power series of this element, using Horner's
+        evaluation and only one division.
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="generic")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+
+        AUTHORS:
+
+        - Genya Zaytman (2007-02-15)
+
+        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
+
+        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
+
+        - Julian Rueth (2013-02-14): Rewrite to solve some precision problems
+          in the capped-absolute case
+
+        """
+        R=self.parent()
+        p=self.parent().prime()
+        e=self.parent().ramification_index()
+        x_unit=self.unit_part()
+        p_unit=R(p).unit_part().lift_to_precision()
+        x_val=self.valuation()
+
+        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
+        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
+        # have to sum terms for which n does not exceed N
+        N = (aprec // (x_val - e/(p-1))).floor()
+
+        # We evaluate the exponential series:
+        # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
+        # Horner's method. Then, we divide by N!.
+        # This would only work for capped relative elements since for other
+        # elements, we would lose too much precision in the multiplications
+        # with natural numbers. Therefore, we emulate the behaviour of
+        # capped-relative elements and keep track of the unit part and the
+        # valuation separately.
+
+        # the value of x^N+N*x^(N-1)+...+x*N!+N!
+        series_unit,series_val = R.one(), 0
+
+        # we compute the value of N! as we go through the loop
+        nfactorial_unit,nfactorial_val = R.one(),0
+
+        nmodp = N%p
+        for n in range(N,0,-1):
+            # multiply everything by x
+            series_val += x_val
+            series_unit *= x_unit
+
+            # compute the new value of N*(N-1)*...
+            if nmodp == 0:
+                n_pval, n_punit = Integer(n).val_unit(p)
+                nfactorial_unit *= R(n_punit) * p_unit**n_pval
+                nfactorial_val += n_pval*e
+                nmodp = p
+            else:
+                nfactorial_unit *= n
+            nmodp -= 1
+
+            # now add N*(N-1)*...
+            common_val = min(nfactorial_val, series_val)
+            series_unit = (series_unit<<(series_val-common_val)) + (nfactorial_unit<<(nfactorial_val-common_val))
+            series_val = common_val
+
+        # multiply the result by N!
+        return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
+
+    def _exp_binary_splitting(self, aprec):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Write
+
+        .. MATH::
+
+            self = \sum_{i=1}^\infty a_i p^{2^i}
+
+        with `0 \leq a_i < p^{2^i}` and compute 
+        `\exp(a_i p^{2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+        together with a binary splitting method.
+
+        The binary complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: x = R(7)
+            sage: x.exp(algorithm="binary_splitting")   # indirect doctest
+            1 + 7 + 4*7^2 + 2*7^3 + O(7^5)
+
+        """
+        raise NotImplementedError("The binary splitting algorithm is not implemented for the parent: %s" % self.parent())
+
+    def _exp_newton(self, aprec, log_algorithm=None):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        - ``log_algorithm`` (default: None) -- the algorithm used for
+          computing the logarithm. This attribute is passed to the log
+          method. See :meth:`log` for more details about the possible
+          algorithms.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Solve the equation `\log(x) = self` using the Newton scheme::
+
+        .. MATH::
+
+            x_{i+1} = x_i \cdot (1 + self - \log(x_i))
+
+        The binary complexity of this algorithm is roughly the same
+        than that of the computation of the logarithm.
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="newton")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+        """
+        R = self.parent()
+        e = R.e()
+        a = R(1,aprec)
+        l = R(0,aprec)
+        if R.prime() == 2:
+            trunc = e + 1
+            while trunc < aprec:
+                trunc = 2*trunc - e
+                b = (self-l).add_bigoh(trunc).lift_to_precision(aprec)
+                a *= 1+b
+                l += (1+b).log(aprec, algorithm=log_algorithm)
+        else:
+            trunc = 1
+            while trunc < aprec:
+                trunc = 2*trunc
+                b = (self-l).add_bigoh(trunc).lift_to_precision(aprec)
+                a *= 1+b
+                l += (1+b).log(aprec, algorithm=log_algorithm)
+        return a
+
+
+    def exp(self, aprec = None, algorithm=None):
         r"""
         Compute the `p`-adic exponential of this element if the exponential
         series converges.
@@ -2164,12 +2354,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - ``aprec`` -- an integer or ``None`` (default: ``None``); if
           specified, computes only up to the indicated precision.
 
-        ALGORITHM: If self has a ``lift`` method (which should happen for
-        elements of `\QQ_p` and `\ZZ_p`), then one uses the rule:
-        `\exp(x)=\exp(p)^{x/p}` modulo the precision. The value of `\exp(p)` is
-        precomputed. Otherwise, use the power series expansion of `\exp`,
-        evaluating a certain number of terms which does about `O(\mbox{prec})`
-        multiplications.
+        - ``algorithm`` -- ``generic``, ``binary_splitting``, ``newton`` 
+          or ``None`` (default)
+          The generic algorithm evaluates naively the series defining the
+          exponential, namely
+
+          .. MATH::
+ 
+              \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+          Its binary complexity is quadratic with respect to the precision.
+
+          The binary splitting algorithm is faster, it has a quasi-linear
+          complexity.
+
+          The ``Newton`` algorithms solve the equation `\log(x) = self` using
+          a Newton scheme. It runs roughly as fast as the computation of the
+          logarithm.
+
+          By default, we use the binary splitting if it is available. 
+          If it is not, we use the Newton algorithm if a fast algorithm for
+          computing the logarithm is available.
+          Otherwise we switch to the generic algorithm.
 
         EXAMPLES:
 
@@ -2303,6 +2509,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (w^4).exp()
             1 + w^4 + w^5 + w^7 + w^9 + w^10 + w^14 + O(w^15)
 
+        Check that all algorithms output the same result::
+
+            sage: R = Zp(5,50)
+            sage: a = 5 * R.random_element()
+            sage: bg = a.exp(algorithm="generic")
+            sage: bbs = a.exp(algorithm="binary_splitting")
+            sage: bn = a.exp(algorithm="newton")
+            sage: bg == bbs
+            True
+            sage: bg == bn
+            True
+
+        Performances::
+
+            sage: R = Zp(17,10^6)
+            sage: a = 17 * R.random_element()
+            sage: b = a.exp()    # should be rather fast
+
         AUTHORS:
 
         - Genya Zaytman (2007-02-15)
@@ -2311,107 +2535,36 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - Julian Rueth (2013-02-14): Added doctests, fixed some corner cases
 
+        - Xavier Caruso (2017-06): Added binary splitting and Newton algorithms
+
         """
         p = self.parent().prime()
 
         if (p-1)*self.valuation() <= self.parent().ramification_index():
             raise ValueError('Exponential does not converge for that input.')
 
-        if aprec is None or aprec > self.parent().precision_cap():
-            aprec=self.parent().precision_cap()
+        # The optimal absolute precision on exp(self)
+        # is the absolution precision on self
+        maxprec = min(self.precision_absolute(), self.parent().precision_cap())
+        if aprec is None or aprec > maxprec:
+            aprec = maxprec
 
-        if hasattr(self,'lift'):
-            y=Rational(self.lift())
-            if p == 2:
-                # in Z_2, the element has at least valuation 2, so we can
-                # divide it by 4 (and use the exponential of 4 since the
-                # exponential of 2 does not exist)
-                p = 4
-            return (self.parent()._exp_p()**Integer(y/p)).add_bigoh(min(aprec,self.precision_absolute()))
-        else:
-            return self._exp(aprec)
-
-    def _exp(self, aprec):
-        r"""
-        Compute the exponential power series of this element, using Horner's
-        evaluation and only one division.
-
-        This is a helper method for :meth:`exp`.
-
-        INPUT:
-
-        - ``aprec`` -- an integer, the precision to which to compute the
-          exponential
-
-        EXAMPLES::
-
-            sage: R.<w> = Zq(7^2,5)
-            sage: x = R(7*w)
-            sage: x._exp(5)
-            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
-
-        AUTHORS:
-
-        - Genya Zaytman (2007-02-15)
-
-        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
-
-        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
-
-        - Julian Rueth (2013-02-14): Rewrite to solve some precision problems
-          in the capped-absolute case
-
-        """
-        R=self.parent()
-        p=self.parent().prime()
-        e=self.parent().ramification_index()
-        x_unit=self.unit_part()
-        p_unit=R(p).unit_part().lift_to_precision()
-        x_val=self.valuation()
-
-        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
-        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
-        # have to sum terms for which n does not exceed N
-        N = (aprec // (x_val - e/(p-1))).floor()
-
-        # We evaluate the exponential series:
-        # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
-        # Horner's method. Then, we divide by N!.
-        # This would only work for capped relative elements since for other
-        # elements, we would lose too much precision in the multiplications
-        # with natural numbers. Therefore, we emulate the behaviour of
-        # capped-relative elements and keep track of the unit part and the
-        # valuation separately.
-
-        # the value of x^N+N*x^(N-1)+...+x*N!+N!
-        series_unit,series_val = R.one(), 0
-
-        # we compute the value of N! as we go through the loop
-        nfactorial_unit,nfactorial_val = R.one(),0
-
-        nmodp = N%p
-        for n in range(N,0,-1):
-            # multiply everything by x
-            series_val += x_val
-            series_unit *= x_unit
-
-            # compute the new value of N*(N-1)*...
-            if nmodp == 0:
-                n_pval, n_punit = Integer(n).val_unit(p)
-                nfactorial_unit *= R(n_punit) * p_unit**n_pval
-                nfactorial_val += n_pval*e
-                nmodp = p
-            else:
-                nfactorial_unit *= n
-            nmodp -= 1
-
-            # now add N*(N-1)*...
-            common_val = min(nfactorial_val, series_val)
-            series_unit = (series_unit<<(series_val-common_val)) + (nfactorial_unit<<(nfactorial_val-common_val))
-            series_val = common_val
-
-        # multiply the result by N!
-        return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
+        if algorithm is None:
+            try:
+                ans = self._exp_binary_splitting(aprec)
+            except NotImplementedError:
+                try:
+                    ans = self._exp_newton(aprec, log_algorithm='binary_splitting')
+                except NotImplementedError:
+                    ans = self._exp_generic(aprec)
+        elif algorithm == 'generic':
+            ans = self._exp_generic(aprec)
+        elif algorithm == 'binary_splitting':
+            ans = self._exp_binary_splitting(aprec)
+        elif algorithm == 'newton':
+            ans = self._exp_newton(aprec)
+        return ans.add_bigoh(aprec)
+        
 
     def square_root(self, extend = True, all = False):
         r"""

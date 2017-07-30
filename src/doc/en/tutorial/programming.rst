@@ -184,8 +184,6 @@ If the above script is called ``factor``, here is an example usage:
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Data Types
 ==========

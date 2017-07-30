@@ -1398,7 +1398,7 @@ class RijndaelGF(SageObject):
         if not isinstance(poly_constr, RijndaelGF.Round_Component_Poly_Constr):
             msg = "keyword 'poly_constr' must be a Round_Component_Poly_Constr"
             raise TypeError(msg)
-        if keys != None and (not isinstance(keys, list) or \
+        if keys is not None and (not isinstance(keys, list) or \
            len(keys) != self._Nr + 1 or \
            not all([isinstance(k, Matrix) for k in keys]) or \
            not all([k.dimensions() == (4, self._Nb) for k in keys]) or \
@@ -1409,7 +1409,7 @@ class RijndaelGF(SageObject):
             raise TypeError(msg.format(self._Nr, self._Nb, self._F))
 
         output = []
-        if keys != None:
+        if keys is not None:
             key_list = [el for inner in keys for el in inner.list()]
         for i in range(4):
             for j in range(self._Nb):
@@ -1420,13 +1420,13 @@ class RijndaelGF(SageObject):
                     p = poly_constr(i, j, algorithm, no_inversion=True)
                     p = p(state.list()) ** 254
                 else:
-                    if poly_constr_attr == None:
+                    if poly_constr_attr is None:
                         p = poly_constr(i, j, algorithm)
                     else:
                         p = poly_constr(i, j, algorithm, **poly_constr_attr)
                     # If there are key variables in the polynomial
                     if len(p.args()) > 4 * self._Nb:
-                        if keys != None:
+                        if keys is not None:
                             p = p(state.list() + key_list)
                         else:
                             p = p(state.list() + self.subkey_vrs_list)
@@ -1556,9 +1556,9 @@ class RijndaelGF(SageObject):
             msg = ("keyword 'g' must be a Round_Component_Poly_Constr or a "
                    "polynomial over {0}")
             raise TypeError(msg.format(self._F))
-        if f_attr != None and not isinstance(f_attr, dict):
+        if f_attr is not None and not isinstance(f_attr, dict):
             raise TypeError("f_attr must be a dictionary of keywords for f")
-        if g_attr != None and not isinstance(g_attr, dict):
+        if g_attr is not None and not isinstance(g_attr, dict):
             raise TypeError("g_attr must be a dictionary of keywords for g")
 
         if g in self._all_PR:
@@ -2276,7 +2276,7 @@ class RijndaelGF(SageObject):
             self._polynomial_constr = polynomial_constr
             self._Nb = rgf.block_length()
             self._rgf_name = rgf.__repr__()
-            if round_component_name != None and \
+            if round_component_name is not None and \
                not isinstance(round_component_name, str):
                 msg = "round_component_name must be None or a string"
                 raise TypeError(msg)
@@ -2345,7 +2345,7 @@ class RijndaelGF(SageObject):
                 ....: rgf._shift_rows_pc, rgf)
                 A polynomial constructor of a round component of Rijndael-GF block cipher with block length 4, key length 4, and 10 rounds.
             """
-            if self._rc_name == None:
+            if self._rc_name is None:
                 msg = "A polynomial constructor of a round component of {0}"
                 return msg.format(self._rgf_name)
             else:

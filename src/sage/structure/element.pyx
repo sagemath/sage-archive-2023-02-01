@@ -297,7 +297,7 @@ from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type
-from sage.structure.misc cimport getattr_from_other_class
+from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
@@ -387,11 +387,34 @@ cdef class Element(SageObject):
 
     def _set_parent(self, parent):
         r"""
+        Set the parent of ``self`` to ``parent``.
+
         INPUT:
 
-        - ``parent`` - a SageObject
+        - ``parent`` -- a :class:`Parent`
+
+        .. WARNING::
+
+            Changing the parent of an object is not something you
+            should normally need. It is mainly meant for constructing a
+            new element from scratch, when ``__new__`` or ``__init__``
+            did not set the right parent. Using this method incorrectly
+            can break things badly.
+
+        EXAMPLES::
+
+            sage: q = 3/5
+            sage: parent(q)
+            Rational Field
+            sage: q._set_parent(CC)
+            sage: parent(q)
+            Complex Field with 53 bits of precision
+            sage: q._set_parent(float)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert type to sage.structure.parent.Parent
         """
-        self._parent = parent
+        self._parent = <Parent?>parent
 
     def __getattr__(self, name):
         """
@@ -489,7 +512,7 @@ cdef class Element(SageObject):
             sage: dir(1)         # todo: not implemented
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
-        from .misc import dir_with_other_class
+        from sage.cpython.getattr import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):
@@ -960,15 +983,31 @@ cdef class Element(SageObject):
 
     def __nonzero__(self):
         r"""
-        Return ``True`` if ``self`` does not equal self.parent()(0).
+        Return whether this element is equal to ``self.parent()(0)``.
 
         Note that this is automatically called when converting to
         boolean, as in the conditional of an if or while statement.
 
-        TESTS:
-        Verify that :trac:`5185` is fixed.
+        EXAMPLES::
 
-        ::
+            sage: bool(1) # indirect doctest
+            True
+
+        If ``self.parent()(0)`` raises an exception (because there is no
+        meaningful zero element,) then this method returns ``True``. Here,
+        there is no zero morphism of rings that goes to a non-trivial ring::
+
+            sage: bool(Hom(ZZ, Zmod(2)).an_element())
+            True
+
+        But there is a zero morphism to the trivial ring::
+
+            sage: bool(Hom(ZZ, Zmod(1)).an_element())
+            False
+
+        TESTS:
+
+        Verify that :trac:`5185` is fixed::
 
             sage: v = vector({1: 1, 3: -1})
             sage: w = vector({1: -1, 3: 1})
@@ -980,8 +1019,14 @@ cdef class Element(SageObject):
             False
             sage: (v+w).__nonzero__()
             False
+
         """
-        return self != self._parent.zero()
+        try:
+            zero = self._parent.zero()
+        except Exception:
+            return True # by convention
+
+        return self != zero
 
     def is_zero(self):
         """

@@ -1047,7 +1047,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             if len(curves) == 0:
                 raise RuntimeError("unable to to find %s in the database"%self.E)
             # All curves will have the same conductor and isogeny class,
-            # and there are are most 8 of them, so lexicographic sorting is okay.
+            # and there are most 8 of them, so lexicographic sorting is okay.
             self.curves = tuple(sorted(curves, key = lambda E: E.cremona_label()))
             self._mat = None
         elif algorithm == "sage":

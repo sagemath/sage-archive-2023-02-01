@@ -48,7 +48,7 @@ the four Golay codes
 
     sage: C = codes.GolayCode(GF(3))
     sage: C
-    [12, 6, 6] Extended Golay code over Finite Field of size 3
+    [12, 6, 6] Extended Golay code over GF(3)
     sage: C.minimum_distance()
     6
     sage: C.generator_matrix()

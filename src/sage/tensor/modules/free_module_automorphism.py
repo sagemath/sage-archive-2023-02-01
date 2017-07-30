@@ -19,8 +19,7 @@ AUTHORS:
 
 REFERENCES:
 
-- Chaps. 15, 24 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
+- Chaps. 15, 24 of R. Godement: *Algebra* [God1968]_
 
 """
 from __future__ import absolute_import
@@ -230,7 +229,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         sage: (-a).matrix(e) == - (a.matrix(e))
         True
 
-    Adding two automorphisms results in a generic type-(1,1) tensor::
+    Adding two automorphisms results in a generic type-`(1,1)` tensor::
 
         sage: s = a + b ; s
         Type-(1,1) tensor a+b on the Rank-2 free module M over the Integer Ring
@@ -770,7 +769,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
 
         """
-        from .free_module_tensor import FiniteRankFreeModuleElement
+        from .free_module_element import FiniteRankFreeModuleElement
         if len(arg) > 1:
             # The automorphism acting as a type-(1,1) tensor on a pair
             # (linear form, module element), returning a scalar:

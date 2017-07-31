@@ -39,6 +39,8 @@ from sage.arith.all import lcm
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ, QQ
 from sage.structure.element import Element
+from sage.structure.richcmp import richcmp_method, richcmp
+
 
 def is_HeckeAlgebra(x):
     r"""
@@ -188,6 +190,7 @@ def _heckebasis(M):
     return B1
 
 
+@richcmp_method
 class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
     """
     Base class for algebras of Hecke operators on a fixed Hecke module.
@@ -636,6 +639,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         self.__diamond_operator[d] = D
         return D
 
+
 class HeckeAlgebra_full(HeckeAlgebra_base):
     r"""
     A full Hecke algebra (including the operators `T_n` where `n` is not
@@ -652,7 +656,7 @@ class HeckeAlgebra_full(HeckeAlgebra_base):
         """
         return "Full Hecke algebra acting on %s"%self.module()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self to other.
 
@@ -667,8 +671,8 @@ class HeckeAlgebra_full(HeckeAlgebra_base):
             True
         """
         if not isinstance(other, HeckeAlgebra_full):
-            return -1
-        return cmp(self.module(), other.module())
+            return NotImplemented
+        return richcmp(self.module(), other.module(), op)
 
     def is_anemic(self):
         """
@@ -708,7 +712,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         """
         return "Anemic Hecke algebra acting on %s"%self.module()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self to other.
 
@@ -724,8 +728,8 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
 
         """
         if not isinstance(other, HeckeAlgebra_anemic):
-            return -1
-        return cmp(self.module(), other.module())
+            return NotImplemented
+        return richcmp(self.module(), other.module(), op)
 
     def hecke_operator(self, n):
         """

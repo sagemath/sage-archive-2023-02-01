@@ -448,7 +448,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             raise TypeError("A must be a square matrix of rank %s" % self.parent().module().rank())
         self.__matrix = A
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self to other, where the coercion model has already ensured
         that other has the same parent as self.
@@ -466,10 +466,11 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         """
         if not isinstance(other, HeckeAlgebraElement_matrix):
             if isinstance(other, HeckeOperator):
-                return cmp(self, other.matrix_form())
+                return richcmp(self, other.matrix_form(), op)
             else:
-                raise RuntimeError("Bug in coercion code") # can't get here.
-        return cmp(self.__matrix, other.__matrix)
+                raise RuntimeError("Bug in coercion code") # can't get here
+
+        return richcmp(self.__matrix, other.__matrix, op)
 
     def _repr_(self):
         r"""

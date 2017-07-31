@@ -1215,7 +1215,7 @@ class RESetMapReduce(object):
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 17 else [])
             sage: it = iter(S)
-            sage: next(it)
+            sage: next(it) # random
             []
             sage: S.abort()
             sage: hasattr(S, 'work_queue')

@@ -3,6 +3,7 @@ from sage.structure.parent import Parent
 from sage.combinat.tableau import Tableaux, SemistandardTableaux
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.combinat.crystals.bkk_crystals import BKKCrystalCategory
 
 class BKKTableaux(UniqueRepresentation, Parent):
     r"""
@@ -22,8 +23,52 @@ class BKKTableaux(UniqueRepresentation, Parent):
       but not of -m, ..., -1.
     """
 
-    # TODO: should we use a different class?
-    Element = SkewTableau
+    # FIXME: Hack around the problem. Should be a proper element.
+    class Element(SkewTableau):
+        def e(self, i):
+            read_word = japanese_reading_order(self)
+            P = self.parent()
+            C = BKKOneBoxCrystal(P._m, P._n)
+            T = reduce(lambda x, y: tensor((x,y)), [C]*len(read_word))
+            x = reduce(lambda x, y: [x, y], [C(self[r][c]) for r,c in read_word])
+            x = T(x).e(i)
+            if x is None:
+                return None
+            ret = [[None]*len(row) for row in self]
+            for r,c in reversed(read_word[1:]):
+                ret[r][c] = x[1].value
+                x = x[0]
+            r,c = read_word[0]
+            ret[r][c] = x.value
+            return self.__class__(P, ret)
+
+        def f(self, i):
+            read_word = japanese_reading_order(self)
+            P = self.parent()
+            C = BKKOneBoxCrystal(P._m, P._n)
+            T = reduce(lambda x, y: tensor((x,y)), [C]*len(read_word))
+            x = reduce(lambda x, y: [x, y], [C(self[r][c]) for r,c in read_word])
+            x = T(x).f(i)
+            if x is None:
+                return None
+            ret = [[None]*len(row) for row in self]
+            for r,c in reversed(read_word[1:]):
+                ret[r][c] = x[1].value
+                x = x[0]
+            r,c = read_word[0]
+            ret[r][c] = x.value
+            return self.__class__(P, ret)
+
+        def weight(self):
+            C = BKKOneBoxCrystal(self.parent()._m, self.parent()._n)
+            elements = list(C)
+            from sage.modules.free_module_element import vector
+            v = vector([0]*len(elements))
+            for row in self:
+                for val in row:
+                    i = elements.index(C(val))
+                    v[i] += 1
+            return v
 
     # TODO: maybe we should create our own dictionary of options? For now we
     # use that of Tableaux.
@@ -53,7 +98,16 @@ class BKKTableaux(UniqueRepresentation, Parent):
         self._shape = shape
         self._m = m
         self._n = n
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        self._index_set = tuple(range(-m + 1, n))
+        if self._shape[1] != []:
+            raise NotImplementedError
+        tab = [[i-self._m]*self._shape[0][i] for i in range(min(len(self._shape[0]), self._m))]
+        for ell in self._shape[0][self._m:]:
+            if ell > self._n:
+                raise ValueError("Invalid shape")
+            tab.append(list(range(1,ell+1)))
+        self.module_generators = (self.element_class(self, SkewTableau(tab)),)
+        Parent.__init__(self, category=BKKCrystalCategory())
 
     def alphabet(self):
         alphabet = range(-self._m, 0) + range(1, self._n + 1)
@@ -126,7 +180,7 @@ class BKKTableaux(UniqueRepresentation, Parent):
         """
         return self._shape
 
-    def __iter__(self):
+    def __iter__old(self):
         r"""
 
         EXAMPLES::
@@ -160,14 +214,14 @@ class BKKTableaux(UniqueRepresentation, Parent):
             if self._check_verifies_bkk_conditions(s):
                 if s not in seen:
                     seen.add(s)
-                    yield s
+                    yield self.element_class(self, s)
         # FIXME: this is over generating!
         for t in SemistandardSkewTableaux(shape.conjugate(), max_entry=max_entry):
             s = SkewTableau([[alphabet_dict[entry] for entry in row] for row in t]).conjugate()
             if self._check_verifies_bkk_conditions(s):
                 if s not in seen:
                     seen.add(s)
-                    yield s
+                    yield self.element_class(self, s)
 
 #######################################################################
 #                          utility functions                          #

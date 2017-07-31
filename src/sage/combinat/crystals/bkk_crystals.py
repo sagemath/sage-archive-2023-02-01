@@ -449,7 +449,14 @@ class TensorProductOfBKKCrystals(TensorProductOfCrystals):
 
     def __iter__(self):
         for x in cartesian_product([c.list() for c in self.crystals]):
-            yield self(*x)
+            yield self(x)
+
+    def _element_constructor_(self, *s):
+        # Hack to build the elements (recursively)
+        if len(s) == 1 and isinstance(s[0], list):
+            s = s[0]
+            return self.element_class(self, [C(s[i]) for i,C in enumerate(self.crystals)])
+        return TensorProductOfCrystals._element_constructor_(self, *s)
 
 class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
 

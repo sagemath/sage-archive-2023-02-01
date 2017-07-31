@@ -108,6 +108,13 @@ class AlternatingSignMatrix(Element):
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        TESTS:
+
+        Check that :trac:`22032` is fixed::
+
+            sage: AlternatingSignMatrix([])
+            []
         """
         asm = matrix(asm)
         if not asm.is_square():

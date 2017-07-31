@@ -517,10 +517,11 @@ class Kash(Expect):
         return 'quit;'
 
     def _start(self):
+        from sage.misc.package import PackageNotFoundError
         try:
             Expect._start(self)
         except RuntimeError:
-            raise RuntimeError("You must install the optional Kash package to use Kash from Sage.")
+            raise PackageNotFoundError("kash")
         # Turn off the annoying timer.
         self.eval('Time(false);')
 

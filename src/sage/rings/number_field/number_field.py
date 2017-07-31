@@ -2117,7 +2117,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return NumberField(self.defining_polynomial(), names, check=False, structure=structure.NameChange(self))
 
-    def is_isomorphic(self, other):
+    def is_isomorphic(self, other, isomorphism_maps = False):
         """
         Return True if self is isomorphic as a number field to other.
 
@@ -2140,11 +2140,32 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             True
             sage: k.is_isomorphic(NumberField(x^3 + 5, 'b'))
             False
+
+            sage: k = NumberField(x^2 - x - 1, 'b')
+            sage: l = NumberField(x^2 - 7, 'a')
+            sage: k.is_isomorphic(l, True)
+            (False, [])
+
+            sage: k = NumberField(x^2 - x - 1, 'b')
+            sage: ky.<y> = k[];
+            sage: l = NumberField(y, 'a')
+            sage: k.is_isomorphic(l, True)
+            (True, [-x, x + 1])
+
         """
         if not isinstance(other, NumberField_generic):
             raise ValueError("other must be a generic number field.")
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
-        return t != 0
+        if t == 0:
+            t = []
+            res = False
+        else:
+            res = True
+
+        if isomorphism_maps:
+            return res, t
+        else:
+            return res
 
     def is_totally_real(self):
         """

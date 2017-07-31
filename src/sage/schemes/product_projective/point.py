@@ -420,11 +420,11 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             return(self)
         else:
             Q = f(self)
-            if normalize == True:
+            if normalize:
                 Q.normalize_coordinates()
             for i in range(2,n+1):
                 Q = f(Q)
-                if normalize == True:
+                if normalize:
                     Q.normalize_coordinates()
             return(Q)
 
@@ -478,7 +478,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             raise TypeError("point is not defined over domain of function")
         if not f.is_endomorphism():
             raise TypeError("domain and codomain of function not equal")
-        if (isinstance(N, (list,tuple)) == False):
+        if not isinstance(N, (list,tuple)):
             N = [0, N]
         try:
             N[0] = ZZ(N[0])
@@ -494,16 +494,16 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         check = kwds.pop("check", True)
         normalize = kwds.pop("normalize", False)
 
-        if normalize == True:
+        if normalize:
             Q.normalize_coordinates()
         for i in range(1, N[0]+1):
             Q = f(Q, check)
-            if normalize == True:
+            if normalize:
                 Q.normalize_coordinates()
         Orb = [Q]
         for i in range(N[0]+1, N[1]+1):
             Q = f(Q, check)
-            if normalize == True:
+            if normalize:
                 Q.normalize_coordinates()
             Orb.append(Q)
         return(Orb)

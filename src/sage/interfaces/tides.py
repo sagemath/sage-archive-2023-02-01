@@ -752,9 +752,9 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: shutil.rmtree(tempdir)
 
     """
-    if parameters == None:
+    if parameters is None:
         parameters = []
-    if parameter_values == None:
+    if parameter_values is None:
         parameter_values = []
     RR = RealField(ceil(dig * 3.3219))
     l1, l2 = subexpressions_list(f, parameters)

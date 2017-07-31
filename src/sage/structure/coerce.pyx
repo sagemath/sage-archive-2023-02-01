@@ -97,6 +97,8 @@ from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
 import traceback
 
+from fractions import Fraction
+cdef type FractionType = <type>Fraction
 
 cpdef py_scalar_parent(py_type):
     """
@@ -119,6 +121,10 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(dict),
         (None,)
 
+        sage: import fractions
+        sage: py_scalar_parent(fractions.Fraction)
+        Rational Field
+
         sage: import numpy
         sage: py_scalar_parent(numpy.int16)
         Integer Ring
@@ -138,6 +144,9 @@ cpdef py_scalar_parent(py_type):
     if issubclass(py_type, int) or issubclass(py_type, long):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
+    if py_type is FractionType:
+        import sage.rings.rational_field
+        return sage.rings.rational_field.QQ
     elif issubclass(py_type, float):
         import sage.rings.real_double
         return sage.rings.real_double.RDF
@@ -188,6 +197,11 @@ cpdef py_scalar_to_element(x):
         sage: py_scalar_to_element('hello')
         'hello'
 
+        sage: from fractions import Fraction
+        sage: f = Fraction(int(2^100), int(3^100))
+        sage: py_scalar_to_element(f)
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
+
     Note that bools are converted to 0 or 1::
 
         sage: py_scalar_to_element(False), py_scalar_to_element(True)
@@ -216,6 +230,9 @@ cpdef py_scalar_to_element(x):
     elif isinstance(x, int):
         from sage.rings.integer import Integer
         return Integer(x)
+    elif type(x) is FractionType:
+        from sage.rings.rational import Rational
+        return Rational(x)
     elif isinstance(x, float):
         from sage.rings.real_double import RDF
         return RDF(x)

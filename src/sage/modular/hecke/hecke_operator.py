@@ -21,6 +21,7 @@ from six import integer_types
 
 
 from sage.structure.element import AlgebraElement
+from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.categories.homset import End
 import sage.arith.all as arith
 from   sage.rings.integer import Integer
@@ -582,6 +583,7 @@ class DiamondBracketOperator(HeckeAlgebraElement_matrix):
         """
         return r"\langle %s \rangle" % self.__d
 
+
 class HeckeOperator(HeckeAlgebraElement):
     r"""
     The Hecke operator `T_n` for some `n` (which need not be coprime to the
@@ -608,7 +610,7 @@ class HeckeOperator(HeckeAlgebraElement):
             raise TypeError("n must be an int")
         self.__n = int(n)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self and other (where the coercion model has already ensured
         that self and other have the same parent). Hecke operators on the same
@@ -634,16 +636,15 @@ class HeckeOperator(HeckeAlgebraElement):
             sage: m == m.matrix()
             False
         """
-
         if not isinstance(other, HeckeOperator):
             if isinstance(other, HeckeAlgebraElement_matrix):
-                return cmp(self.matrix_form(), other)
+                return richcmp(self.matrix_form(), other, op)
             else:
                 raise RuntimeError("Bug in coercion code") # can't get here
 
         if self.__n == other.__n:
-            return 0
-        return cmp(self.matrix(), other.matrix())
+            return rich_to_bool(op, 0)
+        return richcmp(self.matrix(), other.matrix(), op)
 
     def _repr_(self):
         r"""

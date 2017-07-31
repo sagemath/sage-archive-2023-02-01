@@ -8107,8 +8107,7 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 import igraph
             except ImportError:
-                raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i python_igraph")
+                raise PackageNotFoundError("python_igraph")
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)

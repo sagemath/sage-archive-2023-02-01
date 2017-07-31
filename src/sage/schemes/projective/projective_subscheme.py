@@ -943,8 +943,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         from sage.schemes.projective.projective_space import ProjectiveSpace
         Pd = ProjectiveSpace(n, K, 'y')
         Rd = Pd.coordinate_ring()
-        x = R.gens()
-        y = Rd.gens()
+        x = R.variable_names()
+        y = Rd.variable_names()
         S = PolynomialRing(K, x + y + ('t',))
         if S.has_coerce_map_from(I.ring()):
             T = PolynomialRing(K, 'w', n + 1)

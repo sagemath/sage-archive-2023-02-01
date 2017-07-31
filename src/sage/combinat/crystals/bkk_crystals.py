@@ -1,295 +1,34 @@
+"""
+Benkart-Kang-Kashiwara crystals for the general-linear Lie superalgebra
+"""
+
 #######################################################################
 #                   tensor product of BKK crystals                    #
 #######################################################################
 
 from sage.categories.cartesian_product import cartesian_product
-from sage.categories.crystals import Crystals
 from sage.categories.enumerated_sets import EnumeratedSets
-from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
-from sage.combinat.root_system.cartan_type import CartanType
-from sage.graphs.digraph import DiGraph
+from sage.combinat.partition import _Partitions
 from sage.misc.cachefunc import cached_method
-from sage.misc.latex import LatexExpr
-from sage.misc.misc import uniq
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_attribute import lazy_attribute
 
+from sage.structure.parent import Parent
+from sage.combinat.tableau import Tableaux, SemistandardTableaux
+from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
+from sage.structure.unique_representation import UniqueRepresentation
 
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, TensorProductOfCrystalsElement
-from sage.categories.category_singleton import Category_singleton
-
-class BKKCrystalCategory(Category_singleton):
-    def super_categories(self):
-        r"""
-        EXAMPLES::
-
-            sage: from bkk_crystals import BKKCrystalCategory
-            sage: BKKCrystalCategory().super_categories()
-            [Category of finite crystals]
-
-        """
-        return [Crystals().Finite()]
-
-    class ParentMethods:
-
-        # NOTE: we need to define _index_set because some classes override the
-        # index_set method (such as subcrystals, which returns self._index_set)
-        @lazy_attribute
-        def _index_set(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c._index_set
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t._index_set
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s._index_set
-                (-1, 0, 1, 2)
-            """
-            if hasattr(self, 'crystals'):
-                # FIXME: where should this code go? it works for tensor
-                # products and direct sum (and anything with a crystals method)
-                ems = uniq([c.m() for c in self.crystals])
-                assert len(ems) == 1
-                m = ems[0]
-
-                ens = uniq([c.n() for c in self.crystals])
-                assert len(ens) == 1
-                n = ens[0]
-
-                return tuple(range(-m + 1, n))
-            else:
-                return NotImplemented
-
-        def index_set(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.index_set()
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t.index_set()
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.index_set()
-                (-1, 0, 1, 2)
-            """
-            return tuple(self._index_set)
-
-        def m(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.m()
-                2
-
-            Test for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t.m()
-                2
-
-            Test for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.m()
-                2
-            """
-            return 1 - min(self.index_set())
-
-        def n(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.n()
-                3
-
-            Test for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t.n()
-                3
-
-            Test for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.n()
-                3
-            """
-            return 1 + max(self.index_set())
-
-        @cached_method
-        def digraph(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.digraph()
-                Digraph on 5 vertices
-            """
-            G = DiGraph()
-            for i in self.index_set():
-                for x in self:
-                    y = x.f(i)
-                    if y is not None:
-                        G.add_edge(x, y, i)
-
-            def edge_options((u, v, l)):
-                edge_color_by_label = { 0: 'black', 1: 'blue', 2: 'red', 3: 'green' }
-                edge_opts = { 'edge_string': '->', 'color': 'black' }
-                if l > 0:
-                    edge_opts['color'] = edge_color_by_label[l]
-                    edge_opts['label'] = LatexExpr(str(l))
-                elif l < 0:
-                    edge_opts['color'] = "dashed," + edge_color_by_label[-l]
-                    edge_opts['label'] = LatexExpr("\\overline{%s}" % str(-l))
-                else:
-                    edge_opts['color'] = "dotted," + edge_color_by_label[l]
-                    edge_opts['label'] = LatexExpr(str(l))
-                return edge_opts
-
-            G.set_latex_options(format="dot2tex", edge_labels=True, edge_options=edge_options)
-
-            return G
-
-        def connected_components_generators(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.connected_components_generators()
-                [(-2,)]
-
-                sage: t = c.tensor(c)
-                sage: t.connected_components_generators()
-                [([-2, -1],), ([-2, -2],)]
-
-                sage: t = c.tensor(c)
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.connected_components_generators()
-                [([-2, -1],), ([-2, -2],)]
-            """
-            # NOTE: we compute the connected components of the digraph,
-            # then highest weight elements in each connected components
-            X = []
-            for connected_component_vertices in self.digraph().connected_components():
-                gens = [g for g in connected_component_vertices if g.is_highest_weight()]
-                X.append(tuple(gens))
-            return X
-
-        def connected_components(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.connected_components()
-                [Subcrystal of BKK crystal on semistandard tableaux of shape [1] with entries in (-2, -1, 1, 2, 3)]
-                sage: t = c.tensor(c)
-                sage: t.connected_components()
-                [Subcrystal of <class 'bkk_crystals.TensorProductOfBKKCrystals_with_category'>,
-                 Subcrystal of <class 'bkk_crystals.TensorProductOfBKKCrystals_with_category'>]
-            """
-            category = BKKCrystalCategory()
-            index_set = self.index_set()
-            CCs = []
-
-            # FIXME: setting the cartan type and then deleting it is a hack!
-            # the subcrystal init method insists on the cartan type, but
-            # I don't want to define it; hopefully, this doesn't break anything
-            cartan_type = CartanType("A", max(self.n(), self.m()) - 1)
-            for mg in self.connected_components_generators():
-                if not isinstance(mg, tuple):
-                    mg = (mg,)
-                subcrystal = self.subcrystal(generators=mg,
-                                             index_set=index_set,
-                                             cartan_type=cartan_type,
-                                             category=category)
-                subcrystal._cartan_type = None
-                CCs.append(subcrystal)
-
-            return CCs
-
-        def tensor(self, *crystals, **options):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.tensor(c)
-                <class 'bkk_crystals.TensorProductOfBKKCrystals_with_category'>
-            """
-            return TensorProductOfBKKCrystals((self,) + crystals, **options)
-
-        def direct_sum(self, X):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: t = c.tensor(c)
-                sage: s1, s2 = t.connected_components()
-                sage: s1 + s2
-                Direct sum of the crystals Family (Subcrystal of <class 'bkk_crystals.TensorProductOfBKKCrystals_with_category'>, Subcrystal of <class 'bkk_crystals.TensorProductOfBKKCrystals_with_category'>)
-            """
-            return DirectSumOfCrystals([self, X])
-
-    class ElementMethods:
-        def epsilon(self, i):
-            string_length = 0
-            x = self
-            while True:
-                x = x.e(i)
-                if x is None:
-                    return string_length
-                else:
-                    string_length += 1
-
-        def phi(self, i):
-            string_length = 0
-            x = self
-            while True:
-                x = x.f(i)
-                if x is None:
-                    return string_length
-                else:
-                    string_length += 1
+from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
+from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
+        TensorProductOfSuperCrystalsElement, CrystalOfBKKTableauxElement)
+from sage.categories.regular_supercrystals import RegularSuperCrystals
 
 class BKKCrystalForVectorRepresentation(UniqueRepresentation, Parent):
 
     def __init__(self, m, n):
-        Parent.__init__(self, category = BKKCrystalCategory())
+        Parent.__init__(self, category = RegularSuperCrystals())
         self._index_set = tuple(range(-m + 1, n))
         self.module_generators = [ t for t in self ]
 
@@ -340,7 +79,83 @@ class BKKCrystalForVectorRepresentation(UniqueRepresentation, Parent):
 
 BKKOneBoxCrystal = BKKCrystalForVectorRepresentation
 
-class TensorProductOfBKKCrystals(TensorProductOfCrystals):
+class TensorProductOfSuperCrystalsElement_old(TensorProductOfCrystalsElement):
+
+    def f(self, i):
+        # FIXME: generalize this to deal with more than two tensor factors
+        (b1, b2) = self
+
+        # Proposition 2.8.ii.a
+        if i < 0:
+            if b1.phi(i) > b2.epsilon(i):
+                x = b1.f(i)
+                if x is not None:
+                    return self.parent()(x, b2)
+            else:
+                y = b2.f(i)
+                if y is not None:
+                    return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.b
+        elif 0 < i:
+            if b2.phi(i) > b1.epsilon(i):
+                y = b2.f(i)
+                if y is not None:
+                    return self.parent()(b1, y)
+            else:
+                x = b1.f(i)
+                if x is not None:
+                    return self.parent()(x, b2)
+
+        # Proposition 2.8.ii.c
+        elif i == 0:
+            if b1.phi(i) + b1.epsilon(i):
+                x = b1.f(i)
+                if x is not None:
+                    return self.parent()(x, b2)
+            else:
+                y = b2.f(i)
+                if y is not None:
+                    return self.parent()(b1, y)
+
+    def e(self, i):
+        (b1, b2) = self
+
+        # Proposition 2.8.ii.a
+        if i < 0:
+            if b1.phi(i) >= b2.epsilon(i):
+                x = b1.e(i)
+                if x is not None:
+                    return self.parent()(x, b2)
+            else:
+                y = b2.e(i)
+                if y is not None:
+                    return self.parent()(b1, y)
+
+        # Proposition 2.8.ii.b
+        elif 0 < i:
+            if b2.phi(i) >= b1.epsilon(i):
+                y = b2.e(i)
+                if y is not None:
+                    return self.parent()(b1, y)
+            else:
+                x = b1.e(i)
+                if x is not None:
+                    return self.parent()(x, b2)
+
+        # Proposition 2.8.ii.c
+        elif i == 0:
+            if b1.phi(i) + b1.epsilon(i):
+                x = b1.e(i)
+                if x is not None:
+                    return self.parent()(x, b2)
+            else:
+                y = b2.e(i)
+                if y is not None:
+                    return self.parent()(b1, y)
+
+
+class TensorProductOfSuperCrystals(TensorProductOfCrystals):
     r"""
     TESTS:
 
@@ -439,17 +254,21 @@ class TensorProductOfBKKCrystals(TensorProductOfCrystals):
         True
 
     """
-    def __init__(self, crystals):
+    def __init__(self, crystals, old=False):
         assert isinstance(crystals, tuple)
 
-        Parent.__init__(self, category=BKKCrystalCategory())
+        if old:
+            self.Element = TensorProductOfSuperCrystalsElement_old
+            self._old = old
+
+        Parent.__init__(self, category=RegularSuperCrystals())
         self.crystals = crystals
 
         self.module_generators = self.list()
 
     def __iter__(self):
         for x in cartesian_product([c.list() for c in self.crystals]):
-            yield self(x)
+            yield self(*x)
 
     def _element_constructor_(self, *s):
         # Hack to build the elements (recursively)
@@ -458,99 +277,287 @@ class TensorProductOfBKKCrystals(TensorProductOfCrystals):
             return self.element_class(self, [C(s[i]) for i,C in enumerate(self.crystals)])
         return TensorProductOfCrystals._element_constructor_(self, *s)
 
-class TensorProductOfBKKCrystalsElement(TensorProductOfCrystalsElement):
+    class Element(TensorProductOfSuperCrystalsElement):
+        pass
 
-    def f(self, i):
-        # FIXME: generalize this to deal with more than two tensor factors
-        (b1, b2) = self
+#####################################################################
+## Tableaux
 
-        # Proposition 2.8.ii.a
-        if i < 0:
-            if b1.phi(i) > b2.epsilon(i):
-                x = b1.f(i)
-                if x is not None:
-                    return self.parent()(x, b2)
-            else:
-                y = b2.f(i)
-                if y is not None:
-                    return self.parent()(b1, y)
+class BKKTableaux_old(UniqueRepresentation, Parent):
+    r"""
+    Semistandard tableaux defined by Benkart-Kang-Kashiwara.
 
-        # Proposition 2.8.ii.b
-        elif 0 < i:
-            if b2.phi(i) > b1.epsilon(i):
-                y = b2.f(i)
-                if y is not None:
-                    return self.parent()(b1, y)
-            else:
-                x = b1.f(i)
-                if x is not None:
-                    return self.parent()(x, b2)
+    These are fillings of a skew Young diagram with entries
+    from the alphabet:
 
-        # Proposition 2.8.ii.c
-        elif i == 0:
-            if b1.phi(i) + b1.epsilon(i):
-                x = b1.f(i)
-                if x is not None:
-                    return self.parent()(x, b2)
-            else:
-                y = b2.f(i)
-                if y is not None:
-                    return self.parent()(b1, y)
+        -m, ..., -2, -1, 1, 2, ..., n
 
-    def e(self, i):
-        (b1, b2) = self
+    subject to the following two constraints:
 
-        # Proposition 2.8.ii.a
-        if i < 0:
-            if b1.phi(i) >= b2.epsilon(i):
-                x = b1.e(i)
-                if x is not None:
-                    return self.parent()(x, b2)
-            else:
-                y = b2.e(i)
-                if y is not None:
-                    return self.parent()(b1, y)
+    - entries in each row are increasing, allowing repetition of -m, ..., -1,
+      but not of 1, 2, ..., n;
 
-        # Proposition 2.8.ii.b
-        elif 0 < i:
-            if b2.phi(i) >= b1.epsilon(i):
-                y = b2.e(i)
-                if y is not None:
-                    return self.parent()(b1, y)
-            else:
-                x = b1.e(i)
-                if x is not None:
-                    return self.parent()(x, b2)
+    - entries in each column are increasing, allowing repetition of 1, ..., n,
+      but not of -m, ..., -1.
+    """
 
-        # Proposition 2.8.ii.c
-        elif i == 0:
-            if b1.phi(i) + b1.epsilon(i):
-                x = b1.e(i)
-                if x is not None:
-                    return self.parent()(x, b2)
-            else:
-                y = b2.e(i)
-                if y is not None:
-                    return self.parent()(b1, y)
-
-    def epsilon(self, i):
-        string_length = 0
-        x = self
-        while True:
-            x = x.e(i)
+    # FIXME: Hack around the problem. Should be a proper element.
+    class Element(SkewTableau):
+        def e(self, i):
+            read_word = japanese_reading_order(self)
+            P = self.parent()
+            C = BKKOneBoxCrystal(P._m, P._n)
+            T = reduce(lambda x, y: tensor((x,y)), [C]*len(read_word))
+            x = reduce(lambda x, y: [x, y], [C(self[r][c]) for r,c in read_word])
+            x = T(x).e(i)
             if x is None:
-                return string_length
-            else:
-                string_length += 1
+                return None
+            ret = [[None]*len(row) for row in self]
+            for r,c in reversed(read_word[1:]):
+                ret[r][c] = x[1].value
+                x = x[0]
+            r,c = read_word[0]
+            ret[r][c] = x.value
+            return self.__class__(P, ret)
 
-    def phi(self, i):
-        string_length = 0
-        x = self
-        while True:
-            x = x.f(i)
+        def f(self, i):
+            read_word = japanese_reading_order(self)
+            P = self.parent()
+            C = BKKOneBoxCrystal(P._m, P._n)
+            T = reduce(lambda x, y: tensor((x,y)), [C]*len(read_word))
+            x = reduce(lambda x, y: [x, y], [C(self[r][c]) for r,c in read_word])
+            x = T(x).f(i)
             if x is None:
-                return string_length
-            else:
-                string_length += 1
+                return None
+            ret = [[None]*len(row) for row in self]
+            for r,c in reversed(read_word[1:]):
+                ret[r][c] = x[1].value
+                x = x[0]
+            r,c = read_word[0]
+            ret[r][c] = x.value
+            return self.__class__(P, ret)
 
-TensorProductOfBKKCrystals.Element = TensorProductOfBKKCrystalsElement
+        def weight(self):
+            C = BKKOneBoxCrystal(self.parent()._m, self.parent()._n)
+            elements = list(C)
+            from sage.modules.free_module_element import vector
+            v = vector([0]*len(elements))
+            for row in self:
+                for val in row:
+                    i = elements.index(C(val))
+                    v[i] += 1
+            return v
+
+    @staticmethod
+    def __classcall_private__(cls, m, n, shape):
+        return super(BKKTableaux_old, cls).__classcall__(cls, m, n, SkewPartition([shape, []]))
+
+    def __init__(self, m, n, shape):
+        r"""
+        EXAMPLES::
+
+            sage: from bkk_tableaux import BKKTableaux
+            sage: T = BKKTableaux(2, 2, [2,1])
+            sage: T
+            BKK tableaux of skew shape [[2, 1], []] and entries from (-2, -1, 1, 2)
+
+            sage: TestSuite(T).run(skip=["_test_elements", "_test_pickling"])
+
+        """
+        self._shape = shape
+        self._m = m
+        self._n = n
+        self._index_set = tuple(range(-m + 1, n))
+        if self._shape[1] != []:
+            raise NotImplementedError
+        tab = [[i-self._m]*self._shape[0][i] for i in range(min(len(self._shape[0]), self._m))]
+        for ell in self._shape[0][self._m:]:
+            if ell > self._n:
+                raise ValueError("Invalid shape")
+            tab.append(list(range(1,ell+1)))
+        self.module_generators = (self.element_class(self, SkewTableau(tab)),)
+        Parent.__init__(self, category=RegularSuperCrystals())
+
+    def alphabet(self):
+        alphabet = range(-self._m, 0) + range(1, self._n + 1)
+        return tuple(alphabet)
+
+    def _repr_(self):
+        return "BKK tableaux of skew shape {} and entries from {}".format(self.shape(), self.alphabet())
+
+    def __contains__(self, t):
+        # check that t is a tableaux of the correct external shape
+        if not isinstance(t, SkewTableau) and t.shape() != self._external_shape:
+            return False
+        return self._check_verifies_bkk_conditions(t)
+
+    def _check_verifies_bkk_conditions(self, t):
+        r"""
+        EXAMPLES::
+
+            sage: from bkk_tableaux import BKKTableaux
+            sage: T = SkewTableau([[1],[1],[1]])
+            sage: B = BKKTableaux([1,1,1], 2, 2)
+            sage: B._check_verifies_bkk_conditions(T)
+            True
+        """
+
+        alphabet_or_None = self.alphabet() + (None,)
+
+        # entries in each row belong to -m, ..., -1, 1, 2, ..., n
+        for row in t:
+            for entry in row:
+                if entry not in alphabet_or_None:
+                    return False
+
+        # entries in each row are increasing,
+        # allowing repetition of -m, ..., -1,
+        # but not of 1, 2, ..., n
+        for row in t:
+            for i in range(len(row)-1):
+                if row[i] is not None:
+                    if row[i] > row[i+1]:
+                        return False
+                    elif row[i] == row[i+1] and row[i] > 0:
+                        return False
+
+        # entries in each column are increasing,
+        # allowing repetition of 1, 2, ..., n
+        # but not of -m, ..., -1
+        tc = t.conjugate()
+        for row in tc:
+            for i in range(len(row)-1):
+                if row[i] is not None:
+                    if row[i] > row[i+1]:
+                        return False
+                    elif row[i] == row[i+1] and row[i] < 0:
+                        return False
+
+        return True
+
+    def shape(self):
+        r"""
+        EXAMPLES::
+
+            sage: from bkk_tableaux import BKKTableaux
+            sage: B = BKKTableaux([1,1,1], 2, 2)
+            sage: B.shape()
+            [1, 1, 1] / []
+            sage: B = BKKTableaux(([3,1,1], [2,1]), 2, 2)
+            sage: B.shape()
+            [3, 1, 1] / [2, 1]
+        """
+        return self._shape
+
+class CrystalOfBKKTableaux(CrystalOfWords):
+    @staticmethod
+    def __classcall_private__(cls, m, n, shape):
+        shape = _Partitions(shape)
+        if len(shape) > m and shape[m] > n:
+            raise ValueError("invalid hook shape")
+        return super(CrystalOfBKKTableaux, cls).__classcall__(cls, m, n, shape)
+
+    def __init__(self, m, n, shape):
+        r"""
+        EXAMPLES::
+
+            sage: from bkk_tableaux import BKKTableaux
+            sage: T = BKKTableaux(2, 2, [2,1])
+            sage: T
+            BKK tableaux of skew shape [[2, 1], []] and entries from (-2, -1, 1, 2)
+
+            sage: TestSuite(T).run()
+        """
+        self._shape = shape
+        self._m = m
+        self._n = n
+        self._index_set = tuple(range(-m + 1, n))
+        C = BKKCrystalForVectorRepresentation(m, n)
+        tr = shape.conjugate()
+        mg = []
+        for i,col_len in enumerate(tr):
+            for j in range(col_len - m):
+                mg.append(C(i+1))
+            for j in range(max(0, m - col_len), m):
+                mg.append(C(-j-1))
+        mg = list(reversed(mg))
+        Parent.__init__(self, category=RegularSuperCrystals())
+        self.module_generators = (self.element_class(self, mg),)
+
+    def _repr_(self):
+        return "Crystal of BKK tableaux of skew shape {} of gl({}|{})".format(self.shape(), self._m, self._n)
+
+    def shape(self):
+        r"""
+        EXAMPLES::
+
+            sage: from bkk_tableaux import BKKTableaux
+            sage: B = BKKTableaux([1,1,1], 2, 2)
+            sage: B.shape()
+            [1, 1, 1] / []
+            sage: B = BKKTableaux(([3,1,1], [2,1]), 2, 2)
+            sage: B.shape()
+            [3, 1, 1] / [2, 1]
+        """
+        return self._shape
+
+    class Element(CrystalOfBKKTableauxElement):
+        pass
+
+#######################################################################
+#                          utility functions                          #
+#######################################################################
+
+def japanese_reading_word(t):
+    r"""
+    A Japanese reading proceeds down columns from top to bottom and from right
+    to left.
+
+    EXAMPLES::
+
+        sage: from bkk_tableaux import japanese_reading_word
+        sage: s = SkewTableau([[None, -3, -2], [-4, -1, 1], [1, 3], [2]])
+        sage: ascii_art(s)
+          . -3 -2
+         -4 -1  1
+          1  3
+          2
+        sage: japanese_reading_word(s)
+        word: -2,1,-3,-1,3,-4,1,2
+    """
+    from sage.combinat.words.word import Word
+    columns = list(t.conjugate())
+    w = []
+    for column in columns[::-1]:
+        for entry in column:
+            if entry is not None:
+                w.append(entry)
+    return Word(w)
+
+def japanese_reading_order(t):
+    r"""
+    Return the coordinates of the cells in a Japanese reading of the tableau.
+
+    A Japanese reading proceeds down columns from top to bottom and from right
+    to left. 
+
+    EXAMPLES::
+
+        sage: from bkk_tableaux import japanese_reading_order
+        sage: s = SkewTableau([[None, -3, -2], [-4, -1, 1], [1, 3], [2]])
+        sage: ascii_art(s)
+          . -3 -2
+         -4 -1  1
+          1  3
+          2
+        sage: japanese_reading_order(s)
+        [(0, 2), (1, 2), (0, 1), (1, 1), (2, 1), (1, 0), (2, 0), (3, 0)]
+    """
+    columns = list(t.conjugate())
+    order = []
+    for j in range(len(columns))[::-1]:
+        for i in range(len(columns[j])):
+            if columns[j][i] is not None:
+                order.append((i,j))
+    return order
+

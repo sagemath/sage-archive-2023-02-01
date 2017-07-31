@@ -1112,6 +1112,120 @@ cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElemen
                 ret._list.insert(0, self._parent.letters(j+1))
         return ret
 
+#####################################################################
+## BKK crystal elements
+
+cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    def e(self, i):
+        if i > 0:
+            return TensorProductOfRegularCrystalsElement.e(self, i)
+        if i < 0:
+            x = type(self)(self._parent, reversed(self))
+            k = x.position_of_first_unmatched_plus(i)
+            if k is None:
+                return None
+            k = len(self._list) - k - 1
+            return self._set_index(k, self._list[k].e(i))
+        # Otherwise i == 0
+        for k,elt in enumerate(self._list):
+            if elt.f(i) is not None:
+                return None
+            x = elt.e(i)
+            if x is not None:
+                return self._set_index(k, x)
+        return None
+
+    def f(self, i):
+        if i > 0:
+            return TensorProductOfRegularCrystalsElement.f(self, i)
+        if i < 0:
+            x = type(self)(self._parent, reversed(self))
+            k = x.position_of_last_unmatched_minus(i)
+            if k is None:
+                return None
+            k = len(self._list) - k - 1
+            return self._set_index(k, self._list[k].f(i))
+        # Otherwise i == 0
+        for k,elt in enumerate(self._list):
+            if elt.e(i) is not None:
+                return None
+            x = elt.f(i)
+            if x is not None:
+                return self._set_index(k, x)
+        return None
+
+    # Override epsilon/phi (for now)
+    def epsilon(self, i):
+        string_length = 0
+        x = self
+        while True:
+            x = x.e(i)
+            if x is None:
+                return string_length
+            else:
+                string_length += 1
+
+    def phi(self, i):
+        string_length = 0
+        x = self
+        while True:
+            x = x.f(i)
+            if x is None:
+                return string_length
+            else:
+                string_length += 1
+
+    def weight(self):
+        return sum(elt.weight() for elt in self)
+
+cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+        """
+        return repr(self.to_tableau())
+
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as a diagram.
+        """
+        return self.to_tableau()._repr_diagram()
+
+    def pp(self):
+        """
+        Pretty print ``self``.
+        """
+        return self.to_tableau().pp()
+
+    def _ascii_art_(self):
+        """
+        Return an ascii art version of ``self``.
+        """
+        return self.to_tableau()._ascii_art_()
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+        """
+        return self.to_tableau()._latex_()
+
+    @cached_method
+    def to_tableau(self):
+        """
+        Return the :class:`Tableau` object corresponding to ``self``.
+
+        EXAMPLES::
+        """
+        sh = self._parent._shape.conjugate()
+        tab = [[None]*row for row in sh]
+        cur = 0
+        lst = list(reversed(self._list))
+        for r,row_len in enumerate(sh):
+            for c in reversed(range(row_len)):
+                tab[r][c] = lst[cur]
+                cur += 1
+        return Tableau(tab).conjugate()
+
 # for unpickling
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.crystals.tensor_product', 'ImmutableListWithParent',  ImmutableListWithParent)

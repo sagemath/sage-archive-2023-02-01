@@ -58,7 +58,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
+from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 from sage.misc.decorators import options

@@ -1310,7 +1310,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
 
-
     def height_difference_bound(self, prec=None):
         """
         Return the bound on the difference of the height and canonical height.

@@ -1060,7 +1060,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         #create new subscheme
         if PP is None:
-            PS = ProjectiveSpace(self.base_ring(), M, R.gens()[self.ngens():])
+            PS = ProjectiveSpace(self.base_ring(), M, R.variable_names()[self.ngens():])
             Y = PS.subscheme(L)
         else:
             if PP.dimension_relative() != M:

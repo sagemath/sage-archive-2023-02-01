@@ -1836,7 +1836,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X.canonical_height_plus(P, 4) # long time
             0.14752753298983071394400412161
         """
-        if badprimes == None:
+        if badprimes is None:
             badprimes = self.degenerate_primes()
         m = 2
         while P[0][m] == 0:
@@ -1900,7 +1900,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X.canonical_height_minus(P, 4) # long time
             0.55073705369676788175590206734
         """
-        if badprimes == None:
+        if badprimes is None:
             badprimes = self.degenerate_primes()
         m = 2
         while P[0][m] == 0:
@@ -1961,7 +1961,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             sage: X.canonical_height(P, 4)
             0.69826458668659859569990618895
         """
-        if badprimes == None:
+        if badprimes is None:
             badprimes = self.degenerate_primes()
         return(self.canonical_height_plus(P, N,badprimes,prec) +
                self.canonical_height_minus(P, N,badprimes,prec))

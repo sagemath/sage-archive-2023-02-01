@@ -299,13 +299,13 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
                 return x
             elif hecke_operator.is_HeckeOperator(x):
                 if x.parent() == self \
-                        or (self.is_anemic() == False and x.parent() == self.anemic_subalgebra()) \
-                        or (self.is_anemic() == True and x.parent().anemic_subalgebra() == self and arith.gcd(x.index(), self.level()) == 1):
+                        or (not self.is_anemic() and x.parent() == self.anemic_subalgebra()) \
+                        or (self.is_anemic() and x.parent().anemic_subalgebra() == self and arith.gcd(x.index(), self.level()) == 1):
                     return hecke_operator.HeckeOperator(self, x.index())
                 else:
                     raise TypeError
             elif hecke_operator.is_HeckeAlgebraElement(x):
-                if x.parent() == self or (self.is_anemic() == False and x.parent() == self.anemic_subalgebra()):
+                if x.parent() == self or (not self.is_anemic() and x.parent() == self.anemic_subalgebra()):
                     if x.parent().module().basis_matrix() == self.module().basis_matrix():
                         return hecke_operator.HeckeAlgebraElement_matrix(self, x.matrix())
                     else:
@@ -343,7 +343,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             sage: F.coerce(A.2) # indirect doctest
             Hecke operator T_2 on Cuspidal subspace of dimension 3 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(3) of weight 12 over Rational Field
         """
-        if x.parent() == self or (self.is_anemic() == False and x.parent() == self.anemic_subalgebra()):
+        if x.parent() == self or (not self.is_anemic() and x.parent() == self.anemic_subalgebra()):
             return self(x)
         else:
             return self(self.matrix_space()(1) * self.base_ring().coerce(x))

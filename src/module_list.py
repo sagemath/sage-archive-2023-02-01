@@ -244,6 +244,14 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.cpython
+    ##
+    ################################
+
+    Extension('*', ['sage/cpython/*.pyx']),
+
+    ################################
+    ##
     ## sage.crypto
     ##
     ################################
@@ -1051,16 +1059,13 @@ ext_modules = [
 
 
     Extension("sage.numerical.mip",
-              ["sage/numerical/mip.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/mip.pyx"]),
 
     Extension("sage.numerical.linear_functions",
-              ["sage/numerical/linear_functions.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/linear_functions.pyx"]),
 
     Extension("sage.numerical.linear_tensor_element",
-              ["sage/numerical/linear_tensor_element.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/linear_tensor_element.pyx"]),
 
     Extension("sage.numerical.gauss_legendre",
               ["sage/numerical/gauss_legendre.pyx"]),
@@ -1069,8 +1074,7 @@ ext_modules = [
               ["sage/numerical/sdp.pyx"]),
 
     Extension("sage.numerical.backends.generic_backend",
-              ["sage/numerical/backends/generic_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/generic_backend.pyx"]),
 
     Extension("sage.numerical.backends.generic_sdp_backend",
               ["sage/numerical/backends/generic_sdp_backend.pyx"]),
@@ -1082,8 +1086,7 @@ ext_modules = [
               ["sage/numerical/backends/glpk_exact_backend.pyx"]),
 
     Extension("sage.numerical.backends.ppl_backend",
-              ["sage/numerical/backends/ppl_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/ppl_backend.pyx"]),
 
     Extension("sage.numerical.backends.cvxopt_backend",
               ["sage/numerical/backends/cvxopt_backend.pyx"]),
@@ -1099,13 +1102,13 @@ ext_modules = [
 
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],
-              libraries = ["stdc++", "gurobi"],
+              libraries = ["gurobi"],
               condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
                   os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
 
     OptionalExtension("sage.numerical.backends.cplex_backend",
               ["sage/numerical/backends/cplex_backend.pyx"],
-              libraries = ["stdc++", "cplex"],
+              libraries = ["cplex"],
               condition = os.path.isfile(SAGE_INC + "/cplex.h") and
                   os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
 

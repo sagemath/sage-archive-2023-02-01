@@ -3338,8 +3338,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         R = PolynomialRing(K, 'x', n + 1)
         Pd = sage.schemes.projective.projective_space.ProjectiveSpace(n, K, 'y')
         Rd = Pd.coordinate_ring()
-        x = R.gens()
-        y = Rd.gens()
+        x = R.variable_names()
+        y = Rd.variable_names()
         S = PolynomialRing(K, x + y + ('t',))
         if S.has_coerce_map_from(I.ring()):
             T = PolynomialRing(K, 'w', n + 1)
@@ -3788,7 +3788,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         #create new subscheme
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
-            PS = ProjectiveSpace(self.base_ring(), M, R.gens()[AS.ngens():])
+            PS = ProjectiveSpace(self.base_ring(), M, R.variable_names()[AS.ngens():])
             Y = PS.subscheme(L)
         else:
             if PP.dimension_relative() != M:

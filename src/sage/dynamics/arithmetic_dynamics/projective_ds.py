@@ -3613,7 +3613,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
 
-                if (isinstance(primebound, (list, tuple)) == False):
+                if not isinstance(primebound, (list, tuple)):
                     try:
                         primebound = [1, ZZ(primebound)]
                     except TypeError:
@@ -3640,7 +3640,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
                 all_points = f.possible_periods(True) #return the list of points and their periods.
                 pos_points = []
                 for i in range(len(all_points)):
-                    if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
+                    if all_points[i][1] in periods and not (all_points[i] in pos_points):  #check period, remove duplicates
                         pos_points.append(all_points[i])
                 periodic_points = self.lift_to_rational_periodic(pos_points,B)
                 for p,n in periodic_points:

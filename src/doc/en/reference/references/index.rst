@@ -1271,6 +1271,8 @@ REFERENCES:
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.
 
+.. [MatroidDatabase] `Database of Matroids <http://www-imai.is.s.u-tokyo.ac.jp/~ymatsu/matroid/index.html>`_
+
 .. [May1964] \J. P. May, "The cohomology of restricted Lie algebras
              and of Hopf algebras; application to the Steenrod
              algebra." Thesis, Princeton Univ., 1964.
@@ -1286,6 +1288,11 @@ REFERENCES:
 
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
+
+.. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
+              Matroid Enumeration for Incidence Geometry,
+              Discrete and Computational Geometry,
+              vol. 47, issue 1, pp. 17-43, 2012.
 
 .. [MMY2003] Jean-Christophe Yoccoz, Stefano Marmi and Pierre Moussa
              "On the cohomological equation for interval exchange

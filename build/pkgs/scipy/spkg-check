@@ -1,1 +1,1 @@
-exec sage-python23 sage-check.py
+exec sage-python23 spkg-check.py

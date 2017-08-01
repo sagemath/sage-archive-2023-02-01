@@ -129,30 +129,16 @@ class RegularSuperCrystals(Category_singleton):
             return CCs
 
         def tensor(self, *crystals, **options):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.tensor(c)
-                <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>
             """
-            from sage.combinat.crystals.bkk_crystals import TensorProductOfSuperCrystals
-            return TensorProductOfSuperCrystals((self,) + crystals, **options)
+            Return the tensor product of ``self`` with the crystals ``B``.
 
-        def direct_sum(self, X):
-            r"""
             EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: t = c.tensor(c)
-                sage: s1, s2 = t.connected_components()
-                sage: s1 + s2
-                Direct sum of the crystals Family (Subcrystal of <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>, Subcrystal of <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>)
             """
-            from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
-            return DirectSumOfCrystals([self, X])
+            cartan_type = self.cartan_type()
+            from sage.combinat.crystals.tensor_product import FullTensorProductOfSuperCrystals
+            if any(c.cartan_type() != cartan_type for c in crystals):
+                raise ValueError("all crystals must be of the same Cartan type")
+            return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
 
     class ElementMethods:
         def epsilon(self, i):
@@ -174,4 +160,19 @@ class RegularSuperCrystals(Category_singleton):
                     return string_length
                 else:
                     string_length += 1
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of regular crystals constructed by tensor
+        product of regular crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: RegularCrystals().TensorProducts().extra_super_categories()
+                [Category of regular crystals]
+            """
+            return [self.base_category()]
 

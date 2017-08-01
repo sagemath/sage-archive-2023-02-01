@@ -2287,11 +2287,92 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 # Type A(m,n) (in BKK)
 #########################
 
+cdef class BKKLetter(Letter):
+    cpdef Letter e(self, int i):
+        r"""
+        Return the action of `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: c = C(-2)
+            sage: c.e(-2)
+            -3
+            sage: c = C(1)
+            sage: c.e(0)
+            -1
+            sage: c = C(2)
+            sage: c.e(1)
+            1
+            sage: c.e(-2)
+        """
+        cdef int b = self.value
+        if i < 0:
+            if b == i:
+                return self._parent._element_constructor_(b - 1)
+        elif 0 < i:
+            if b == i + 1:
+                return self._parent._element_constructor_(b - 1)
+        elif i == 0 and b == 1:
+            return self._parent._element_constructor_(-1)
+        return None
+
+    cpdef Letter f(self, int i):
+        r"""
+        Return the action of `f_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: c = C.an_element()
+            sage: c.f(-2)
+            -2
+            sage: c = C(-1)
+            sage: c.f(0)
+            1
+            sage: c = C(1)
+            sage: c.f(1)
+            2
+            sage: c.f(-2)
+        """
+        cdef int b = self.value
+        if 0 < i:
+            if self.value == i:
+                return self._parent._element_constructor_(b + 1)
+        elif i < 0:
+            if b == i - 1:
+                return self._parent._element_constructor_(b + 1)
+        elif i == 0 and b == -1:
+            return self._parent._element_constructor_(1)
+        return None
+
+    def weight(self):
+        """
+        Return weight of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: c = C(-1)
+            sage: c.weight()
+            (0, 0, 1, 0, 0)
+            sage: c = C(2)
+            sage: c.weight()
+            (0, 0, 0, 0, 1)
+        """
+        from sage.modules.free_module_element import vector
+        elements = list(self.parent())
+        v = vector([0]*len(elements))
+        i = elements.index(self)
+        v[i] = 1
+        return v
+
 class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
     """
     Crystal of letters for Benkart-Kang-Kashiwara supercrystals.
 
-    This implements the `\mathfrak{gl}(m|n)` crystal of Benkart, Kang and Kashiwara [BKK2000]_.
+    This implements the `\mathfrak{gl}(m|n)` crystal of
+    Benkart, Kang and Kashiwara [BKK2000]_.
 
     EXAMPLES::
 
@@ -2349,87 +2430,7 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
-    class Element(Letter):
-
-        def e(self, i):
-            r"""
-            Return the action of `e_i` on ``self``.
-
-            EXAMPLES::
-
-                sage: C = crystals.Letters(['A', [2, 1]])
-                sage: c = C(-2)
-                sage: c.e(-2)
-                -3
-                sage: c = C(1)
-                sage: c.e(0)
-                -1
-                sage: c = C(2)
-                sage: c.e(1)
-                1
-                sage: c.e(-2)
-             """
-            assert i in self.parent().index_set()
-            b = self.value
-            if i < 0:
-                if b == i:
-                    return self.parent()._element_constructor_(b - 1)
-            elif 0 < i:
-                if b == i + 1:
-                    return self.parent()._element_constructor_(b - 1)
-            elif i == 0 and b == 1:
-                return self.parent()._element_constructor_(-1)
-
-        def f(self, i):
-            r"""
-            Return the action of `f_i` on ``self``.
-
-            EXAMPLES::
-
-                sage: C = crystals.Letters(['A', [2, 1]])
-                sage: c = C.an_element()
-                sage: c.f(-2)
-                -2
-                sage: c = C(-1)
-                sage: c.f(0)
-                1
-                sage: c = C(1)
-                sage: c.f(1)
-                2
-                sage: c.f(-2)
-             """
-            assert i in self.parent().index_set()
-            b = self.value
-            if 0 < i:
-                if b == i:
-                    return self.parent()._element_constructor_(b + 1)
-            elif i < 0:
-                if b == i - 1:
-                    return self.parent()._element_constructor_(b + 1)
-            elif i == 0 and b == -1:
-                return self.parent()._element_constructor_(1)
-
-        def weight(self):
-            """
-            Return weight of ``self``.
-
-            EXAMPLES::
-
-                sage: C = crystals.Letters(['A', [2, 1]])
-                sage: c = C(-1)
-                sage: c.weight()
-                (0, 0, 1, 0, 0)
-                sage: c = C(2)
-                sage: c.weight()
-                (0, 0, 0, 0, 1)
-            """
-            from sage.modules.free_module_element import vector
-            elements = list(self.parent())
-            v = vector([0]*len(elements))
-            i = elements.index(self)
-            v[i] = 1
-            return v
-
+    Element = BKKLetter
 
 #########################
 # Wrapped letters

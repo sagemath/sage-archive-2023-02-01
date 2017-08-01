@@ -1777,6 +1777,9 @@ REFERENCES:
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
 
+.. [WELLS]   Elliot Wells. Computing the Canonical Height of a Point in Projective Space.
+             :arxiv:`1602.04920v1` (2016).
+
 .. [Wei1994] Charles A. Weibel, *An introduction to homological
              algebra*. Cambridge Studies in Advanced Math., vol. 38,
              Cambridge Univ. Press, 1994.

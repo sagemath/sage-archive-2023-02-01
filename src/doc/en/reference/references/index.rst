@@ -85,6 +85,10 @@ REFERENCES:
              *MacMahon's partition analysis: the Omega package*,
              European J. Combin. 22 (2001), no. 7, 887--904.
 
+.. [Ariki1996] Susumu Ariki.
+               *On the decomposition numbers of the Hecke algebra of*
+               `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996). pp 789--808.
+
 .. [Ar2006] D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
 
@@ -676,6 +680,10 @@ REFERENCES:
 
 **F**
 
+.. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
+                higher-level canonical bases*. J. Pure Appl. Algebra
+                **214** (2010), no. 12, 2186-2198. :arxiv:`0908.1749v3`.
+
 .. [Fe1997] Stefan Felsner, "On the Number of Arrangements of
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
             Computational Geometry 18 (1997),
@@ -829,6 +837,11 @@ REFERENCES:
             155-170.
 
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+
+.. [GW1999] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
+            affine algebras and affine Kazhdan-Lusztig polyonmials*.
+            Int. Math. Res. Notices **5** (1999), 251-275.
+            :arxiv:`math/9807014v1`.
 
 .. [GZ1983] Greene; Zaslavsky, "On the Interpretation of Whitney
             Numbers Through Arrangements of Hyperplanes, Zonotopes,
@@ -1175,6 +1188,11 @@ REFERENCES:
 .. [Liv2006] \M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
              Algebra 207 (2006), no 1, pages 1-18.
              Preprint: :arxiv:`math/0504296v2`.
+
+.. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
+             *Hecke algebras at roots of unity and crystal bases of
+             quantum affine algebras*. Commun. Math. Phys.
+             **181** (1996), pp 205-263.
 
 .. [LLZ2014] \K. Lee, \L. Li, and \A. Zelevinsky, *Greedy elements in rank 2
              cluster algebras*, Selecta Math. 20 (2014), 57-82.

@@ -90,6 +90,7 @@ TESTS::
 from __future__ import print_function
 from __future__ import absolute_import
 
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module            import Module
 from .finite_subgroup                import FiniteSubgroup
@@ -101,6 +102,7 @@ from sage.modular.dirichlet         import DirichletGroup
 from sage.misc.misc_c               import prod
 
 
+@richcmp_method
 class RationalTorsionSubgroup(FiniteSubgroup):
     """
     The torsion subgroup of a modular abelian variety.
@@ -135,17 +137,15 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             sage: T._repr_()
             'Torsion subgroup of Abelian variety J1(13) of dimension 2'
         """
-        return "Torsion subgroup of %s"%self.abelian_variety()
+        return "Torsion subgroup of %s" % self.abelian_variety()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare torsion subgroups.
 
         INPUT:
 
-
-        -  ``other`` - an object
-
+        -  ``other`` -- an object
 
         If other is a torsion subgroup, the abelian varieties are compared.
         Otherwise, the generic behavior for finite abelian variety
@@ -162,8 +162,8 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             False
         """
         if isinstance(other, RationalTorsionSubgroup):
-            return cmp(self.abelian_variety(), other.abelian_variety())
-        return FiniteSubgroup.__cmp__(self, other)
+            return richcmp(self.abelian_variety(), other.abelian_variety(), op)
+        return FiniteSubgroup.__richcmp__(self, other, op)
 
     def order(self, proof=True):
         """

@@ -48,12 +48,13 @@ class RegularSuperCrystals(Category_singleton):
             from sage.misc.latex import LatexExpr
             from sage.combinat.root_system.cartan_type import CartanType
 
-            G = DiGraph()
+            d = {x: {} for x in self}
             for i in self.index_set():
-                for x in self:
+                for x in d:
                     y = x.f(i)
                     if y is not None:
-                        G.add_edge(x, y, i)
+                        d[x][y] = i
+            G = DiGraph(d, format='dict_of_dicts')
 
             def edge_options((u, v, l)):
                 edge_opts = { 'edge_string': '->', 'color': 'black' }

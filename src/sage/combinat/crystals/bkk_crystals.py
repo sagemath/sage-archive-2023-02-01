@@ -5,6 +5,7 @@ Benkart-Kang-Kashiwara crystals for the general-linear Lie superalgebra
 #*****************************************************************************
 #       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
 #                     2017 Travis Scrimshaw <tcscrims at gmail.com>
+#                     2017 Anne Schilling <anne@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,13 +31,29 @@ class CrystalOfBKKTableaux(CrystalOfWords):
     """
     Crystal of tableaux for type `A(m,n)`.
 
+    This is an implementation of the tableaux model of the Benkart, Kang, Kashiwara
+    crystal [BKK2000]_ for the super Lie algebra `\mathfrak{gl}(m+1,n+1)`.
+
+    INPUT:
+
+    - ``ct`` -- a super Lie Cartan type of type `A`
+    - ``shape`` -- shape specifying the highest weight; this should be a partition
+                   contained in a hook of height `n+1` and width `m+1`
+
     EXAMPLES::
 
-        sage: from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
-        sage: T = CrystalOfBKKTableaux(['A', [1,1]], [2,1])
+        sage: T = crystals.Tableaux(['A', [1,1]], shape = [2,1])
+        sage: T.cardinality()
+        20
     """
     @staticmethod
     def __classcall_private__(cls, ct, shape):
+        """
+        TESTS::
+
+            sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
+            Crystal of BKK tableaux of skew shape [2, 1] of gl(2|3)
+        """
         ct = CartanType(ct)
         shape = _Partitions(shape)
         if len(shape) > ct.m + 1 and shape[ct.m] > ct.n + 1:
@@ -47,11 +64,8 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
-            sage: T = CrystalOfBKKTableaux(['A', [1,1]], [2,1])
-            sage: T
+            sage: T = crystals.Tableaux(['A', [1,1]], shape = [2,1]); T
             Crystal of BKK tableaux of skew shape [2, 1] of gl(2|2)
-
             sage: TestSuite(T).run()
         """
         self._shape = shape
@@ -71,21 +85,25 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         self.module_generators = (self.element_class(self, mg),)
 
     def _repr_(self):
+        """
+        TESTS::
+
+            sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
+            Crystal of BKK tableaux of skew shape [2, 1] of gl(2|3)
+        """
         m = self._cartan_type.m + 1
         n = self._cartan_type.n + 1
         return "Crystal of BKK tableaux of skew shape {} of gl({}|{})".format(self.shape(), m, n)
 
     def shape(self):
         r"""
+        Return the shape of ``self``.
+
         EXAMPLES::
 
-            sage: from bkk_tableaux import BKKTableaux
-            sage: B = BKKTableaux([1,1,1], 2, 2)
-            sage: B.shape()
-            [1, 1, 1] / []
-            sage: B = BKKTableaux(([3,1,1], [2,1]), 2, 2)
-            sage: B.shape()
-            [3, 1, 1] / [2, 1]
+            sage: T = crystals.Tableaux(['A', [1, 2]], shape=[2,1])
+            sage: T.shape()
+            [2, 1]
         """
         return self._shape
 

@@ -12,6 +12,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
 #                          Nicolas Thiery <nthiery at users.sf.net>
+#                     2017 Franco Saliola <saliola@gmail.com>
 #                     2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

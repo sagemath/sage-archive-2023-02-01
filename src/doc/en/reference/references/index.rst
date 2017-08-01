@@ -554,6 +554,9 @@ REFERENCES:
               orderings II. The parabolic analogue of Kazhdan-Lusztig
               polynomials, J. Alg. 111 (1987) 483-506.
 
+.. [Devaney] Devaney, Robert L. An Introduction to Chaotic Dynamical Systems.
+             Boulder: Westview, 2005, 331.
+
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
               two-player games.*

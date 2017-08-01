@@ -1,20 +1,17 @@
 r"""
 Regular SuperCrystals
 """
+
 #*****************************************************************************
-#  Copyright (C) 2017    Travis Scrimshaw <tcscrims at gmail.com>
+#       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+#*****************************************************************************
+
 from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
@@ -37,54 +34,6 @@ class RegularSuperCrystals(Category_singleton):
         return [Crystals().Finite()]
 
     class ParentMethods:
-        def m(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.m()
-                2
-
-            Test for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t.m()
-                2
-
-            Test for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.m()
-                2
-            """
-            return 1 - min(self.index_set())
-
-        def n(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.n()
-                3
-
-            Test for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t.n()
-                3
-
-            Test for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.n()
-                3
-            """
-            return 1 + max(self.index_set())
-
         @cached_method
         def digraph(self):
             r"""

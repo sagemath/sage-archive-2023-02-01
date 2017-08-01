@@ -2288,6 +2288,29 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 #########################
 
 cdef class BKKLetter(Letter):
+    def _repr_(self):
+        r"""
+        A string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: C(2)
+            2
+            sage: C(-3)
+            -3
+
+            sage: C = crystals.Letters(['A', [2, 1]], dual=True)
+            sage: C(2)
+            2*
+            sage: C(-3)
+            -3*
+        """
+        ret = Letter._repr_(self)
+        if self._parent._dual:
+            ret = ret + '*'
+        return ret
+
     def _latex_(self):
         r"""
         A latex representation of ``self``.

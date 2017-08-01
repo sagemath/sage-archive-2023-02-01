@@ -402,9 +402,9 @@ class ProjectiveSpace_ring(AmbientSpace):
                 raise TypeError("%s is not a homogeneous polynomial" % f)
         return polynomials
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Compare equality of two projective spaces.
+        Check equality of two projective spaces.
 
         EXAMPLES::
 
@@ -414,13 +414,29 @@ class ProjectiveSpace_ring(AmbientSpace):
             False
             sage: ProjectiveSpace(ZZ, 2, 'a') == AffineSpace(ZZ, 2, 'a')
             False
-            sage: loads(AffineSpace(ZZ, 1, 'x').dumps()) == AffineSpace(ZZ, 1, 'x')
+            sage: P = ProjectiveSpace(ZZ, 1, 'x')
+            sage: loads(P.dumps()) == P
             True
         """
         if not isinstance(right, ProjectiveSpace_ring):
-            return -1
-        return cmp([self.dimension_relative(), self.coordinate_ring()],
-                   [right.dimension_relative(), right.coordinate_ring()])
+            return False
+        return (self.dimension_relative() == right.dimension_relative() and
+                self.coordinate_ring() == right.coordinate_ring())
+
+    def __ne__(self, other):
+        """
+        Check non-equality of two projective spaces.
+
+        EXAMPLES::
+
+            sage: ProjectiveSpace(QQ, 3, 'a') != ProjectiveSpace(ZZ, 3, 'a')
+            True
+            sage: ProjectiveSpace(ZZ, 1, 'a') != ProjectiveSpace(ZZ, 0, 'a')
+            True
+            sage: ProjectiveSpace(ZZ, 2, 'a') != AffineSpace(ZZ, 2, 'a')
+            True
+        """
+        return not (self == other)
 
     def __pow__(self, m):
         """
@@ -919,7 +935,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         except KeyError:
             pass
         #if no ith patch exists, we may still be here with AA==None
-        if AA == None:
+        if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
             AA = AffineSpace(n, self.base_ring(), names = 'x')
         elif AA.dimension_relative() != n:
@@ -1183,7 +1199,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         while not i < 0:
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
-            if (ftype == False): # if rational field
+            if not ftype: # if rational field
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
                 iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
@@ -1195,7 +1211,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     yield self(P)
                     j = 0
                 except StopIteration:
-                    if (ftype == False): # if rational field
+                    if not ftype: # if rational field
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
                         iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset

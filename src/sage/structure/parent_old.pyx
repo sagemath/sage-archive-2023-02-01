@@ -339,7 +339,7 @@ cdef class Parent(parent.Parent):
         for x in ['_an_element_', 'pi', 1.2, 2, 1, 0, infinity]:
             try:
                 return self(x)
-            except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
+            except Exception:
                 pass
 
         raise NotImplementedError("please implement _an_element_c_impl or _an_element_impl for %s" % self)

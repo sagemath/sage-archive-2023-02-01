@@ -92,21 +92,42 @@ This came up in some subtle bug once::
     sage: gp(2) + gap(3)
     5
 """
-from __future__ import print_function
 
-from types import MethodType
+#*****************************************************************************
+#       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
+#       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
+#       Copyright (C) 2008 David Roe       <roed@math.harvard.edu>
+#       Copyright (C) 2007 William Stein   <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
+from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
+from cpython.bool cimport *
+
+from types import MethodType, BuiltinMethodType
+import operator
+from copy import copy
+
 from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
+from .category_object import CategoryObject
+from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sage_object cimport SageObject
 from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
-from copy import copy
 from sage.misc.lazy_format import LazyFormat
-from cpython.object cimport Py_NE, Py_EQ
 
 
 cdef _record_exception():
@@ -118,38 +139,6 @@ cdef bint is_Integer(x):
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
     return type(x) is _Integer or type(x) is int
-
-# for override testing
-cdef extern from "descrobject.h":
-    ctypedef struct PyMethodDef:
-        void *ml_meth
-    ctypedef struct PyMethodDescrObject:
-        PyMethodDef *d_method
-    void* PyCFunction_GET_FUNCTION(object)
-    bint PyCFunction_Check(object)
-
-###############################################################################
-#       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
-#       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
-#       Copyright (C) 2008 David Roe       <roed@math.harvard.edu>
-#       Copyright (C) 2007 William Stein   <wstein@gmail.com>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-###############################################################################
-
-import operator
-import weakref
-
-from category_object import CategoryObject
-from coerce_exceptions import CoercionException
-
-cdef object BuiltinMethodType = type(repr)
-
-from cpython.object cimport *
-from cpython.bool cimport *
 
 
 def is_Parent(x):
@@ -210,7 +199,7 @@ cdef inline bint good_as_coerce_domain(S):
 cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
-cdef class Parent(category_object.CategoryObject):
+cdef class Parent(sage.structure.category_object.CategoryObject):
     def __init__(self, base=None, *, category=None, element_constructor=None,
                  names=None, normalize=True, facade=None, **kwds):
         """
@@ -1381,7 +1370,7 @@ cdef class Parent(category_object.CategoryObject):
            sage: f(7)
            2
            sage: f
-           Ring Coercion morphism:
+           Natural morphism:
              From: Integer Ring
              To:   Finite Field of size 5
 
@@ -1391,7 +1380,7 @@ cdef class Parent(category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1861,8 +1850,15 @@ cdef class Parent(category_object.CategoryObject):
               From: Finite Field of size 7
               To:   Finite Field of size 11
 
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
+
         """
-        import coerce_maps
+        from . import coerce_maps
         if self._convert_method_name is not None:
             # handle methods like _integer_
             if isinstance(S, type):
@@ -2255,7 +2251,7 @@ cdef class Parent(category_object.CategoryObject):
         elif user_provided_mor is not None:
 
             from sage.categories.map import Map
-            from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
+            from .coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
 
             if user_provided_mor is True:
                 mor = self._generic_coerce_map(S)
@@ -2406,7 +2402,7 @@ cdef class Parent(category_object.CategoryObject):
             if isinstance(user_provided_mor, map.Map):
                 return user_provided_mor
             elif callable(user_provided_mor):
-                from coerce_maps import CallableConvertMap
+                from .coerce_maps import CallableConvertMap
                 return CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
@@ -2471,7 +2467,7 @@ cdef class Parent(category_object.CategoryObject):
         # If needed, it will be passed to Left/RightModuleAction.
         from sage.categories.action import Action, PrecomposedAction
         from sage.categories.homset import Hom
-        from coerce_actions import LeftModuleAction, RightModuleAction
+        from .coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
         for action in self._action_list:
             if isinstance(action, Action) and action.operation() is op:
@@ -2525,7 +2521,7 @@ cdef class Parent(category_object.CategoryObject):
                 _register_pair(self, S, "action") # this is to avoid possible infinite loops
 
                 # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
-                from coerce_actions import detect_element_action
+                from .coerce_actions import detect_element_action
                 action = detect_element_action(self, S, self_on_left, self_el, S_el)
                 if action is not None:
                     return action
@@ -2551,25 +2547,6 @@ cdef class Parent(category_object.CategoryObject):
 
         This must return an action which accepts an element of self and an
         element of S (in the order specified by self_on_left).
-        """
-        return None
-
-    def construction(self):
-        """
-        Returns a pair (functor, parent) such that functor(parent) return self.
-        If this ring does not have a functorial construction, return None.
-
-        EXAMPLES::
-
-            sage: QQ.construction()
-            (FractionField, Integer Ring)
-            sage: f, R = QQ['x'].construction()
-            sage: f
-            Poly[x]
-            sage: R
-            Rational Field
-            sage: f(R)
-            Univariate Polynomial Ring in x over Rational Field
         """
         return None
 
@@ -2717,20 +2694,6 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         Category of sets
 
     """
-#     def category(self):
-#         # TODO: remove once all subclasses specify their category, or
-#         # the constructor of Parent sets it to Sets() by default
-#         """
-#         The category that this set belongs to, which is the category
-#         of all sets.
-
-#         EXAMPLES:
-#             sage: Set(QQ).category()
-#             Category of sets
-#         """
-#         from sage.categories.sets_cat import Sets
-#         return Sets()
-
     def object(self):
         """
         Return the underlying object of ``self``.
@@ -2757,7 +2720,6 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         return not (self.is_finite() and len(self) == 0)
 
 
-import types
 cdef _type_set_cache = {}
 
 cpdef Parent Set_PythonType(theType):

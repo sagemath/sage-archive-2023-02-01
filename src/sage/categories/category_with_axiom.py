@@ -267,11 +267,11 @@ from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
 
-    sage: FiniteGroups()
-    Category of finite groups
-    sage: FiniteGroups() is Groups().Finite()
+    sage: FiniteCoxeterGroups()
+    Category of finite coxeter groups
+    sage: FiniteCoxeterGroups() is CoxeterGroups().Finite()
     True
-    sage: FiniteGroups._base_category_class_and_axiom_origin
+    sage: FiniteCoxeterGroups._base_category_class_and_axiom_origin
     'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)

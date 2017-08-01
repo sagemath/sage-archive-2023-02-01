@@ -47,7 +47,8 @@ TESTS::
 from __future__ import absolute_import
 
 import math
-
+from collections import Iterator, Sequence
+        
 import sage.rings.real_double
 import sage.rings.complex_double
 
@@ -225,8 +226,11 @@ cdef class Matrix_double_dense(Matrix_dense):
         cdef cnumpy.npy_intp dims[2]
         dims[0] = self._nrows
         dims[1] = self._ncols
-        if isinstance(entries,(tuple, list)):
-            if len(entries)!=self._nrows*self._ncols:
+        if isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
+
+            if len(entries) != self._nrows * self._ncols:
                     raise TypeError("entries has wrong length")
 
             if coerce:
@@ -1773,7 +1777,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         ALGORITHM:
 
         Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module,
-        after taking the tranpose of the coefficient matrix.
+        after taking the transpose of the coefficient matrix.
 
         EXAMPLES:
 

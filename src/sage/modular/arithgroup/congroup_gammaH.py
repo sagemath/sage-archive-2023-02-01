@@ -282,7 +282,7 @@ class GammaH_class(CongruenceSubgroup):
         v = self.__H
         ans = []
         for M in self.level().divisors():
-            w = [a % M for a in v if a%M]
+            w = [a % M for a in v if a % M]
             ans.append(GammaH_constructor(M, w))
         return ans
 
@@ -314,9 +314,9 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLES::
 
             sage: G = GammaH(86, [9])
-            sage: G.__cmp__(G)
-            0
-            sage: G.__cmp__(GammaH(86, [11])) is not 0
+            sage: G == G
+            True
+            sage: G != GammaH(86, [11])
             True
             sage: Gamma1(11) < Gamma0(11)
             True
@@ -325,9 +325,9 @@ class GammaH_class(CongruenceSubgroup):
             sage: Gamma0(11) == GammaH(11, [2])
             True
             sage: G = Gamma0(86)
-            sage: G.__cmp__(G)
-            0
-            sage: G.__cmp__(GammaH(86, [11])) is not 0
+            sage: G == G
+            True
+            sage: G != GammaH(86, [11])
             True
             sage: Gamma1(17) < Gamma0(17)
             True
@@ -354,7 +354,7 @@ class GammaH_class(CongruenceSubgroup):
             [1, 11, 17, 19],
             [1, 5, 7, 11, 13, 17, 19, 23]]
         """
-        if is_GammaH(other):
+        if isinstance(other, GammaH_class):
             return (cmp(self.level(), other.level())
                 or -cmp(self.index(), other.index())
                 or cmp(self._list_of_elements_in_H(), other._list_of_elements_in_H()))

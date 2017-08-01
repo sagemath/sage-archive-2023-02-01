@@ -52,6 +52,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
+- :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
 - :class:`algebras.Tensor <sage.algebras.tensor_algebra.TensorAlgebra>`
@@ -92,4 +93,5 @@ lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')
 lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
+lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion

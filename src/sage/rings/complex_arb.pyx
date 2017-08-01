@@ -104,7 +104,7 @@ Automatic coercions work as expected::
 
 TESTS::
 
-    sage: polygen(CBF, x)^3
+    sage: polygen(CBF, 'x')^3
     x^3
 
 ::

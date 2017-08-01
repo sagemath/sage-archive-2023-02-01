@@ -65,11 +65,11 @@ We test corner cases for multiplication::
     [1] x [1] = [1]
 
     sage: bad  = [ (v1,m00), (v1,m01), (v0,m10), (v0,m11), (m00,v1), (m10,v1), (m01,v0), (m11,v0), (m01,m01), (m10,m10), (m11,m01), (m10,m11) ]
-    sage: for v,m in bad:
+    sage: for v, m in bad:
     ....:     try:
     ....:         v*m
     ....:         print('Uncaught dimension mismatch!')
-    ....:     except (TypeError, ArithmeticError):
+    ....:     except (IndexError, TypeError, ArithmeticError):
     ....:         pass
 
 """
@@ -92,6 +92,8 @@ from cpython.bytes cimport *
 
 from cysignals.memory cimport check_malloc, check_allocarray, sig_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
+
+from collections import Iterator, Sequence
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
@@ -537,7 +539,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         R = self.base_ring()
 
         # scalar?
-        if not isinstance(entries, list) and not isinstance(entries, tuple):
+        if not isinstance(entries, (Iterator, Sequence)):
             sig_on()
             for i in range(self._nrows*self._ncols):
                 self._entries[i] = 0
@@ -552,7 +554,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                         self._matrix[i][i] = e
             return
 
-        # all entries are given as a long list
+        # all entries are given as a long iterable
+        if not isinstance(entries, (list, tuple)):
+            entries = list(entries)
         if len(entries) != self._nrows * self._ncols:
             raise IndexError("The vector of entries has the wrong length.")
 
@@ -1473,7 +1477,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: A.minimal_polynomial()
             x
 
-            sage: A = Mat(GF(7),3,3)(range(3)*3)
+            sage: A = Mat(GF(7),3,3)([0, 1, 2] * 3)
             sage: A.charpoly()
             x^3 + 4*x^2
 
@@ -1675,7 +1679,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             v = linbox_minpoly(self.p, self._nrows, self._entries)
             g = R(v)
 
-            if proof == True:
+            if proof:
                 while g(self):  # insanely toy slow (!)
                     g = g.lcm(R(linbox_minpoly(self.p, self._nrows, self._entries)))
 

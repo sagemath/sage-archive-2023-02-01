@@ -1640,13 +1640,13 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: R = PolynomialRing(GF(2^8,'a'),2,'xy')
-            sage: f=R('a^20*x^2*y+a^10+x')
-            sage: f._singular_().sage_poly(R)==f
+            sage: R = PolynomialRing(GF(2^8,'a'), 'x,y')
+            sage: f = R('a^20*x^2*y+a^10+x')
+            sage: f._singular_().sage_poly(R) == f
             True
-            sage: R = PolynomialRing(GF(2^8,'a'),1,'x')
-            sage: f=R('a^20*x^3+x^2+a^10')
-            sage: f._singular_().sage_poly(R)==f
+            sage: R = PolynomialRing(GF(2^8,'a'), 'x', implementation="singular")
+            sage: f = R('a^20*x^3+x^2+a^10')
+            sage: f._singular_().sage_poly(R) == f
             True
 
         ::

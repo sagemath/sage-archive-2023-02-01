@@ -888,14 +888,14 @@ class HyperbolicGeodesic(SageObject):
 
             sage: PD = HyperbolicPlane().PD()
             sage: g = PD.get_geodesic(-0.3+0.4*I,+0.7-0.1*I)
-            sage: h = g.perpendicular_bisector()
+            sage: h = g.perpendicular_bisector().complete()
             sage: P = g.plot(color='blue')+h.plot(color='orange');P
             Graphics object consisting of 4 graphics primitives
 
         .. PLOT::
 
             g = HyperbolicPlane().PD().get_geodesic(-0.3+0.4*I,+0.7-0.1*I)
-            h = g.perpendicular_bisector()
+            h = g.perpendicular_bisector().complete()
             sphinx_plot(g.plot(color='blue')+h.plot(color='orange'))
 
         Complete geodesics cannot be bisected::
@@ -909,7 +909,7 @@ class HyperbolicGeodesic(SageObject):
         TESTS::
 
             sage: g = HyperbolicPlane().PD().random_geodesic()
-            sage: h = g.perpendicular_bisector()
+            sage: h = g.perpendicular_bisector().complete()
             sage: bool(h.intersection(g)[0].coordinates() - g.midpoint().coordinates() < 10**-9)
             True
 
@@ -1307,6 +1307,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g.intersection(h)
             [Point in UHP 2/3*sqrt(-2) + 13/3]
 
+        .. PLOT::
+
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(3, 5)
+            h = UHP.get_geodesic(4, 7)
+            P = g.intersection(h)
+            pict = g.plot(color="red")+h.plot(color="red")
+            sphinx_plot(pict)
+
         If the given geodesics do not intersect, the function returns an
         empty list::
 
@@ -1314,6 +1323,13 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: h = UHP.get_geodesic(5, 7)
             sage: g.intersection(h)
             []
+
+        .. PLOT::
+
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(4.0, 5.0)
+            h = UHP.get_geodesic(5.0, 7.0)
+            sphinx_plot(g.plot() + h.plot())
 
         If the given geodesics are identical, return that
         geodesic::
@@ -1324,6 +1340,13 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             [Boundary point in UHP -1/8*sqrt(114985) - 307/8,
              Boundary point in UHP 1/8*sqrt(114985) - 307/8]
 
+        TEST:
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: g1 = UHP.get_geodesic(2*QQbar.gen(), 5)
+            sage: g2 = UHP.get_geodesic(-1/2, Infinity)
+            sage: g1.intersection(g2)
+            []
         """
 
         start_1, end_1 = sorted(self.ideal_endpoints(), key=str)
@@ -1339,7 +1362,24 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         C = A * B
         if C.classification() in ['hyperbolic', 'parabolic']:
             return []
-        return C.fixed_point_set()
+        #Check wether the C fixed point lies in the geodesic segment
+        P = C.fixed_point_set()
+        p_real = P[0].coordinates().real()
+        s = self.start()
+        e = self.end()
+        if s.is_boundary():
+           s_real = s.coordinates()
+        else:
+           s_real = s.coordinates().real()
+        if e.is_boundary():
+           e_real = e.coordinates()
+        else:
+           e_real = e.coordinates().real()
+        if p_real>=s_real and p_real<=e_real:
+            return  P
+        else:
+            #the point does not lie in the segment therefore return empty list
+            return[]
 
     def perpendicular_bisector(self):  # UHP
         r"""
@@ -1348,25 +1388,25 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         EXAMPLES::
 
-            sage: UHP = HyperbolicPlane().UHP()
-            sage: g = UHP.random_geodesic()
-            sage: h = g.perpendicular_bisector()
-            sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
-            True
+             sage: UHP = HyperbolicPlane().UHP()
+             sage: g = UHP.random_geodesic()
+             sage: h = g.perpendicular_bisector().complete()
+             sage: c = lambda x: x.coordinates()
+             sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
+             True
 
         ::
 
             sage: UHP = HyperbolicPlane().UHP()
             sage: g = UHP.get_geodesic(1+I,2+0.5*I)
-            sage: h = g.perpendicular_bisector()
+            sage: h = g.perpendicular_bisector().complete()
             sage: show(g.plot(color='blue')+h.plot(color='orange'))
 
         .. PLOT::
 
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(1+I,2+0.5*I)
-            h = g.perpendicular_bisector()
+            h = g.perpendicular_bisector().complete()
             sphinx_plot(g.plot(color='blue')+h.plot(color='orange'))
 
         Infinite geodesics cannot be bisected::

@@ -1253,7 +1253,11 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
             sage: t.weight()
             (0, 0, 0, 2, 0)
         """
-        return sum(elt.weight() for elt in self)
+        from sage.modules.free_module_element import vector
+        from sage.combinat.crystals.letters import CrystalOfBKKLetters
+        elements = list(CrystalOfBKKLetters(self._parent.cartan_type()))
+        zero = vector([0]*len(elements))
+        return sum((elt.weight() for elt in self), zero)
 
 cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
     """

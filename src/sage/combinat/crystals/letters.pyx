@@ -8,6 +8,7 @@ Crystals of letters
 #                          Daniel Bump    <bump at match.stanford.edu>
 #                          Brant Jones    <brant at math.ucdavis.edu>
 #                     2017 Travis Scrimshaw <tcscrims at gmail.com>
+#                          Franco Saliola <saliola@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

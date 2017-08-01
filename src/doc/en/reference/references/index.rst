@@ -196,6 +196,10 @@ REFERENCES:
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
 
+.. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
+              *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
+              J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
+
 .. [Ber2008] \W. Bertram : *Differential Geometry, Lie Groups and
              Symmetric Spaces over General Base Fields and Rings*,
              Memoirs of the American Mathematical Society, vol. 192

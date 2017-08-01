@@ -52,7 +52,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         TESTS::
 
             sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
-            Crystal of BKK tableaux of skew shape [2, 1] of gl(2|3)
+            Crystal of BKK tableaux of shape [2, 1] of gl(2|3)
         """
         ct = CartanType(ct)
         shape = _Partitions(shape)
@@ -65,7 +65,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         EXAMPLES::
 
             sage: T = crystals.Tableaux(['A', [1,1]], shape = [2,1]); T
-            Crystal of BKK tableaux of skew shape [2, 1] of gl(2|2)
+            Crystal of BKK tableaux of shape [2, 1] of gl(2|2)
             sage: TestSuite(T).run()
         """
         self._shape = shape
@@ -89,11 +89,11 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         TESTS::
 
             sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
-            Crystal of BKK tableaux of skew shape [2, 1] of gl(2|3)
+            Crystal of BKK tableaux of shape [2, 1] of gl(2|3)
         """
         m = self._cartan_type.m + 1
         n = self._cartan_type.n + 1
-        return "Crystal of BKK tableaux of skew shape {} of gl({}|{})".format(self.shape(), m, n)
+        return "Crystal of BKK tableaux of shape {} of gl({}|{})".format(self.shape(), m, n)
 
     def shape(self):
         r"""

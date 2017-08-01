@@ -641,103 +641,6 @@ class FullTensorProductOfSuperCrystals(FullTensorProductOfCrystals):
         sage: T = tensor([L,L,L])
         sage: T.cardinality()
         64
-
-    TESTS:
-
-    In the BKK paper, they point out that there are elements that are highest
-    weight vectors, but not "genuine". Here we verify their examples.
-
-    First some import statements::
-
-        sage: from bkk_crystals import BKKOneBoxCrystal
-        sage: from bkk_tableaux import japanese_reading_word
-
-    Construct the 6-fold tensor product of the BKK crystal for shape [1]::
-
-        sage: c = BKKOneBoxCrystal(2, 2)
-        sage: # TODO: extend tensor product defintion so that tensor([c]*6) works
-        sage: c6 = reduce(lambda x, y: tensor((x,y)), [c]*6)
-
-    Here is a function that finds the element of ``c6`` whose reading word is
-    the Japanese reading word of the given tableau::
-
-        sage: def find_element_by_japanese_reading_word(t):
-        ....:     w = japanese_reading_word(t)
-        ....:     s = str(reduce(lambda x, y : [x, y], w))
-        ....:     for x in c6:
-        ....:         if str(x) == s:
-        ....:             return x
-
-        sage: t = Tableau([ [-2,-2,-2], [-1,-1], [1] ])
-        sage: ascii_art(t)
-         -2 -2 -2
-         -1 -1
-          1
-        sage: japanese_reading_word(t)
-        word: -2,-2,-1,-2,-1,1
-        sage: find_element_by_japanese_reading_word(t)
-        [[[[[-2, -2], -1], -2], -1], 1]
-
-    The following three elements are all highest weight vectors,
-    and they all belong to the same connected component of ``c6``::
-
-        sage: H0 = Tableau([ [-2,-2,-2], [-1,-1], [1] ])
-        sage: x0 = find_element_by_japanese_reading_word(H0)
-        sage: x0.is_highest_weight()
-        True
-        sage: x0.weight()
-        (3, 2, 1, 0)
-
-        sage: H1 = Tableau([ [-2,-2,-2], [-1,2], [1] ])
-        sage: x1 = find_element_by_japanese_reading_word(H1)
-        sage: x1.is_highest_weight()
-        True
-        sage: x1.weight()
-        (3, 1, 1, 1)
-
-        sage: H2 = Tableau([ [-2,-2,2], [-1,-1], [1] ])
-        sage: x2 = find_element_by_japanese_reading_word(H2)
-        sage: x2.is_highest_weight()
-        True
-        sage: x2.weight()
-        (2, 2, 1, 1)
-
-        sage: for cc in c6.connected_components():
-        ....:    if x0 in cc:
-        ....:        break
-        sage: (x0 in cc) and (x1 in cc) and (x2 in cc)
-        True
-
-    Similarly, the following three elements are all lowest weight vectors,
-    and they all belong to the same connected component of ``c6``::
-
-        sage: L0 = Tableau([ [-1,1,2], [1,2], [2] ])
-        sage: y0 = find_element_by_japanese_reading_word(L0)
-        sage: y0.is_lowest_weight()
-        True
-        sage: y0.weight()
-        (0, 1, 2, 3)
-
-        sage: L1 = Tableau([ [-2,1,2], [-1,2], [2] ])
-        sage: y1 = find_element_by_japanese_reading_word(L1)
-        sage: y1.is_lowest_weight()
-        True
-        sage: y1.weight()
-        (1, 1, 1, 3)
-
-        sage: L2 = Tableau([ [-2,1,2], [-1,2], [1] ])
-        sage: y2 = find_element_by_japanese_reading_word(L2)
-        sage: y2.is_lowest_weight()
-        True
-        sage: y2.weight()
-        (1, 1, 2, 2)
-
-        sage: for cc in c6.connected_components():
-        ....:    if y0 in cc:
-        ....:        break
-        sage: (y0 in cc) and (y1 in cc) and (y2 in cc)
-        True
-
     """
     class Element(TensorProductOfSuperCrystalsElement):
         pass
@@ -925,9 +828,10 @@ class CrystalOfTableaux(CrystalOfWords):
 
             sage: T1 = crystals.Tableaux(['A', [1,1]], shape=[3,1,1,1])
             sage: T1
-            Crystal of BKK tableaux of skew shape [3, 1, 1, 1] of gl(2|2)
+            Crystal of BKK tableaux of shape [3, 1, 1, 1] of gl(2|2)
             sage: T2 = crystals.Tableaux(['A', [1,1]], [3,1,1,1])
             sage: T1 is T2
+            True
         """
         cartan_type = CartanType(cartan_type)
         if cartan_type.letter == 'A' and isinstance(cartan_type, SuperCartanType_standard):

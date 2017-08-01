@@ -56,7 +56,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         """
         ct = CartanType(ct)
         shape = _Partitions(shape)
-        if len(shape) > ct.m + 1 and shape[ct.m] > ct.n + 1:
+        if len(shape) > ct.m + 1 and shape[ct.m+1] > ct.n + 1:
             raise ValueError("invalid hook shape")
         return super(CrystalOfBKKTableaux, cls).__classcall__(cls, ct, shape)
 

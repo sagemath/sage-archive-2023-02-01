@@ -828,16 +828,21 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return chash(self.value, 0, self.prime_pow.prec_cap, self.prime_pow)
 
-cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
+cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
     """
     The canonical inclusion from ZZ to a fixed modulus ring.
 
     EXAMPLES::
 
         sage: f = ZpFM(5).coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   5-adic Ring of fixed modulus 5^20
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, R):
         """
@@ -848,7 +853,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             sage: f = ZpFM(5).coerce_map_from(ZZ); type(f)
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicCoercion_ZZ_FM'>
         """
-        RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
+        RingHomomorphism.__init__(self, ZZ.Hom(R))
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_FM_ZZ(R)
 
@@ -869,7 +874,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -888,7 +893,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """

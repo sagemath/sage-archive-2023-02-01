@@ -57,8 +57,8 @@ This example illustrates generators for a free module over `\ZZ`.
 
 from __future__ import absolute_import, division, print_function
 
-from sage.structure.misc import dir_with_other_class
-from sage.structure.misc cimport getattr_from_other_class
+from sage.cpython.getattr import dir_with_other_class
+from sage.cpython.getattr cimport getattr_from_other_class
 from sage.categories.category import Category
 from sage.structure.debug_options cimport debug
 from sage.misc.cachefunc import cached_method

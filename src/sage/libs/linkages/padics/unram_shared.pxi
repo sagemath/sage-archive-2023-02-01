@@ -43,19 +43,29 @@ def frobenius_unram(self, arithmetic=True):
         ...
         NotImplementedError: Frobenius automorphism only implemented for unramified extensions
     """
+    if self == 0:
+        return self
     R = self.parent()
-    if self.is_zero(): return self
-    L = self.teichmuller_list()
-    ppow = R.uniformizer_pow(self.valuation())
-    if arithmetic:
-        exp = R.prime()
-    else:
-        exp = R.prime()**(R.degree()-1)
-    ans = ppow * L[0]**exp
-    for m in range(1,len(L)):
-        ppow = ppow << 1
-        ans += ppow * L[m]**exp
-    return ans
+    p = R.prime()
+    a = R.gen()
+    frob_a = R._frob_gen()
+    ppow = self.valuation()
+    unit = self.unit_part()
+    coefs = unit.list()
+    ans = 0
+
+    # Xavier's implementation based on Horner scheme
+    for i in range(R.f()-1, -1, -1):
+        update = 0
+        for j in range(len(coefs)-1, -1, -1):
+            update *= p
+            try:
+                update += coefs[j][i]
+            except IndexError:
+                pass
+        ans *= frob_a
+        ans += update
+    return ans << ppow
 
 
 @cython.binding(True)

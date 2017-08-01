@@ -271,7 +271,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f(7)
             2
             sage: f
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
 
@@ -282,7 +282,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: QQ.hom(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+            TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
         """
         if self._element_constructor is not None:
             return parent.Parent.hom(self, im_gens, codomain, check)

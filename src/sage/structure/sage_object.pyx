@@ -1093,7 +1093,7 @@ def load(*filename, compress=True, verbose=True):
         pass
 
     ## Delete the tempfile, if it exists
-    if tmpfile_flag == True:
+    if tmpfile_flag:
         os.unlink(filename)
 
     return X
@@ -1283,8 +1283,10 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:             self._set_parent(Tableaux())  # this is a fudge: we need an appropriate parent here
         ....:             self.__dict__ = state
         ....:         else:
-        ....:             self._set_parent(state[0])
-        ....:             self.__dict__ = state[1]
+        ....:             P, D = state
+        ....:             if P is not None:
+        ....:                 self._set_parent(P)
+        ....:             self.__dict__ = D
         sage: __main__.SweeterPickle = SweeterPickle
         sage: register_unpickle_override('__main__','SourPickle',SweeterPickle)
         sage: loads( gherkin )

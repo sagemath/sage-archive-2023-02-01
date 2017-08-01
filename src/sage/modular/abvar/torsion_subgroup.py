@@ -363,6 +363,13 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             sage: J.rational_torsion_subgroup().divisor_of_order()
             4383
 
+            sage: J = J0(45)
+            sage: J.rational_cusp_subgroup().order()
+            32
+            sage: J.rational_cuspidal_subgroup().order()
+            64
+            sage: J.rational_torsion_subgroup().divisor_of_order()
+            64
         """
         try:
             return self._divisor_of_order
@@ -396,7 +403,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         # The Gamma0 case
         if all(is_Gamma0(G) for G in A.groups()):
-            self._divisor_of_order = A.rational_cusp_subgroup().order()
+            self._divisor_of_order = A.rational_cuspidal_subgroup().order()
             return self._divisor_of_order
 
         # Unhandled case

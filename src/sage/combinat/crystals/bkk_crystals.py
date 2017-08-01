@@ -3,7 +3,8 @@ Benkart-Kang-Kashiwara crystals for the general-linear Lie superalgebra
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Franco Saliola <saliola@gmail.com>
+#       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
+#                     2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

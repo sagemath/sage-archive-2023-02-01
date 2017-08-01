@@ -39,9 +39,8 @@ from sage.algebras.quantum_groups.q_numbers import q_factorial
 #############################
 ## Fock space options
 
-FockSpaceOptions = GlobalOptions('FockSpace',
-    module='sage.algebras.quantum_groups.fock_space',
-    doc=r"""
+class FockSpaceOptions(GlobalOptions):
+    r"""
     Sets and displays the global options for elements of the Fock
     space classes.  If no parameters are set, then the function
     returns a copy of the options dictionary.
@@ -49,8 +48,9 @@ FockSpaceOptions = GlobalOptions('FockSpace',
     The ``options`` to Fock space can be accessed as the method
     :obj:`FockSpaceOptions` of :class:`FockSpace` and
     related parent classes.
-    """,
-    end_doc=r"""
+
+    @OPTIONS@
+
     EXAMPLES::
 
         sage: FS = FockSpace(4)
@@ -62,7 +62,7 @@ FockSpaceOptions = GlobalOptions('FockSpace',
         sage: Partitions.options.display = 'diagram'
         sage: y
         ((3*q^2+3)/q)*|3, 3, 1> + (3*q^2+3)*|3, 2, 1, 1>
-        sage: ascii_art()
+        sage: ascii_art(y)
         ((3*q^2+3)/q)*|***\  + (3*q^2+3)*|***\
                       |*** >             |**  \
                       |*  /              |*   /
@@ -80,13 +80,16 @@ FockSpaceOptions = GlobalOptions('FockSpace',
 
         sage: Partitions.options._reset()
         sage: FockSpace.options._reset()
-    """,
-    display=dict(default="ket",
-                 description='Specifies how terms of the natural basis of Fock space should be printed',
-                 values=dict(ket='displayed as a ket in bra-ket notation',
-                             list='displayed as a list'),
-                 case_sensitive=False),
-)
+    """
+    NAME = 'FockSpace'
+    module = 'sage.algebras.quantum_groups.fock_space'
+
+    display = dict(default="ket",
+                   description='Specifies how terms of the natural basis of Fock space should be printed',
+                   values=dict(ket='displayed as a ket in bra-ket notation',
+                               list='displayed as a list'),
+                   case_sensitive=False)
+
 
 ###############################################################################
 ## Fock space

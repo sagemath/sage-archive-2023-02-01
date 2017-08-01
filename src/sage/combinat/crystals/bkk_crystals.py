@@ -27,6 +27,13 @@ from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrysta
 from sage.categories.regular_supercrystals import RegularSuperCrystals
 
 class BKKCrystalForVectorRepresentation(UniqueRepresentation, Parent):
+    @staticmethod
+    def __classcall_private__(cls, ct, n=None):
+        if n is not None:
+            ct = CartanType(['A', [ct, n]])
+        else:
+            ct = CartanType(ct)
+        return super(BKKCrystalForVectorRepresentation, cls).__classcall__(cls, ct)
 
     def __init__(self, ct):
         self._cartan_type = ct
@@ -262,7 +269,7 @@ class TensorProductOfSuperCrystals(TensorProductOfCrystals):
             self.Element = TensorProductOfSuperCrystalsElement_old
             self._old = old
 
-        self._cartan_type = self.crystals._cartan_type
+        self._cartan_type = crystals[0]._cartan_type
         Parent.__init__(self, category=RegularSuperCrystals())
         self.crystals = crystals
 

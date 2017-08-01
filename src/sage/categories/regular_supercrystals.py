@@ -163,7 +163,7 @@ class RegularSuperCrystals(Category_singleton):
                 [Subcrystal of <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>,
                  Subcrystal of <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>]
             """
-            category = RegularSuperCrystalCategory()
+            category = RegularSuperCrystals()
             index_set = self.index_set()
             cartan_type = self.cartan_type()
             CCs = []

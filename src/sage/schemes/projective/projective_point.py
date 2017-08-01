@@ -934,7 +934,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             err = R(err)
             if not err>0:
                 raise ValueError("error bound (=%s) must be positive"%err)
-            if G.is_endomorphism() == False:
+            if not G.is_endomorphism():
                 raise NotImplementedError("error bounds only for endomorphisms")
 
             #if doing error estimates, compute needed number of iterates

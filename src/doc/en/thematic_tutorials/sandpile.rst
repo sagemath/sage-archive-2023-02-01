@@ -2283,7 +2283,7 @@ EXAMPLES::
     [0 4 0 0]
     [0 0 4 0]
     [0 0 0 0]
-    sage: U*s.laplacian()*V == D  # laplacian symmetric => tranpose not necessary
+    sage: U*s.laplacian()*V == D  # laplacian symmetric => transpose not necessary
     True
 
 ---
@@ -2376,8 +2376,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-   Priezzhev and Ruelle, Communications in Mathematical Physics.
+- [Levine2014]_
 
 ---
 
@@ -3058,8 +3057,7 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
-   Priezzhev and Ruelle, Communications in Mathematical Physics.
+- [Levine2014]_
 
 ---
 
@@ -4131,11 +4129,9 @@ EXAMPLES::
     is_q_reduced           -- Is the divisor q-reduced?
     is_symmetric           -- Is the divisor symmetric?
     is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
-    linear_system          -- The complete linear system (deprecated: use "polytope_integer_pts").
     polytope               -- The polytope determinining the complete linear system.
     polytope_integer_pts   -- The integer points inside divisor's polytope.
     q_reduced              -- The linearly equivalent q-reduced divisor.
-    r_of_D                 -- The rank of the divisor (deprecated: use "rank", instead).
     rank                   -- The rank of the divisor.
     sandpile               -- The divisor's underlying sandpile.
     show                   -- Show the divisor.

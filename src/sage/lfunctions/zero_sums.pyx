@@ -157,7 +157,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
         # Computed at initialization
-        if include_euler_gamma==False:
+        if not include_euler_gamma:
             return self._C1
         else:
             return self._C0

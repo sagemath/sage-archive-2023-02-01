@@ -54,6 +54,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 import sys
 import operator
+import fractions
 
 from sage.misc.mathml import mathml
 from sage.misc.long cimport pyobject_to_long
@@ -390,6 +391,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: QQ(RDF(1.2))
         6/5
 
+    Conversion from fractions::
+
+        sage: import fractions
+        sage: f = fractions.Fraction(1r, 2r)
+        sage: Rational(f)
+        1/2
+
     Conversion from PARI::
 
         sage: Rational(pari('-939082/3992923'))
@@ -621,6 +629,10 @@ cdef class Rational(sage.structure.element.FieldElement):
                 self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
+
+        elif isinstance(x, fractions.Fraction):
+            mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
+            mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
 
         else:
             raise TypeError("unable to convert {!r} to a rational".format(x))
@@ -1532,7 +1544,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             if (mpz_cmp_ui(mpq_denref(self.value), 1) == 0):
                 return mpz_perfect_power_p(mpq_numref(self.value))
-            if expected_value == False:
+            if not expected_value:
                 # A necessary condition is that both the numerator and denominator
                 # be perfect powers, which can be faster to disprove than the full
                 # product (especially if both have a large prime factor).
@@ -1561,7 +1573,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mpz_clear(prod)
                 return s == 1
 
-            if expected_value == False:
+            if not expected_value:
                 if mpz_cmpabs(mpq_numref(self.value), mpq_denref(self.value)) < 0:
                     mpz_init(prod)
                     mpz_mul_si(prod, mpq_numref(self.value), -1)

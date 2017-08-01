@@ -31,7 +31,8 @@ from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSk
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.structure.unique_representation import UniqueRepresentation
 
-from sage.combinat.crystals.letters import CrystalOfBKKLetters as BKKOneBoxCrystal
+from sage.combinat.crystals.letters import CrystalOfBKKLetters
+from sage.combinat.crystals.letters import CrystalOfBKKLetters as BKKOneBoxCrystal # Backwards compatibility placeholder
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
 from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
         TensorProductOfSuperCrystalsElement, CrystalOfBKKTableauxElement)
@@ -429,7 +430,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
     def __classcall_private__(cls, ct, shape):
         ct = CartanType(ct)
         shape = _Partitions(shape)
-        if len(shape) > ct.m + 1 and shape[m] > ct.n + 1:
+        if len(shape) > ct.m + 1 and shape[ct.m] > ct.n + 1:
             raise ValueError("invalid hook shape")
         return super(CrystalOfBKKTableaux, cls).__classcall__(cls, ct, shape)
 
@@ -448,7 +449,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         self._cartan_type = ct
         m = ct.m + 1
         n = ct.n + 1
-        C = BKKCrystalForVectorRepresentation(ct)
+        C = CrystalOfBKKLetters(ct)
         tr = shape.conjugate()
         mg = []
         for i,col_len in enumerate(tr):

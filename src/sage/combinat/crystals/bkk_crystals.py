@@ -21,71 +21,11 @@ from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSk
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.structure.unique_representation import UniqueRepresentation
 
+from sage.combinat.crystals.letters import CrystalOfBKKLetters as BKKOneBoxCrystal
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
 from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
         TensorProductOfSuperCrystalsElement, CrystalOfBKKTableauxElement)
 from sage.categories.regular_supercrystals import RegularSuperCrystals
-
-class BKKCrystalForVectorRepresentation(UniqueRepresentation, Parent):
-    @staticmethod
-    def __classcall_private__(cls, ct, n=None):
-        if n is not None:
-            ct = CartanType(['A', [ct, n]])
-        else:
-            ct = CartanType(ct)
-        return super(BKKCrystalForVectorRepresentation, cls).__classcall__(cls, ct)
-
-    def __init__(self, ct):
-        self._cartan_type = ct
-        Parent.__init__(self, category=RegularSuperCrystals())
-        self.module_generators = (self(-self._cartan_type.m-1),)
-
-    def __iter__(self):
-        for t in range(-self._cartan_type.m - 1, self._cartan_type.n + 2):
-            if t != 0:
-                yield self(t)
-
-    def _repr_(self):
-        return "BKK crystal on semistandard tableaux of shape [1] with entries in {}".format(tuple(self))
-
-    # temporary workaround while an_element is overriden by Parent
-    _an_element_ = EnumeratedSets.ParentMethods._an_element_
-
-    class Element(ElementWrapper):
-
-        def e(self, i):
-            assert i in self.parent().index_set()
-            b = self.value
-            if i < 0:
-                if b == i:
-                    return self.parent()(b - 1)
-            elif 0 < i:
-                if b == i + 1:
-                    return self.parent()(b - 1)
-            elif i == 0 and b == 1:
-                return self.parent()(-1)
-
-        def f(self, i):
-            assert i in self.parent().index_set()
-            b = self.value
-            if 0 < i:
-                if b == i:
-                    return self.parent()(b + 1)
-            elif i < 0:
-                if b == i - 1:
-                    return self.parent()(b + 1)
-            elif i == 0 and b == -1:
-                return self.parent()(1)
-
-        def weight(self):
-            from sage.modules.free_module_element import vector
-            elements = list(self.parent())
-            v = vector([0]*len(elements))
-            i = elements.index(self)
-            v[i] = 1
-            return v
-
-BKKOneBoxCrystal = BKKCrystalForVectorRepresentation
 
 class TensorProductOfSuperCrystalsElement_old(TensorProductOfCrystalsElement):
 
@@ -165,6 +105,15 @@ class TensorProductOfSuperCrystalsElement_old(TensorProductOfCrystalsElement):
 
 class TensorProductOfSuperCrystals(TensorProductOfCrystals):
     r"""
+    Tensor product of super crystals.
+
+    EXAMPLES::
+
+        sage: L = crystals.Letters(['A', [1,1]])
+        sage: T = tensor([L,L,L])
+        sage: T.cardinality()
+        64
+
     TESTS:
 
     In the BKK paper, they point out that there are elements that are highest

@@ -7,6 +7,7 @@ Crystals of letters
 #                          Nicolas M. Thiery <nthiery at users.sf.net>
 #                          Daniel Bump    <bump at match.stanford.edu>
 #                          Brant Jones    <brant at math.ucdavis.edu>
+#                     2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +23,7 @@ from sage.structure.parent import Parent
 from sage.structure.element cimport Element
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.regular_supercrystals import RegularSuperCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.integer import Integer
 
@@ -83,6 +85,9 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     """
     ct = CartanType(cartan_type)
     if ct.letter == 'A':
+        from sage.combinat.root_system.cartan_type import SuperCartanType_standard
+        if isinstance(ct, SuperCartanType_standard):
+            return CrystalOfBKKLetters(ct)
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_A_element)
     elif ct.letter == 'B':
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_B_element)
@@ -2276,6 +2281,80 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
             return self._parent._element_constructor_( (-7,) )
         else:
             return None
+
+#########################
+# Type A(m,n) (in BKK)
+#########################
+
+class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
+    """
+    Crystal of letters for BKK supercrystals.
+
+    EXAMPLES::
+
+        sage: L = crystals.Letters(['A', [1,1]])
+    """
+    @staticmethod
+    def __classcall_private__(cls, ct, n=None):
+        if n is not None:
+            ct = CartanType(['A', [ct-1, n-1]])
+        else:
+            ct = CartanType(ct)
+        return super(CrystalOfBKKLetters, cls).__classcall__(cls, ct)
+
+    def __init__(self, ct):
+        self._cartan_type = ct
+        Parent.__init__(self, category=RegularSuperCrystals())
+        self.module_generators = (self._element_constructor_(-self._cartan_type.m-1),)
+        self._list = list(self.__iter__())
+
+    def __iter__(self):
+        for t in range(-self._cartan_type.m - 1, self._cartan_type.n + 2):
+            if t != 0:
+                yield self(t)
+
+    def _repr_(self):
+        return "The crystal of letters for type %s"%self._cartan_type
+
+    # temporary workaround while an_element is overriden by Parent
+    _an_element_ = EnumeratedSets.ParentMethods._an_element_
+
+    class Element(Letter):
+        def e(self, i):
+            assert i in self.parent().index_set()
+            b = self.value
+            if i < 0:
+                if b == i:
+                    return self.parent()._element_constructor_(b - 1)
+            elif 0 < i:
+                if b == i + 1:
+                    return self.parent()._element_constructor_(b - 1)
+            elif i == 0 and b == 1:
+                return self.parent()._element_constructor_(-1)
+
+        def f(self, i):
+            assert i in self.parent().index_set()
+            b = self.value
+            if 0 < i:
+                if b == i:
+                    return self.parent()._element_constructor_(b + 1)
+            elif i < 0:
+                if b == i - 1:
+                    return self.parent()._element_constructor_(b + 1)
+            elif i == 0 and b == -1:
+                return self.parent()._element_constructor_(1)
+
+        def weight(self):
+            from sage.modules.free_module_element import vector
+            elements = list(self.parent())
+            v = vector([0]*len(elements))
+            i = elements.index(self)
+            v[i] = 1
+            return v
+
+#########################
+# Wrapped letters
+#########################
 
 cdef class LetterWrapped(Element):
     r"""

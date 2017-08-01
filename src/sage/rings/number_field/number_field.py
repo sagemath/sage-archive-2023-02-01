@@ -1669,10 +1669,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         elif sage.interfaces.gap.is_GapElement(x):
             s = x._sage_repr()
             if self.variable_name() in s:
-                return self._coerce_from_str(s)
-            return self._coerce_from_str(s.replace('!',''))
+                return self._convert_from_str(s)
+            return self._convert_from_str(s.replace('!', ''))
         elif isinstance(x,str):
-            return self._coerce_from_str(x)
+            return self._convert_from_str(x)
         elif isinstance(x, (tuple, list)) or \
                 (isinstance(x, sage.modules.free_module_element.FreeModuleElement) and
                  self.base_ring().has_coerce_map_from(x.parent().base_ring())):
@@ -1682,9 +1682,152 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             for i in range(1, self.relative_degree()):
                 result += x[i]*self.gen(0)**i
             return result
-        return self._coerce_non_number_field_element_in(x)
+        return self._convert_non_number_field_element(x)
 
-    def _coerce_from_str(self, x):
+    def _convert_non_number_field_element(self, x):
+        """
+        Convert a non-number field element ``x`` into this number field.
+
+        INPUT:
+
+        - ``x`` -- a non number field element, e.g., a list, integer,
+          rational, or polynomial
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2/3)
+            sage: K._convert_non_number_field_element(-7/8)
+            -7/8
+            sage: K._convert_non_number_field_element([1,2,3])
+            3*a^2 + 2*a + 1
+
+        The list is just turned into a polynomial in the generator::
+
+            sage: K._convert_non_number_field_element([0,0,0,1,1])
+            -2/3*a - 2/3
+
+        Any polynomial whose coefficients can be converted to rationals
+        will convert to the number field, e.g., this one in
+        characteristic 7::
+
+            sage: f = GF(7)['y']([1,2,3]); f
+            3*y^2 + 2*y + 1
+            sage: K._convert_non_number_field_element(f)
+            3*a^2 + 2*a + 1
+
+        But not this one over a field of order 27::
+
+            sage: F27.<g> = GF(27)
+            sage: f = F27['z']([g^2, 2*g, 1]); f
+            z^2 + 2*g*z + g^2
+            sage: K._convert_non_number_field_element(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert g^2 to a rational
+
+        One can also convert an element of the polynomial quotient ring
+        that is isomorphic to the number field::
+
+            sage: K.<a> = NumberField(x^3 + 17)
+            sage: b = K.polynomial_quotient_ring().random_element()
+            sage: K(b)
+            -1/2*a^2 - 4
+
+        We can convert symbolic expressions::
+
+            sage: I = sqrt(-1); parent(I)
+            Symbolic Ring
+            sage: GaussianIntegers()(2 + I)
+            I + 2
+            sage: K1 = QuadraticField(3)
+            sage: K2 = QuadraticField(5)
+            sage: (K,) = K1.composite_fields(K2, preserve_embedding=True)
+            sage: K(sqrt(3) + sqrt(5))
+            -1/2*a0^3 + 8*a0
+            sage: K(sqrt(-3)*I)
+            1/4*a0^3 - 7/2*a0
+        """
+        if isinstance(x, integer_types + (Rational, Integer, pari_gen, list)):
+            return self._element_class(self, x)
+
+        if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
+               and (x in self.polynomial_quotient_ring()):
+            y = self.polynomial_ring().gen()
+            return x.lift().subs({y:self.gen()})
+
+        if isinstance(x, (sage.rings.qqbar.AlgebraicNumber, sage.rings.qqbar.AlgebraicReal)):
+            return self._convert_from_qqbar(x)
+
+        if isinstance(x, polynomial_element.Polynomial):
+            return self._element_class(self, x)
+
+        # Try converting via QQ.
+        try:
+            y = QQ(x)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return self._element_class(self, y)
+
+        # Final attempt: convert via QQbar. This deals in particular
+        # with symbolic expressions like sqrt(-5).
+        try:
+            y = sage.rings.qqbar.QQbar(x)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return self._convert_from_qqbar(y)
+
+        raise TypeError("unable to convert %r to %s" % (x, self))
+
+    def _convert_from_qqbar(self, x):
+        """
+        Convert an element of ``QQbar`` or ``AA`` to this number field,
+        if possible.
+
+        This requires that the given number field is equipped with an
+        embedding.
+
+        INPUT:
+
+        - ``x`` -- an algebraic number
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: K._convert_from_qqbar(7 + 2*AA(3).sqrt())
+            2*a + 7
+            sage: GaussianIntegers()(QQbar(I))
+            I
+            sage: CyclotomicField(15)(QQbar.zeta(5))
+            zeta15^3
+            sage: CyclotomicField(12)(QQbar.zeta(5))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 0.3090169943749474? + 0.9510565162951536?*I to Cyclotomic Field of order 12 and degree 4
+        """
+        # We use the diagram
+        #
+        # self
+        #  ↑  ↘
+        #  F → QQbar
+        #
+        # Where F is the smallest number field containing x.
+        #
+        # y is the pre-image such that x = F(y)
+        F, y, F_to_QQbar = x.as_number_field_element(minimal=True)
+
+        # Try all embeddings from F into self
+        from sage.rings.qqbar import QQbar
+        for F_to_self in F.embeddings(self):
+            z = F_to_self(y)
+            # Check whether the diagram commutes
+            if QQbar(z) == x:
+                return z
+
+        raise TypeError("unable to convert %r to %s" % (x, self))
+
+    def _convert_from_str(self, x):
         """
         Coerce a string representation of an element of this
         number field into this number field.
@@ -1695,7 +1838,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
-            sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
+            sage: k._convert_from_str('theta25^3 + (1/3)*theta25')
             -1/3*theta25 - 1
 
         This function is called by the coerce method when it gets a string
@@ -1703,8 +1846,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k('theta25^3 + (1/3)*theta25')
             -1/3*theta25 - 1
         """
-        # provide string coercion, as
-        # for finite fields
         w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
         if not (is_Element(w) and w.parent() is self):
             return self(w)
@@ -1716,7 +1857,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Return homset of homomorphisms from self to the number field codomain.
 
         EXAMPLES:
-        
+
         This method is implicitly called by :meth:`Hom` and
         :meth:`sage.categories.homset.Hom`::
 
@@ -5996,7 +6137,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
     def unit_group(self, proof=None):
         """
         Return the unit group (including torsion) of this number field.
-        
+
         ALGORITHM: Uses PARI's :pari:`bnfunit` command.
 
         INPUT:
@@ -6006,7 +6147,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         .. note::
 
            The group is cached.
-           
+
         .. SEEALSO::
 
             :meth:`units`
@@ -6541,6 +6682,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         return elements
 
+
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, structure=None):
@@ -6795,95 +6937,6 @@ class NumberField_absolute(NumberField_generic):
             if are_roots_equal(emb_x, emb_y):
                 return y
         raise ValueError("Cannot convert %s to %s (using the specified embeddings)"%(x,K))
-
-    def _coerce_non_number_field_element_in(self, x):
-        """
-        Coerce a non-number field element x into this number field.
-
-        INPUT:
-            x -- a non number field element x, e.g., a list, integer,
-            rational, or polynomial.
-
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(x^3 + 2/3)
-            sage: K._coerce_non_number_field_element_in(-7/8)
-            -7/8
-            sage: K._coerce_non_number_field_element_in([1,2,3])
-            3*a^2 + 2*a + 1
-
-        The list is just turned into a polynomial in the generator::
-
-            sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
-            -2/3*a - 2/3
-
-        Any polynomial whose coefficients can be coerced to rationals will
-        coerce, e.g., this one in characteristic 7::
-
-            sage: f = GF(7)['y']([1,2,3]); f
-            3*y^2 + 2*y + 1
-            sage: K._coerce_non_number_field_element_in(f)
-            3*a^2 + 2*a + 1
-
-        But not this one over a field of order 27::
-
-            sage: F27.<g> = GF(27)
-            sage: f = F27['z']([g^2, 2*g, 1]); f
-            z^2 + 2*g*z + g^2
-            sage: K._coerce_non_number_field_element_in(f)
-            Traceback (most recent call last):
-            ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
-
-        One can also coerce an element of the polynomial quotient ring
-        that's isomorphic to the number field::
-
-            sage: K.<a> = NumberField(x^3 + 17)
-            sage: b = K.polynomial_quotient_ring().random_element()
-            sage: K(b)
-            -1/2*a^2 - 4
-        """
-        if isinstance(x, integer_types + (Rational, Integer, pari_gen, list)):
-            return self._element_class(self, x)
-
-        if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
-               and (x in self.polynomial_quotient_ring()):
-            y = self.polynomial_ring().gen()
-            return x.lift().subs({y:self.gen()})
-
-        try:
-            if isinstance(x, polynomial_element.Polynomial):
-                return self._element_class(self, x)
-
-            return self._element_class(self, x._rational_())
-        except (TypeError, AttributeError) as msg:
-            pass
-        raise TypeError(type(x))
-
-    def _coerce_from_str(self, x):
-        r"""
-        Coerce a string representation of an element of this
-        number field into this number field.
-
-        INPUT:
-            x -- string
-
-        EXAMPLES::
-
-            sage: k.<theta25> = NumberField(x^3+(2/3)*x+1)
-            sage: k._coerce_from_str('theta25^3 + (1/3)*theta25')
-            -1/3*theta25 - 1
-
-        This function is called by the coerce method when it gets a string
-        as input:
-            sage: k('theta25^3 + (1/3)*theta25')
-            -1/3*theta25 - 1
-        """
-        w = sage.misc.all.sage_eval(x,locals=self.gens_dict())
-        if not (is_Element(w) and w.parent() is self):
-            return self(w)
-        else:
-            return w
 
     def _coerce_map_from_(self, R):
         """
@@ -9586,14 +9639,14 @@ class NumberField_cyclotomic(NumberField_absolute):
               isinstance(x, sage.libs.gap.element.GapElement)):
             return self._coerce_from_gap(x)
         elif isinstance(x,str):
-            return self._coerce_from_str(x)
+            return self._convert_from_str(x)
 
         # late import because of speed
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicFieldElement
         if isinstance(x,UniversalCyclotomicFieldElement):
             return x.to_cyclotomic_field(self)
         else:
-            return self._coerce_non_number_field_element_in(x)
+            return self._convert_non_number_field_element(x)
 
     # TODO:
     # The following is very nice and much more flexible / powerful.

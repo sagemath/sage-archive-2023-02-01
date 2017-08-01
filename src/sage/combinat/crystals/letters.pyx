@@ -2406,10 +2406,10 @@ cdef class BKKLetter(Letter):
             (0, 0, 0, 0, 1)
         """
         from sage.modules.free_module_element import vector
-        elements = list(self.parent())
+        elements = list(self._parent)
         v = vector([0]*len(elements))
         i = elements.index(self)
-        v[i] = -1 if self._dual else 1
+        v[i] = -1 if self._parent._dual else 1
         return v
 
 class CrystalOfBKKLetters(ClassicalCrystalOfLetters):

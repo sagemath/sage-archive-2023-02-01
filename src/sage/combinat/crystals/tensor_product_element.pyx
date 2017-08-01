@@ -8,6 +8,7 @@ AUTHORS:
   non-regular crystals and created new subclass to take advantage of
   the regularity
 - Travis Scrimshaw (2017): Cythonized element classes
+- Franco Saliola (2017): Tensor products for crystal of super algebras
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
@@ -1117,7 +1118,37 @@ cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElemen
 ## BKK crystal elements
 
 cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    """
+    Element class for a tensor product of crystals for super Lie algebras.
+
+    This implements the tensor product rule for crystals of super Lie algebras of [BKK2000]_.
+
+    TESTS::
+
+        sage: C = crystals.Letters(['A', [2, 1]])
+        sage: T = tensor([C,C])
+        sage: T
+        Full tensor product of the crystals [The crystal of letters for type ['A', [2, 1]], The crystal of letters for type ['A', [2, 1]]]
+        sage: T.cardinality()
+        25
+        sage: t = T.an_element(); t
+        [-3, -3]
+        sage: t.weight()
+        (2, 0, 0, 0, 0)
+    """
+
     def e(self, i):
+        """
+        Return `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.e(0)
+            [-1, 1]
+        """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.e(self, i)
         if i < 0:
@@ -1137,6 +1168,18 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
         return None
 
     def f(self, i):
+        """
+        Return `f_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.f(0)
+            sage: t.f(1)
+            [1, 2]
+        """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.f(self, i)
         if i < 0:
@@ -1157,6 +1200,17 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
 
     # Override epsilon/phi (for now)
     def epsilon(self, i):
+        """
+        Return `\varepsilon_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.epsilon(0)
+            1
+        """
         string_length = 0
         x = self
         while True:
@@ -1167,6 +1221,17 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
                 string_length += 1
 
     def phi(self, i):
+        """
+        Return `\varphi_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.phi(0)
+            0
+        """
         string_length = 0
         x = self
         while True:
@@ -1177,36 +1242,92 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
                 string_length += 1
 
     def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.weight()
+            (0, 0, 0, 2, 0)
+        """
         return sum(elt.weight() for elt in self)
 
 cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
+    """
+    Element class for the crystal of tableaux for super Lie algebras of [BKK2000]_.
+    """
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: C.an_element()
+            [[-2], [-1]]
         """
         return repr(self.to_tableau())
 
     def _repr_diagram(self):
         """
         Return a string representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: c._repr_diagram()
+            ' -2\n -1'
         """
         return self.to_tableau()._repr_diagram()
 
     def pp(self):
         """
         Pretty print ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: c.pp()
+            -2
+            -1
         """
         return self.to_tableau().pp()
 
     def _ascii_art_(self):
         """
         Return an ascii art version of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: ascii_art(c)
+            -2
+            -1
         """
         return self.to_tableau()._ascii_art_()
 
     def _latex_(self):
         r"""
+        Return the latex code of ``self``.
+
         EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: latex(c)
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{-2}\\\cline{1-1}
+            \lr{-1}\\\cline{1-1}
+            \end{array}$}
+            }
         """
         return self.to_tableau()._latex_()
 
@@ -1216,6 +1337,15 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
         Return the :class:`Tableau` object corresponding to ``self``.
 
         EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: c.to_tableau()
+            [[-2], [-1]]
+            sage: type(c.to_tableau())
+            <class 'sage.combinat.tableau.Tableaux_all_with_category.element_class'>
+            sage: type(c)
+            <class 'sage.combinat.crystals.bkk_crystals.CrystalOfBKKTableaux_with_category.element_class'>
         """
         sh = self._parent._shape.conjugate()
         tab = [[None]*row for row in sh]

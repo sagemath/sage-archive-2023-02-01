@@ -2289,39 +2289,86 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
 
 class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
     """
-    Crystal of letters for BKK supercrystals.
+    Crystal of letters for Benkart-Kang-Kashiwara supercrystals.
+
+    This implements the `\mathfrak{gl}(m|n)` crystal of Benkart, Kang and Kashiwara [BKK2000]_.
 
     EXAMPLES::
 
-        sage: L = crystals.Letters(['A', [1,1]])
+        sage: C = crystals.Letters(['A', [1, 1]]); C
+        The crystal of letters for type ['A', [1, 1]]
     """
     @staticmethod
-    def __classcall_private__(cls, ct, n=None):
-        if n is not None:
-            ct = CartanType(['A', [ct-1, n-1]])
-        else:
-            ct = CartanType(ct)
+    def __classcall_private__(cls, ct):
+        """
+        TESTS::
+
+            sage: crystals.Letters(['A', [1, 1]])
+            The crystal of letters for type ['A', [1, 1]]
+        """
+        ct = CartanType(ct)
         return super(CrystalOfBKKLetters, cls).__classcall__(cls, ct)
 
     def __init__(self, ct):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.Letters(['A', [2, 1]])
+            The crystal of letters for type ['A', [2, 1]]
+        """
         self._cartan_type = ct
         Parent.__init__(self, category=RegularSuperCrystals())
         self.module_generators = (self._element_constructor_(-self._cartan_type.m-1),)
         self._list = list(self.__iter__())
 
     def __iter__(self):
+        """
+        Iterate through ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: [x for x in C]
+            [-3, -2, -1, 1, 2]
+        """
         for t in range(-self._cartan_type.m - 1, self._cartan_type.n + 2):
             if t != 0:
                 yield self(t)
 
     def _repr_(self):
+        """
+        TESTS::
+
+            sage: crystals.Letters(['A', [2, 1]])
+            The crystal of letters for type ['A', [2, 1]]
+        """
         return "The crystal of letters for type %s"%self._cartan_type
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     class Element(Letter):
+
         def e(self, i):
+            r"""
+            Return the action of `e_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', [2, 1]])
+                sage: c = C(-2)
+                sage: c.e(-2)
+                -3
+                sage: c = C(1)
+                sage: c.e(0)
+                -1
+                sage: c = C(2)
+                sage: c.e(1)
+                1
+                sage: c.e(-2)
+             """
             assert i in self.parent().index_set()
             b = self.value
             if i < 0:
@@ -2334,6 +2381,23 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
                 return self.parent()._element_constructor_(-1)
 
         def f(self, i):
+            r"""
+            Return the action of `f_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', [2, 1]])
+                sage: c = C.an_element()
+                sage: c.f(-2)
+                -2
+                sage: c = C(-1)
+                sage: c.f(0)
+                1
+                sage: c = C(1)
+                sage: c.f(1)
+                2
+                sage: c.f(-2)
+             """
             assert i in self.parent().index_set()
             b = self.value
             if 0 < i:
@@ -2346,12 +2410,26 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
                 return self.parent()._element_constructor_(1)
 
         def weight(self):
+            """
+            Return weight of ``self``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', [2, 1]])
+                sage: c = C(-1)
+                sage: c.weight()
+                (0, 0, 1, 0, 0)
+                sage: c = C(2)
+                sage: c.weight()
+                (0, 0, 0, 0, 1)
+            """
             from sage.modules.free_module_element import vector
             elements = list(self.parent())
             v = vector([0]*len(elements))
             i = elements.index(self)
             v[i] = 1
             return v
+
 
 #########################
 # Wrapped letters

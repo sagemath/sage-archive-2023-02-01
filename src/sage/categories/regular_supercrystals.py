@@ -46,6 +46,7 @@ class RegularSuperCrystals(Category_singleton):
             """
             from sage.graphs.digraph import DiGraph
             from sage.misc.latex import LatexExpr
+            from sage.combinat.root_system.cartan_type import CartanType
 
             G = DiGraph()
             for i in self.index_set():
@@ -55,16 +56,15 @@ class RegularSuperCrystals(Category_singleton):
                         G.add_edge(x, y, i)
 
             def edge_options((u, v, l)):
-                edge_color_by_label = { 0: 'black', 1: 'blue', 2: 'red', 3: 'green' }
                 edge_opts = { 'edge_string': '->', 'color': 'black' }
                 if l > 0:
-                    edge_opts['color'] = edge_color_by_label[l]
+                    edge_opts['color'] = CartanType._colors.get(l, 'black')
                     edge_opts['label'] = LatexExpr(str(l))
                 elif l < 0:
-                    edge_opts['color'] = "dashed," + edge_color_by_label[-l]
+                    edge_opts['color'] = "dashed," + CartanType._colors.get(-l, 'black')
                     edge_opts['label'] = LatexExpr("\\overline{%s}" % str(-l))
                 else:
-                    edge_opts['color'] = "dotted," + edge_color_by_label[l]
+                    edge_opts['color'] = "dotted," + CartanType._colors.get(l, 'black')
                     edge_opts['label'] = LatexExpr(str(l))
                 return edge_opts
 

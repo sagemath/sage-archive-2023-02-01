@@ -18,6 +18,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.parent import Parent
 from sage.combinat.tableau import Tableaux, SemistandardTableaux
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
+from sage.combinat.root_system.cartan_type import CartanType
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
@@ -27,13 +28,13 @@ from sage.categories.regular_supercrystals import RegularSuperCrystals
 
 class BKKCrystalForVectorRepresentation(UniqueRepresentation, Parent):
 
-    def __init__(self, m, n):
-        Parent.__init__(self, category = RegularSuperCrystals())
-        self._index_set = tuple(range(-m + 1, n))
-        self.module_generators = [ t for t in self ]
+    def __init__(self, ct):
+        self._cartan_type = ct
+        Parent.__init__(self, category=RegularSuperCrystals())
+        self.module_generators = (self(-self._cartan_type.m-1),)
 
     def __iter__(self):
-        for t in range(-self.m(), self.n() + 1):
+        for t in range(-self._cartan_type.m - 1, self._cartan_type.n + 2):
             if t != 0:
                 yield self(t)
 
@@ -261,10 +262,11 @@ class TensorProductOfSuperCrystals(TensorProductOfCrystals):
             self.Element = TensorProductOfSuperCrystalsElement_old
             self._old = old
 
+        self._cartan_type = self.crystals._cartan_type
         Parent.__init__(self, category=RegularSuperCrystals())
         self.crystals = crystals
 
-        self.module_generators = self.list()
+        self.module_generators = self
 
     def __iter__(self):
         for x in cartesian_product([c.list() for c in self.crystals]):
@@ -367,7 +369,6 @@ class BKKTableaux_old(UniqueRepresentation, Parent):
         self._shape = shape
         self._m = m
         self._n = n
-        self._index_set = tuple(range(-m + 1, n))
         if self._shape[1] != []:
             raise NotImplementedError
         tab = [[i-self._m]*self._shape[0][i] for i in range(min(len(self._shape[0]), self._m))]
@@ -450,29 +451,38 @@ class BKKTableaux_old(UniqueRepresentation, Parent):
         return self._shape
 
 class CrystalOfBKKTableaux(CrystalOfWords):
-    @staticmethod
-    def __classcall_private__(cls, m, n, shape):
-        shape = _Partitions(shape)
-        if len(shape) > m and shape[m] > n:
-            raise ValueError("invalid hook shape")
-        return super(CrystalOfBKKTableaux, cls).__classcall__(cls, m, n, shape)
+    """
+    Crystal of tableaux for type `A(m|n)`.
 
-    def __init__(self, m, n, shape):
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
+        sage: T = CrystalOfBKKTableaux(['A', [1,1]], [2,1])
+    """
+    @staticmethod
+    def __classcall_private__(cls, ct, shape):
+        ct = CartanType(ct)
+        shape = _Partitions(shape)
+        if len(shape) > ct.m + 1 and shape[m] > ct.n + 1:
+            raise ValueError("invalid hook shape")
+        return super(CrystalOfBKKTableaux, cls).__classcall__(cls, ct, shape)
+
+    def __init__(self, ct, shape):
         r"""
         EXAMPLES::
 
-            sage: from bkk_tableaux import BKKTableaux
-            sage: T = BKKTableaux(2, 2, [2,1])
+            sage: from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
+            sage: T = CrystalOfBKKTableaux(['A', [1,1]], [2,1])
             sage: T
-            BKK tableaux of skew shape [[2, 1], []] and entries from (-2, -1, 1, 2)
+            Crystal of BKK tableaux of skew shape [2, 1] of gl(2|2)
 
             sage: TestSuite(T).run()
         """
         self._shape = shape
-        self._m = m
-        self._n = n
-        self._index_set = tuple(range(-m + 1, n))
-        C = BKKCrystalForVectorRepresentation(m, n)
+        self._cartan_type = ct
+        m = ct.m + 1
+        n = ct.n + 1
+        C = BKKCrystalForVectorRepresentation(ct)
         tr = shape.conjugate()
         mg = []
         for i,col_len in enumerate(tr):
@@ -485,7 +495,9 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         self.module_generators = (self.element_class(self, mg),)
 
     def _repr_(self):
-        return "Crystal of BKK tableaux of skew shape {} of gl({}|{})".format(self.shape(), self._m, self._n)
+        m = self._cartan_type.m + 1
+        n = self._cartan_type.n + 1
+        return "Crystal of BKK tableaux of skew shape {} of gl({}|{})".format(self.shape(), m, n)
 
     def shape(self):
         r"""

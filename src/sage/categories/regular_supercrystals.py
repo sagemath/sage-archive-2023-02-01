@@ -37,75 +37,6 @@ class RegularSuperCrystals(Category_singleton):
         return [Crystals().Finite()]
 
     class ParentMethods:
-
-        # NOTE: we need to define _index_set because some classes override the
-        # index_set method (such as subcrystals, which returns self._index_set)
-        # FIXME: This is a hack around
-        @lazy_attribute
-        def _index_set(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c._index_set
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t._index_set
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s._index_set
-                (-1, 0, 1, 2)
-            """
-            if hasattr(self, 'crystals'):
-                from sage.misc.misc import uniq
-                # FIXME: where should this code go? it works for tensor
-                # products and direct sum (and anything with a crystals method)
-                ems = uniq([c.m() for c in self.crystals])
-                assert len(ems) == 1
-                m = ems[0]
-
-                ens = uniq([c.n() for c in self.crystals])
-                assert len(ens) == 1
-                n = ens[0]
-
-                return tuple(range(-m + 1, n))
-            else:
-                return NotImplemented
-
-        # FIXME: Remove this when the above hack is removed
-        @cached_method
-        def index_set(self):
-            r"""
-            EXAMPLES::
-
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.index_set()
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for tensor products::
-
-                sage: t = c.tensor(c)
-                sage: t.index_set()
-                (-1, 0, 1, 2)
-
-            Test that the index set is computed correctly for direct sums::
-
-                sage: s1, s2 = t.connected_components()
-                sage: s = s1 + s2
-                sage: s.index_set()
-                (-1, 0, 1, 2)
-            """
-            return tuple(self._index_set)
-
         def m(self):
             r"""
             EXAMPLES::
@@ -234,13 +165,9 @@ class RegularSuperCrystals(Category_singleton):
             """
             category = RegularSuperCrystalCategory()
             index_set = self.index_set()
+            cartan_type = self.cartan_type()
             CCs = []
 
-            # FIXME: setting the cartan type and then deleting it is a hack!
-            # the subcrystal init method insists on the cartan type, but
-            # I don't want to define it; hopefully, this doesn't break anything
-            from sage.combinat.root_system.cartan_type import CartanType
-            cartan_type = CartanType("A", max(self.n(), self.m()) - 1)
             for mg in self.connected_components_generators():
                 if not isinstance(mg, tuple):
                     mg = (mg,)
@@ -248,7 +175,6 @@ class RegularSuperCrystals(Category_singleton):
                                              index_set=index_set,
                                              cartan_type=cartan_type,
                                              category=category)
-                subcrystal._cartan_type = None
                 CCs.append(subcrystal)
 
             return CCs

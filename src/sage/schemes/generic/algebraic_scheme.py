@@ -175,7 +175,7 @@ def is_AlgebraicScheme(x):
 
     OUTPUT:
 
-    Boolean. Whether ``x`` is an an algebraic scheme, that is, a
+    Boolean. Whether ``x`` is an algebraic scheme, that is, a
     subscheme of an ambient space over a ring defined by polynomial
     equations.
 

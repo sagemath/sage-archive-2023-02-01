@@ -3713,7 +3713,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         ``self.sublattice()``. This method returns the quotient
         lattice. The lifts of the quotient generators are
         `\dim(\sigma)-\dim(\rho)` linearly independent primitive
-        lattice lattice points that, together with `N_\rho`, generate
+        lattice points that, together with `N_\rho`, generate
         `N_\sigma`.
 
         OUTPUT:

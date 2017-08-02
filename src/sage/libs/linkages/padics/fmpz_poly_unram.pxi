@@ -595,7 +595,7 @@ cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime
         else:
             ansq = Rational.__new__(Rational)
             fmpz_poly_get_coeff_mpz(mpq_numref(ansq.value), x, i)
-            mpz_set(mpq_denref(ansq.value), prime_pow.pow_mpz_t_tmp(valshift))
+            mpz_set(mpq_denref(ansq.value), prime_pow.pow_mpz_t_tmp(-valshift))
             mpq_canonicalize(ansq.value)
             ans.append(ansq)
     return ans

@@ -86,18 +86,13 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
 from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
-from sage.rings.all import Ring, PolynomialRing, ZZ, QQ, RealField, Integer
+from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
-from sage.arith.misc import primes
-from sage.rings.polynomial.polynomial_ring import polygen
 from six import reraise as raise_
-
-
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -2063,7 +2058,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
         bound = ZZ(0)
         k = 0
         K = E.base_field()
-        OK = K.ring_of_integers()
         disc = E.discriminant()
         p = Integer(1)
         # runs through primes, decomposes them into prime ideals
@@ -2510,7 +2504,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Uses Denis Simon's PARI/GP scripts from
         http://www.math.unicaen.fr/~simon/.
         """
-        _ = self.simon_two_descent(**kwds)
+        self.simon_two_descent(**kwds)
         return self._known_points
 
     def period_lattice(self, embedding):
@@ -3223,145 +3217,45 @@ class EllipticCurve_number_field(EllipticCurve_field):
         except ValueError:
             return ZZ(0)
 
-    def _P_l(self, l):
-        """
-        Return Billerey's `P_l^*` as defined in (9).
-        """
-        P = polygen(ZZ)-1
-        K = self.base_field()
-        for q in self.base_field().primes_above(l):
-            e = K(l).valuation(q)
-	    P = P.composed_op(self.reduction(q).frobenius_polynomial().adams_operator(12*e), operator.mul, monic=True)
-        return P
+    def reducible_primes(self, algorithm='Billerey', max_l=None,
+                         num_l=None, verbose=False):
+        """Return a finite set of primes `\ell` for which `E` has a
+        K-rational `\ell`-isogeny.
 
+        For curves without CM the list returned is exactly the finite
+        set of primes `\ell` for which the mod-`\ell` Galois
+        representation is reducible.  For curves with CM this set is
+        infinite; we return a finite list of primes `\ell` such that
+        every curve isogenous to this curve can be obtained by a
+        finite sequence of isogenies of degree one of the primes in
+        the list.
 
-    def _B_l(self,l):
-        """
-        Return Billerey's `B_l` as defined after (9).
-        """
-        d = self.base_field().absolute_degree()
-        P = self._P_l(l)
-        return prod([ P(l**(12*k)) for k in range(1+d//2) ])
+        INPUT:
 
-    def _R_q(self,q):
-        """
-        Return Billerey's R_q as defined in Theorem 2.8.
-        """
-        K = self.base_field()
-        d = K.absolute_degree()
-        h = K.class_number()
-        P = self.reduction(q).frobenius_polynomial().adams_operator(12*h)
-        Q = ((q**h).gens_reduced()[0]).absolute_minpoly().adams_operator(12)
-        return prod([ P.resultant(Q.compose_power(k)) for k in range(1+d//2) ])
+        - ``algorithm`` (string) -- only relevant for non-CM curves.
+          Either 'Billerey", to use the methods of [Bil2011]_,
+          'Larson' to use Larson's implementation using Galois
+          representations, or 'heuristic' (see below).
 
-    def _B_bound(self, max_l=200, num_l=6, verbose=True):
-        """
-        Compute B_l for l up to max_l (at most) until num_l nonzero values
-        are found (at most).  Return the list of primes dividing all B_l
-        computed, excluding those dividing 6 or ramified or of bad
-        reduction.  If no non-zero values are found return [0].
-        """
-        if verbose:
-            print("Computing B-bound for {} with max_l={}, num_l={}".format(self.ainvs(),max_l,num_l))
-        B = ZZ.zero()
-        ells = []
-        K = self.base_field()
-        DK = K.discriminant()
-        ED = self.discriminant().norm()
-        B0 = ZZ(6*DK*ED)
-        ll = primes(5,max_l) # iterator
-        while len(ells)<num_l and B!=1:
-            try:
-                l = ll.next()
-                while B0.valuation(l):
-                    l = ll.next()
-            except StopIteration:
-                break
-            if verbose:
-                print("..trying l={}".format(l))
-            b = self._B_l(l)
-            if b:
-                if verbose:
-                    print("..ok, B_l = {}".format(b))
-                if B:
-                    B = B.gcd(b)
-                else:
-                    B = b.prime_to_m_part(B0)
-                ells.append(l)
-                if verbose:
-                    print("..so far, B = {} = {} using l in {}".format(B,B.support(),ells))
+        - ``max_l`` (int or ``None``) -- only relevant for non-CM
+          curves and algorithms 'Billerey' and 'heuristic.  Controls
+          the maximum prime used in either algorithm.  If ``None``,
+          use the default for that algorithm.
 
-        if B:
-            res = B.support()
-            if verbose:
-                print("..returning {}".format(res))
-            return res
-        # or we failed to find any nonzero values...
-        if verbose:
-            print("..failed to find a bound")
-        return [0]
+        - ``num_l`` (int or ``None``) -- only relevant for non-CM
+          curves and algorithm 'Billerey'.  Controls the maximum
+          number of primes used in the algorithm.  If ``None``, use
+          the default for that algorithm.
 
-    def _R_bound(self, max_q=200, num_q=6, verbose=True):
-        """Compute R_q for q dividing primes up to max_q (at most) until num_q
-        nonzero values are found (at most).  Return the list of primes
-        dividing all R_q computed, excluding those dividing 6 or ramified
-        or of bad reduction.  If no non-zero values are found return [0].
-        """
-        if verbose:
-            print("Computing R-bound for {} with max_q={}, num_q={}".format(self.ainvs(),max_q,num_q))
-        B = ZZ.zero()
-        ells = []
-        K = self.base_field()
-        DK = K.discriminant()
-        ED = self.discriminant().norm()
-        B0 = ZZ(6*DK*ED)
-        ll = primes(5, max_q) # iterator
-        while len(ells) < num_q and B != 1:
-            try:
-                l = ll.next()
-                while B0.valuation(l):
-                    l = ll.next()
-            except StopIteration:
-                break
-            q = K.prime_above(l)
-            if verbose:
-                print("..trying q={} above l={}".format(q,l))
-            b = self._R_q(q)
-            if b:
-                if verbose:
-                    print("..ok, R_q = {}".format(b))
-                if B:
-                    B = B.gcd(b)
-                else:
-                    B = b.prime_to_m_part(B0)
-                ells.append(l)
-                if verbose:
-                    print("..so far, B = {} = {} using l in {}".format(B,B.support(),ells))
+        .. note::
 
-        if B:
-            res = B.support()
-            if verbose:
-                print("..returning {}".format(res))
-            return res
-        # or we failed to find any nonzero values...
-        if verbose:
-            print("..failed to find a bound")
-        return [0]
+            The 'heuristic' algorithm only checks primes up to the
+            bound ``max_l``.  This is faster but not guaranteed to be
+            complete.  Both the Billerey and Larson algorithms are
+            rigorous.
 
-    def reducible_primes(self, num_l=6, max_l=200,
-                            num_q=6, max_q=200, verbose=False):
-        """
-        Return a finite set of primes ell containing all those for which E
-        has a K-rational ell-isogeny: i.e., the mod-ell representation is
-        irreducible for all ell outside the set returned.
-
-        We first compute Billeray's B_bound using at most num_l primes of
-        size up to max_l.  If that fails we compute Billeray's R_bound
-        using at most num_q primes of size up to max_q.  If that also
-        fails we return [0].
-    
         EXAMPLES::
-    
+
             sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
             sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
             sage: rho = E.galois_representation()
@@ -3372,10 +3266,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K = NumberField(x**2 + 1, 'a')
             sage: E = EllipticCurve_from_j(K(1728)) # CM over K
             sage: rho = E.galois_representation()
-            sage: rho.reducible_primes()
+            sage: rho.reducible_primes() # CM curves always return [0]
             [0]
             sage: E.reducible_primes()
-            [0]
+            [2]
             sage: E = EllipticCurve_from_j(K(0)) # CM but NOT over K
             sage: rho = E.galois_representation()
             sage: rho.reducible_primes()
@@ -3389,36 +3283,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: rho.reducible_primes()
             []
             sage: E.reducible_primes()
-            [7]
-        """
-        if verbose:
-            print("E = {}, seeking isogeny bound".format(self.ainvs()))
-        K = self.base_field()
-        DK = K.discriminant()
-        ED = self.discriminant().norm()
-        B0 = ZZ(6*DK*ED).prime_divisors()  # TODO: only works if discriminant is integral
-        B1 = self._B_bound(max_l, num_l, verbose)
-        if B1 == [0]:
-            print("...  B_bound ineffective using max_l={}, moving on to R-bound".format(max_l))
-            B1 = self._R_bound(max_q, num_q, verbose)
-            if B1 == [0]:
-                print("... R_bound ineffective using max_q={}",format(max_q))
-                return [0]
-            if verbose:
-                print("... R_bound = {}".format(B1))
-        else:
-            if verbose:
-                print("... B_bound = {}".format(B1))
-        B = sorted(set(B0 + B1))
-        if verbose:
-            print("... combined bound = {}".format(B))
-        from sage.schemes.elliptic_curves.gal_reps_number_field import _maybe_borels
-        num_p = 100
-        B = _maybe_borels(self, B, num_p)
-        if verbose:
-            print("... after Frobenius filter = {}".format(B))
-        return B
+            []
 
+        """
+        from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
+        return possible_isogeny_degrees(self, max_l=max_l, num_l=num_l, exact=True)
 
     def lll_reduce(self, points, height_matrix=None, precision=None):
         """

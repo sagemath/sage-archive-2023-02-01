@@ -1500,7 +1500,7 @@ class Function_factorial(GinacFunction):
 
             sage: RBF=RealBallField(53)
             sage: factorial(RBF(4.2))
-            [32.5780960503313 +/- 6.71e-14]
+            [32.5780960503313 +/- 6.72e-14]
 
         Test pickling::
 

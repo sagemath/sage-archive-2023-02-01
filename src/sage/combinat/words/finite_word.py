@@ -4671,10 +4671,6 @@ class FiniteWord_class(Word_class):
         C2. `x_i` is the longest prefix of `v = x_i\ldots x_n` that also
         has an occurrence beginning within `u = x_1\ldots x_{i-1}`. See [1].
 
-        .. note::
-
-            This is not a very good implementation, and should be improved.
-
         EXAMPLES::
 
             sage: x = Word('abababb')
@@ -4698,26 +4694,21 @@ class FiniteWord_class(Word_class):
         -   [1] M. Crochemore, Recherche linéaire d'un carré dans un mot,
             C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14 781--784.
         """
-        c = Factorization([self[:1]])
-        u = self[:sum(map(len,c))] # = x_1 ... x_{i-1}
-        v = self[sum(map(len,c)):] # = x_i ... x_n
-        while v:
-            # C1. x_i is a letter that does not appear in u = x_1...x_{i-1}
-            if v[0] not in u:
-                c.append(v[:1])
-            else:
-            # C2. x_i is the longest prefix of v = x_i...x_n that also has an
-            #     occurrence beginning within u = x_1...x_{i-1}.
-                xi = v
-                while True:
-                    if xi.first_pos_in(self) < u.length():
-                        c.append(xi)
-                        break
-                    else:
-                        xi = xi[:-1]
-            u = self[:sum(map(len,c))] # = x_1 ... x_{i-1}
-            v = self[sum(map(len,c)):] # = x_i ... x_n
+        T=self.implicit_suffix_tree()
+        cuts=T.LZ_decomposition()
+        c = Factorization([self[cuts[i]:cuts[i+1]] for i in range(len(cuts)-1)])
         return c
+
+    def LZ_decomposition(self):
+        r"""
+        Alias for crochemore_factorization
+
+        EXAMPLES:
+
+            sage: Word('aabbaa').LZ_decomposition()
+            (a, a, b, b, aa)
+        """
+        return self.crochemore_factorization()
 
     def evaluation_dict(self):
         r"""

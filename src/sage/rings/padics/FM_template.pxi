@@ -43,6 +43,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef class FMElement(pAdicTemplateElement):
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
@@ -581,18 +582,27 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return self
 
-    def list(self, lift_mode = 'simple'):
-        r"""
-        Returns a list of coefficients of `\pi^i` starting with `\pi^0`.
+    def expansion(self, n = None, lift_mode = 'simple'):
+        r"""Returns a list of coefficients of `\pi^i` starting with `\pi^0`.
 
         INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
 
         - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or ``'teichmuller'``
           (default: ``'simple'``:)
 
         OUTPUT:
 
-        The list of coefficients of this element.
+        - If ``n`` is ``None``, the `\pi`-adic expansion of this
+          element.  For base elements these will be integers if
+          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
+          elements of ``self.parent()`` if ``lift_mode`` is
+          ``'teichmuller'``.
+
+        - If ``n`` is an integer, the coefficient of `\pi^n` in the
+          `\pi`-adic expansion of this element.
 
         .. NOTE::
 
@@ -611,15 +621,15 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = ZpFM(7,6); a = R(12837162817); a
             3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
-            sage: L = a.list(); L
+            sage: L = a.expansion(); L
             [3, 4, 4, 0, 4]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.list('smallest'); L
+            sage: L = a.expansion(lift_mode='smallest'); L
             [3, -3, -2, 1, -3, 1]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.list('teichmuller'); L
+            sage: L = a.expansion(lift_mode='teichmuller'); L
             [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
             O(7^6),
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6),
@@ -628,19 +638,48 @@ cdef class FMElement(pAdicTemplateElement):
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6)]
             sage: sum([L[i] * 7^i for i in range(len(L))])
             3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+
+        You can ask for a specific entry in the expansion::
+
+            sage: a.expansion(1)
+            4
+            sage: a.expansion(1, lift_mode='smallest')
+            -3
+            sage: a.expansion(2, lift_mode='teichmuller')
+            5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6)
         """
+        if n in ('simple', 'smallest', 'teichmuller'):
+            deprecation(14825, "Interface to expansion has changed; first argument now n")
+            lift_mode = n
+            n = None
+        elif isinstance(n, slice):
+            return self.slice(n.start, n.stop, n.step)
+        elif n is not None and (ciszero(self.value, self.prime_pow) or n < 0 or n >= self.prime_pow.prec_cap):
+            return _list_zero
         if ciszero(self.value, self.prime_pow):
             return []
         if lift_mode == 'teichmuller':
-            return self.teichmuller_list()
+            if n is None:
+                return self.teichmuller_expansion()
+            else:
+                return self.teichmuller_expansion(n - self.valuation_c())
         elif lift_mode == 'simple':
-            return clist(self.value, self.prime_pow.prec_cap, True, self.prime_pow)
+            vlist = clist(self.value, self.prime_pow.prec_cap, True, self.prime_pow)
         elif lift_mode == 'smallest':
-            return clist(self.value, self.prime_pow.prec_cap, False, self.prime_pow)
+            vlist = clist(self.value, self.prime_pow.prec_cap, False, self.prime_pow)
         else:
             raise ValueError("unknown lift_mode")
+        if n is None:
+            return vlist
+        else:
+            try:
+                return vlist[n]
+            except IndexError:
+                return _list_zero
 
-    def teichmuller_list(self):
+    list = deprecated_function_alias(14825, expansion)
+
+    def teichmuller_expansion(self, n = None):
         r"""
         Returns a list [`a_0`, `a_1`,..., `a_n`] such that
 
@@ -648,25 +687,43 @@ cdef class FMElement(pAdicTemplateElement):
 
         - self.unit_part() = `\sum_{i = 0}^n a_i \pi^i`
 
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the
+          coefficient of `\pi^n` in the expansion (of the unit part).
+
         EXAMPLES::
 
-            sage: R = ZpFM(5,5); R(14).list('teichmuller') #indirect doctest
+            sage: R = ZpFM(5,5); R(70).expansion(lift_mode='teichmuller') #indirect doctest
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5),
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5),
             1 + O(5^5),
             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)]
+            sage: R(70).teichmuller_expansion(1)
+            3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5)
         """
-        ans = PyList_New(0)
-        if ciszero(self.value, self.prime_pow):
-            return ans
+        cdef FMElement list_elt
+        if n is None:
+            ans = PyList_New(0)
+            if ciszero(self.value, self.prime_pow):
+                return ans
+        elif ciszero(self.value, self.prime_pow) or n < 0 or n >= self.prime_pow.prec_cap:
+            list_elt = self._new_c()
+            csetzero(list_elt.value, self.prime_pow)
+            return list_elt
+        else:
+            # We only need one list_elt
+            list_elt = self._new_c()
+        self = self.unit_part()
         cdef long curpower = self.prime_pow.prec_cap
         cdef long prec_cap = self.prime_pow.prec_cap
-        cdef FMElement list_elt
+        cdef long goal
+        if n is not None: goal = prec_cap - n
         cdef FMElement tmp = self._new_c()
         ccopy(tmp.value, self.value, self.prime_pow)
         while not ciszero(tmp.value, tmp.prime_pow) and curpower > 0:
-            list_elt = self._new_c()
+            if n is None: list_elt = self._new_c()
             cteichmuller(list_elt.value, tmp.value, prec_cap, self.prime_pow)
             if ciszero(list_elt.value, self.prime_pow):
                 cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
@@ -674,9 +731,14 @@ cdef class FMElement(pAdicTemplateElement):
                 csub(tmp.value, tmp.value, list_elt.value, prec_cap, self.prime_pow)
                 cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
                 creduce(tmp.value, tmp.value, prec_cap, self.prime_pow)
+            if n is None:
+                PyList_Append(ans, list_elt)
+            elif curpower == goal:
+                return list_elt
             curpower -= 1
-            PyList_Append(ans, list_elt)
         return ans
+
+    teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
 
     def _teichmuller_set_unsafe(self):
         """
@@ -695,7 +757,7 @@ cdef class FMElement(pAdicTemplateElement):
             11 + O(17^5)
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
 
         Note that if you set an element which is congruent to 0 you
@@ -710,6 +772,36 @@ cdef class FMElement(pAdicTemplateElement):
             cteichmuller(self.value, self.value, self.prime_pow.prec_cap, self.prime_pow)
         else:
             csetzero(self.value, self.prime_pow)
+
+    def polynomial(self, var='x'):
+        """
+        Returns a polynomial over the base ring that yields this element
+        when evaluated at the generator of the parent.
+
+        INPUT:
+
+        - ``var`` -- string, the variable name for the polynomial
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(5^3)
+            sage: a.polynomial()
+            (1 + O(5^20))*x + (O(5^20))
+            sage: a.polynomial(var='y')
+            (1 + O(5^20))*y + (O(5^20))
+            sage: (5*a^2 + 25).polynomial()
+            (5 + O(5^20))*x^2 + (O(5^20))*x + (5^2 + O(5^20))
+        """
+        R = self.base_ring()
+        S = R[var]
+        prec = self.precision_absolute()
+        e = self.parent().e()
+        L = ccoefficients(self.value, 0, self.prime_pow.prec_cap, self.prime_pow)
+        if e == 1:
+            L = [R(c, prec) for c in L]
+        else:
+            L = [R(c, (prec - i - 1) // e + 1) for i, c in enumerate(L)]
+        return S(L)
 
     def precision_absolute(self):
         """
@@ -963,6 +1055,10 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
             sage: f(ZpFM(5)(-1)) - 5^20
             -1
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
 cdef class pAdicConvert_FM_ZZ(RingMap):

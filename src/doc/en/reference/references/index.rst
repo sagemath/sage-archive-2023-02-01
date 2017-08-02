@@ -1290,6 +1290,11 @@ REFERENCES:
             Within the AES*\; in Advances in Cryptology \- CRYPTO
             2002\; LNCS 2442\; Springer Verlag 2002
 
+.. [MR2016] \B. Malmskog, C. Rasmussen, "Picard curves over \mathbb{Q}
+            with good reduction away from 3". LMS Journal of Computational 
+            Mathematics 19 (2016), no. 2, 382-408.
+            :doi:`10.1112/S1461157016000413`.
+
 .. [MS2003] \T. Mulders, A. Storjohann, "On lattice reduction for
             polynomial matrices", J. Symbolic Comput. 35 (2003),
             no. 4, 377--401
@@ -1547,6 +1552,15 @@ REFERENCES:
 .. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown. *Multiagent
              systems: Algorithmic, game-theoretic, and logical
              foundations.* Cambridge University Press, 2008.
+
+.. [Sma1995] \N.P. Smart, "The Solution of Triangularly Connected 
+             Decomposable Form Equations". Math. Comp. 64 (1995), 819-840.
+             :doi:`10.1090/S0025-5718-1995-1277771-4`.
+
+.. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diphoantine
+             equations*, Number 41 in Student Texts.  London Mathematical 
+             Society, 1998.  
+             ISBN 0521646332.
 
 .. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
              Springer-Verlag New York, 1966.

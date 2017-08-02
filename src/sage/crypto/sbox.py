@@ -75,7 +75,7 @@ class SBox(SageObject):
 
     - [He2002]_
 
-    - [PRESENT07]_
+    - [BKLPPRSV2007]_
 
     - [CDL2015]_
     """

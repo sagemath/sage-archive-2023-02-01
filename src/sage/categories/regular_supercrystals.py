@@ -146,10 +146,10 @@ class RegularSuperCrystals(Category_singleton):
             from sage.combinat.crystals.letters import CrystalOfBKKLetters
             from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
             from sage.rings.all import ZZ
-            L = CrystalOfBKKLetters(self.cartan_type())
+            L = [x.value for x in CrystalOfBKKLetters(self.cartan_type())]
             R = LaurentPolynomialRing(ZZ, 'x', len(L))
             G = R.gens()
-            return R.sum(R.prod(G[i]**e for i,e in x.weight().iteritems())
+            return R.sum(R.prod(G[L.index(i)]**e for i,e in x.weight())
                          for x in self)
 
     class ElementMethods:

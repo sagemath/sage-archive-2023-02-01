@@ -1118,10 +1118,11 @@ cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElemen
 ## BKK crystal elements
 
 cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
-    """
-    Element class for a tensor product of crystals for super Lie algebras.
+    r"""
+    Element class for a tensor product of crystals for Lie superalgebras.
 
-    This implements the tensor product rule for crystals of super Lie algebras of [BKK2000]_.
+    This implements the tensor product rule for crystals of
+    Lie superalgebras of [BKK2000]_.
 
     TESTS::
 
@@ -1138,7 +1139,7 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
     """
 
     def e(self, i):
-        """
+        r"""
         Return `e_i` on ``self``.
 
         EXAMPLES::
@@ -1168,7 +1169,7 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
         return None
 
     def f(self, i):
-        """
+        r"""
         Return `f_i` on ``self``.
 
         EXAMPLES::
@@ -1200,7 +1201,7 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
 
     # Override epsilon/phi (for now)
     def epsilon(self, i):
-        """
+        r"""
         Return `\varepsilon_i` on ``self``.
 
         EXAMPLES::
@@ -1221,7 +1222,7 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
                 string_length += 1
 
     def phi(self, i):
-        """
+        r"""
         Return `\varphi_i` on ``self``.
 
         EXAMPLES::
@@ -1241,29 +1242,11 @@ cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsEle
             else:
                 string_length += 1
 
-    def weight(self):
-        """
-        Return the weight of ``self``.
-
-        EXAMPLES::
-
-            sage: C = crystals.Letters(['A', [2, 1]])
-            sage: T = tensor([C,C])
-            sage: t = T(C(1),C(1))
-            sage: t.weight()
-            (0, 0, 0, 2, 0)
-        """
-        from sage.modules.free_module_element import vector
-        from sage.combinat.crystals.letters import CrystalOfBKKLetters
-        elements = list(CrystalOfBKKLetters(self._parent.cartan_type()))
-        zero = vector([0]*len(elements))
-        return sum((elt.weight() for elt in self), zero)
-
 cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
     """
-    Element class for the crystal of tableaux for super Lie algebras of [BKK2000]_.
+    Element class for the crystal of tableaux for Lie superalgebras
+    of [BKK2000]_.
     """
-
     def _repr_(self):
         """
         Return a string representation of ``self``.

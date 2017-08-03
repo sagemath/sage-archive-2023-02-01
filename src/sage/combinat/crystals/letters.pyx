@@ -2428,12 +2428,12 @@ cdef class BKKLetter(Letter):
             sage: c.weight()
             (0, 0, 0, 0, 1)
         """
-        from sage.modules.free_module_element import vector
-        elements = list(self._parent)
-        v = vector([0]*len(elements))
-        i = elements.index(self)
-        v[i] = -1 if self._parent._dual else 1
-        return v
+        # The ``Integer()`` should not be necessary, otherwise it does not
+        #   work properly for a negative Python int
+        ret = self._parent.weight_lattice_realization().basis()[Integer(self.value)]
+        if self._parent._dual:
+            return -ret
+        return ret
 
 class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
     """

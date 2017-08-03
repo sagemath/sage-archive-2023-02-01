@@ -257,6 +257,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: x.slice(None, 3)
             5^-2 + 5 + O(5^3)
             sage: x[:3]
+            doctest:warning
+            ...
+            DeprecationWarning: __getitem__ is changing to match the behavior of number fields. Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
             5^-2 + 5 + O(5^3)
 
         TESTS:
@@ -332,7 +336,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         # construct the return value
         ans = self.parent().zero()
-        for c in self.list()[start:stop:k]:
+        for c in self.expansion()[start:stop:k]:
             ans += ppow * c
             ppow *= pk
 

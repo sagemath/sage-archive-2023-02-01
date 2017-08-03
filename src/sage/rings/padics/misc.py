@@ -68,3 +68,25 @@ def max(*L):
         return python_max(L)
     except ValueError:
         return -infinity
+
+def precprint(prec_type, prec_cap, p):
+    """
+    String describing the precision mode on a p-adic ring or field.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.misc import precprint
+        sage: precprint('capped-rel', 12, 2)
+        'with capped relative precision 12'
+        sage: precprint('capped-abs', 11, 3)
+        'with capped absolute precision 11'
+        sage: precprint('floating-point', 1234, 5)
+        'with floating precision 1234'
+        sage: precprint('fixed-mod', 1, 17)
+        'of fixed modulus 17^1'
+    """
+    precD = {'capped-rel':'with capped relative precision %s'%prec_cap,
+             'capped-abs':'with capped absolute precision %s'%prec_cap,
+             'floating-point':'with floating precision %s'%prec_cap,
+             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap)}
+    return precD[prec_type]

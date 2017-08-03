@@ -1593,6 +1593,8 @@ class GraphicMatroid(Matroid):
         at least two, and these will be the edges incident with the vertices
         after splitting.
 
+        At most one series coextension will be taken for each series class.
+
         INPUT:
 
         - ``vertices`` -- (optional) The vertices to be split. If not
@@ -1606,12 +1608,6 @@ class GraphicMatroid(Matroid):
 
         An iterable containing instances of GraphicMatroid.
 
-        .. NOTE::
-
-            This method will put an edge in series with every edge specified
-            by the input, without checking if it is already part of a
-            nontrivial series class.
-
         EXAMPLES::
 
             sage: M = Matroid(graphs.WheelGraph(5))
@@ -1620,9 +1616,9 @@ class GraphicMatroid(Matroid):
             ....:     N.graph().edges_incident(0)
             [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
             [(0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
+            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 'a')]
             [(0, 1, 0), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
             [(0, 1, 0), (0, 2, 1), (0, 4, 3), (0, 5, 'a')]
-            [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 5, 'a')]
             [(0, 2, 1), (0, 3, 2), (0, 5, 'a')]
             [(0, 1, 0), (0, 3, 2), (0, 5, 'a')]
             [(0, 1, 0), (0, 2, 1), (0, 5, 'a')]
@@ -1634,10 +1630,9 @@ class GraphicMatroid(Matroid):
             sage: for N1 in I:
             ....:     N1.graph().edges()
             [(0, 1, 0), (0, 3, 1), (0, 4, 'a'), (1, 2, 2), (2, 3, 3)]
-            [(0, 3, 1), (0, 4, 0), (1, 2, 2), (1, 4, 'a'), (2, 3, 3)]
-            [(0, 1, 0), (0, 4, 1), (1, 2, 2), (2, 3, 3), (3, 4, 'a')]
             [(0, 1, 0), (0, 3, 1), (1, 4, 2), (2, 3, 3), (2, 4, 'a')]
-            [(0, 1, 0), (0, 3, 1), (1, 2, 2), (2, 4, 3), (3, 4, 'a')]
+            sage: sum(1 for n in N.graphic_coextensions(cosimple=True))
+            0
 
         TESTS::
 
@@ -1649,7 +1644,7 @@ class GraphicMatroid(Matroid):
             ....:     m.graph().edges()
             [(0, 1, 'a')]
             sage: N = Matroid(graphs.CycleGraph(4))
-            sage: I = N.graphic_coextensions(vertices = [3, 4], element = 'a')
+            sage: I = N.graphic_coextensions(vertices=[3, 4], element='a')
             sage: I.next()
             Traceback (most recent call last):
             ...
@@ -1664,11 +1659,24 @@ class GraphicMatroid(Matroid):
             sage: I = M.graphic_coextensions()
             sage: sum(1 for N in I)
             136
-            sage: I = M.graphic_coextensions(cosimple = True)
+            sage: I = M.graphic_coextensions(cosimple=True)
             sage: sum(1 for N in I)
             119
             sage: sum(1 for N in Matroid(graphs.WheelGraph(8)).graphic_coextensions())
             71
+
+        This graph has max degree 3, so the only series extensions should be
+        non-cosimple, ie. a coloop and one for every coseries class.
+        12 total::
+
+            sage: edgedict = {0:[1,2,3], 1:[2,4], 2:[3], 3:[6], 4:[5,7], 5:[6,7], 6:[7]}
+            sage: M = Matroid(Graph(edgedict))
+            sage: M.coclosure([4])
+            frozenset({4, 6})
+            sage: sum(1 for N in M.graphic_coextensions())
+            12
+            sage: sum(1 for N in M.graphic_coextensions(cosimple=True))
+            0
         """
         G = self.graph()
         if element is None:
@@ -1691,25 +1699,29 @@ class GraphicMatroid(Matroid):
         if not vertices:
             G.add_edge(0, 1, element)
             yield GraphicMatroid(G)
-        else:
-            if not cosimple:
-                # First extend by a coloop on the first vertex.
-                G.add_edge(vertices[0], v, element)
+        elif not cosimple:
+            # First extend by a coloop on the first vertex.
+            G.add_edge(vertices[0], v, element)
+            yield GraphicMatroid(G)
+            G.delete_vertex(v)
+
+            # Next add an edge in series, for every series class in the input
+            edges = set(G.edges_incident(vertices))
+            while edges:
+                u0, v0, l = edges.pop()
+                G.delete_edge(u0, v0, l)
+                # place the new element on v0 if v0 is a vertex from input
+                if v0 in vertices:
+                    G.add_edge(u0, v, l)
+                    G.add_edge(v, v0, element)
+                else:
+                    G.add_edge(u0, v, element)
+                    G.add_edge(v, v0, l)
                 yield GraphicMatroid(G)
                 G.delete_vertex(v)
+                G.add_edge(u0, v0, l)
 
-                # Next do a series extension on every edge incident with the vertices
-                for (u0, v0, l) in G.edges_incident(vertices):
-                    G.delete_edge(u0, v0, l)
-                    if v0 in vertices:
-                        G.add_edge(u0, v, l)
-                        G.add_edge(v, v0, element)
-                    else:
-                        G.add_edge(u0, v, element)
-                        G.add_edge(v, v0, l)
-                    yield GraphicMatroid(G)
-                    G.delete_vertex(v)
-                    G.add_edge(u0, v0, l)
+                edges.difference_update(self.groundset_to_edges(self.coclosure([l])))
 
         # If a vertex has degree 1, or 2, or 3, we already handled it.
         for u in vertices:

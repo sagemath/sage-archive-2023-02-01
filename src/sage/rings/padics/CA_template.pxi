@@ -1172,7 +1172,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism):
             True
         """
         _slots['_zero'] = self._zero
-        _slots['_section'] = self._section
+        _slots['_section'] = self.section() # use method since it copies coercion-internal sections.
         return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
@@ -1599,7 +1599,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
 
         """
         _slots['_zero'] = self._zero
-        _slots['_section'] = self._section
+        _slots['_section'] = self.section() # use method since it copies coercion-internal sections.
         return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):

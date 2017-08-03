@@ -454,6 +454,23 @@ ex ex::sorted_op(size_t i) const
 		return bp->op(i);
 }
 
+static bool has_nonposint_power(const ex& x, const symbol& symb)
+{
+	if (is_exactly_a<power>(x)) {
+                const power& p = ex_to<power>(x);
+                if (is_exactly_a<add>(p.op(0))
+                    and has_symbol(p.op(0), symb)
+                    and (not is_exactly_a<numeric>(p.op(1))
+                    or not ex_to<numeric>(p.op(1)).is_pos_integer()))
+		return true;
+        }
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_nonposint_power(x.op(i), symb))
+			return true;
+                
+	return false;
+}
+
 // Helper function: Return True if term is a monomial in symb.
 // If so, fill vec (applying map at the same time) with (coeff, expo) pairs.
 static bool match_monom(const ex& term, const symbol& symb,
@@ -466,6 +483,7 @@ static bool match_monom(const ex& term, const symbol& symb,
                 vec.push_back(std::make_pair(_ex1, _ex1));
                 return true;
         }
+
         if (is_exactly_a<power>(term)) {
                 const power& p = ex_to<power>(term);
                 const ex& expo = p.op(1);
@@ -475,13 +493,12 @@ static bool match_monom(const ex& term, const symbol& symb,
                 }
                 else {
                         // of form (...+...)^expo
-                        // we expand only those with integer exponent
                         if (is_exactly_a<numeric>(expo)
                                         and has_free_symbol(p.op(0), symb)) {
                                 numeric ee = ex_to<numeric>(expo);
                                 if (ee.is_integer() and ee.to_int() > 1) {
                                         expairvec tmpvec;
-                                        expand(term).coefficients(symb, tmpvec);
+                                        term.coefficients(symb, tmpvec);
                                         for (const auto& pair : tmpvec)
                                                 vec.push_back(std::make_pair(pair.first.subs(map),
                                                                         pair.second.subs(map)));
@@ -511,31 +528,6 @@ static bool match_monom(const ex& term, const symbol& symb,
                                 }
                         }
                 }
-                // Handle C*(...+...)^c
-                for (const auto& mterm : term) {
-                        if (is_exactly_a<power>(mterm)
-                                        and is_exactly_a<numeric>(mterm.op(1))
-                                        and has_free_symbol(mterm.op(0), symb)) {
-                                numeric ee = ex_to<numeric>(mterm.op(1));
-                                if (ee.is_integer() and ee.to_int() > 1) {
-                                        expairvec tmpvec;
-                                        expand(term).coefficients(symb, tmpvec);
-                                        for (const auto& pair : tmpvec)
-                                                vec.push_back(std::make_pair(pair.first.subs(map),
-                                                        pair.second.subs(map)));
-                                        return true;
-                                }
-                        }
-                        if (is_exactly_a<add>(mterm)
-                                        and has_free_symbol(mterm, symb)) {
-                                expairvec tmpvec;
-                                expand(term).coefficients(symb, tmpvec);
-                                for (const auto& pair : tmpvec)
-                                        vec.push_back(std::make_pair(pair.first.subs(map),
-                                                pair.second.subs(map)));
-                                return true;
-                        }
-                }
         }
         return false;
 }
@@ -560,8 +552,13 @@ void ex::coefficients(const ex & s, expairvec & vec) const
         exmap submap {{s, symb}}, revmap {{symb, s}};
         ex sub = subs(submap);
 
-        if (is_exactly_a<add>(sub)) {
-                const add& addref = ex_to<add>(sub);
+        if (has_nonposint_power(*this, symb)) {
+                vec.push_back(std::make_pair(*this, _ex0));
+                return;
+        }
+        ex esub = sub.expand();
+        if (is_exactly_a<add>(esub)) {
+                const add& addref = ex_to<add>(esub);
                 const ex& oc = addref.op(addref.nops()+1);
                 if (not oc.is_zero())
                         vec.push_back(std::make_pair(oc, _ex0));
@@ -580,7 +577,8 @@ void ex::coefficients(const ex & s, expairvec & vec) const
         }
 
         // Add: Combine coefficients with the same exponent
-        std::sort(vec.begin(), vec.end(), [](const std::pair<ex,ex>& x, const std::pair<ex,ex>& y)
+        std::sort(vec.begin(), vec.end(), [](const std::pair<ex,ex>& x,
+                                             const std::pair<ex,ex>& y)
         {
                 return x.second < y.second;
         });

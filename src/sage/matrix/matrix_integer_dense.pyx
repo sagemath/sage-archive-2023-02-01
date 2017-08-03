@@ -2616,11 +2616,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
     ####################################################################################
     def LLL_gram(self):
         """
-        LLL reduction of the lattice whose gram matrix is ``self``.
+        LLL reduction of the lattice whose gram matrix is ``self``, assuming that ``self`` is positive definite.
+        .. warning::
+            The algorithm does not check if ``self`` is positive definite.
 
         INPUT:
 
-        - ``M`` -- gram matrix of a definite quadratic form
+        - ``self`` -- a gram matrix of a positive definite quadratic form
 
         OUTPUT:
 
@@ -2641,7 +2643,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [1 0]
             [0 1]
 
-        Semidefinite and indefinite forms no longer raise a ``ValueError``::
+        The algorithm might work for some semidefinite and indefinite forms:
 
             sage: Matrix(ZZ,2,2,[2,6,6,3]).LLL_gram()
             [-3 -1]
@@ -2649,6 +2651,19 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: Matrix(ZZ,2,2,[1,0,0,-1]).LLL_gram()
             [ 0 -1]
             [ 1  0]
+        However, it might fail for others by raising a ``ValueError``:
+            sage: Matrix(ZZ, 1,1,[0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: llgramint did not return a square matrix, perhaps the matrix is not positive definite
+
+            sage: Matrix(ZZ,2,2,[0,1,1,0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: llgramint did not return a square matrix, perhaps the matrix is not positive definite
+
+
+
 
         """
         if self._nrows != self._ncols:
@@ -2660,7 +2675,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         try:
             U = P.lllgramint()
         except (RuntimeError, ArithmeticError) as msg:
-            raise ValueError("not a definite matrix")
+            raise ValueError("lllgramint failed, perhaps the matrix is not positive definite")
+        if U.matsize() != [n, n]:
+            raise ValueError("llgramint did not return a square matrix, perhaps the matrix is not positive definite");
         MS = matrix_space.MatrixSpace(ZZ,n)
         U = MS(U.sage())
         # Fix last column so that det = +1

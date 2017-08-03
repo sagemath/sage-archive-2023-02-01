@@ -90,7 +90,7 @@ attribute ``__cached_methods`` of type ``<dict>``. Since
 :trac:`11115`, this is the case for all classes inheriting from
 :class:`~sage.structure.parent.Parent`. See below for a more explicit
 example. By :trac:`12951`, cached methods of extension classes can
-be defined by simply using the decorater. However, an indirect
+be defined by simply using the decorator. However, an indirect
 approach is still needed for cpdef methods::
 
     sage: cython_code = ['cpdef test_meth(self,x):',

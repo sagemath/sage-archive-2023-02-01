@@ -134,7 +134,7 @@ cdef class CRElement(pAdicTemplateElement):
             2 + 3*5 + O(5^5)
         """
         cconstruct(self.unit, self.prime_pow)
-        cdef long rprec = comb_prec(relprec, self.prime_pow.prec_cap)
+        cdef long rprec = comb_prec(relprec, self.prime_pow.ram_prec_cap)
         cdef long aprec = comb_prec(absprec, xprec)
         if aprec <= val: # this may also hit an exact zero, if aprec == val == maxordp
             self._set_inexact_zero(aprec)
@@ -203,7 +203,7 @@ cdef class CRElement(pAdicTemplateElement):
             ...
             PrecisionError: Precision higher than allowed by the precision cap.
         """
-        if self.relprec > self.prime_pow.prec_cap:
+        if self.relprec > self.prime_pow.ram_prec_cap:
             raise PrecisionError("Precision higher than allowed by the precision cap.")
 
     def __copy__(self):
@@ -1148,7 +1148,7 @@ cdef class CRElement(pAdicTemplateElement):
                 ans._set_exact_zero()
                 return ans
             else:
-                absprec = self.ordp + self.prime_pow.prec_cap
+                absprec = self.ordp + self.prime_pow.ram_prec_cap
         cdef long relprec = absprec - self.ordp
         if relprec <= self.relprec:
             return self
@@ -1750,7 +1750,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
         cdef CRElement ans = self._zero._new_c()
-        ans.relprec = ans.prime_pow.prec_cap
+        ans.relprec = ans.prime_pow.ram_prec_cap
         ans.ordp = cconv_mpz_t(ans.unit, (<Integer>x).value, ans.relprec, False, ans.prime_pow)
         return ans
 
@@ -1970,7 +1970,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef CRElement ans = self._zero._new_c()
-        ans.relprec = ans.prime_pow.prec_cap
+        ans.relprec = ans.prime_pow.ram_prec_cap
         ans.ordp = cconv_mpq_t(ans.unit, (<Rational>x).value, ans.relprec, False, self._zero.prime_pow)
         return ans
 
@@ -2168,7 +2168,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef CRElement ans = self._zero._new_c()
-        ans.relprec = ans.prime_pow.prec_cap
+        ans.relprec = ans.prime_pow.ram_prec_cap
         ans.ordp = cconv_mpq_t(ans.unit, (<Rational>x).value, ans.relprec, False, self._zero.prime_pow)
         if ans.ordp < 0:
             raise ValueError("p divides the denominator")

@@ -1451,6 +1451,11 @@ ext_modules = [
               libraries = ["gmp", "ntl"],
               language='c++'),
 
+    Extension('sage.rings.padics.pow_computer_relative',
+              sources = ['sage/rings/padics/pow_computer_relative.pyx'],
+              libraries = ["ntl", "gmp", "m"],
+              language='c++'),
+
     Extension('sage.rings.padics.qadic_flint_CR',
               sources = ['sage/rings/padics/qadic_flint_CR.pyx']),
 
@@ -1463,6 +1468,9 @@ ext_modules = [
     Extension('sage.rings.padics.qadic_flint_FP',
               sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
               libraries = ["flint"]),
+
+    Extension('sage.rings.padics.relative_ramified_FM',
+              sources = ['sage/rings/padics/relative_ramified_FM.pyx']),
 
     ################################
     ##

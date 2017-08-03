@@ -30,6 +30,8 @@ from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
 
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.morphism import Morphism
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
 from .local_generic import LocalGeneric
@@ -336,6 +338,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             Finite Field of size 3
         """
         return self.residue_class_field()
+
+    def residue_ring(self, n):
+        """
+        Returns the quotient of the ring of integers by the `n`th power of the maximal ideal.
+
+        EXAMPLES::
+
+            sage: R = Zp(11)
+            sage: R.residue_ring(3)
+            Ring of integers modulo 1331
+        """
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        return Zmod(self.prime()**n)
 
     def residue_system(self):
         """
@@ -905,6 +920,56 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         """
         pass
+
+class ResidueReductionMap(Morphism):
+    """
+    Reduction map from a p-adic ring or field to its residue field or ring.
+    """
+    def __init__(self, R, k):
+        if R.is_field():
+            cat = SetsWithPartialMaps()
+        else:
+            from sage.categories.rings import Rings
+            cat = Rings()
+        from sage.categories.homset import Hom
+        Morphism.__init__(self, Hom(R, k, cat))
+        kfield = R.residue_field()
+        q = kfield.cardinality()
+        N = k.cardinality()
+        self._n = N.exact_log(q)
+        if q**self._n != N:
+            raise ValueError("Codomain does not have cardinality a power of q")
+        if kfield is k:
+            self._field = True
+        else:
+            self._field = False
+
+    def is_surjective(self):
+        return True
+
+    def is_injective(self):
+        return False
+
+    def _call_(self, x):
+        return x.residue(self._n, field=self._field)
+
+    def section(self):
+        return ResidueLiftingMap(self.codomain(), self.domain())
+
+class ResidueLiftingMap(Morphism):
+    def __init__(self, k, R):
+        from sage.categories.sets_cat import Sets
+        from sage.categories.homset import Hom
+        Morphism.__init__(self, Hom(k, R, Sets()))
+
+    def _call_(self, x):
+        R = self.codomain()
+        if R.f() == 1:
+            return R([x])
+        elif R.e() == 1:
+            return R(x.polynomial().list())
+        else:
+            raise NotImplementedError
 
 def local_print_mode(obj, print_options, pos = None, ram_name = None):
     r"""

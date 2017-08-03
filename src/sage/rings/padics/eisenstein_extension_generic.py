@@ -162,6 +162,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         """
         return self.ground_ring().residue_class_field()
 
+    def residue_ring(self, n):
+        if n == 1:
+            return self.ground_ring().residue_ring(1)
+        else:
+            raise NotImplementedError
+
     #def discriminant(self, K=None):
     #    if K is self:
     #        return 1

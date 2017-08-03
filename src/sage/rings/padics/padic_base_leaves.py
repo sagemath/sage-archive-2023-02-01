@@ -281,20 +281,25 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Print representation.
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
 
         EXAMPLES::
 
-            sage: K = Zp(17); K #indirect doctest
-            17-adic Ring with capped relative precision 20
-            sage: latex(K)
-            \ZZ_{17}
+            sage: Zp(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring with capped relative precision 20
         """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring with capped relative precision %s"%(self.prime(), self.precision_cap())
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
     r"""
@@ -337,21 +342,6 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedAbsoluteElement)
 
-    def _repr_(self, do_latex = False):
-        r"""
-        Print representation.
-
-        EXAMPLES::
-
-            sage: K = ZpCA(17); K #indirect doctest
-            17-adic Ring with capped absolute precision 20
-            sage: latex(K)
-            \ZZ_{17}
-        """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring with capped absolute precision %s"%(self.prime(), self.precision_cap())
-
     def _coerce_map_from_(self, R):
         """
         Returns ``True`` if there is a coerce map from ``R`` to ``self``.
@@ -388,6 +378,26 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             elif (R.precision_cap() == self.precision_cap() and
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        EXAMPLES::
+
+            sage: ZpCA(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring with capped absolute precision 20
+        """
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
 class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric):
     r"""
@@ -463,20 +473,25 @@ class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric
             elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Print representation.
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
 
         EXAMPLES::
 
-            sage: K = ZpFP(17); K #indirect doctest
-            17-adic Ring with floating precision 20
-            sage: latex(K)
-            \ZZ_{17}
+            sage: ZpFP(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring with floating precision 20
         """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring with floating precision %s"%(self.prime(), self.precision_cap())
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
@@ -555,20 +570,25 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Representation
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
 
         EXAMPLES::
 
-            sage: K = ZpFM(7); K
-            7-adic Ring of fixed modulus 7^20
-            sage: latex(K) #indirect doctest
-            \ZZ_{7}
+            sage: ZpFM(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Ring of fixed modulus 7^20
         """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring of fixed modulus %s^%s"%(self.prime(), self.prime(), self.precision_cap())
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
     def fraction_field(self, print_mode = None):
         r"""
@@ -679,21 +699,25 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Returns a string representation of ``self``.
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
 
         EXAMPLES::
 
-            sage: K = Qp(17); K #indirect doctest
-            17-adic Field with capped relative precision 20
-            sage: latex(K)
-            \QQ_{17}
+            sage: Qp(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Field with capped relative precision 20
         """
-        if do_latex:
-            return "\\QQ_{%s}" % self.prime()
-        return "%s-adic Field with capped relative precision %s"%(self.prime(), self.precision_cap())
-
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)
 
     def random_element(self, algorithm='default'):
         r"""
@@ -796,17 +820,22 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
             elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Print representation.
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
 
         EXAMPLES::
 
-            sage: K = QpFP(17); K #indirect doctest
-            17-adic Field with floating precision 20
-            sage: latex(K)
-            \QQ_{17}
+            sage: QpFP(7).convert_map_from(Zmod(343))
+            Lifting morphism:
+              From: Ring of integers modulo 343
+              To:   7-adic Field with floating precision 20
         """
-        if do_latex:
-            return "\\QQ_{%s}" % self.prime()
-        return "%s-adic Field with floating precision %s"%(self.prime(), self.precision_cap())
+        from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+        if isinstance(R, IntegerModRing_generic):
+            N = R.cardinality()
+            p = self.prime()
+            n = N.exact_log(p)
+            if N == p**n:
+                from sage.rings.padics.padic_generic import ResidueLiftingMap
+                return ResidueLiftingMap._create_(R, self)

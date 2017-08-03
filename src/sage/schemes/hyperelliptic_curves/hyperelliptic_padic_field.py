@@ -278,12 +278,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             if xPv > 0:
                 return HF(0,0,1)
             if xPv == 0:
-                return HF(P[0].list()[0], 0,1)
+                return HF(P[0].expansion(0), 0,1)
         elif yPv ==0:
             if xPv > 0:
-                return HF(0, P[1].list()[0],1)
+                return HF(0, P[1].expansion(0),1)
             if xPv == 0:
-                return HF(P[0].list()[0], P[1].list()[0],1)
+                return HF(P[0].expansion(0), P[1].expansion(0),1)
         else:
             return HF(0,1,0)
 
@@ -599,12 +599,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 self = HyperellipticCurve(f).change_ring(K)
                 xP = P[0]
                 xPv = xP.valuation()
-                xPnew = K(sum(xP.list()[i]*p**(xPv + i) for i in range(len(xP.list()))))
+                xPL = xP.expansion()
+                xPnew = K(sum(xPL[i]*p**(xPv + i) for i in range(len(xPL))))
                 PP = P = self.lift_x(xPnew)
                 TP = self.frobenius(P)
                 xQ = Q[0]
                 xQv = xQ.valuation()
-                xQnew = K(sum(xQ.list()[i]*p**(xQv + i) for i in range(len(xQ.list()))))
+                xQL = xQ.expansion()
+                xQnew = K(sum(xQL[i]*p**(xQv + i) for i in range(len(xQL))))
                 QQ = Q = self.lift_x(xQnew)
                 TQ = self.frobenius(Q)
                 V = VectorSpace(K,dim)
@@ -927,7 +929,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 except (TypeError, NotImplementedError):
                     uN2 = 1 + h(x0)/y0**(2*p)
                     #yfrob2 = f(x)
-                    c = uN2.list()[0]
+                    c = uN2.expansion(0)
                     v = uN2.valuation()
                     a = uN2.parent().gen()
                     uN = self.newton_sqrt(uN2,c.sqrt()*a**(v//2),K.precision_cap())
@@ -1023,7 +1025,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HK = H.change_ring(K)
             sage: HL = HK.curve_over_ram_extn(2)
             sage: HL
-            Hyperelliptic Curve over Eisenstein Extension of 11-adic Field with capped relative precision 5 in a defined by (1 + O(11^5))*x^2 + (O(11^6))*x + (10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + O(11^6)) defined by (1 + O(a^10))*y^2 = (1 + O(a^10))*x^5 + (10 + 8*a^2 + 10*a^4 + 10*a^6 + 10*a^8 + O(a^10))*x^3 + (7 + a^2 + O(a^10))*x^2 + (7 + 3*a^2 + O(a^10))*x
+            Hyperelliptic Curve over Eisenstein Extension in a defined by x^2 - 11 with capped relative precision 10 over 11-adic Field defined by (1 + O(a^10))*y^2 = (1 + O(a^10))*x^5 + (10 + 8*a^2 + 10*a^4 + 10*a^6 + 10*a^8 + O(a^10))*x^3 + (7 + a^2 + O(a^10))*x^2 + (7 + 3*a^2 + O(a^10))*x
 
         AUTHOR:
 
@@ -1230,7 +1232,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         if S == FS:
             S_to_FS = V(dim*[0])
         else:
-            P = self(ZZ(FS[0][0]),ZZ(FS[1][0]))
+            P = self(ZZ(FS[0].expansion(0)),ZZ(FS[1].expansion(0)))
             x,y = self.local_coord(P,prec2)
             integrals = [(x**i*x.derivative()/(2*y)).integral() for i in range(dim)]
             S_to_FS = vector([I.polynomial()(FS[1]) - I.polynomial()(S[1]) for I in integrals])
@@ -1246,7 +1248,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         b = V(L)
         M_sys = matrix(K, M_frob).transpose() - 1
         B = (~M_sys)
-        v = [B.list()[i].valuation() for i in range(len(B.list()))]
+        BL = B.list()
+        v = [BL[i].valuation() for i in range(len(BL))]
         vv= min(v)
         B = (p**(-vv)*B).change_ring(K)
         B = p**(vv)*B

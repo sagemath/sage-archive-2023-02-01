@@ -22,6 +22,7 @@ from __future__ import absolute_import
 
 
 from .padic_extension_generic import pAdicExtensionGeneric
+from .misc import precprint
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.cachefunc import cached_method
 
@@ -61,20 +62,16 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         EXAMPLES::
 
             sage: R.<a> = Zq(125); R #indirect doctest
-            Unramified Extension of 5-adic Ring with capped relative precision 20 in a defined by (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
+            Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
             sage: latex(R) #indirect doctest
             \mathbf{Z}_{5^{3}}
         """
         if do_latex:
-            if self.base_ring() is self.ground_ring_of_tower():
-                if self.is_field():
-                    return "\\mathbf{Q}_{%s^{%s}}" % (self.prime(), self.degree())
-                else:
-                    return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
+            if self.is_field():
+                return "\\mathbf{Q}_{%s^{%s}}" % (self.prime(), self.degree())
             else:
-                raise NotImplementedError
-        return "Unramified Extension of %s in %s defined by %s"%(
-            self.ground_ring(), self.variable_name(), self.modulus())
+                return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
+        return "Unramified Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.prime()), self.prime(), "Field" if self.is_field() else "Ring")
 
     def ramification_index(self, K = None):
         """
@@ -138,6 +135,28 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         #\code{unramified_extension_of_degree} over the automatic
         #coercion base.
         return self._res_field
+
+    def residue_ring(self, n):
+        """
+        Return the quotient of the ring of integers by the `n`th power of its maximal ideal.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: R.residue_ring(1)
+            Finite Field in a0 of size 5^3
+
+        The following requires implementing more general Artinian rings::
+
+            sage: R.residue_ring(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if n == 1:
+            return self._res_field
+        else:
+            raise NotImplementedError
 
     def discriminant(self, K=None):
         """

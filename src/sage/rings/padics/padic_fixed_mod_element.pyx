@@ -244,13 +244,15 @@ cdef class pAdicFixedModElement(FMElement):
         """
         return self.lift_c()
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None):
         r"""
         Reduce ``self`` modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
         - ``absprec`` -- an integer (default: ``1``)
+
+        - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
 
         OUTPUT:
 
@@ -291,6 +293,9 @@ cdef class pAdicFixedModElement(FMElement):
             ...
             PrecisionError: Not enough precision known in order to compute residue.
 
+            sage: a.residue(field=True).parent()
+            Finite Field of size 7
+
         .. SEEALSO::
 
             :meth:`_mod_`
@@ -303,12 +308,20 @@ cdef class pAdicFixedModElement(FMElement):
             raise PrecisionError("Not enough precision known in order to compute residue.")
         elif absprec < 0:
             raise ValueError("Cannot reduce modulo a negative power of p.")
+        if field is None:
+            field = (absprec == 1)
+        elif field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)
-        return Mod(selfvalue, modulus)
+        if field:
+            from sage.rings.finite_rings.all import GF
+            return GF(self.parent().prime())(selfvalue)
+        else:
+            return Mod(selfvalue, modulus)
 
     def multiplicative_order(self):
         r"""

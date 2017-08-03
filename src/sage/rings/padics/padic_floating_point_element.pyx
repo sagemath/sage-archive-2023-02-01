@@ -237,13 +237,15 @@ cdef class pAdicFloatingPointElement(FPElement):
             raise ValueError("Cannot form an integer out of a p-adic field element with negative valuation")
         return self.lift_c()
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None):
         """
         Reduces this element modulo `p^{\mathrm{absprec}}`.
 
         INPUT:
 
-        - ``absprec`` - a non-negative integer (default: ``1``)
+        - ``absprec`` -- a non-negative integer (default: ``1``)
+
+        - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
 
         OUTPUT:
 
@@ -286,6 +288,8 @@ cdef class pAdicFloatingPointElement(FPElement):
             ...
             PrecisionError: not enough precision known in order to compute residue.
 
+            sage: a.residue(field=True).parent()
+            Finite Field of size 7
         """
         cdef Integer selfvalue, modulus
         cdef long aprec
@@ -298,6 +302,10 @@ cdef class pAdicFloatingPointElement(FPElement):
         aprec = mpz_get_ui((<Integer>absprec).value)
         if self.ordp < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")
+        if field is None:
+            field = (absprec == 1)
+        elif field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
@@ -306,7 +314,11 @@ cdef class pAdicFloatingPointElement(FPElement):
         else:
             # Need to do this better.
             mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
-        return Mod(selfvalue, modulus)
+        if field:
+            from sage.rings.finite_rings.all import GF
+            return GF(self.parent().prime())(selfvalue)
+        else:
+            return Mod(selfvalue, modulus)
 
     def _exp_binary_splitting(self, aprec):
         """
@@ -429,4 +441,3 @@ cdef class pAdicFloatingPointElement(FPElement):
         sig_off()
 
         return ans
-

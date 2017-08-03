@@ -1358,7 +1358,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             else:
                 parent, x = embedding.parent(), embedding
             embedding = number_field_morphisms.NumberFieldEmbedding(self, parent, x)
-        self._populate_coercion_lists_(embedding=embedding)
+        self._populate_coercion_lists_(embedding=embedding, convert_method_name='_number_field_')
 
     def _convert_map_from_(self, other):
         r"""

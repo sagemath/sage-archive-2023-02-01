@@ -21,6 +21,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from .padic_generic import pAdicGeneric
+from .misc import precprint
 from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.padics.padic_capped_relative_element import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR
 from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
@@ -61,6 +62,44 @@ class pAdicBaseGeneric(pAdicGeneric):
         else:
             raise RuntimeError
         self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
+
+    def _repr_(self, do_latex=False):
+        r"""
+        Returns a print representation of this p-adic ring or field.
+
+        EXAMPLES::
+
+            sage: K = Zp(17); K #indirect doctest
+            17-adic Ring with capped relative precision 20
+            sage: latex(K)
+            \ZZ_{17}
+            sage: K = ZpCA(17); K #indirect doctest
+            17-adic Ring with capped absolute precision 20
+            sage: latex(K)
+            \ZZ_{17}
+            sage: K = ZpFP(17); K #indirect doctest
+            17-adic Ring with floating precision 20
+            sage: latex(K)
+            \ZZ_{17}
+            sage: K = ZpFM(7); K
+            7-adic Ring of fixed modulus 7^20
+            sage: latex(K) #indirect doctest
+            \ZZ_{7}
+            sage: K = Qp(17); K #indirect doctest
+            17-adic Field with capped relative precision 20
+            sage: latex(K)
+            \QQ_{17}
+            sage: K = QpFP(17); K #indirect doctest
+            17-adic Field with floating precision 20
+            sage: latex(K)
+            \QQ_{17}
+        """
+        if do_latex:
+            if self.is_field():
+                return r"\QQ_{%s}" % self.prime()
+            else:
+                return r"\ZZ_{%s}" % self.prime()
+        return "%s-adic %s %s"%(self.prime(), "Field" if self.is_field() else "Ring", precprint(self._prec_type(), self.precision_cap(), self.prime()))
 
     def fraction_field(self, print_mode=None):
         r"""
@@ -118,6 +157,20 @@ class pAdicBaseGeneric(pAdicGeneric):
             return self
         from sage.rings.padics.factory import Zp
         return Zp(self.prime(), self.precision_cap(), self._prec_type(), print_mode=self._modified_print_mode(print_mode), names=self._uniformizer_print())
+
+    def exact_field(self):
+        """
+        Returns the rational field.
+
+        For compatibility with extensions of p-adics.
+
+        EXAMPLES::
+
+            sage: Zp(5).exact_field()
+            Rational Field
+        """
+        from sage.rings.rational_field import QQ
+        return QQ
 
     def is_isomorphic(self, ring):
         r"""

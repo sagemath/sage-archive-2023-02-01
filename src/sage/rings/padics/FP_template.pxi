@@ -44,6 +44,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef inline bint overunderflow(long* ordp, celement unit, PowComputer_ prime_pow):
     """
@@ -895,11 +896,13 @@ cdef class FPElement(pAdicTemplateElement):
         """
         return self
 
-    def list(self, lift_mode = 'simple', start_val = None):
+    def expansion(self, n = None, lift_mode = 'simple', start_val = None):
         r"""
         Returns a list of coefficients in a power series expansion of
         this element in terms of `\pi`.  If this is a field element,
         they start at `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
+
+        NOTES:
 
         For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as
@@ -929,6 +932,9 @@ cdef class FPElement(pAdicTemplateElement):
 
         INPUT:
 
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
           ``'teichmuller'`` (default: ``'simple'``)
 
@@ -939,10 +945,14 @@ cdef class FPElement(pAdicTemplateElement):
 
         OUTPUT:
 
-        - the list of coefficients of this element.  For base elements
-          these will be integers if ``lift_mode`` is ``'simple'`` or
-          ``'smallest'``, and elements of ``self.parent()`` if
-          ``lift_mode`` is ``'teichmuller'``.
+        - If ``n`` is ``None``, the `\pi`-adic expansion of this
+          element.  For base elements these will be integers if
+          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
+          elements of ``self.parent()`` if ``lift_mode`` is
+          ``'teichmuller'``.
+
+        - If ``n`` is an integer, the coefficient of `\pi^n` in the
+          `\pi`-adic expansion of this element.
 
         .. NOTE::
 
@@ -952,15 +962,15 @@ cdef class FPElement(pAdicTemplateElement):
 
             sage: R = ZpFP(7,6); a = R(12837162817); a
             3 + 4*7 + 4*7^2 + 4*7^4
-            sage: L = a.list(); L
+            sage: L = a.expansion(); L
             [3, 4, 4, 0, 4]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.list('smallest'); L
+            sage: L = a.expansion(lift_mode='smallest'); L
             [3, -3, -2, 1, -3, 1]
             sage: sum([L[i] * 7^i for i in range(len(L))]) == a
             True
-            sage: L = a.list('teichmuller'); L
+            sage: L = a.expansion(lift_mode='teichmuller'); L
             [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5,
             0,
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5,
@@ -970,45 +980,65 @@ cdef class FPElement(pAdicTemplateElement):
             sage: sum([L[i] * 7^i for i in range(len(L))])
             3 + 4*7 + 4*7^2 + 4*7^4
 
-            sage: R(0).list()
+            sage: R(0).expansion()
             []
 
-            sage: R = QpFP(7,4); a = R(6*7+7**2); a.list()
+            sage: R = QpFP(7,4); a = R(6*7+7**2); a.expansion()
             [6, 1]
-            sage: a.list('smallest')
+            sage: a.expansion(lift_mode='smallest')
             [-1, 2]
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [6 + 6*7 + 6*7^2 + 6*7^3,
             2 + 4*7 + 6*7^2 + 3*7^3,
             3 + 4*7 + 6*7^2 + 3*7^3,
             3 + 4*7 + 6*7^2 + 3*7^3]
+
+        You can ask for a specific entry in the expansion::
+
+            sage: a.expansion(1)
+            6
+            sage: a.expansion(1, lift_mode='smallest')
+            -1
+            sage: a.expansion(2, lift_mode='teichmuller')
+            2 + 4*7 + 6*7^2 + 3*7^3
         """
         R = self.parent()
+        if lift_mode == 'teichmuller':
+            zero = R(0)
+        else:
+            # needs to be defined in the linkage file.
+            zero = _list_zero
+        if n in ('simple', 'smallest', 'teichmuller'):
+            deprecation(14825, "Interface to expansion has changed; first argument now n")
+            if not isinstance(lift_mode, basestring):
+                start_val = lift_mode
+            lift_mode = n
+            n = None
+        elif isinstance(n, slice):
+            return self.slice(n.start, n.stop, n.step)
+        elif n is not None and (huge_val(self.ordp) or n < self.ordp or n >= self.ordp + self.prime_pow.prec_cap):
+            return zero
         if start_val is not None and start_val > self.ordp:
             raise ValueError("starting valuation must be smaller than the element's valuation.  See slice()")
-        if very_pos_val(self.ordp):
+        if huge_val(self.ordp):
             return []
-        elif very_neg_val(self.ordp):
-            if lift_mode == 'teichmuller':
-                return [R(1)]
-            elif R.f() == 1:
-                return [ZZ(1)]
-            else:
-                return [[ZZ(1)]]
         if lift_mode == 'teichmuller':
-            ulist = self.teichmuller_list()
+            if n is None:
+                ulist = self.teichmuller_expansion()
+            else:
+                return self.teichmuller_expansion(n - self.ordp)
         elif lift_mode == 'simple':
             ulist = clist(self.unit, self.prime_pow.prec_cap, True, self.prime_pow)
         elif lift_mode == 'smallest':
             ulist = clist(self.unit, self.prime_pow.prec_cap, False, self.prime_pow)
         else:
             raise ValueError("unknown lift_mode")
+        if n is not None:
+            try:
+                return ulist[n - self.ordp]
+            except IndexError:
+                return zero
         if (self.prime_pow.in_field == 0 and self.ordp > 0) or start_val is not None:
-            if lift_mode == 'teichmuller':
-                zero = R(0)
-            else:
-                # needs to be defined in the linkage file.
-                zero = _list_zero
             if start_val is None:
                 v = self.ordp
             else:
@@ -1016,7 +1046,9 @@ cdef class FPElement(pAdicTemplateElement):
             ulist = [zero] * v + ulist
         return ulist
 
-    def teichmuller_list(self):
+    list = deprecated_function_alias(14825, expansion)
+
+    def teichmuller_expansion(self, n = None):
         r"""
         Returns a list [`a_0`, `a_1`,..., `a_n`] such that
 
@@ -1024,31 +1056,42 @@ cdef class FPElement(pAdicTemplateElement):
 
         - self.unit_part() = `\sum_{i = 0}^n a_i \pi^i`
 
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         EXAMPLES::
 
-            sage: R = ZpFP(5,5); R(14).list('teichmuller') #indirect doctest
+            sage: R = ZpFP(5,5); R(70).teichmuller_expansion()
             [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4,
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4,
             2 + 5 + 2*5^2 + 5^3 + 3*5^4,
             1,
             4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4]
+            sage: R(70).teichmuller_expansion(2)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4
         """
         cdef FPElement list_elt
-        ans = PyList_New(0)
-        if very_pos_val(self.ordp):
-            return ans
-        if very_neg_val(self.ordp):
+        if n is None:
+            ans = PyList_New(0)
+            if huge_val(self.ordp):
+                return ans
+        elif huge_val(self.ordp) or n < self.ordp or n >= self.ordp + self.prime_pow.prec_cap:
             list_elt = self._new_c()
-            csetone(list_elt.unit, self.prime_pow)
-            list_elt.ordp = 0
-            PyList_Append(ans, list_elt)
-            return ans
+            list_elt._set_exact_zero()
+            return list_elt
+        else:
+            # We only need one list_elt
+            list_elt = self._new_c()
         cdef long prec_cap = self.prime_pow.prec_cap
+        cdef long goal
+        if n is not None: goal = prec_cap - n
         cdef long curpower = prec_cap
         cdef FPElement tmp = self._new_c()
         ccopy(tmp.unit, self.unit, self.prime_pow)
         while not ciszero(tmp.unit, tmp.prime_pow) and curpower > 0:
-            list_elt = self._new_c()
+            if n is None: list_elt = self._new_c()
             cteichmuller(list_elt.unit, tmp.unit, prec_cap, self.prime_pow)
             if ciszero(list_elt.unit, self.prime_pow):
                 list_elt.ordp = maxordp
@@ -1058,9 +1101,14 @@ cdef class FPElement(pAdicTemplateElement):
                 csub(tmp.unit, tmp.unit, list_elt.unit, prec_cap, self.prime_pow)
                 cshift_notrunc(tmp.unit, tmp.unit, -1, prec_cap, self.prime_pow)
                 creduce(tmp.unit, tmp.unit, prec_cap, self.prime_pow)
+            if n is None:
+                PyList_Append(ans, list_elt)
+            elif curpower == goal:
+                return list_elt
             curpower -= 1
-            PyList_Append(ans, list_elt)
         return ans
+
+    teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
 
     def _teichmuller_set_unsafe(self):
         """
@@ -1079,7 +1127,7 @@ cdef class FPElement(pAdicTemplateElement):
             11
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4
-            sage: a.list('teichmuller')
+            sage: a.expansion(lift_mode='teichmuller')
             [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4]
 
         Note that if you set an element which is congruent to 0 you
@@ -1096,6 +1144,34 @@ cdef class FPElement(pAdicTemplateElement):
             raise ValueError("cannot set negative valuation element to Teichmuller representative.")
         else:
             cteichmuller(self.unit, self.unit, self.prime_pow.prec_cap, self.prime_pow)
+
+    def polynomial(self, var='x'):
+        """
+        Returns a polynomial over the base ring that yields this element
+        when evaluated at the generator of the parent.
+
+        INPUT:
+
+        - ``var`` -- string, the variable name for the polynomial
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(5^3)
+            sage: a.polynomial()
+            (1 + O(5^20))*x + (O(5^20))
+            sage: a.polynomial(var='y')
+            (1 + O(5^20))*y + (O(5^20))
+            sage: (5*a^2 + K(25, 4)).polynomial()
+            (5 + O(5^4))*x^2 + (O(5^4))*x + (5^2 + O(5^4))
+        """
+        R = self.base_ring()
+        S = R[var]
+        if very_pos_val(self.ordp):
+            return S([])
+        elif very_neg_val(self.ordp):
+            return S([~R(0)])
+        else:
+            return S(ccoefficients(self.unit, self.ordp, self.relprec, self.prime_pow))
 
     def precision_absolute(self):
         """
@@ -1392,6 +1468,10 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
             sage: f(ZpFP(5)(-1)) - 5^20
             -1
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
 cdef class pAdicConvert_FP_ZZ(RingMap):
@@ -1609,6 +1689,10 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
             sage: f(QpFP(5)(1/5))
             1/5
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
 cdef class pAdicConvert_FP_QQ(RingMap):
@@ -1796,9 +1880,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
         Ring morphism:
-          From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
-          To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
-
+          From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
+          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
     TESTS::
 
         sage: TestSuite(f).run()
@@ -1916,8 +1999,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
-              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+              From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
             sage: g == f
             True
             sage: g is f
@@ -1944,8 +2027,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
-              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
+              From: Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Ring
+              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Field
             sage: g == f
             True
             sage: g is f
@@ -1970,8 +2053,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
-          To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+          From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
+          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
     """
     def __init__(self, K, R):
         r"""
@@ -2070,8 +2153,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
-              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+              From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
             sage: g == f
             True
             sage: g is f
@@ -2098,8 +2181,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
-              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
+              From: Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Field
+              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Ring
             sage: g == f
             True
             sage: g is f

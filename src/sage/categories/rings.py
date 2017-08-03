@@ -115,9 +115,16 @@ class Rings(CategoryWithAxiom):
 
                 sage: K.<x> = FunctionField(QQ)
                 sage: f = ZZ.hom(K); f
-                Ring Coercion morphism:
+                Composite map:
                   From: Integer Ring
                   To:   Rational function field in x over Rational Field
+                  Defn:   Conversion via FractionFieldElement_1poly_field map:
+                          From: Integer Ring
+                          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                        then
+                          Coercion map:
+                          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                          To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
                 True
 
@@ -152,6 +159,26 @@ class Rings(CategoryWithAxiom):
                 return False
 
             raise NotImplementedError
+
+        def _is_nonzero(self):
+            r"""
+            Return whether this is not the zero morphism.
+
+            .. NOTE::
+
+                We can not override ``is_zero()`` from the category framework
+                and we can not implement ``__nonzero__`` because it is a
+                special method. That this is why this has a cumbersome name.
+
+            EXAMPLES::
+
+                sage: ZZ.hom(ZZ)._is_nonzero()
+                True
+                sage: ZZ.hom(Zmod(1))._is_nonzero()
+                False
+
+            """
+            return bool(self.codomain().one())
 
     class SubcategoryMethods:
 

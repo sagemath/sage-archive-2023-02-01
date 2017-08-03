@@ -33,6 +33,11 @@ AUTHORS:
 """
 
 from cpython.object cimport PyObject_RichCompare, Py_TYPE, PyTypeObject
+from sage.cpython.wrapperdescr cimport get_slotdef, wrapperbase, PyDescr_NewWrapper
+
+cdef extern from *:
+    void PyType_Modified(PyTypeObject* cls)
+
 
 op_LT = Py_LT   # operator <
 op_LE = Py_LE   # operator <=

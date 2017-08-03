@@ -1370,7 +1370,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: f(7)
            2
            sage: f
-           Ring Coercion morphism:
+           Natural morphism:
              From: Integer Ring
              To:   Finite Field of size 5
 
@@ -1380,7 +1380,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1849,6 +1849,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Conversion map:
               From: Finite Field of size 7
               To:   Finite Field of size 11
+
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
 
         """
         from . import coerce_maps

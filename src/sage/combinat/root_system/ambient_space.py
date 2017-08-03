@@ -60,6 +60,18 @@ class AmbientSpace(CombinatorialFreeModule):
         sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
         ....:          TestSuite(e).run()
+
+        sage: e1 = RootSystem(['A',3]).ambient_lattice()
+        sage: e2 = RootSystem(['B',3]).ambient_lattice()
+        sage: e1 == e1
+        True
+        sage: e1 == e2
+        False
+
+        sage: e1 = RootSystem(['A',3]).ambient_space(QQ)
+        sage: e2 = RootSystem(['A',3]).ambient_space(RR)
+        sage: e1 == e2
+        False
     """
     def __init__(self, root_system, base_ring):
         """
@@ -275,23 +287,6 @@ class AmbientSpace(CombinatorialFreeModule):
             (-1/2, 1/2, 1/2, 1/2, 1/2, -5/6, -5/6, 5/6)
         """
         return self.fundamental_weights()[i]
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: e1 = RootSystem(['A',3]).ambient_lattice()
-            sage: e2 = RootSystem(['B',3]).ambient_lattice()
-            sage: e1 == e1
-            True
-            sage: e1 == e2
-            False
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.root_system != other.root_system:
-            return cmp(self.root_system, other.root_system)
-        return 0
 
     def from_vector_notation(self, weight, style="lattice"):
         """

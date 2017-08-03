@@ -794,17 +794,17 @@ class PiecewiseFunction(BuiltinFunction):
                 0
 
             """
-            if a != None and b != None:
+            if a is not None and b is not None:
                 F = self.integral(x)
                 return F(b) - F(a)
 
-            if a != None or b != None:
+            if a is not None or b is not None:
                 raise TypeError('only one endpoint given')
 
             area = 0
             new_pieces = []
 
-            if x == None:
+            if x is None:
                 x = self.default_variable()
 
             # The integral is computed by iterating over the pieces in order.
@@ -873,7 +873,7 @@ class PiecewiseFunction(BuiltinFunction):
                 True
             """
             from sage.calculus.calculus import maxima
-            x = QQ[self.default_variable()].gen()
+            x = self.default_variable()
             crit_pts = []
             for domain, f in parameters:
                 for interval in domain:

@@ -172,7 +172,7 @@ cdef class Dist(ModuleElement):
         """
         return self.parent().prime() ** (self.ordp) * self._moments
 
-    cpdef normalize(self):
+    cpdef normalize(self, include_zeroth_moment = True):
         r"""
         Normalize so that the precision of the `i`-th moment is `n-i`,
         where `n` is the number of moments.

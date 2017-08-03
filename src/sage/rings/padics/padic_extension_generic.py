@@ -58,7 +58,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 #         This function is provided because prime_pow needs to be set before _printer, so the standard unpickling fails.
 #         """
 #         from sage.rings.padics.factory import ExtensionFactory
-#         return ExtensionFactory, (self.base_ring(), self._pre_poly, self.precision_cap(), self.print_mode(), None, self.variable_name())
+#         return ExtensionFactory, (self.base_ring(), self._exact_modulus, self.precision_cap(), self.print_mode(), None, self.variable_name())
 
     def _coerce_map_from_(self, R):
         """
@@ -152,9 +152,42 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         return self._given_poly.degree()
 
-    def defining_polynomial(self):
+    def defining_polynomial(self, exact=False):
         """
         Returns the polynomial defining this extension.
+
+        INPUT:
+
+        - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
+                       defining polynomial rather than the one with coefficients in the base ring.
+
+        EXAMPLES::
+
+            sage: R = Zp(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: W.defining_polynomial()
+            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.defining_polynomial(exact=True)
+            x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+        .. SEEALSO::
+
+            :meth:`modulus`
+            :meth:`exact_field`
+        """
+        if exact:
+            return self._exact_modulus
+        else:
+            return self._given_poly
+
+    def exact_field(self):
+        r"""
+        Return a number field with the same defining polynomial.
+
+        Note that this method always returns a field, even for a `p`-adic
+        ring.
 
         EXAMPLES::
 
@@ -162,14 +195,24 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
-            sage: W.defining_polynomial()
-            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
-        """
-        return self._given_poly
+            sage: W.exact_field()
+            Number Field in w with defining polynomial x^5 + 75*x^3 - 15*x^2 + 125*x - 5
 
-    def modulus(self):
+        .. SEEALSO::
+
+            :meth:`defining_polynomial`
+            :meth:`modulus`
         """
+        return self.base_ring().exact_field().extension(self._exact_modulus, self.variable_name())
+
+    def modulus(self, exact=False):
+        r"""
         Returns the polynomial defining this extension.
+
+        INPUT:
+
+        - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
+                       defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -179,8 +222,15 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.<w> = R.ext(f)
             sage: W.modulus()
             (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            sage: W.modulus(exact=True)
+            x^5 + 75*x^3 - 15*x^2 + 125*x - 5
+
+        .. SEEALSO::
+
+            :meth:`defining_polynomial`
+            :meth:`exact_field`
         """
-        return self._given_poly
+        return self.defining_polynomial(exact)
 
     def ground_ring(self):
         """
@@ -245,6 +295,32 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #        xnew = x - x*delta*(1-q*delta)
     #    return x
 
+    def construction(self):
+        """
+        Returns the functorial construction of this ring, namely,
+        the algebraic extension of the base ring defined by the given
+        polynomial.
+
+        Also preserves other information that makes this ring unique
+        (e.g. precision, rounding, print mode).
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(25, 8, print_mode='val-unit')
+            sage: c, R0 = R.construction(); R0
+            5-adic Ring with capped relative precision 8
+            sage: c(R0)
+            Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 8 over 5-adic Ring
+            sage: c(R0) == R
+            True
+        """
+        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
+        print_mode = self._printer.dict()
+        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
+                    prec=self.precision_cap(), print_mode=self._printer.dict(),
+                    implementation=self._implementation),
+                self.base_ring())
+
     def fraction_field(self, print_mode=None):
         r"""
         Returns the fraction field of this extension, which is just
@@ -264,24 +340,16 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
-            Unramified Extension of 17-adic Field with capped relative precision 6 in a defined by (1 + O(17^6))*x^4 + (O(17^6))*x^3 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + (3 + O(17^6))
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
         """
         if self.is_field() and print_mode is None:
             return self
-        print_mode = self._modified_print_mode(print_mode)
-        ground_mode = print_mode.copy()
-        # We don't want to confuse the ground ring with different names.
-        ground_mode['ram_name'] = None
-        ground_mode['unram_name'] = None
-        K = self.ground_ring().fraction_field(ground_mode)
-        #we don't want to set the print options due to the ground ring since
-        #different extension fields (with different options) can share the same ground ring.
-        if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
+        if print_mode is None:
+            return self.change(field=True)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
+            return self.change(field=True, **print_mode)
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -302,25 +370,17 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
-            Unramified Extension of 17-adic Ring with capped relative precision 6 in a defined by (1 + O(17^6))*x^4 + (O(17^6))*x^3 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + (3 + O(17^6))
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
         """
         #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
         if not self.is_field() and print_mode is None:
             return self
-        print_mode = self._modified_print_mode(print_mode)
-        ground_mode = print_mode.copy()
-        # We don't want to confuse the ground ring with different names.
-        ground_mode['ram_name'] = None
-        ground_mode['unram_name'] = None
-        K = self.ground_ring().integer_ring(ground_mode)
-        #we don't want to set the print options due to the ground ring since
-        #different extension fields (with different options) can share the same ground ring.
-        if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+        if print_mode is None:
+            return self.change(field=False)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return self.change(field=False, **print_mode)
 
     #def hasGNB(self):
     #    raise NotImplementedError

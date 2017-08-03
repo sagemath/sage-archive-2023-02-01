@@ -1482,11 +1482,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def rational_reconstruction(self):
         r"""
-        Returns a rational approximation to this p-adic number
+        Returns a rational approximation to this `p`-adic number
 
-        INPUT:
+        This will raise an ArithmeticError if there are no valid
+        approximations to the unit part with numerator and
+        denominator bounded by ``sqrt(p^absprec / 2)``.
 
-        - ``self`` -- a p-adic element
+        .. SEEALSO::
+
+            :meth:`_rational_`
 
         OUTPUT:
 
@@ -1509,6 +1513,25 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.arith.all import rational_reconstruction
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
+
+    def _rational_(self):
+        r"""
+        Return a rational approximation to this `p`-adic number.
+
+        If there is no good rational approximation to the unit part,
+        will just return the integer approximation.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: QQ(R(125)) # indirect doctest
+            125
+        """
+        try:
+            return self.rational_reconstruction()
+        except ArithmeticError:
+            p = self.parent().prime()
+            return Rational(p**self.valuation() * self.unit_part().lift())
 
     def _log_generic(self, aprec, mina=0):
         r"""
@@ -1924,7 +1947,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...
             ValueError: logarithm is not integral, use change_frac=True to obtain a result in the fraction field
             sage: w.log(p_branch=2, change_frac=True)
-            2*w^-3 + O(w^21)
+            2*w^-3 + O(w^24)
 
         TESTS:
 
@@ -2454,9 +2477,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
             sage: z.log().exp()
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
 
         Check that this also works for fixed-mod implementations::
 

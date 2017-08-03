@@ -7703,7 +7703,7 @@ cdef class Matroid(SageObject):
         # check sanity of pos_dict and add it to cached info if sane
         if pos_dict is not None:
             from . import matroids_plot_helpers
-            if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
+            if matroids_plot_helpers.posdict_is_sane(self,pos_dict):
                 self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
         return
 

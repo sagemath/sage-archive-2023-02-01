@@ -300,6 +300,9 @@ REFERENCES:
 .. [Br2000] Kenneth S. Brown, *Semigroups, rings, and Markov chains*,
             :arxiv:`math/0006145v1`.
 
+.. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
+            http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
+
 .. [BS1996] Eric Bach, Jeffrey Shallit. *Algorithmic Number Theory,
             Vol. 1: Efficient Algorithms*. MIT Press, 1996. ISBN
             978-0262024051.
@@ -554,7 +557,7 @@ REFERENCES:
               orderings II. The parabolic analogue of Kazhdan-Lusztig
               polynomials, J. Alg. 111 (1987) 483-506.
 
-.. [Devaney] Devaney, Robert L. An Introduction to Chaotic Dynamical Systems.
+.. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
 
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
@@ -996,6 +999,10 @@ REFERENCES:
 
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
+
+.. [Kaw2009] Kawahira, Tomoki. *An algorithm to draw external rays of the
+             Mandelbrot set*, Nagoya University, 23 Apr. 2009.
+             math.titech.ac.jp/~kawahira/programs/mandel-exray.pdf
 
 .. [KB1983] \W. Kühnel and T. F. Banchoff, "The 9-vertex complex
             projective plane", Math. Intelligencer 5 (1983), no. 3,

@@ -10,33 +10,42 @@ Root system data for super type A
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ
+from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from . import ambient_space
 from .cartan_type import SuperCartanType_standard
+from six import iteritems
 
 class AmbientSpace(ambient_space.AmbientSpace):
     r"""
     EXAMPLES::
 
-        sage: R = RootSystem(["A",3])
+        sage: R = RootSystem(['A', [4,2]])
         sage: e = R.ambient_space(); e
-        Ambient space of the Root system of type ['A', 3]
+        Ambient space of the Root system of type ['A', [4, 2]]
         sage: TestSuite(e).run()
     """
+    def __init__(self, root_system, base_ring):
+        ct = root_system.cartan_type()
+        I = tuple(range(-ct.m-1,0) + range(1,ct.n+2))
+        ambient_space.AmbientSpace.__init__(self, root_system, base_ring,
+                                            index_set=I)
+
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
         """
-        Returns the smallest base ring the ambient space can be defined upon
+        Return the smallest base ring the ambient space can be defined upon
 
-        .. SEEALSO:: :meth:`~sage.combinat.root_system.ambient_space.AmbientSpace.smallest_base_ring`
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.root_system.ambient_space.AmbientSpace.smallest_base_ring`
 
         EXAMPLES::
 
-            sage: e = RootSystem(["A",3]).ambient_space()
+            sage: e = RootSystem(['A',[3,1]]).ambient_space()
             sage: e.smallest_base_ring()
             Integer Ring
         """
@@ -46,132 +55,163 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         EXAMPLES::
 
-            sage: e = RootSystem(["A",3]).ambient_space()
+            sage: e = RootSystem(['A', [4,2]]).ambient_space()
             sage: e.dimension()
-            4
+            8
         """
-        return self.root_system.cartan_type().rank()+1
-
-    def root(self, i, j):
-        """
-        Note that indexing starts at 0.
-
-        EXAMPLES::
-
-            sage: e = RootSystem(['A',3]).ambient_lattice()
-            sage: e.root(0,1)
-            (1, -1, 0, 0)
-        """
-        return self.monomial(i) - self.monomial(j)
+        ct = self.root_system.cartan_type()
+        return ct.m + ct.n + 2
 
     def simple_root(self, i):
         """
-        EXAMPLES::
+        EXAMPLES::  
 
-            sage: e = RootSystem(['A',3]).ambient_lattice()
-            sage: e.simple_roots()
-            Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1)}
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: list(e.simple_roots())
+            [(1, -1, 0, 0, 0), (0, 1, -1, 0, 0),
+             (0, 0, 1, -1, 0), (0, 0, 0, 1, -1)]
         """
-        return self.root(i-1, i)
-
-    def negative_roots(self):
-        """
-        EXAMPLES::
-
-            sage: e = RootSystem(['A',3]).ambient_lattice()
-            sage: e.negative_roots()
-            [(-1, 1, 0, 0),
-             (-1, 0, 1, 0),
-             (-1, 0, 0, 1),
-             (0, -1, 1, 0),
-             (0, -1, 0, 1),
-             (0, 0, -1, 1)]
-        """
-        res = []
-        for j in range(self.n-1):
-            for i in range(j+1,self.n):
-                res.append(  self.root(i,j) )
-        return res
+        if i < 0:
+            return self.monomial(i-1) - self.monomial(i)
+        if i == 0:
+            return self.monomial(-1) - self.monomial(1)
+        return self.monomial(i) - self.monomial(i+1)
 
     def positive_roots(self):
         """
         EXAMPLES::
 
-            sage: e = RootSystem(['A',3]).ambient_lattice()
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
             sage: e.positive_roots()
-            [(1, -1, 0, 0),
-             (1, 0, -1, 0),
-             (0, 1, -1, 0),
-             (1, 0, 0, -1),
-             (0, 1, 0, -1),
-             (0, 0, 1, -1)]
-
+            [(0, 1, -1, 0, 0),
+             (1, 0, -1, 0, 0),
+             (1, -1, 0, 0, 0),
+             (0, 0, 0, 1, -1),
+             (0, 0, 1, -1, 0),
+             (0, 0, 1, 0, -1),
+             (0, 1, 0, -1, 0),
+             (0, 1, 0, 0, -1),
+             (1, 0, 0, -1, 0),
+             (1, 0, 0, 0, -1)]
         """
-        res = []
-        for j in range(self.n):
-            for i in range(j):
-                res.append(  self.root(i,j) )
-        return res
+        return self.positive_even_roots() + self.positive_odd_roots()
+
+    def positive_even_roots(self):
+        ct = self.root_system.cartan_type()
+        ret = []
+        ret += [self.monomial(-j) - self.monomial(-i)
+                for i in range(1,ct.m+2)
+                for j in range(i+1,ct.m+2)]
+        ret += [self.monomial(i) - self.monomial(j)
+                for i in range(1,ct.n+2)
+                for j in range(i+1,ct.n+2)]
+        return ret
+
+    def positive_odd_roots(self):
+        ct = self.root_system.cartan_type()
+        return [self.monomial(-i) - self.monomial(j)
+                for i in range(1,ct.m+2)
+                for j in range(1,ct.n+2)]
 
     def highest_root(self):
         """
         EXAMPLES::
 
-           sage: e = RootSystem(['A',3]).ambient_lattice()
+           sage: e = RootSystem(['A', [4,2]]).ambient_lattice()
            sage: e.highest_root()
-           (1, 0, 0, -1)
+           (1, 0, 0, 0, 0, 0, 0, -1)
         """
-        return self.root(0,self.n-1)
+        ct = self.root_system.cartan_type()
+        return self.monomial(-ct.m-1) - self.monomial(ct.n+1)
 
-    def fundamental_weight(self, i):
+    def negative_roots(self):
         """
         EXAMPLES::
 
-            sage: e = RootSystem(['A',3]).ambient_lattice()
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.positive_roots()
+            [(0, 1, -1, 0, 0),
+             (1, 0, -1, 0, 0),
+             (1, -1, 0, 0, 0),
+             (0, 0, 0, 1, -1),
+             (0, 0, 1, -1, 0),
+             (0, 0, 1, 0, -1),
+             (0, 1, 0, -1, 0),
+             (0, 1, 0, 0, -1),
+             (1, 0, 0, -1, 0),
+             (1, 0, 0, 0, -1)]
+        """
+        return self.negative_even_roots() + self.negative_odd_roots()
+
+    def negative_even_roots(self):
+        ct = self.root_system.cartan_type()
+        ret = []
+        ret += [self.monomial(-i) - self.monomial(-j)
+                for i in range(1,ct.m+2)
+                for j in range(i+1,ct.m+2)]
+        ret += [self.monomial(j) - self.monomial(i)
+                for i in range(1,ct.n+2)
+                for j in range(i+1,ct.n+2)]
+        return ret
+
+    def negative_odd_roots(self):
+        ct = self.root_system.cartan_type()
+        return [self.monomial(j) - self.monomial(-i)
+                for i in range(1,ct.m+2)
+                for j in range(1,ct.n+2)]
+
+    def fundamental_weight(self, i): # FIXME
+        """
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [4,2]]).ambient_lattice()
             sage: e.fundamental_weights()
             Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1, 1, 1, 0)}
-
         """
         return self.sum(self.monomial(j) for j in range(i))
 
-    def det(self, k=1):
-        """
-        returns the vector (1, ... ,1) which in the ['A',r]
-        weight lattice, interpreted as a weight of GL(r+1,CC)
-        is the determinant. If the optional parameter k is
-        given, returns (k, ... ,k), the k-th power of the
-        determinant.
+    class Element(ambient_space.AmbientSpaceElement):
+        def inner_product(self, lambdacheck):
+            """
+            The scalar product with elements of the coroot lattice
+            embedded in the ambient space.
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: e = RootSystem(['A',3]).ambient_space()
-            sage: e.det(1/2)
-            (1/2, 1/2, 1/2, 1/2)
-        """
-        return self.sum(self.monomial(j)*k for j in range(self.n))
+                sage: e = RootSystem(['A',2]).ambient_space()
+                sage: a = e.simple_root(0); a
+                (-1, 0, 0)
+                sage: a.inner_product(a)
+                2
+            """
+            self_mc = self._monomial_coefficients
+            lambdacheck_mc = lambdacheck._monomial_coefficients
 
-    __doc__ += """
-    By default, this ambient space uses the barycentric projection for plotting::
+            result = self.parent().base_ring().zero()
+            for t,c in iteritems(lambdacheck_mc):
+                if t not in self_mc:
+                    continue
+                if t > 0:
+                    result -= c*self_mc[t]
+                else:
+                    result += c*self_mc[t]
+            return result
 
-        sage: L = RootSystem(["A",2]).ambient_space()
-        sage: e = L.basis()
-        sage: L._plot_projection(e[0])
-        (1/2, 989/1142)
-        sage: L._plot_projection(e[1])
-        (-1, 0)
-        sage: L._plot_projection(e[2])
-        (1/2, -989/1142)
-        sage: L = RootSystem(["A",3]).ambient_space()
-        sage: l = L.an_element(); l
-        (2, 2, 3, 0)
-        sage: L._plot_projection(l)
-        (0, -1121/1189, 7/3)
+        scalar = inner_product
+        dot_product = inner_product
 
-    .. SEEALSO::
+        def associated_coroot(self): # FIXME
+            """
+            EXAMPLES::
 
-        - :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods._plot_projection`
-    """
-    _plot_projection = RootLatticeRealizations.ParentMethods.__dict__['_plot_projection_barycentric']
+                sage: e = RootSystem(['F',4]).ambient_space()
+                sage: a = e.simple_root(0); a
+                (1/2, -1/2, -1/2, -1/2)
+                sage: a.associated_coroot()
+                (1, -1, -1, -1)
+            """
+            # FIXME: make it work over ZZ!
+            return self * self.base_ring()(2/self.inner_product(self))
 
 class CartanType(SuperCartanType_standard):
     """
@@ -187,7 +227,7 @@ class CartanType(SuperCartanType_standard):
             sage: ct
             ['A', [4, 2]]
             sage: ct._repr_(compact = True)
-            'A4'
+            'A4|2'
 
             sage: ct.is_irreducible()
             True
@@ -197,12 +237,10 @@ class CartanType(SuperCartanType_standard):
             False
             sage: ct.is_crystallographic()
             True
-            sage: ct.is_simply_laced()
-            True
             sage: ct.affine()
             ['A', 4, 1]
             sage: ct.dual()
-            ['A', 4]
+            ['A', [4, 2]]
 
         TESTS::
 
@@ -242,17 +280,41 @@ class CartanType(SuperCartanType_standard):
         """
         return True
 
-    def dynkin_diagram(self):
+    # A lot of these methods should be implemented by the ABCs of CartanType
+
+    def is_affine(self):
+        return False
+
+    def is_finite(self):
+        return True
+
+    def dual(self):
+        return self
+
+    def type(self):
+        return 'A'
+
+    def root_system(self):
+        from sage.combinat.root_system.root_system import RootSystem
+        return RootSystem(self)
+
+    @cached_method
+    def symmetrizer(self):
+        from sage.sets.family import Family
+        def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()
+        return Family(self.index_set(), ell)
+
+    def dynkin_diagram(self): # FIXME
         """
         Returns the Dynkin diagram of super type A.
 
         EXAMPLES::
 
-            sage: a = CartanType(['A',3]).dynkin_diagram()
+            sage: a = CartanType(['A', [4,2]]).dynkin_diagram()
             sage: a
-            O---O---O
-            1   2   3
-            A3
+            O---O---O---O---X---O---O
+            -4  -3  -2  -1  0   1   2   
+            A4|2
             sage: sorted(a.edges())
             [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
 
@@ -273,7 +335,7 @@ class CartanType(SuperCartanType_standard):
             g.add_edge(i, i+1)
         return g
 
-    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2): # FIXME
         r"""
         Return a latex representation of the Dynkin diagram.
 

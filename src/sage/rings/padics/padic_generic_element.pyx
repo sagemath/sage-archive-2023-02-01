@@ -1279,14 +1279,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: K.zero().is_squarefree()
             False
 
-        At least if it is known to sufficient precision to distinguish it from
-        a unit::
-
-            sage: K(0,0).is_squarefree()
-            Traceback (most recent call last):
-            ...
-            PrecisionError: element not known to sufficient precision to decide squarefreeness
-
         In `p`-adic rings, only elements of valuation at most 1 are
         squarefree::
 
@@ -1298,7 +1290,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(4).is_squarefree()
             False
 
-        Again, this works only if the precision is known sufficiently well::
+        This works only if the precision is known sufficiently well::
 
             sage: R(0,1).is_squarefree()
             Traceback (most recent call last):
@@ -1309,11 +1301,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(1,1).is_squarefree()
             True
 
+        For fields we are not so strict about the precision and treat inexact
+        zeros as the zero element::
+
+            K(0,0).is_squarefree()
+            False
+
         """
         if self.parent().is_field():
             if self.is_zero():
-                if self.precision_absolute() <= 0:
-                    raise PrecisionError("element not known to sufficient precision to decide squarefreeness")
                 return False
             return True
         else:

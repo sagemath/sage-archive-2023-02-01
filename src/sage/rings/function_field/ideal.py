@@ -730,31 +730,25 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         else:
             return False
 
-    def __cmp__(self, other):
+    def _richcmp__(self, other, op):
         """
-        Compare the ideal and the other ideal.
+        Compare this ideal with the other ideal with respect to ``op``.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x^3 - 1)
             sage: O = L.equation_order()
-            sage: I = O.ideal(y*(y+1)); J = O.ideal((y^2-2)*(y+1))
-            sage: I+J == J+I            # indirect test
+            sage: I = O.ideal(y*(y + 1)); J = O.ideal((y^2 - 2)*(y + 1))
+            sage: I + J == J + I            # indirect test
             True
             sage: I == J
             False
-            sage: I < J
-            True
-            sage: J < I
-            False
         """
-        if not isinstance(other, FunctionFieldIdeal_module):
-            other = self.ring().ideal(other)
         if self.ring() != other.ring():
             raise ValueError("rings must be the same")
 
-        return cmp(self.module(), other.module())
+        return richcmp(self.module(), other.module(), op)
 
     def module(self):
         """

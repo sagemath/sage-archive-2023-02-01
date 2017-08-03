@@ -701,7 +701,7 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
             sage: K.has_coerce_map_from(ZpCA(17,40))
             False
         """
-        if isinstance(R, (pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
+        if isinstance(R, (pAdicRingFixedMod, pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
                 return True
             elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):

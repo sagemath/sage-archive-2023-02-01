@@ -46,4 +46,4 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
     cdef FPElement _zero
     cdef Morphism _section
 cdef class pAdicConvert_FM_frac_field(Morphism):
-    cdef FPElement _zero
+    cdef FMElement _zero

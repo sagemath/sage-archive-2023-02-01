@@ -1271,6 +1271,8 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             a
         """
         cdef FMElement x = _x
+        if ciszero(x.value, x.prime_pow):
+            return self._zero
         cdef FPElement ans = self._zero._new_c()
         ans.ordp = cremove(ans.unit, x.value, x.prime_pow.ram_prec_cap, x.prime_pow)
         return ans
@@ -1308,17 +1310,17 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
         """
         cdef long aprec, rprec
         cdef FMElement x = _x
-        if ciszero(x.value):
+        if ciszero(x.value, x.prime_pow):
             return self._zero
         cdef FPElement ans = self._zero._new_c()
         cdef bint reduce = False
-        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, x.prime_pow)
         ans.ordp = cremove(ans.unit, x.value, aprec, x.prime_pow)
         if aprec < ans.ordp + rprec:
             rprec = aprec - ans.ordp
         if rprec <= 0:
             return self._zero
-        creduce(ans.unit, ans.unit, rprec, ans.prime_pow)
+        creduce(ans.unit, ans.unit, rprec, x.prime_pow)
         return ans
 
     def section(self):
@@ -1331,9 +1333,13 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             sage: R.<a> = ZqFM(27)
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
-            sage: f(K.gen())
+            sage: f.section()(K.gen())
             a + O(3^20)
         """
+        from sage.misc.constant_function import ConstantFunction
+        if not isinstance(self._section.domain, ConstantFunction):
+            import copy
+            self._section = copy.copy(self._section)
         return self._section
 
     cdef dict _extra_slots(self, dict _slots):
@@ -1361,7 +1367,7 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
 
         """
         _slots['_zero'] = self._zero
-        _slots['_section'] = self._section
+        _slots['_section'] = self.section() # use method since it copies coercion-internal sections.
         return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
@@ -1383,7 +1389,7 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             sage: g is f
             False
             sage: g(a)
-            a + O(3^20)
+            a
             sage: g(a) == f(a)
             True
 
@@ -1464,16 +1470,10 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
         """
         cdef FPElement x = _x
         if x.ordp < 0: raise ValueError("negative valuation")
+        if x.ordp >= self._zero.prime_pow.ram_prec_cap:
+            return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cdef bint reduce = False
-        ans.absprec = x.relprec + x.ordp
-        if ans.absprec > ans.prime_pow.ram_prec_cap:
-            ans.absprec = ans.prime_pow.ram_prec_cap
-            reduce = True
-        if x.ordp >= ans.absprec:
-            csetzero(ans.value, ans.prime_pow)
-        else:
-            cshift(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
+        cshift(ans.value, x.unit, x.ordp, ans.prime_pow.ram_prec_cap, ans.prime_pow, x.ordp > 0)
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1490,42 +1490,35 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K); a = K(a)
             sage: f(a, 3)
-            a + O(3^3)
-            sage: b = 9*a
+            a + O(3^20)
+            sage: b = 117*a
             sage: f(b, 3)
-            a*3^2 + O(3^3)
+            a*3^2 + O(3^20)
             sage: f(b, 4, 1)
-            a*3^2 + O(3^3)
+            a*3^2 + O(3^20)
             sage: f(b, 4, 3)
-            a*3^2 + O(3^4)
+            a*3^2 + a*3^3 + O(3^20)
             sage: f(b, absprec=4)
-            a*3^2 + O(3^4)
+            a*3^2 + a*3^3 + O(3^20)
             sage: f(b, relprec=3)
-            a*3^2 + O(3^5)
+            a*3^2 + a*3^3 + a*3^4 + O(3^20)
             sage: f(b, absprec=1)
-            O(3)
+            O(3^20)
             sage: f(K(0))
             O(3^20)
         """
         cdef long aprec, rprec
         cdef FPElement x = _x
         if x.ordp < 0: raise ValueError("negative valuation")
+        if x.ordp >= self._zero.prime_pow.ram_prec_cap:
+            return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cdef bint reduce = False
         _process_args_and_kwds(&aprec, &rprec, args, kwds, True, ans.prime_pow)
-        if x.relprec < rprec:
-            rprec = x.relprec
-            reduce = True
-        ans.absprec = rprec + x.ordp
-        if aprec < ans.absprec:
-            ans.absprec = aprec
-            reduce = True
-        if x.ordp >= ans.absprec:
-            csetzero(ans.value, ans.prime_pow)
-        else:
-            sig_on()
-            cshift(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
-            sig_off()
+        if rprec < aprec - x.ordp:
+            aprec = x.ordp + rprec
+        sig_on()
+        cshift(ans.value, x.unit, x.ordp, aprec, ans.prime_pow, x.ordp > 0)
+        sig_off()
         return ans
 
     cdef dict _extra_slots(self, dict _slots):

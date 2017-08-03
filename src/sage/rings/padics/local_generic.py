@@ -365,6 +365,13 @@ class LocalGeneric(CommutativeRing):
            (functor_dict['print_mode'].get('mode') == 'digits' and p > getattr(functor, "p", p))):
             from .padic_printing import _printer_defaults
             kwds['alphabet'] = _printer_defaults.alphabet()[:p]
+        # For fraction fields of fixed-mod rings, we need to explicitly set show_prec = False
+        if 'field' in kwds and 'type' not in kwds:
+            if self._prec_type() == 'capped-abs':
+                kwds['type'] = 'capped-rel'
+            elif self._prec_type() == 'fixed-mod':
+                kwds['type'] = 'floating-point'
+                kwds['show_prec'] = False # This can be removed once printing of fixed mod elements is changed.
 
         # There are two kinds of functors possible:
         # CompletionFunctor and AlgebraicExtensionFunctor
@@ -378,12 +385,6 @@ class LocalGeneric(CommutativeRing):
                 field = kwds.pop('field')
                 if field:
                     ring = ring.fraction_field()
-                    if 'type' not in kwds:
-                        if self._prec_type() == 'capped-abs':
-                            kwds['type'] = 'capped-rel'
-                        elif self._prec_type() == 'fixed-mod':
-                            kwds['type'] = 'floating-point'
-                            kwds['show_prec'] = False # This can be removed once printing of fixed mod elements is changed.
                 elif ring.is_field():
                     ring = ring.ring_of_integers()
             for atr in ('p', 'prec', 'type'):

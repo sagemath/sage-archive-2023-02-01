@@ -4694,16 +4694,16 @@ class FiniteWord_class(Word_class):
         -   [1] M. Crochemore, Recherche linéaire d'un carré dans un mot,
             C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14 781--784.
         """
-        T=self.implicit_suffix_tree()
-        cuts=T.LZ_decomposition()
+        T = self.implicit_suffix_tree()
+        cuts = T.LZ_decomposition()
         c = Factorization([self[cuts[i]:cuts[i+1]] for i in range(len(cuts)-1)])
         return c
 
     def LZ_decomposition(self):
         r"""
-        Alias for crochemore_factorization
+        Alias for ``crochemore_factorization``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: Word('aabbaa').LZ_decomposition()
             (a, a, b, b, aa)

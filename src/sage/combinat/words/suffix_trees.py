@@ -1284,9 +1284,9 @@ class ImplicitSuffixTree(SageObject):
     
     def LZ_decomposition(self):
         r"""
-        Return the Lempel-Ziv decomposition of the self.word() in the form of a list
-        iB of index such that the blocks of the decomposition are 
-        self.word()[iB[k]:iB[k+1]]
+        Return the Lempel-Ziv decomposition of ``self.word()`` in the form of a list
+        ``iB`` of index such that the blocks of the decomposition are
+        ``self.word()[iB[k]:iB[k+1]]``
 
         The Lempel-Ziv decomposition is the factorisation u_1...u_k of a word 
         w=x_1...x_n such that u_i is the longest prefix of u_i...u_k that has an
@@ -1302,7 +1302,7 @@ class ImplicitSuffixTree(SageObject):
             sage: T = w.suffix_tree()
             sage: T.LZ_decomposition()
             [0, 1, 2, 3, 6, 8, 9, 11, 13]
-            sage: w = Word([0,0,0,1,1,0,1])
+            sage: w = Word([0, 0, 0, 1, 1, 0, 1])
             sage: T = w.suffix_tree()
             sage: T.LZ_decomposition()
             [0, 1, 3, 4, 5, 7]
@@ -1311,24 +1311,24 @@ class ImplicitSuffixTree(SageObject):
             sage: T.LZ_decomposition()
             [0, 1, 4, 5, 9, 10]
         """
-        iB=[0]
-        i=0
-        w=self.word()
-        while i<len(w):
-            l=0
-            ((x,y),successor)=self._find_transition(0, w[i])
-            x=x-1
-            while x<i+l:
-                if y==None:
-                    l=len(w)-i
+        iB = [0]
+        i = 0
+        w = self.word()
+        while i < len(w):
+            l = 0
+            ((x, y), successor) = self._find_transition(0, w[i])
+            x = x-1
+            while x < i+l:
+                if y == None:
+                    l = len(w)-i
                 else:
-                    l+=y-x
-                if i+l>=len(w):
-                    l=len(w)-i
+                    l += y-x
+                if i+l >= len(w):
+                    l = len(w)-i
                     break
-                ((x,y),successor)=self._find_transition(successor,w[i+l])
-                x=x-1
-            i+=max(1,l)
+                ((x, y), successor) = self._find_transition(successor, w[i+l])
+                x = x-1
+            i += max(1, l)
             iB.append(i)
         return iB
 

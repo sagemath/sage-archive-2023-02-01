@@ -359,6 +359,14 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
             Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 10000 over 3-adic Ring
             sage: R.<a> = ZqFP(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
+
+        TESTS:
+
+        Check that :trac:`23228` has been resolved::
+
+            sage: a % R.prime()
+            a
+
         """
         self._shift_seed = None
         self._exact_modulus = exact_modulus
@@ -367,7 +375,7 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
             raise NotImplementedError
         Zpoly = _make_integral_poly(exact_modulus, poly.base_ring().prime(), prec)
         cache_limit = min(prec, 30)
-        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='floating-point')
+        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='floating-point')
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, qAdicFloatingPointElement)
         from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicConvert_QQ_FP
         self.register_coercion(pAdicCoercion_ZZ_FP(self))

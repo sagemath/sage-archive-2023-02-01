@@ -8,7 +8,7 @@ only inherited as a whole: defining just 1 or 2 of these will prevent
 the others from being inherited.
 
 To solve this issue, you can use :class:`InheritComparisonMetaclass`
-as a Cython "metaclass" (see :mod:`sage.misc.cython_metaclass` for the
+as a Cython "metaclass" (see :mod:`sage.cpython.cython_metaclass` for the
 general mechanism). If you do this for an extension type which defines
 neither ``__richcmp__`` nor ``__cmp__``, then both these methods are
 inherited from the base class (the MRO is not used).

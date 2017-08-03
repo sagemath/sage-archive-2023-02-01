@@ -266,12 +266,30 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
                 sage: K.maximal_vector()
                 [[1], [2]]
+
+            TESTS:
+
+            Check that :trac:`23028` is fixed::
+
+                sage: ct = CartanType(['A',8,2]).dual()
+                sage: K = crystals.KirillovReshetikhin(ct, 4, 1)
+                sage: K.maximal_vector()
+                [[1], [2], [3], [4]]
+                sage: K = crystals.KirillovReshetikhin(ct, 4, 2)
+                sage: K.maximal_vector()
+                [[1, 1], [2, 2], [3, 3], [4, 4]]
             """
             R = self.weight_lattice_realization()
             Lambda = R.fundamental_weights()
             r = self.r()
             s = self.s()
-            weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
+            if self.cartan_type().dual().type() == 'BC':
+                if self.cartan_type().rank() - 1 == r:
+                    weight = 2*s*Lambda[r] - s*Lambda[0]
+                else:
+                    weight = s*Lambda[r] - s*Lambda[0]
+            else:
+                weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
 
             # First check the module generators as it is likely to be in here
             for b in self.module_generators:

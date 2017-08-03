@@ -6030,7 +6030,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         except AttributeError:
             pass
 
-        if proof == False:
+        if not proof:
             try:
                 return self._unit_group_no_proof
             except AttributeError:
@@ -6153,7 +6153,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         except KeyError:
             pass
 
-        if proof == False:
+        if not proof:
             try:
                 return self._S_unit_group_no_proof_cache[S]
             except AttributeError:
@@ -6476,6 +6476,48 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
             raise RuntimeError("Error in number field solve_CRT()")
         return self(x)
+
+    def some_elements(self):
+        """
+        Return a list of elements in the given number field.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: K.<a> =  QQ.extension(t^2 - 2); K
+            Number Field in a with defining polynomial t^2 - 2
+            sage: K.some_elements()
+            [1, a, 2*a, 3*a - 4, 1/2, 1/3*a, 1/6*a, 0, 1/2*a, 2, ..., 12, -12*a + 18] 
+
+            sage: T.<u> = K[]
+            sage: M.<b> = K.extension(t^3 - 5); M
+            Number Field in b with defining polynomial t^3 - 5 over its base field
+            sage: M.some_elements()
+            [1, b, 1/2*a*b, ..., 2/5*b^2 + 2/5, 1/6*b^2 + 5/6*b + 13/6, 2]
+
+        TESTS:
+            
+        This also works in trivial extensions::
+
+            sage: R.<t> = QQ[]
+            sage: K.<a> = QQ.extension(t); K
+            Number Field in a with defining polynomial t
+            sage: K.some_elements()
+            [0, 1, 2, -1, 1/2, -1/2, 1/4, -2, 4]
+
+        """
+        elements = []
+
+        polynomials = [self(f) for f in self.polynomial_ring().some_elements()]
+
+        for numerator in polynomials:
+            for denominator in polynomials:
+                if denominator:
+                    some_element = numerator/denominator
+                    if some_element not in elements:
+                        elements.append(some_element)
+
+        return elements
 
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
@@ -8651,8 +8693,10 @@ class NumberField_absolute(NumberField_generic):
         if P is None:
             return pari(self).nfhilbert(a, b)
 
-        from sage.rings.morphism import is_RingHomomorphism
-        if is_RingHomomorphism(P):
+        from sage.categories.map import Map
+        from sage.categories.all import Rings
+        if isinstance(P, Map) and P.category_for().is_subcategory(Rings()):
+            # P is a morphism of Rings
             if P.domain() is not self:
                 raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()
@@ -8920,9 +8964,22 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: type(k)
             <class 'sage.rings.number_field.number_field.NumberField_cyclotomic_with_category'>
 
-        TESTS::
+        TESTS:
+
+        The ``gcd`` and ``xgcd`` methods do not agree on this field, see
+        :trac:`23274`::
 
             sage: TestSuite(k).run()
+            Failure in _test_gcd_vs_xgcd:
+            ...
+            AssertionError: The methods gcd and xgcd disagree on Cyclotomic Field of order 3 and degree 2:
+              gcd(0,2) = 1
+             xgcd(0,2) = (2, 0, 1)
+            ------------------------------------------------------------
+            The following tests failed: _test_gcd_vs_xgcd
+
+        ::
+
             sage: type(CyclotomicField(4).zero())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(6).one())

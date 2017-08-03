@@ -867,7 +867,7 @@ cdef class Ring(ParentWithGens):
             return True
         try:
             return self.Hom(other).natural_map().is_injective()
-        except TypeError:
+        except (TypeError, AttributeError):
             return False
 
     def is_prime_field(self):

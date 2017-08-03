@@ -2524,7 +2524,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         """
         R = self.base_ring()
         S = R[var]
-        if self.relprec == 0:
+        if self.is_zero():
             return S([])
         prec = self.relprec + self.ordp
         e = self.parent().e()

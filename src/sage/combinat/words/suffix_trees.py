@@ -1281,6 +1281,44 @@ class ImplicitSuffixTree(SageObject):
         else:
             raise TypeError("not an integer or None: %s" %s)
 
+    def _count_and_skip(self, node, (i, j)):
+        r"""
+        Use count and skip trick to follow the path starting at ``node`` and
+        reading ``self.word()[i:j]``. We assume that reading ``self.word()[i:j]`` is
+        possible from ``node``
+
+        INPUT:
+
+        - ``node`` -- explicit node of ``self``
+        - ``(i, j)`` -- Indices of factor ``T.word()[i:j]``
+
+        OUTPUT:
+
+        The node obtained by starting at ``node`` and following the edges
+        labeled by the letters of ``T.word()[i:j]``.
+        Return ``("explicit", end_node)`` if w ends at a "end_node", 
+        and ``("implicit", edge, d)`` if it ends at a spot along an edge.
+
+        EXAMPLES::
+
+            sage: T = Word('00110111011').suffix_tree()
+            sage: T._count_and_skip(5,(2,5))
+            ('implicit', (9, 10), 2)
+            sage: T._count_and_skip(0, (1, 4))
+            ('explicit', 7)
+        """
+        if i == j: #We're done reading the factor
+            return ('explicit', node)
+        transition = self._find_transition(node, self._letters[i])
+        child = transition[1]
+        if transition[0][1] == None: #The child is a leaf
+            edge_length = len(self.word())-transition[0][0]+1
+        else:
+            edge_length = transition[0][1]-transition[0][0]+1
+        if edge_length > j-i: #The reading stop on this edge
+            return ('implicit', (node, child), j-i)
+        return self._count_and_skip(child, (i+edge_length, j))
+
     #####
     # Miscellaneous methods
     #####

@@ -262,7 +262,7 @@ cpdef fast_julia_plot(double c_real, double c_imag,
             sig_check()
             y_coor = y_corner - row*step_size
 
-            # We compute the orbit of c under the map Q(z) = z^2 + c
+            # We compute the orbit of each pixel under the map Q(z) = z^2 + c
             # until we either reach the maximum number of iterations
             # or find a point in the orbit with modulus greater than 2
             new_x, new_y = x_coor, y_coor

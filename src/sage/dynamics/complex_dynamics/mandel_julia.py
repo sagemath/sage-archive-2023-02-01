@@ -9,8 +9,8 @@ The Mandelbrot set is the set of complex numbers `c` for which the function
 numbers can be visualized by plotting each value for `c` in the complex plane.
 The Mandelbrot set is an example of a fractal when plotted in the complex plane.
 
-The Julia set for a given `c` is the set of complex number for which the
-function `Q_c(z)=z^2+c` does not diverge when iterated from `z = c`.
+The Julia set for a given `c` is the set of complex numbers for which the
+function `Q_c(z)=z^2+c` is bounded under iteration.
 
 AUTHORS:
 
@@ -154,21 +154,20 @@ def julia_plot(c=-1, **kwds):
     they would like to diplay the Mandelbrot side by side with the Julia set.
 
     The Julia set of a given `c` value is the set of complex numbers for which
-    the function `Q_c(z)=z^2+c` does not diverge when iterated from `z = c`.
-    This set of complex numbers can be visualized by plotting each value for
-    `c` in the complex plane. Julia sets are examples of fractals when plotted
-    in the complex plane.
+    the function `Q_c(z)=z^2+c` is bounded under iteration. The Julia set can
+    be visualized by plotting each point in the set in the complex plane.
+    Julia sets are examples of fractals when plotted in the complex plane.
 
     ALGORITHM:
 
-    Let each pixel in the image be a point `c \in \mathbb{C}` and define the
-    map `Q_c(z) = z^2 + c`. If `|Q_{c}^{k}(c)| > 2` for some `k \geq 0`, it
-    follows that `Q_{c}^{n}(c) \to \infty`. Let `N` be the maximum number of
-    iterations. Compute the first `N` points on the orbit of `c` under `Q_c`.
-    If for any `k < N`, `|Q_{c}^{k}(c)| > 2`, we stop the iteration and assign
-    a color to the point `c` based on how quickly `c` escaped to infinity under
-    iteration of `Q_c`. If `|Q_{c}^{i}(c)| \leq 2` for all `i \leq N`, we assume
-    `c` is in the Julia set and assign the point `c` the color black.
+    Define the map `Q_c(z) = z^2 + c` for some `c \in \mathbb{C}`. For every
+    `p \in \mathbb{C}`, if `|Q_{p}^{k}(c)| > 2` for some `k \geq 0`,
+    then `Q_{p}^{n}(c) \to \infty`. Let `N` be the maximum number of iterations.
+    Compute the first `N` points on the orbit of `p` under `Q_c`. If for
+    any `k < N`, `|Q_{p}^{k}(c)| > 2`, we stop the iteration and assign a color
+    to the point `c` based on how quickly `c` escaped to infinity under
+    iteration of `Q_c`. If `|Q_{p}^{i}(c)| \leq 2` for all `i \leq N`, we assume
+    `p` is in the Julia set and assign the point `p` the color black.
 
     INPUT:
 
@@ -176,9 +175,7 @@ def julia_plot(c=-1, **kwds):
 
     kwds:
 
-    - ``period`` -- list (optional - default: ``None``), returns the Julia set for a `c` value with the given cycle structure.
-
-    - ``return_points`` -- boolean (optional - default: ``False``), when ``period`` and ``return_points`` are ``True``, all `c` values with the given cycle structure are returned in a list.
+    - ``period`` -- list (optional - default: ``None``), returns the Julia set for a random `c` value with the given cycle structure.
 
     - ``mandelbrot`` -- boolean (optional - default: ``True``), when set to ``True``, an image of the Mandelbrot set is appended to the right of the Julia set.
 
@@ -190,7 +187,7 @@ def julia_plot(c=-1, **kwds):
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image in the complex plane.
 
-    - ``max_iteration`` -- long (optional - default: ``500``), maximum number of iterations the map ``Q_c(z)``.
+    - ``max_iteration`` -- long (optional - default: ``500``), maximum number of iterations the map `Q_c(z)`.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of image in number of pixels.
 
@@ -206,9 +203,7 @@ def julia_plot(c=-1, **kwds):
 
     24-bit RGB image of the Julia set in the complex plane.
 
-    EXAMPLES:
-
-    ::
+    EXAMPLES::
 
         sage: julia_plot()
         1001x500px 24-bit RGB image
@@ -218,15 +213,10 @@ def julia_plot(c=-1, **kwds):
         sage: julia_plot(mandelbrot=False)
         500x500px 24-bit RGB image
 
-    To return the Julia set of a `c` value with cycle structure `(2,3)`, set ``period = [2,3]``::
+    To return the Julia set of a random `c` value with cycle structure `(2,3)`, set ``period = [2,3]``::
 
         sage: julia_plot(period=[2,3])
         1001x500px 24-bit RGB image
-
-    To return all values for `c` that have cycle structure `(2,1)`, set ``period = [2,1]`` and ``return_points`` to ``True``::
-
-        sage: julia_plot(period=[2,1], return_points=True)
-        [-2.00000000000000, 0.000000000000000]
 
     To display an interactive plot of the Julia set in the Notebook, set ``interact`` to ``True``::
 
@@ -246,7 +236,6 @@ def julia_plot(c=-1, **kwds):
     interacts = kwds.pop("interact", False)
     mandelbrot = kwds.pop("mandelbrot", True)
     period = kwds.pop("period", None)
-    return_points = kwds.pop("return_points", False)
 
     if period is not None:
         R = PolynomialRing(QQ, 'c')
@@ -256,15 +245,7 @@ def julia_plot(c=-1, **kwds):
         H = End(P)
         f = H([x**2+c*y**2, y**2])
         L = f.dynatomic_polynomial(period).subs({x:0,y:1}).roots(ring=CC)
-
-        if return_points:
-            c_list = []
-            for k in L:
-                c_list.append(k[0])
-            return c_list
-
-        else:
-            c = L[randint(0,len(L)-1)][0]
+        c = L[randint(0,len(L)-1)][0]
 
     c_real = CC(c).real()
     c_imag = CC(c).imag()
@@ -307,3 +288,46 @@ def julia_plot(c=-1, **kwds):
             return fast_julia_plot(c_real, c_imag, x_center, y_center,
              image_width, max_iteration, pixel_count, iteration_level,
              number_of_colors, base_color)
+
+def julia_cycle_structure(m,n):
+    r"""
+    Given a integers `m` and `n`, returns a list of `c` values with the
+    cycle structure `(m,n)` under the map `Q_c(z) = z^2 + c`.
+
+    INPUT:
+
+    - ``m`` -- int, tail of `c` under the map `Q_c(z) = z^2 + c`.
+
+    - ``n`` -- int, minimal period of `c` under the map `Q_c(z) = z^2 + c`.
+
+    OUTPUT:
+
+    List of complex numbers.
+
+    EXAMPES:
+
+    To find all of the `c` values that have cycle structure `(1,3)`::
+
+        sage: julia_cycle_structure(1,3)
+        [-1.54368901269208,
+         0.000000000000000,
+         -0.228155493653962 - 1.11514250803994*I,
+         -0.228155493653962 + 1.11514250803994*I]
+
+    Use ``julia_plot`` to display the Julia sets for a given cycle structure::
+
+        sage: c_values = julia_cycle_structure(3,2) # not tested
+        sage: for c in c_values: # not tested
+        ....:     julia_plot(c)
+    """
+    R = PolynomialRing(QQ, 'c')
+    c = R.gen()
+    P = ProjectiveSpace(R, 1, 'x,y')
+    x,y = P.gens()
+    H = End(P)
+    f = H([x**2+c*y**2, y**2])
+    L = f.dynatomic_polynomial([n,m]).subs({x:0,y:1}).roots(ring=CC)
+    c_list = []
+    for k in L:
+        c_list.append(k[0])
+    return c_list

@@ -142,15 +142,9 @@ class RegularSuperCrystals(Category_singleton):
             return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
 
         def character(self):
-            # FIXME: Hack while the elements have vectors as weights
-            from sage.combinat.crystals.letters import CrystalOfBKKLetters
-            from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
             from sage.rings.all import ZZ
-            L = [x.value for x in CrystalOfBKKLetters(self.cartan_type())]
-            R = LaurentPolynomialRing(ZZ, 'x', len(L))
-            G = R.gens()
-            return R.sum(R.prod(G[L.index(i)]**e for i,e in x.weight())
-                         for x in self)
+            A = self.weight_lattice_realization().algebra(ZZ)
+            return A.sum(A(x.weight()) for x in self)
 
     class ElementMethods:
         def epsilon(self, i):

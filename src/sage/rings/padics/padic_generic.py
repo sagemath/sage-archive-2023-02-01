@@ -964,8 +964,11 @@ class ResidueLiftingMap(Morphism):
 
     def _call_(self, x):
         R = self.codomain()
+        A = R.base_ring()
+        if R is A:
+            return R._element_constructor(x) # fall back on common_conversion code
         if R.f() == 1:
-            return R([x])
+            return R([A(x)])
         elif R.e() == 1:
             return R(x.polynomial().list())
         else:

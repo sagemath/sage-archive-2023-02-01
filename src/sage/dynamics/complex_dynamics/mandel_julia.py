@@ -213,15 +213,28 @@ def julia_plot(c=-1, **kwds):
         sage: julia_plot(mandelbrot=False)
         500x500px 24-bit RGB image
 
+    To display an interactive plot of the Julia set in the Notebook, set ``interact`` to ``True``::
+
+        sage: julia_plot(interact=True)
+        <html>...</html>
+
     To return the Julia set of a random `c` value with cycle structure `(2,3)`, set ``period = [2,3]``::
 
         sage: julia_plot(period=[2,3])
         1001x500px 24-bit RGB image
 
-    To display an interactive plot of the Julia set in the Notebook, set ``interact`` to ``True``::
+    To return all of the Julia sets of `c` values with cycle structure `(2,3)`::
 
-        sage: julia_plot(interact=True)
-        <html>...</html>
+        sage: period = [2,3] # not tested
+        ....: R.<c> = QQ[]
+        ....: P.<x,y> = ProjectiveSpace(R,1)
+        ....: R = P.coordinate_ring()
+        ....: H = End(P)
+        ....: f = H([x^2+c*y^2,y^2])
+        ....: L = f.dynatomic_polynomial(period).subs({x:0,y:1}).roots(ring=CC)
+        ....: c_values = [k[0] for k in L]
+        ....: for c in c_values:
+        ....:     julia_plot(c)
     """
 
     x_center = kwds.pop("x_center", 0.0)
@@ -288,46 +301,3 @@ def julia_plot(c=-1, **kwds):
             return fast_julia_plot(c_real, c_imag, x_center, y_center,
              image_width, max_iteration, pixel_count, iteration_level,
              number_of_colors, base_color)
-
-def julia_cycle_structure(m,n):
-    r"""
-    Given a integers `m` and `n`, returns a list of `c` values with the
-    cycle structure `(m,n)` under the map `Q_c(z) = z^2 + c`.
-
-    INPUT:
-
-    - ``m`` -- int, tail of `c` under the map `Q_c(z) = z^2 + c`.
-
-    - ``n`` -- int, minimal period of `c` under the map `Q_c(z) = z^2 + c`.
-
-    OUTPUT:
-
-    List of complex numbers.
-
-    EXAMPES:
-
-    To find all of the `c` values that have cycle structure `(1,3)`::
-
-        sage: julia_cycle_structure(1,3)
-        [-1.54368901269208,
-         0.000000000000000,
-         -0.228155493653962 - 1.11514250803994*I,
-         -0.228155493653962 + 1.11514250803994*I]
-
-    Use ``julia_plot`` to display the Julia sets for a given cycle structure::
-
-        sage: c_values = julia_cycle_structure(3,2) # not tested
-        sage: for c in c_values: # not tested
-        ....:     julia_plot(c)
-    """
-    R = PolynomialRing(QQ, 'c')
-    c = R.gen()
-    P = ProjectiveSpace(R, 1, 'x,y')
-    x,y = P.gens()
-    H = End(P)
-    f = H([x**2+c*y**2, y**2])
-    L = f.dynatomic_polynomial([n,m]).subs({x:0,y:1}).roots(ring=CC)
-    c_list = []
-    for k in L:
-        c_list.append(k[0])
-    return c_list

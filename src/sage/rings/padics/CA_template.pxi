@@ -738,7 +738,7 @@ cdef class CAElement(pAdicTemplateElement):
         return (self.parent(), tuple_recursive(self.expansion()), self.precision_absolute())
 
     def expansion(self, n = None, lift_mode = 'simple', start_val = None):
-        """
+        r"""
         Returns a list of coefficients of `p` starting with `p^0`.
 
         For each lift mode, this function returns a list of `a_i` so

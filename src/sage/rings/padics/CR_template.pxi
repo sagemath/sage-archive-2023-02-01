@@ -1179,7 +1179,7 @@ cdef class CRElement(pAdicTemplateElement):
         return (self.parent(), tuple_recursive(self.expansion()), self.valuation(), self.precision_relative())
 
     def expansion(self, n = None, lift_mode = 'simple', start_val = None):
-        """
+        r"""
         Returns a list of coefficients in a power series expansion of
         self in terms of the uniformizer `\pi`.  If this is a field element, they start at
         `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.

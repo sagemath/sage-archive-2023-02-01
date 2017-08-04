@@ -444,6 +444,28 @@ cdef class IdentityMorphism(Morphism):
     def __invert__(self):
         return self
 
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: Hom(ZZ, ZZ).identity().is_surjective()
+            True
+        """
+        return True
+
+    def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: Hom(ZZ, ZZ).identity().is_injective()
+            True
+        """
+        return True
+
 cdef class SetMorphism(Morphism):
     def __init__(self, parent, function):
         """

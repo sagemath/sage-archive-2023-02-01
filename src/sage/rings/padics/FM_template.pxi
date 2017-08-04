@@ -422,9 +422,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a.add_bigoh(2^1000)
             7 + O(7^4)
             sage: a.add_bigoh(-2^1000)
-            Traceback (most recent call last):
-            ...
-            ValueError: absprec must be at least 0
+            0
 
         """
         cdef long aprec
@@ -436,14 +434,14 @@ cdef class FMElement(pAdicTemplateElement):
             if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             if mpz_sgn((<Integer>absprec).value) == -1:
-                aprec = -1
+                return self.parent().fraction_field()(0)
             elif mpz_fits_slong_p((<Integer>absprec).value) == 0:
-                aprec = self.prime_pow.ram_prec_cap
+                return self
             else:
                 aprec = mpz_get_si((<Integer>absprec).value)
         if aprec < 0:
-            raise ValueError("absprec must be at least 0")
-        if aprec >= self.prime_pow.prec_cap:
+            return self.parent().fraction_field()(self, absprec)
+        elif aprec >= self.prime_pow.prec_cap:
             return self
         cdef FMElement ans = self._new_c()
         creduce(ans.value, self.value, aprec, ans.prime_pow)

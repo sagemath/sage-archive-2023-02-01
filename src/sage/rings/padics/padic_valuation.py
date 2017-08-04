@@ -5,10 +5,15 @@ r"""
 EXAMPLES::
 
     sage: ZZ.valuation(2)
+    2-adic valuation
     sage: QQ.valuation(3)
-    sage: GaussianIntegers().valuation(5)
-    sage: CyclotomicField(5).valuation(7)
+    3-adic valuation
+    sage: CyclotomicField(5).valuation(5)
+    5-adic valuation
+    sage: GaussianIntegers().valuation(7)
+    7-adic valuation
     sage: Zp(11).valuation()
+    11-adic valuation
 
 These valuations can then, e.g., be used to compute factorizations in the
 completion of a ring::
@@ -352,7 +357,6 @@ class PadicValuationFactory(UniqueFactory):
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         from sage.rings.number_field.number_field import is_NumberField
         R = key[0]
-        K = R.fraction_field()
         parent = DiscretePseudoValuationSpace(R)
         if isinstance(R, pAdicGeneric):
             assert(len(key)==1)
@@ -365,6 +369,7 @@ class PadicValuationFactory(UniqueFactory):
             v = key[1]
             approximants = extra_args['approximants']
             parent = DiscretePseudoValuationSpace(R)
+            K = R.fraction_field()
             if is_NumberField(K):
                 G = K.relative_polynomial()
             elif is_PolynomialQuotientRing(R):
@@ -967,6 +972,7 @@ class pAdicValuation_padic(pAdicValuation_base):
             sage: S.<y> = R.extension(y^3 - 2)
             sage: v = S.valuation()
             sage: v.shift(1, 5)
+            y^5 + O(y^60)
 
         """
         from sage.rings.all import ZZ
@@ -1124,9 +1130,9 @@ class pAdicValuation_int(pAdicValuation_base):
 
             sage: v = ZZ.valuation(2)
             sage: v._relative_size(2)
-            2
+            1
             sage: v._relative_size(2**20)
-            21
+            11
 
         """
         x = self.domain().coerce(x)

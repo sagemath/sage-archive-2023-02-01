@@ -303,7 +303,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.disjoint_routed_paths` | Return a set of disjoint routed paths.
     :meth:`~GenericGraph.dominating_set` | Return a minimum dominating set of the graph
     :meth:`~GenericGraph.subgraph_search` | Return a copy of ``G`` in ``self``.
-    :meth:`~GenericGraph.subgraph_search_count` | Return the number of labelled occurences of ``G`` in ``self``.
+    :meth:`~GenericGraph.subgraph_search_count` | Return the number of labelled occurrences of ``G`` in ``self``.
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
@@ -12147,7 +12147,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def subgraph_search_count(self, G, induced=False):
         r"""
-        Returns the number of labelled occurences of ``G`` in ``self``.
+        Return the number of labelled occurrences of ``G`` in ``self``.
 
         INPUT:
 

@@ -7347,7 +7347,7 @@ cdef class Matrix(Matrix1):
                     SN = [[k[1] for k in s] for s in SN]
                     # Maximal row in this entry of X = MS
                     nb = max(SN)
-                    # Number of occurences.
+                    # Number of occurrences.
                     n = [j for j in range(nrows - l) if SN[j] == nb]
                     # Now compare to our previous max
                     if b < nb:
@@ -10216,7 +10216,7 @@ cdef class Matrix(Matrix1):
         ALGORITHM:
 
         For each eigenvalue, this routine checks that the algebraic
-        multiplicity (number of occurences as a root of the characteristic
+        multiplicity (number of occurrences as a root of the characteristic
         polynomial) is equal to the geometric multiplicity (dimension
         of the eigenspace), which is sufficient to ensure a basis of
         eigenvectors for the columns of `S`.

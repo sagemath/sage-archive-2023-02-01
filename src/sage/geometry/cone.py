@@ -2315,7 +2315,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             if self._ambient is self:
                 # We need to compute face lattice on our own. To accommodate
                 # non-strictly convex cones we split rays (or rather their
-                # indicies) into those in the linear subspace and others, which
+                # indices) into those in the linear subspace and others, which
                 # we refer to as atoms.
                 S = self.linear_subspace()
                 subspace_rays = []

@@ -739,7 +739,8 @@ cdef class CAElement(pAdicTemplateElement):
 
     def expansion(self, n = None, lift_mode = 'simple', start_val = None):
         r"""
-        Returns a list of coefficients of `p` starting with `p^0`.
+        Return the coefficients of a `\pi`-adic expansion starting with the
+        coefficient of `\pi^0`.
 
         For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as

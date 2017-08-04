@@ -840,7 +840,7 @@ def _split_syntactical_unit(s):
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
-    TEST:
+    TESTS:
 
     The following was fixed in :trac:`16309`::
 

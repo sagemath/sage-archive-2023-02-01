@@ -16433,7 +16433,7 @@ class GenericGraph(GenericGraph_pyx):
            results in the theory of the Wiener number. *Indian Journal of
            Chemistry*, 32A:651--661, 1993.
 
-        TEST:
+        TESTS:
 
         Giving an empty graph::
 

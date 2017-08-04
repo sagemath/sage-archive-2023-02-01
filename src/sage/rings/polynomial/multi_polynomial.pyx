@@ -1236,7 +1236,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.sylvester_matrix(g, x).determinant() == f.resultant(g, x)
             True
 
-        TEST:
+        TESTS:
 
         The variable is optional::
 

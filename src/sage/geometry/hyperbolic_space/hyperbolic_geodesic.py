@@ -724,7 +724,7 @@ class HyperbolicGeodesic(SageObject):
             sage: g.is_complete()
             True
 
-        TEST:
+        TESTS:
 
         Check that floating points remain floating points through this method::
 
@@ -975,7 +975,7 @@ class HyperbolicGeodesic(SageObject):
             sage: g.dist(p)
             +Infinity
 
-        TEST:
+        TESTS:
 
         Check that floating points remain floating points in :meth:`dist` ::
 
@@ -1646,7 +1646,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: bool(abs(A(e).coordinates()) > 10**9)
             True
 
-        TEST:
+        TESTS:
 
         Check that floating points remain floating points through this method::
 

@@ -4099,7 +4099,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: p[0].parent()
             Number Field in alpha with defining polynomial x^3 + x + 1
 
-        TEST:
+        TESTS:
 
         This checks that the multiple entries issue at :trac:`9341` is fixed::
 

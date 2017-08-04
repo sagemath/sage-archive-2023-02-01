@@ -833,7 +833,7 @@ def eccentricity(G, algorithm="standard"):
         sage: eccentricity(g)
         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-    TEST:
+    TESTS:
 
     All algorithms are valid::
 
@@ -1337,7 +1337,7 @@ def diameter(G, algorithm='iFUB', source=None):
         sage: lbm = diameter(G, algorithm='multi-sweep')
         sage: if not (lb2<=lbm and lbm<=d3): print("Something goes wrong!")
 
-    TEST:
+    TESTS:
 
     This was causing a segfault. Fixed in :trac:`17873` ::
 

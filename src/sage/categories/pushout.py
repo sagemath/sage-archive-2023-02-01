@@ -1564,7 +1564,7 @@ class MatrixFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST:
+        TESTS:
 
         The following is a test against a bug discussed at :trac:`8800`::
 
@@ -2585,7 +2585,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F1.commutes(F2)
             True
 
-        TEST:
+        TESTS:
 
         The fraction field ``R`` in the example below has no completion
         method. But completion commutes with the fraction field functor,

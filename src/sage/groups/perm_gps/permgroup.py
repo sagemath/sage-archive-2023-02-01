@@ -146,7 +146,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, stan
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction
-from sage.misc.package import is_package_installed
+from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
@@ -195,7 +195,7 @@ def hap_decorator(f):
     @wraps(f)
     def wrapped(self, n, p=0):
         if not is_package_installed('gap_packages'):
-            raise RuntimeError("You must install the optional gap_packages package.")
+            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
@@ -1707,7 +1707,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             return [Integer(n) for n in self._gap_().IdGroup()]
         except RuntimeError:
             if not is_package_installed('database_gap'):
-                raise RuntimeError("You must install the optional database_gap package first.")
+                raise PackageNotFoundError("database_gap")
             raise
 
     def id(self):
@@ -1760,7 +1760,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             return Integer(self._gap_().PrimitiveIdentification())
         except RuntimeError:
             if not is_package_installed('database_gap'):
-                raise RuntimeError("You must install the optional database_gap package first.")
+                raise PackageNotFoundError("database_gap")
             raise
 
     def center(self):
@@ -4134,7 +4134,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         """
         if not is_package_installed('gap_packages'):
-            raise RuntimeError("You must install the optional gap_packages package.")
+            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):

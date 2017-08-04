@@ -6006,7 +6006,8 @@ class Graph(GenericGraph):
             try:
                 from sage.graphs.mcqd import mcqd
             except ImportError:
-                raise ImportError("Please install the mcqd package")
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("mcqd")
             return mcqd(self)
         else:
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
@@ -6097,7 +6098,8 @@ class Graph(GenericGraph):
             try:
                 from sage.graphs.mcqd import mcqd
             except ImportError:
-                raise ImportError("Please install the mcqd package")
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("mcqd")
             return len(mcqd(self))
         else:
             raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")

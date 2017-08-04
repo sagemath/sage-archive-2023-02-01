@@ -583,7 +583,8 @@ cdef class FMElement(pAdicTemplateElement):
         return self
 
     def expansion(self, n = None, lift_mode = 'simple'):
-        r"""Returns a list of coefficients of `\pi^i` starting with `\pi^0`.
+        r"""
+        Returns a list of coefficients of `\pi^i` starting with `\pi^0`.
 
         INPUT:
 

@@ -19,7 +19,7 @@ cdef class PowComputer_class(SageObject):
 
     cdef Integer pow_Integer(self, long n)
     cdef mpz_srcptr pow_mpz_t_top(self)
-    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n)
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n) except NULL
     cdef mpz_t temp_m
 
 cdef class PowComputer_base(PowComputer_class):

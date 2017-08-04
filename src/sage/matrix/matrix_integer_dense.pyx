@@ -2614,7 +2614,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
     ####################################################################################
     # LLL
     ####################################################################################
-    def LLL_gram(self):
+    def LLL_gram(self, flag = 0):
         """
         LLL reduction of the lattice whose gram matrix is ``self``, assuming that ``self`` is positive definite.
         .. warning::
@@ -2623,13 +2623,15 @@ cdef class Matrix_integer_dense(Matrix_dense):
         INPUT:
 
         - ``self`` -- a gram matrix of a positive definite quadratic form
-
-        OUTPUT:
+        - ``flag`` -- an optional flag for qfllgram
+            - ``0`` -- (default), assume that ``self`` has either exact (integral or rational) or real floating point entries. The matrix is rescaled, converted to integers and the behavior is then as in flag = 1.
+            - ``1`` -- assume that G is integral. Computations involving Gram-Schmidt vectors are approximate, with precision varying as needed
+            OUTPUT:
 
         ``U`` - unimodular transformation matrix such that
         ``U.T * M * U``  is LLL-reduced.
 
-        ALGORITHM: Use PARI
+        ALGORITHM: Calls qfllgram of PARI
 
         EXAMPLES::
 
@@ -2662,6 +2664,11 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             ValueError: llgramint did not return a square matrix, perhaps the matrix is not positive definite
 
+        or by running forever:
+            sage: Matrix(ZZ, [-5, -1, -1, -5]).LLL_gram() # not tested
+            ...
+            RuntimeError: infinite loop while calling qflllgram  
+
 
 
 
@@ -2673,7 +2680,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # maybe should be /unimodular/ matrices ?
         P = self.__pari__()
         try:
-            U = P.lllgramint()
+            U = P.qflllgram(flag)
         except (RuntimeError, ArithmeticError) as msg:
             raise ValueError("lllgramint failed, perhaps the matrix is not positive definite")
         if U.matsize() != [n, n]:

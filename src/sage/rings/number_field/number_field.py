@@ -3476,6 +3476,38 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         it = self.primes_of_degree_one_iter()
         return [ next(it) for i in range(n) ]
 
+    def completely_split_primes(self, B = 200):
+        r"""
+        Returns a list of rational primes which split completely in the number field `K`.
+
+        INPUT:
+
+        - ``B`` -- a positive integer bound (default: 200)
+
+        OUTPUT:
+
+        A list of all primes ``p < B`` which split completely in ``K``.
+
+       EXAMPLE::
+
+            sage: K.<xi> = NumberField(x^3 - 3*x + 1)
+            sage: K.completely_split_primes(100)
+            [17, 19, 37, 53, 71, 73, 89]
+
+        """
+        from sage.rings.fast_arith import prime_range
+        from sage.rings.finite_rings.finite_field_constructor import GF
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.arith.all import factor
+        split_primes = []
+        for p in prime_range(B):
+            Fp = GF(p)
+            FpT = PolynomialRing(Fp,'T')
+            g = FpT(self.defining_polynomial())
+            if len(factor(g)) == self.degree():
+                split_primes.append(p)
+        return split_primes
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         Return whether or not there is a homomorphism defined by the given

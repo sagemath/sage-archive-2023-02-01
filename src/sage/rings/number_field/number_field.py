@@ -4966,8 +4966,15 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             True
             sage: NumberField(x^3 + 2, 'a').is_galois()
             False
+            sage: NumberField(x^15 + x^14 - 14*x^13 - 13*x^12 + 78*x^11 + 66*x^10 - 220*x^9 - 165*x^8 + 330*x^7 + 210*x^6 - 252*x^5 - 126*x^4 + 84*x^3 + 28*x^2 - 8*x - 1, 'a').is_galois()
+            True
+            sage: NumberField(x^15 + x^14 - 14*x^13 - 13*x^12 + 78*x^11 + 66*x^10 - 220*x^9 - 165*x^8 + 330*x^7 + 210*x^6 - 252*x^5 - 126*x^4 + 84*x^3 + 28*x^2 - 8*x - 10, 'a').is_galois()
+            False
         """
-        return self.galois_group(type="pari").order() == self.degree()
+        if self.degree() < 12:
+            return self.galois_group(type='pari').order() == self.degree()
+        else:
+            return len(self.automorphisms()) == self.degree()
 
     @cached_method
     def galois_group(self, type=None, algorithm='pari', names=None):

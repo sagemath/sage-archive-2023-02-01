@@ -729,7 +729,7 @@ cdef class RingHomomorphism(RingMap):
                       Defn: x |--> a + b
                             y |--> a - b
                     then
-                      Conversion via FractionFieldElement map:
+                      Coercion map:
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
@@ -764,7 +764,7 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Polynomial Ring in a, b over Rational Field
                     then
-                      Conversion via FractionFieldElement map:
+                      Coercion map:
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 

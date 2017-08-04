@@ -826,7 +826,7 @@ cdef class CAElement(pAdicTemplateElement):
         if lift_mode == 'teichmuller':
             zero = self.parent()(0)
         else:
-            # needs to be defined in the linkage file.
+            # _list_zero is defined in the linkage file.
             zero = _list_zero
         if n in ('simple', 'smallest', 'teichmuller'):
             deprecation(14825, "Interface to expansion has changed; first argument now n")

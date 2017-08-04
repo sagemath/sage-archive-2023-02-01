@@ -2653,6 +2653,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: Matrix(ZZ,2,2,[1,0,0,-1]).LLL_gram()
             [ 0 -1]
             [ 1  0]
+
         However, it might fail for others by raising a ``ValueError``:
             sage: Matrix(ZZ, 1,1,[0]).LLL_gram()
             Traceback (most recent call last):

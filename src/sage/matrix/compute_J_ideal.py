@@ -195,7 +195,7 @@ def lifting(p, t, A, G):
 
 
     DX = A.parent().base()
-    (X,) = DX.gens()
+    (X,) = DX.variable_names()
     D = DX.base_ring()
     d = A.ncols()
     c = A.nrows()

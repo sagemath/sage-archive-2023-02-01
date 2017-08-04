@@ -359,6 +359,30 @@ cdef class Morphism(Map):
         except (AttributeError, NotImplementedError):
             return NotImplemented
 
+    def __nonzero__(self):
+        r"""
+        Return whether this morphism is not a zero morphism.
+
+        .. NOTE::
+
+            Be careful when overriding this method. Often morphisms are used
+            (incorrecly) in constructs such as ``if f: # do something`` where
+            the author meant to write ``if f is not None: # do something``.
+            Having morphisms return ``False`` here can therefore lead to subtle
+            bugs.
+
+        EXAMPLES::
+
+            sage: f = Hom(ZZ,Zmod(1)).an_element()
+            sage: bool(f) # indirect doctest
+            False
+
+        """
+        try:
+            return self._is_nonzero()
+        except Exception:
+            return super(Morphism, self).__nonzero__()
+
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):

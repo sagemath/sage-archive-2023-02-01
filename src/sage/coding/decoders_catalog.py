@@ -3,6 +3,10 @@ Index of decoders
 
 The ``codes.decoders`` object may be used to access the decoders that Sage can build.
 
+It is usually not necessary to access these directly: rather, the ``decoder``
+method directly on a code allows you to construct all compatible decoders for
+that code (:meth:`sage.coding.linear_code.AbstractLinearCode.decoder`).
+
 **Extended code decoders**
 
 - :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
@@ -22,6 +26,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 - :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
+- :class:`information_set_decoder.LinearCodeInformationSetDecoder <sage.coding.information_set_decoder.LinearCodeInformationSetDecoder>`
 
 **Cyclic code decoder**
 
@@ -63,6 +68,8 @@ _lazy_import('sage.coding.grs',                       ['GRSBerlekampWelchDecoder
                                                        'GRSKeyEquationSyndromeDecoder'])
 from .guruswami_sudan.gs_decoder import GRSGuruswamiSudanDecoder
 _lazy_import('sage.coding.linear_code',               ['LinearCodeNearestNeighborDecoder',
-                                                       'LinearCodeSyndromeDecoder'])
+                                                       'LinearCodeSyndromeDecoder',
+                                                       'LinearCodeInformationSetDecoder'])
 _lazy_import('sage.coding.punctured_code',             'PuncturedCodeOriginalCodeDecoder')
 _lazy_import('sage.coding.subfield_subcode',           'SubfieldSubcodeOriginalCodeDecoder')
+_lazy_import('sage.coding.information_set_decoder',    'LinearCodeInformationSetDecoder')

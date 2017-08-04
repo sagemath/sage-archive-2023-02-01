@@ -575,11 +575,11 @@ class RationalField(Singleton, number_field_base.NumberField):
         EXAMPLES::
 
             sage: QQ.embeddings(QQ)
-            [Ring Coercion endomorphism of Rational Field]
+            [Identity endomorphism of Rational Field]
             sage: QQ.embeddings(CyclotomicField(5))
-            [Ring Coercion morphism:
-              From: Rational Field
-              To:   Cyclotomic Field of order 5 and degree 4]
+            [Coercion map:
+               From: Rational Field
+               To:   Cyclotomic Field of order 5 and degree 4]
 
         `K` must have characteristic 0::
 

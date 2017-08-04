@@ -765,3 +765,35 @@ cdef class LocalGenericElement(CommutativeRingElement):
         one = self.parent().one()
         tester.assertEqual(z, one)
         tester.assertEqual(z.precision_absolute(), one.precision_absolute())
+
+    def _test_expansion(self, **options):
+        r"""
+        Check that ``expansion`` works as expected.
+
+        EXAMPLES::
+
+            sage: x = Zp(3, 5).zero()
+            sage: x._test_expansion()
+
+        """
+        tester = self._tester(**options)
+
+        shift = self.parent().one()
+
+        from sage.categories.all import Fields
+        if self.parent() in Fields():
+            from sage.rings.all import infinity
+            if self.valuation() is not infinity:
+                shift = shift << self.valuation()
+
+        for mode in ['simple', 'smallest', 'teichmuller']:
+            expansion = self.expansion(lift_mode=mode)
+            tester.assertEqual(self, shift*sum(c * (self.parent().one()<<i) for i,c in enumerate(expansion)))
+
+            for i,c in enumerate(expansion):
+                tester.assertEqual(c, self.expansion(lift_mode=mode, n=i))
+
+            if mode == 'teichmuller':
+                q = self.parent().residue_field().cardinality()
+                for c in expansion:
+                    tester.assertEqual(c, c**q)

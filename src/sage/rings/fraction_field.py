@@ -919,7 +919,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             True
 
         """
-        return hash((type(self), self.codomain()))
+        return hash((type(self), self.domain()))
 
 
 class FractionFieldEmbeddingSection(Section):
@@ -1034,4 +1034,4 @@ class FractionFieldEmbeddingSection(Section):
             True
 
         """
-        return hash((type(self), self.domain()))
+        return hash((type(self), self.codomain()))

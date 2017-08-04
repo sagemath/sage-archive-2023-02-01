@@ -857,7 +857,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (0.22732435599328793, 0.0)
             sage: H = IntegratedCurveSet(I, I)
             sage: c = H._an_element_() ; c
@@ -879,7 +879,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the Real number line R
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (0.840986533989932,)
 
         """
@@ -1311,7 +1311,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (0.1749660043664451, -0.2499999999999998)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, I)
@@ -1337,7 +1337,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the Real number line R
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (1.0565635215890166,)
 
         """
@@ -1768,7 +1768,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: interp = c.interpolate()
             sage: p = c(3) ; p
             Point on the 4-dimensional differentiable manifold M
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (0.2307056927167852, 0.0, 0.0, 0.0)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, I)
@@ -1794,7 +1794,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: interp = c.interpolate()
             sage: p = c(1) ; p
             Point on the Real number line R
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (1.0565635215890166,)
 
         """

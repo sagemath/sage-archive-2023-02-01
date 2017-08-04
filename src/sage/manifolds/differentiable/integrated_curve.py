@@ -228,17 +228,16 @@ class IntegratedCurve(DifferentiableCurve):
          with the key 'interp 1' by default...
         sage: p
         Point on the 3-dimensional differentiable manifold M
-        sage: p.coordinates()
+        sage: p.coordinates()     # abs tol 1e-12
         (1.3776707219621374, -0.9000776970132945, 1.9)
-        sage: v = c.tangent_vector_eval_at(4.3, verbose=True)
+        sage: v2 = c.tangent_vector_eval_at(4.3, verbose=True)
         Evaluating tangent vector components from the interpolation
          associated with the key 'interp 1' by default...
-        sage: v
+        sage: v2
         Tangent vector at Point on the 3-dimensional differentiable
          manifold M
-        sage: v.display()
-        -0.9303968397216424 d/dx1 - 0.3408080563014475 d/dx2 +
-         1.0000000000000004 d/dx3
+        sage: v2[:]     # abs tol 1e-12
+        [-0.9303968397216424, -0.3408080563014475, 1.0000000000000004]
 
     Plotting a numerical solution (with or without its tangent vector
     field) also requires the solution to be interpolated at least once::
@@ -1580,7 +1579,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: p = c(1.1, verbose=True)
             Evaluating point coordinates from the interpolation
              associated with the key 'interp_T1' by default...
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (1.060743343394347, -0.2153835404373033, 1.1)
 
         """
@@ -1602,15 +1601,15 @@ class IntegratedCurve(DifferentiableCurve):
 
         interpolation = self._interpolations[interpolation_key]
 
-        if isinstance(interpolation[0], Spline): #partial test, in case
-        # future interpolation objects do not contain lists of instances
-        # of the Spline class
-            interpolated_coordinates = [coord_curve_spline(t)
-                                        for coord_curve_spline in interpolation]
-            return self.codomain().point(coords=interpolated_coordinates,
-                                                      chart=self._chart)
+        if not isinstance(interpolation[0], Spline):
+            # partial test, in case future interpolation objects do not
+            # contain lists of instances of the Spline class
+            raise TypeError("unexpected type of interpolation object")
 
-        raise TypeError("unexpected type of interpolation object")
+        interpolated_coordinates = [coord_curve_spline(t)
+                                    for coord_curve_spline in interpolation]
+        return self.codomain().point(coords=interpolated_coordinates,
+                                                  chart=self._chart)
 
     def tangent_vector_eval_at(self, t,
                                interpolation_key=None, verbose=False):
@@ -1666,7 +1665,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: tg_vec
             Tangent vector at Point on the 3-dimensional differentiable
              manifold M
-            sage: tg_vec[:]
+            sage: tg_vec[:]     # abs tol 1e-12
             [0.7392639473853356, -0.6734182305341726, 1.0000000000000007]
             sage: tg_vec_mute = c.tangent_vector_eval_at(1.22,
             ....:                         interpolation_key='interp_T1')
@@ -1692,22 +1691,22 @@ class IntegratedCurve(DifferentiableCurve):
 
         interpolation = self._interpolations[interpolation_key]
 
-        if isinstance(interpolation[0], Spline): #partial test, in case
-        # future interpolation objects do not contain lists of instances
-        # of the Spline class
-            interpolated_coordinates=[coordinate_curve_spline(t)
-                           for coordinate_curve_spline in interpolation]
-            M = self.codomain()
-            p = M.point(interpolated_coordinates, chart=self._chart, name=None)
-            Tp = M.tangent_space(p)
+        if not isinstance(interpolation[0], Spline):
+            # partial test, in case future interpolation objects do not
+            # contain lists of instances of the Spline class
+            raise TypeError("unexpected type of interpolation object")
 
-            # by default, order=1 in method 'derivative' of a class Spline
-            evaluated_tgt_vec_comp = [coord_curve_spline.derivative(t)
-                                      for coord_curve_spline in interpolation]
-            basis = self._chart.frame().at(p)
-            return Tp(evaluated_tgt_vec_comp, basis=basis)
+        interpolated_coordinates=[coordinate_curve_spline(t)
+                       for coordinate_curve_spline in interpolation]
+        M = self.codomain()
+        p = M.point(interpolated_coordinates, chart=self._chart, name=None)
+        Tp = M.tangent_space(p)
 
-        raise TypeError("unexpected type of interpolation object")
+        # by default, order=1 in method 'derivative' of a class Spline
+        evaluated_tgt_vec_comp = [coord_curve_spline.derivative(t)
+                                  for coord_curve_spline in interpolation]
+        basis = self._chart.frame().at(p)
+        return Tp(evaluated_tgt_vec_comp, basis=basis)
 
     @options(thickness=1, plot_points=75, aspect_ratio='automatic',
              plot_points_tangent=10, width_tangent=1, scale=1)

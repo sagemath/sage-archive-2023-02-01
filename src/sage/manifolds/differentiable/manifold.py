@@ -2654,13 +2654,13 @@ class DifferentiableManifold(TopologicalManifold):
              by default...
             sage: p
             Point on the 3-dimensional differentiable manifold M
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (0.9635581155730744, -0.7325010457963622, 1.3)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            sage: tgt_vec[:]
+            sage: tgt_vec[:]     # abs tol 1e-12
             [-0.8481008455360024, 0.5298346120470748, 1.0000000000000007]
 
         """
@@ -2788,13 +2788,13 @@ class DifferentiableManifold(TopologicalManifold):
              by default...
             sage: p
             Point on the 2-dimensional differentiable manifold S^2
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (2.085398163397449, 1.4203172015958863)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            sage: tgt_vec[:]
+            sage: tgt_vec[:]     # abs tol 1e-12
             [0.9999999999999732, -1.016513736236512]
 
         """
@@ -2908,13 +2908,13 @@ class DifferentiableManifold(TopologicalManifold):
              by default...
             sage: p
             Point on the 2-dimensional differentiable manifold S^2
-            sage: p.coordinates()
+            sage: p.coordinates()     # abs tol 1e-12
             (2.2047444794514663, 0.7986609561213334)
             sage: tgt_vec = c.tangent_vector_eval_at(3.7, verbose=True)
             Evaluating tangent vector components from the interpolation
              associated with the key 'cubic spline-interp-rk4_maxima'
              by default...
-            sage: tgt_vec[:]
+            sage: tgt_vec[:]     # abs tol 1e-12
             [-1.090742147346732, 0.620568327518154]
 
         """

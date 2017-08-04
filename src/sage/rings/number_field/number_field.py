@@ -29,6 +29,9 @@ AUTHORS:
 
 - Peter Bruin (2016-06): make number fields fully satisfy unique representation
 
+- John Jones (2017-07): improve check for is_galois(), add is_abelian(), building on work in patch by Chris Wuthrich
+
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -2709,6 +2712,76 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return sage.rings.all.QQbar
 
+    @cached_method
+    def conductor(self, check_abelian=True):
+        r"""
+        Computes the conductor of the abelian field `K`.
+        If check_abelian is set to false and the field is not an
+        abelian extension of `\mathbb{Q}`, the output is not meaningful.
+
+        INPUT:
+            - ``check_abelian`` - a boolean (default: ``True``); check to see that this is an abelian extension of `\mathbb{Q}`
+
+        OUTPUT: Integer which is the conductor of the field.
+
+        EXAMPLES::
+
+            sage: K = CyclotomicField(27)
+            sage: k = K.subfields(9)[0][0]
+            sage: k.conductor()
+            27
+            sage: K.<t> = NumberField(x^3+x^2-2*x-1)
+            sage: K.conductor()
+            7
+            sage: K.<t> = NumberField(x^3+x^2-36*x-4)
+            sage: K.conductor()
+            109
+            sage: K = CyclotomicField(48)
+            sage: k = K.subfields(16)[0][0]
+            sage: k.conductor()
+            48
+            sage: NumberField(x,'a').conductor()
+            1
+            sage: NumberField(x^8 - 8*x^6 + 19*x^4 - 12*x^2 + 1,'a').conductor()
+            40
+            sage: NumberField(x^8 + 7*x^4 + 1,'a').conductor()
+            40
+            sage: NumberField(x^8 - 40*x^6 + 500*x^4 - 2000*x^2 + 50,'a').conductor()
+            160
+
+        ALGORITHM: For odd primes, it is easy to compute from the ramification
+            index because the p-Sylow subgroup is cyclic.  For p=2, there
+            are two choices for a given ramification index.  They can be
+            distinguished by the parity of the exponent in the discriminant 
+            of a 2-adic completion.
+        """
+        m = 1
+        if check_abelian:
+            if not self.is_abelian():
+                raise ValueError("The conductor is only defined for abelian fields")
+
+        try:
+            De = self.__disc
+        except AttributeError:
+            De = self.polynomial().discriminant()
+            A = De.numerator().prime_factors()+De.denominator().prime_factors()
+        else:
+            A = De.prime_factors()
+
+        for p in A:
+            R = self.maximal_order(p)
+            e = R.fractional_ideal(p).prime_factors()[0].ramification_index()
+            if e!= 1:
+                if p==2:
+                    m *= e*2
+                    c = R.discriminant().valuation(2)
+                    c /= self.polynomial().degree()/e
+                    if is_odd(c):
+                        m *= 2
+                else:
+                    m *= p**(e.valuation(p)+1)
+        return m
+
     def latex_variable_name(self, name=None):
         """
         Return the latex representation of the variable name for this
@@ -4971,10 +5044,44 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: NumberField(x^15 + x^14 - 14*x^13 - 13*x^12 + 78*x^11 + 66*x^10 - 220*x^9 - 165*x^8 + 330*x^7 + 210*x^6 - 252*x^5 - 126*x^4 + 84*x^3 + 28*x^2 - 8*x - 10, 'a').is_galois()
             False
         """
+        #return self.galois_group(type="pari").order() == self.degree()
         if self.degree() < 12:
             return self.galois_group(type='pari').order() == self.degree()
         else:
             return len(self.automorphisms()) == self.degree()
+
+    @cached_method
+    def is_abelian(self):
+        r"""
+        Return True if this number field is an abelian Galois extension of
+        `\QQ`.
+
+        EXAMPLES::
+
+            sage: NumberField(x^2 + 1, 'i').is_abelian()
+            True
+            sage: NumberField(x^3 + 2, 'a').is_abelian()
+            False
+            sage: NumberField(x^3 + x^2 - 2*x - 1, 'a').is_abelian()
+            True
+            sage: NumberField(x^6 + 40*x^3 + 1372, 'a').is_abelian()
+            False
+            sage: NumberField(x^6 + x^5 - 5*x^4 - 4*x^3 + 6*x^2 + 3*x - 1, 'a').is_abelian()
+            True
+        """
+
+        if not self.is_galois():
+            return False
+
+        d = self.degree()
+        if d.is_prime() or d in [1,4,9,25,49,121]:
+            return True
+
+        if d <= 11:
+            return self.galois_group().is_abelian()
+
+        pari_pol = pari(self.polynomial())
+        return pari_pol.galoisinit().galoisisabelian(1)==1
 
     @cached_method
     def galois_group(self, type=None, algorithm='pari', names=None):
@@ -5922,7 +6029,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (1/275*a^3 + 4/55*a^2 - 5/11*a + 3,)
+            (8/275*a^3 - 12/55*a^2 + 15/11*a - 3,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the

@@ -412,10 +412,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: U.fraction_field()
             Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            doctest:warning
-            ...
-            DeprecationWarning: Use the change method if you want to change print options in fraction_field()
-            See http://trac.sagemath.org/23227 for details.
             False
         """
         if self.is_field() and print_mode is None:
@@ -448,11 +444,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R = K.integer_ring(); repr(R(1/3))[3:]
             '31313131313131313132'
             sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
+            doctest:warning
+            ...
+            DeprecationWarning: Use the change method if you want to change print options in integer_ring()
+            See http://trac.sagemath.org/23227 for details.
             '3132'
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
             Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            sage: U.fraction_field({"print_mode":"terse"}) == U.fraction_field()
+            doctest:warning
+            ...
+            DeprecationWarning: Use the change method if you want to change print options in fraction_field()
+            See http://trac.sagemath.org/23227 for details.
             False
         """
         #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
@@ -461,6 +465,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         if print_mode is None:
             return self.change(field=False)
         else:
+            from sage.misc.superseded import deprecation
+            deprecation(23227, "Use the change method if you want to change print options in integer_ring()")
             return self.change(field=False, **print_mode)
 
     def teichmuller(self, x, prec = None):

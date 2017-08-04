@@ -1228,7 +1228,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             if n<expt:
                 y += self._sincsquared_summand_1(n, t, ap, p, logp, thetap,
                                                  sqrtp, logq, thetaq, sqrtq, z)
-        # Now iterate only only over those n that are 1 or 5 mod 6
+        # Now iterate only over those n that are 1 or 5 mod 6
         n = 11
         # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)

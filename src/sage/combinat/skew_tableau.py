@@ -1579,7 +1579,7 @@ class SkewTableau(ClonableList):
 
 def _label_skew(list_of_cells, sk):
     """
-    Return a filled-in standard standard skew tableau given an
+    Return a filled-in standard skew tableau given an
     ordered list ``list_of_cells`` of the coordinates to fill in
     (as pairs) and an empty shape ``sk``.
 

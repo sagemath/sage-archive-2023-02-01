@@ -76,7 +76,7 @@ def build_ref_doc(args):
 def builder_helper(type):
     """
     Returns a function which builds the documentation for
-    output type type.
+    output type ``type``.
     """
     def f(self, *args, **kwds):
         output_dir = self._output_dir(type)
@@ -481,7 +481,8 @@ class ReferenceBuilder(AllBuilder):
 
     def _output_dir(self, type, lang='en'):
         """
-        Returns the directory where the output of type type is stored.
+        Return the directory where the output of type ``type`` is stored.
+
         If the directory does not exist, then it will automatically be
         created.
 
@@ -1164,7 +1165,8 @@ def setup(app):
 
     def _output_dir(self, type):
         """
-        Returns the directory where the output of type type is stored.
+        Return the directory where the output of type ``type`` is stored.
+
         If the directory does not exist, then it will automatically be
         created.
         """

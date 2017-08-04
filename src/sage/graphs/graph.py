@@ -7730,7 +7730,7 @@ class Graph(GenericGraph):
             find a matching of maximal cardinality, then check whether this
             cardinality is half the number of vertices of the graph.
 
-          - ``"LP_matching"`` uses uses a Linear Program to find a matching of
+          - ``"LP_matching"`` uses a Linear Program to find a matching of
             maximal cardinality, then check whether this cardinality is half the
             number of vertices of the graph.
 

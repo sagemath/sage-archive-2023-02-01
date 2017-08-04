@@ -1394,9 +1394,10 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
         """
         return self._section
 
+
 cdef class pAdicConvert_FP_ZZ(RingMap):
     """
-    The map from a floating point ring back to ZZ that returns the the smallest
+    The map from a floating point ring back to ZZ that returns the smallest
     non-negative integer approximation to its input which is accurate up to the precision.
 
     If the input is not in the closure of the image of ZZ, raises a ValueError.

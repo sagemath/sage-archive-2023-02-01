@@ -11034,7 +11034,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
           ``max_length`` will be considered. If ``None``, then this
           iterates over all possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 
@@ -12309,7 +12309,7 @@ class Automaton(FiniteStateMachine):
           considered. If ``None``, then this iterates over all
           possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 

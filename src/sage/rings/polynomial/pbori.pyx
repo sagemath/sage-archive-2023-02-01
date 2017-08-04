@@ -4745,7 +4745,7 @@ cdef class PolynomialConstruct:
     def lead(self, x):
         """
         Return the leading monomial of boolean polynomial ``x``, with
-        respect to to the order of parent ring.
+        respect to the order of parent ring.
 
         EXAMPLES::
 
@@ -8235,7 +8235,7 @@ cdef class PolynomialFactory:
     def lead(self, x):
         """
         Return the leading monomial of boolean polynomial ``x``, with
-        respect to to the order of parent ring.
+        respect to the order of parent ring.
 
         EXAMPLES::
 

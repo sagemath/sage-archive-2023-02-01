@@ -10259,9 +10259,10 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def zeta(self, n=None, all=False):
         """
-        Return an element of multiplicative order `n` in this this
-        cyclotomic field. If there is no such element, raise a
-        ``ValueError``.
+        Return an element of multiplicative order `n` in this
+        cyclotomic field.
+
+        If there is no such element, raise a ``ValueError``.
 
         INPUT:
 

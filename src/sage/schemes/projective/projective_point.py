@@ -1540,7 +1540,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         # however precision issues can occur so we can only tell *not* preperiodic
         # if the value is larger than the error
         if h <= err:
-            # if the canonical height is less than than the
+            # if the canonical height is less than the
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height

@@ -1150,10 +1150,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         return sum([self(x) * char(1-x) for x in rings.IntegerModRing(self.modulus())])
 
-    def kloosterman_sum(self, a=1,b=0):
+    def kloosterman_sum(self, a=1, b=0):
         r"""
         Return the "twisted" Kloosterman sum associated to this Dirichlet character.
-        This includes Gauss sums, classical Kloosterman sums, Salie sums, etc.
+
+        This includes Gauss sums, classical Kloosterman sums, Salié sums, etc.
 
         The Kloosterman sum associated to `\chi` and the integers a,b is
 
@@ -1162,7 +1163,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             K(a,b,\chi) = \sum_{r \in (\ZZ/m\ZZ)^\times} \chi(r)\,\zeta^{ar+br^{-1}},
 
         where `m` is the modulus of `\chi` and `\zeta` is a primitive
-        `m` th root of unity. This reduces to to the Gauss sum if `b=0`.
+        `m` th root of unity. This reduces to the Gauss sum if `b=0`.
 
         This method performs an exact calculation and returns an element of a
         suitable cyclotomic field; see also :meth:`.kloosterman_sum_numerical`,

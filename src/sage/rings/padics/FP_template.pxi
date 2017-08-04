@@ -692,7 +692,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -717,11 +717,13 @@ cdef class FPElement(pAdicTemplateElement):
                 aprec = minusmaxordp
             else:
                 aprec = mpz_get_si((<Integer>absprec).value)
-        if aprec >= self.ordp + self.prime_pow.prec_cap:
+        if aprec >= self.ordp + self.prime_pow.ram_prec_cap:
             return self
         cdef FPElement ans = self._new_c()
         if aprec <= self.ordp:
             ans._set_exact_zero()
+            if aprec < 0:
+                return self.parent().fraction_field()(0)
         else:
             ans.ordp = self.ordp
             creduce(ans.unit, self.unit, aprec - self.ordp, ans.prime_pow)

@@ -862,7 +862,7 @@ class LocalGeneric(CommutativeRing):
                 tester.assertEqual(y, self.zero())
             elif self.is_capped_relative():
                 tester.assertLessEqual(y.precision_absolute(), 0)
-            elif self.is_fixed_mod():
+            elif self.is_fixed_mod() or self.is_floating_point():
                 tester.assertGreaterEqual((x-y).valuation(), 0)
             else:
                 raise NotImplementedError
@@ -874,7 +874,8 @@ class LocalGeneric(CommutativeRing):
                 tester.assertTrue(self.is_fixed_mod())
             else:
                 tester.assertIs(y.parent(), self.fraction_field())
-                tester.assertLessEqual(y.precision_absolute(), -1)
+                if not self.is_floating_point():
+                    tester.assertLessEqual(y.precision_absolute(), -1)
 
             # make sure that we handle very large values correctly
             absprec = Integer(2)**1000

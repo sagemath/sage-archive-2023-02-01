@@ -582,11 +582,26 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     """
     Isogeny classes for elliptic curves over number fields.
     """
-    def __init__(self, E):
+    def __init__(self, E, reducible_primes=None, algorithm='Billerey', minimal_models=True):
         """
         INPUT:
 
         - ``E`` -- an elliptic curve over a number field.
+
+        - ``reducible_primes`` (list of ints, or None (default)) -- if
+          not None then this should be a list of primes; in computing
+          the isogeny class, only composites isogenies of these
+          degrees will be used.
+
+        - ``algorithm`` (string, default 'Billerey') -- the algorithm
+          to use to compute the reducible primes.  Ignored for CM
+          curves or if ``reducible_primes`` is provided.  Values are
+          'Billerey' (default), 'Larson', and 'heuristic'.
+
+        - ``minimal_models`` (bool, default ``True``) -- if ``True``,
+          all curves in the class will be minimal or semi-minimal
+          models.  Over fields of larger degree it can be expensive to
+          compute these so set to ``False``.
 
         EXAMPLES::
 
@@ -688,6 +703,9 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             sage: TestSuite(C).run()
         """
         self._algorithm = "sage"
+        self._reducible_primes = reducible_primes
+        self._algorithm = algorithm
+        self._minimal_models = minimal_models
         IsogenyClass_EC.__init__(self, E, label=None, empty=False)
 
     def copy(self):
@@ -705,7 +723,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             sage: C == C2
             True
         """
-        ans = IsogenyClass_EC_NumberField(self.E)
+        ans = IsogenyClass_EC_NumberField(self.E, reducible_primes=self._reducible_primes, algorithm=self._algorithm, minimal_models=self._minimal_models)
         # The following isn't needed internally, but it will keep
         # things from breaking if this is used for something other
         # than reordering.
@@ -759,14 +777,20 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         from sage.sets.set import Set
         self._maps = None
 
-        E = self.E.global_minimal_model(semi_global=True)
+        if self._minimal_models:
+            E = self.E.global_minimal_model(semi_global=True)
+        else:
+            E = self.E
 
-        degs = possible_isogeny_degrees(E)
+        degs = self._reducible_primes
+        if degs == None:
+            self._reducible_primes = possible_isogeny_degrees(E, algorithm=self._algorithm)
+            degs = self._reducible_primes
         if verbose:
             import sys
             sys.stdout.write(" possible isogeny degrees: %s" % degs)
             sys.stdout.flush()
-        isogenies = E.isogenies_prime_degree(degs)
+        isogenies = E.isogenies_prime_degree(degs, minimal_models=self._minimal_models)
         if verbose:
             sys.stdout.write(" -actual isogeny degrees: %s" % Set([phi.degree() for phi in isogenies]))
             sys.stdout.flush()
@@ -809,7 +833,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 sys.stdout.write(" -processing curve #%s..." % i)
                 sys.stdout.flush()
 
-            isogenies = E1.isogenies_prime_degree(degs)
+            isogenies = E1.isogenies_prime_degree(degs, minimal_models=self._minimal_models)
 
             for phi in isogenies:
                 E2 = phi.codomain()
@@ -1422,11 +1446,11 @@ def possible_isogeny_degrees(E, algorithm='Billerey', max_l=None,
 
     elif algorithm=='Billerey':
         from sage.schemes.elliptic_curves.gal_reps_number_field import reducible_primes_Billerey
-        L = reducible_primes_Billerey(E, num_l=num_l, max_l=max_l, num_q=num_l, max_q=num_l)
+        L = reducible_primes_Billerey(E, num_l=num_l, max_l=max_l, verbose=verbose)
 
     elif algorithm=='heuristic':
         from sage.schemes.elliptic_curves.gal_reps_number_field import reducible_primes_naive
-        L = reducible_primes_naive(E, max_l=max_l)
+        L = reducible_primes_naive(E, max_l=max_l, num_P=num_l, verbose=verbose)
 
     else:
         raise ValueError("algorithm for possible_isogeny_degrees must be one of 'Larson', 'Billerey', 'heuristic'")
@@ -1435,7 +1459,7 @@ def possible_isogeny_degrees(E, algorithm='Billerey', max_l=None,
     # each one to see if it is actually reducible, by computing ell-isogenies:
 
     if exact:
-        L = [l for l in L if E.isogenies_prime_degree(l)]
+        L = [l for l in L if E.isogenies_prime_degree(l, minimal_models=False)]
 
     return L
 

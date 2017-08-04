@@ -234,15 +234,19 @@ def Psi(l, use_stored=True):
     return E.division_polynomial(l,X).factor()[0][0]
 
 
-def isogenies_prime_degree_genus_0(E, l=None):
-    """
-    Returns list of ``l`` -isogenies with domain ``E``.
+def isogenies_prime_degree_genus_0(E, l=None, minimal_models=True):
+    """Returns list of ``l`` -isogenies with domain ``E``.
 
     INPUT:
 
     - ``E`` -- an elliptic curve.
 
     - ``l`` -- either None or 2, 3, 5, 7, or 13.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -274,6 +278,7 @@ def isogenies_prime_degree_genus_0(E, l=None):
         sage: isogenies_prime_degree_genus_0(E)
         [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 - x - 2 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - 126*x - 552 over Rational Field,
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + x*y + y = x^3 - x - 2 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - 76*x + 298 over Rational Field]
+
     """
     if not l in [2, 3, 5, 7, 13, None]:
         raise ValueError("%s is not a genus 0 prime."%l)
@@ -282,23 +287,23 @@ def isogenies_prime_degree_genus_0(E, l=None):
     if F.characteristic() in [2, 3, l]:
         raise NotImplementedError("2, 3, 5, 7 and 13-isogenies are not yet implemented in characteristic 2 and 3, and when the characteristic is the same as the degree of the isogeny.")
     if l==2:
-        return isogenies_2(E)
+        return isogenies_2(E, minimal_models=minimal_models)
     if l==3:
-        return isogenies_3(E)
+        return isogenies_3(E, minimal_models=minimal_models)
     if j==F(0):
         if l==5:
-            return isogenies_5_0(E)
+            return isogenies_5_0(E, minimal_models=minimal_models)
         if l==7:
-            return isogenies_7_0(E)
+            return isogenies_7_0(E, minimal_models=minimal_models)
         if l==13:
-            return isogenies_13_0(E)
+            return isogenies_13_0(E, minimal_models=minimal_models)
     if j==F(1728):
         if l==5:
-            return isogenies_5_1728(E)
+            return isogenies_5_1728(E, minimal_models=minimal_models)
         if l==7:
-            return isogenies_7_1728(E)
+            return isogenies_7_1728(E, minimal_models=minimal_models)
         if l==13:
-            return isogenies_13_1728(E)
+            return isogenies_13_1728(E, minimal_models=minimal_models)
 
     if l is not None:
         R = PolynomialRing(F,'t')
@@ -322,13 +327,14 @@ def isogenies_prime_degree_genus_0(E, l=None):
         E1 = EllipticCurve([-27*c4,-54*c6])
         w = E.isomorphism_to(E1)
         from sage.rings.number_field.number_field_base import is_NumberField
-        model = "minimal" if is_NumberField(F) else None
+        model = "minimal" if minimal_models and is_NumberField(F) else None
         isogs = [E1.isogeny(kernel=ker, model=model) for ker in kernels]
         [isog.set_pre_isomorphism(w) for isog in isogs]
         return isogs
 
     if l is None:
-        return sum([isogenies_prime_degree_genus_0(E, l) for l in [2,3,5,7,13]],[])
+        return sum([isogenies_prime_degree_genus_0(E, ell, minimal_models=minimal_models)
+                    for ell in [2,3,5,7,13]],[])
 
 
 # The following code computes data to be used in
@@ -558,7 +564,7 @@ def _sporadic_Q_data(j):
         kerpolcoeffs = [c.real().round() for c in list(kerpol)]
     return (a4a6,kerpolcoeffs)
 
-def isogenies_sporadic_Q(E, l=None):
+def isogenies_sporadic_Q(E, l=None, minimal_models=True):
     """
     Returns list of ``l`` -isogenies with domain ``E`` (defined over `\QQ`).
 
@@ -659,18 +665,23 @@ def isogenies_sporadic_Q(E, l=None):
     n = len(f)
     ker = R([d**(n-i-1) * f[i] for i in range(n)])
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
     isog = Ew.isogeny(kernel=ker, degree=l, model=model, check=False)
     isog.set_pre_isomorphism(E_to_Ew)
     return [isog]
 
 
-def isogenies_2(E):
+def isogenies_2(E, minimal_models=True):
     """Returns a list of all 2-isogenies with domain ``E``.
 
     INPUT:
 
     - ``E`` -- an elliptic curve.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -700,16 +711,21 @@ def isogenies_2(E):
     x = f2.parent().gen()
     ff = [x-x2i for x2i in x2]
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(E.base_field()) else None
+    model = "minimal" if minimal_models and is_NumberField(E.base_field()) else None
     isogs = [E.isogeny(f, model=model) for f in ff]
     return isogs
 
-def isogenies_3(E):
+def isogenies_3(E, minimal_models=True):
     """Returns a list of all 3-isogenies with domain ``E``.
 
     INPUT:
 
     - ``E`` -- an elliptic curve.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -742,15 +758,24 @@ def isogenies_3(E):
     x = f3.parent().gen()
     ff = [x-x3i for x3i in x3]
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(E.base_field()) else None
+    model = "minimal" if minimal_models and is_NumberField(E.base_field()) else None
     isogs = [E.isogeny(f, model=model) for f in ff]
     return isogs
 
 # 6 special cases: `l` = 5, 7, 13 and `j` = 0, 1728.
 
-def isogenies_5_0(E):
+def isogenies_5_0(E, minimal_models=True):
     """Returns a list of all the 5-isogenies  with domain ``E`` when the
     j-invariant is 0.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve with j-invariant 0.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -799,15 +824,24 @@ def isogenies_5_0(E):
         return []
     gammas = [(beta**2 *(beta**3-140*a))/(120*a) for beta in betas]
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
     isogs = [Ew.isogeny(x**2+beta*x+gamma, model=model) for beta,gamma in zip(betas,gammas)]
     iso = E.isomorphism_to(Ew)
     [isog.set_pre_isomorphism(iso) for isog in isogs]
     return isogs
 
-def isogenies_5_1728(E):
+def isogenies_5_1728(E, minimal_models=True):
     """Returns a list of 5-isogenies with domain ``E`` when the j-invariant is
     1728.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve with j-invariant 1728.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -875,7 +909,7 @@ def isogenies_5_1728(E):
     if F.characteristic() in [2,3,5]:
         raise NotImplementedError("Not implemented in characteristic 2, 3 or 5.")
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
     # quick test for a negative answer (from Fricke module)
     square5 = F(5).is_square()
     square1 = F(-1).is_square()
@@ -900,8 +934,17 @@ def isogenies_5_1728(E):
     [isog.set_pre_isomorphism(iso) for isog in isogs]
     return isogs
 
-def isogenies_7_0(E):
+def isogenies_7_0(E, minimal_models=True):
     """Returns list of all 7-isogenies from E when the j-invariant is 0.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve with j-invariant 0.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -978,7 +1021,7 @@ def isogenies_7_0(E):
     iso = E.isomorphism_to(Ew)
     a = Ew.a6()
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
 
     # there will be 2 endomorphisms if -3 is a square:
 
@@ -1001,8 +1044,17 @@ def isogenies_7_0(E):
     [isog.set_pre_isomorphism(iso) for isog in isogs]
     return isogs
 
-def isogenies_7_1728(E):
+def isogenies_7_1728(E, minimal_models=True):
     """Returns list of all 7-isogenies from E when the j-invariant is 1728.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve with j-invariant 1728.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -1068,7 +1120,7 @@ def isogenies_7_1728(E):
     ts.sort()
     isogs = []
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
     x = polygen(F)
     for t0 in ts:
         s2 = a/t0
@@ -1080,9 +1132,18 @@ def isogenies_7_1728(E):
     [isog.set_pre_isomorphism(iso) for isog in isogs]
     return isogs
 
-def isogenies_13_0(E):
+def isogenies_13_0(E, minimal_models=True):
     """
     Returns list of all 13-isogenies from E when the j-invariant is 0.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve with j-invariant 0.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -1169,7 +1230,7 @@ def isogenies_13_0(E):
     iso = E.isomorphism_to(Ew)
     a = Ew.a6()
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
     x = polygen(F)
 
     # there will be 2 endomorphisms if -3 is a square:
@@ -1198,8 +1259,17 @@ def isogenies_13_0(E):
 
     return isogs
 
-def isogenies_13_1728(E):
+def isogenies_13_1728(E, minimal_models=True):
     """Returns list of all 13-isogenies from E when the j-invariant is 1728.
+
+    INPUT:
+
+    - ``E`` -- an elliptic curve with j-invariant 1728.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -1277,7 +1347,7 @@ def isogenies_13_1728(E):
     iso = E.isomorphism_to(Ew)
     a = Ew.a4()
     from sage.rings.number_field.number_field_base import is_NumberField
-    model = "minimal" if is_NumberField(F) else None
+    model = "minimal" if minimal_models and is_NumberField(F) else None
     x = polygen(F)
 
     # we will have two endomorphisms if -1 is a square:
@@ -1493,7 +1563,6 @@ def Psi2(l):
     data = _hyperelliptic_isogeny_data(l)
 
     R = PolynomialRing(QQ, 'u')
-    u = R.gen()
     L = PolynomialRing(R, 'v')
     v = L.gen()
     K = R.extension(v*v - R(data['hyper_poly']), 'v')
@@ -1526,7 +1595,7 @@ def Psi2(l):
     return sum((-1)**i * x**(d-i) * R(s[i].lift()) for i in range(0,d+1))
 
 
-def isogenies_prime_degree_genus_plus_0(E, l=None):
+def isogenies_prime_degree_genus_plus_0(E, l=None, minimal_models=True):
     """
     Returns list of ``l`` -isogenies with domain ``E``.
 
@@ -1535,6 +1604,11 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
     - ``E`` -- an elliptic curve.
 
     - ``l`` -- either None or 11, 17, 19, 23, 29, 31, 41, 47, 59, or 71.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -1615,7 +1689,7 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
 
     """
     if l is None:
-        return sum([isogenies_prime_degree_genus_plus_0(E, l) for l in hyperelliptic_primes],[])
+        return sum([isogenies_prime_degree_genus_plus_0(E, ell, minimal_models=minimal_models) for ell in hyperelliptic_primes],[])
 
     if not l in hyperelliptic_primes:
         raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
@@ -1626,9 +1700,9 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
         raise NotImplementedError("11, 17, 19, 23, 29, 31, 41, 47, 59, and 71-isogenies are not yet implemented in characteristic 2 and 3, and when the characteristic is the same as the degree of the isogeny.")
 
     if j == F(0):
-        return isogenies_prime_degree_genus_plus_0_j0(E, l)
+        return isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=minimal_models)
     if j == F(1728):
-        return isogenies_prime_degree_genus_plus_0_j1728(E, l)
+        return isogenies_prime_degree_genus_plus_0_j1728(E, l, minimal_models=minimal_models)
 
     Fu = PolynomialRing(F,'u')
     u = Fu.gen()
@@ -1665,9 +1739,7 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
         kernels += [psi((36*X+3*b2)*T,u0,v0).monic()]
     return [E.isogeny(ker) for ker in kernels]
 
-
-
-def isogenies_prime_degree_genus_plus_0_j0(E, l):
+def isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=True):
     """
     Returns a list of hyperelliptic ``l`` -isogenies  with domain ``E`` when `j(E)=0`.
 
@@ -1676,6 +1748,11 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l):
     - ``E`` -- an elliptic curve with j-invariant 0.
 
     - ``l`` -- 11, 17, 19, 23, 29, 31, 41, 47, 59, or 71.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -1748,7 +1825,7 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l):
         kernels += [psi((36*X+3*b2)*T,u0,v0).monic() for T in (X**3-A6/(-54*c6)).roots(multiplicities=False)]
     return [E.isogeny(ker) for ker in kernels]
 
-def isogenies_prime_degree_genus_plus_0_j1728(E, l):
+def isogenies_prime_degree_genus_plus_0_j1728(E, l, minimal_models=True):
     """
     Returns a list of ``l`` -isogenies  with domain ``E`` when `j(E)=1728`.
 
@@ -1757,6 +1834,11 @@ def isogenies_prime_degree_genus_plus_0_j1728(E, l):
     - ``E`` -- an elliptic curve with j-invariant 1728.
 
     - ``l`` -- 11, 17, 19, 23, 29, 31, 41, 47, 59, or 71.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -1881,8 +1963,7 @@ def _least_semi_primitive(p):
         a += 1
     return a
 
-
-def isogenies_prime_degree_general(E, l):
+def isogenies_prime_degree_general(E, l, minimal_models=True):
     """
     Returns a list of ``l`` -isogenies  with domain ``E``.
 
@@ -1891,6 +1972,11 @@ def isogenies_prime_degree_general(E, l):
     - ``E`` -- an elliptic curve.
 
     - ``l`` -- a prime.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+      curves computed will be minimal or semi-minimal models.  Over
+      fields of larger degree it can be expensive to compute these so
+      set to ``False``.
 
     OUTPUT:
 
@@ -2061,15 +2147,20 @@ def isogenies_prime_degree_general(E, l):
     return [E.isogeny(k) for k in ker]
 
 
-def isogenies_prime_degree(E, l):
-    """
-    Returns a list of ``l`` -isogenies  with domain ``E``.
+def isogenies_prime_degree(E, l, minimal_models=True):
+    """Returns a list of ``l`` -isogenies  with domain ``E``.
 
     INPUT:
 
     - ``E`` -- an elliptic curve.
 
     - ``l`` -- a prime.
+
+    - ``minimal_models`` (bool, default ``True``) -- if ``True``, all
+       curves computed will be minimal or semi-minimal models.  Over
+       fields of larger degree it can be expensive to compute these so
+       set to ``False``.  Ignored except over number fields other than
+       `QQ`.
 
     OUTPUT:
 
@@ -2131,32 +2222,32 @@ def isogenies_prime_degree(E, l):
     generic code must be used::
 
         sage: E = EllipticCurve(GF(101), [-3440, 77658])
-        sage: E.isogenies_prime_degree(71) # fast
+        sage: E.isogenies_prime_degree(71, minimal_models=minimal_models) # fast
         []
-        sage: E.isogenies_prime_degree(73) # not tested (very long time: 32s)
+        sage: E.isogenies_prime_degree(73, minimal_models=minimal_models) # not tested (very long time: 32s)
         []
     """
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
     if l==2:
-        return isogenies_2(E)
+        return isogenies_2(E, minimal_models=minimal_models)
     if l==3:
-        return isogenies_3(E)
+        return isogenies_3(E, minimal_models=minimal_models)
 
     p = E.base_ring().characteristic()
     if l==p:
-        return isogenies_prime_degree_general(E,l)
+        return isogenies_prime_degree_general(E,l, minimal_models=minimal_models)
 
     if l in [5,7,13] and not p in [2,3]:
-        return isogenies_prime_degree_genus_0(E,l)
+        return isogenies_prime_degree_genus_0(E,l, minimal_models=minimal_models)
 
     if l in hyperelliptic_primes and not p in [2,3]:
-        return isogenies_prime_degree_genus_plus_0(E,l)
+        return isogenies_prime_degree_genus_plus_0(E,l, minimal_models=minimal_models)
 
     j = E.j_invariant()
     if j in QQ:
         j = QQ(j)
         if j in sporadic_j:
-            return isogenies_sporadic_Q(E,l)
+            return isogenies_sporadic_Q(E,l, minimal_models=minimal_models)
 
-    return isogenies_prime_degree_general(E,l)
+    return isogenies_prime_degree_general(E,l, minimal_models=minimal_models)

@@ -357,7 +357,7 @@ class GaloisRepresentation(SageObject):
         # remove repeats:
         bad_primes = list(Set(bad_primes))
 
-        return _maybe_borels(E, bad_primes, A)
+        return Frobenius_filter(E, bad_primes, A)
 
     def reducible_primes(self):
         r"""
@@ -476,11 +476,9 @@ def _non_surjective(E, patience=100):
     return _exceptionals(E, bad_primes, patience)
 
 
-def _maybe_borels(E, L, patience=100):
-    r"""
-    Determine which primes in L might have an image contained in a
-    Borel subgroup, using straight-forward checking of traces of
-    Frobenius.
+def Frobenius_filter(E, L, patience=100):
+    r""" Determine which primes in L might have an image contained in a
+    Borel subgroup, by checking of traces of Frobenius.
 
     .. NOTE::
 
@@ -495,20 +493,20 @@ def _maybe_borels(E, L, patience=100):
 
     - ``L`` -- list - a list of prime numbers.
 
-    - ``patience`` -- int (a positive integer bounding the number of
-      traces of Frobenius to use while trying to
-      prove irreducibility).
+    - ``patience`` (int), default 100-- a positive integer bounding
+      the number of traces of Frobenius to use while trying to prove
+      irreducibility.
 
     OUTPUT:
 
-    - list -- The list of all primes `\ell` in L for which the
-      mod `\ell` image might be contained in a Borel
-      subgroup of `GL_2(\mathbf{F}_{\ell})`.
+    - list -- The list of all primes `\ell` in L for which the mod
+      `\ell` image might be contained in a Borel subgroup of
+      `GL_2(\mathbf{F}_{\ell})`.
 
     EXAMPLES::
 
         sage: E = EllipticCurve('11a1') # has a 5-isogeny
-        sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E,primes(40))
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E,primes(40))
         [5]
 
     Example to show that the output may contain primes where the
@@ -516,7 +514,7 @@ def _maybe_borels(E, L, patience=100):
     essentially the unique such example by [Sutherland12]_::
 
         sage: E = EllipticCurve_from_j(2268945/128)
-        sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, [7, 11])
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E, [7, 11])
         [7]
 
     This curve does possess a 7-isogeny modulo every prime of good
@@ -529,7 +527,7 @@ def _maybe_borels(E, L, patience=100):
 
         sage: K.<i> = QuadraticField(-1)
         sage: E = EllipticCurve([1+i, -i, i, -399-240*i,  2627+2869*i])
-        sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, primes(20))
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E, primes(20))
         [2, 3]
 
     Here the curve really does possess isognies of degrees 2 and 3::
@@ -541,34 +539,41 @@ def _maybe_borels(E, L, patience=100):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    L = sorted(set(L)) # Remove duplicates from L and makes a copy for output
+    L = list(set(L)) # Remove duplicates from L and makes a copy for output
+    L.sort()
 
     include_2 = False
     if 2 in L: # c.f. Section 5.3(a) of [Serre72].
         L.remove(2)
         include_2 = not E.division_polynomial(2).is_irreducible()
 
-    for P in deg_one_primes_iter(K):
-        if not (L and patience): # stop if no primes are left, or
-                                 # patience is exhausted
+    K_is_Q = (K==QQ)
+    from sage.arith.misc import primes
+    from sage.rings.infinity import infinity
+    def primes_iter():
+        for p in primes(start=2, stop=infinity):
+            if K_is_Q:
+                if E.has_good_reduction(p):
+                    yield ZZ.ideal(p)
+            else:
+                for P in K.primes_above(p):
+                    if E.has_good_reduction(P):
+                        yield P
+    numP = 0
+    for P in primes_iter():
+        if not L or numP==patience:  # stop if no primes are left, or patience is exhausted
             break
 
-        patience -= 1
+        numP += 1
 
-        # Check whether the Frobenius polynomial at P is irreducible
-        # modulo each l, dropping l from the list if so.
+        # Discard any l for which the Frobenius polynomial at P is
+        # irreducible modulo l
 
-        try:
-            trace = E.change_ring(P.residue_field()).trace_of_frobenius()
-        except ArithmeticError: # Bad reduction at P.
-            continue
+        disc = E.reduction(P).frobenius_polynomial().discriminant()
 
-        determinant = P.norm()
-        discriminant = trace**2 - 4 * determinant
+        L = [l for l in L if legendre_symbol(disc,l) != -1]
 
-        for l in L:
-            if legendre_symbol(discriminant,l)==-1:
-                L.remove(l)
+        #print("After using {} primes P, {}  primes l remain".format(numP,len(L)))
 
     if include_2:
         L = [2] + L
@@ -1142,24 +1147,29 @@ def Billerey_P_l(E, l):
         x^4 - 207302404*x^3 - 377423798538689366394*x^2 - 39715249826471656586987520004*x + 36703368217294125441230211032033660188801]
 
     """
+    K = E.base_field()
+    qq = K.primes_above(l)
+    # if len(qq) == K.degree():
+    #     return None
     from sage.rings.polynomial.polynomial_ring import polygen
     from operator import mul
     P = polygen(ZZ)-1
-    K = E.base_field()
-    for q in K.primes_above(l):
+    for q in qq:
         e = K(l).valuation(q)
         P = P.composed_op(E.reduction(q).frobenius_polynomial().adams_operator(12*e), mul, monic=True)
     return P
 
-def Billerey_B_l(E,l):
+def Billerey_B_l(E,l,B=0):
     r"""
-    Return Billerey's `B_l` as defined in [Bil2011]_, after (9).
+    Return Billerey's `B_l`, adapted from the definition in [Bil2011]_, after (9).
 
     INPUT:
 
     - ``E`` -- an elliptic curve over a number field `K`
 
-    - ``l`` -- a rational prime
+    - ``l`` (int) -- a rational prime
+
+    - ``B`` (int) -- 0 or LCM of previous `B_l`: the prime-to-B part of this `B_l` is ignored.
 
     EXAMPLES::
 
@@ -1176,18 +1186,29 @@ def Billerey_B_l(E,l):
     """
     d = E.base_field().absolute_degree()
     P = Billerey_P_l(E,l)
-    from sage.misc.all import prod
-    return ZZ(prod([ P(l**(12*k)) for k in range(1+d//2) ]))
+    if P == None:
+        return ZZ(0)
+    # We compute the factors one at a time since if any is 0 we quit:
+    B_l = ZZ(1)
+    for k in range(1+d//2):
+        factor = ZZ(P(l**(12*k)))
+        if factor:
+            B_l *= factor.gcd(B)
+        else:
+            return ZZ(0)
+    return B_l
 
-def Billerey_R_q(E,q):
+def Billerey_R_q(E,q,B=0):
     r"""
-    Return Billerey's R_q as defined in [Bil2011]_, Theorem 2.8.
+    Return Billerey's `R_q`, adapted from the definition in [Bil2011]_, Theorem 2.8.
 
     INPUT:
 
     - ``E`` -- an elliptic curve over a number field `K`
 
     - ``q`` -- a prime ideal of `K`
+
+    - ``B`` (int) -- 0 or LCM of previous `R_q`: the prime-to-B part of this `R_q` is ignored.
 
     EXAMPLES::
 
@@ -1206,27 +1227,46 @@ def Billerey_R_q(E,q):
     h = K.class_number()
     P = E.reduction(q).frobenius_polynomial().adams_operator(12*h)
     Q = ((q**h).gens_reduced()[0]).absolute_minpoly().adams_operator(12)
-    from sage.misc.all import prod
-    return ZZ(prod([ P.resultant(Q.compose_power(k)) for k in range(1+d//2) ]))
 
-def Billerey_B_bound(E, max_l=200, num_l=8, debug=False):
+    # We compute the factors one at a time since if any is 0 we quit:
+    R_q = ZZ(1)
+    for k in range(1+d//2):
+        # the following would be in QQ if we did not coerce
+        factor = ZZ(P.resultant(Q.compose_power(k)))
+        if factor:
+            R_q *= factor.gcd(B)
+        else:
+            return ZZ(0)
+    return R_q
+
+def Billerey_B_bound(E, max_l=200, num_l=8, small_prime_bound=0, debug=False):
     """Compute Billerey's bound `B`.
 
     We compute `B_l` for `l` up to ``max_l`` (at most) until ``num_l``
     nonzero values are found (at most).  Return the list of primes
     dividing all `B_l` computed, excluding those dividing 6 or
-    ramified or of bad reduction.  If no non-zero values are found
-    return [0].
+    ramified or of bad reduction or less than small_prime_bound.  If
+    no non-zero values are found return [0].
 
     INPUT:
 
-    - ``E`` -- an elliptic curve over a number field `K`
+    - ``E`` -- an elliptic curve over a number field `K`.
 
-    - ``max_l`` (int, default 200) -- maximum size of primes l to check
+    - ``max_l`` (int, default 200) -- maximum size of primes l to check.
 
-    - ``num_l`` (int, default 8)  -- maximum number of primes l to check
+    - ``num_l`` (int, default 8)  -- maximum number of primes l to check.
 
-    - ``debug`` (bool, default ``False``)  -- if ``True`` prints details
+    - ``small_prime_bound`` (int, default 0) -- remove primes less
+      than this from the output.
+
+    - ``debug`` (bool, default ``False``)  -- if ``True`` prints details.
+
+    .. note::
+
+        The purpose of the small_prime_bound is that it is faster to
+        deal with these using the local test; by ignoring them here,
+        we enable the algorithm to terminate sooner when there are no
+        large reducible primes, which is always the case in practice.
 
     EXAMPLES::
 
@@ -1253,17 +1293,23 @@ def Billerey_B_bound(E, max_l=200, num_l=8, debug=False):
 
         sage: len(E.isogenies_prime_degree(5))
         1
+
     """
     if debug:
-        print("Computing B-bound for {} with max_l={}, num_l={}".format(E.ainvs(),max_l,num_l))
+        print("Computing B-bound for {} with max_l={}, num_l={}".format(E.ainvs(),max_l,num_l) + " (ignoring primes under {})".format(small_prime_bound) if small_prime_bound else "")
     B = ZZ.zero()
     ells = []
     K = E.base_field()
     DK = K.discriminant()
     ED = E.discriminant().norm()
     B0 = ZZ(6*DK*ED)
+    def remove_primes(B):
+        B1 = B.prime_to_m_part(B0)
+        for p in primes(small_prime_bound):
+            B1 = B1.prime_to_m_part(p)
+        return B1
     ll = primes(5,max_l) # iterator
-    while len(ells)<num_l and B!=1:
+    while B!=1 and len(ells)<num_l:
         try:
             l = ll.next()
             while B0.valuation(l):
@@ -1272,20 +1318,23 @@ def Billerey_B_bound(E, max_l=200, num_l=8, debug=False):
             break
         if debug:
             print("..trying l={}".format(l))
-        b = Billerey_B_l(E,l)
+        b = Billerey_B_l(E,l,B)
         if b:
             if debug:
                 print("..ok, B_l = {}".format(b))
             if B:
                 B = B.gcd(b)
             else:
-                B = b.prime_to_m_part(B0)
+                B = remove_primes(b)
             ells.append(l)
             if debug:
-                print("..so far, B = {} = {} using l in {}".format(B,B.support(),ells))
+                print("..so far, B = {} using l in {}".format(B,ells))
+        else:
+            if debug:
+                print("..B_l=0 for l={}".format(l))
 
     if B:
-        res = B.support()
+        res = [p for p,e in B.factor()]
         if debug:
             print("..returning {}".format(res))
         return res
@@ -1294,27 +1343,36 @@ def Billerey_B_bound(E, max_l=200, num_l=8, debug=False):
         print("..failed to find a bound")
     return [0]
 
-def Billerey_R_bound(E, max_q=200, num_q=8, debug=False):
+def Billerey_R_bound(E, max_l=200, num_l=8, small_prime_bound=None, debug=False):
     """Compute Billerey's bound `R`.
 
-    We compute `R_q` for `q` dividing primes up to ``max_q`` (at most)
-    until ``num_q`` nonzero values are found (at most).  Return the
-    list of primes dividing all ``R_q`` computed, excluding those dividing
-    6 or ramified or of bad reduction.  If no non-zero values are
-    found return [0].
-
+    We compute `R_q` for `q` dividing primes `\ell` up to ``max_l``
+    (at most) until ``num_l`` nonzero values are found (at most).
+    Return the list of primes dividing all ``R_q`` computed, excluding
+    those dividing 6 or ramified or of bad reduction or less than
+    small_prime_bound.  If no non-zero values are found return [0].
 
     INPUT:
 
     - ``E`` -- an elliptic curve over a number field `K`.
 
-    - ``max_q`` (int, default 200) -- maximum size of rational primes
+    - ``max_l`` (int, default 200) -- maximum size of rational primes
       l for which the primes q above l are checked.
 
-    - ``num_q`` (int, default 8) -- maximum number of rational primes
+    - ``num_l`` (int, default 8) -- maximum number of rational primes
       l for which the primes q above l are checked.
+
+    - ``small_prime_bound`` (int, default 0) -- remove primes less
+      than this from the output.
 
     - ``debug`` (bool, default ``False``)  -- if ``True`` prints details.
+
+    .. note::
+
+        The purpose of the small_prime_bound is that it is faster to
+        deal with these using the local test; by ignoring them here,
+        we enable the algorithm to terminate sooner when there are no
+        large reducible primes, which is always the case in practice.
 
     EXAMPLES::
 
@@ -1326,32 +1384,38 @@ def Billerey_R_bound(E, max_q=200, num_q=8, debug=False):
 
     We may get no bound at all if we do not use enough primes::
 
-        sage: Billerey_R_bound(E, max_q=2, debug=False)
+        sage: Billerey_R_bound(E, max_l=2, debug=False)
         [0]
 
     Or we may get a bound but not a good one if we do not use enough primes::
 
-        sage: Billerey_R_bound(E, num_q=1, debug=False)
+        sage: Billerey_R_bound(E, num_l=1, debug=False)
         [5, 17, 67, 157]
 
     In this case two primes is enough to restrict the set of possible
     reducible primes to just `\{5\}`.  This curve does have a rational 5-isogeny::
 
-        sage: Billerey_R_bound(E, num_q=2, debug=False)
+        sage: Billerey_R_bound(E, num_l=2, debug=False)
         [5]
         sage: len(E.isogenies_prime_degree(5))
         1
+
     """
     if debug:
-        print("Computing R-bound for {} with max_q={}, num_q={}".format(E.ainvs(),max_q,num_q))
+        print("Computing R-bound for {} with max_l={}, num_l={}".format(E.ainvs(),max_l,num_l) + " (ignoring primes under {})".format(small_prime_bound) if small_prime_bound else "")
     B = ZZ.zero()
     ells = []
     K = E.base_field()
     DK = K.discriminant()
     ED = E.discriminant().norm()
     B0 = ZZ(6*DK*ED)
-    ll = primes(5, max_q) # iterator
-    while len(ells) < num_q and B != 1:
+    def remove_primes(B):
+        B1 = B.prime_to_m_part(B0)
+        for p in primes(small_prime_bound):
+            B1 = B1.prime_to_m_part(p)
+        return B1
+    ll = primes(5, max_l) # iterator
+    while len(ells) < num_l and B != 1:
         try:
             l = ll.next()
             while B0.valuation(l):
@@ -1361,17 +1425,17 @@ def Billerey_R_bound(E, max_q=200, num_q=8, debug=False):
         q = K.prime_above(l)
         if debug:
             print("..trying q={} above l={}".format(q,l))
-        b = Billerey_R_q(E,q)
+        b = Billerey_R_q(E,q,B)
         if b:
             if debug:
                 print("..ok, R_q = {}, type={}".format(b,type(b)))
             if B:
                 B = B.gcd(b)
             else:
-                B = b.prime_to_m_part(B0)
+                B = remove_primes(b)
             ells.append(l)
             if debug:
-                print("..so far, B = {} = {} using l in {}".format(B,B.support(),ells))
+                print("..so far, B = {} using l in {}".format(B,ells))
 
     if B:
         res = B.support()
@@ -1383,8 +1447,7 @@ def Billerey_R_bound(E, max_q=200, num_q=8, debug=False):
         print("..failed to find a bound")
     return [0]
 
-def reducible_primes_Billerey(E, num_l=None, max_l=None, num_q=None,
-                              max_q=None, verbose=False):
+def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
     """Return a finite set of primes `\ell` containing all those for which
     `E` has a `K`-rational ell-isogeny, where `K` is the base field of
     `E`: i.e., the mod-`\ell` representation is irreducible for all
@@ -1395,20 +1458,12 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, num_q=None,
     - ``E`` -- an elliptic curve defined over a number field `K`.
 
     - ``max_l`` (int or ``None`` (default)) -- the maximum prime
-      `\ell` to use for the B-bound.  If ``None``, a default value
-      will be used.
+      `\ell` to use for the B-bound and R-bound.  If ``None``, a
+      default value will be used.
 
     - ``num_l`` (int or ``None`` (default)) -- the number of primes
-      `\ell` to use for the B-bound.  If ``None``, a default value
-      will be used.
-
-    - ``max_q`` (int or ``None`` (default)) -- maximum size of
-      rational primes l for which the primes q above l are checked for
-      the R-bound.  If ``None``, a default value will be used.
-
-    - ``num_q`` (int or ``None`` (default)) -- maximum number of
-      rational primes l for which the primes q above l are checked for
-      the R-bound.  If ``None``, a default value will be used.
+      `\ell` to use for the B-bound and R-bound.  If ``None``, a
+      default value will be used.
 
 
     .. note::
@@ -1448,49 +1503,54 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, num_q=None,
         [7]
 
     """
+    #verbose=True
     if verbose:
-        print("E = {}, finding reducible primes using Billerey's algoeirhm".format(E.ainvs()))
+        print("E = {}, finding reducible primes using Billerey's algorithm".format(E.ainvs()))
 
     # Set parameters to default values if not given:
     if max_l == None:
         max_l = 200
     if num_l == None:
         num_l = 8
-    if max_q == None:
-        max_q = 200
-    if num_q == None:
-        num_q = 8
 
     K = E.base_field()
     DK = K.discriminant()
     ED = E.discriminant().norm()
     B0 = ZZ(6*DK*ED).prime_divisors()  # TODO: only works if discriminant is integral
+
+    # Billeray's algorithm will be faster if we tell it to ignore
+    # small primes; these can be tested using the naive algorithm.
+
+    if verbose:
+        print("First doing naive test of primes up to {}...".format(max_l))
+
+    max_small_prime = 200
+    OK_small_primes = reducible_primes_naive(E, max_l=max_small_prime, num_P=200, verbose=verbose)
+    if verbose:
+        print("Naive test of primes up to {} returns {}.".format(max_small_prime, OK_small_primes))
+
     from sage.schemes.elliptic_curves.gal_reps_number_field import Billerey_B_bound
-    B1 = Billerey_B_bound(E,max_l, num_l, verbose)
+    B1 = Billerey_B_bound(E, max_l, num_l, max_small_prime, verbose)
     if B1 == [0]:
         if verbose:
             print("...  B_bound ineffective using max_l={}, moving on to R-bound".format(max_l))
         from sage.schemes.elliptic_curves.gal_reps_number_field import Billerey_R_bound
-        B1 = Billerey_R_bound(E,max_q, num_q, verbose)
+        B1 = Billerey_R_bound(E,max_l, num_l, max_small_prime, verbose)
         if B1 == [0]:
             if verbose:
-                print("... R_bound ineffective using max_q={}",format(max_q))
+                print("... R_bound ineffective using max_l={}",format(max_l))
             return [0]
         if verbose:
             print("... R_bound = {}".format(B1))
     else:
         if verbose:
             print("... B_bound = {}".format(B1))
-    B = sorted(set(B0 + B1))
+    B = sorted(set(B0 + B1 + OK_small_primes))
     if verbose:
         print("... combined bound = {}".format(B))
-    # The oddly-named function _maybe_borels applies a local test at a
-    # certain number of primes P of good reduction, to see if E mod P
-    # has an l-isogeny, by checking that the Frobenius polynomial
-    # splits modulo P.
-    from sage.schemes.elliptic_curves.gal_reps_number_field import _maybe_borels
+    from sage.schemes.elliptic_curves.gal_reps_number_field import Frobenius_filter
     num_p = 100
-    B = _maybe_borels(E, B, num_p)
+    B = Frobenius_filter(E, B, num_p)
     if verbose:
         print("... after Frobenius filter = {}".format(B))
     return B
@@ -1519,8 +1579,12 @@ def reducible_primes_naive(E, max_l=None, num_P=None, verbose=False):
         sage: from sage.schemes.elliptic_curves.gal_reps_number_field import reducible_primes_naive
         sage: K.<a> = NumberField(x^4 - 5*x^2 + 3)
         sage: E = EllipticCurve(K, [a^2 - 2, -a^2 + 3, a^2 - 2, -50*a^2 + 35, 95*a^2 - 67])
-        sage: reducible_primes_naive(E, num_P=20)
-        [2, 5, 89, 757, 773]
+        sage: reducible_primes_naive(E,num_P=10)
+        [2, 5, 53, 173, 197, 241, 293, 317, 409, 557, 601, 653, 677, 769, 773, 797]
+        sage: reducible_primes_naive(E,num_P=15)
+        [2, 5, 197, 557, 653, 769]
+        sage: reducible_primes_naive(E,num_P=20)
+        [2, 5]
         sage: reducible_primes_naive(E)
         [2, 5]
         sage: [phi.degree() for phi in E.isogenies_prime_degree()]
@@ -1533,8 +1597,8 @@ def reducible_primes_naive(E, max_l=None, num_P=None, verbose=False):
         num_P = 100
     if verbose:
         print("E = {}, finding reducible primes up to {} using Frobenius filter with {} primes".format(E.ainvs(), max_l, num_P))
-    from sage.schemes.elliptic_curves.gal_reps_number_field import _maybe_borels
-    B = _maybe_borels(E, primes(max_l), num_P)
+    from sage.schemes.elliptic_curves.gal_reps_number_field import Frobenius_filter
+    B = Frobenius_filter(E, primes(max_l), num_P)
     if verbose:
         print("... returning {}".format(B))
     return B

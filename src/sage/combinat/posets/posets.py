@@ -2498,7 +2498,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.has_bottom()
             True
 
-        .. SEEALSO:: :meth:`bottom`, :meth:`has_top`, :meth:`is_bounded`
+        .. SEEALSO::
+
+            - Dual Property: :meth:`has_top`
+            - Stronger properties: :meth:`is_bounded`
+            - Other: :meth:`bottom`
 
         TESTS::
 
@@ -2550,7 +2554,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.has_top()
             True
 
-        .. SEEALSO:: :meth:`top`, :meth:`has_bottom`, :meth:`is_bounded`
+        .. SEEALSO::
+
+            - Dual Property: :meth:`has_bottom`
+            - Stronger properties: :meth:`is_bounded`
+            - Other: :meth:`top`
 
         TESTS::
 
@@ -2658,7 +2666,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_bounded()
             True
 
-        .. SEEALSO:: :meth:`has_bottom`, :meth:`has_top`
+        .. SEEALSO::
+
+            - Weaker properties: :meth:`has_bottom`, :meth:`has_top`
+            - Other: :meth:`with_bounds`, :meth:`without_bounds`
 
         TESTS::
 
@@ -3653,7 +3664,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: V.is_meet_semilattice(certificate=True)
             (False, ((2, 2, 1), (3, 1, 1)))
 
-        .. SEEALSO:: :meth:`is_join_semilattice`, :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
+        .. SEEALSO::
+
+            - Dual property: :meth:`is_join_semilattice`
+            - Stronger properties: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
 
         TESTS::
 
@@ -3721,7 +3735,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_join_semilattice(certificate=True)
             (False, (2, 1))
 
-        .. SEEALSO:: :meth:`is_meet_semilattice`, :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
+        .. SEEALSO::
+
+            - Dual property: :meth:`is_meet_semilattice`
+            - Stronger properties: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
 
         TESTS::
 

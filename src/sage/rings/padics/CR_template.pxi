@@ -871,7 +871,7 @@ cdef class CRElement(pAdicTemplateElement):
                 if mpz_sgn((<Integer>absprec).value) == -1:
                     raise ValueError("absprec must fit into a signed long")
                 else:
-                    aprec = self.prime_pow.prec_cap
+                    aprec = self.prime_pow.ram_prec_cap
             else:
                 aprec = mpz_get_si((<Integer>absprec).value)
         if aprec < 0 and not self.parent().is_field():

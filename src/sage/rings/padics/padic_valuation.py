@@ -712,6 +712,13 @@ class pAdicValuation_base(DiscreteValuation):
             sage: QQ.valuation(2).extensions(L)
             [2-adic valuation]
 
+        A case where there was at some point an internal error in the
+        approximants code::
+
+			sage: R.<x> = QQ[]
+			sage: L.<a> = NumberField(x^4 + 2*x^3 + 2*x^2 + 8)
+			sage: QQ.valuation(2).extensions(L)
+
         """
         if self.domain() is ring:
             return [self]

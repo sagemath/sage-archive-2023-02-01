@@ -1882,6 +1882,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
         Ring morphism:
           From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
           To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
+
     TESTS::
 
         sage: TestSuite(f).run()

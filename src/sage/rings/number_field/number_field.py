@@ -2720,9 +2720,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         abelian extension of `\mathbb{Q}`, the output is not meaningful.
 
         INPUT:
-            - ``check_abelian`` - a boolean (default: ``True``); check to see that this is an abelian extension of `\mathbb{Q}`
 
-        OUTPUT: Integer which is the conductor of the field.
+        - ``check_abelian`` - a boolean (default: ``True``); check to see that this is an abelian extension of `\mathbb{Q}`
+
+        OUTPUT:
+
+        Integer which is the conductor of the field.
 
         EXAMPLES::
 
@@ -2749,16 +2752,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: NumberField(x^8 - 40*x^6 + 500*x^4 - 2000*x^2 + 50,'a').conductor()
             160
 
-        ALGORITHM: For odd primes, it is easy to compute from the ramification
+        ALGORITHM:
+
+            For odd primes, it is easy to compute from the ramification
             index because the p-Sylow subgroup is cyclic.  For p=2, there
             are two choices for a given ramification index.  They can be
-            distinguished by the parity of the exponent in the discriminant 
+            distinguished by the parity of the exponent in the discriminant
             of a 2-adic completion.
         """
         m = 1
-        if check_abelian:
-            if not self.is_abelian():
-                raise ValueError("The conductor is only defined for abelian fields")
+        if check_abelian and not self.is_abelian():
+            raise ValueError("The conductor is only defined for abelian fields")
 
         try:
             De = self.__disc
@@ -5074,7 +5078,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             return False
 
         d = self.degree()
-        if d.is_prime() or d in [1,4,9,25,49,121]:
+        dsqrt = d.isqrt()
+        if d == 1 or d.is_prime() or (d == dsqrt**2 and dsqrt.is_prime()):
             return True
 
         if d <= 11:

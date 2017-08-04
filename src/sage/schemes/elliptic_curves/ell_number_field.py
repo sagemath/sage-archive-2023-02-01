@@ -2622,7 +2622,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             If using the algorithm 'heuristic' for non-CM curves, the
             result is not guarenteed to be the complete isogeny class,
             since only reducible primes up to the default bound in
-            :meth:``reducible_primes_naive`` (currently 1000) are
+            :meth:`reducible_primes_naive` (currently 1000) are
             tested.  However, no examples of non-CM elliptic curves
             with reducible primes greater than 100 have yet been
             computed so the output is likely to be correct.
@@ -3011,13 +3011,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         time-consuming since it requires computation of the class
         group::
 
-        sage: proof.number_field(False)
-        sage: K.<z> = CyclotomicField(53)
-        sage: E = EllipticCurve(K,[0,6,0,2,0])
-        sage: E.isogenies_prime_degree(2, minimal_models=False)
-        [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52 to Elliptic Curve defined by y^2 = x^3 + 6*x^2 + (-8)*x + (-48) over Cyclotomic Field of order 53 and degree 52]
-        sage: E.isogenies_prime_degree(2, minimal_models=True) # not tested (10s)
-        [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52 to Elliptic Curve defined by y^2 = x^3 + (-20)*x + (-16) over Cyclotomic Field of order 53 and degree 52]
+            sage: proof.number_field(False)
+            sage: K.<z> = CyclotomicField(53)
+            sage: E = EllipticCurve(K,[0,6,0,2,0])
+            sage: E.isogenies_prime_degree(2, minimal_models=False)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52 to Elliptic Curve defined by y^2 = x^3 + 6*x^2 + (-8)*x + (-48) over Cyclotomic Field of order 53 and degree 52]
+            sage: E.isogenies_prime_degree(2, minimal_models=True) # not tested (10s)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52 to Elliptic Curve defined by y^2 = x^3 + (-20)*x + (-16) over Cyclotomic Field of order 53 and degree 52]
 
         TESTS::
 
@@ -3567,7 +3567,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ``True`` if this curve has CM over the algebraic closure
         of the base field, otherwise ``False``.  See also
-        :meth:`cm_discriminant()` and :meth:`has_rational_cm`.
+        :meth:`cm_discriminant` and :meth:`has_rational_cm`.
 
         .. note::
 
@@ -3614,7 +3614,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ``True`` if the ring of endomorphisms of this curve over
         the given field is larger than `\ZZ`; otherwise ``False``.
-        See also :meth:`cm_discriminant()` and :meth:`has_cm`.
+        See also :meth:`cm_discriminant` and :meth:`has_cm`.
 
         .. note::
 
@@ -3622,7 +3622,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
            the given field `K` then the extra endomorphisms will not
            be defined over `K`, and this function will return
            ``False``.  See also :meth:`has_cm`.  To obtain the CM
-           discriminant, use :meth:`cm_discriminant()`.
+           discriminant, use :meth:`cm_discriminant`.
 
         EXAMPLES::
 

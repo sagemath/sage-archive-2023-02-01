@@ -523,7 +523,7 @@ def Frobenius_filter(E, L, patience=100):
         sage: E.isogenies_prime_degree(7)
         []
 
-    A number field example:
+    A number field example::
 
         sage: K.<i> = QuadraticField(-1)
         sage: E = EllipticCurve([1+i, -i, i, -399-240*i,  2627+2869*i])

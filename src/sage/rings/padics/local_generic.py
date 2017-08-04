@@ -868,14 +868,10 @@ class LocalGeneric(CommutativeRing):
                 raise NotImplementedError
 
             # if absprec < 0, then the result is in the fraction field (see #13591)
-            try:
-                y = x.add_bigoh(-1)
-            except ValueError:
-                tester.assertTrue(self.is_fixed_mod())
-            else:
-                tester.assertIs(y.parent(), self.fraction_field())
-                if not self.is_floating_point():
-                    tester.assertLessEqual(y.precision_absolute(), -1)
+            y = x.add_bigoh(-1)
+            tester.assertIs(y.parent(), self.fraction_field())
+            if not self.is_floating_point() and not self.is_fixed_mod():
+                tester.assertLessEqual(y.precision_absolute(), -1)
 
             # make sure that we handle very large values correctly
             absprec = Integer(2)**1000

@@ -2658,12 +2658,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: Matrix(ZZ, 1,1,[0]).LLL_gram()
             Traceback (most recent call last):
             ...
-            ValueError: llgramint did not return a square matrix, perhaps the matrix is not positive definite
+            ValueError: qflllgram did not return a square matrix, perhaps the matrix is not positive definite
 
             sage: Matrix(ZZ,2,2,[0,1,1,0]).LLL_gram()
             Traceback (most recent call last):
             ...
-            ValueError: llgramint did not return a square matrix, perhaps the matrix is not positive definite
+            ValueError: qflllgram did not return a square matrix, perhaps the matrix is not positive definite
 
         or by running forever:
             sage: Matrix(ZZ, [-5, -1, -1, -5]).LLL_gram() # not tested
@@ -2683,9 +2683,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         try:
             U = P.qflllgram(flag)
         except (RuntimeError, ArithmeticError) as msg:
-            raise ValueError("lllgramint failed, perhaps the matrix is not positive definite")
+            raise ValueError("qflllgram failed, perhaps the matrix is not positive definite")
         if U.matsize() != [n, n]:
-            raise ValueError("llgramint did not return a square matrix, perhaps the matrix is not positive definite");
+            raise ValueError("qflllgram did not return a square matrix, perhaps the matrix is not positive definite");
         MS = matrix_space.MatrixSpace(ZZ,n)
         U = MS(U.sage())
         # Fix last column so that det = +1

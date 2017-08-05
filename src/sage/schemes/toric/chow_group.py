@@ -703,10 +703,10 @@ class ChowGroup_class(FGP_Module_class):
 
         - ``x`` -- a cone of the fan, a toric divisor, or a valid
           input for
-          :class:sage.modules.fg_pid.fgp_module.FGP_Module_class`.
+          :class:`sage.modules.fg_pid.fgp_module.FGP_Module_class`.
 
         - ``check`` -- bool (default: ``True``). See
-          :class:sage.modules.fg_pid.fgp_module.FGP_Module_class`.
+          :class:`sage.modules.fg_pid.fgp_module.FGP_Module_class`.
 
         EXAMPLES::
 

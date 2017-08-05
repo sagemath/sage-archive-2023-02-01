@@ -797,8 +797,8 @@ cdef class PointCollection(SageObject):
         """
         return self._module
 
-    @classmethod    # @staticmethod does not work in Cython so far
-    def output_format(cls, format=None):
+    @staticmethod
+    def output_format(format=None):
         r"""
         Return or set the output format for **ALL** point collections.
 

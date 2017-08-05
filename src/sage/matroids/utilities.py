@@ -223,28 +223,26 @@ def sanitize_contractions_deletions(matroid, contractions, deletions):
         sage: setprint(sanitize_contractions_deletions(M, [1, 2, 3], 'efg'))
         Traceback (most recent call last):
         ...
-        ValueError: input contractions is not a subset of the groundset.
+        ValueError: [1, 2, 3] is not a subset of the groundset
         sage: setprint(sanitize_contractions_deletions(M, 'efg', [1, 2, 3]))
         Traceback (most recent call last):
         ...
-        ValueError: input deletions is not a subset of the groundset.
+        ValueError: [1, 2, 3] is not a subset of the groundset
         sage: setprint(sanitize_contractions_deletions(M, 'ade', 'efg'))
         Traceback (most recent call last):
         ...
         ValueError: contraction and deletion sets are not disjoint.
 
     """
-    if contractions is None:
-        contractions = frozenset([])
-    contractions = frozenset(contractions)
-    if not matroid.groundset().issuperset(contractions):
-        raise ValueError("input contractions is not a subset of the groundset.")
+    if not contractions:
+        contractions = frozenset()
+    else:
+        contractions = matroid._subset(contractions)
 
-    if deletions is None:
-        deletions = frozenset([])
-    deletions = frozenset(deletions)
-    if not matroid.groundset().issuperset(deletions):
-        raise ValueError("input deletions is not a subset of the groundset.")
+    if not deletions:
+        deletions = frozenset()
+    else:
+        deletions = matroid._subset(deletions)
 
     if not contractions.isdisjoint(deletions):
         raise ValueError("contraction and deletion sets are not disjoint.")

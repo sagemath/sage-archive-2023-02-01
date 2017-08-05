@@ -694,12 +694,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         Return the number of elements of this quotient ring.
 
+        ``order`` is an alias of ``cardinality``.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: R.quo(1).cardinality()
             1
             sage: R.quo(x^3-2).cardinality()
+            +Infinity
+
+            sage: R.quo(1).order()
+            1
+            sage: R.quo(x^3-2).order()
             +Infinity
 
         ::
@@ -711,6 +718,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             729
             sage: R.quo(2).cardinality()
             1
+
+        TESTS::
+
+            sage: parent(QQ['x'].quo(1).cardinality())
+            Integer Ring
+            sage: parent(QQ['x'].quo(1).order())
+            Integer Ring
         """
         if not self.is_finite():
             from sage.rings.infinity import Infinity
@@ -719,9 +733,77 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         # Two cases where the quotient is finite (see is_finite())
         # 1) R[x]/(1)
         if f.degree() == 0:
-            return 1
+            from sage.rings.integer_ring import ZZ
+            return ZZ.one()
         # 2) F[x]/(f) where F is finite
-        return self.base_ring().cardinality() ** f.degree()
+        else:
+            return self.base_ring().cardinality() ** f.degree()
+
+    order = cardinality
+
+    def is_finite(self):
+        """
+        Return whether or not this quotient ring is finite.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R.quo(1).is_finite()
+            True
+            sage: R.quo(x^3-2).is_finite()
+            False
+
+        ::
+
+            sage: R.<x> = GF(9,'a')[]
+            sage: R.quo(2*x^3+x+1).is_finite()
+            True
+            sage: R.quo(2).is_finite()
+            True
+
+        ::
+
+            sage: P.<v> = GF(2)[]
+            sage: P.quotient(v^2-v).is_finite()
+            True
+        """
+        f = self.modulus()
+
+        # note: the constructor assumes that the leading coefficient is a
+        # unit. However, this function would be very wrong if otherwise.
+        # As a safety measure, we check that again here.
+        assert f.leading_coefficient().is_unit()
+
+        return f.degree() == 0 or self.base_ring().is_finite()
+
+    def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: Q = R.quo(x^3 - x^2 - x - 1)
+            sage: list(Q)
+            [0,
+             1,
+             2,
+             xbar,
+             xbar + 1,
+             xbar + 2,
+             2*xbar,
+             ...
+             2*xbar^2 + 2*xbar + 1,
+             2*xbar^2 + 2*xbar + 2]
+            sage: len(_) == Q.cardinality() == 27
+            True
+        """
+        if not self.is_finite():
+            raise NotImplementedError('not possible to iterate through infinite quotient')
+
+        R = self.polynomial_ring()
+        yield self.zero()
+        for i in range(self.modulus().degree()):
+            for p in R.polynomials(of_degree=i):
+                yield self(p)
 
     def characteristic(self):
         """
@@ -902,26 +984,6 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         if not isinstance(self.base_ring(), sage.rings.rational_field.RationalField):
             raise NotImplementedError("Computation of number field only implemented for quotients of the polynomial ring over the rational field.")
         return sage.rings.number_field.all.NumberField(self.modulus(), self.variable_name())
-
-    def order(self):
-        """
-        Return the number of elements of this quotient ring.
-
-        EXAMPLES::
-
-            sage: F1.<a> = GF(2^7)
-            sage: P1.<x> = F1[]
-            sage: F2 = F1.extension(x^2+x+1, 'u')
-            sage: F2.order()
-            16384
-
-            sage: F1 = QQ
-            sage: P1.<x> = F1[]
-            sage: F2 = F1.extension(x^2+x+1, 'u')
-            sage: F2.order()
-            +Infinity
-        """
-        return self.base_ring().order() ** self.degree()
 
     def polynomial_ring(self):
         """
@@ -1760,44 +1822,6 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDoma
     def __reduce__(self):
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
                                          self.modulus(), self.variable_names())
-
-    def is_finite(self):
-        """
-        Return whether or not this quotient ring is finite.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: R.quo(1).is_finite()
-            True
-            sage: R.quo(x^3-2).is_finite()
-            False
-
-        ::
-
-            sage: R.<x> = GF(9,'a')[]
-            sage: R.quo(2*x^3+x+1).is_finite()
-            True
-            sage: R.quo(2).is_finite()
-            True
-        """
-        f = self.modulus()
-        if f.degree() < 0:
-            return False
-        if f.degree() == 0:
-            if f[0].is_unit():
-                return True
-            else:
-                # definitely infinite, since poly ring over
-                # a nonzero ring.
-                return False
-        # when the degree is at least 1, the quotient is finite
-        # if and only if the base ring is finite:  why?  If base
-        # ring infinite, clearly quotient isn't in this case, since
-        # quotient embeds in.  If base ring is finite, then since
-        # it is a domain it is a field, so this is a field mod a poly
-        # of degree at least 1, hence it is also a finite field.
-        return self.base_ring().is_finite()
 
     def field_extension(self, names):
         r"""

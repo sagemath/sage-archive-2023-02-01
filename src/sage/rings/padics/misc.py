@@ -4,7 +4,7 @@ Miscellaneous Functions
 
 This file contains several miscellaneous functions used by `p`-adics.
 
-- ``gauss_sum`` -- compute gauss sums using the Gross-Koblitz formula.
+- ``gauss_sum`` -- compute Gauss sums using the Gross-Koblitz formula.
 - ``min`` -- a version of ``min`` that returns `\infty` on empty input.
 - ``max`` -- a version of ``max`` that returns `-\infty` on empty input.
 

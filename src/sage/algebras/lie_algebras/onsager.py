@@ -16,6 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
@@ -291,6 +292,8 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
             q = PolynomialRing(self.base_ring(), 'q').fraction_field().gen()
         if c is None:
             c = q
+        else:
+            c = q.parent()(c)
         return QuantumOnsagerAlgebra(self, q, c)
 
     Element = LieAlgebraElement
@@ -347,6 +350,19 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
          - B[3d]*B[5d+a1] + B[4d]*B[2d+a1] + B[5d+a1]*B[2d+a1]
          + ((-q^2-1)/q^4)*B[8d+a1] + ((-q^6-q^4+q^2+1)/q^4)*B[6d+a1]
          + (-q^6-q^4+q^2+1)*B[4d+a1] + (q^6+q^4)*B[2d+a1]
+
+    We check the `q`-Dolan-Grady relations::
+
+        sage: def q_dolan_grady(a, b, q):
+        ....:     x = q*a*b - ~q*b*a
+        ....:     y = ~q*a*x - q*x*a
+        ....:     return a*y - y*a
+        sage: A0, A1 = G[0,-1], G[0,0]
+        sage: q = Q.q()
+        sage: q_dolan_grady(A1, A0, q) == (q^4 + 2*q^2 + 1) * (A0*A1 - A1*A0)
+        True
+        sage: q_dolan_grady(A0, A1, q) == (q^4 + 2*q^2 + 1) * (A1*A0 - A0*A1)
+        True
 
     REFERENCES:
 
@@ -568,6 +584,32 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                       name="generator map")
 
     gens = algebra_generators
+
+    def q(self):
+        """
+        Return the parameter `q` of ``self``.
+
+        EXAMPLES::
+
+            sage: O = lie_algebras.OnsagerAlgebra(QQ)
+            sage: Q = O.quantum_group()
+            sage: Q.q()
+            q
+        """
+        return self._q
+
+    def c(self):
+        """
+        Return the parameter `c` of ``self``.
+
+        EXAMPLES::
+
+            sage: O = lie_algebras.OnsagerAlgebra(QQ)
+            sage: Q = O.quantum_group(c=-3)
+            sage: Q.c()
+            -3
+        """
+        return self._c
 
     @cached_method
     def one_basis(self):

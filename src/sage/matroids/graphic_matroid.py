@@ -229,14 +229,14 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M.groundset()
-            frozenset({0, 1, 2, 3, 4})
+            sage: sorted(M.groundset())
+            [0, 1, 2, 3, 4]
             sage: G = graphs.CompleteGraph(3).disjoint_union(graphs.CompleteGraph(4))
-            sage: M = Matroid(G); M.groundset()
-            frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8})
+            sage: M = Matroid(G); sorted(M.groundset())
+            [0, 1, 2, 3, 4, 5, 6, 7, 8]
             sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
-            sage: M.groundset()
-            frozenset({'a', 'b', 'c'})
+            sage: sorted(M.groundset())
+            ['a', 'b', 'c']
         """
         return self._groundset
 
@@ -326,19 +326,18 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._vertex_stars()
-            frozenset({frozenset({0, 2, 3}),
-                       frozenset({1, 2, 4}),
-                       frozenset({3, 4}),
-                       frozenset({0, 1})})
+            sage: sorted(M._vertex_stars())
+            [frozenset({0, 2, 3}),
+             frozenset({1, 2, 4}),
+             frozenset({3, 4}),
+             frozenset({0, 1})]
 
-            sage: N = Matroid(graphs.BullGraph()); N._vertex_stars()
-            frozenset({frozenset({0, 2, 3}),
-                       frozenset({4}),
-                       frozenset({1, 2, 4}),
-                       frozenset({3}),
-                       frozenset({0, 1})})
-
+            sage: N = Matroid(graphs.BullGraph()); sorted(N._vertex_stars())
+            [frozenset({0, 2, 3}),
+             frozenset({4}),
+             frozenset({1, 2, 4}),
+             frozenset({3}),
+             frozenset({0, 1})]
         """
         star_list = []
         for v in self._G.vertices():
@@ -543,8 +542,8 @@ class GraphicMatroid(Matroid):
             Graphic matroid of rank 4 on 7 elements
             sage: M._minor(contractions=frozenset([0,1,2]))
             Graphic matroid of rank 1 on 7 elements
-            sage: M = Matroid(graphs.PetersenGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14})
+            sage: M = Matroid(graphs.PetersenGraph()); sorted(M.groundset())
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
             sage: N = M._minor(deletions = frozenset([0, 3, 5, 9]), contractions =
             ....: frozenset([1, 2, 11])); N
             Graphic matroid of rank 6 on 8 elements
@@ -755,12 +754,12 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._closure([0])
-            frozenset({0})
-            sage: M._closure([0,1])
-            frozenset({0, 1, 2})
-            sage: M._closure(M.groundset())
-            frozenset({0, 1, 2, 3, 4})
+            sage: sorted(M._closure([0]))
+            [0]
+            sage: sorted(M._closure([0,1]))
+            [0, 1, 2]
+            sage: sorted(M._closure(M.groundset()))
+            [0, 1, 2, 3, 4]
 
         TESTS:
 
@@ -770,8 +769,8 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(Graph(edgelist, loops=True, multiedges=True))
             sage: M.graph().edges()
             [(0, 0, 0), (0, 1, 1), (0, 2, 2), (0, 3, 3), (1, 2, 4), (1, 2, 5)]
-            sage: M._closure([4])
-            frozenset({0, 4, 5})
+            sage: sorted(M._closure([4]))
+            [0, 4, 5]
 
         """
         X = set(X)
@@ -809,17 +808,17 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._max_independent(M.groundset())
-            frozenset({0, 1, 3})
-            sage: M._max_independent(frozenset([0,1,2]))
-            frozenset({0, 1})
-            sage: M._max_independent(frozenset([3,4]))
-            frozenset({3, 4})
-            sage: M._max_independent(frozenset([3]))
-            frozenset({3})
+            sage: sorted(M._max_independent(M.groundset()))
+            [0, 1, 3]
+            sage: sorted(M._max_independent(frozenset([0,1,2])))
+            [0, 1]
+            sage: sorted(M._max_independent(frozenset([3,4])))
+            [3, 4]
+            sage: sorted(M._max_independent(frozenset([3])))
+            [3]
             sage: N = M.graphic_extension(0, element='a')
-            sage: N._max_independent(frozenset(['a']))
-            frozenset()
+            sage: sorted(N._max_independent(frozenset(['a'])))
+            []
         """
         edges = self.groundset_to_edges(X)
         vertices = set([u for (u, v, l) in edges])
@@ -848,13 +847,13 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._max_coindependent(M.groundset())
-            frozenset({2, 4})
-            sage: M._max_coindependent([2,3,4])
-            frozenset({2, 4})
+            sage: sorted(M._max_coindependent(M.groundset()))
+            [2, 4]
+            sage: sorted(M._max_coindependent([2,3,4]))
+            [2, 4]
             sage: N = M.graphic_extension(0, element='a')
             sage: sorted(N.max_coindependent([0,1,2,'a']))
-            frozenset({1, 2, 'a'})
+            [1, 2, 'a']
         """
         edges = self.groundset_to_edges(X)
         all_vertices = self._G.vertices()
@@ -888,11 +887,11 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._circuit(M.groundset())
-            frozenset({0, 1, 2})
+            sage: sorted(M._circuit(M.groundset()))
+            [0, 1, 2]
             sage: N = Matroid(graphs.CompleteBipartiteGraph(3,3))
-            sage: N._circuit([0, 1, 2, 6, 7, 8])
-            frozenset({0, 1, 6, 7})
+            sage: sorted(N._circuit([0, 1, 2, 6, 7, 8]))
+            [0, 1, 6, 7]
             sage: N._circuit([0, 1, 2])
             Traceback (most recent call last):
             ...
@@ -906,8 +905,8 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(Graph(edgelist))
             sage: M
             Graphic matroid of rank 5 on 7 elements
-            sage: M._circuit(M.groundset())
-            frozenset({0, 1, 2})
+            sage: sorted(M._circuit(M.groundset()))
+            [0, 1, 2]
 
         Giving it a long path before it finds a cycle::
 
@@ -915,8 +914,8 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(Graph(edgelist, multiedges=True))
             sage: M.graph().edges()
             [(0, 1, 0), (1, 2, 1), (2, 3, 2), (3, 4, 3), (4, 5, 4), (4, 5, 5)]
-            sage: M._circuit(M.groundset())
-            frozenset({4, 5})
+            sage: sorted(M._circuit(M.groundset()))
+            [4, 5]
 
         """
         edges = self.groundset_to_edges(X)
@@ -962,16 +961,16 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: M._coclosure([0])
-            frozenset({0, 1})
-            sage: M._coclosure([0,1])
-            frozenset({0, 1})
+            sage: sorted(M._coclosure([0]))
+            [0, 1]
+            sage: sorted(M._coclosure([0,1]))
+            [0, 1]
             sage: N = M.graphic_extension(0, element='a')
-            sage: N._coclosure([3])
-            frozenset({3, 4})
+            sage: sorted(N._coclosure([3]))
+            [3, 4]
             sage: N = M.graphic_coextension(0, element='a')
             sage: sorted(N._coclosure([3]))
-            frozenset({3, 4, 'a'})
+            [3, 4, 'a']
         """
         g = self.graph()
         g.delete_edges(self._groundset_to_edges(X))
@@ -1231,8 +1230,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
+            sage: M = Matroid(graphs.DiamondGraph()); sorted(M.groundset())
+            [0, 1, 2, 3, 4]
             sage: M.groundset_to_edges([2,3,4])
             [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
             sage: M.groundset_to_edges([2,3,4,5])
@@ -1259,8 +1258,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
+            sage: M = Matroid(graphs.DiamondGraph())
             sage: M._groundset_to_edges([2,3,4])
             [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
         """
@@ -1280,8 +1278,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
+            sage: M = Matroid(graphs.DiamondGraph()); sorted(M.groundset())
+            [0, 1, 2, 3, 4]
             sage: M.subgraph_from_set([0,1,2])
             Looped multi-graph on 3 vertices
             sage: M.subgraph_from_set([3,4,5])
@@ -1308,8 +1306,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); M.groundset()
-            frozenset({0, 1, 2, 3, 4})
+            sage: M = Matroid(graphs.DiamondGraph()); sorted(M.groundset())
+            [0, 1, 2, 3, 4]
             sage: M._subgraph_from_set([0,1,2])
             Looped multi-graph on 3 vertices
         """
@@ -1682,8 +1680,8 @@ class GraphicMatroid(Matroid):
 
             sage: edgedict = {0:[1,2,3], 1:[2,4], 2:[3], 3:[6], 4:[5,7], 5:[6,7], 6:[7]}
             sage: M = Matroid(Graph(edgedict))
-            sage: M.coclosure([4])
-            frozenset({4, 6})
+            sage: sorted(M.coclosure([4]))
+            [4, 6]
             sage: sum(1 for N in M.graphic_coextensions())
             12
             sage: sum(1 for N in M.graphic_coextensions(cosimple=True))

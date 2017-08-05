@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Miscellaneous Functions
 
 This file contains several miscellaneous functions used by `p`-adics.

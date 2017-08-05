@@ -781,12 +781,14 @@ cdef class LocalGenericElement(CommutativeRingElement):
         tester = self._tester(**options)
 
         shift = self.parent().one()
+        v = 0
 
         from sage.categories.all import Fields
         if self.parent() in Fields():
+            v = self.valuation()
             from sage.rings.all import infinity
             if self.valuation() is not infinity:
-                shift = shift << self.valuation()
+                shift = shift << v
 
         for mode in ['simple', 'smallest', 'teichmuller']:
             expansion = self.expansion(lift_mode=mode)
@@ -794,7 +796,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             tester.assertEqual(self, shift*sum(self.parent().maximal_unramified_subextension()(c) * (self.parent().one()<<i) for i,c in enumerate(expansion)))
 
             for i,c in enumerate(expansion):
-                tester.assertEqual(c, self.expansion(lift_mode=mode, n=i))
+                tester.assertEqual(c, self.expansion(lift_mode=mode, n=i+v))
 
             if mode == 'teichmuller':
                 q = self.parent().residue_field().cardinality()

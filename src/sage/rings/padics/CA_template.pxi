@@ -738,8 +738,9 @@ cdef class CAElement(pAdicTemplateElement):
         return (self.parent(), tuple_recursive(self.expansion()), self.precision_absolute())
 
     def expansion(self, n = None, lift_mode = 'simple', start_val = None):
-        """
-        Returns a list of coefficients of `p` starting with `p^0`.
+        r"""
+        Return the coefficients of a `\pi`-adic expansion starting with the
+        coefficient of `\pi^0`.
 
         For each lift mode, this function returns a list of `a_i` so
         that this element can be expressed as
@@ -826,7 +827,7 @@ cdef class CAElement(pAdicTemplateElement):
         if lift_mode == 'teichmuller':
             zero = self.parent()(0)
         else:
-            # needs to be defined in the linkage file.
+            # _list_zero is defined in the linkage file.
             zero = _list_zero
         if n in ('simple', 'smallest', 'teichmuller'):
             deprecation(14825, "Interface to expansion has changed; first argument now n")

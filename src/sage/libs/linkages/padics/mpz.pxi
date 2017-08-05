@@ -548,7 +548,7 @@ cdef list ccoefficients(mpz_t x, long valshift, long prec, PowComputer_ prime_po
     - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
     - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
     - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
-    - ``prime_pow`` -- the Powcomputer of the ring
+    - ``prime_pow`` -- the ``PowComputer`` of the ring
     """
     cdef Integer ansz
     cdef Rational ansq
@@ -572,7 +572,7 @@ cdef int cteichmuller(mpz_t out, mpz_t value, long prec, PowComputer_ prime_pow)
                  \pmod{p}`.
     - ``value`` -- an ``mpz_t``, the element mod `p` to lift.
     - ``prec`` -- a long, the precision to which to lift.
-    - ``prime_pow`` -- the Powcomputer of the ring.
+    - ``prime_pow`` -- the ``PowComputer`` of the ring.
     """
     if mpz_divisible_p(value, prime_pow.prime.value) != 0:
         mpz_set_ui(out, 0)

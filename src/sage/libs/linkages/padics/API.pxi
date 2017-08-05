@@ -496,7 +496,7 @@ cdef list ccoefficients(celement x, long valshift, PowComputer_class prime_pow):
     - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
     - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
     - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
-    - ``prime_pow`` -- the Powcomputer of the ring
+    - ``prime_pow`` -- the ``PowComputer`` of the ring
     """
     pass
 
@@ -511,7 +511,7 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_class
                  \pmod{\pi}`.
     - ``value`` -- an ``celement``, the element mod `\pi` to lift.
     - ``prec`` -- a long, the precision to which to lift.
-    - ``prime_pow`` -- the Powcomputer of the ring.
+    - ``prime_pow`` -- the ``PowComputer`` of the ring.
     """
     pass
 

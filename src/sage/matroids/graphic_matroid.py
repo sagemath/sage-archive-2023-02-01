@@ -113,7 +113,7 @@ class GraphicMatroid(Matroid):
 
     OUTPUT:
 
-    A ``GraphicMatroid`` instances where the ground set elements are
+    A ``GraphicMatroid`` instance where the ground set elements are
     the edges of ``G``.
 
     ..NOTE::
@@ -379,7 +379,7 @@ class GraphicMatroid(Matroid):
         """
         Compare two matroids.
 
-        For two graphic matroids must be equal, all attributes of the underlying
+        For two graphic matroids to be equal, all attributes of the underlying
         graphs must be equal.
 
         INPUT:
@@ -532,6 +532,10 @@ class GraphicMatroid(Matroid):
         Assumptions: contractions are independent, deletions are coindependent,
         contractions and deletions are disjoint.
 
+        OUTPUT:
+
+        An instance of GraphicMatroid.
+
         EXAMPLES::
 
             sage: M = Matroid(graphs.CompleteGraph(5))
@@ -561,7 +565,15 @@ class GraphicMatroid(Matroid):
         INPUT:
 
         - ``N`` - A matroid.
-        - ``certificate`` - (default: ``False``)
+        - ``certificate`` - (default: ``False``) If ``True``, returns
+          either ``False, None`` or
+          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
+
+        OUTPUT:
+
+        Boolean, or tuple if the ``certificate`` option is used.
+
 
         EXAMPLES::
 
@@ -841,7 +853,7 @@ class GraphicMatroid(Matroid):
             sage: M._max_coindependent([2,3,4])
             frozenset({2, 4})
             sage: N = M.graphic_extension(0, element='a')
-            sage: N.max_coindependent([0,1,2,'a'])
+            sage: sorted(N.max_coindependent([0,1,2,'a']))
             frozenset({1, 2, 'a'})
         """
         edges = self.groundset_to_edges(X)
@@ -881,7 +893,7 @@ class GraphicMatroid(Matroid):
             sage: N = Matroid(graphs.CompleteBipartiteGraph(3,3))
             sage: N._circuit([0, 1, 2, 6, 7, 8])
             frozenset({0, 1, 6, 7})
-            sage: N._circuit([0,1,2])
+            sage: N._circuit([0, 1, 2])
             Traceback (most recent call last):
             ...
             ValueError: no circuit in independent set
@@ -958,7 +970,7 @@ class GraphicMatroid(Matroid):
             sage: N._coclosure([3])
             frozenset({3, 4})
             sage: N = M.graphic_coextension(0, element='a')
-            sage: N._coclosure([3])
+            sage: sorted(N._coclosure([3]))
             frozenset({3, 4, 'a'})
         """
         g = self.graph()
@@ -1069,7 +1081,7 @@ class GraphicMatroid(Matroid):
             False
         """
         # Check for 3-connectivity so we don't have to worry about Whitney twists
-        if isinstance(other,GraphicMatroid) and other.is_3connected():
+        if isinstance(other, GraphicMatroid) and other.is_3connected():
             G = self.graph()
             H = other.graph()
             G.allow_loops(False)
@@ -1092,7 +1104,7 @@ class GraphicMatroid(Matroid):
 
         else:
             M = self.regular_matroid()
-            if isinstance(other,GraphicMatroid):
+            if isinstance(other, GraphicMatroid):
                 other = other.regular_matroid()
             return M._is_isomorphic(other, certificate=certificate)
 
@@ -1309,8 +1321,7 @@ class GraphicMatroid(Matroid):
         Return a graphic matroid extended by a new element.
 
         A new edge will be added between ``u`` and ``v``. If ``v`` is not
-        specified, then a loop is added on ``u``. If both ``u`` and ``v`` are new
-        vertices, then vertices will be merged so the graph still has one component.
+        specified, then a loop is added on ``u``.
 
         INPUT:
 
@@ -1861,6 +1872,11 @@ class GraphicMatroid(Matroid):
         - ``X`` -- A subset of the ground set.
         - ``u`` -- A vertex spanned by the edges of the elements in ``X``.
         - ``v`` -- A vertex spanned by the edges of the elements not in ``X``.
+
+        OUTPUT:
+
+        An instance of ``GraphicMatroid`` isomorphic to this matroid but with
+        a graph that is not necessarily isomorphic.
 
         EXAMPLES::
 

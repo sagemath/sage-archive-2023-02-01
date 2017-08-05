@@ -85,7 +85,7 @@ def gauss_sum(a, p, f, prec=20):
         sage: -gauss_sum(0,3,1)
         1 + O(pi^40)
 
-    Next, we verify that `g_5(a)*g_5(-a) = 5*(-1)^a`::
+    Next, we verify that `g_5(a) g_5(-a) = 5 (-1)^a`::
 
         sage: from sage.rings.padics.misc import gauss_sum
         sage: gauss_sum(2,5,1)^2-5

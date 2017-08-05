@@ -36,6 +36,7 @@ class pseries : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(pseries, basic)
 
+        friend class ex;
 	// other constructors
 public:
 	pseries(const ex &rel_, epvector ops_);

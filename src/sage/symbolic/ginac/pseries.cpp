@@ -575,7 +575,7 @@ ex basic::series(const relational & r, int order, unsigned options) const
 	numeric fac = 1;
 	ex deriv = *this;
 	const ex co = deriv.subs(r, subs_options::no_pattern);
-	if (!co.is_zero()) {
+	if (not co.is_zero()) {
 		seq.push_back(expair(co, _ex0));
 	}
 
@@ -601,6 +601,15 @@ ex basic::series(const relational & r, int order, unsigned options) const
 	return pseries(r, seq);
 }
 
+
+ex numeric::series(const relational & r, int order, unsigned options) const
+{
+	epvector seq;
+        if (not is_zero())
+                seq.push_back(expair(*this, _ex0));
+        seq.push_back(expair(Order(_ex1), numeric(order)));
+	return pseries(r, seq);
+}
 
 /** Implementation of ex::series() for symbols.
  *  @see ex::series */
@@ -1200,7 +1209,14 @@ ex ex::series(const ex & r, int order, unsigned options) const
                 }
         }
         e = bp->series(rel_, order, options);
-	return e;
+        if ((options & series_options::truncate) != 0u) {
+                epvector v = ex_to<pseries>(e).seq;
+                if (is_order_function((v.end()-1)->rest)) {
+                        v.erase(v.end()-1);
+                        return pseries(rel_, v);
+                }
+        }
+        return e;
 }
 
 } // namespace GiNaC

@@ -96,7 +96,8 @@ public:
 		 *  it is passed and expansion at a point on a cut is performed, then
 		 *  the analytic continuation of the function is expanded. */
 		suppress_branchcut = 0x0001,
-                try_univariate_flint = 0x0002
+                try_univariate_flint = 0x0002,
+                truncate = 0x0004
 	};
 };
 

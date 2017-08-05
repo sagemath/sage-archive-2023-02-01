@@ -168,6 +168,7 @@ public:
         ex conjugate() const override { return ex(conj()); }
 	ex real_part() const override;
 	ex imag_part() const override;
+        ex series(const relational & r, int order, unsigned options) const override;
 protected:
 
 	/** Implementation of ex::diff for a numeric always returns 0.

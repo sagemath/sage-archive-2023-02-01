@@ -29,9 +29,6 @@ from __future__ import absolute_import
 from six.moves.builtins import min as python_min
 from six.moves.builtins import max as python_max
 from sage.rings.infinity import infinity
-from sage.rings.padics.factory import Zp
-from sage.rings.all import PolynomialRing
-
 
 def gauss_sum(a, p, f, prec=20):
     r"""
@@ -104,6 +101,8 @@ def gauss_sum(a, p, f, prec=20):
         pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 +
         pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
     """
+    from sage.rings.padics.factory import Zp
+    from sage.rings.all import PolynomialRing
     a = a % (p**f - 1)
     R = Zp(p, prec)
     X = PolynomialRing(R, name='X').gen()

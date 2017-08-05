@@ -589,9 +589,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                     self._representation = self._basic_representation(B)
                 A = self._representation
             else:
-                if not self.groundset().issuperset(B):
-                    raise ValueError("input is not a subset of the groundset.")
-                B = set(B)
+                B = self.__subset(B)
                 A = self._basic_representation(B)
             A = A.matrix_from_rows_and_columns(range(A.nrows()), order_idx)
             if lift_map is None:
@@ -606,11 +604,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                     return lift_cross_ratios(A._matrix_(), lift_map)
         else:
             if B is None:
-                B = self.basis()
+                B = frozenset(self.basis())
             else:
-                if not self.groundset().issuperset(B):
-                    raise ValueError("input is not a subset of the groundset.")
-            B = set(B)
+                B = self.__subset(B)
             A = self._reduced_representation(B)
             R, C = self._current_rows_cols()
             Ri = []

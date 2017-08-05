@@ -172,8 +172,8 @@ def Matroid(groundset=None, data=None, **kwds):
     must be a positional argument and anything else must be a keyword
     argument):
 
-    - ``data`` -- a graph or a matrix or a list of independent sets
-      containing all bases or a matroid.
+    - ``data`` -- a graph or a matrix or a RevLex-Index string or a list
+      of independent sets containing all bases or a matroid.
     - ``bases`` -- The list of bases (maximal independent sets) of the
       matroid.
     - ``independent_sets`` -- The list of independent sets of the matroid.
@@ -189,6 +189,8 @@ def Matroid(groundset=None, data=None, **kwds):
     - ``circuit_closures`` -- Either a list of tuples ``(k, C)`` with ``C``
       the closure of a circuit, and ``k`` the rank of ``C``, or a dictionary
       ``D`` with ``D[k]`` the set of closures of rank-``k`` circuits.
+    - ``revlex`` -- the encoding as a string of ``0`` and ``*`` symbols.
+      Used by [MatroidDatabase]_ and explained in [MMIB2012]_.
     - ``matroid`` -- An object that is already a matroid. Useful only with the
       ``regular`` option.
 
@@ -541,6 +543,46 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: M.equals(matroids.named_matroids.Q6())
             True
 
+    #.  RevLex-Index:
+
+        This requires the ``groundset`` to be given and also needs a
+        additional keyword argument ``rank`` to specify the rank of the
+        matroid::
+
+            sage: M = Matroid("abcdef", "000000******0**", rank=4); M
+            Matroid of rank 4 on 6 elements with 8 bases
+            sage: list(M.bases())
+            [frozenset({'a', 'b', 'd', 'f'}),
+             frozenset({'a', 'c', 'd', 'f'}),
+             frozenset({'b', 'c', 'd', 'f'}),
+             frozenset({'a', 'b', 'e', 'f'}),
+             frozenset({'a', 'c', 'e', 'f'}),
+             frozenset({'b', 'c', 'e', 'f'}),
+             frozenset({'b', 'd', 'e', 'f'}),
+             frozenset({'c', 'd', 'e', 'f'})]
+
+        Only the ``0`` symbols really matter, any symbol can be used
+        instead of ``*``:
+
+            sage: Matroid("abcdefg", revlex="0++++++++0++++0+++++0+--++----+--++", rank=4)
+            Matroid of rank 4 on 7 elements with 31 bases
+
+        It is checked that the input makes sense (but not that it
+        defines a matroid)::
+
+            sage: Matroid("abcdef", "000000******0**")
+            Traceback (most recent call last):
+            ...
+            TypeError: for RevLex-Index, the rank needs to be specified
+            sage: Matroid("abcdef", "000000******0**", rank=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected string of length 20 (6 choose 3), got 15
+            sage: M = Matroid("abcdef", "*0000000000000*", rank=4); M
+            Matroid of rank 4 on 6 elements with 2 bases
+            sage: M.is_valid()
+            False
+
     #.  Matroid:
 
         Most of the time, the matroid itself is returned::
@@ -648,7 +690,7 @@ def Matroid(groundset=None, data=None, **kwds):
     key = None
     if data is None:
         for k in ['bases', 'independent_sets', 'circuits', 'graph',
-                'matrix', 'reduced_matrix', 'rank_function',
+                'matrix', 'reduced_matrix', 'rank_function', 'revlex',
                 'circuit_closures', 'matroid']:
             if k in kwds:
                 data = kwds.pop(k)
@@ -667,6 +709,8 @@ def Matroid(groundset=None, data=None, **kwds):
             key = 'matrix'
         elif isinstance(data, sage.matroids.matroid.Matroid):
             key = 'matroid'
+        elif isinstance(data, str):
+            key = 'revlex'
         elif data is None:
             raise TypeError("no input data given for Matroid()")
         else:
@@ -817,6 +861,32 @@ def Matroid(groundset=None, data=None, **kwds):
         if groundset is None:
             raise TypeError('for rank functions, the groundset needs to be specified')
         M = RankMatroid(groundset=groundset, rank_function=data)
+
+    # RevLex-Index:
+    elif key == "revlex":
+        if groundset is None:
+            raise TypeError('for RevLex-Index, the groundset needs to be specified')
+        try:
+            rk = kwds.pop("rank")
+        except KeyError:
+            raise TypeError('for RevLex-Index, the rank needs to be specified')
+
+        groundset = tuple(groundset)
+        data = tuple(data)
+        rk = int(rk)
+        N = len(groundset)
+
+        def revlex_sort_key(s):
+            return tuple(reversed(s))
+        subsets = sorted(combinations(range(N), rk), key=revlex_sort_key)
+        if len(data) != len(subsets):
+            raise ValueError("expected string of length %s (%s choose %s), got %s" %
+                (len(subsets), N, rk, len(data)))
+        bases = []
+        for i, x in enumerate(data):
+            if x != '0':
+                bases.append([groundset[c] for c in subsets[i]])
+        M = BasisMatroid(groundset=groundset, bases=bases)
 
     # Circuit closures:
     elif key == 'circuit_closures':

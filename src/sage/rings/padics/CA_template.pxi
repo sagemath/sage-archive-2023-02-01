@@ -1029,7 +1029,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         return chash(self.value, 0, self.absprec, self.prime_pow)
 
-cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
+cdef class pAdicCoercion_ZZ_CA(RingHomomorphism):
     """
     The canonical inclusion from the ring of integers to a capped absolute
     ring.
@@ -1037,9 +1037,14 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
     EXAMPLES::
 
         sage: f = ZpCA(5).coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   5-adic Ring with capped absolute precision 20
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, R):
         """
@@ -1050,7 +1055,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
             sage: f = ZpCA(5).coerce_map_from(ZZ); type(f)
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCoercion_ZZ_CA'>
         """
-        RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
+        RingHomomorphism.__init__(self, ZZ.Hom(R))
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_CA_ZZ(R)
 
@@ -1071,7 +1076,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1090,7 +1095,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -1346,7 +1351,7 @@ cdef class pAdicConvert_QQ_CA(Morphism):
                 cconv_mpq_t(ans.value, (<Rational>x).value, ans.absprec, True, self._zero.prime_pow)
         return ans
 
-cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
+cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
     """
     The canonical inclusion of Zq into its fraction field.
 
@@ -1354,10 +1359,14 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
 
         sage: R.<a> = ZqCA(27, implementation='FLINT')
         sage: K = R.fraction_field()
-        sage: K.coerce_map_from(R)
-        Ring Coercion morphism:
-          From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
-          To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+        sage: f = K.coerce_map_from(R); f
+        Ring morphism:
+          From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
+          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+
+    TESTS::
+
+        sage: TestSuite(f).run()
     """
     def __init__(self, R, K):
         """
@@ -1370,7 +1379,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
             sage: f = K.coerce_map_from(R); type(f)
             <type 'sage.rings.padics.qadic_flint_CA.pAdicCoercion_CA_frac_field'>
         """
-        RingHomomorphism_coercion.__init__(self, R.Hom(K), check=False)
+        RingHomomorphism.__init__(self, R.Hom(K))
         self._zero = K(0)
         self._section = pAdicConvert_CA_frac_field(K, R)
 
@@ -1470,9 +1479,9 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
-              From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
-              To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+            Ring morphism:
+              From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
             sage: g == f
             True
             sage: g is f
@@ -1485,7 +1494,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1498,9 +1507,9 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
-              From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
-              To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            Ring morphism:
+              From: Unramified Extension in a defined by x^2 + 2*x + 2 with capped absolute precision 20 over 3-adic Ring
+              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
             sage: g == f
             True
             sage: g is f
@@ -1513,7 +1522,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     def is_injective(self):
         r"""
@@ -1556,8 +1565,8 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
-          To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+          From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
     """
     def __init__(self, K, R):
         """
@@ -1664,8 +1673,8 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
-              To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+              From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
             sage: g == f
             True
             sage: g is f
@@ -1692,8 +1701,8 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
-              To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+              From: Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
+              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with capped absolute precision 20 over 3-adic Ring
             sage: g == f
             True
             sage: g is f

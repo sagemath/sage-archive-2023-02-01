@@ -49,6 +49,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import RealField, RR, is_RealField
 from sage.arith.all import gcd, lcm, is_prime, binomial
+from sage.functions.other import ceil
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
@@ -934,7 +935,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             err = R(err)
             if not err>0:
                 raise ValueError("error bound (=%s) must be positive"%err)
-            if G.is_endomorphism() == False:
+            if not G.is_endomorphism():
                 raise NotImplementedError("error bounds only for endomorphisms")
 
             #if doing error estimates, compute needed number of iterates
@@ -1029,7 +1030,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ALGORITHM:
 
-            The sum of the Green's function at the archimedean places and the places of bad reduction.
+        The sum of the Green's function at the archimedean places and the places of bad reduction.
+
+        If function is defined over ``QQ`` uses Wells' Algorithm, which allows us to
+        not have to factor the resultant.
 
         INPUT:
 
@@ -1047,6 +1051,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         - ``error_bound`` - a positive real number (optional).
 
         OUTPUT: a real number.
+
+        AUTHORS:
+
+        - Original algorithm written by Elliot Wells [WELLS]_
+
+        - Wells' Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+
 
         EXAMPLES::
 
@@ -1066,7 +1077,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([x^2-29/16*y^2, y^2]);
             sage: Q = P(5, 4)
             sage: f.canonical_height(Q, N=30)
-            1.4989058602918874235833076226e-9
+            4.0810803274380803222471849762e-9
 
         ::
 
@@ -1085,12 +1096,66 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f = H([1000*x^2-29*y^2, 1000*y^2])
             sage: Q = P(-1/4, 1)
             sage: Q.canonical_height(f, error_bound=0.01)
-            3.8004512297710411807356032428
+            3.7996079979254623065837411853
+
+        ::
+
+            sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
+                1726400507263657518745202199786469389956474942774063845925192557326303453731548\
+                2685079170261221429134616704292143116022212404792747377940806653514195974598569\
+                02143413
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([RSA768*x^2 + y^2, x*y])
+            sage: Q = P(RSA768,1)
+            sage: Q.canonical_height(f, error_bound=0.00000000000000001)
+            931.18256422718241278672729195
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
+
+        #Wells' Algorithm
+        if K is QQ and F.codomain().ambient_space().dimension_relative() == 1:
+            # write our point with coordinates whose gcd is 1
+            self.normalize_coordinates()
+            if self.parent().value_ring() is QQ:
+                self.clear_denominators()
+            #assures integer coeffcients
+            coeffs = F[0].coefficients() + F[1].coefficients()
+            t = 1
+            for c in coeffs:
+                t = lcm(t, c.denominator())
+            A = t*F[0]
+            B = t*F[1]
+            Res = F.resultant(normalize=True)
+            H = 0
+            x_i = self[0]
+            y_i = self[1]
+            d = F.degree()
+            R = RealField(prec)
+            N = kwds.get('N', 10)
+            err = kwds.get('error_bound', None)
+            #computes the error bound as defined in Algorithm 3.1 of [WELLS]
+            if Res > 1:
+                if not err is None:
+                    err = err/2
+                    N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
+                    if N < 1:
+                        N = 1
+                    kwds.update({'error_bound': err})
+                    kwds.update({'N': N})
+                for n in range(N):
+                    x = A(x_i,y_i) % Res**(N-n)
+                    y = B(x_i,y_i) % Res**(N-n)
+                    g = gcd([x, y, Res])
+                    H = H + R(g).abs().log()/(d**(n+1))
+                    x_i = x/g
+                    y_i = y/g
+            # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
+            # and what Green's Function returns for the infinite place
+            return self.green_function(F, 0 , **kwds) - H + R(t).log()
 
         if not K in _NumberFields:
             if not K is QQbar:

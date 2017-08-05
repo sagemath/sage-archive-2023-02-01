@@ -219,6 +219,8 @@ from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
 from sage.categories.algebras import Algebras
 from sage.categories.hopf_algebras import HopfAlgebras
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.tensor import tensor
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -2820,6 +2822,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).plethysm(s(0))
             s[]
 
+        Sage also handles plethsym of tensor products of symmetric functions::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: X = tensor([s[1],s[[]]])
+            sage: Y = tensor([s[[]],s[1]])
+            sage: s[1,1,1](X+Y)
+            s[] # s[1, 1, 1] + s[1] # s[1, 1] + s[1, 1] # s[1] + s[1, 1, 1] # s[]
+            sage: s[1,1,1](X*Y)
+            s[1, 1, 1] # s[3] + s[2, 1] # s[2, 1] + s[3] # s[1, 1, 1]
+
         .. SEEALSO::
 
             :meth:`frobenius`
@@ -2829,13 +2841,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: (1+p[2]).plethysm(p[2])
             p[] + p[4]
         """
-        if not is_SymmetricFunction(x):
-            raise TypeError("only know how to compute plethysms "
-                            "between symmetric functions")
         parent = self.parent()
-        p = parent.realization_of().power()
         R = parent.base_ring()
-        p_x = p(x)
+        tHA = HopfAlgebrasWithBasis(R).TensorProducts()
+        tensorflag = tHA in x.parent().categories()
+        if not (is_SymmetricFunction(x) or tensorflag):
+            raise TypeError("only know how to compute plethysms "
+                            "between symmetric functions or tensors "
+                            "of symmetric functions")
+        p = parent.realization_of().power()
         if self == parent.zero():
             return self
 
@@ -2857,25 +2871,32 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             degree_one = [g for g in degree_one if g not in exclude]
 
         degree_one = [g for g in degree_one if g != R.one()]
-            
-        # Takes in n, and returns a function which takes in a partition and
-        # scales all of the parts of that partition by n
-        
-        def scale_part(n):
-            return lambda m: m.__class__(m.parent(), [i * n for i in m])
 
         def raise_c(n):
             return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
 
+        if tensorflag:
+            tparents = x.parent()._sets
+            return tensor([parent]*len(tparents))(sum(d*prod(sum(raise_c(r)(c)
+                                  * tensor([p[r].plethysm(base(la))
+                                           for (base,la) in zip(tparents,trm)])
+                                  for (trm,c) in x)
+                              for r in mu)
+                       for (mu, d) in p(self)))
+
+        # Takes in n, and returns a function which takes in a partition and
+        # scales all of the parts of that partition by n
+        def scale_part(n):
+            return lambda m: m.__class__(m.parent(), [i * n for i in m])
+
         # Takes n an symmetric function f, and an n and returns the
         # symmetric function with all of its basis partitions scaled
         # by n
-
         def pn_pleth(f, n):
             return f.map_support(scale_part(n))
 
         # Takes in a partition and applies
-
+        p_x = p(x)
         def f(part):
             return p.prod(pn_pleth(p_x.map_coefficients(raise_c(i)), i)
                           for i in part)

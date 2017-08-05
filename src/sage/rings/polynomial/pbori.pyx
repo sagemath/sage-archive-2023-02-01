@@ -8039,7 +8039,7 @@ cdef class BooleConstant:
 
     def has_constant_part(self):
         """
-        This is true for for `BooleConstant(1)`.
+        This is true for `BooleConstant(1)`.
 
         EXAMPLES::
 
@@ -8151,7 +8151,7 @@ cdef class MonomialFactory:
     def __init__(self, ring=None):
         """
         Initialized a polynomial factory of ring is given.
-        Otherwise it it initializes a plain constructor.
+        Otherwise it initializes a plain constructor.
 
         EXAMPLES::
 

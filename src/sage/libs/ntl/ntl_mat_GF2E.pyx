@@ -609,7 +609,7 @@ cdef class ntl_mat_GF2E(object):
 
     def image(self):
         """
-        The rows of X are computed as basis of A's row space.  X is is
+        The rows of X are computed as basis of A's row space.  X is
         row echelon form.
 
         EXAMPLES::

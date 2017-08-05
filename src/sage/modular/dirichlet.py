@@ -2042,7 +2042,7 @@ class DirichletGroupFactory(UniqueFactory):
             ValueError: modulus should be positive            
         """
         modulus = rings.Integer(N)
-        if modulus < 0:
+        if modulus <= 0:
             raise ValueError('modulus should be positive')
 
         if base_ring is None:

@@ -76,6 +76,8 @@ import sage.interfaces.all
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.factory import UniqueFactory
+from sage.structure.richcmp import richcmp, richcmp_method
+
 
 class IntegerModFactory(UniqueFactory):
     r"""
@@ -287,6 +289,7 @@ def _unit_gens_primepowercase(p, r):
              integer.Integer(p**(r - 1) * (p - 1)))]
 
 
+@richcmp_method
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
     The ring of integers modulo `N`.
@@ -1274,7 +1277,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             if p**n == N:
                 return ResidueReductionMap._create_(other, self)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -1305,12 +1308,12 @@ In the latter case, please inform the developers.""".format(self.order()))
         # But if we go to the base class, we avoid the influence
         # of the category.
         try:
-            c = cmp(other.__class__.__base__, self.__class__.__base__)
+            c = bool(other.__class__.__base__ != self.__class__.__base__)
         except AttributeError: # __base__ does not always exists
-            c = cmp(type(other), type(self))
+            c = bool(type(other) != type(self))
         if c:
-            return c
-        return cmp(self.__order, other.__order)
+            return NotImplemented
+        return richcmp(self.__order, other.__order, op)
 
     def unit_gens(self, **kwds):
         r"""

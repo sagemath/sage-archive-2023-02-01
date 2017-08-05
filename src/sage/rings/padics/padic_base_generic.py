@@ -172,6 +172,18 @@ class pAdicBaseGeneric(pAdicGeneric):
         from sage.rings.rational_field import QQ
         return QQ
 
+    def exact_ring(self):
+        """
+        Returns the integer ring.  
+
+        EXAMPLES::
+
+            sage: Zp(5).exact_ring() 
+            Integer Ring
+        """
+        from sage.rings.integer_ring import ZZ
+        return ZZ
+
     def is_isomorphic(self, ring):
         r"""
         Returns whether ``self`` and ``ring`` are isomorphic, i.e. whether ``ring`` is an implementation of `\mathbb{Z}_p` for the same prime as ``self``.

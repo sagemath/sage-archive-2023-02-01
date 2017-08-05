@@ -312,7 +312,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     #assert(len(bases) > 0 )
     try:
         name = str(name)
-    except:
+    except UnicodeEncodeError:
         pass
     assert(isinstance(name, str))
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)

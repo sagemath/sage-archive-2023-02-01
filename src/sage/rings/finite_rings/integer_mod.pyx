@@ -4166,6 +4166,30 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     def _repr_type(self):
         return "Natural"
 
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: Zmod(4).hom(Zmod(2)).is_surjective()
+            True
+
+        """
+        return True
+
+    def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: Zmod(4).hom(Zmod(2)).is_injective()
+            False
+
+        """
+        return self.domain().order() == self.codomain().order()
+
 cdef class Integer_to_IntegerMod(IntegerMod_hom):
     r"""
     Fast `\ZZ \rightarrow \ZZ/n\ZZ`

@@ -1775,6 +1775,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         if element is not None:
             self.element.set_cache(element)
 
+
 class DirichletGroupFactory(UniqueFactory):
     r"""
     Construct a group of Dirichlet characters modulo `N`.
@@ -1985,7 +1986,8 @@ class DirichletGroupFactory(UniqueFactory):
         True
 
     """
-    def create_key(self, N, base_ring=None, zeta=None, zeta_order=None, names=None, integral=False):
+    def create_key(self, N, base_ring=None, zeta=None, zeta_order=None,
+                   names=None, integral=False):
         """
         Create a key that uniquely determines a Dirichlet group.
 
@@ -2035,8 +2037,14 @@ class DirichletGroupFactory(UniqueFactory):
             sage: G.order()
             4
 
+            sage: DirichletGroup(-33)
+            Traceback (most recent call last):
+            ...
+            ValueError: modulus should be positive            
         """
         modulus = rings.Integer(N)
+        if modulus <= 0:
+            raise ValueError('modulus should be positive')
 
         if base_ring is None:
             if not (zeta is None and zeta_order is None):

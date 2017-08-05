@@ -167,7 +167,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         """
         return self.lift_c()
 
-    def residue(self, absprec=1, field=None):
+    def residue(self, absprec=1, field=None, check_prec=True):
         r"""
         Reduces ``self`` modulo `p^\mathrm{absprec}`.
 
@@ -176,6 +176,9 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         - ``absprec`` -- a non-negative integer (default: 1)
 
         - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
+
+        - ``check_prec`` -- boolean (default ``True``).  Whether to raise an error if this
+          element has insufficient precision to determine the reduction.
 
         OUTPUT:
 
@@ -219,6 +222,8 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision known in order to compute residue.
+            sage: a.residue(5, check_prec=False)
+            8
 
             sage: a.residue(field=True).parent()
             Finite Field of size 7
@@ -230,7 +235,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         """
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_cmp_si((<Integer>absprec).value, self.absprec) > 0:
+        if check_prec and mpz_cmp_si((<Integer>absprec).value, self.absprec) > 0:
             raise PrecisionError("not enough precision known in order to compute residue.")
         elif mpz_sgn((<Integer>absprec).value) < 0:
             raise ValueError("cannot reduce modulo a negative power of p.")

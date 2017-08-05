@@ -244,7 +244,7 @@ cdef class pAdicFixedModElement(FMElement):
         """
         return self.lift_c()
 
-    def residue(self, absprec=1, field=None):
+    def residue(self, absprec=1, field=None, check_prec=False):
         r"""
         Reduce ``self`` modulo `p^\mathrm{absprec}`.
 
@@ -253,6 +253,8 @@ cdef class pAdicFixedModElement(FMElement):
         - ``absprec`` -- an integer (default: ``1``)
 
         - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
+
+        - ``check_prec`` -- boolean (default ``False``).  No effect (for compatibility with other types).
 
         OUTPUT:
 
@@ -289,9 +291,7 @@ cdef class pAdicFixedModElement(FMElement):
             ...
             ValueError: Cannot reduce modulo a negative power of p.
             sage: a.residue(5)
-            Traceback (most recent call last):
-            ...
-            PrecisionError: Not enough precision known in order to compute residue.
+            8
 
             sage: a.residue(field=True).parent()
             Finite Field of size 7
@@ -302,17 +302,18 @@ cdef class pAdicFixedModElement(FMElement):
 
         """
         cdef Integer selfvalue, modulus
+        cdef long aprec
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
-        if absprec > self.precision_absolute():
-            raise PrecisionError("Not enough precision known in order to compute residue.")
-        elif absprec < 0:
+        if absprec < 0:
             raise ValueError("Cannot reduce modulo a negative power of p.")
         if field is None:
             field = (absprec == 1)
         elif field and absprec != 1:
             raise ValueError("field keyword may only be set at precision 1")
-        cdef long aprec = mpz_get_ui((<Integer>absprec).value)
+        if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+            raise ValueError("absolute precision does not fit in a long")
+        aprec = mpz_get_si((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)

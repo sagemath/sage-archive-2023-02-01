@@ -1015,7 +1015,7 @@ class ResidueReductionMap(Morphism):
             ...
             ValueError: element must have non-negative valuation in order to compute residue.
         """
-        return x.residue(self._n, field=self._field)
+        return x.residue(self._n, field=self._field, check_prec=self._field)
 
     def section(self):
         """

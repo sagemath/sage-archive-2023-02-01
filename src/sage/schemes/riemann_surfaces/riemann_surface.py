@@ -1316,7 +1316,7 @@ class RiemannSurface(object):
         if self.genus == 0:
             self._differentials = []
             return self._differentials[0]
-        if (self._differentials == None):
+        if self._differentials is None:
             # Computes differentials from the adjointIdeal using Singular
             # First we homogenize
             base = self.f.base_ring()

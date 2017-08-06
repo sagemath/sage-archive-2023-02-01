@@ -63,7 +63,7 @@ from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.ring import Field
 from sage.structure.element import FieldElement
-from sage.structure.richcmp import richcmp_method, rich_to_bool, richcmp
+from sage.structure.richcmp import richcmp
 
 
 class AlgebraicClosureFiniteFieldElement(FieldElement):
@@ -175,7 +175,6 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2) == F.gen(3)
             False
-
         """
         x, y = self.parent()._to_common_subfield(self, right)
         return richcmp(x, y, op)
@@ -542,7 +541,6 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         return (F, x, phi)
 
 
-@richcmp_method
 class AlgebraicClosureFiniteField_generic(Field):
     """
     Algebraic closure of a finite field.
@@ -561,7 +559,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         Field.__init__(self, base_ring=base_ring, names=name,
                        normalize=False, category=category)
 
-    def __richcmp__(self, other, op):
+    def __eq__(self, other):
         """
         Compare ``self`` with ``other``.
 
@@ -573,16 +571,28 @@ class AlgebraicClosureFiniteField_generic(Field):
             sage: F5 = GF(5).algebraic_closure()
             sage: F3 == F5
             False
-
         """
         if self is other:
-            return rich_to_bool(op, 0)
-        if not isinstance(other, AlgebraicClosureFiniteField_generic):
-            return NotImplemented
-        return richcmp((self.base_ring(), self.variable_name(),
-                        self.category()),
-                       (other.base_ring(), other.variable_name(),
-                        other.category()), op)
+            return True
+        if type(self) != type(other):
+            return False
+        return ((self.base_ring(), self.variable_name(), self.category()) ==
+                (other.base_ring(), other.variable_name(), other.category()))
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` and ``other`` are not equal.
+
+        TESTS::
+
+            sage: F3 = GF(3).algebraic_closure()
+            sage: F3 != F3
+            False
+            sage: F5 = GF(5).algebraic_closure()
+            sage: F3 != F5
+            True
+        """
+        return not (self == other)
 
     def cardinality(self):
         """
@@ -1033,6 +1043,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         R = p.parent()
         return Factorization([(R([-root, self.one()]), m) for root, m in p.roots()], unit=p[p.degree()])
 
+
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
     """
     Algebraic closure of a finite field, constructed using
@@ -1156,6 +1167,18 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         if m == 1:
             return self._subfield(n).one()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
+
+    def __eq__(self, other):
+        """
+        Compare ``self`` with ``other``.
+
+        TESTS::
+
+            sage: F3 = GF(3).algebraic_closure()
+            sage: loads(dumps(F3)) == F3
+            False
+        """
+        return (self is other)
 
 
 def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=None, **kwds):

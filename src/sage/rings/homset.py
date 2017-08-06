@@ -285,7 +285,7 @@ class RingHomset_quo_ring(RingHomset_generic):
             Composite map:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-              Defn:   Conversion map:
+              Defn:   Coercion map:
                       From: Multivariate Polynomial Ring in x, y over Integer Ring
                       To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
                     then
@@ -295,7 +295,7 @@ class RingHomset_quo_ring(RingHomset_generic):
                       Defn: a |--> b
                             b |--> a
                     then
-                      Conversion map:
+                      Coercion map:
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
 

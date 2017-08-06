@@ -51,7 +51,7 @@ def lovasz_theta(graph):
           sage: graphs.CycleGraph(5).lovasz_theta()          # optional csdp
           2.236068
 
-    TEST::
+    TESTS::
 
         sage: g = Graph()
         sage: g.lovasz_theta() # indirect doctest

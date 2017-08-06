@@ -1154,7 +1154,7 @@ class PiecewiseFunction(BuiltinFunction):
 
             as a string.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: f(x) = x^2
                 sage: f = piecewise([[(-1,1),f]])

@@ -99,10 +99,10 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
 class CharacteristicSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, n, min=None, max=None, weight=None):
         """
-        Returns the characteristic species of order `n`.
+        Return the characteristic species of order `n`.
 
-        This species has exactly one structure on a set of of size `n`
-        and no structures of on sets of any other size.
+        This species has exactly one structure on a set of size `n`
+        and no structures on sets of any other size.
 
         EXAMPLES::
 

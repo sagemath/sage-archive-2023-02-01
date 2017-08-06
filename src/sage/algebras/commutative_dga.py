@@ -71,9 +71,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import string_types
 
-import six
+from sage.misc.six import with_metaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -97,7 +98,11 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
-class Differential(UniqueRepresentation, Morphism):
+
+class Differential(with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        UniqueRepresentation, Morphism
+    )):
     r"""
     Differential of a commutative graded algebra.
 
@@ -119,8 +124,6 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""
@@ -847,7 +850,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, six.string_types):
+        elif isinstance(names, string_types):
             names = tuple(names.split(','))
             n = len(names)
         else:
@@ -1292,13 +1295,13 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         def is_homogeneous(self, total=False):
             r"""
-            Return ``True`` if ``self`` is homogenous and ``False`` otherwise.
+            Return ``True`` if ``self`` is homogeneous and ``False`` otherwise.
 
             INPUT:
 
             - ``total`` -- boolean (default ``False``); only used in the
               multi-graded case, in which case if ``True``, check to see
-              if ``self`` is homogenenous with respect to total degree
+              if ``self`` is homogeneous with respect to total degree
 
             EXAMPLES::
 

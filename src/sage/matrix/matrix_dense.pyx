@@ -7,12 +7,13 @@ TESTS::
     sage: m = matrix(R,2,[0,a,b,b^2])
     sage: TestSuite(m).run()
 """
+from __future__ import absolute_import
 from __future__ import print_function
 
-cimport matrix
+cimport sage.matrix.matrix as matrix
 
-from   sage.structure.element    cimport Element, RingElement
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.element cimport Element, RingElement
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 import sage.matrix.matrix_space
 import sage.structure.sequence
 
@@ -224,6 +225,33 @@ cdef class Matrix_dense(matrix.Matrix):
                              [nr - t for t in reversed(row_divs)])
         return atrans
 
+    def _reverse_unsafe(self):
+        r"""
+        TESTS::
+
+            sage: m = matrix(QQ, 2, 3, range(6))
+            sage: m._reverse_unsafe()
+            sage: m
+            [5 4 3]
+            [2 1 0]
+        """
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t nrows = self._nrows
+        cdef Py_ssize_t ncols = self._ncols
+        for i in range(nrows // 2):
+            for j in range(ncols):
+                e1 = self.get_unsafe(i, j)
+                e2 = self.get_unsafe(nrows - i - 1, ncols - j - 1)
+                self.set_unsafe(i, j, e2)
+                self.set_unsafe(nrows - i - 1, ncols - j - 1, e1)
+        if nrows % 2 == 1:
+            i = nrows // 2
+            for j in range(ncols // 2):
+                e1 = self.get_unsafe(i, j)
+                e2 = self.get_unsafe(nrows - i - 1, ncols - j - 1)
+                self.set_unsafe(i, j, e2)
+                self.set_unsafe(nrows - i - 1, ncols - j - 1, e1)
+
     def _elementwise_product(self, right):
         r"""
         Returns the elementwise product of two dense
@@ -242,7 +270,7 @@ cdef class Matrix_dense(matrix.Matrix):
         proper input.  More thorough documentation is provided
         there.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(ZZ, 2, range(6), sparse=False)
             sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=False)

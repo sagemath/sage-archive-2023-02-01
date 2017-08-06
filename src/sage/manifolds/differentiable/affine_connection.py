@@ -372,7 +372,7 @@ class AffineConnection(SageObject):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(4, 'M')
             sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
@@ -395,7 +395,7 @@ class AffineConnection(SageObject):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(4, 'M')
             sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
@@ -535,7 +535,7 @@ class AffineConnection(SageObject):
         classes to adapt the output to the relevant subclass of
         :class:`~sage.tensor.modules.comp.Components`.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -818,7 +818,7 @@ class AffineConnection(SageObject):
           coefficients w.r.t. which are to be kept; if ``None``, the default
           frame of the connection's domain is assumed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We first create two sets of connection coefficients::
 
@@ -1169,7 +1169,7 @@ class AffineConnection(SageObject):
 
         - instance of :class:`AffineConnection` representing the restriction.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Restriction of a connection on a 2-dimensional manifold::
 
@@ -1320,7 +1320,7 @@ class AffineConnection(SageObject):
 
         - tensor field `\nabla T`.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
@@ -1388,7 +1388,7 @@ class AffineConnection(SageObject):
 
         - tensor field `\nabla T`.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()

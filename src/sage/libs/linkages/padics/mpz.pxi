@@ -16,10 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 from cpython.list cimport *
 
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_pythonhash
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
@@ -327,7 +327,7 @@ cdef inline int cdivunit(mpz_t out, mpz_t a, mpz_t b, long prec, PowComputer_ pr
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:
@@ -441,12 +441,12 @@ cdef inline cpickle(mpz_t a, PowComputer_ prime_pow):
 
 cdef inline int cunpickle(mpz_t out, x, PowComputer_ prime_pow) except -1:
     """
-    Reconstruction from the output of meth:`cpickle`.
+    Reconstruction from the output of :meth:`cpickle`.
 
     INPUT:
 
     - ``out`` -- the ``mpz_t`` in which to store the result.
-    - ``x`` -- the result of `meth`:cpickle.
+    - ``x`` -- the result of :meth:`cpickle`.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     mpz_set(out, (<Integer?>x).value)

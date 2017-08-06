@@ -663,7 +663,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
-        This method is called by :meth:`is_zero()`.
+        This method is called by :meth:`~sage.structure.element.Element.is_zero()`.
 
         EXAMPLES:
 
@@ -688,13 +688,14 @@ class ScalarField(CommutativeAlgebraElement):
         if not self._express:
             # undefined scalar field
             return True
-        iszero = True
         for funct in itervalues(self._express):
-            iszero = iszero and funct.is_zero()
-        self._is_zero = iszero
-        return not iszero
+            if not funct.is_zero():
+                self._is_zero = False
+                return True
+        self._is_zero = True
+        return False
 
-    __nonzero__ = __bool__
+    __nonzero__ = __bool__   # For Python2 compatibility
 
     def __eq__(self, other):
         r"""
@@ -746,10 +747,10 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the comparison")
-        resu = True
         for chart in com_charts:
-            resu = resu and (self._express[chart] == other._express[chart])
-        return resu
+            if not (self._express[chart] == other._express[chart]):
+                return False
+        return True
 
     def __ne__(self, other):
         r"""
@@ -785,7 +786,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -800,7 +801,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -945,7 +946,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f = M.scalar_field(x*y^2)
             sage: g = f.copy()
             sage: type(g)
-            <class 'sage.manifolds.scalarfield.ScalarFieldAlgebra_with_category.element_class'>
+            <class 'sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra_with_category.element_class'>
             sage: g.expr()
             x*y^2
             sage: g == f
@@ -1077,7 +1078,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         Use :meth:`coord_function` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
@@ -1803,8 +1804,6 @@ class ScalarField(CommutativeAlgebraElement):
         for chart in com_charts:
             # CoordFunction addition:
             result._express[chart] = self._express[chart] + other._express[chart]
-        if result.is_zero():
-            return self._domain.zero_scalar_field()
         if self._name is not None and other._name is not None:
             result._name = self._name + '+' + other._name
         if self._latex_name is not None and other._latex_name is not None:
@@ -1854,8 +1853,6 @@ class ScalarField(CommutativeAlgebraElement):
         for chart in com_charts:
             # CoordFunction subtraction:
             result._express[chart] = self._express[chart] - other._express[chart]
-        if result.is_zero():
-            return self._domain.zero_scalar_field()
         if self._name is not None and other._name is not None:
             result._name = self._name + '-' + other._name
         if self._latex_name is not None and other._latex_name is not None:

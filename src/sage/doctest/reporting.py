@@ -308,7 +308,6 @@ class DocTestReporter(SageObject):
             stats = self.stats
             basename = source.basename
             cmd = self.report_head(source)
-
             try:
                 ntests, result_dict = results
             except (TypeError, ValueError):
@@ -323,7 +322,9 @@ class DocTestReporter(SageObject):
                     fail_msg += " (with error after interrupt)"
                 elif return_code < 0:
                     sig = -return_code
-                    if sig == signal.SIGKILL:
+                    if sig == signal.SIGQUIT:
+                        pass  # and interrupt succeeded
+                    elif sig == signal.SIGKILL:
                         fail_msg += " (and interrupt failed)"
                     else:
                         fail_msg += " (with %s after interrupt)"%signal_name(sig)

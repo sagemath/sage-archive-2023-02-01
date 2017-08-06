@@ -262,7 +262,8 @@ cdef class FastHashable_class:
         """
         return self._hash
 
-class Singleton(WithEqualityById):
+
+class Singleton(WithEqualityById, metaclass=ClasscallMetaclass):
     """
     A base class for singletons.
 
@@ -308,8 +309,6 @@ class Singleton(WithEqualityById):
         subclass of <class 'sage.misc.fast_methods.Singleton'>",),
         <class '__main__.D'>, ())
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls):
         """

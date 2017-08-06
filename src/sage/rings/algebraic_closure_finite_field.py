@@ -79,7 +79,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
     """
     def __init__(self, parent, value):
         """
-        TEST::
+        TESTS::
 
             sage: F = GF(3).algebraic_closure()
             sage: TestSuite(F.gen(2)).run(skip=['_test_pickling'])
@@ -547,7 +547,7 @@ class AlgebraicClosureFiniteField_generic(Field):
     """
     def __init__(self, base_ring, name, category=None):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
             sage: F = AlgebraicClosureFiniteField_generic(GF(5), 'z')
@@ -562,7 +562,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Compare ``self`` with ``other``.
 
-        TEST::
+        TESTS::
 
             sage: F3 = GF(3).algebraic_closure()
             sage: F3 == F3
@@ -639,7 +639,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Construct an element of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: F = GF(5).algebraic_closure()
             sage: type(F(3))
@@ -710,7 +710,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Coerce `x` and `y` to a common subfield of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: F = GF(3).algebraic_closure()
             sage: x, y = F._to_common_subfield(F.gen(2), F.gen(3))
@@ -924,7 +924,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
     def _an_element_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: F = AlgebraicClosureFiniteField(GF(5), 'w')

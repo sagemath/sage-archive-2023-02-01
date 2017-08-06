@@ -30,7 +30,7 @@ cdef extern from "meataxe.h":
     cdef extern size_t FfCurrentRowSize # The byte size of a single row in memory,
                                         # always a multiple of sizeof(long)
     cdef extern size_t FfCurrentRowSizeIo # The number of bytes actually used in a row.
-    cdef extern char MtxLibDir[250]     # Where to search/create multiplication tables
+    cdef extern char MtxLibDir[1024]    # Where to search/create multiplication tables
 
     # we only wrap MeatAxe for small fields (size < 255)
     cdef extern FEL mtx_tmult[256][256]

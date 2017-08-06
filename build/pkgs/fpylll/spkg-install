@@ -6,4 +6,4 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-cd src && python setup.py install
+cd src && $PIP_INSTALL .

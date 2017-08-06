@@ -593,7 +593,7 @@ class SchemeHomset_points(SchemeHomset_generic):
 
         A tuple containing all points of the toric variety.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P1 = toric_varieties.P1(base_ring=GF(3))
             sage: P1.point_set().list()

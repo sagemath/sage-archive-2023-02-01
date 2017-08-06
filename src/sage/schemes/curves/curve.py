@@ -145,7 +145,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
             This calls Singular's genus command.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Examples of projective curves. ::
 

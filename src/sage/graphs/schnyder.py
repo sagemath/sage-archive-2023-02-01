@@ -571,7 +571,7 @@ class TreeNode():
         - ``children`` -- a list of TreeNode children of ``self``
         - ``label`` -- the associated realizer vertex label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.schnyder import TreeNode
             sage: tn = TreeNode(label=5)

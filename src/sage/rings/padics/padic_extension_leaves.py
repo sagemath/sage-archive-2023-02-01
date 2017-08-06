@@ -35,7 +35,9 @@ from .eisenstein_extension_generic import EisensteinExtensionGeneric
 from .generic_nodes import pAdicCappedRelativeRingGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
-                          pAdicFixedModRingGeneric
+                          pAdicFixedModRingGeneric, \
+                          pAdicFloatingPointRingGeneric, \
+                          pAdicFloatingPointFieldGeneric
 
 #from unramified_extension_absolute_element import UnramifiedExtensionAbsoluteElement
 #from unramified_extension_capped_relative_element import UnramifiedExtensionCappedRelativeElement
@@ -53,6 +55,7 @@ from .padic_ZZ_pX_CA_element import pAdicZZpXCAElement
 from .qadic_flint_CR import qAdicCappedRelativeElement
 from .qadic_flint_CA import qAdicCappedAbsoluteElement
 from .qadic_flint_FM import qAdicFixedModElement
+from .qadic_flint_FP import qAdicFloatingPointElement
 
 def _make_integral_poly(prepoly, p, prec):
     """
@@ -95,9 +98,9 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
     TESTS::
 
         sage: R.<a> = ZqCR(27,10000)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
         """
         A capped relative representation of Zq.
 
@@ -155,9 +158,9 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
     TESTS::
 
         sage: R.<a> = QqCR(27,10000)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
         """
         A representation of Qq.
 
@@ -226,9 +229,9 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
     TESTS::
 
         sage: R.<a> = ZqCA(27,10000)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
         """
         A capped absolute representation of Zq.
 
@@ -287,9 +290,9 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
     TESTS::
 
         sage: R.<a> = ZqFM(27,10000)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
         """
         A fixed modulus representation of Zq.
 
@@ -347,13 +350,116 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
     #        return Morphism_ZpFM_UnrFM(S, self)
     #    return None
 
+class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloatingPointRingGeneric):
+    """
+    TESTS::
+
+        sage: R.<a> = ZqFP(27,10000); R == loads(dumps(R))
+        True
+    """
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
+        """
+        A floating point representation of Zq.
+
+        INPUT:
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Zp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27,10000); R #indirect doctest
+            Unramified Extension of 3-adic Ring with floating precision 10000 in a defined by x^3 + 2*x + 1
+            sage: R.<a> = ZqFP(next_prime(10^30)^3, 3); R.prime()
+            1000000000000000000000000000057
+        """
+        self._shift_seed = None
+        self._pre_poly = prepoly
+        self._implementation = implementation
+        if implementation == 'NTL':
+            raise NotImplementedError
+        Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
+        cache_limit = min(prec, 30)
+        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='floating-point')
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, qAdicFloatingPointElement)
+        from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicConvert_QQ_FP
+        self.register_coercion(pAdicCoercion_ZZ_FP(self))
+        self.register_conversion(pAdicConvert_QQ_FP(self))
+
+class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFloatingPointFieldGeneric):
+    """
+    TESTS::
+
+        sage: R.<a> = QqFP(27,10000); R == loads(dumps(R))
+        True
+    """
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='FLINT'):
+        """
+        A representation of Qq.
+
+        INPUT:
+
+            - prepoly -- The original polynomial defining the
+              extension.  This could be a polynomial with integer
+              coefficients, for example, while poly has coefficients
+              in Qp.
+
+            - poly -- The polynomial with coefficients in
+              self.base_ring() defining this extension.
+
+            - prec -- The precision cap of this ring.
+
+            - halt -- unused
+
+            - print_mode -- A dictionary of print options.
+
+            - shift_seed -- unused
+
+            - names -- a 4-tuple, (variable_name, residue_name, unramified_subextension_variable_name, uniformizer_name)
+
+        EXAMPLES::
+
+            sage: R.<a> = QqFP(27,10000); R #indirect doctest
+            Unramified Extension of 3-adic Field with floating precision 10000 in a defined by x^3 + 2*x + 1
+            sage: R.<a> = Qq(next_prime(10^30)^3, 3); R.prime()
+            1000000000000000000000000000057
+        """
+        # Currently doesn't support polynomials with non-integral coefficients
+        self._shift_seed = None
+        self._pre_poly = prepoly
+        self._implementation = implementation
+        if implementation == 'NTL':
+            raise NotImplementedError
+        Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
+        cache_limit = min(prec, 30)
+        self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='floating-point')
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, qAdicFloatingPointElement)
+        from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP
+        self.register_coercion(pAdicCoercion_ZZ_FP(self))
+        self.register_coercion(pAdicCoercion_QQ_FP(self))
+
 class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """
     TESTS::
 
         sage: R = Zp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
         sage: W.<w> = R.ext(f)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
@@ -411,7 +517,7 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
 
         sage: R = Qp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
         sage: W.<w> = R.ext(f)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
@@ -480,7 +586,7 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
 
         sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
         sage: W.<w> = R.ext(f)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation):
         """
@@ -538,7 +644,7 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
 
         sage: R = ZpFM(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
         sage: W.<w> = R.ext(f)
-        sage: TestSuite(R).run()
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
     """
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """

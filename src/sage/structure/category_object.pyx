@@ -437,19 +437,6 @@ cdef class CategoryObject(SageObject):
             raise TypeError("names must be a tuple of strings")
         self._names = names
 
-    def normalize_names(self, ngens, names):
-        """
-        TESTS::
-
-            sage: ZZ.normalize_names(1, "x")
-            doctest:...: DeprecationWarning: The method normalize_names() has been changed to a function
-            See http://trac.sagemath.org/19675 for details.
-            ('x',)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19675, "The method normalize_names() has been changed to a function")
-        return normalize_names(ngens, names)
-
     def variable_names(self):
         """
         Return the list of variable names corresponding to the generators.

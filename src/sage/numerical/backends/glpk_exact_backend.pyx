@@ -54,7 +54,7 @@ cdef class GLPKExactBackend(GLPKBackend):
         """
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK/exact")
         """
@@ -91,7 +91,7 @@ cdef class GLPKExactBackend(GLPKBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK/exact")
@@ -159,7 +159,7 @@ cdef class GLPKExactBackend(GLPKBackend):
 
         OUTPUT: The index of the variable created last.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK/exact")
@@ -195,7 +195,7 @@ cdef class GLPKExactBackend(GLPKBackend):
             *  0  Binary
             * -1 Real
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK/exact")

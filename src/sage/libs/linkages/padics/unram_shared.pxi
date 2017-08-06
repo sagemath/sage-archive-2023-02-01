@@ -102,7 +102,7 @@ def norm_unram(self, base = None):
 
     TESTS:
 
-    Check that #11586 has been resolved::
+    Check that :trac:`11586` has been resolved::
 
         sage: R.<x> = QQ[]
         sage: f = x^2 + 3*x + 1

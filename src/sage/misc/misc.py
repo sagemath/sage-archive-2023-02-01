@@ -26,28 +26,6 @@ Check the fix from :trac:`8323`::
     False
     sage: 'func' in globals()
     False
-
-Test deprecation::
-
-    sage: sage.misc.misc.srange(5)
-    doctest:...: DeprecationWarning:
-    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20094 for details.
-    [0, 1, 2, 3, 4]
-    sage: sage.misc.all.srange(5)
-    doctest:...: DeprecationWarning:
-    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20334 for details.
-    [0, 1, 2, 3, 4]
-    sage: sage.misc.misc.sxrange(5)
-    doctest:...: DeprecationWarning:
-    Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20094 for details.
-    <generator object at 0x...>
-    sage: sage.misc.misc.cancel_alarm()
-    doctest:...: DeprecationWarning:
-    Importing cancel_alarm from here is deprecated. If you need to use it, please import it directly from cysignals.alarm
-    See http://trac.sagemath.org/20002 for details.
 """
 
 #*****************************************************************************
@@ -61,26 +39,16 @@ Test deprecation::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import integer_types
 
-__doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
-               "generic_cmp", "to_gmp_hex", "todo",
-               "typecheck", "prop", "strunc",
-               "assert_attribute", "LOGFILE"]
-
-from warnings import warn
 import os
 import stat
 import sys
 import time
 import resource
 import sage.misc.prandom as random
+import warnings
 from .lazy_string import lazy_string
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)
-lazy_import('sage.arith.srange', 'xsrange', 'sxrange', deprecation=20094)
-lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
-
 
 from sage.env import DOT_SAGE, HOSTNAME
 
@@ -252,11 +220,11 @@ def cputime(t=0, subprocesses=False):
         sage: walltime(w)         # somewhat random
         0.58425593376159668
 
-    .. note ::
+    .. NOTE::
 
-      Even with ``subprocesses=True`` there is no guarantee that the
-      CPU time is reported correctly because subprocesses can be
-      started and terminated at any given time.
+        Even with ``subprocesses=True`` there is no guarantee that the
+        CPU time is reported correctly because subprocesses can be
+        started and terminated at any given time.
     """
     if isinstance(t, GlobalCputime):
         subprocesses=True
@@ -304,7 +272,7 @@ class GlobalCputime:
 
     - Martin Albrecht - (2008-12): initial version
 
-    EXAMPLE:
+    EXAMPLES:
 
     Objects of this type are returned if ``subprocesses=True`` is
     passed to :func:`cputime`::
@@ -338,7 +306,7 @@ class GlobalCputime:
         Create a new CPU time object which also keeps track of
         subprocesses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.misc import GlobalCputime
             sage: ct = GlobalCputime(0.0); ct
@@ -350,7 +318,7 @@ class GlobalCputime:
 
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: cputime(subprocesses=True) # indirect doctest, output random
             0.2347431
@@ -359,7 +327,7 @@ class GlobalCputime:
 
     def __add__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
@@ -375,7 +343,7 @@ class GlobalCputime:
 
     def __sub__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
@@ -391,7 +359,7 @@ class GlobalCputime:
 
     def __float__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: float(t) #output somewhat random
@@ -456,7 +424,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     OUTPUT: possibly prints a message to stdout; also returns
     cputime()
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: set_verbose(1)
         sage: t = cputime()
@@ -602,11 +570,16 @@ def generic_cmp(x,y):
         return 0
     return 1
 
+
 def cmp_props(left, right, props):
+    from sage.misc.superseded import deprecation
+    deprecation(23149, "cmp_props is deprecated")
     for a in props:
         c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c: return c
+        if c:
+            return c
     return 0
+
 
 def union(x, y=None):
     """
@@ -661,7 +634,7 @@ def coeff_repr(c, is_latex=False):
             return c._coeff_repr()
         except AttributeError:
             pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()
@@ -1662,7 +1635,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <type 'int'>
+            <... 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True
@@ -1819,7 +1792,7 @@ def get_main_globals():
     return G
 
 
-def inject_variable(name, value):
+def inject_variable(name, value, warn=True):
     """
     Inject a variable into the main global namespace.
 
@@ -1827,6 +1800,7 @@ def inject_variable(name, value):
 
     - ``name``  -- a string
     - ``value`` -- anything
+    - ``warn`` -- a boolean (default: :obj:`False`)
 
     EXAMPLES::
 
@@ -1852,6 +1826,13 @@ def inject_variable(name, value):
         doctest:...: UserWarning: blah
         sage: warn("blah")
 
+    Warnings can be disabled::
+
+        sage: b = 3
+        sage: inject_variable("b", 42, warn=False)
+        sage: b
+        42
+
     Use with care!
     """
     assert isinstance(name, str)
@@ -1859,8 +1840,8 @@ def inject_variable(name, value):
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.
     G = get_main_globals()
-    if name in G:
-        warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+    if name in G and warn:
+        warnings.warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
     G[name] = value
 
 

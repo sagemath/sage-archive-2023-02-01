@@ -76,7 +76,7 @@ from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
 from sage.misc.package import PackageNotFoundError
-from sage.structure.sage_object import richcmp, rich_to_bool
+from sage.structure.richcmp import richcmp, rich_to_bool
 
 
 class Braid(FinitelyPresentedGroupElement):

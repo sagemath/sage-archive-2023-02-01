@@ -36,7 +36,7 @@ class G1list:
     """
     def __init__(self, N):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.modular.modsym.g1list.G1list(6); L # indirect doctest
             List of coset representatives for Gamma_1(6) in SL_2(Z)
@@ -49,7 +49,7 @@ class G1list:
         r"""
         Compare self to other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L1 = sage.modular.modsym.g1list.G1list(6)
             sage: L2 = sage.modular.modsym.g1list.G1list(7)
@@ -66,7 +66,7 @@ class G1list:
 
     def __getitem__(self, i):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.modular.modsym.g1list.G1list(19); L[100] # indirect doctest
             (5, 6)
@@ -77,7 +77,7 @@ class G1list:
         """
         Return the length of the underlying list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.modular.modsym.g1list.G1list(24); len(L) # indirect doctest
             384
@@ -88,7 +88,7 @@ class G1list:
         """
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.modular.modsym.g1list.G1list(3); L.__repr__()
             'List of coset representatives for Gamma_1(3) in SL_2(Z)'
@@ -100,7 +100,7 @@ class G1list:
         Return a list of vectors representing the cosets. Do not change the
         returned list!
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.modular.modsym.g1list.G1list(4); L.list()
             [(0, 1), (0, 3), (1, 0), (1, 1), (1, 2), (1, 3), (2, 1), (2, 3), (3, 0), (3, 1), (3, 2), (3, 3)]
@@ -118,7 +118,7 @@ class G1list:
         This will only make sense if `{\rm gcd}(u, v, N) = 1`; otherwise the
         output will not be an element of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.modular.modsym.g1list.G1list(4); L.normalize(6, 1)
             (2, 1)

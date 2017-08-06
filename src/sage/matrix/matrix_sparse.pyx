@@ -9,18 +9,20 @@ Base class for sparse matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 cimport cython
-cimport matrix
-cimport matrix0
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
+cimport sage.matrix.matrix as matrix
+cimport sage.matrix.matrix0 as matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from cpython cimport *
 
 import sage.matrix.matrix_space
@@ -293,7 +295,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Left scalar multiplication. Internal usage only.
 
@@ -422,6 +424,49 @@ cdef class Matrix_sparse(matrix.Matrix):
                             list(reversed([self._nrows - t for t in row_divs])))
         return A
 
+
+    def _reverse_unsafe(self):
+        r"""
+        TESTS::
+
+            sage: m = matrix(QQ, 3, 3, {(2,2): 1}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m = matrix(QQ, 3, 3, {(2,2): 1, (0,0):2}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [1 0 0]
+            [0 0 0]
+            [0 0 2]
+            sage: m = matrix(QQ, 3, 3, {(1,2): 1}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [0 0 0]
+            [1 0 0]
+            [0 0 0]
+            sage: m = matrix(QQ, 3, 3, {(1,1): 1}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [0 0 0]
+            [0 1 0]
+            [0 0 0]
+        """
+        cdef Py_ssize_t i, j, ii, jj
+        for i,j in self.nonzero_positions(copy=False):
+            ii = self._nrows - i - 1
+            jj = self._ncols - j - 1
+            if (i > ii or (i == ii and j >= jj)) and self.get_unsafe(ii, jj):
+                # already swapped
+                continue
+
+            e1 = self.get_unsafe(i, j)
+            e2 = self.get_unsafe(ii, jj)
+            self.set_unsafe(i, j, e2)
+            self.set_unsafe(ii, jj, e1)
+
     def charpoly(self, var='x', **kwds):
         """
         Return the characteristic polynomial of this matrix.
@@ -492,7 +537,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         proper input.  More thorough documentation is provided
         there.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(ZZ, 2, range(6), sparse=True)
             sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=True)
@@ -793,16 +838,16 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         We must pass in a list of indices::
 
-            sage: A=random_matrix(ZZ,100,density=.02,sparse=True)
+            sage: A = random_matrix(ZZ,100,density=.02,sparse=True)
             sage: A.matrix_from_rows_and_columns(1,[2,3])
             Traceback (most recent call last):
             ...
-            TypeError: rows must be a list of integers
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
+
             sage: A.matrix_from_rows_and_columns([1,2],3)
             Traceback (most recent call last):
             ...
-            TypeError: columns must be a list of integers
-
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
 
         AUTHORS:
 
@@ -812,15 +857,11 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if isinstance(rows, xrange):
+        if not isinstance(rows, (list, tuple)):
             rows = list(rows)
-        elif not isinstance(rows, list):
-            raise TypeError("rows must be a list of integers")
 
-        if isinstance(columns, xrange):
+        if not isinstance(columns, (list, tuple)):
             columns = list(columns)
-        elif not isinstance(columns, list):
-            raise TypeError("columns must be a list of integers")
 
         cdef Py_ssize_t nrows, ncols,k,r,i,j
 
@@ -991,10 +1032,11 @@ cdef class Matrix_sparse(matrix.Matrix):
             [1 0 1 0]
             [0 1 0 1]
         """
-        if hasattr(right, '_vector_'):
-            right = right.column()
         if not isinstance(right, matrix.Matrix):
-            raise TypeError("right must be a matrix")
+            if hasattr(right, '_vector_'):
+                right = right.column()
+            else:
+                raise TypeError("right must be a matrix")
 
         if not (self._base_ring is right.base_ring()):
             right = right.change_ring(self._base_ring)

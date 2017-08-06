@@ -119,8 +119,8 @@ cdef class Matroid(SageObject):
     cpdef dual(self)
     cpdef truncation(self)
     cpdef has_minor(self, N, bint certificate=*)
-    cpdef has_line_minor(self, k, hyperlines=*)
-    cpdef _has_line_minor(self, k, hyperlines)
+    cpdef has_line_minor(self, k, hyperlines=*, certificate=*)
+    cpdef _has_line_minor(self, k, hyperlines, certificate=*)
 
     # extension
     cpdef extension(self, element=*, subsets=*)
@@ -186,7 +186,7 @@ cdef class Matroid(SageObject):
     cpdef _external(self, B)
     cpdef tutte_polynomial(self, x=*, y=*)
     cpdef flat_cover(self)
-    
+
     # visualization
     cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)
     cpdef show(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*,lims=*)

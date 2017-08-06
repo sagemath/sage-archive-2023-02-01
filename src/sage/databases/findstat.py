@@ -90,7 +90,7 @@ lists::
     1: (St000042: The number of crossings of a perfect matching. , [], 105)
     ...
 
-This results tells us that the database contains another entriy that is
+This results tells us that the database contains another entry that is
 equidistributed with the number of nestings on perfect matchings of
 length `8`, namely the number of crossings.
 
@@ -125,7 +125,7 @@ We first have to find out, what the maps and the statistic actually do::
     sage: print(list_f[0].code() + "\r\n" + list_f[1].code())               # optional -- internet,random
     def complement(elt):
         n = len(elt)
-        return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
+        return elt.__class__(elt.parent(), [n - x + 1 for x in elt])
     <BLANKLINE>
     def increasing_tree_shape(elt, compare=min):
         return elt.increasing_tree(compare).shape()
@@ -168,6 +168,7 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import iteritems, add_metaclass, string_types
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -528,7 +529,7 @@ class FindStat(SageObject):
         def query_by_dict(query, collection=None):
             # we expect a dictionary from objects or strings to
             # integers
-            l = query.iteritems()
+            l = iteritems(query)
             (key, value) = next(l)
 
             (collection, to_str) = get_collection(collection, key)
@@ -843,7 +844,8 @@ class FindStatStatistic(SageObject):
             raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def __eq__(self, other):
-        """Return ``True`` if ``self`` is equal to ``other`` and ``False``
+        """
+        Return ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.
 
         INPUT:
@@ -896,7 +898,8 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
-        """Determine whether ``other`` is a different query.
+        """
+        Determine whether ``other`` is a different query.
 
         INPUT:
 
@@ -907,9 +910,9 @@ class FindStatStatistic(SageObject):
 
         A boolean.
 
-        SEEALSO:
+        .. SEEALSO::
 
-        :meth:`__eq__`
+            :meth:`__eq__`
 
         EXAMPLES::
 
@@ -968,12 +971,12 @@ class FindStatStatistic(SageObject):
         gf                          = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
         self._generating_functions_dict  = { literal_eval(key):
                                              { literal_eval(inner_key): inner_value
-                                               for inner_key, inner_value in value.iteritems() }
-                                             for key, value in gf.iteritems() }
+                                               for inner_key, inner_value in iteritems(value) }
+                                             for key, value in iteritems(gf) }
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
-        self._first_terms = [(from_str(obj), Integer(val)) for (obj, val) in self._raw[FINDSTAT_STATISTIC_DATA].iteritems()]
+        self._first_terms = [(from_str(obj), Integer(val)) for (obj, val) in iteritems(self._raw[FINDSTAT_STATISTIC_DATA])]
         return self
 
     ######################################################################
@@ -1000,8 +1003,8 @@ class FindStatStatistic(SageObject):
             sage: collection = FindStatCollection("Dyck paths")                                     # optional -- internet
             sage: to_str = collection.to_string()                                                   # optional -- internet
             sage: query = {dw:dw.area() for dw in DyckWords(4)}
-            sage: data = [([key], [to_str(key)], [value]) for (key, value) in query.iteritems()]    # optional -- internet
-            sage: first_terms = [(key, value) for (key, value) in query.iteritems()]
+            sage: data = [([key], [to_str(key)], [value]) for (key, value) in query.items()]    # optional -- internet
+            sage: first_terms = [(key, value) for (key, value) in query.items()]
 
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
@@ -1415,10 +1418,10 @@ class FindStatStatistic(SageObject):
             P = PolynomialRing(ZZ,"q")
             q = P.gen()
             return { level : sum( coefficient * q**exponent
-                                  for exponent,coefficient in gen_dict.iteritems() )
-                     for level, gen_dict in gfs.iteritems()}
+                                  for exponent,coefficient in iteritems(gen_dict) )
+                     for level, gen_dict in iteritems(gfs)}
         else:
-            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'."%style)
+            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'." % style)
 
     def oeis_search(self, search_size=32, verbose=True):
         r"""
@@ -1758,7 +1761,7 @@ class FindStatStatistic(SageObject):
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %FINDSTAT_URL_NEW)
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))
-        for key, value in args.iteritems():
+        for key, value in iteritems(args):
             _ = verbose("writing argument %s" %key, caller_name='FindStat')
             value_encoded = cgi.escape(str(value), quote=True)
             _ = verbose("%s" %value_encoded, caller_name='FindStat')
@@ -1810,6 +1813,8 @@ def _finite_irreducible_cartan_types_by_rank(n):
         cartan_types += [ CartanType(['G',n]) ]
     return cartan_types
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatCollection(Element):
     r"""
     A FindStat collection.
@@ -1850,13 +1855,10 @@ class FindStatCollection(Element):
         sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
         Cc0005: Dyck paths
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatCollections`
-
+        :class:`FindStatCollections`
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -2400,8 +2402,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
             c[0] = j[FINDSTAT_COLLECTION_NAME]
             c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
             c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
-            c[5] =  {literal_eval(key):value for key,value in
-                     j[FINDSTAT_COLLECTION_LEVELS].iteritems()}
+            c[5] = {literal_eval(key):value for key,value in
+                    iteritems(j[FINDSTAT_COLLECTION_LEVELS])}
 
         Parent.__init__(self, category=Sets())
 
@@ -2440,15 +2442,15 @@ class FindStatCollections(Parent, UniqueRepresentation):
         if isinstance(entry, FindStatCollection):
             return entry
 
-        if isinstance(entry, (str, unicode)):
+        if isinstance(entry, string_types):
             # find by name in _findstat_collections
-            for (id, c) in self._findstat_collections.iteritems():
+            for (id, c) in iteritems(self._findstat_collections):
                 if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
                     return self.element_class(self, id, c, None)
 
         elif isinstance(entry, (int, Integer)):
             # find by id in _findstat_collections
-            for (id, c) in self._findstat_collections.iteritems():
+            for (id, c) in iteritems(self._findstat_collections):
                 if entry == id:
                     return self.element_class(self, id, c, None)
 
@@ -2461,7 +2463,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
             # TODO: entry == c[4] will work rarely because c[4] might be a function!
             # also, the error handling is only necessary because of this...
-            for (id, c) in self._findstat_collections.iteritems():
+            for (id, c) in iteritems(self._findstat_collections):
                 try:
                     if isinstance(entry, c[3]) or entry == c[4]:
                         return self.element_class(self, id, c, None)
@@ -2477,7 +2479,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
             # check whether entry is iterable (it's not a string!)
             try:
                 obj = next(iter(entry))
-                for (id, c) in self._findstat_collections.iteritems():
+                for (id, c) in iteritems(self._findstat_collections):
                     if isinstance(obj, c[3]):
                         return self.element_class(self, id, c, entry)
 
@@ -2513,6 +2515,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
     Element = FindStatCollection
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatMap(Element):
     r"""
     A FindStat map.
@@ -2538,13 +2542,11 @@ class FindStatMap(Element):
         sage: FindStatMap("descent composition")                                # optional -- internet
         Mp00071: descent composition
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatMaps`
+        :class:`FindStatMaps`
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -2836,7 +2838,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
         elif entry in self._findstat_maps:
             return self.element_class(self, entry)
 
-        elif isinstance(entry, (str, unicode)):
+        elif isinstance(entry, string_types):
             # find by name in _findstat_maps
             for c in self._findstat_maps:
                 if entry.upper() == c[FINDSTAT_MAP_NAME].upper():

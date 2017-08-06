@@ -914,7 +914,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: P = S(ZZ.ideal(3)); P
             Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
             sage: type(P)
-            <class 'sage.schemes.generic.point.AffineScheme_with_category.element_class'>
+            <class 'sage.schemes.generic.scheme.AffineScheme_with_category.element_class'>
             sage: S(ZZ.ideal(next_prime(1000000)))
             Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
 

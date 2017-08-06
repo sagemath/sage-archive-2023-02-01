@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+
+# Run the Python interpreter that we are currently building Sage with
+#
+# An existing Python is a build-time dependency for Sage, but
+# sometimes packages need to specifically run the one in Sage and not
+# just any Python interpreter.
+#
+# This is similar to the sage-pip-install script, which you should be
+# using for installing Python packages if at all possible.
+
+
+if [ "$SAGE_PYTHON3" = yes ]; then
+   PYTHON="$SAGE_LOCAL/bin/python3"
+else
+   PYTHON="$SAGE_LOCAL/bin/python2"
+fi
+
+
+exec $PYTHON "$@"

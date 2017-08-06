@@ -631,14 +631,14 @@ class TateCurve(SageObject):
 
         INPUT:
 
-        - ``prec`` - the `p`-adic precision, default is 20.
+        - ``prec`` -- the `p`-adic precision, default is 20.
 
         REFERENCES:
 
         [MTT]_
 
         .. [Wer] Annette Werner, Local heights on abelian varieties and
-           rigid analytic unifomization, Doc. Math. 3 (1998), 301-319.
+           rigid analytic uniformization, Doc. Math. 3 (1998), 301-319.
 
         [SW]_
 

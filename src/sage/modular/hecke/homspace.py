@@ -46,7 +46,7 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
         Create the space of homomorphisms between X and Y, which must have the
         same base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(7), 4)
             sage: M.Hom(M)
@@ -108,6 +108,24 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
             [6 7 8]
             Domain: Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) ...
             Codomain: Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) ...
+
+        TESTS:
+
+        Make sure that the element is created correctly when the codomain is
+        not the full module (related to :trac:`21497`)::
+
+            sage: M = ModularSymbols(Gamma0(3),weight=22,sign=1)
+            sage: S = M.cuspidal_subspace()
+            sage: S.Hom(S)(S.gens())
+            Hecke module morphism defined by the matrix
+            [1 0 0 0 0 0]
+            [0 1 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1]
+            Domain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
         """
         try:
             if A.parent() == self:
@@ -123,5 +141,5 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
             pass
         if isinstance(A, (list, tuple)):
             from sage.matrix.constructor import matrix
-            A = matrix([f.element() for f in A])
+            A = matrix([self.codomain().coordinate_vector(f) for f in A])
         return morphism.HeckeModuleMorphism_matrix(self, A, name)

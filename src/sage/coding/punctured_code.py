@@ -426,7 +426,9 @@ class PuncturedCodePuncturedMatrixEncoder(Encoder):
         G = M.delete_columns(list(pos))
         G = G.echelon_form()
         k = G.rank()
-        return G[:k]
+        M = G[:k]
+        M.set_immutable()
+        return M
 
 
 

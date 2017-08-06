@@ -2,6 +2,9 @@ r"""
 Lists of Manin symbols (elements of `\mathbb{P}^1(\ZZ/N\ZZ)`) over `\QQ`
 """
 
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_check
+
 from sage.misc.search import search
 
 cimport sage.rings.fast_arith
@@ -12,9 +15,6 @@ arith_int  = sage.rings.fast_arith.arith_int()
 arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
-
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 
 ###############################################################
 #
@@ -207,7 +207,6 @@ def p1list_int(int N):
 
     if N==1: return [(0,0)]
 
-    sig_on()
     lst = [(0,1)]
     c = 1
     for d from 0 <= d < N:
@@ -225,13 +224,13 @@ def p1list_int(int N):
             h = N/c
             g = arith_int.c_gcd_int(c,h)
             for d from 1 <= d <= h:
+                sig_check()
                 if arith_int.c_gcd_int(d,g)==1:
                     d1 = d
                     while arith_int.c_gcd_int(d1,c)!=1:
                         d1 += h
                     c_p1_normalize_int(N, c, d1, &u, &v, &s, 0)
                     lst.append((u,v))
-    sig_off()
     lst.sort()
     return lst
 
@@ -433,7 +432,6 @@ def p1list_llong(int N):
     if N==1: return [(0,0)]
 
     lst = [(0,1)]
-    sig_on()
     c = 1
     for d from 0 <= d < N:
         lst.append((c,d))
@@ -451,12 +449,12 @@ def p1list_llong(int N):
             g = arith_int.c_gcd_int(c,h)
             for d from 1 <= d <= h:
                 if arith_int.c_gcd_int(d,g)==1:
+                    sig_check()
                     d1 = d
                     while arith_int.c_gcd_int(d1,c)!=1:
                         d1 += h
                     c_p1_normalize_llong(N, c, d1, &u, &v, &s, 0)
                     lst.append((u,v))
-    sig_off()
     lst.sort()
     return lst
 
@@ -690,12 +688,9 @@ cdef class P1List:
 
         # Allocate memory for xgcd table.
         self.g = NULL; self.s = NULL; self.t = NULL
-        self.g = <int*> sig_malloc(sizeof(int)*N)
-        if not self.g: raise MemoryError
-        self.s = <int*> sig_malloc(sizeof(int)*N)
-        if not self.s: raise MemoryError
-        self.t = <int*> sig_malloc(sizeof(int)*N)
-        if not self.t: raise MemoryError
+        self.g = <int*>check_allocarray(N, sizeof(int))
+        self.s = <int*>check_allocarray(N, sizeof(int))
+        self.t = <int*>check_allocarray(N, sizeof(int))
 
         # Initialize xgcd table
         cdef llong ll_s, ll_t, ll_N = N
@@ -713,10 +708,9 @@ cdef class P1List:
         """
         Deallocates memory for an object of the class P1List.
         """
-        if self.g: sig_free(self.g)
-        if self.s: sig_free(self.s)
-        if self.t: sig_free(self.t)
-
+        sig_free(self.g)
+        sig_free(self.s)
+        sig_free(self.t)
 
     def __cmp__(self, other):
         """

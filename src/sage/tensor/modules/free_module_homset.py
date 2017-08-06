@@ -406,7 +406,7 @@ class FreeModuleHomset(Homset):
         r"""
         Construct some (unamed) element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -485,7 +485,7 @@ class FreeModuleHomset(Homset):
           instance of
           :class:`~sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Identity element of the set of endomorphisms of a free module
         over `\ZZ`::

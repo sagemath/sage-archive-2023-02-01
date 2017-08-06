@@ -1,14 +1,14 @@
 """
 Hyperelliptic curves over a general ring
 
-EXAMPLE::
+EXAMPLES::
 
     sage: P.<x> = GF(5)[]
     sage: f = x^5 - 3*x^4 - 2*x^3 + 6*x^2 + 3*x - 1
     sage: C = HyperellipticCurve(f); C
     Hyperelliptic Curve over Finite Field of size 5 defined by y^2 = x^5 + 2*x^4 + 3*x^3 + x^2 + 3*x + 4
 
-EXAMPLE::
+EXAMPLES::
 
     sage: P.<x> = QQ[]
     sage: f = 4*x^5 - 30*x^3 + 45*x - 22
@@ -107,7 +107,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         """
         String representation of hyperelliptic curves.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = QQ[]
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22

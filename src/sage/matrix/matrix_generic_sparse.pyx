@@ -52,9 +52,10 @@ EXAMPLES::
     sage: c.is_sparse()
     True
 """
+from __future__ import absolute_import
 
-cimport matrix
-cimport matrix_sparse
+cimport sage.matrix.matrix as matrix
+cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.structure.element
 from sage.structure.element cimport ModuleElement
 
@@ -198,7 +199,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         if entries is None or not entries:
             # be careful here. We might get entries set to be an empty list
             # because of the code implemented in matrix_space.MatrixSpace
-            # So the condtion
+            # So the condition
             #   if entries is None or not entries:
             #       ...
             # is valid. But
@@ -241,7 +242,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             #
             #  and this is bad since:
             #
-            #    sage: map(type,m.dict().keys()[0])
+            #    sage: list(map(type,m.dict().keys()[0]))
             #    [<type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>,
             #     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>]
             #
@@ -601,7 +602,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 ####################################################################################
 # Various helper functions
 ####################################################################################
-import matrix_space
 
 def Matrix_sparse_from_rows(X):
     """
@@ -633,6 +633,8 @@ def Matrix_sparse_from_rows(X):
         raise TypeError("X (=%s) must be a list or tuple"%X)
     if len(X) == 0:
         raise ArithmeticError("X must be nonempty")
+
+    from . import matrix_space
     entries = {}
     R = X[0].base_ring()
     ncols = X[0].degree()

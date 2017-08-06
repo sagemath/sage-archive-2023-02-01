@@ -29,7 +29,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     cdef void __normalize(self)
 
     cpdef dict dict(self)
-    cpdef list list(self)
+    cpdef list list(self, bint copy=*)
 
     cpdef right_power_mod(self, exp, modulus)
     cpdef left_power_mod(self, exp, modulus)

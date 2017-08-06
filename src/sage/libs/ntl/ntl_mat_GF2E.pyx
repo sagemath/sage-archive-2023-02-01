@@ -22,14 +22,16 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
-include "cysignals/signals.pxi"
+
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from ntl_GF2E cimport ntl_GF2E
-from ntl_GF2EContext import ntl_GF2EContext
-from ntl_GF2EContext cimport ntl_GF2EContext_class
+from .ntl_GF2E cimport ntl_GF2E
+from .ntl_GF2EContext import ntl_GF2EContext
+from .ntl_GF2EContext cimport ntl_GF2EContext_class
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -160,7 +162,7 @@ cdef class ntl_mat_GF2E(object):
 
     def __reduce__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(2^4)
             sage: ctx = ntl.GF2EContext(k)
@@ -610,7 +612,7 @@ cdef class ntl_mat_GF2E(object):
         The rows of X are computed as basis of A's row space.  X is is
         row echelon form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 3,3,[0..24])
@@ -632,7 +634,7 @@ cdef class ntl_mat_GF2E(object):
         Computes a basis for the kernel of the map ``x -> x*A``, where
         ``x`` is a row vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 3,3,[0..24])

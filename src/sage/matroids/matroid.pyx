@@ -127,10 +127,13 @@ additional functionality (e.g. linear extensions).
 - Invariants
     - :meth:`tutte_polynomial() <sage.matroids.matroid.Matroid.tutte_polynomial>`
     - :meth:`flat_cover() <sage.matroids.matroid.Matroid.flat_cover>`
-    
+
 - Visualization
     - :meth:`show() <sage.matroids.matroid.Matroid.show>`
     - :meth:`plot() <sage.matroids.matroid.Matroid.plot>`
+
+- Construction
+    - :meth:`union() <sage.matroids.matroid.Matroid.union>`
 
 - Misc
     - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
@@ -138,6 +141,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
     - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
+
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -177,7 +181,7 @@ regularly use matroids based on a new data type, you can write a subclass of
 ``Matroid``. You only need to override the ``__init__``, ``_rank()`` and
 ``groundset()`` methods to get a fully working class.
 
-EXAMPLE:
+EXAMPLES:
 
 In a partition matroid, a subset is independent if it has at most one
 element from each partition. The following is a very basic implementation,
@@ -324,6 +328,8 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product
@@ -3139,7 +3145,7 @@ cdef class Matroid(SageObject):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -3332,7 +3338,7 @@ cdef class Matroid(SageObject):
 
         Boolean.
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             :meth:`M.is_isomorphism() <sage.matroids.matroid.Matroid.is_isomorphism>`
 
@@ -3542,7 +3548,7 @@ cdef class Matroid(SageObject):
             True
         """
         from . import basis_matroid
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if left.__class__ != right.__class__:
             return NotImplemented
@@ -3552,15 +3558,15 @@ cdef class Matroid(SageObject):
         #   sage.matroids.matroid.Matroid.__richcmp__(p, q, 2)
         # Non-abstract subclasses should just call isinstance on both left and right.
         if hash(left) != hash(right):
-            if op == 2:  # ==
+            if op == Py_EQ:
                 return False
-            if op == 3:  # !=
+            if op == Py_NE:
                 return True
 
         res = (basis_matroid.BasisMatroid(left) == basis_matroid.BasisMatroid(right))   # Default implementation
-        if op == 2:  # ==
+        if op == Py_EQ:
             return res
-        if op == 3:  # !=
+        if op == Py_NE:
             return not res
 
     # Minors and duality
@@ -3958,7 +3964,7 @@ cdef class Matroid(SageObject):
             raise ValueError("N must be a matroid.")
         return self._has_minor(N, certificate)
 
-    cpdef has_line_minor(self, k, hyperlines=None):
+    cpdef has_line_minor(self, k, hyperlines=None, certificate=False):
         """
         Test if the matroid has a `U_{2, k}`-minor.
 
@@ -3967,18 +3973,21 @@ cdef class Matroid(SageObject):
         than two elements is dependent.
 
         The optional argument ``hyperlines`` restricts the search space: this
-        method returns ``False`` if `si(M/F)` is isomorphic to `U_{2, l}` with
-        `l \geq k` for some `F` in ``hyperlines``, and ``True`` otherwise.
+        method returns ``True`` if `si(M/F)` is isomorphic to `U_{2, l}` with
+        `l \geq k` for some `F` in ``hyperlines``, and ``False`` otherwise.
 
         INPUT:
 
         - ``k`` -- the length of the line minor
         - ``hyperlines`` -- (default: ``None``) a set of flats of codimension
           2. Defaults to the set of all flats of codimension 2.
+        - ``certificate`` -- (default: ``False``) if ``True`` returns ``(True, F)``,
+          where ``F`` is a flat and ``self.minor(contractions=F)`` has a
+          `U_{2,k}` restriction or ``(False, None)``.
 
         OUTPUT:
 
-        Boolean.
+        Boolean or tuple.
 
         .. SEEALSO::
 
@@ -3996,11 +4005,22 @@ cdef class Matroid(SageObject):
             sage: M.has_line_minor(k=4, hyperlines=[['a', 'b', 'c'],
             ....:                                   ['a', 'b', 'd' ]])
             True
+            sage: M.has_line_minor(4, certificate=True)
+            (True, frozenset({'a', 'b', 'd'}))
+            sage: M.has_line_minor(5, certificate=True)
+            (False, None)
+            sage: M.has_line_minor(k=4, hyperlines=[['a', 'b', 'c'],
+            ....:                                   ['a', 'b', 'd' ]], certificate=True)
+            (True, frozenset({'a', 'b', 'd'}))
 
         """
         if self.full_rank() < 2:
+            if certificate:
+                return False, None
             return False
         if self.full_corank() < k - 2:
+            if certificate:
+                return False, None
             return False
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)
@@ -4014,13 +4034,17 @@ cdef class Matroid(SageObject):
                     raise ValueError("input sets need to have rank 2 less than the rank of the matroid.")
             # Note that we don't check if the sets are flats, because loops
             # get simplified away anyway.
-        return self._has_line_minor(k, hyperlines)
+        return self._has_line_minor(k, hyperlines, certificate)
 
-    cpdef _has_line_minor(self, k, hyperlines):
+    cpdef _has_line_minor(self, k, hyperlines, certificate=False):
         """
         Test if the matroid has a `U_{2, k}`-minor.
 
         Internal version that does no input checking.
+
+        The optional argument ``hyperlines`` restricts the search space: this
+        method returns ``True`` if `si(M/F)` is isomorphic to `U_{2, l}` with
+        `l \geq k` for some `F` in ``hyperlines``, and ``False`` otherwise.
 
         INPUT:
 
@@ -4030,22 +4054,31 @@ cdef class Matroid(SageObject):
 
         OUTPUT:
 
-        Boolean. ``False`` if `si(M/F)` is isomorphic to `U_{2, l}` with
-        `l \geq k` for some `F` in ``hyperlines``. ``True``, otherwise.
+        Boolean or tuple.
 
         EXAMPLES::
 
             sage: M = matroids.named_matroids.NonPappus()
             sage: M._has_line_minor(5, M.flats(1))
             True
+            sage: M._has_line_minor(5, M.flats(1), certificate=True)
+            (True, frozenset({'a'}))
         """
         if self.full_rank() < 2:
+            if certificate:
+                return False, None
             return False
         if self.full_corank() < k - 2:
+            if certificate:
+                return False, None
             return False
         for F in hyperlines:
             if self._line_length(F) >= k:
+                if certificate:
+                    return True, F
                 return True
+        if certificate:
+            return False, None
         return False
 
     # extensions
@@ -5460,9 +5493,9 @@ cdef class Matroid(SageObject):
                         B[x,y]=0
             
             # remove row x1 and y1
-            Xp = range(n)
+            Xp = list(xrange(n))
             Xp.remove(x1)
-            Yp = range(m)
+            Yp = list(xrange(m))
             Yp.remove(y1)
             B = B.matrix_from_rows_and_columns(Xp,Yp)
 
@@ -7714,3 +7747,44 @@ cdef class Matroid(SageObject):
         """
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
+
+    def union(self, matroids):
+        r"""
+        Return the matroid union with another matroid or a list of matroids.
+
+        Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_i`
+        has ground set `E_i`. The *matroid
+        union* `M` of `(M_1, M_2, \ldots, M_k)` has ground set `E = \cup E_i`.
+        Moreover, a set `I \subseteq E` is independent in `M` if and only if the
+        restriction of `I` to `E_i` is independent in `M_i` for every `i`.
+
+        INPUT:
+
+        - ``matroids`` - a matroid or a list of matroids
+
+        OUTPUT:
+
+        An instance of MatroidUnion.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: N = M.union(matroids.named_matroids.NonFano()); N
+            Matroid of rank 6 on 7 elements as matroid union of
+            Binary matroid of rank 3 on 7 elements, type (3, 0)
+            Ternary matroid of rank 3 on 7 elements, type 0-
+        """
+        from . import union_matroid
+        if isinstance(matroids, Matroid):
+            matroids = [matroids]
+        else:
+            for M in matroids:
+                if not isinstance(M, Matroid):
+                    raise TypeError("can only take the union with a "
+                                     + "matroid or list of matroids")
+        matroids = [M for M in matroids if M]
+        if not matroids:
+            return self
+        # place this matroid at the beginning of the list
+        matroids.insert(0,self)
+        return union_matroid.MatroidUnion(iter(matroids))

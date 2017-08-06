@@ -11,7 +11,7 @@ cdef class Integer(EuclideanDomainElement):
     cdef void set_from_mpz(self, mpz_t value)
     cdef hash_c(self)
 
-    cpdef _pari_(self)
+    cpdef __pari__(self)
 
     cpdef _shift_helper(Integer self, y, int sign)
     cdef _and(Integer self, Integer other)

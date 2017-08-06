@@ -33,7 +33,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.stdsage cimport PY_NEW
 include "padic_template_element.pxi"
 from cpython.int cimport *
 
@@ -721,7 +720,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_absolute()
             4
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.prime_pow.prec_cap)
         return ans
 
@@ -736,7 +735,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a = R(0); a.precision_relative()
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.prime_pow.prec_cap - self.valuation_c())
         return ans
 
@@ -813,7 +812,7 @@ cdef class FMElement(pAdicTemplateElement):
             (5, O(5^5))
         """
         cdef FMElement unit = self._new_c()
-        cdef Integer valuation = PY_NEW(Integer)
+        cdef Integer valuation = Integer.__new__(Integer)
         mpz_set_si(valuation.value, cremove(unit.value, self.value, self.prime_pow.prec_cap, self.prime_pow))
         return valuation, unit
 
@@ -1003,7 +1002,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f(ZpFM(5)(0))
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         cdef FMElement x = _x
         cconv_mpz_t_out(ans.value, x.value, 0, x.prime_pow.prec_cap, x.prime_pow)
         return ans

@@ -369,7 +369,7 @@ def standard_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()
@@ -397,7 +397,7 @@ def optional_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()
@@ -434,7 +434,7 @@ def experimental_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.package import experimental_packages
         sage: installed, not_installed = experimental_packages()

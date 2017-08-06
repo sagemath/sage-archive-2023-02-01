@@ -28,7 +28,7 @@ from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
-from sage.structure.element import get_coercion_model, ModuleElement
+from sage.structure.element import coercion_model, ModuleElement
 
 
 def is_ModularFormElement(x):
@@ -352,7 +352,8 @@ class ModularForm_abstract(ModuleElement):
         """
         Return the LaTeX expression of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ModularForms(25,4).0._latex_()
             'q + O(q^{6})'
 
@@ -906,6 +907,13 @@ class ModularForm_abstract(ModuleElement):
             sage: CuspForms(1, 12).0.symsquare_lseries(prec=1000)(22) # long time (20s)
             0.999645711124771397835729622033153189549796658647254961493709341358991830134499267117001769570658192128781135161587571716303826382489492569725002840546129937149159065273765309218543427544527498868033604310899372849565046516553245752253255585377793879866297612679545029546953895098375829822346290125161
 
+        Check that :trac:`23247` is fixed::
+
+            sage: F = Newforms(1,12)[0]
+            sage: chi = DirichletGroup(7).0
+            sage: abs(F.symsquare_lseries(chi).check_functional_equation()) < 1e-5
+            True
+
         AUTHORS:
 
         - Martin Raum (2011) -- original code posted to sage-nt
@@ -936,7 +944,12 @@ class ModularForm_abstract(ModuleElement):
             eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**QQ( (3, 2) )
             N = chi.conductor()**3
 
-        L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1, eps, prec=prec)
+        if (chi is None) or chi.is_even():
+            L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1,
+                           eps, prec=prec)
+        else:
+            L = Dokchitser(N, [0, 1, -weight + 1], 2 * weight - 1,
+                           eps * C((0, 1)), prec=prec)
         lcoeffs_prec = L.num_coeffs()
 
         t = verbose("Computing %s coefficients of F" % lcoeffs_prec, level=1)
@@ -997,7 +1010,7 @@ class ModularForm_abstract(ModuleElement):
           (default: 0)
         - ``prec`` (integer, default 53): precision in bits
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(1, 16).0.petersson_norm()
             verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
@@ -1271,7 +1284,7 @@ class Newform(ModularForm_abstract):
             q - 2*q^2 + (-a1 - 2)*q^3 + 4*q^4 + (2*a1 + 10)*q^5 + O(q^6),
             q + 2*q^2 + (1/2*a2 - 1)*q^3 + 4*q^4 + (-3/2*a2 + 12)*q^5 + O(q^6)]
             sage: type(ls2[0])
-            <class 'sage.modular.modform.element.CuspidalSubmodule_g0_Q_with_category.element_class'>
+            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_g0_Q_with_category.element_class'>
             sage: ls2[2][3].minpoly()
             x^2 - 9*x + 2
         """
@@ -1360,7 +1373,7 @@ class Newform(ModularForm_abstract):
         of this form is not either trivial or quadratic. If d is not given or
         is None, then d defaults to the level of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
             [1, -1]
@@ -1460,7 +1473,6 @@ class Newform(ModularForm_abstract):
 
         """
         from sage.modular.all import CuspForms
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         epsilon = self.character()
@@ -1665,7 +1677,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         modular form (which is either 1 or -1), or None if this form is not an
         eigenvector for this operator.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: CuspForms(1, 30).0.atkin_lehner_eigenvalue()
              1
@@ -1772,7 +1784,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         Q = chi.modulus()
@@ -1888,7 +1899,7 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         is attached to an elliptic curve, we can read this off from the root
         number of the curve if d is the level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EllipticCurve('57a1').newform().atkin_lehner_eigenvalue()
             1

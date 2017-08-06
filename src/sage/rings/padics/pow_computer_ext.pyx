@@ -48,11 +48,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/libs/ntl/decl.pxi"
 from cpython.list cimport *
 from cpython.dict cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+include "sage/libs/ntl/decl.pxi"
 
 import weakref
 from sage.misc.misc import cputime
@@ -562,11 +563,11 @@ cdef class PowComputer_ext(PowComputer_class):
             PowComputer_ext for 5, with polynomial [9765620 0 1]
         """
         cdef Integer cache_limit, prec_cap, ram_prec_cap
-        cache_limit = PY_NEW(Integer)
+        cache_limit = Integer.__new__(Integer)
         mpz_set_si(cache_limit.value, self.cache_limit)
-        prec_cap = PY_NEW(Integer)
+        prec_cap = Integer.__new__(Integer)
         mpz_set_si(prec_cap.value, self.prec_cap)
-        ram_prec_cap = PY_NEW(Integer)
+        ram_prec_cap = Integer.__new__(Integer)
         mpz_set_si(ram_prec_cap.value, self.ram_prec_cap)
         return PowComputer_ext_maker, (self.prime, cache_limit, prec_cap, ram_prec_cap, self.in_field, self._poly, self._prec_type, self._ext_type, self._shift_seed)
 
@@ -1103,7 +1104,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             4
         """
         cdef Integer _n = Integer(n)
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.capdiv(mpz_get_si(_n.value)))
         return ans
 

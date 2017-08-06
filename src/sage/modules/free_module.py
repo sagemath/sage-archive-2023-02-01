@@ -162,6 +162,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function, absolute_import
+from six import integer_types
 
 from . import free_module_element
 import sage.matrix.matrix_space
@@ -687,13 +688,13 @@ class FreeModule_generic(Module):
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
             sage: FreeModule(GF(7),3).category()
-            Category of finite enumerated finite dimensional vector spaces with basis over
+            Category of enumerated finite dimensional vector spaces with basis over
              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
             Category of finite dimensional vector spaces with basis over
              (quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
-            Category of finite enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+            Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
             Category of finite dimensional modules with basis over
              (euclidean domains and infinite enumerated sets
@@ -980,7 +981,7 @@ done from the right side.""")
            ``check=True``, to account for numerical instability
            issues.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ZZ^4
             sage: M([1,-1,0,1])  #indirect doctest
@@ -1007,7 +1008,8 @@ done from the right side.""")
             sage: N((0,0,0,1), check=False) in N
             True
         """
-        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
+        if (isinstance(x, integer_types + (sage.rings.integer.Integer,)) and
+            x == 0):
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
             if x.parent() is self:
@@ -1168,8 +1170,17 @@ done from the right side.""")
             144
             sage: (QQ^3).cardinality()
             +Infinity
+
+        TESTS:
+
+        Check that :trac:`22987` is fixed::
+
+            sage: VectorSpace(QQ, 0).cardinality()
+            1
         """
-        return (self.base_ring().cardinality())**self.rank()
+        if not self.rank():
+            return sage.rings.integer.Integer(1)
+        return self.base_ring().cardinality() ** self.rank()
 
     __len__ = cardinality # for backward compatibility
 
@@ -3500,7 +3511,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         - ``dim`` - int, dimension of subspaces to be generated
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = VectorSpace(GF(3), 5)
             sage: len(list(V.subspaces(0)))
@@ -5107,7 +5118,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         Create an element of this vector space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: VS = k.vector_space()
@@ -5270,7 +5281,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns the functorial construction of self, namely, the subspace
         of the ambient module spanned by the given basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ZZ^3
             sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W

@@ -1,3 +1,5 @@
+.. _developers-guide:
+
 ======================================
 Welcome to the Sage Developer's Guide!
 ======================================

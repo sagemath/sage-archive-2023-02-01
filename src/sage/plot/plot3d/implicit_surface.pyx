@@ -89,7 +89,6 @@ from sage.rings.all import RDF
 from sage.plot.misc import setup_for_eval_on_grid
 
 from sage.libs.gsl.math cimport gsl_isnan
-from cpython.string cimport *
 
 include "point_c.pxi"
 
@@ -1138,7 +1137,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: var('x,y,z')
             (x, y, z)
             sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: G.json_repr(G.default_render_params())[0].startswith('{vertices:')
+            sage: G.json_repr(G.default_render_params())[0].startswith('{"vertices":')
             True
         """
         self.triangulate()

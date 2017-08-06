@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Differentiable Manifolds
 
@@ -952,7 +953,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Use :meth:`diff_map` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M'); X.<x,y> = M.chart()
             sage: N = Manifold(2, 'N'); Y.<u,v> = N.chart()
@@ -1015,7 +1016,7 @@ class DifferentiableManifold(TopologicalManifold):
         - the diffeomorphism, as an instance of
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Diffeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
 
@@ -1517,7 +1518,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: t in U.tensor_field_module((2,0))
             True
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             For more examples, see
             :class:`~sage.manifolds.differentiable.tensorfield.TensorField`.
@@ -2587,7 +2588,7 @@ class DifferentiableManifold(TopologicalManifold):
         - the affine connection, as an instance of
           :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Affine connection on an open subset of a 3-dimensional smooth manifold::
 
@@ -2639,7 +2640,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined pseudo-Riemannian metric.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric on a 3-dimensional manifold::
 
@@ -2685,12 +2686,12 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined Riemannian metric.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric of the hyperbolic plane `H^2`::
 
             sage: H2 = Manifold(2, 'H^2', start_index=1)
-            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincare half-plane coord.
+            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincaré half-plane coord.
             sage: g = H2.riemannian_metric('g')
             sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
             sage: g
@@ -2716,7 +2717,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Use :meth:`riemannian_metric` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(3, 'M')
             sage: g = M.riemann_metric('g')
@@ -2768,7 +2769,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined Lorentzian metric.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric of Minkowski spacetime::
 
@@ -2808,7 +2809,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Use :meth:`lorentzian_metric` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(4, 'M')
             sage: g = M.lorentz_metric('g')

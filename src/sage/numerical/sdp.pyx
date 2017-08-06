@@ -309,7 +309,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         - :meth:`default_sdp_solver` -- Returns/Sets the default SDP solver.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(maximization=True)
 
@@ -378,7 +378,7 @@ cdef class SemidefiniteProgram(SageObject):
          r"""
          Returns a short description of the ``SemidefiniteProgram``.
 
-         EXAMPLE::
+         EXAMPLES::
 
              sage: p = SemidefiniteProgram()
              sage: x = p.new_variable()
@@ -418,7 +418,7 @@ cdef class SemidefiniteProgram(SageObject):
         This method lets the user define LinearProgram without having to
         define independent dictionaries when it is not necessary for him.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: p.set_objective(p['x'] + p['z'])
@@ -457,7 +457,7 @@ cdef class SemidefiniteProgram(SageObject):
         - ``name`` -- A string representing the name of the
           ``SemidefiniteProgram``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: p.set_problem_name("Test program")
@@ -488,7 +488,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         - ``name`` -- string. Associates a name to the variable.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: x = p.new_variable()
@@ -558,7 +558,7 @@ cdef class SemidefiniteProgram(SageObject):
         r"""
         Returns the number of constraints assigned so far.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt")
             sage: x = p.new_variable()
@@ -581,7 +581,7 @@ cdef class SemidefiniteProgram(SageObject):
         Returns the number of variables used so far.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: a = matrix([[1, 2.], [2., 3.]])
@@ -700,7 +700,7 @@ cdef class SemidefiniteProgram(SageObject):
           by its corresponding numerical value.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization = False)
             sage: x = p.new_variable()
@@ -768,7 +768,7 @@ cdef class SemidefiniteProgram(SageObject):
           ( can also be set to ``None`` or ``0`` when just
           looking for a feasible solution )
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following semidefinite program::
 
@@ -825,7 +825,7 @@ cdef class SemidefiniteProgram(SageObject):
               case, arguments ``min`` and ``max`` will be ignored.
         - ``name`` -- A name for the constraint.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following semidefinite program::
 
@@ -1011,7 +1011,7 @@ cdef class SemidefiniteProgram(SageObject):
 
         The matrix of the slack of the `i`-th constraint
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(maximization = False)
             sage: x = p.new_variable()
@@ -1064,7 +1064,7 @@ cdef class SemidefiniteProgram(SageObject):
         - ``value`` -- the parameter's value if it is to be defined,
           or ``None`` (default) to obtain its current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p.<x> = SemidefiniteProgram(solver = "cvxopt", maximization = False)
             sage: p.solver_parameter("show_progress", True)
@@ -1132,7 +1132,7 @@ cdef class SemidefiniteProgram(SageObject):
         This might be useful when acces to additional functions provided by
         the backend is needed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This example prints a matrix coefficient::
 
@@ -1157,7 +1157,7 @@ class SDPSolverException(RuntimeError):
 
     ``SDPSolverException`` is the exception raised when the solver fails.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.numerical.sdp import SDPSolverException
         sage: SDPSolverException("Error")
@@ -1221,7 +1221,7 @@ cdef class SDPVariable(Element):
         For more informations, see the method
         ``SemidefiniteProgram.new_variable``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: p.new_variable()
@@ -1239,7 +1239,7 @@ cdef class SDPVariable(Element):
 
         Returns the element asked, otherwise creates it.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
@@ -1264,7 +1264,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns a representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p=SemidefiniteProgram()
             sage: v=p.new_variable()
@@ -1277,7 +1277,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns the keys already defined in the dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
@@ -1291,7 +1291,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns the pairs (keys,value) contained in the dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
@@ -1306,7 +1306,7 @@ cdef class SDPVariable(Element):
         r"""
         Returns the symbolic variables associated to the current dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()

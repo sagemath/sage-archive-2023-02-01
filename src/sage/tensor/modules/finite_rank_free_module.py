@@ -831,7 +831,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unamed) element of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FiniteRankFreeModule._clear_cache_() # for doctests only
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
@@ -859,7 +859,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FiniteRankFreeModule(ZZ, 3, name='M')
             Rank-3 free module M over the Integer Ring
@@ -1803,7 +1803,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         r"""
         Return the dual module of ``self``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Dual of a free module over `\ZZ`::
 

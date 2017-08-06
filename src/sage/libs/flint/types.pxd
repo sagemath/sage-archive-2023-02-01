@@ -47,11 +47,18 @@ cdef extern from "flint/fmpz.h":
 
     ctypedef fmpz_preinvn_struct[1] fmpz_preinvn_t
 
+
 cdef extern from "flint/fmpz_mat.h":
     ctypedef struct fmpz_mat_struct:
         pass
 
     ctypedef fmpz_mat_struct fmpz_mat_t[1]
+
+cdef extern from "flint/fmpq_mat.h":
+    ctypedef struct fmpq_mat_struct:
+        pass
+
+    ctypedef fmpq_mat_struct fmpq_mat_t[1]
 
 cdef extern from "flint/fmpz_mod_poly.h":
     ctypedef struct fmpz_mod_poly_struct:

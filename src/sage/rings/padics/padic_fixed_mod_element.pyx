@@ -27,6 +27,9 @@ include "FM_template.pxi"
 from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 
+cdef extern from "sage/rings/padics/transcendantal.c":
+    cdef void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)
+
 cdef class PowComputer_(PowComputer_base):
     """
     A PowComputer for a fixed-modulus padic ring.
@@ -171,7 +174,7 @@ cdef class pAdicFixedModElement(FMElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Conversion to PARI.
 
@@ -204,7 +207,7 @@ cdef class pAdicFixedModElement(FMElement):
         This checks that :trac:`15653` is fixed::
 
             sage: x = polygen(ZpFM(3,10))
-            sage: (x^3 + x + 1)._pari_().poldisc()
+            sage: (x^3 + x + 1).__pari__().poldisc()
             2 + 3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
         cdef long val
@@ -353,6 +356,83 @@ cdef class pAdicFixedModElement(FMElement):
         else:
             mpz_clear(tmp)
             return infinity
+
+    def _log_binary_splitting(self, aprec, mina=0):
+        r"""
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
+
+        This is a helper method for :meth:`log`.
+        It uses a fast binary splitting algorithm.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which the result is
+          correct. ``aprec`` must not exceed the precision cap of the ring over
+          which this element is defined.
+        - ``mina`` -- an integer (default: 0), the series will check `n` up to
+          this valuation (and beyond) to see if they can contribute to the
+          series.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is
+            1 in the residue field. If this assumption is not fullfiled
+            the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        1. Raise `u` to the power `p^v` for a suitable `v` in order
+           to make it closer to 1. (`v` is chosen such that `p^v` is
+           close to the precision.)
+
+        2. Write
+
+        .. MATH::
+
+            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{(v+1)*2^i})
+
+        with `0 \leq a_i < p^{(v+1)*2^i}` and compute
+        `\log(1 - a_i p^{(v+1)*2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+        together with a binary splitting method.
+
+        3. Divide the result by `p^v`
+
+        The complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_binary_splitting(2)
+            5 + O(5^2)
+            sage: r._log_binary_splitting(4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+            sage: r._log_binary_splitting(100)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
+            sage: r._log_binary_splitting(5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
+        """
+        cdef unsigned long p
+        cdef unsigned long prec = min(aprec, self.prime_pow.prec_cap)
+        cdef pAdicFixedModElement ans
+
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime
+
+        ans = self._new_c()
+        sig_on()
+        padiclog(ans.value, self.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
+        return ans
+
 
 def make_pAdicFixedModElement(parent, value):
     """

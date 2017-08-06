@@ -27,6 +27,6 @@ echo
 
 cd "$CUR"
 echo "Creating grammar pickle..."
-python create_grammar_pickle.py
+sage-python23 create_grammar_pickle.py
 success 'Error creating the grammar pickle'
 echo

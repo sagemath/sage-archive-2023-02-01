@@ -96,6 +96,23 @@ Check that :trac:`14878` is fixed, this should take only microseconds::
     1*x^4 + (-1/6)*x^6 + Order(x^8)
     sage: sin(x*sin(x*sin(x*sin(x)))).series(x,12)
     1*x^4 + (-1/6)*x^6 + (-19/120)*x^8 + (-421/5040)*x^10 + Order(x^12)
+
+Check that :trac:`22959` is fixed::
+
+    sage: (x/(1-x^2)).series(x==0, 10)
+    1*x + 1*x^3 + 1*x^5 + 1*x^7 + 1*x^9 + Order(x^10)
+    sage: (x/(1-x^2)).series(x==0, 11)
+    1*x + 1*x^3 + 1*x^5 + 1*x^7 + 1*x^9 + Order(x^11)
+    sage: (x^2/(1-x^2)).series(x==0, 10)
+    1*x^2 + 1*x^4 + 1*x^6 + 1*x^8 + Order(x^10)
+    sage: (x^2/(1-x^2)).series(x==0, 11)
+    1*x^2 + 1*x^4 + 1*x^6 + 1*x^8 + 1*x^10 + Order(x^11)
+
+Check that :trac:`22733` is fixed::
+
+    sage: _ = var('z')
+    sage: z.series(x)
+    (z)
 """
 
 #*****************************************************************************

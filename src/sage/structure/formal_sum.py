@@ -222,8 +222,6 @@ class FormalSum(ModuleElement):
             0
             sage: abs(cmp(a,0))          # 0 is coerced into a.parent()(0)
             1
-            sage: abs(cmp(a,'string'))   # will NOT evaluate via this method
-            1
         """
         # if necessary, left and right have already been coerced to the same parent()
         return cmp(left._data, right._data)
@@ -397,14 +395,14 @@ class FormalSums(UniqueRepresentation, Module):
         r"""
         Return whether there is a coercion from ``X``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FormalSums(QQ).has_coerce_map_from( FormalSums(ZZ) )   # indirect test
             True
 
             sage: FormalSums(ZZ).get_action(QQ)   # indirect test
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
         """
@@ -439,7 +437,7 @@ class FormalSums(UniqueRepresentation, Module):
 
             sage: A = FormalSums(ZZ);  A.get_action(QQ)
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
             sage: A = FormalSums(QQ);  A.get_action(ZZ)

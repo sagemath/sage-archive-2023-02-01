@@ -78,7 +78,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         """
         Returns the ideal class of this fractional ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))
@@ -92,7 +92,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return string representation of this fractional ideal class.
 
-         EXAMPLE::
+         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))._repr_()
@@ -108,7 +108,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Multiplication of two (S-)ideal classes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = NumberField(x^2 + 23,'a').class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
@@ -135,7 +135,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Division of two ideal classes.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = NumberField(x^2 + 23,'a').class_group(); G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
@@ -154,7 +154,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Raise this element to the power n.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8)
             sage: C=K.class_group()
@@ -179,7 +179,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return the multiplicative inverse of this ideal class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 3*x + 8); G = K.class_group()
             sage: G(2, a).inverse()
@@ -238,7 +238,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         r"""
         Return a representative ideal in this ideal class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<w>=QuadraticField(-23)
             sage: OK=K.ring_of_integers()
@@ -259,7 +259,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
 
         ``norm_bound`` (positive integer) -- upper bound on the norm of primes tested.
 
-        EXAMPLE::
+        EXAMPLES::
 
            sage: K.<a> = NumberField(x^2+31)
            sage: K.class_number()
@@ -383,7 +383,7 @@ class SFractionalIdealClass(FractionalIdealClass):
         r"""
         Returns a string representation of the S-ideal class of this fractional ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-14)
             sage: I = K.ideal(2,a)
@@ -470,7 +470,7 @@ class ClassGroup(AbelianGroupWithValues_class):
             sage: CK = K.class_group()
             sage: CL = L.class_group()
             sage: [CL(I).exponents() for I in CK]
-            [(0,), (2,), (4,)]
+            [(0,), (4,), (2,)]
         """
         if isinstance(args[0], FractionalIdealClass):
             return self.element_class(self, None, self._number_field.ideal(args[0].ideal()))

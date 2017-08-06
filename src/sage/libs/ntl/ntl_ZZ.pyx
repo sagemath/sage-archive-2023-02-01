@@ -14,9 +14,8 @@
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -168,7 +167,7 @@ cdef class ntl_ZZ(object):
 
         Agrees with the hash of the corresponding sage integer.
         """
-        cdef Integer v = PY_NEW(Integer)
+        cdef Integer v = Integer.__new__(Integer)
         ZZ_to_mpz(v.value, &self.x)
         return v.hash_c()
 
@@ -251,7 +250,7 @@ cdef class ntl_ZZ(object):
             sage: ntl.ZZ(22).__int__()
             22
             sage: type(ntl.ZZ(22).__int__())
-            <type 'int'>
+            <... 'int'>
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
@@ -280,7 +279,7 @@ cdef class ntl_ZZ(object):
         sage: i
          42
         sage: type(i)
-         <type 'int'>
+         <... 'int'>
         """
         return self.get_as_int()
 
@@ -294,7 +293,7 @@ cdef class ntl_ZZ(object):
 
         AUTHOR: Joel B. Mohler
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         ZZ_to_mpz(ans.value, &self.x)
         return ans
         #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)

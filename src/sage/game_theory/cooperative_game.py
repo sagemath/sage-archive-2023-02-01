@@ -779,7 +779,7 @@ class CooperativeGame(SageObject):
 
         EXAMPLES:
 
-        A payoff pector that has the symmetry property::
+        A payoff vector that has the symmetry property::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,

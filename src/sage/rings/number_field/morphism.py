@@ -60,12 +60,32 @@ class NumberFieldHomset(RingHomset_generic):
             sage: H1.coerce(loads(dumps(H1[1]))) # indirect doctest
             Ring endomorphism of Number Field in a with defining polynomial x^2 + 1
               Defn: a |--> -a
+
+        TESTS:
+
+        We can move morphisms between categories::
+
+            sage: f = H1.an_element()
+            sage: g = End(H1.domain(), category=Rings())(f)
+            sage: f == End(H1.domain(), category=NumberFields())(g)
+            True
+
         """
         if not isinstance(x, NumberFieldHomomorphism_im_gens):
             raise TypeError
         if x.parent() is self:
             return x
-        if x.parent() == self:
+        from sage.categories.all import NumberFields, Rings
+        if (x.parent() == self or
+            (x.domain() == self.domain() and x.codomain() == self.codomain() and
+             # This would be the better check, however it returns False currently:
+             # self.homset_category().is_full_subcategory(x.category_for())
+             # So we check instead that this is a morphism anywhere between
+             # Rings and NumberFields where the hom spaces do not change.
+             NumberFields().is_subcategory(self.homset_category()) and
+             self.homset_category().is_subcategory(Rings()) and
+             NumberFields().is_subcategory(x.category_for()) and
+             x.category_for().is_subcategory(Rings()))):
             return NumberFieldHomomorphism_im_gens(self, x.im_gens(), check=False)
         raise TypeError
 

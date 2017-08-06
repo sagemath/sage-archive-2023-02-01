@@ -263,7 +263,7 @@ class AutomorphismField(TensorField):
         Create an instance of the same class as ``self`` on the same
         vector field module.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: a = M.automorphism_field(name='a')
@@ -917,7 +917,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

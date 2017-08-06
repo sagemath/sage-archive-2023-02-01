@@ -464,7 +464,7 @@ class AlgebraicForm(FormsBase):
 
         - ``g`` -- an `SL(n,\CC)` matrix or ``None`` (default). The
           test will be to check that the covariant transforms
-          corrently under this special linear group element acting on
+          correctly under this special linear group element acting on
           the homogeneous variables. If ``None``, a random matrix will
           be picked.
 
@@ -2205,7 +2205,7 @@ class SeveralAlgebraicForms(FormsBase):
 
         - ``g`` -- a `SL(n,\CC)` matrix or ``None`` (default). The
           test will be to check that the covariant transforms
-          corrently under this special linear group element acting on
+          correctly under this special linear group element acting on
           the homogeneous variables. If ``None``, a random matrix will
           be picked.
 
@@ -3080,7 +3080,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3157,7 +3157,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3184,7 +3184,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 

@@ -16,8 +16,10 @@ Factory for Character-Based Art
 #
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
+from six import iteritems, string_types
 
 from sage.structure.sage_object import SageObject
+
 
 class CharacterArtFactory(SageObject):
 
@@ -59,7 +61,7 @@ class CharacterArtFactory(SageObject):
             <class 'sage.typeset.character_art_factory.CharacterArtFactory'>
         """
         self.art_type = art_type
-        assert string_type in [str, unicode]
+        assert isinstance(string_type('a'), string_types)
         self.string_type = string_type
         assert magic_method_name in ['_ascii_art_', '_unicode_art_']
         self.magic_method_name = magic_method_name
@@ -272,7 +274,7 @@ class CharacterArtFactory(SageObject):
             elt._breakpoints.remove(k._l + 1)
             return elt
         repr_elems = self.concatenate(
-                (concat_no_breakpoint(k,v) for k,v in d.iteritems()),
+                (concat_no_breakpoint(k, v) for k, v in iteritems(d)),
                 comma)
         return self.build_container(repr_elems,
                 self.left_curly_brace, self.right_curly_brace)

@@ -61,6 +61,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -83,10 +84,12 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
+from sage.structure.richcmp import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class TamariIntervalPoset(Element):
     r"""
     The class of Tamari interval-posets.
@@ -150,7 +153,7 @@ class TamariIntervalPoset(Element):
     its roots on top. This forest is usually given the structure of a
     planar forest by ordering brother nodes by their labels; it then has
     the property that if its nodes are traversed in post-order
-    (see :meth:~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
+    (see :meth:`~sage.combinat.abstract_tree.AbstractTree.post_order_traversal`,
     and traverse the trees of the forest from left to right as well),
     then the labels encountered are `1, 2, \ldots, n` in this order.
 
@@ -211,8 +214,6 @@ class TamariIntervalPoset(Element):
         sage: TIP(Poset({}))
         The Tamari interval of size 0 induced by relations []
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r"""
@@ -251,7 +252,7 @@ class TamariIntervalPoset(Element):
             Interval-posets
         """
         self._size = size
-        self._poset = Poset((range(1, size + 1), relations))
+        self._poset = Poset((list(range(1, size + 1)), relations))
         if self._poset.cardinality() != size:
             # This can happen as the Poset constructor automatically adds
             # in elements from the relations.
@@ -1088,7 +1089,173 @@ class TamariIntervalPoset(Element):
                           self.increasing_cover_relations() +
                           self.decreasing_cover_relations())
 
-    def __eq__(self, other):
+    def _ascii_art_(self):
+        """
+        Return an ascii art picture of ``self``.
+
+        This is a picture of the Hasse diagram. Vertices from `1` to `n`
+        are placed on the diagonal from top-left to bottom-right.
+        Then increasing covers are drawn above the diagonal
+        and decreasing covers are drawn below the diagonal.
+
+        EXAMPLES::
+
+            sage: T = TamariIntervalPosets(5)[56]
+            sage: ascii_art(T)
+             O-----------+
+                O--------+
+                +--O--+  |
+                      O--+
+                         O
+            sage: T.poset().cover_relations()
+            [[3, 4], [3, 2], [4, 5], [2, 5], [1, 5]]
+        """
+        n = self.size()
+        M = [[' O ' if i == j else '   ' for i in range(n)] for j in range(n)]
+
+        def superpose(x, y, b):
+            # put symbol b at position x, y
+            # on top of existing symbols there
+            i = x - 1
+            j = y - 1
+            a = M[i][j]
+            if a == '   ':
+                M[i][j] = b
+            elif a == '-+ ':
+                if b == a:
+                    pass
+                elif b == '---':
+                    M[i][j] = '-+-'
+                elif b == ' | ':
+                    M[i][j] = '-+ '
+            elif a == ' +-':
+                if b == a:
+                    pass
+                elif b == '---':
+                    M[i][j] = '-+-'
+                elif b == ' | ':
+                    M[i][j] = ' +-'
+            elif a == '---':
+                if b == a:
+                    pass
+                elif b == '-+ ':
+                    M[i][j] = '-+-'
+                elif b == ' +-':
+                    M[i][j] = '-+-'
+            elif a == ' | ':
+                if b == a:
+                    pass
+                elif b == '-+ ':
+                    M[i][j] = '-+ '
+                elif b == ' +-':
+                    M[i][j] = ' +-'
+
+        def superpose_node(i, right=True):
+            i -= 1 # for indexing
+            if M[i][i] == ' O ':
+                if right:
+                    M[i][i] = ' O-'
+                else:
+                    M[i][i] = '-O '
+            elif M[i][i] == ' O-' and not right:
+                M[i][i] = '-O-'
+            elif M[i][i] == '-O ' and right:
+                M[i][i] = '-O-'
+
+        for i, j in self.poset().hasse_diagram().edges(labels=False):
+            if i > j:
+                superpose_node(i, False)
+                superpose(i, j, ' +-')
+                for k in range(j + 1, i):
+                    superpose(k, j, ' | ')
+                    superpose(i, k, '---')
+            else:
+                superpose_node(i, True)
+                superpose(i, j, '-+ ')
+                for k in range(i + 1 , j):
+                    superpose(i, k, '---')
+                    superpose(k, j, ' | ')
+
+        from sage.typeset.ascii_art import AsciiArt
+        return AsciiArt([''.join(ligne) for ligne in M])
+
+    def _unicode_art_(self):
+        """
+        Return an unicode picture of ``self``.
+
+        This is a picture of the Hasse diagram. Vertices from `1` to `n` are
+        placed on the diagonal from top-left to bottom-right.
+        Then increasing covers are drawn above the diagonal
+        and decreasing covers are drawn below the diagonal.
+
+        EXAMPLES::
+
+            sage: T = TamariIntervalPosets(5)[56]
+            sage: unicode_art(T)
+            o───╮
+             o──┤
+             ╰o╮│
+               o┤
+                o
+            sage: T.poset().cover_relations()
+            [[3, 4], [3, 2], [4, 5], [2, 5], [1, 5]]
+        """
+        n = self.size()
+        M = [[u'o' if i == j else u' ' for i in range(n)] for j in range(n)]
+
+        def superpose(x, y, b):
+            # put symbol b at position x, y
+            # on top of existing symbols there
+            i = x - 1
+            j = y - 1
+            a = M[i][j]
+            if a == ' ':
+                M[i][j] = b
+            elif a == u'╮':
+                if b == a:
+                    pass
+                elif b == u'─':
+                    M[i][j] = u'┬'
+                elif b == u'│':
+                    M[i][j] = u'┤'
+            elif a == u'╰':
+                if b == a:
+                    pass
+                elif b == u'─':
+                    M[i][j] = u'┴'
+                elif b == u'│':
+                    M[i][j] = u'├'
+            elif a == u'─':
+                if b == a:
+                    pass
+                elif b == u'╮':
+                    M[i][j] = u'┬'
+                elif b == u'╰':
+                    M[i][j] = u'┴'
+            elif a == u'│':
+                if b == a:
+                    pass
+                elif b == u'╮':
+                    M[i][j] = u'┤'
+                elif b == u'╰':
+                    M[i][j] = u'├'
+
+        for i, j in self.poset().hasse_diagram().edges(labels=False):
+            if i > j:
+                superpose(i, j, u'╰')
+                for k in range(j + 1, i):
+                    superpose(k, j, u'│')
+                    superpose(i, k, u'─')
+            else:
+                superpose(i, j, u'╮')
+                for k in range(i + 1 , j):
+                    superpose(i, k, u'─')
+                    superpose(k, j, u'│')
+
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt([''.join(ligne) for ligne in M])
+
+    def _richcmp_(self, other, op):
         r"""
         TESTS::
 
@@ -1100,29 +1267,8 @@ class TamariIntervalPoset(Element):
             True
             sage: TamariIntervalPoset(3,[(1,2),(3,2)]) == TamariIntervalPoset(3,[(1,2)])
             False
-        """
-        if (not isinstance(other, TamariIntervalPoset)):
-            return False
-        return self.size() == other.size() and self._cover_relations == other._cover_relations
-
-    def __ne__(self, other):
-        r"""
-        TESTS::
-
-            sage: TamariIntervalPoset(0,[]) != TamariIntervalPoset(0,[])
-            False
-            sage: TamariIntervalPoset(1,[]) != TamariIntervalPoset(0,[])
-            True
             sage: TamariIntervalPoset(3,[(1,2),(3,2)]) != TamariIntervalPoset(3,[(3,2),(1,2)])
             False
-            sage: TamariIntervalPoset(3,[(1,2),(3,2)]) != TamariIntervalPoset(3,[(1,2)])
-            True
-        """
-        return not (self == other)
-
-    def __le__(self, el2):
-        r"""
-        TESTS::
 
             sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
@@ -1133,52 +1279,22 @@ class TamariIntervalPoset(Element):
             sage: ip2 <= ip1
             False
         """
-        return self.parent().le(self, el2)
-
-    def __lt__(self, el2):
-        r"""
-        TESTS::
-
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
-            sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
-            sage: ip1 < ip2
-            True
-            sage: ip1 < ip1
-            False
-            sage: ip2 < ip1
-            False
-        """
-        return self.parent().lt(self, el2)
-
-    def __ge__(self, el2):
-        r"""
-        TESTS::
-
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
-            sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
-            sage: ip1 >= ip2
-            False
-            sage: ip1 >= ip1
-            True
-            sage: ip2 >= ip1
-            True
-        """
-        return self.parent().ge(self, el2)
-
-    def __gt__(self, el2):
-        r"""
-        TESTS::
-
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
-            sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
-            sage: ip1 > ip2
-            False
-            sage: ip1 > ip1
-            False
-            sage: ip2 > ip1
-            True
-        """
-        return self.parent().gt(self, el2)
+        if not isinstance(other, TamariIntervalPoset):
+            return op == op_NE
+        if op == op_EQ:
+            return (self.size() == other.size() and
+                    self._cover_relations == other._cover_relations)
+        if op == op_NE:
+            return not(self.size() == other.size() and
+                       self._cover_relations == other._cover_relations)
+        if op == op_LT:
+            return self.parent().lt(self, other)
+        if op == op_LE:
+            return self.parent().le(self, other)
+        if op == op_GT:
+            return self.parent().gt(self, other)
+        if op == op_GE:
+            return self.parent().ge(self, other)
 
     def __iter__(self):
         r"""
@@ -2971,7 +3087,7 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
 
     def _repr_(self):
         r"""
-        TEST::
+        TESTS::
 
             sage: TamariIntervalPosets()
             Interval-posets

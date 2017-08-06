@@ -2474,7 +2474,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
             sage: H.points() is H.points()
             True
             sage: type(H.points())
-            <type 'tuple'>
+            <... 'tuple'>
         """
         if beta is None:
             SDN = self.betas()
@@ -2759,9 +2759,11 @@ class HeegnerPointOnX0N(HeegnerPoint):
     @cached_method
     def tau(self):
         """
-        Return an element tau in the upper half plane that corresponds
-        to this particular Heegner point (actually, tau is in the
-        quadratic imagqinary field K associated to this Heegner point).
+        Return an element ``tau`` in the upper half plane that corresponds
+        to this particular Heegner point.
+
+        Actually, ``tau`` is in the quadratic imaginary field K associated
+        to this Heegner point.
 
         EXAMPLES::
 
@@ -2773,10 +2775,9 @@ class HeegnerPointOnX0N(HeegnerPoint):
             37*x^2 + 11*x*y + 2*y^2
         """
         K = self.quadratic_field()
-        c = self.conductor()
-        d = K.gen()*c
-        A,B,_ = self.__f
-        return (-B + d)/(2*A)
+        d = K.gen() * self.conductor()
+        A, B, _ = self.__f
+        return (-B + d) / (2 * A)
 
     def map_to_curve(self, E):
         """
@@ -2861,6 +2862,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         """
         from sage.plot.all import point
         return point(CDF(self.tau()), **kwds)
+
 
 class HeegnerPointOnEllipticCurve(HeegnerPoint):
     """
@@ -3050,7 +3052,9 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
     def kolyvagin_point(self):
         """
         Return the Kolyvagin point corresponding to this Heegner
-        point.  This is the point obtained by applying the Kolyvagin
+        point.
+
+        This is the point obtained by applying the Kolyvagin
         operator `J_c I_c` in the group ring of the Galois group to
         this Heegner point.   It is a point that defines an element
         of `H^1(K, E[n])`, under certain hypotheses on `n`.
@@ -3169,7 +3173,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
-            sage: P.numerical_approx()  # abs tol 1e-15
+            sage: P.numerical_approx()  # abs tol 1e-14
             (-3.15940603400359e-16 + 1.41421356237309*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
@@ -4379,7 +4383,8 @@ class KolyvaginCohomologyClass(SageObject):
 
     def __eq__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: y = EllipticCurve('37a').heegner_point(-7)
             sage: c = y.kolyvagin_cohomology_class(3)
             sage: c == y.kolyvagin_cohomology_class(3)
@@ -4676,11 +4681,11 @@ class HeegnerQuatAlg(SageObject):
         """
         INPUT:
 
-            - `D` -- negative fundamental disriminant
+        - `D` -- negative fundamental discriminant
 
-            - `c` -- integer coprime
+        - `c` -- integer coprime
 
-            - `R` -- Eichler order
+        - `R` -- Eichler order
 
         EXAMPLES::
 
@@ -4968,13 +4973,13 @@ class HeegnerQuatAlg(SageObject):
 
         OUTPUT:
 
-            - dictionary mapping 2-tuples (u,v) to ideals
+        - dictionary mapping 2-tuples (u,v) to ideals
 
         EXAMPLES::
 
             sage: H = heegner_points(11).reduce_mod(7)
             sage: I = H.brandt_module().right_ideals()[0]
-            sage: sorted(H.cyclic_subideal_p1(I,3).iteritems())
+            sage: sorted(H.cyclic_subideal_p1(I,3).items())
             [((0, 1),
               Fractional ideal (2 + 2*j + 32*k, 2*i + 8*j + 82*k, 12*j + 60*k, 132*k)),
              ((1, 0),
@@ -5420,7 +5425,7 @@ class HeegnerQuatAlg(SageObject):
         return self.kolyvagin_sigma_operator(D, c, i)
 
         #w = 0
-        #for i, a in v.dict().iteritems():
+        #for i, a in six.iteritems(v.dict()):
         #    w += a * self.kolyvagin_sigma_operator(D, c, i)
         # return w
 
@@ -6248,7 +6253,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: P.numerical_approx()
+        sage: P.numerical_approx()  # abs tol 1e-14
         (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
         sage: P.index()
         6
@@ -6299,7 +6304,7 @@ def ell_heegner_discriminants_list(self, n):
     OUTPUT: The list of the first n Heegner discriminants smaller than
     -5 for the given elliptic curve.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: E=EllipticCurve('11a')
         sage: E.heegner_discriminants_list(4)                     # indirect doctest
@@ -6338,7 +6343,7 @@ def heegner_point_height(self, D, prec=2, check_rank=True):
 
     OUTPUT: Interval that contains the height of the Heegner point.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: E = EllipticCurve('11a')
         sage: E.heegner_point_height(-7)

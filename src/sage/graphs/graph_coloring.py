@@ -394,7 +394,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     - If ``k`` is set and ``value_only=True``, test whether the graph is
       `k`-colorable, and return ``True`` or ``False`` accordingly.
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import vertex_coloring
        sage: g = graphs.PetersenGraph()
@@ -586,7 +586,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     colored with `j`. This can define a Linear Program, which is used
     here to compute the Grundy number of a graph.
 
-    .. NOTE:
+    .. NOTE::
 
        This method computes a grundy coloring using at *MOST* `k`
        colors. If this method returns a value equal to `k`, it can not
@@ -981,7 +981,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
        can sometimes be much faster, and it is a bad idea to compute
        the whole coloring if you do not need it !
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
@@ -1199,7 +1199,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     NP-Hard
 
-    EXAMPLE:
+    EXAMPLES:
 
     Obviously, a square grid has a linear arboricity of 2, as
     the set of horizontal lines and the set of vertical lines
@@ -1395,7 +1395,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     Linear Programming
 
-    EXAMPLE:
+    EXAMPLES:
 
     The complete graph on 8 vertices can not be acyclically
     edge-colored with less `\Delta+1` colors, but it can be

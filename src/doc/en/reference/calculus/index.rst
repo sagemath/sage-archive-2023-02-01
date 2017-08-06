@@ -24,13 +24,13 @@ Symbolic Calculus
    sage/symbolic/complexity_measures
    sage/calculus/wester
    sage/calculus/desolvers
-   sage/gsl/dwt
-   sage/gsl/dft
-   sage/gsl/fft
-   sage/gsl/ode
-   sage/gsl/integration
+   sage/calculus/transforms/dwt
+   sage/calculus/transforms/dft
+   sage/calculus/transforms/fft
+   sage/calculus/ode
+   sage/calculus/integration
    sage/calculus/riemann
-   sage/gsl/interpolation
+   sage/calculus/interpolation
    sage/calculus/interpolators
    sage/calculus/functions
    sage/calculus/var

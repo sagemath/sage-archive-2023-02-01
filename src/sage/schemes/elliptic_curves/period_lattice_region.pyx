@@ -58,7 +58,7 @@ cdef class PeriodicRegion:
 
     def __init__(self, w1, w2, data, full=True):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import numpy as np
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion

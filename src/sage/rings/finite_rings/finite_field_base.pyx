@@ -32,6 +32,7 @@ AUTHORS:
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
@@ -67,7 +68,7 @@ cdef class FiniteFieldIterator:
         r"""
         Return the next element in the iterator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
             sage: next(k) # indirect doctest
@@ -1312,7 +1313,7 @@ cdef class FiniteField(Field):
         coercion and pickling cannot work as one might expect.  See
         below for an example.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(5).algebraic_closure()
             sage: F
@@ -1346,7 +1347,7 @@ cdef class FiniteField(Field):
         .. [CP] Wikipedia entry on Conway polynomials,
            :wikipedia:`Conway_polynomial_(finite_fields)`
 
-        TEST::
+        TESTS::
 
             sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
             True
@@ -1559,6 +1560,9 @@ def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     but kept around for backward compatibility.
     """
     return _type(order, variable_name, **kwargs)
+
+register_unpickle_override(
+    'sage.rings.ring', 'unpickle_FiniteField_prm', unpickle_FiniteField_prm)
 
 
 def is_FiniteField(x):

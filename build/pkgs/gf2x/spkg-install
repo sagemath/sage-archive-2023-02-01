@@ -6,6 +6,10 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+echo "Deleting old gf2x files."
+rm -f "$SAGE_LOCAL"/lib/libgf2x*
+rm -rf "$SAGE_LOCAL"/include/gf2x*
+
 cd src
 
 # Use newer version of config.guess and config.sub (see Trac #19727)
@@ -74,10 +78,6 @@ case "$SAGE_TUNE_GF2X" in
         fi
         ;;
 esac
-
-echo "Deleting old gf2x files."
-rm -f "$SAGE_LOCAL"/lib/libgf2x*
-rm -rf "$SAGE_LOCAL"/include/gf2x*
 
 echo "Installing gf2x."
 $MAKE install

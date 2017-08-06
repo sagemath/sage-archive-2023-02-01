@@ -164,22 +164,20 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: from sage.misc.cachefunc import cached_function
         sage: from sage.structure.dynamic_class import dynamic_class
         sage: class Foo(object):
-        ...       "The Foo class"
-        ...       def __init__(self, x):
-        ...           self._x = x
-        ...       @cached_method
-        ...       def f(self):
-        ...           return self._x^2
-        ...       def g(self):
-        ...           return self._x^2
-        ...       @lazy_attribute
-        ...       def x(self):
-        ...           return self._x
-        ...
+        ....:     "The Foo class"
+        ....:     def __init__(self, x):
+        ....:         self._x = x
+        ....:     @cached_method
+        ....:     def f(self):
+        ....:         return self._x^2
+        ....:     def g(self):
+        ....:         return self._x^2
+        ....:     @lazy_attribute
+        ....:     def x(self):
+        ....:         return self._x
         sage: class Bar:
-        ...       def bar(self):
-        ...           return self._x^2
-        ...
+        ....:     def bar(self):
+        ....:         return self._x^2
 
     We now create a class FooBar which is a copy of Foo, except that it
     also inherits from Bar::
@@ -200,13 +198,13 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         '__main__'
 
         sage: Foo.__bases__
-        (<type 'object'>,)
+        (<... 'object'>,)
         sage: FooBar.__bases__
-        (<type 'object'>, <class __main__.Bar at ...>)
+        (<... 'object'>, <class __main__.Bar at ...>)
         sage: Foo.mro()
-        [<class '__main__.Foo'>, <type 'object'>]
+        [<class '__main__.Foo'>, <... 'object'>]
         sage: FooBar.mro()
-        [<class '__main__.FooBar'>, <type 'object'>, <class __main__.Bar at ...>]
+        [<class '__main__.FooBar'>, <... 'object'>, <class __main__.Bar at ...>]
 
     .. RUBRIC:: Pickling
 
@@ -229,7 +227,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
 
         sage: BarFoo = dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (3,)))
         sage: type(BarFoo).__reduce__(BarFoo)
-        (<type 'str'>, (3,))
+        (<... 'str'>, (3,))
         sage: loads(dumps(BarFoo))
         '3'
 
@@ -271,7 +269,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     first class::
 
         sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction")._reduction
-        (<type 'str'>, (3,))
+        (<... 'str'>, (3,))
 
     .. WARNING::
 
@@ -468,7 +466,7 @@ class DynamicMetaclass(type):
             sage: C = sage.structure.dynamic_class.dynamic_class_internal("bla", (object,), Foo, doccls = DocClass)
             sage: type(C).__reduce__(C)
             (<function dynamic_class at ...>,
-             ('bla', (<type 'object'>,), <class __main__.Foo at ...>, None, <class __main__.DocClass at ...>))
+             ('bla', (<... 'object'>,), <class __main__.Foo at ...>, None, <class __main__.DocClass at ...>))
             sage: C = sage.structure.dynamic_class.dynamic_class_internal("bla", (object,), Foo, doccls = DocClass, reduction = "blah")
             sage: type(C).__reduce__(C)
             'blah'

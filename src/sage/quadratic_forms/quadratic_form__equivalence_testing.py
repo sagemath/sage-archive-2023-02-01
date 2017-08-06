@@ -95,7 +95,7 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
     if not self.is_definite() or not other.is_definite():
         raise ValueError("not a definite form in QuadraticForm.is_globally_equivalent_to()")
 
-    mat = other._pari_().qfisom(self)
+    mat = other.__pari__().qfisom(self)
     if not mat:
         return False
 

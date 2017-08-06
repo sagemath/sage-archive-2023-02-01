@@ -79,6 +79,10 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
     This assumes that your multiplication is associative; we don't promise
     which end of the list we start at.
 
+    .. SEEALSO::
+
+        For the symbolic product function, see :func:`sage.calculus.calculus.symbolic_product`.
+
     EXAMPLES::
 
         sage: prod([1,2,34])
@@ -332,9 +336,9 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff=5):
 
     We make copies when appropriate so that we don't accidentally modify the arguments::
 
-        sage: range(10e4)==balanced_sum([[i] for i in range(10e4)], [])
+        sage: list(range(10e4))==balanced_sum([[i] for i in range(10e4)], [])
         True
-        sage: range(10e4)==balanced_sum([[i] for i in range(10e4)], [])
+        sage: list(range(10e4))==balanced_sum([[i] for i in range(10e4)], [])
         True
 
     TESTS::
@@ -510,59 +514,59 @@ cpdef list normalize_index(object key, int size):
         [0, 2, 2]
         sage: normalize_index([4,4,-5],5)
         [4, 4, 0]
-        sage: s=slice(None,None,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,None,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,None,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,None,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,None,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,None,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,-2,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,-2,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,-2,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,-2,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,-2,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,-2,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,4,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,4,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,4,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,4,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,4,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,4,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,None,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,None,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,None,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,None,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,None,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,None,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,-2,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,-2,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,-2,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,-2,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,-2,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,-2,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,4,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,4,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,4,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,4,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,4,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,4,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,None,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,None,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,None,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,None,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,None,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,None,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,-2,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,-2,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,-2,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,-2,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,-2,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,-2,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,4,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,4,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,4,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,4,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,4,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,4,4); normalize_index(s,5)==list(range(5))[s]
         True
     """
     cdef tuple index_tuple
@@ -579,7 +583,7 @@ cpdef list normalize_index(object key, int size):
             raise IndexError("index out of range")
         return [index]
     elif isinstance(key, slice):
-        return range(*key.indices(size))
+        return list(xrange(*key.indices(size)))
     elif type(key) is tuple:
         index_tuple = key
     elif type(key) is list:

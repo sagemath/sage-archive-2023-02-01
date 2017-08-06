@@ -333,9 +333,11 @@ class ComplexField_class(ring.Field):
             sage: CC(QQ[I].gen())
             1.00000000000000*I
             sage: CC.gen() + QQ[I].gen()
+            2.00000000000000*I
+            sage: CC.gen() + QQ.extension(x^2 + 1, 'I', embedding=None).gen()
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'
+            TypeError: unsupported operand parent(s) for +: 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'
 
         In the absence of arguments we return zero::
 
@@ -424,22 +426,22 @@ class ComplexField_class(ring.Field):
             return RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
         if is_ComplexField(S):
             if self._prec <= S._prec:
-                return self._generic_convert_map(S)
+                return self._generic_coerce_map(S)
             else:
                 return None
         if S is complex:
             if self._prec <= 53:
-                return self._generic_convert_map(S)
+                return self._generic_coerce_map(S)
             else:
                 return None
         late_import()
         if S is CDF:
             if self._prec <= 53:
-                return self._generic_convert_map(S)
+                return self._generic_coerce_map(S)
             else:
                 return None
         if S in [AA, QQbar, CLF, RLF]:
-            return self._generic_convert_map(S)
+            return self._generic_coerce_map(S)
         return self._coerce_map_via([CLF], S)
 
     def _repr_(self):

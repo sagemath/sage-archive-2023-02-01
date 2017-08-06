@@ -55,7 +55,7 @@ cpdef inline parent(x):
 
         sage: d = int(42)  # Python int
         sage: parent(d)
-        <type 'int'>
+        <... 'int'>
         sage: L = list(range(10))
         sage: parent(L)
         <... 'list'>
@@ -158,7 +158,21 @@ cpdef inline bint have_same_parent(left, right):
 cdef inline parent_c(x):
     """
     Deprecated alias for :func:`parent`.
+
+    TESTS::
+
+        sage: cython('''
+        ....: from sage.structure.element cimport parent_c
+        ....: from sage.all import ZZ
+        ....: print(parent_c(ZZ.one()))
+        ....: ''')
+        doctest:...:
+        DeprecationWarning: parent_c() is deprecated, use parent() instead
+        See http://trac.sagemath.org/22311 for details.
+        Integer Ring
     """
+    from sage.misc.superseded import deprecation
+    deprecation(22311, "parent_c() is deprecated, use parent() instead")
     return parent(x)
 
 
@@ -201,9 +215,9 @@ cdef class ModuleElement(Element):
     cpdef _neg_(self)
 
     # self._rmul_(x) is x * self
-    cpdef _lmul_(self, RingElement right)
+    cpdef _lmul_(self, Element right)
     # self._lmul_(x) is self * x
-    cpdef _rmul_(self, RingElement left)
+    cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
     pass

@@ -12,7 +12,7 @@ EXAMPLES::
     Special Linear Group of degree 2 over Finite Field of size 3
     sage: G.is_finite()
     True
-    sage: G.conjugacy_class_representatives()
+    sage: G.conjugacy_classes_representatives()
     (
     [1 0]  [0 2]  [0 1]  [2 0]  [0 2]  [0 1]  [0 2]
     [0 1], [1 1], [2 1], [0 2], [1 2], [2 2], [1 0]
@@ -128,7 +128,7 @@ class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
 
         - ``degree`` -- integer. The degree (number of rows/columns of matrices).
 
-        - ``base_ring`` -- rinrg. The base ring of the matrices.
+        - ``base_ring`` -- ring. The base ring of the matrices.
 
         - ``special`` -- boolean. Whether the matrix group is special,
           that is, elements have determinant one.

@@ -271,9 +271,9 @@ class QuiverRepHom(CallMorphism):
         for v in self._quiver:
             if v in maps_dict:
                 if is_Map(maps_dict[v]):
-                    if hasattr(maps_dict[v], 'matrix'):
+                    try:
                         m = maps_dict[v].matrix()
-                    else:
+                    except (AttributeError, ValueError):
                         gens_images = [codomain._spaces[v].coordinate_vector(maps_dict[v](x))
                                        for x in domain._spaces[v].gens()]
                         m = Matrix(self._base_ring, domain_dims[v], codomain_dims[v], gens_images)
@@ -1253,7 +1253,7 @@ class QuiverRepHom(CallMorphism):
 
     def scalar_mult(self, scalar):
         r"""
-        Return the result of the scalar multiplcation ``scalar * self``,
+        Return the result of the scalar multiplication ``scalar * self``,
         where ``scalar`` is an element of the base ring `k`.
 
         EXAMPLES::

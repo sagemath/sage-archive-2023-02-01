@@ -223,11 +223,11 @@ if 'SAGE_ATLAS_LIB' in os.environ:
 
     sys.exit(0)
 
-write_pc_file(['cblas', 'atlas'], 'cblas')
-write_pc_file(['f77blas', 'atlas'], 'blas')
-# The inclusion of cblas is not a mistake. ATLAS' lapack include
-# a custom version of clapack which depends on cblas.
-write_pc_file(['lapack', 'f77blas', 'cblas', 'atlas'], 'lapack')
+# Because blas, cblas and lapack libraries are properly linked
+# with no unknown symbols, no extra libraries needs to be given.
+write_pc_file(['cblas'], 'cblas')
+write_pc_file(['f77blas'], 'blas')
+write_pc_file(['lapack'], 'lapack')
 
 # add extra architectural defaults
 cp('src/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS/')

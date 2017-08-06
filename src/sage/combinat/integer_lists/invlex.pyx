@@ -38,7 +38,7 @@ from sage.combinat.integer_lists.lists import IntegerLists
 from sage.combinat.integer_lists.base import Infinity
 
 
-class IntegerListsLex(IntegerLists):
+class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
     r"""
     Lists of nonnegative integers with constraints, in inverse
     lexicographic order.
@@ -782,8 +782,6 @@ class IntegerListsLex(IntegerLists):
         []
     """
     backend_class = IntegerListsBackend_invlex
-
-    __metaclass__ = ClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):

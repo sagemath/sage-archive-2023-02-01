@@ -42,6 +42,7 @@ Named associative algebras
    sage/algebras/affine_nil_temperley_lieb
    sage/combinat/diagram_algebras
    sage/algebras/clifford_algebra
+   sage/algebras/cluster_algebra
    sage/combinat/descent_algebra
    sage/algebras/hall_algebra
    sage/algebras/iwahori_hecke_algebra
@@ -50,14 +51,17 @@ Named associative algebras
    sage/combinat/posets/moebius_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/orlik_solomon
+   sage/algebras/quantum_matrix_coordinate_algebra
    sage/combinat/partition_algebra
    sage/algebras/quatalg/quaternion_algebra
+   sage/algebras/rational_cherednik_algebra
    sage/algebras/schur_algebra
    sage/algebras/steenrod/steenrod_algebra
    sage/algebras/steenrod/steenrod_algebra_bases
    sage/algebras/steenrod/steenrod_algebra_misc
    sage/algebras/steenrod/steenrod_algebra_mult
    sage/algebras/weyl_algebra
+   sage/algebras/yangian
    sage/algebras/yokonuma_hecke_algebra
 
 Various associative algebras
@@ -68,6 +72,7 @@ Various associative algebras
 
    sage/algebras/associated_graded
    sage/algebras/commutative_dga
+   sage/algebras/q_system
 
 Non-associative algebras
 ------------------------
@@ -75,9 +80,12 @@ Non-associative algebras
 .. toctree::
    :maxdepth: 2
 
+   lie_algebras
    sage/algebras/jordan_algebra
+   sage/combinat/free_dendriform_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
+

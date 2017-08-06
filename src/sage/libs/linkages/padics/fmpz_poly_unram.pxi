@@ -17,9 +17,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 from cpython.list cimport PyList_Check, PyList_New, PyList_Append
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_mpz_t_shared, cconv_mpq_t_out_shared, cconv_mpq_t_shared, cconv_shared
 
@@ -370,7 +371,7 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:
@@ -492,12 +493,12 @@ cdef inline cpickle(celement a, PowComputer_ prime_pow):
 
 cdef inline int cunpickle(celement out, x, PowComputer_ prime_pow) except -1:
     """
-    Reconstruction from the output of meth:`cpickle`.
+    Reconstruction from the output of :meth:`cpickle`.
 
     INPUT:
 
     - ``out`` -- the ``celement`` in which to store the result.
-    - ``x`` -- the result of `meth`:cpickle.
+    - ``x`` -- the result of :meth:`cpickle`.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     byte_string = x.encode("UTF-8")
@@ -587,7 +588,7 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
     We use Hensel lifting to solve the equation `f(T)=T^q-T`. Instead of
     dividing by the derivative of `f`, we divide by `( q - 1 )` whose first
     digits coincide with `f'`. This does probably not yield quadratic
-    convergence but taking inverses would be much more expansive than what is
+    convergence but taking inverses would be much more expensive than what is
     done here.
 
     """

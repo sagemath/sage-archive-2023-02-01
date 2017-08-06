@@ -330,7 +330,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
             sage: RootSystem(["A",3])._test_root_lattice_realizations()
 
-        See also :class:`TestSuite`.
+        .. SEEALSO:: :class:`TestSuite`.
         """
         tester = self._tester(**options)
         options.pop('tester', None)
@@ -541,7 +541,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Returns the weight lattice associated to self.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`weight_space`
             - :meth:`coweight_space`, :meth:`coweight_lattice`
@@ -562,7 +562,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Returns the weight space associated to self.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`weight_lattice`
             - :meth:`coweight_space`, :meth:`coweight_lattice`
@@ -584,7 +584,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         This is the weight lattice of the dual root system.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`coweight_space`
             - :meth:`weight_space`, :meth:`weight_lattice`
@@ -606,7 +606,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         This is the weight space of the dual root system.
 
-        .. see also::
+        .. SEEALSO::
 
             - :meth:`coweight_lattice`
             - :meth:`weight_space`, :meth:`weight_lattice`

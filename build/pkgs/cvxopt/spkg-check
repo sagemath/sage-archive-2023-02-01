@@ -41,7 +41,7 @@ for di in "$CUR"/src/examples/doc/chap* ; do
     cd "$di"
     for i in `ls | grep -v bin` ; do
         echo "Testing $i ..."
-        python $i
+        sage-python23 $i
         if [ $? -ne 0 ]; then
             echo >&2 "Error: test $di/$i failed"
             exit 1

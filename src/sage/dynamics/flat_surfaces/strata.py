@@ -18,7 +18,7 @@ transformations and linear involutions) in [Zor2008]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
 - for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.representative`
-- for hyperellitic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
+- for hyperelliptic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
 - for odd component :meth:`~OddConnectedComponentOfAbelianStratum.representative`
@@ -233,6 +233,7 @@ Rauzy diagrams from the classification of strata::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 
@@ -241,7 +242,6 @@ from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.partition import Partitions
 
 from sage.rings.integer import Integer
-from sage.rings.rational import Rational
 
 
 def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
@@ -1257,7 +1257,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         zeroes = [x for x in self._parent._zeroes if x > 0]
         n = self._parent._zeroes.count(0)
 
-        l0 = range(0, 4*g-3)
+        l0 = list(range(4 * g - 3))
         l1 = [4, 3, 2]
         for k in range(5, 4*g-6, 4):
             l1 += [k, k+3, k+2, k+1]
@@ -1271,7 +1271,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             k += 2
 
         if n != 0:
-            interval = range(4*g-3, 4*g-3+n)
+            interval = list(range(4 * g - 3, 4 * g - 3 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(4)
@@ -1390,21 +1390,17 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             sage: c2_hyp != c2_odd
             True
             sage: c1 == True
-            Traceback (most recent call last):
-            ...
-            TypeError: other must be a connected component
+            False
         """
-        if not isinstance(other, CCA):
-            raise TypeError("other must be a connected component")
+        if not isinstance(other, CCA) or type(self) != type(other):
+            return NotImplemented
 
-        if type(self) is type(other):
-            if self._parent._zeroes > other._parent._zeroes:
-                return 1
-            elif self._parent._zeroes < other._parent._zeroes:
-                return -1
-            return 0
+        if self._parent._zeroes < other._parent._zeroes:
+            return 1
+        elif self._parent._zeroes > other._parent._zeroes:
+            return -1
+        return 0
 
-        return cmp(type(self), type(other))
 
 CCA = ConnectedComponentOfAbelianStratum
 
@@ -1497,13 +1493,13 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l0 = [0, 1, 2]
                 l1 = [2, 1, 0]
             else:
-                l0 = range(1, n+2)
-                l1 = [n+1] + range(1, n+1)
+                l0 = list(range(1, n + 2))
+                l1 = [n + 1] + list(range(1, n + 1))
 
         elif m == 1:  # H(2g-2,0^n) or H(0,2g-2,0^(n-1))
-            l0 = range(1, 2*g+1)
-            l1 = range(2*g, 0, -1)
-            interval = range(2*g+1, 2*g+n+1)
+            l0 = list(range(1, 2*g+1))
+            l1 = list(range(2*g, 0, -1))
+            interval = list(range(2*g+1, 2*g+n+1))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1513,9 +1509,9 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l1[1:1] = interval
 
         else:  # H(g-1,g-1,0^n) or H(0,g-1,g-1,0^(n-1))
-            l0 = range(1, 2*g+2)
-            l1 = range(2*g+1, 0, -1)
-            interval = range(2*g+2, 2*g+n+2)
+            l0 = list(range(1, 2*g+2))
+            l1 = list(range(2*g+1, 0, -1))
+            interval = list(range(2*g+2, 2*g+n+2))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1599,7 +1595,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [6, 5, 4, 3, 2, 7, 9, 8]
         for k in range(10, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1615,7 +1611,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
 
         # if there are marked points we transform 0 in [3g-2, 3g-3, ...]
         if n != 0:
-            interval = range(3*g-2, 3*g - 2 + n)
+            interval = list(range(3*g-2, 3*g - 2 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(6)
@@ -1678,7 +1674,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [3, 2]
         for k in range(4, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1694,7 +1690,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
 
         # marked points
         if n != 0:
-            interval = range(3*g-2, 3*g-2+n)
+            interval = list(range(3*g-2, 3*g-2+n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(3)

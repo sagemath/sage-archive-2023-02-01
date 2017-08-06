@@ -82,7 +82,7 @@ def is_ToricRationalDivisorClass(x):
     EXAMPLES::
 
         sage: from sage.schemes.toric.divisor_class import (
-        ...     is_ToricRationalDivisorClass)
+        ....:   is_ToricRationalDivisorClass)
         sage: is_ToricRationalDivisorClass(1)
         False
         sage: dP6 = toric_varieties.dP6()
@@ -319,9 +319,9 @@ def _ToricRationalDivisorClass_unpickle_v1(parent, entries,
         sage: loads(dumps(D))   # indirect test
         Divisor class [1, -2, 3, -4]
         sage: from sage.schemes.toric.divisor_class import (
-        ...       _ToricRationalDivisorClass_unpickle_v1)
+        ....:     _ToricRationalDivisorClass_unpickle_v1)
         sage: _ToricRationalDivisorClass_unpickle_v1(
-        ...      Cl, [1, -2, 3, -4], 4, True)
+        ....:    Cl, [1, -2, 3, -4], 4, True)
         Divisor class [1, -2, 3, -4]
     """
     cdef ToricRationalDivisorClass v

@@ -1559,7 +1559,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         Return True if this space is cuspidal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(11), 2).new_submodule()
             sage: M.is_cuspidal()
@@ -1573,7 +1573,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         Return True if this space is Eisenstein.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(11), 2).new_submodule()
             sage: M.is_eisenstein()
@@ -1820,9 +1820,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         Return the space of modular symbols corresponding to self with the
         given sign.
 
-        .. note;:
+        .. NOTE::
 
-           This function should be overridden by all derived classes.
+            This function should be overridden by all derived classes.
 
         EXAMPLES::
 

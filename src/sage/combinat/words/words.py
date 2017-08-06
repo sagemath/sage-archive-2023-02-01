@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Set of words
 
@@ -497,7 +497,7 @@ class FiniteWords(AbstractLanguage):
 
             sage: d = FiniteWords()._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: e = FiniteWords('abcdefg')._element_classes
@@ -674,7 +674,7 @@ class FiniteWords(AbstractLanguage):
            The check makes this method about 10 times slower (20µs instead
            of 2µs), so make sure to set it to False if you know the
            alphabet is OK. Fast creation (about 1µs) of a word can be
-           done using the class directly (see :meth:``_element_classes``).
+           done using the class directly (see :meth:`_element_classes`).
 
         .. WARNING::
 
@@ -1095,7 +1095,7 @@ class FiniteWords(AbstractLanguage):
         - all other argument are transmitted to the random generator of the
           alphabet
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: W = FiniteWords(5)
             sage: W.random_element() # random
@@ -1436,7 +1436,7 @@ class InfiniteWords(AbstractLanguage):
 
             sage: d = InfiniteWords()._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             4
             sage: e = InfiniteWords('abcdefg')._element_classes
@@ -1587,7 +1587,7 @@ class InfiniteWords(AbstractLanguage):
            The check makes this method about 10 times slower (20µs instead
            of 2µs), so make sure to set it to False if you know the
            alphabet is OK. Fast creation (about 1µs) of a word can be
-           done using the class directly (see :meth:``_element_classes``).
+           done using the class directly (see :meth:`_element_classes`).
 
         .. WARNING::
 
@@ -1899,7 +1899,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
            The check makes this method about 10 times slower (20µs instead
            of 2µs), so make sure to set it to False if you know the
            alphabet is OK. Fast creation (about 1µs) of a word can be
-           done using the class directly (see :meth:``_element_classes``).
+           done using the class directly (see :meth:`_element_classes`).
 
         .. WARNING::
 

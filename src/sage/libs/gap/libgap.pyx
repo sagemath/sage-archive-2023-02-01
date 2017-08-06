@@ -243,7 +243,7 @@ AUTHORS:
 ##############################################################################
 from __future__ import print_function
 
-from gap_includes cimport *
+from .gap_includes cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent

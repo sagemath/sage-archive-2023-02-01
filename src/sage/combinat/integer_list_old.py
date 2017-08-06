@@ -767,7 +767,7 @@ class IntegerListsLex(Parent):
     readily implemented in MuPAD-Combinat). Encouragements,
     suggestions, and help are welcome.
 
-    .. TODO:
+    .. TODO::
 
         Integrate all remaining tests from
         http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
@@ -987,7 +987,7 @@ class IntegerListsLex(Parent):
         """
         return self.element_class(self, lst)
 
-    def __cmp__(self, x):
+    def __eq__(self, x):
         """
         Compares two different :class:`IntegerListsLex`.
 
@@ -1004,7 +1004,24 @@ class IntegerListsLex(Parent):
             sage: C == D
             False
         """
-        return cmp(repr(self), repr(x))
+        return repr(self) == repr(x)
+
+    def __ne__(self, other):
+        """
+        Compares two different :class:`IntegerListsLex`.
+
+        For now, the comparison is done just on their repr's which is
+        not robust!
+
+        EXAMPLES::
+
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
+            sage: D = integer_list.IntegerListsLex(4, length=3)
+            sage: C != D
+            True
+        """
+        return not self.__eq__(other)
 
     def _repr_(self):
         """

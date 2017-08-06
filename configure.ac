@@ -32,6 +32,11 @@ AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([config])
 
+dnl This is the hierarchy where everything gets installed (SAGE_LOCAL).
+dnl By default, it is the subdirectory local, but the user
+dnl can override it by supplying --prefix=....
+AC_PREFIX_DEFAULT(`pwd -P`/local)
+
 dnl We don't really use automake, but configure needs aclocal and the
 dnl automake library files (like config.guess).
 AM_INIT_AUTOMAKE([1.9.6 foreign])
@@ -75,17 +80,20 @@ fi
 #
 
 ########################################################################
-# Set various environment variables
+# Set various environment variables (needed at configure time)
 ########################################################################
 
-# Assume current directory is SAGE_ROOT
+# Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
-if test -z "$SAGE_LOCAL"; then
-    SAGE_LOCAL="$SAGE_ROOT/local"
+
+SAGE_LOCAL="$prefix"
+# The following line is necessary because the code below
+# inspects stuff in the installation prefix at configure time.
+# This is nonstandard.
+if test "$SAGE_LOCAL" = NONE; then
+    SAGE_LOCAL=local
 fi
 SAGE_SRC="$SAGE_ROOT/src"
-SAGE_SHARE="$SAGE_LOCAL/share"
-SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 #---------------------------------------------------------
@@ -296,6 +304,15 @@ AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
     [need_to_install_git=yes; ac_cv_path_GIT=no])])
 
+# Yasm is only needed on x86(_64) systems; check also for system yasm
+need_to_install_yasm=no
+AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
+    AS_CASE("$host_cpu",
+        [i@<:@0-9@:>@86|x86_64], [
+        AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
+        [${ac_path_YASM} --version >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}],
+        [need_to_install_yasm=yes; ac_cv_path_YASM=no])],
+        [ac_cv_path_YASM="not needed for $host_cpu"]))
 
 ###############################################################################
 # Check C/C++/Fortran compilers
@@ -622,7 +639,6 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
-
 ###############################################################################
 # Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
 ###############################################################################
@@ -640,8 +656,12 @@ cat >&7 <<EOF
 # Always use bash for make rules
 SHELL = `command -v bash`
 
+ifndef SAGE_SPKG_INST
+\$(error This Makefile needs to be invoked by build/make/install)
+endif
+
 # Directory to keep track of which packages are installed
-INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+INST = \$(SAGE_SPKG_INST)
 
 # Aliases for optional packages selected at configure time
 EOF
@@ -862,24 +882,22 @@ echo >&7
 echo >&7
 
 
-echo >&7 'SCRIPT_SOURCES = \'
-for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
-done
-echo >&7
+# We need sage-env-config to exist before running this.
+# TODO: fix this in Trac #21524
+touch "$SAGE_SRC/bin/sage-env-config"
+
 echo >&7 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
-done
-echo >&7
-echo >&7 'EXTCODE_SOURCES = \'
-for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+    # Skip files with ".in" extension
+    ext=${file##*.}
+    if test "$ext" != in; then
+        echo >&7 "    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
+    fi
 done
 echo >&7
 echo >&7 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
+    echo >&7 "    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done
 echo >&7
 
@@ -987,6 +1005,7 @@ exec 7>&-
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto src/Makefile])
+AC_CONFIG_FILES([src/bin/sage-env-config])
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Create basic directories needed for Sage
@@ -1013,7 +1032,7 @@ AC_CONFIG_COMMANDS(mkdirs,
     [
         SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
         SAGE_LOCAL="$SAGE_LOCAL"
-        SAGE_SHARE="$SAGE_SHARE"
+        SAGE_SHARE="$SAGE_LOCAL/share"
         SAGE_INST="$SAGE_SPKG_INST"
     ])
 

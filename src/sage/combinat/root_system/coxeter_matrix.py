@@ -17,6 +17,7 @@ Coxeter Matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
 
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
@@ -29,6 +30,8 @@ from sage.rings.infinity import infinity
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_type import CoxeterType
 
+
+@add_metaclass(ClasscallMetaclass)
 class CoxeterMatrix(CoxeterType):
     r"""
     A Coxeter matrix.
@@ -109,8 +112,6 @@ class CoxeterMatrix(CoxeterType):
         [   1 -3/2]
         [-3/2    1]
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, data=None, index_set=None, coxeter_type=None,
                               cartan_type=None, coxeter_type_check=True):

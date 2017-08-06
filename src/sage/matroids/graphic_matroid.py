@@ -1472,8 +1472,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``u`` -- The vertex to be split. If ``u`` is not a vertex of the
-          matroid's graph, then the new element will be a coloop.
+        - ``u`` -- The vertex to be split.
         - ``v`` -- (optional) The name of the new vertex after splitting.
         - ``X`` -- (optional) A list of the matroid elements corresponding to
           edges of ``u`` that move to the new vertex after splitting. If ``None``,
@@ -1528,6 +1527,10 @@ class GraphicMatroid(Matroid):
             Traceback (most recent call last):
             ...
             ValueError: cannot extend by element already in ground set
+            sage: M = M.graphic_coextension(u=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: u must be an existing vertex
 
         TESTS::
 

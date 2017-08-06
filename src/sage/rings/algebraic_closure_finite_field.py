@@ -1044,7 +1044,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         return Factorization([(R([-root, self.one()]), m) for root, m in p.roots()], unit=p[p.degree()])
 
 
-class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
+class AlgebraicClosureFiniteField_pseudo_conway(WithEqualityById, AlgebraicClosureFiniteField_generic):
     """
     Algebraic closure of a finite field, constructed using
     pseudo-Conway polynomials.
@@ -1167,18 +1167,6 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         if m == 1:
             return self._subfield(n).one()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
-
-    def __eq__(self, other):
-        """
-        Compare ``self`` with ``other``.
-
-        TESTS::
-
-            sage: F3 = GF(3).algebraic_closure()
-            sage: loads(dumps(F3)) == F3
-            False
-        """
-        return (self is other)
 
 
 def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=None, **kwds):

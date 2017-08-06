@@ -2457,7 +2457,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.gens()
-            [(-2 : -1/2*a - 1/2 : 1), (0 : -1 : 1)]
+            [(-2 : 1/2*a - 1/2 : 1), (0 : 0 : 1)]
+
 
         It can happen that no points are found if the height bounds
         used in the search are too small (see :trac:`10745`)::
@@ -3310,8 +3311,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, '37')
             sage: E.lll_reduce(E.gens())
             (
-                                                     [0 1]
-            [(0 : -1 : 1), (-2 : -1/2*a - 1/2 : 1)], [1 0]
+                                                   [0 1]
+            [(0 : 0 : 1), (-2 : 1/2*a - 1/2 : 1)], [1 0]
             )
 
         ::
@@ -3604,23 +3605,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(-1 : 1 : 1)], 12, 0.686667083305587)
 
             sage: EK.saturation([2*P, Q], max_prime=2)
-            ([(-1 : 1 : 1), (0 : -1 : 1)], 2, 0.152460177943144)
+            ([(-1 : 1 : 1), (0 : 0 : 1)], 2, 0.152460177943144)
             sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
-            ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
+            ([(-1 : 1 : 1), (4 : 8 : 1)], 2, 0.152460177943144)
             sage: EK.saturation([P+Q, 17*Q], lower_ht_bound=0.1)
-            ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943143)
+            ([(1 : 0 : 1), (0 : 0 : 1)], 17, 0.152460177943144)
 
             sage: P, Q, R = EK.gens()
             sage: P, Q, R
-            ((i - 2 : -i - 3 : 1), (-1 : 1 : 1), (0 : -1 : 1))
+            ((i + 1 : -2*i - 1 : 1), (-1 : 1 : 1), (0 : 0 : 1))
             sage: EK.saturation([P+Q, Q+R, R+P], lower_ht_bound=0.1)
-            ([(841/1369*i - 171/1369 : 41334/50653*i - 74525/50653 : 1),
-              (4 : 8 : 1),
-              (-1/25*i + 18/25 : -69/125*i - 58/125 : 1)],
+            ([(-5*i : -9*i - 8 : 1), (1 : 0 : 1), (1/2*i : 3/4*i - 5/4 : 1)],
              2,
              0.103174443217351)
             sage: EK.saturation([26*R], lower_ht_bound=0.1)
-            ([(0 : -1 : 1)], 26, 0.327000773651605)
+            ([(0 : 0 : 1)], 26, 0.327000773651605)
 
         Another number field::
 
@@ -3629,11 +3628,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a> = NumberField(x^3-x+1)
             sage: EK = E.change_ring(K)
             sage: EK.saturation([P+Q, P-Q], lower_ht_bound=0.1)
-            ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
+            ([(-1 : 1 : 1), (4 : 8 : 1)], 2, 0.152460177943144)
             sage: EK.saturation([3*P, P+5*Q], lower_ht_bound=0.1)
-            ([(-185/2209 : -119510/103823 : 1), (80041/34225 : -26714961/6331625 : 1)],
-             15,
-             0.152460177943144)
+            ([(-14/25 : -216/125 : 1), (445/49 : -9955/343 : 1)], 15, 0.152460177943144)
 
         A different curve::
 
@@ -3642,8 +3639,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK = EllipticCurve('37a').change_ring(K)
             sage: P, Q = EK.gens()
             sage: EK.saturation([3*P-Q, 3*P+Q], lower_ht_bound=.01)
-            ([(-a + 2 : 2*a - 4 : 1),
-              (8820833592677/3284478409969*a + 13569900067225/3284478409969 : 43082636045850669307/5952502920606148297*a + 76367500748298491757/5952502920606148297 : 1)],
+            ([(a + 2 : 2*a + 3 : 1),
+            (-8820833592677/3284478409969*a + 13569900067225/3284478409969 : 43082636045850669307/5952502920606148297*a - 82320003668904640054/5952502920606148297 : 1)],
              6,
              0.0317814530725985)
 
@@ -3676,13 +3673,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK = E.change_ring(K)
 
             sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
-            ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
+            ([(-1 : 1 : 1), (4 : 8 : 1)], 2, 0.152460177943144)
             sage: EK.saturation([5*P+6*Q, 5*P-3*Q], lower_ht_bound=.1)
-            ([(-3/4 : -15/8 : 1), (159965/16129 : -67536260/2048383 : 1)],
+            ([(-51/25 : -68/125 : 1),
+            (1433882253389/379703672401 : 1707565715369408803/233973782637168601 : 1)],
             45,
             0.152460177943144)
             sage: EK.saturation([5*P+6*Q, 5*P-3*Q], lower_ht_bound=.1, debug=2)
-            ([(-3/4 : -15/8 : 1), (159965/16129 : -67536260/2048383 : 1)],
+            ([(-51/25 : -68/125 : 1),
+            (1433882253389/379703672401 : 1707565715369408803/233973782637168601 : 1)],
             45,
             0.152460177943144)
         """
@@ -3731,6 +3730,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # points, indexed by coefficient tuples, for efficiency; it is
         # rest whenever the point list changes.
 
+        from sage.schemes.elliptic_curves.saturation import full_p_saturation
         lin_combs = dict()
         for p in prime_list:
             if full_saturation and (p > index_bound): break
@@ -3760,15 +3760,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: E = EllipticCurve('37a')
             sage: E.change_ring(QuadraticField(-1, 'i')).gens_quadratic()
-            [(0 : -1 : 1)]
+            [(0 : 0 : 1)]
             sage: E.change_ring(QuadraticField(3, 'i')).gens_quadratic()
-            [(-i + 2 : 2*i - 4 : 1), (1/12 : 17/72*i - 1/2 : 1)]
+            [(i + 2 : 2*i + 3 : 1), (1/12 : 17/72*i - 1/2 : 1)]
 
             sage: K.<a> = QuadraticField(-7)
             sage: EllipticCurve('11a').change_ring(K).gens_quadratic()
-            [(-6 : -11/2*a - 1/2 : 1)]
+            [(-6 : 11/2*a - 1/2 : 1)]
             sage: EllipticCurve('389a').change_ring(K).gens_quadratic()
-            [(1/8*a + 5/8 : -5/16*a - 9/16 : 1), (-1 : 1 : 1), (0 : -1 : 1)]
+            [(1/2*a - 1/2 : 1/2*a - 5/2 : 1), (-1 : 1 : 1), (0 : 0 : 1)]
 
             sage: E = EllipticCurve([1, a])
             sage: E.gens_quadratic()
@@ -3808,418 +3808,3 @@ class EllipticCurve_number_field(EllipticCurve_field):
         self.__gens = gens
         return gens
 
-def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
-    r""" Checks whether the list of points is `p`-saturated.
-
-    INPUT:
-
-    - ``Plist`` (list) - a list of independent points on one elliptic curve
-
-    - ``p`` (integer) - a prime number
-
-    - ``sieve`` (boolean) - if True, use a sieve (when there are at
-      least 2 points); otherwise test all combinations.
-
-    - ``lin_combs`` (dict) - a dict, possibly empty, with keys
-      coefficient tuples and values the corresponding linear
-      combinations of the points in ``Plist``
-
-    .. note::
-
-       The sieve is much more efficient when the points are saturated
-       and the number of points or the prime are large.
-
-    OUTPUT:
-
-    Either (``True``, ``lin_combs``) if the points are `p`-saturated,
-    or (``False``, ``i``, ``newP``) if they are not `p`-saturated, in
-    which case after replacing the i'th point with ``newP``, the
-    subgroup generated contains that generated by ``Plist`` with
-    index `p`.  Note that while proving the points `p`-saturated, the
-    ``lin_combs`` dict may have been enlarged, so is returned.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_number_field import p_saturation
-        sage: E = EllipticCurve('389a')
-        sage: K.<i> = QuadraticField(-1)
-        sage: EK = E.change_ring(K)
-        sage: P = EK(1+i,-1-2*i)
-        sage: p_saturation([P],2)
-        (True, {})
-        sage: p_saturation([2*P],2)
-        (False, 0, (i + 1 : -2*i - 1 : 1))
-
-
-        sage: Q = EK(0,0)
-        sage: R = EK(-1,1)
-        sage: p_saturation([P,Q,R],3)
-        (True, {})
-
-    Here we see an example where 19-aturation is proved, with the
-    verbose flag set to True so that we can see what is going on::
-
-        sage: p_saturation([P,Q,R],19, verbose=True)
-        Using sieve method to saturate...
-        There is 19-torsion modulo Fractional ideal (i + 14), projecting points
-         --> [(184 : 27 : 1), (0 : 0 : 1), (196 : 1 : 1)]
-         --rank is now 1
-        There is 19-torsion modulo Fractional ideal (i - 14), projecting points
-         --> [(15 : 168 : 1), (0 : 0 : 1), (196 : 1 : 1)]
-         --rank is now 2
-        There is 19-torsion modulo Fractional ideal (-2*i + 17), projecting points
-         --> [(156 : 275 : 1), (0 : 0 : 1), (292 : 1 : 1)]
-         --rank is now 3
-        Reached full rank: points were 19-saturated
-        (True, {})
-
-    An example where the points are not 11-saturated::
-
-        sage: res = p_saturation([P+5*Q,P-6*Q,R],11); res
-        (False,
-        0,
-        (-5783311/14600041*i + 1396143/14600041 : 37679338314/55786756661*i + 3813624227/55786756661 : 1))
-
-    That means that the 0'th point may be replaced by the displayed
-    point to achieve an index gain of 11::
-
-        sage: p_saturation([res[2],P-6*Q,R],11)
-        (True, {})
-    """
-    # This code does a lot of residue field construction and elliptic curve
-    # group structure computations, and would benefit immensely if those
-    # were sped up.
-    n = len(Plist)
-    if n==0:
-        return (True, lin_combs)
-
-    if n==1:
-        try:
-            return (False, 0, Plist[0].division_points(p)[0])
-        except IndexError:
-            return (True, lin_combs)
-
-    E = Plist[0].curve()
-
-    if not sieve:
-        from sage.groups.generic import multiples
-        from sage.schemes.projective.projective_space import ProjectiveSpace
-
-        mults = [list(multiples(P, p)) for P in Plist[:-1]] + [list(multiples(Plist[-1],2))]
-        E0 = E(0)
-        def lin_comb(vec):
-            return sum([m[c] for m,c in zip(mults,vec)],E0)
-
-        for v in ProjectiveSpace(GF(p),n-1): # an iterator
-            w = tuple(int(x) for x in v)
-            try:
-                P = lin_combs[w]
-            except KeyError:
-                P = lin_comb(w)
-                lin_combs[w] = P
-            divisors = P.division_points(p)
-            if divisors:
-                if verbose:
-                    print("  points not saturated at %s, increasing index" % p)
-                # w will certainly have a coordinate equal to 1
-                return (False, w.index(1), divisors[0])
-        # we only get here if no linear combination is divisible by p,
-        # so the points are p-saturated:
-        return (True, lin_combs)
-
-    # Now we use the more sophisticated sieve to either prove
-    # p-saturation, or compute a much smaller list of possible points
-    # to test for p-divisibility:
-
-    E = Plist[0].curve()
-    K = E.base_ring()
-
-    def projections(Q, p):
-        """
-        Project points onto (E mod Q)(K mod Q) \otimes \F_p.
-
-        Returns a list of 0, 1 or 2 vectors in \F_p^n
-        """
-        Ek = E.reduction(Q)
-        G = Ek.abelian_group() # cached!
-
-        if not p.divides(G.order()):
-            return []
-
-        if verbose:
-            print("There is %s-torsion modulo %s, projecting points" % (p,Q))
-
-        def proj1(pt):
-            # project a point onto the reduction.  The simple way
-            # raises a ZeroDivisionError when the point reduces to the
-            # point at infinity, but that is perfectly valid.
-            try:
-                return Ek(pt)
-            except ZeroDivisionError:
-                return Ek(0)
-
-        projPlist = [proj1(pt) for pt in Plist]
-        if verbose:
-            print(" --> %s" % projPlist)
-
-        gens = G.gens()
-        orders = G.generator_orders()
-        from sage.groups.generic import discrete_log_lambda
-        from sage.modules.all import vector
-
-        if len(gens)==1:               # cyclic case
-            n = orders[0]
-            m = n.prime_to_m_part(n)
-            p2 = n//m                  # p-primary order
-            g = (m*gens[0]).element()  # generator of p-primary part
-            assert g.order()==p2
-            # if verbose:
-            #     print("   cyclic, %s-primary part generated by %s of order %s" % (p,g,p2))
-
-            # multiplying any point by m takes it into the p-primary
-            # part -- this way we do discrete logs in a cyclic group
-            # of order p2 (which will often just be p) and not order n
-
-            def dlog(pt):
-                try:
-                    return discrete_log_lambda(m*pt,g,(0,p2),'+')
-                except ValueError:
-                    raise ValueError("dlog error: no log of %s to base %s on curve %s" % (pt,g,g.curve()))
-
-            v = [dlog(m*pt) for pt in projPlist]
-            # entries of v are well-defined mod p2, hence mod p
-            return [vector(GF(p),v)]
-
-        # Now the reduction is not cyclic, but we still handle
-        # separately the case where the p-primary part is cyclic,
-        # where a similar discrete log computation suffices; in the
-        # remaining case (p-rank 2) we use the Weil pairing instead.
-
-        # Note the code makes no assumption about which generator
-        # order divides the other, since conventions differ!
-
-        mm = [n.prime_to_m_part(p) for n in orders]
-        pp = [n//m for n,m in zip(orders,mm)] # p-powers
-        gg = [(m*g).element() for m,g in zip(mm,gens)] # p-power order gens
-        m = max(mm) # = lcm(mm), the prime-to-p exponent of G;
-                    # multiply by this to map onto the p-primary part.
-        p2 = max(pp) # p-exponent of G
-        p1 = min(pp) # ==1 iff p-primary part is cyclic
-
-        if p1==1:                  # p-primary part is cyclic of order p2
-            g = gg[pp.index(p2)]   # g generates the p-primary part
-                                   # and we do discrete logs there:
-
-            assert g.order()==p2
-            # if verbose:
-            #     print("   non-cyclic but %s-primary part cyclic generated by %s of order %s" % (p,g,p2))
-            def dlog(pt):
-                try:
-                    return discrete_log_lambda(m*pt,g,(0,p2),'+')
-                except ValueError:
-                    raise ValueError("dlog error: no log of %s to base %s on curve %s" % (pt,g,g.curve()))
-
-            v = [dlog(m*pt) for pt in projPlist]
-            # entries of v are well-defined mod p2, hence mod p
-            return [vector(GF(p),v)]
-
-        # Now the p-primary part is non-cyclic of exponent p2; we use
-        # Weil pairings of this order, whose values are p1'th roots of unity.
-
-        # if verbose:
-        #     print("   %s-primary part non-cyclic generated by %s of orders %s" % (p,gg,pp))
-        zeta = gg[0].weil_pairing(gg[1],p2) # a p1'th root of unity
-        if zeta.multiplicative_order()!=p1:
-            if verbose:
-                print("Ek = ",Ek)
-                print("(p1,p2) = (%s,%s)" % (p1,p2))
-                print("gg = (%s,%s)" % (gg[0],gg[1]))
-            raise RuntimeError("Weil pairing error during saturation.")
-
-        # these are the homomorphisms from E to F_p (for g in gg):
-        def a(pt,g):
-            w = (m*pt).weil_pairing(g,p2) # result is a p1'th root of unity
-            return discrete_log_lambda(w,zeta,(0,p1),'*')
-
-        return [vector(GF(p), [a(pt,g) for pt in projPlist]) for g in gg]
-
-    if verbose:
-        print("Using sieve method to saturate...")
-    from sage.matrix.all import matrix
-    A = matrix(GF(p), 0, n)
-    rankA = 0
-    count = 0
-    from sage.sets.primes import Primes
-    for q in Primes():
-     for Q in K.primes_above(q, degree=1):
-        if E.has_bad_reduction(Q):
-            continue
-        vecs = projections(Q,p)
-        if len(vecs)==0:
-            continue
-        for v in vecs:
-            # if verbose:
-            #     print(" --adding row %s" % v)
-            A = matrix(A.rows()+[v])
-        newrank = A.rank()
-        if verbose:
-            print(" --rank is now %s" % newrank)
-        if newrank==n:
-            if verbose:
-                print("Reached full rank: points were %s-saturated" % p)
-            return (True, lin_combs)
-        if newrank == rankA:
-            count+=1
-            if count==10:
-                if verbose:
-                    print("! rank same for 10 steps, checking kernel...")
-                # no increase in rank for the last 10 primes Q
-                # find the points in the kernel and call the no-sieve version
-                vecs = A.right_kernel().basis()
-                if verbose:
-                    print("kernel vectors: %s" % vecs)
-                Rlist = [sum([int(vi)*Pi for vi,Pi in zip(v,Plist)],E(0))
-                         for v in vecs]
-                if verbose:
-                    print("points generating kernel: %s" % Rlist)
-
-                res = p_saturation(Rlist, p, sieve=False, lin_combs = dict(), verbose=verbose)
-                if res[0]: # points really were saturated
-                    if verbose:
-                        print("-- points were %s-saturated" % p)
-                    return (True, lin_combs)
-                else: # they were not, and Rlist[res[1]] can be
-                      # replaced by res[2] to enlarge the span; we
-                      # need to find a point in Plist which can be
-                      # replaced: any one with a nonzero coordinate in
-                      # the appropriate kernel vector will do.
-                    if verbose:
-                        print("-- points were not %s-saturated, gaining index %s" % (p, p))
-                    j = next(i for i, x in enumerate(vecs[res[1]]) if x)
-                    return (False, j, res[2])
-            else: # rank stayed same; carry on using more Qs
-                pass
-        else: # rank went up but is <n; carry on using more Qs
-            rankA = newrank
-            count = 0
-    # We reach here only if using all good primes of norm<1000 the
-    # rank never stuck for 10 consecutive Qs but is still < n.  That
-    # means that n is rather large, or perhaps that E has a large
-    # number of bad primes.  So we fall back to the naive method,
-    # still making use of any partial information aboute the kernel we
-    # have acquired.
-
-    vecs = A.right_kernel().basis()
-    Rlist = [sum([int(vi)*Pi for vi,Pi in zip(v,Plist)],E(0))
-             for v in vecs]
-    res = p_saturation(Rlist, p, sieve=False, lin_combs = dict(), verbose=verbose)
-    if res[0]: # points really were saturated
-        return (True, lin_combs)
-    else:
-        j = next(i for i, x in enumerate(vecs[res[1]]) if x)
-        return (False, j, res[2])
-
-
-def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
-    r""" Full `p`-saturation of ``Plist``.
-
-    INPUT:
-
-    - ``Plist`` (list) - a list of independent points on one elliptic curve
-
-    - ``p`` (integer) - a prime number
-
-    - ``lin_combs`` (dict, default null) - a dict, possibly empty,
-      with keys coefficient tuples and values the corresponding linear
-      combinations of the points in ``Plist``
-
-    OUTPUT:
-
-    (``newPlist``, exponent) where ``newPlist`` has the same length as
-    ``Plist`` and spans the `p`-saturation of the span of ``Plist``,
-    which contains that span with index ``p**exponent``.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.ell_number_field import full_p_saturation
-        sage: E = EllipticCurve('389a')
-        sage: K.<i> = QuadraticField(-1)
-        sage: EK = E.change_ring(K)
-        sage: P = EK(1+i,-1-2*i)
-        sage: full_p_saturation([8*P],2,verbose=True)
-         --starting full 2-saturation
-        Points were not 2-saturated, exponent was 3
-        ([(i + 1 : -2*i - 1 : 1)], 3)
-
-        sage: Q = EK(0,0)
-        sage: R = EK(-1,1)
-        sage: full_p_saturation([P,Q,R],3)
-        ([(i + 1 : -2*i - 1 : 1), (0 : 0 : 1), (-1 : 1 : 1)], 0)
-
-    An example where the points are not 7-saturated and we gain index
-    exponent 1.  Running this example with verbose=True shows that it
-    uses the code for when the reduction has p-rank 2 (which occurs
-    for the reduction modulo `(16-5i)`), which uses the Weil pairing::
-
-        sage: full_p_saturation([P,Q+3*R,Q-4*R],7)
-        ([(i + 1 : -2*i - 1 : 1),
-        (2869/676 : 154413/17576 : 1),
-        (-7095/502681 : -366258864/356400829 : 1)],
-        1)
-
-    """
-    if len(Plist)==0:
-        return Plist, ZZ(0)
-
-    exponent = ZZ(0)
-
-    # To handle p-torsion, we must add any torsion generators whose
-    # order is divisible by p to the list of points.  Note that it is
-    # not correct to add generators of the p-torsion here, we actually
-    # need generators of p-cotorsion.  If there are any of these, we
-    # cannot use the supplied dict of linear combinations, so we reset
-    # this.  The torsion points are removed before returning the
-    # saturated list.
-
-    if verbose:
-        print(" --starting full %s-saturation"  % p)
-
-    n = len(Plist) # number of points supplied & to be returned
-    nx = n         # number of points including relevant torsion
-    E = Plist[0].curve()
-    Tgens = E.torsion_subgroup().gens()
-    for T in Tgens:
-        if p.divides(T.order()):
-            # NB The following line creates a new list of points,
-            # which is essential.  If it is replaced by Plist+=[T]
-            # then while this function would return the correct
-            # output, there would be a very bad side effect: the
-            # caller's list would have been changed here.
-            Plist = Plist + [T]
-            nx += 1
-    extra_torsion = nx-n
-    if extra_torsion:
-        lin_combs = dict()
-        if verbose:
-            print("Adding %s torsion generators before %s-saturation"
-                  % (extra_torsion,p))
-
-    res = p_saturation(Plist, p, True, lin_combs, verbose)
-    while not res[0]:
-        exponent +=1
-        Plist[res[1]] = res[2]
-        res = p_saturation(Plist, p, True, lin_combs, verbose)
-
-    if extra_torsion:
-        # remove the torsion points
-        if verbose:
-            print("Removing the torsion generators after %s-saturation" % p)
-        Plist = Plist[:n]
-
-    if verbose:
-        if exponent:
-            print("Points were not %s-saturated, exponent was %s" % (p,exponent))
-        else:
-            print("Points were %s-saturated" % p)
-
-    return (Plist, exponent)

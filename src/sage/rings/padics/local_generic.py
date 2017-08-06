@@ -228,7 +228,7 @@ class LocalGeneric(CommutativeRing):
         - ``field`` -- bool.  If ``True``, switch to a tower of fields via the fraction field.
                         If False, switch to a tower of rings of integers.
 
-        - ``q`` -- prime power.  Replace the initial unramified extension of `\Q_p` or `\Z_p`
+        - ``q`` -- prime power.  Replace the initial unramified extension of `\QQ_p` or `\ZZ_p`
                     with an unramified extension of residue cardinality `q`.
                     If the initial extension is ramified, add in an unramified extension.
 

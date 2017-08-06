@@ -215,8 +215,13 @@ class GraphicMatroid(Matroid):
             # the ordering from edge_labels() respects edge_iterator() and not edges()
             edge_list.append((self._vertex_map[e[0]],
                 self._vertex_map[e[1]], groundset[i]))
-        self._G = Graph(edge_list, loops=True, multiedges=True, weighted=True,
-            data_structure='static_sparse')
+        # If the matroid is empty, have the internal graph be a single vertex
+        if edge_list:
+            self._G = Graph(edge_list, loops=True, multiedges=True, weighted=True,
+                data_structure='static_sparse')
+        else:
+            self._G = Graph(1, loops=True, multiedges=True, weighted=True,
+                data_structure='static_sparse')
         # Map ground set elements to graph edges:
         # The the edge labels should already be the elements.
         self._groundset_edge_map = ({l: (u, v) for
@@ -1356,8 +1361,10 @@ class GraphicMatroid(Matroid):
         TESTS::
 
             sage: M = Matroid(graphs.EmptyGraph())
-            sage: M.graphic_extension('a')
+            sage: M.graphic_extension(0)
             Graphic matroid of rank 0 on 1 elements
+            sage: M.graphic_extension(0, 1, 'a')
+            Graphic matroid of rank 1 on 1 elements
 
         """
         # This will possibly make a coloop if v is a new vertex
@@ -1368,7 +1375,7 @@ class GraphicMatroid(Matroid):
         if v is None:
             v = u
         G = self.graph()
-        if u not in G and G.vertices():
+        if u not in G:
             raise ValueError("u must be an existing vertex")
         G.add_edge(u, v, element)
         return GraphicMatroid(G)
@@ -1439,25 +1446,20 @@ class GraphicMatroid(Matroid):
             vertices = self._G.vertices()
         elif not set(vertices).issubset(self._G.vertices()):
             raise ValueError("vertices are not all in the graph")
-        # if there are no vertices, return a single loop
-        if not vertices and not simple:
-            G.add_edge(0, 0, element)
+
+        # First extend by a loop, then consider every pair of vertices.
+        # Put the loop on the first vertex.
+        if not simple:
+            G.add_edge(vertices[0], vertices[0], element)
             yield GraphicMatroid(G)
-        else:
+            G.delete_edge(vertices[0], vertices[0], element)
 
-            # First extend by a loop, then consider every pair of vertices.
-            # Put the loop on the first vertex.
-            if not simple:
-                G.add_edge(vertices[0], vertices[0], element)
+        pairs = combinations(vertices, 2)
+        for p in pairs:
+            if not simple or not G.has_edge(p[0], p[1]):
+                G.add_edge(p[0], p[1], element)
                 yield GraphicMatroid(G)
-                G.delete_edge(vertices[0], vertices[0], element)
-
-            pairs = combinations(vertices, 2)
-            for p in pairs:
-                if not simple or not G.has_edge(p[0], p[1]):
-                    G.add_edge(p[0], p[1], element)
-                    yield GraphicMatroid(G)
-                    G.delete_edge(p[0], p[1], element)
+                G.delete_edge(p[0], p[1], element)
 
     def graphic_coextension(self, u, v=None, X=None, element=None):
         """
@@ -1517,12 +1519,12 @@ class GraphicMatroid(Matroid):
         ::
 
             sage: M = Matroid(graphs.CycleGraph(3))
-            sage: M = M.graphic_coextension(u=4, element='a')
+            sage: M = M.graphic_coextension(u=2, element='a')
             sage: M.graph()
             Looped multi-graph on 4 vertices
             sage: M.graph().loops()
             []
-            sage: M = M.graphic_coextension(u=4, element='a')
+            sage: M = M.graphic_coextension(u=2, element='a')
             Traceback (most recent call last):
             ...
             ValueError: cannot extend by element already in ground set
@@ -1530,7 +1532,7 @@ class GraphicMatroid(Matroid):
         TESTS::
 
             sage: M = Matroid(graphs.EmptyGraph())
-            sage: M.graphic_coextension('a')
+            sage: M.graphic_coextension(u=0)
             Graphic matroid of rank 1 on 1 elements
 
             sage: M = Matroid(graphs.DiamondGraph())
@@ -1541,13 +1543,13 @@ class GraphicMatroid(Matroid):
         ::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: N = M.graphic_coextension(u=4, v=5, element='a')
+            sage: N = M.graphic_coextension(u=3, v=5, element='a')
             sage: N.graph().edges()
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (3, 5, 'a')]
-            sage: N = M.graphic_coextension(u=4, element='a')
+            sage: N = M.graphic_coextension(u=3, element='a')
             sage: N.graph().edges()
-            [(0, 1, 0), (0, 2, 1), (0, 4, 'a'), (1, 2, 2), (1, 3, 3), (2, 3, 4)]
-            sage: N = M.graphic_coextension(u=4, v=4, element='a')
+            [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (3, 4, 'a')]
+            sage: N = M.graphic_coextension(u=3, v=3, element='a')
             Traceback (most recent call last):
             ...
             ValueError: u and v must be distinct
@@ -1558,6 +1560,8 @@ class GraphicMatroid(Matroid):
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in ground set")
 
+        if u not in self._G.vertices():
+            raise ValueError("u must be an existing vertex")
         if v == u:
             raise ValueError("u and v must be distinct")
         # To prevent an error for iterating over None:
@@ -1568,15 +1572,6 @@ class GraphicMatroid(Matroid):
         vertices = G.vertices()
         if v is None:
             v = G.add_vertex()
-            # We have to prevent an error here if the new vertex label is u
-            if u == v:
-                # Then u wasn't already in the graph, so we get a coloop
-                if vertices:
-                    G.add_edge(vertices[0], u, element)
-                else:
-                    v2 = G.add_vertex()
-                    G.add_edge(v, v2, element)
-                return GraphicMatroid(G)
 
         elif v in G:
             raise ValueError("vertex is already in the graph")
@@ -1646,7 +1641,7 @@ class GraphicMatroid(Matroid):
         TESTS::
 
             sage: M = Matroid(graphs.EmptyGraph())
-            sage: M.graphic_coextension('a')
+            sage: M.graphic_coextension(0)
             Graphic matroid of rank 1 on 1 elements
             sage: I = M.graphic_coextensions(element='a')
             sage: for m in I:
@@ -1704,11 +1699,7 @@ class GraphicMatroid(Matroid):
         elif v in G:
             raise ValueError("vertex is already in the graph")
 
-        # if there are no vertices, return a single coloop
-        if not vertices:
-            G.add_edge(0, 1, element)
-            yield GraphicMatroid(G)
-        elif not cosimple:
+        if not cosimple:
             # First extend by a coloop on the first vertex.
             G.add_edge(vertices[0], v, element)
             yield GraphicMatroid(G)

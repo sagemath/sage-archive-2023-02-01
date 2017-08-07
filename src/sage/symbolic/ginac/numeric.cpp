@@ -204,26 +204,39 @@ void ginac_pyinit_I(PyObject* z) {
         initialized = true;
         Py_INCREF(z);
         GiNaC::I = z; // I is a global constant defined below.
+}
 
-        PyObject* m = PyImport_ImportModule("sage.rings.real_mpfr");
-        if (m == nullptr)
-                py_error("Error importing sage.rings.real_mpfr");
-        PyObject* obj = PyObject_GetAttrString(m, "RR");
-        if (obj == nullptr)
-                py_error("Error getting RR attribute");
-        Py_INCREF(obj);
-        GiNaC::RR = obj;
-        m = PyImport_ImportModule("sage.rings.complex_field");
-        if (m == nullptr)
-                py_error("Error importing sage.complex_field");
-        obj = PyObject_GetAttrString(m, "ComplexField");
-        if (obj == nullptr)
-                py_error("Error getting ComplexField attribute");
-        obj = PyObject_CallObject(obj, NULL);
-        if (obj == nullptr)
-                py_error("Error getting CC attribute");
-        Py_INCREF(obj);
-        GiNaC::CC = obj;
+PyObject* RR_get()
+{
+        static PyObject* ptr = nullptr;
+        if (ptr == nullptr) {
+                PyObject* m = PyImport_ImportModule("sage.rings.real_mpfr");
+                if (m == nullptr)
+                        py_error("Error importing sage.rings.real_mpfr");
+                ptr = PyObject_GetAttrString(m, "RR");
+                if (ptr == nullptr)
+                        py_error("Error getting RR attribute");
+                Py_INCREF(ptr);
+        }
+        return ptr;
+}
+
+PyObject* CC_get()
+{
+        static PyObject* ptr = nullptr;
+        if (ptr == nullptr) {
+                PyObject* m = PyImport_ImportModule("sage.rings.complex_field");
+                if (m == nullptr)
+                        py_error("Error importing sage.complex_field");
+                ptr = PyObject_GetAttrString(m, "ComplexField");
+                if (ptr == nullptr)
+                        py_error("Error getting ComplexField attribute");
+                ptr = PyObject_CallObject(ptr, NULL);
+                if (ptr == nullptr)
+                        py_error("Error getting CC attribute");
+                Py_INCREF(ptr);
+        }
+        return ptr;
 }
 
 static PyObject* pyfunc_Integer = nullptr;
@@ -418,7 +431,6 @@ PyObject* CoerceBall(PyObject* ball, int prec) {
 namespace GiNaC {
 
 numeric I;
-PyObject *RR, *CC;
 
 ///////////////////////////////////////////////////////////////////////////////
 // class numeric
@@ -3109,10 +3121,10 @@ ex numeric::to_dict_parent(const numeric& num, PyObject* obj)
                         return numeric(ret);
                 }
         }
-        ret = PyObject_CallFunctionObjArgs(RR, the_arg, NULL);
+        ret = PyObject_CallFunctionObjArgs(RR_get(), the_arg, NULL);
         if (ret == nullptr) {
                 PyErr_Clear();
-                ret = PyObject_CallFunctionObjArgs(CC, the_arg, NULL);
+                ret = PyObject_CallFunctionObjArgs(CC_get(), the_arg, NULL);
                 Py_DECREF(the_arg);
                 if (ret == nullptr) {
                         PyErr_Clear();
@@ -4497,7 +4509,7 @@ const numeric isqrt(const numeric &x) {
 ex ConstantEvalf(unsigned serial, PyObject* dict) {
         if (dict == nullptr) {
                 dict = PyDict_New();
-                PyDict_SetItemString(dict, "parent", CC);
+                PyDict_SetItemString(dict, "parent", CC_get());
         }
         PyObject* x = py_funcs.py_eval_constant(serial, dict);
         if (x == nullptr) py_error("error getting digits of constant");

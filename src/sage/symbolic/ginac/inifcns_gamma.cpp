@@ -257,7 +257,7 @@ static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 		const numeric &nx = ex_to<numeric>(x);
 		const numeric &ny = ex_to<numeric>(y);
                 if (parent == nullptr)
-                        parent = CC;
+                        parent = CC_get();
                 return (nx+ny).rgamma(parent) * nx.tgamma(parent) * ny.tgamma(parent);
 	}
 	

@@ -59,6 +59,7 @@
 void ginac_pyinit_Integer(PyObject*);
 void ginac_pyinit_Float(PyObject*);
 void ginac_pyinit_I(PyObject*);
+PyObject* CC_get();
 
 class CanonicalForm;
 
@@ -341,7 +342,6 @@ protected:
 // global constants
 
 extern numeric I;
-extern PyObject *RR, *CC;
 
 // global functions
 

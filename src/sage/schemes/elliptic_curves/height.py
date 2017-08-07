@@ -49,10 +49,10 @@ import numpy
 import math, bisect
 
 from sage.rings.all import (ZZ, QQ, RR, RDF, RIF, CC, CDF, CIF,
-    infinity, RealField, ComplexField)
+    infinity)
 
 from sage.misc.all import cached_method, cartesian_product_iterator
-from sage.arith.all import lcm, factor, factorial
+from sage.arith.all import lcm, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
@@ -707,8 +707,6 @@ def rat_term_CIF(z, try_strict=True):
             # = r^2*x + 2*r*x^2 - 4*r + x
 
         df_dr = (r**2-1) * p2
-        df_dx = p1 * r
-
         dg_dr = p1 * y
         dg_dx = r * df_dr / y
 
@@ -943,14 +941,13 @@ class EllipticCurveCanonicalHeight:
             return min(min_fg, min_FG) ** (-1/QQ(3))
 
         else:
-            def pair_max(f, g):
-                f = f.change_ring(CIF)
-                g = g.change_ring(CIF)
-                max = type(RIF(0)).max
-                def max_f_g(z):
-                    return max(abs(f(z)), abs(g(z)))
-                return max_f_g
-            pair_max_old = pair_max
+            # def pair_max(f, g):
+            #     f = f.change_ring(CIF)
+            #     g = g.change_ring(CIF)
+            #     max = type(RIF(0)).max
+            #     def max_f_g(z):
+            #         return max(abs(f(z)), abs(g(z)))
+            #     return max_f_g
             def pair_max(f, g):
                 f = f.change_ring(CDF)
                 g = g.change_ring(CDF)
@@ -1045,7 +1042,6 @@ class EllipticCurveCanonicalHeight:
             [0, 2*log(5) + 2*log(2), 0, 2*log(13) + 2*log(5) + 4*log(2), 0]
         """
         s = 0
-        N = self.E.conductor()
         B = (n+1) ** max(2, self.K.degree())
         for p in self.K.primes_of_bounded_norm_iter(B):
             ep = self.e_p(p)

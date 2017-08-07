@@ -2662,7 +2662,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         raise NotImplementedError
 
-    def _polylog_res_1(self, n, prec):
+    def _polylog_res_1(self, n):
         """
         Return `Li_n(`self`)` , the `p`-adic polylogarithm of ``self`` to precision ``prec``, assuming that self is congruent to 1 mod p.
         This is an internal function, used by :meth:`polylog`.
@@ -2671,21 +2671,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             - ``self`` -- a p-adic element
             - ``n`` -- a non-negative integer
-            - ``prec`` -- a positive integer
 
         OUTPUT:
 
             - Li_n(self)
 
-        EXAMPLES:
+        EXAMPLES ::
 
-        ::
-
-            sage: Qp(2)(-1)._polylog_res_1(6, prec = 30) == 0
+            sage: Qp(2)(-1)._polylog_res_1(6) == 0
             True
 
         ::
-            sage: Qp(5)(1)._polylog_res_1(1, prec = 30)
+            sage: Qp(5)(1)._polylog_res_1(1)
             Traceback (most recent call last):
             ...
             ValueError: Polylogarithm is not defined for 1.
@@ -2696,21 +2693,26 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.rings.padics.factory import Qp
         from sage.misc.all import verbose
 
-        p = self.parent().prime()
         if self == 1:
             raise ValueError('Polylogarithm is not defined for 1.')
 
-        hsl = _findprec((self-1).valuation(p), n, prec, p)
-        if (p == 2):
-            hsl = max(hsl, _findprec(1, n, prec - 1, p))
+        p = self.parent().prime()
+        prec = self.precision_absolute()
+
+        K = self.parent().fraction_field()
+        z = K(self)
+
+        hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2))
+        N = floor(prec - n*log(hsl - 1, p))
+
         verbose(hsl, level=3)
-        K = Qp(p, ceil(prec + n*(log(hsl-1,p)+1)))
+
         verbose(K.precision_cap(), level=3)
-        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) + Integer(1-2**(m-1)).valuation(p) + (n-m)*((hsl-1).log(p)), p) for m in range(2,n+1)])
+        gsl = max([_findprec(1/(p-1), 1, N - m + _polylog_c(m,p) + Integer(1-2**(m-1)).valuation(p) + (n-m)*((hsl-1).log(p)), p) for m in range(2,n+1)])
         verbose(gsl, level=3)
-        g = _compute_g(p, n, max([prec - m + Integer(1-2**(m-1)).valuation(p) + (n - m)*((hsl-1).log(p)) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
+        g = _compute_g(p, n, max([N - m + Integer(1-2**(m-1)).valuation(p) + (n - m)*((hsl-1).log(p)) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
         verbose(g, level=3)
-        S = PowerSeriesRing(K, default_prec = hsl, names='t')
+        S = PowerSeriesRing(K, default_prec = ceil(hsl), names='t')
         t = S.gen()
         G = [(((1+t).log())**i)/Integer(i).factorial() for i in range(n+4)]
         verbose(G, level=3)
@@ -2723,20 +2725,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 if p != 2:
                     H[i+1] += (2**i*p**(i+1)*g[i+1](1/K(2)))/((1-2**i)*(p**(i+1) - 1))
                 else:
-                    H[i+1] += (2**i*H[i+1](K(-2)))/(1- 2**(i+1))
+                    H[i+1] += (2**i*H[i+1](K(-2)))/(1 - 2**(i+1))
 
         verbose(H, level=3)
-        return Qp(p, prec)(H[n](K(self-1)) - ((K(self).log(0))**(n-1)*K(1-self).log(0))/Integer(n-1).factorial())
+        return (H[n](z - 1) - ((z.log(0))**(n-1)*(1 - z).log(0))/Integer(n-1).factorial()).add_bigoh(N)
 
-    def polylog(self, n, prec=None):
+    def polylog(self, n):
         """
-        Return `Li_n(self)` , the `p`-adic polylogarithm of ``self`` to precision ``prec``.
+        Return `Li_n(self)` , the `p`-adic polylogarithm of ``self``.
 
         INPUT:
 
             - ``self`` -- a p-adic element
             - ``n`` -- a non-negative integer
-            - ``prec`` (optional) -- a positive integer
 
         OUTPUT:
 
@@ -2744,16 +2745,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         EXAMPLES:
 
-        The `n`-th polylogarithm of `-1` is `0` for even `n`
-
-        ::
+        The `n`-th polylogarithm of `-1` is `0` for even `n` ::
 
             sage: Qp(13)(-1).polylog(6) == 0
             True
 
-        We can check some identities, for example those mentioned in [DCW2015]_
-
-        ::
+        We can check some identities, for example those mentioned in [DCW2015]_ ::
 
             sage: x = Qp(7, prec=30)(1/3)
             sage: (x^2).polylog(4) - 8*x.polylog(4) - 8*(-x).polylog(4) == 0
@@ -2771,21 +2768,23 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x.polylog(2) + (1-x).polylog(2) + x.log(0)**2*(1-x).log(0) == 0
             True
 
-        `Li_1(z) = -\log(1-z)` for `|z| < 1`
-        
-        ::
+        `Li_1(z) = -\log(1-z)` for `|z| < 1` ::
 
             sage: Qp(5)(10).polylog(1) == -Qp(5)(1-10).log(0)
             True
 
-        The polylogarithm of 1 is not defined
-
-        ::
+        The polylogarithm of 1 is not defined ::
 
             sage: Qp(5)(1).polylog(1)
             Traceback (most recent call last):
             ...
             ValueError: Polylogarithm is not defined for 1.
+
+
+        The polylogarithm of 0 is 0 ::
+
+            sage: Qp(11)(0).polylog(7)
+            0
 
         ALGORITHM:
 
@@ -2794,10 +2793,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         REFERENCES:
 
         .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
-             for Computing p-Adic Polylogarithms." Mathematics of computation
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
-        .. [DCW2015] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed tate motives and the
+        .. [DCW2015] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
              unit equation." International Mathematics Research Notices
              2016.17 (2015): 5291-5354.
 
@@ -2818,50 +2817,51 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.rings.padics.factory import Qp
         from sage.misc.all import verbose
         from sage.functions.log import log
-        from sage.functions.other import ceil
+        from sage.functions.other import ceil,floor
 
         if self.parent().degree() != 1:
-            raise NotImplementedError("Polylogarithms are not currently defined for elements of extensions")
-            # TODO implement this (after the change method for padic generic elements is added).
+            raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
+            # TODO implement this (possibly after the change method for padic generic elements is added).
 
-        if prec == None:
-            prec = self.precision_relative()
+        prec = self.precision_absolute()
 
         p = self.parent().prime()
-        K = Qp(p, prec)
-        res = 'infty' # Assume residue disk around oo
+        K = self.parent().fraction_field()
 
-        if K(self).valuation() >= 0:
-            res = K(self).residue()
+        z = K(self)
+
+        if z.valuation() < 0:
+            verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(self)), level=2)
+            return (-1)**(n+1)*(1/z).polylog(n)-(z.log(0)**n)/K(n.factorial())
+
+        zeta = K.teichmuller(z)
 
         # Which residue disk are we in?
-        if res == 0:
+        if zeta == 0:
+            if z == 0: # must handle corner case of residue 0, relative precision 0 here
+                return K(0)
             verbose("residue 0, using series. %d %s"%(n,str(self)), level=2)
-            return sum(K(self)**k/Integer(k)**n for k in range(1,p*prec))
-        if res == 1 and K(self) == 1:
-            raise ValueError("Polylogarithm is not defined for 1.")
-        # Residue disk around 1
-        if res == 1 and K(self) != 1:
-            verbose("residue 1, using _polylog_res_1. %d %s"%(n,str(self)), level=2)
-            return self._polylog_res_1(n, prec)
-        if res == 'infty':
-            verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(self)), level=2)
-            return (-1)**(n+1)*(1/self).polylog(n,prec)-(K(self).log(0)**n)/K(n.factorial())
+            M = floor(log(z.precision_relative(), p))
+            N = prec - n*M
+            return sum(K(p)**(-m*n)*sum(z**(k*p**m)/Integer(k)**n for k in range(1, _findprec(p**m*z.valuation(), 0, N + n*m,p)) if k % p != 0) for m in range(M + 1)).add_bigoh(N)
 
-        for x in K.teichmuller_system():
-            if (self - x).valuation() > 0:
-                zeta = x
+        if zeta == 1:
+            if z == 1:
+                raise ValueError("Polylogarithm is not defined for 1.")
+            verbose("residue 1, using _polylog_res_1. %d %s"%(n,str(self)), level=2)
+            return self._polylog_res_1(n)
 
         # Set up precision bounds
-        tsl = _findprec((self-zeta).valuation(), n, prec, p)
-        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) + (n-m)*(tsl-1).log(p), p) for m in range(1,n+1)])
+        tsl = prec / (z - zeta).valuation() + 1
+        N = floor(prec - n*log(tsl - 1, p))
+        gsl = max([_findprec(1/(p-1), 1, N - m + _polylog_c(m,p) + (n - m)*(tsl - 1).log(p), p) for m in range(1,n+1)])
 
-        gtr = _compute_g(p, n, prec + n*(tsl -1).log(p) + n*(gsl-1).log(p), gsl)
+        gtr = _compute_g(p, n, N + n*(tsl -1).log(p) + n*(gsl-1).log(p), gsl)
 
-        K = Qp(p, ceil(prec + n*log(tsl - 1, p)))
+        K = Qp(p, ceil(N + n*log(tsl - 1, p)))
 
         # Residue disk around zeta
-        verbose("general case. %d %s"%(n,str(self)), level=2)
+        verbose("general case. %d %s"%(n, str(self)), level=2)
         Li_i_zeta = [0] + [p**i/(p**i-1)*gtr[i](1/(1-zeta)) for i in range(1,n+1)]
 
         T = PowerSeriesRing(K, default_prec=tsl, names='t')
@@ -2871,13 +2871,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
         for i in range(n):
             F[i+1] = Li_i_zeta[i+1] + (F[i]/(zeta + t)).integral()
 
-        return Qp(p, prec)(F[n](self - zeta))
+        return (F[n](z - zeta)).add_bigoh(N)
 
 
 # Module functions used by polylog
 def _polylog_c(n, p):
     """
-    Return p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p) which is used as a precision bound.
+    Return c(n, p) = p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p)
+    as defined in prop 6.1 of [BdJ2008]_ which is used as a precision bound.
     This is an internal function, used by :meth:`polylog`.
 
     EXAMPLES::
@@ -2887,7 +2888,7 @@ def _polylog_c(n, p):
 
     REFERENCES:
 
-    See Prop. 6.1 of
+    Prop. 6.1 of
 
         .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of computation
@@ -2911,9 +2912,7 @@ def _findprec(c_1, c_2, c_3, p):
 
     ``sl`` such that `kc_1 - c_2 \log_p(k) > c_3` for all `k \ge sl`
 
-    EXAMPLES:
-
-    ::
+    EXAMPLES::
 
         sage: sage.rings.padics.padic_generic_element._findprec(1, 1, 2, 2)
         5
@@ -2929,7 +2928,7 @@ def _findprec(c_1, c_2, c_3, p):
              (2008): 1105-1134.
     """
     from sage.functions.other import ceil,floor
-    k = Integer(min(ceil(c_2/c_1),2))
+    k = Integer(max(ceil(c_2/c_1), 2))
     while True:
         if c_1*k - c_2*k.log(p) > c_3:
             return k

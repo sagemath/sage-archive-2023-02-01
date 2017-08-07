@@ -354,10 +354,9 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-import ideal
-import homset
+from . import ideal
 from cpython.object cimport Py_EQ, Py_NE
 from sage.structure.richcmp cimport (richcmp, rich_to_bool,
         richcmp_not_equal)
@@ -615,7 +614,8 @@ cdef class RingHomomorphism(RingMap):
             True
 
         """
-        if not homset.is_RingHomset(parent):
+        from .homset import RingHomset_generic
+        if not isinstance(parent, RingHomset_generic):
             raise TypeError("parent must be a ring homset")
         RingMap.__init__(self, parent)
 

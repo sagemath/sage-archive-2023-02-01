@@ -1,12 +1,12 @@
 """
 Coerce maps
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import re
 import types
 
-from parent import Set_PythonType
+from .parent import Set_PythonType
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 

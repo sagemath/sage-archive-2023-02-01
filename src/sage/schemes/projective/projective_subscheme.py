@@ -1281,7 +1281,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``d`` -- a nonnegative integer.
+        - ``d`` -- a positive integer.
 
         - ``CS`` -- a projective ambient space to embed into. If the projective ambient space of this subscheme
           is of dimension `N`, the dimension of ``CS`` must be `\binom{N + d}{d} - 1`. This is constructed if

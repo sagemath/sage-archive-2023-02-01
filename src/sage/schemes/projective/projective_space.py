@@ -1103,7 +1103,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``d`` -- a nonnegative integer.
+        - ``d`` -- a positive integer.
 
         - ``CS`` -- a projective ambient space to embed into. If this projective space has dimension `N`, the
           dimension of ``CS`` must be `\binom{N + d}{d} - 1`. This is constructed if not specified. Default:
@@ -1149,8 +1149,8 @@ class ProjectiveSpace_ring(AmbientSpace):
               -r^2 + q*t
         """
         d = ZZ(d)
-        if d < 0:
-            raise ValueError("(=%s) must be a nonnegative integer")
+        if d <= 0:
+            raise ValueError("(=%s) must be a positive integer")
         N = self.dimension()
         # construct codomain space if not given
         if CS is None:

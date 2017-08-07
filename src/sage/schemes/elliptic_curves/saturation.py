@@ -11,7 +11,7 @@ true for all but finitely many primes since `E(K)` is a
 finitely-generated Abelian group.
 
 The process of `p`-saturating a given set of points is implemented
-here.  The naive algirithm simply checks all `(p^r-1)/(p-1)`
+here.  The naive algorithm simply checks all `(p^r-1)/(p-1)`
 projective combinations of the points, testing each to see if it can
 be divided by `p`.  If this occurs then we replace one of the points
 and continue.  The function :meth:`p_saturation` does one step of
@@ -54,20 +54,21 @@ from sage.rings.finite_rings.all import GF
 from sage.rings.all import ZZ
 
 def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
-    r""" Checks whether the list of points is `p`-saturated.
+    r"""
+    Checks whether the list of points is `p`-saturated.
 
     INPUT:
 
-    - ``Plist`` (list) - a list of independent points on one elliptic curve
+    - ``Plist`` (list) - a list of independent points on one elliptic curve.
 
-    - ``p`` (integer) - a prime number
+    - ``p`` (integer) - a prime number.
 
     - ``sieve`` (boolean) - if True, use a sieve (when there are at
       least 2 points); otherwise test all combinations.
 
     - ``lin_combs`` (dict) - a dict, possibly empty, with keys
       coefficient tuples and values the corresponding linear
-      combinations of the points in ``Plist``
+      combinations of the points in ``Plist``.
 
     .. note::
 
@@ -101,7 +102,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         sage: p_saturation([P,Q,R],3)
         (True, {})
 
-    Here we see an example where 19-aturation is proved, with the
+    Here we see an example where 19-saturation is proved, with the
     verbose flag set to True so that we can see what is going on::
 
         sage: p_saturation([P,Q,R],19, verbose=True)
@@ -352,17 +353,18 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
 
 
 def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
-    r""" Full `p`-saturation of ``Plist``.
+    r"""
+    Full `p`-saturation of ``Plist``.
 
     INPUT:
 
-    - ``Plist`` (list) - a list of independent points on one elliptic curve
+    - ``Plist`` (list) - a list of independent points on one elliptic curve.
 
-    - ``p`` (integer) - a prime number
+    - ``p`` (integer) - a prime number.
 
     - ``lin_combs`` (dict, default null) - a dict, possibly empty,
       with keys coefficient tuples and values the corresponding linear
-      combinations of the points in ``Plist``
+      combinations of the points in ``Plist``.
 
     OUTPUT:
 

@@ -3545,7 +3545,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
     def saturation(self, points, verbose=False,
                    max_prime=0, one_prime=0, odd_primes_only=False,
                    lower_ht_bound=None, reg=None, debug=False):
-        r""" Given a list of rational points on `E` over `K`, compute the
+        r"""
+        Given a list of rational points on `E` over `K`, compute the
         saturation in `E(K)` of the subgroup they generate.
 
         INPUT:
@@ -3657,11 +3658,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ALGORITHM:
 
-        For rank 1 subgroups, simply do trial divison up to the maximal
+        For rank 1 subgroups, simply do trial division up to the maximal
         prime divisor. For higher rank subgroups, perform trial divison
         on all linear combinations for small primes, and look for
         projections `E(K) \rightarrow \oplus E(k) \otimes \mathbf{F}_p` which
-        are either full rank or provide `p`-divisble linear combinations,
+        are either full rank or provide `p`-divisible linear combinations,
         where the `k` here are residue fields of `K`.
 
         TESTS::
@@ -3752,7 +3753,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
 
     def gens_quadratic(self, **kwds):
-        """Return generators for the Mordell-Weil group modulo torsion, for a
+        """
+        Return generators for the Mordell-Weil group modulo torsion, for a
         curve which is a base change from `\QQ` to a quadratic field.
 
         EXAMPLES::
@@ -3787,7 +3789,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise ValueError("gens_quadratic() requires the base field to be quadratic")
 
         EE = self.descend_to(QQ)
-        if len(EE)==0:
+        if not EE:
             raise ValueError("gens_quadratic() requires the elliptic curve to be a base change from Q")
 
         # In all cases there are exactly two distinct curves /Q whose

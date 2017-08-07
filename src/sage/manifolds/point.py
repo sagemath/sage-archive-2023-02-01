@@ -653,13 +653,13 @@ class ManifoldPoint(Element):
             #                  "{} and {}".format(self, other))
         diff = [sc - oc for sc, oc in zip(self._coordinates[common_chart],
                                           other._coordinates[common_chart])]
-        res = True
         for diff_c in diff:
             if isinstance(diff_c, Expression):
-                res = res and diff_c.is_trivial_zero()
-            else:
-                res = res and (diff_c == 0)
-        return res
+                if not diff_c.is_trivial_zero():
+                    return False
+            elif not (diff_c == 0):
+                return False
+        return True
 
     def __ne__(self, other):
         r"""

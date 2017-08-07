@@ -2661,6 +2661,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [ 1  0]
 
         However, it might fail for others by raising a ``ValueError``::
+
             sage: Matrix(ZZ, 1,1,[0]).LLL_gram()
             Traceback (most recent call last):
             ...
@@ -2672,6 +2673,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ValueError: qflllgram did not return a square matrix, perhaps the matrix is not positive definite
 
         or by running forever::
+
             sage: Matrix(ZZ, [-5, -1, -1, -5]).LLL_gram() # not tested
             ...
             RuntimeError: infinite loop while calling qflllgram  

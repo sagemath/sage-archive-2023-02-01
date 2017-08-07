@@ -368,7 +368,7 @@ def _dig6_to_matrix( dig6 ):
         [ 0  0 -1  0]
     """
     dg = _dig6_to_digraph( dig6 )
-    return _edge_list_to_matrix( dg.edges(), dg.order(), 0 )
+    return _edge_list_to_matrix( dg.edges(), list(range(dg.order())), [ ] )
 
 def _dg_is_sink_source( dg, v ):
     """

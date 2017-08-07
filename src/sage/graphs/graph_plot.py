@@ -398,7 +398,7 @@ class GraphPlot(SageObject):
 
         # Handle base vertex options
         voptions = {}
-
+        
         for arg in vertex_options:
             self._options[arg] = vertex_options[arg]
 

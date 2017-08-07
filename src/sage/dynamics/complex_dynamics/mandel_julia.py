@@ -39,7 +39,8 @@ from sagenb.notebook.interact import (interact,
                                       slider,
                                       input_box,
                                       color_selector,
-                                      checkbox)from sage.plot.colors import Color
+                                      checkbox)
+from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import function_log as log
 from sage.rings.rational_field import QQ
@@ -288,7 +289,7 @@ def external_ray(theta, **kwds):
 def julia_plot(c=-1, **kwds):
     r"""
     Plots the Julia set of a given complex `c` value. Users can specify whether
-    they would like to diplay the Mandelbrot side by side with the Julia set.
+    they would like to display the Mandelbrot side by side with the Julia set.
 
     The Julia set of a given `c` value is the set of complex numbers for which
     the function `Q_c(z)=z^2+c` is bounded under iteration. The Julia set can
@@ -298,43 +299,57 @@ def julia_plot(c=-1, **kwds):
     ALGORITHM:
 
     Define the map `Q_c(z) = z^2 + c` for some `c \in \mathbb{C}`. For every
-    `p \in \mathbb{C}`, if `|Q_{p}^{k}(c)| > 2` for some `k \geq 0`,
-    then `Q_{p}^{n}(c) \to \infty`. Let `N` be the maximum number of iterations.
+    `p \in \mathbb{C}`, if `|Q_{c}^{k}(p)| > 2` for some `k \geq 0`,
+    then `Q_{c}^{n}(p) \to \infty`. Let `N` be the maximum number of iterations.
     Compute the first `N` points on the orbit of `p` under `Q_c`. If for
-    any `k < N`, `|Q_{p}^{k}(c)| > 2`, we stop the iteration and assign a color
-    to the point `c` based on how quickly `c` escaped to infinity under
-    iteration of `Q_c`. If `|Q_{p}^{i}(c)| \leq 2` for all `i \leq N`, we assume
+    any `k < N`, `|Q_{c}^{k}(p)| > 2`, we stop the iteration and assign a color
+    to the point `p` based on how quickly `p` escaped to infinity under
+    iteration of `Q_c`. If `|Q_{c}^{i}(p)| \leq 2` for all `i \leq N`, we assume
     `p` is in the Julia set and assign the point `p` the color black.
 
     INPUT:
 
-    - ``c`` -- complex (optional - default: ``-1``), complex point `c` that determines the Julia set.
+    - ``c`` -- complex (optional - default: ``-1``), complex point `c` that
+      determines the Julia set.
 
     kwds:
 
-    - ``period`` -- list (optional - default: ``None``), returns the Julia set for a random `c` value with the given cycle structure.
+    - ``period`` -- list (optional - default: ``None``), returns the Julia set
+      for a random `c` value with the given (formal) cycle structure.
 
-    - ``mandelbrot`` -- boolean (optional - default: ``True``), when set to ``True``, an image of the Mandelbrot set is appended to the right of the Julia set.
+    - ``mandelbrot`` -- boolean (optional - default: ``True``), when set to
+      ``True``, an image of the Mandelbrot set is appended to the right of the
+      Julia set.
 
-    - ``point_color`` -- RGB color (optional - default: ``[255, 0, 0]``), color of the point `c` in the Mandelbrot set.
+    - ``point_color`` -- RGB color (optional - default: ``[255, 0, 0]``),
+      color of the point `c` in the Mandelbrot set.
 
-    - ``x_center`` -- double (optional - default: ``-1.0``), Real part of center point.
+    - ``x_center`` -- double (optional - default: ``-1.0``), Real part
+      of center point.
 
-    - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of center point.
+    - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part
+      of center point.
 
-    - ``image_width`` -- double (optional - default: ``4.0``), width of image in the complex plane.
+    - ``image_width`` -- double (optional - default: ``4.0``), width of image
+      in the complex plane.
 
-    - ``max_iteration`` -- long (optional - default: ``500``), maximum number of iterations the map `Q_c(z)`.
+    - ``max_iteration`` -- long (optional - default: ``500``), maximum number
+      of iterations the map `Q_c(z)`.
 
-    - ``pixel_count`` -- long (optional - default: ``500``), side length of image in number of pixels.
+    - ``pixel_count`` -- long (optional - default: ``500``), side length of
+      image in number of pixels.
 
-    - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``), color used to determine the coloring of set.
+    - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``), color
+      used to determine the coloring of set.
 
-    - ``iteration_level`` -- long (optional - default: 1), number of iterations between each color level.
+    - ``iteration_level`` -- long (optional - default: 1), number of iterations
+      between each color level.
 
-    - ``number_of_colors`` -- long (optional - default: 30), number of colors used to plot image.
+    - ``number_of_colors`` -- long (optional - default: 30), number of colors
+      used to plot image.
 
-    - ``interact`` -- boolean (optional - default: ``False``), controls whether plot will have interactive functionality.
+    - ``interact`` -- boolean (optional - default: ``False``), controls whether
+      plot will have interactive functionality.
 
     OUTPUT:
 
@@ -350,17 +365,20 @@ def julia_plot(c=-1, **kwds):
         sage: julia_plot(mandelbrot=False)
         500x500px 24-bit RGB image
 
-    To display an interactive plot of the Julia set in the Notebook, set ``interact`` to ``True``::
+    To display an interactive plot of the Julia set in the Notebook,
+    set ``interact`` to ``True``::
 
         sage: julia_plot(interact=True)
         <html>...</html>
 
-    To return the Julia set of a random `c` value with cycle structure `(2,3)`, set ``period = [2,3]``::
+    To return the Julia set of a random `c` value with (formal) cycle structure
+    `(2,3)`, set ``period = [2,3]``::
 
         sage: julia_plot(period=[2,3])
         1001x500px 24-bit RGB image
 
-    To return all of the Julia sets of `c` values with cycle structure `(2,3)`::
+    To return all of the Julia sets of `c` values with (formal) cycle structure
+    `(2,3)`::
 
         sage: period = [2,3] # not tested
         ....: R.<c> = QQ[]
@@ -387,7 +405,7 @@ def julia_plot(c=-1, **kwds):
     mandelbrot = kwds.pop("mandelbrot", True)
     period = kwds.pop("period", None)
 
-    if period is not None:
+    if not period is None:
         R = PolynomialRing(QQ, 'c')
         c = R.gen()
         P = ProjectiveSpace(R, 1, 'x,y')

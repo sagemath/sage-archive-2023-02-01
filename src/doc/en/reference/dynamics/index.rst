@@ -8,6 +8,7 @@ Discrete dynamics
 
    interval_exchanges
    flat_surfaces
+   complex_dynamics
    sage/sandpiles/sandpile
 
 .. SEEALSO::

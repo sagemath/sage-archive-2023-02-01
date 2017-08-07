@@ -159,19 +159,54 @@ class FunctionField(Field):
         return self.characteristic() == 0
 
     def some_elements(self):
-         """
-         Return a list of elements in the function field.
+        """
+        Return some elemnts in this function field.
 
-         EXAMPLES::
+        EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ)
-            sage: elements = K.some_elements()
-            sage: elements # random output
-            [(x - 3/2)/(x^2 - 12/5*x + 1/18)]
-            sage: False in [e in K for e in elements]
-            False
-         """
-         return [self.random_element(), self.random_element(), self.random_element()]
+           sage: K.<x> = FunctionField(QQ)
+           sage: K.some_elements()
+           [1,
+            x,
+            2*x,
+            x/(x^2 + 2*x + 1),
+            1/x^2,
+            x/(x^2 - 1),
+            x/(x^2 + 1),
+            x/(2*x^2 + 2),
+            0,
+            1/x,
+            ...]
+
+        ::
+
+           sage: R.<y> = K[]
+           sage: L.<y> = K.extension(y^2 - x)
+           sage: L.some_elements()
+           [1,
+            y,
+            1/x*y,
+            ((1/4*x + 1/4)/(1/4*x^2 - 1/2*x + 1/4))*y - 1/2*x/(1/4*x^2 - 1/2*x + 1/4),
+            -1/-x,
+            (1/(x - 1))*y,
+            (1/(x + 1))*y,
+            (1/(2*x + 2))*y,
+            0,
+            ...]
+
+        """
+        elements = []
+
+        polynomials = [self(f) for f in self._ring.some_elements()]
+
+        for numerator in polynomials:
+            for denominator in polynomials:
+                if denominator:
+                    some_element = numerator/denominator
+                    if some_element not in elements:
+                        elements.append(some_element)
+
+        return elements
 
     def characteristic(self):
         """

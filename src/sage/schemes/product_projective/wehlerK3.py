@@ -53,7 +53,8 @@ from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_product_projective
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+from sage.schemes.product_projective.subscheme import AlgebraicScheme_subscheme_product_projective
 from sage.schemes.product_projective.space import ProductProjectiveSpaces
 from copy import copy
 
@@ -984,7 +985,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 bad_primes = bad_primes+GB[i].lt().coefficients()[0].support()
         bad_primes = sorted(set(bad_primes))
         #check to return only the truly bad primes
-        if check == True:
+        if check:
             for p in bad_primes:
                 X = self.change_ring(GF(p))
                 if not X.is_degenerate():

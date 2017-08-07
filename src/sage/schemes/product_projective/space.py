@@ -50,7 +50,7 @@ from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer, CommutativeRing)
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polydict import ETuple
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_product_projective
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace, ProjectiveSpace_ring
 from sage.schemes.product_projective.homset import (SchemeHomset_points_product_projective_spaces_ring,
@@ -59,7 +59,7 @@ from sage.schemes.product_projective.point import (ProductProjectiveSpaces_point
                                                    ProductProjectiveSpaces_point_field,
                                                    ProductProjectiveSpaces_point_finite_field)
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+from sage.schemes.product_projective.subscheme import AlgebraicScheme_subscheme_product_projective
 
 
 def is_ProductProjectiveSpaces(x):

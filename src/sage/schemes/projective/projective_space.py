@@ -874,7 +874,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
             "_test_elements_neq"])
         """
-        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i, AA=None):

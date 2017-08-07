@@ -25,6 +25,7 @@ strict superset of :mod:`~sage.typeset.ascii_art`.
 from sage.typeset.character_art import CharacterArt
 from sage.typeset.character_art_factory import CharacterArtFactory
 import sage.typeset.symbols as symbol
+from six import text_type
 
 
 class UnicodeArt(CharacterArt):
@@ -49,7 +50,7 @@ class UnicodeArt(CharacterArt):
          π⋅x
         ℯ
     """
-    _string_type = unicode
+    _string_type = text_type
 
 
 _unicode_art_factory = CharacterArtFactory(

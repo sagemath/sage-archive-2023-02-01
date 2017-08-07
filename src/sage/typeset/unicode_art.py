@@ -54,7 +54,7 @@ class UnicodeArt(CharacterArt):
 
 
 _unicode_art_factory = CharacterArtFactory(
-    UnicodeArt, unicode, '_unicode_art_',
+    UnicodeArt, text_type, '_unicode_art_',
     (symbol.unicode_left_parenthesis, symbol.unicode_right_parenthesis),
     (symbol.unicode_left_square_bracket, symbol.unicode_right_square_bracket),
     (symbol.unicode_left_curly_brace, symbol.unicode_right_curly_brace),

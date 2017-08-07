@@ -136,6 +136,7 @@ from sage.matrix.constructor import matrix
 from sage.combinat.tuple import UnorderedTuples
 
 from sage.categories.fields import Fields
+from sage.categories.homset import Hom
 from sage.categories.number_fields import NumberFields
 from sage.categories.morphism import Morphism
 
@@ -3669,6 +3670,71 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             i = i + 1
         X = self.affine_patch(i)
         return X.multiplicity(X(P.dehomogenize(i)))
+
+    def veronese_embedding(self, d, CS=None, order='lex'):
+        r"""
+        Return the degree ``d`` Veronese embedding of this projective subscheme.
+
+        INPUT:
+
+        - ``d`` -- a nonnegative integer.
+
+        - ``CS`` -- a projective ambient space to embed into. If the projective ambient space of this subscheme
+          is of dimension `N`, the dimension of ``CS`` must be `\binom{N + d}{d} - 1`. This is constructed if
+          not specified. Default: ``None``.
+
+        - ``order`` -- a monomial order to use to arrange the monomials defining the embedding. The monomials
+          will be arranged from greatest to least with respect to this order. Default: ``'lex'``.
+
+        OUTPUT:
+
+        - a scheme morphism from this subscheme to its image by the degree ``d`` Veronese embedding.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: L = P.subscheme([y - x])
+            sage: v = L.veronese_embedding(2)
+            sage: v
+            Scheme morphism:
+              From: Closed subscheme of Projective Space of dimension 2 over
+            Rational Field defined by:
+              -x + y
+              To:   Closed subscheme of Projective Space of dimension 5 over
+            Rational Field defined by:
+              -x4^2 + x3*x5,
+              x2 - x4,
+              x1 - x3,
+              x0 - x3
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : x*y : x*z : y^2 : y*z : z^2)
+            sage: v.codomain().degree()
+            2
+            sage: C = P.subscheme([y*z - x^2])
+            sage: C.veronese_embedding(2).codomain().degree()
+            4
+
+        twisted cubic::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: Q.<u,v,s,t> = ProjectiveSpace(QQ, 3)
+            sage: P.subscheme([]).veronese_embedding(3, Q)
+            Scheme morphism:
+              From: Closed subscheme of Projective Space of dimension 1 over
+            Rational Field defined by:
+              (no polynomials)
+              To:   Closed subscheme of Projective Space of dimension 3 over
+            Rational Field defined by:
+              -s^2 + v*t,
+              -v*s + u*t,
+              -v^2 + u*s
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^3 : x^2*y : x*y^2 : y^3)
+        """
+        # construct map between projective spaces
+        v = self.ambient_space().veronese_embedding(d, CS, order)
+        # return this map restricted to self and its image
+        return Hom(self, v(self))(v.defining_polynomials())
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 

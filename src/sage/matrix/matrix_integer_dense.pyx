@@ -2617,21 +2617,26 @@ cdef class Matrix_integer_dense(Matrix_dense):
     def LLL_gram(self, flag = 0):
         """
         LLL reduction of the lattice whose gram matrix is ``self``, assuming that ``self`` is positive definite.
-        .. warning::
+
+        .. WARNING::
             The algorithm does not check if ``self`` is positive definite.
 
         INPUT:
 
         - ``self`` -- a gram matrix of a positive definite quadratic form
-        - ``flag`` -- an optional flag for qfllgram
-            - ``0`` -- (default), assume that ``self`` has either exact (integral or rational) or real floating point entries. The matrix is rescaled, converted to integers and the behavior is then as in flag = 1.
-            - ``1`` -- assume that G is integral. Computations involving Gram-Schmidt vectors are approximate, with precision varying as needed
-            OUTPUT:
 
-        ``U`` - unimodular transformation matrix such that
-        ``U.T * M * U``  is LLL-reduced.
+        - ``flag`` -- an optional flag passed to ``qfllgram``. According  to ``qfllgram``'s documentation the options are:
 
-        ALGORITHM: Calls qfllgram of PARI
+            - ``0`` -- (default), assume that ``self`` has either exact (integral or rational) or real floating point entries. The matrix is rescaled, converted to integers and the behavior is then as in ``flag = 1``.
+
+            - ``1`` -- assume that G is integral. Computations involving Gram-Schmidt vectors are approximate, with precision varying as needed.
+
+
+        OUTPUT:
+
+        A dense matrix ``U`` over the integers that represents a unimodular transformation matrix such that ``U.T * M * U``  is LLL-reduced.
+
+        ALGORITHM: Calls PARI's ``qfllgram``.
 
         EXAMPLES::
 

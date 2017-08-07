@@ -856,9 +856,9 @@ class GraphicMatroid(Matroid):
             [2, 4]
             sage: sorted(M._max_coindependent([2,3,4]))
             [2, 4]
-            sage: N = M.graphic_extension(0, element='a')
-            sage: sorted(N.max_coindependent([0,1,2,'a']))
-            [1, 2, 'a']
+            sage: N = M.graphic_extension(0, element=5)
+            sage: sorted(N.max_coindependent([0,1,2,5]))
+            [1, 2, 5]
         """
         edges = self.groundset_to_edges(X)
         all_vertices = self._G.vertices()
@@ -970,12 +970,12 @@ class GraphicMatroid(Matroid):
             [0, 1]
             sage: sorted(M._coclosure([0,1]))
             [0, 1]
-            sage: N = M.graphic_extension(0, element='a')
+            sage: N = M.graphic_extension(0, element=5)
             sage: sorted(N._coclosure([3]))
             [3, 4]
-            sage: N = M.graphic_coextension(0, element='a')
+            sage: N = M.graphic_coextension(0, element=5)
             sage: sorted(N._coclosure([3]))
-            [3, 4, 'a']
+            [3, 4, 5]
         """
         g = self.graph()
         g.delete_edges(self._groundset_to_edges(X))

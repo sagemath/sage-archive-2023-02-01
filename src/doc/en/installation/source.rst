@@ -513,6 +513,14 @@ Running Sage from a directory with spaces in its name will also fail.
 
 #. Optional:  Set various other environment variables that influence the
    build process; see :ref:`section_envvar`.
+   
+   Some environment variables deserve a special mention: `CC`, `CXX`, `FC`,
+   and `OBJC` and `OBJCXX` on OSX. Those variables defining your compilers
+   can be set at configuration time and their values will be recorded for
+   further use at runtime. Those initial values are over-riden if sage builds
+   its own compiler or they are set to a different value again before calling
+   sage. Note that some packages will ignore the compiler settings and use 
+   values deemed safe for that package on a particular OS.
 
 #. Optional:  Run the configure script to set some options that
    influence the build process.

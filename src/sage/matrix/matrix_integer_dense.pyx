@@ -2675,6 +2675,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         or by running forever::
 
             sage: Matrix(ZZ, [-5, -1, -1, -5]).LLL_gram() # not tested
+            Traceback (most recent call last):
             ...
             RuntimeError: infinite loop while calling qflllgram  
 

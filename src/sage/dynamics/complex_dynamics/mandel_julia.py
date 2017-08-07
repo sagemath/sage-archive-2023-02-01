@@ -30,14 +30,16 @@ AUTHORS:
 
 from __future__ import absolute_import, division
 from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_plot,
+                                                                fast_external_ray,
+                                                                convert_to_pixels,
+                                                                get_line,
                                                                 fast_julia_plot,
                                                                 julia_helper)
-from sagenb.notebook.interact import interact
-from sagenb.notebook.interact import slider
-from sagenb.notebook.interact import input_box
-from sagenb.notebook.interact import color_selector
-from sagenb.notebook.interact import checkbox
-from sage.plot.colors import Color
+from sagenb.notebook.interact import (interact,
+                                      slider,
+                                      input_box,
+                                      color_selector,
+                                      checkbox)from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import function_log as log
 from sage.rings.rational_field import QQ
@@ -64,7 +66,7 @@ def mandelbrot_plot(**kwds):
 
     REFERENCE:
 
-    [Devaney]_
+    [Dev2005]_
 
     kwds:
 
@@ -80,9 +82,9 @@ def mandelbrot_plot(**kwds):
 
     - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``) color used to determine the coloring of set.
 
-    - ``iteration_level`` -- long (optional - default: 1) number of iterations between each color level
+    - ``iteration_level`` -- long (optional - default: 1) number of iterations between each color level.
 
-    - ``number_of_colors`` -- long (optional - default: 30) number of colors used to plot image
+    - ``number_of_colors`` -- long (optional - default: 30) number of colors used to plot image.
 
     - ``interact`` -- boolean (optional - default: ``False``), controls whether plot will have interactive functionality.
 
@@ -147,6 +149,141 @@ def mandelbrot_plot(**kwds):
     else:
         return fast_mandelbrot_plot(x_center, y_center, image_width, max_iteration,
          pixel_count, iteration_level, number_of_colors, base_color)
+
+def external_ray(theta, **kwds):
+    r"""
+    Draws the external ray(s) of a given angle (or list of angles)
+    by connecting a finite number of points that were approximated using
+    Newton's method. The algorithm used is described in a paper by
+    Tomoki Kawahira.
+
+    REFERENCE:
+
+    [Kaw2009]_
+
+    INPUT:
+
+    - ``theta`` -- double or list of doubles, angles between 0 and 1 inclusive.
+
+    kwds:
+
+    - ``image`` -- 24-bit RGB image (optional - default: None) user specified image of Mandelbrot set.
+
+    - ``D`` -- long (optional - default: ``25``) depth of the approximation. As ``D`` increases, the external ray gets closer to the boundary of the Mandelbrot set. If the ray doesn't reach the boundary of the Mandelbrot set, increase ``D``.
+
+    - ``S`` -- long (optional - default: ``10``) sharpness of the approximation. Adjusts the number of points used to approximate the external ray (number of points is equal to ``S*D``). If ray looks jagged, increase ``S``.
+
+    - ``R`` -- long (optional - default: ``100``) radial parameter. If ``R`` is large, the external ray reaches sufficiently close to infinity. If ``R`` is too small, Newton's method may not converge to the correct ray.
+
+    - ``prec`` -- long (optional - default: ``300``) specifies the bits of precision used by the Complex Field when using Newton's method to compute points on the external ray.
+
+    - ``ray_color`` -- RGB color (optional - default: ``[255, 255, 255]``) color of the external ray(s).
+
+    OUTPUT:
+
+    24-bit RGB image of external ray(s) on the Mandelbrot set.
+
+    EXAMPLES::
+
+        sage: external_ray(1/3)
+        500x500px 24-bit RGB image
+
+    ::
+
+        sage: external_ray(0.6, ray_color=[255, 0, 0])
+        500x500px 24-bit RGB image
+
+    ::
+
+        sage: external_ray([0, 0.2, 0.4, 0.7]) # long time
+        500x500px 24-bit RGB image
+
+    ::
+
+        sage: external_ray([i/5 for i in range(1,5)]) # long time
+        500x500px 24-bit RGB image
+
+    WARNING:
+
+    If you are passing in an image, make sure you specify
+    which parameters to use when drawing the external ray.
+    For example, the following is incorrect::
+
+        sage: M = mandelbrot_plot(x_center=0) # not tested
+        sage: external_ray(5/7, image=M) # not tested
+        500x500px 24-bit RGB image
+
+    To get the correct external ray, we adjust our parameters::
+
+        sage: M = mandelbrot_plot(x_center=0) # not tested
+        sage: external_ray(5/7, x_center=0, image=M) # not tested
+        500x500px 24-bit RGB image
+
+    TODO:
+
+    The ``copy()`` function for bitmap images needs to be implemented in Sage.
+    """
+
+    x_0 = kwds.get("x_center", -1)
+    y_0 = kwds.get("y_center", 0)
+    plot_width = kwds.get("image_width", 4)
+    pixel_width = kwds.get("pixel_count", 500)
+    depth = kwds.get("D", 25)
+    sharpness = kwds.get("S", 10)
+    radial_parameter = kwds.get("R", 100)
+    precision = kwds.get("prec", 300)
+    precision = max(precision, -log(pixel_width * 0.001, 2).round() + 10)
+    ray_color = kwds.get("ray_color", [255]*3)
+    image = kwds.get("image", None)
+    if image is None:
+        image = mandelbrot_plot(**kwds)
+
+    # Make a copy of the bitmap image.
+    # M = copy(image)
+    old_pixel = image.pixels()
+    M = Image('RGB', (pixel_width, pixel_width))
+    pixel = M.pixels()
+    for i in range(pixel_width):
+        for j in range(pixel_width):
+            pixel[i,j] = old_pixel[i,j]
+
+    # Make sure that theta is a list so loop below works
+    if type(theta) != list:
+        theta = [theta]
+
+    # Check if theta is in the invterval [0,1]
+    for angle in theta:
+        if angle < 0 or angle > 1:
+            raise \
+            ValueError("values for theta must be in the closed interval [0,1].")
+
+    # Loop through each value for theta in list and plot the external ray.
+    for angle in theta:
+        E = fast_external_ray(angle, D=depth, S=sharpness, R=radial_parameter,
+         prec=precision, image_width=plot_width, pixel_count=pixel_width)
+
+        # Convert points to pixel coordinates.
+        pixel_list = convert_to_pixels(E, x_0, y_0, plot_width, pixel_width)
+
+        # Find the pixels between points in pixel_list.
+        extra_points = []
+        for i in range(len(pixel_list) - 1):
+            if min(pixel_list[i+1]) >= 0 and max(pixel_list[i+1]) < pixel_width:
+                for j in get_line(pixel_list[i], pixel_list[i+1]):
+                    extra_points.append(j)
+
+        # Add these points to pixel_list to fill in gaps in the ray.
+        pixel_list += extra_points
+
+        # Remove duplicates from list.
+        pixel_list = list(set(pixel_list))
+
+        # Check if point is in window and if it is, plot it on the image to
+        # create an external ray.
+        for k in pixel_list:
+            if max(k) < pixel_width and min(k) >= 0:
+                pixel[int(k[0]), int(k[1])] = tuple(ray_color)
+    return M
 
 def julia_plot(c=-1, **kwds):
     r"""

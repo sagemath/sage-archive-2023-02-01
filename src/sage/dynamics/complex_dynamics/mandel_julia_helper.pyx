@@ -24,6 +24,9 @@ from sage.plot.colors import Color
 from sage.repl.image import Image
 from copy import copy
 from cysignals.signals cimport sig_check
+from sage.rings.complex_field import ComplexField
+from sage.functions.log import exp, log
+from sage.symbolic.constants import pi
 
 def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
  long max_iteration, long pixel_count, long level_sep, long color_num, base_color):
@@ -43,15 +46,15 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
 
     - ``pixel_count`` -- long, side length of image in number of pixels.
 
-    - ``level_sep`` -- long, number of iterations between each color level
+    - ``level_sep`` -- long, number of iterations between each color level.
 
-    - ``color_num`` -- long, number of colors used to plot image
+    - ``color_num`` -- long, number of colors used to plot image.
 
     - ``base_color`` -- list, RGB color used to determine the coloring of set.
 
     OUTPUT:
 
-    - A 24-bit RGB image of the Mandelbrot set in the complex plane
+    24-bit RGB image of the Mandelbrot set in the complex plane
 
     EXAMPLES:
 
@@ -132,6 +135,108 @@ def fast_mandelbrot_plot(double x_center, double y_center, double image_width,
                     pixel[col,row] = color_list[-1]
     return M
 
+cpdef fast_external_ray(double theta, long D=30, long S=10, long R=100,
+ long pixel_count=500, double image_width=4, long prec=300):
+    r"""
+    Returns a list of points that approximate the external ray for a given angle.
+
+    INPUT:
+
+    - ``theta`` -- double, angle between 0 and 1 inclusive.
+
+    - ``D`` -- long (optional - default: ``25``) depth of the approximation. As ``D`` increases, the external ray gets closer to the boundary of the Mandelbrot set.
+
+    - ``S`` -- long (optional - default: ``10``) sharpness of the approximation. Adjusts the number of points used to approximate the external ray (number of points is equal to ``S*D``).
+
+    - ``R`` -- long (optional - default: ``100``) radial parameter. If ``R`` is sufficiently large, the external ray reaches enough close to infinity.
+
+    - ``pixel_count`` -- long (optional - default: ``500``) side length of image in number of pixels.
+
+    - ``image_width`` -- double (optional - default: ``4``) width of the image in the complex plane.
+
+    - ``prec`` -- long (optional - default: ``300``) specifies the bits of precision used by the Complex Field when using Newton's method to compute points on the external ray.
+
+    OUTPUT:
+
+    List of tuples of Real Interval Field Elements
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_external_ray
+        sage: fast_external_ray(0,S=1,D=1)
+        [(100.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+          0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000),
+         (9.51254777713729174697578576623132297117784691109499464854806785133621315075854778426714908,
+          0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)]
+
+
+    ::
+
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_external_ray
+        sage: fast_external_ray(1/3,S=1,D=1)
+        [(-49.9999999999999786837179271969944238662719726562500000000000000000000000000000000000000000,
+          86.6025403784438765342201804742217063903808593750000000000000000000000000000000000000000000),
+         (-5.50628047023173006234970878097113901879832542655926629309001652388544528575532346900138516,
+          8.64947510053972513843999918917106032664030380426885745306040284140385975750462108180377187)]
+
+    ::
+
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_external_ray
+        sage: fast_external_ray(0.75234,S=1,D=1)
+        [(1.47021239172637052661229972727596759796142578125000000000000000000000000000000000000000000,
+          -99.9891917935294287644865107722580432891845703125000000000000000000000000000000000000000000),
+         (-0.352790406744857508500937144524776555433184352559852962308757189778284058275081335121601384,
+          -9.98646630765023514178761177926164047797465369576787921409326037870837930920646860774032363)]
+    """
+
+    cdef:
+        CF = ComplexField(prec)
+        PI = CF.pi()
+        I = CF.gen()
+        c_0, r_m, t_m, temp_c, C_k, D_k, old_c, x, y, dist
+        int k, j, t
+        double difference, m
+        double error = pixel_count * 0.0001
+
+        double pixel_width = image_width / pixel_count
+
+        # initialize list with c_0
+        c_list = [CF(R*exp(2*PI*I*theta))]
+
+    # Loop through each subinterval and approximate point on external ray.
+    for k in range(1,D+1):
+        for j in range(1,S+1):
+            m = (k-1)*S + j
+            r_m = CF(R**(2**(-m/S)))
+            t_m = CF(r_m**(2**k) * exp(2*PI*I*theta * 2**k))
+            temp_c = c_list[-1]
+            difference = error
+
+            # Repeat Newton's method until points are close together.
+            while error <= difference:
+                sig_check()
+                old_c = temp_c
+                # Recursive formula for iterates of q(z) = z^2 + c
+                C_k, D_k = CF(old_c), CF(1)
+                for t in range(k):
+                    C_k, D_k = C_k**2 + old_c, CF(2)*D_k*C_k + CF(1)
+                temp_c = old_c - (C_k - t_m) / D_k   # Newton map
+                difference = abs(old_c) - abs(temp_c)
+
+            dist = (2*C_k.abs()*(C_k.abs()).log()) / D_k.abs()
+            if dist < pixel_width:
+                break
+            c_list.append(CF(temp_c))
+        if dist < pixel_width:
+            break
+
+    # Convert Complex Field elements into tuples.
+    for k in range(len(c_list)):
+        x,y = c_list[k].real(), c_list[k].imag()
+        c_list[k] = (x, y)
+
+    return c_list
+
 cpdef convert_to_pixels(point_list, double x_0, double y_0, double width,
  long number_of_pixels):
     r"""
@@ -151,7 +256,7 @@ cpdef convert_to_pixels(point_list, double x_0, double y_0, double width,
 
     OUTPUT:
 
-    List of tuples of integers representing the pixels.
+    List of tuples of integers representing pixels.
 
     EXAMPLES::
 
@@ -176,6 +281,84 @@ cpdef convert_to_pixels(point_list, double x_0, double y_0, double width,
         y_pixel = round((y_corner - k[1]) * step_size)
         pixel_list.append((x_pixel, y_pixel))
     return pixel_list
+
+cpdef get_line(start, end):
+    r"""
+    Produces a list of pixel coordinates approximating a line from a starting
+    point to an ending point using the Bresenham's Line Algorithm.
+
+    REFERENCE:
+
+    [Br2016]_
+
+    INPUT:
+
+    - ``start`` -- tuple, starting point of line.
+
+    - ``end`` -- tuple, ending point of line.
+
+    OUTPUT:
+
+    List of tuples of integers approximating the line between two pixels.
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import get_line
+        sage: get_line((0, 0), (3, 4))
+        [(0, 0), (1, 1), (1, 2), (2, 3), (3, 4)]
+
+    ::
+
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import get_line
+        sage: get_line((3, 4), (0, 0))
+        [(3, 4), (2, 3), (1, 2), (1, 1), (0, 0)]
+    """
+    # Setup initial conditions
+    cdef:
+        long x1, x2, y1, y2, dx, dy, error, ystep, y
+        is_steep, swapped, points
+    x1, y1 = start
+    x2, y2 = end
+    dx, dy = x2 - x1, y2 - y1
+
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
+
+    # Rotate line
+    if is_steep:
+        x1, y1 = y1, x1
+        x2, y2 = y2, x2
+
+    # Swap start and end points if necessary and store swap state
+    swapped = False
+    if x1 > x2:
+        x1, x2 = x2, x1
+        y1, y2 = y2, y1
+        swapped = True
+
+    # Recalculate differentials
+    dx, dy = x2 - x1, y2 - y1
+
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y1 < y2 else -1
+
+    # Iterate over bounding box generating points between start and end
+    y = y1
+    points = []
+    for x in range(x1, x2 + 1):
+        sig_check()
+        coord = (y, x) if is_steep else (x, y)
+        points.append(coord)
+        error -= abs(dy)
+        if error < 0:
+            y += ystep
+            error += dx
+
+    # Reverse the list if the coordinates were swapped
+    if swapped:
+        points.reverse()
+    return points
 
 cpdef fast_julia_plot(double c_real, double c_imag,
   double x_center=0, double y_center=0, double image_width=4,

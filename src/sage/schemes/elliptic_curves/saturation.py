@@ -192,7 +192,13 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
         if verbose:
             print("There is %s-torsion modulo %s, projecting points" % (p,Q))
 
-        projPlist = [Ek(pt) if pt[0].valuation(Q) >= 0 else Ek(0) for pt in Plist]
+        def proj1(pt):
+            try:
+                return Ek(pt)
+            except ZeroDivisionError:
+                return Ek(0)
+
+        projPlist = [proj1(pt) for pt in Plist]
 
         if verbose:
             print(" --> %s" % projPlist)

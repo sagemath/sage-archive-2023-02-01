@@ -2460,6 +2460,16 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
     A concrete base class for the finite standard Cartan types.
 
     This includes for example `A_3`, `D_4`, or `E_8`.
+
+     TESTS::
+
+         sage: ct1 = CartanType(['A',4])
+         sage: ct2 = CartanType(['A',4])
+         sage: ct3 = CartanType(['A',5])
+         sage: ct1 == ct2
+         True
+         sage: ct1 != ct3
+         True
     """
     def __init__(self, letter, n):
         """
@@ -2505,24 +2515,6 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
         """
         from .cartan_type import CartanType
         return (CartanType, (self.letter, self.n))
-
-    def __cmp__(self, other):
-         """
-         TESTS::
-
-             sage: ct1 = CartanType(['A',4])
-             sage: ct2 = CartanType(['A',4])
-             sage: ct3 = CartanType(['A',5])
-             sage: ct1 == ct2
-             True
-             sage: ct1 != ct3
-             True
-         """
-         if other.__class__ != self.__class__:
-             return cmp(self.__class__, other.__class__)
-         if other.letter != self.letter:
-             return cmp(self.letter, other.letter)
-         return cmp(self.n, other.n)
 
     def __hash__(self):
         """

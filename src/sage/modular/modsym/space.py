@@ -34,7 +34,8 @@ import sage.rings.fast_arith as fast_arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
 from   sage.structure.all import Sequence, SageObject
-
+from sage.structure.richcmp import (richcmp_method, richcmp,
+                                    rich_to_bool, richcmp_not_equal)
 
 from sage.modular.arithgroup.all import Gamma0, is_Gamma0 # for Sturm bound given a character
 from sage.modular.modsym.element import ModularSymbolsElement
@@ -57,6 +58,8 @@ def is_ModularSymbolsSpace(x):
     """
     return isinstance(x, ModularSymbolsSpace)
 
+
+@richcmp_method
 class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     r"""
     Base class for spaces of modular symbols.
@@ -80,7 +83,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         self.__sign = sign
         hecke.HeckeModule_free_module.__init__(self, base_ring, group.level(), weight, category=category)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and other.
 
@@ -93,47 +96,72 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         EXAMPLES::
 
             sage: M = ModularSymbols(21,4) ; N = ModularSymbols(Gamma1(5),6)
-            sage: M.cuspidal_submodule().__cmp__(N)
-            1
+            sage: M.cuspidal_submodule() > N
+            True
             sage: M.cuspidal_submodule() == N
             False
         """
         if not isinstance(other, ModularSymbolsSpace):
-            return cmp(type(self), type(other))
-        c = cmp(self.__group,other.__group)
-        if c: return c
-        c = cmp(self.weight(), other.weight())
-        if c: return c
-        c = cmp(self.__character, other.__character)
-        if c: return c
-        c = cmp(self.__sign, other.__sign)
-        if c: return c
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
+            return NotImplemented
+
+        lx = self.__group
+        rx = other.__group
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.weight()
+        rx = other.weight()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.__character
+        rx = other.__character
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.__sign
+        rx = other.__sign
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.base_ring()
+        rx = other.base_ring()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         if self.is_ambient() or other.is_ambient():
             # if one is ambient they are equal iff they have same
             # dimension at this point, since all defining properties
             # are the same, so they are in the same ambient space.
-            return cmp(self.dimension(), other.dimension())
+            return richcmp(self.dimension(), other.dimension(), op)
 
-        c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
-        if c: return c
-        c = cmp(self.dimension(), other.dimension())
-        if c: return c
-        d = cmp(self.free_module(), other.free_module())
-        if d == 0:
-            return d
+        lx = self.ambient_hecke_module()
+        rx = other.ambient_hecke_module()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.dimension()
+        rx = other.dimension()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.free_module()
+        rx = other.free_module()
+
+        if lx == rx:
+            return rich_to_bool(op, 0)
+
         # distinguish using Hecke operators, if possible.
         try:
             for p in fast_arith.prime_range(self.hecke_bound()):
                 ap = self.hecke_matrix(p).trace()
                 bp = other.hecke_matrix(p).trace()
-                c = cmp(ap, bp)
-                if c: return c
+                if ap != bp:
+                    return richcmp_not_equal(ap, bp, op)
         except ArithmeticError:
             pass
         # fallback on subspace comparison
-        return d
+        return richcmp_not_equal(lx, rx, op)
 
     def _hecke_operator_class(self):
         """

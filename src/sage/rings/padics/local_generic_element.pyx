@@ -141,7 +141,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
             sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
-            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + O(t^8)
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
 
             sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()

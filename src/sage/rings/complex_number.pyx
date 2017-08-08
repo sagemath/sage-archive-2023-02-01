@@ -1131,10 +1131,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: cmp(CC(2, 1), CC(-1, 2))
-            1
-            sage: cmp(CC(2, 1), CC(2, 1))
-            0
+            sage: CC(2, 1) > CC(-1, 2)
+            True
+            sage: CC(2, 1) == CC(2, 1)
+            True
         """
         cdef int a, b
         a = mpfr_nan_p(left.__re)

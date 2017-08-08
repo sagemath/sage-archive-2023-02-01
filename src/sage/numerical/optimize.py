@@ -290,7 +290,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         sage: vars = var('x y z')
         sage: f = 100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
         sage: minimize(f, [.1,.3,.4])
-        (1.00..., 1.00..., 1.00...)
+        (0.9999999..., 0.999999..., 0.999999...)
 
     Try the newton-conjugate gradient method; the gradient and hessian are 
     computed automatically::
@@ -329,7 +329,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
         ....:    return der
         sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
-        (1.00...,  1.00..., 1.00...)
+        (0.9999999..., 0.999999..., 0.999999...)
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable

@@ -3659,7 +3659,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         ALGORITHM:
 
         For rank 1 subgroups, simply do trial division up to the maximal
-        prime divisor. For higher rank subgroups, perform trial divison
+        prime divisor. For higher rank subgroups, perform trial division
         on all linear combinations for small primes, and look for
         projections `E(K) \rightarrow \oplus E(k) \otimes \mathbf{F}_p` which
         are either full rank or provide `p`-divisible linear combinations,

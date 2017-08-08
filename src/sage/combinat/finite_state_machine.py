@@ -752,7 +752,7 @@ Finally, we check that this indeed computes the Gray code of the first
 Using the hook-functions
 ------------------------
 
-Let's use the :ref:`previous example "divison by
+Let's use the :ref:`previous example "division by
 3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
 state and transition parameters ``hook``.
 

@@ -50,6 +50,7 @@ if __name__ == "__main__":
     parser.add_option("--abspath", action="store_true", default=False, help="print absolute paths rather than relative paths")
     parser.add_option("--verbose", action="store_true", default=False, help="print debugging output during the test")
     parser.add_option("-d", "--debug", action="store_true", default=False, help="drop into a python debugger when an unexpected error is raised")
+    parser.add_option("--only-errors", action="store_true", default=False, help="only output failures, not test successes")
 
     parser.add_option("--gdb", action="store_true", default=False, help="run doctests under the control of gdb")
     parser.add_option("--valgrind", "--memcheck", action="store_true", default=False,

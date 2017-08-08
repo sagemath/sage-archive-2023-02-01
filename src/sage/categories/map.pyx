@@ -483,7 +483,7 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (type(self), self.parent(), _dict, self._extra_slots({}))
 
     def _repr_type(self):
         """

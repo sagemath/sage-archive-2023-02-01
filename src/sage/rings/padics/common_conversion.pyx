@@ -356,7 +356,11 @@ cdef inline int cconv_mpq_t_out_shared(mpq_t out, mpz_t x, long valshift, long p
     -` ``prec`` -- a long, the precision of ``x``, used in rational reconstruction
     - ``prime_pow`` -- a PowComputer for the ring
     """
-    mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
+    try:
+        mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
+    except (ArithmeticError, ValueError):
+        mpz_set(mpq_numref(out), x)
+        mpz_set_ui(mpq_denref(out), 1)
 
     # if valshift is nonzero then we starte with x as a p-adic unit,
     # so there will be no powers of p in the numerator or denominator

@@ -85,7 +85,7 @@ REFERENCES:
              *MacMahon's partition analysis: the Omega package*,
              European J. Combin. 22 (2001), no. 7, 887--904.
 
-.. [Ar2006] D. Armstrong. *Generalized noncrossing partitions and
+.. [Ar2006] \D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
 
 .. [AR2012] \D. Armstrong and B. Rhoades. "The Shi arrangement and the
@@ -165,7 +165,7 @@ REFERENCES:
              Pseudo-Random Number Generator. *SIAM Journal on
              Computing*, 15(2):364--383, 1986.
 
-.. [BIANCO] L. Bianco, P. Dell‘Olmo, S. Giordani
+.. [BIANCO] \L. Bianco, P. Dell‘Olmo, S. Giordani
             An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
             Computational Optimization and Applications,
             1997, Volume 8, Issue 2, pp 197--210,
@@ -249,7 +249,7 @@ REFERENCES:
 .. [BK1992] \U. Brehm and W. Kuhnel, "15-vertex triangulations of an
             8-manifold", Math. Annalen 294 (1992), no. 1, 167-193.
 
-.. [BK2001] W. Bruns and R. Koch, Computing the integral closure of an
+.. [BK2001] \W. Bruns and R. Koch, Computing the integral closure of an
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
@@ -390,7 +390,7 @@ REFERENCES:
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
              2013/164. http://eprint.iacr.org/2013/164
 
-.. [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
+.. [CGMRV16] \A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
              "Directing Road Networks by Listing Strong Orientations.",
              Combinatorial Algorithms, Proceedings of 27th International Workshop,
              IWOCA 2016, August 17-19, 2016, pages 83--95.
@@ -539,7 +539,7 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
-.. [Dec1998] W. Decker and T. de Jong. Groebner Bases and Invariant
+.. [Dec1998] \W. Decker and T. de Jong. Groebner Bases and Invariant
              Theory in Groebner Bases and Applications. London
              Mathematical Society Lecture Note Series No. 251. (1998)
              61--89.
@@ -794,7 +794,7 @@ REFERENCES:
              Riemann surfaces and Dessins d'enfant*, (2011)
              London Mathematical Society, Student Text 79.
 
-.. [GGOR2003] V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
+.. [GGOR2003] \V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
               *On the category `\mathcal{O}` for rational Cherednik algebras*.
               Invent. Math. **154** (2003). :arxiv:`math/0212036`.
 
@@ -1239,7 +1239,7 @@ REFERENCES:
              modular functions*, Int. Math. Res. Not 2007 (050).
              `Arxiv preprint <http://uk.arxiv.org/abs/math/0701168>`_.
 
-.. [Lot2005] M. Lothaire, *Applied combinatorics on
+.. [Lot2005] \M. Lothaire, *Applied combinatorics on
              words*. Cambridge University Press (2005).
 
 .. [LP2011] Richard Lindner and Chris Peikert. Better key sizes (and
@@ -1494,7 +1494,7 @@ REFERENCES:
 .. [Prototype_pattern] Prototype pattern,
                        :wikipedia:`Prototype_pattern`
 
-.. [PS2011] R. Pollack, and G. Stevens.  *Overconvergent modular
+.. [PS2011] \R. Pollack, and G. Stevens.  *Overconvergent modular
             symbols and p-adic L-functions.* Annales scientifiques de
             l'Ecole normale superieure.
             Vol. 44. No. 1. Elsevier, 2011.
@@ -1715,7 +1715,7 @@ REFERENCES:
 .. [Stu1993] \B. Sturmfels, Algorithms in invariant theory, Springer-Verlag,
              1993.
 
-.. [STW2016] C. Stump, H. Thomas, N. Williams. *Cataland II*, in
+.. [STW2016] \C. Stump, H. Thomas, N. Williams. *Cataland II*, in
              preparation, 2016.
 
 .. [sudoku:escargot]  "Al Escargot", due to Arto Inkala,
@@ -1761,11 +1761,11 @@ REFERENCES:
              Jacobi elliptic functions for real
              argument". 1997. https://researchspace.auckland.ac.nz/bitstream/handle/2292/5042/390.pdf.
 
-.. [TIDES] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. TIDES tutorial:
+.. [TIDES] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. TIDES tutorial:
            Integrating ODEs by using the Taylor Series Method
            (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
 
-.. [TOPCOM] J. Rambau, TOPCOM
+.. [TOPCOM] \J. Rambau, TOPCOM
             <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
@@ -1888,10 +1888,10 @@ REFERENCES:
              constrained optimization. ACM Transactions on
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
 
-.. [Zie1998] G. M. Ziegler. *Shelling polyhedral 3-balls and
+.. [Zie1998] \G. M. Ziegler. *Shelling polyhedral 3-balls and
              4-polytopes*. Discrete Comput. Geom. 19 (1998), 159-174.
 
-.. [Zie2007] G. M. Ziegler. *Lectures on polytopes*, Volume
+.. [Zie2007] \G. M. Ziegler. *Lectures on polytopes*, Volume
              152 of Graduate Texts in Mathematics, 7th printing of 1st edition, Springer, 2007.
 
 .. [Zor2008] \A. Zorich "Explicit Jenkins-Strebel representatives of

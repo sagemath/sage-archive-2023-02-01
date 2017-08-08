@@ -769,7 +769,7 @@ class ClusterSeed(SageObject):
         """
         self._init_vars = {}
         if isinstance(user_labels,list):          
-            for i in xrange(len(user_labels)):
+            for i in range(len(user_labels)):
                 if isinstance(user_labels[i], Integer):
                     self._init_vars[i] = user_labels_prefix+user_labels[i].str()
                 elif isinstance(user_labels[i], (list, tuple)):
@@ -2459,7 +2459,7 @@ class ClusterSeed(SageObject):
 
         V = IE + list(range(n))
 
-        if (sequence in xrange(n)) or (sequence in IE) or isinstance(sequence,str):
+        if (sequence in range(n)) or (sequence in IE) or isinstance(sequence,str):
             seqq = [sequence]
         else:
             seqq = sequence
@@ -2925,7 +2925,7 @@ class ClusterSeed(SageObject):
 
         """
         from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part
-        eval_dict = dict( [ ( self.y(i), 1 ) for i in xrange(self._m) ] )
+        eval_dict = dict( [ ( self.y(i), 1 ) for i in range(self._m) ] )
         seed = ClusterSeed( _principal_part( self._M ), is_principal = True, user_labels = self._nlist, user_labels_prefix=self._user_labels_prefix, frozen=None)         
         seed.use_c_vectors(self._use_c_vec)
         seed.use_fpolys(self._use_fpolys)

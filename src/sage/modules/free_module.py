@@ -1935,6 +1935,27 @@ done from the right side.""")
         """
         return self.__rank
 
+    def __bool__(self):
+        """
+        Return ``False`` if this is the zero module, in other words
+        if the rank is zero. Return ``True`` otherwise.
+
+        EXAMPLES::
+
+            sage: bool(QQ^0)
+            False
+            sage: bool(QQ^1)
+            True
+            sage: M = Matrix(2, 3, range(6))
+            sage: bool(M.right_kernel())
+            True
+            sage: bool(M.left_kernel())
+            False
+        """
+        return bool(self.rank())
+
+    __nonzero__ = __bool__
+
     def uses_ambient_inner_product(self):
         r"""
         Return ``True`` if the inner product on this module is

@@ -1267,6 +1267,10 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['b','d'])
             sage: S.nlist()
             ['a', 'c', 'e']
+
+            sage: S=ClusterSeed(DiGraph([[5,'b']]))
+            sage: S.nlist()
+            [5, 'b']
         """
         return self._nlist
     
@@ -2402,6 +2406,25 @@ class ClusterSeed(SageObject):
             sage: S.cluster()
             [(b + 1)/a, (a*c*d + b + 1)/(a*b), c, (a*c*d + b^2 + 2*b + 1)/(a*b*d)]
 
+            sage: S=ClusterSeed(DiGraph([[5,'b']]))
+            sage: S.mutate(5)
+            sage: S.cluster()
+            [(b + 1)/x5, b]
+            sage: S.mutate([5])
+            sage: S.cluster()
+            [x5, b]
+            sage: S.mutate(0)
+            sage: S.cluster()
+            [(b + 1)/x5, b]
+
+            sage: S=ClusterSeed(DiGraph([[1,2]]))
+            sage: S.cluster()
+            [x1, x2]
+            sage: S.mutate(1)
+            Warning: Input can be ambiguously interpreted as both vertices and indices. Mutating at vertices by default.
+            sage: S.cluster()
+            [(x2 + 1)/x1, x2]
+
         """
 
         # check for sanitizable data
@@ -2459,7 +2482,7 @@ class ClusterSeed(SageObject):
 
         V = IE + list(range(n))
 
-        if (sequence in xrange(n)) or (sequence in IE) or isinstance(sequence,str):
+        if (sequence in xrange(n)) or (sequence in IE) or isinstance(sequence,str) or (sequence in seed.nlist()):
             seqq = [sequence]
         else:
             seqq = sequence

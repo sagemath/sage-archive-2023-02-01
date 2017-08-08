@@ -151,10 +151,10 @@ class HyperbolicRegularPolygon(HyperbolicPolygon):
             d_z_k = d_z_k + [new_z_k * scale + h_disp]
             r_z_k=[-(new_z_k).conjugate() * scale + h_disp] + r_z_k
         if is_odd(self.sides):
-            HyperbolicPolygon.__init__(self, d_z_k + r_z_k, options)
+            HyperbolicPolygon.__init__(self, d_z_k + r_z_k, "UHP", options)
         else:
             z_opo = [I * (e**(-r)).n(digits=8) * scale + h_disp]
-            HyperbolicPolygon.__init__(self, d_z_k + z_opo + r_z_k, options)
+            HyperbolicPolygon.__init__(self, d_z_k + z_opo + r_z_k, "UHP", options)
 
     def _repr_(self):
         """

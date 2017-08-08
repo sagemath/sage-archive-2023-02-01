@@ -651,13 +651,12 @@ class ManifoldPoint(Element):
             #!# Another option would be:
             # raise ValueError("no common chart has been found to compare " +
             #                  "{} and {}".format(self, other))
-        diff = [sc - oc for sc, oc in zip(self._coordinates[common_chart],
-                                          other._coordinates[common_chart])]
-        for diff_c in diff:
-            if isinstance(diff_c, Expression):
-                if not diff_c.is_trivial_zero():
-                    return False
-            elif not (diff_c == 0):
+        for xs, xo in zip(self._coordinates[common_chart],
+                          other._coordinates[common_chart]):
+            diff = xs - xo
+            if isinstance(diff, Expression) and not diff.is_trivial_zero():
+                return False
+            elif not (diff == 0):
                 return False
         return True
 

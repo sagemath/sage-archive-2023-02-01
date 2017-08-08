@@ -2664,7 +2664,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _polylog_res_1(self, n):
         """
-        Return `Li_n(`self`)` , the `p`-adic polylogarithm of ``self`` to precision ``prec``, assuming that self is congruent to 1 mod p.
+        Return `Li_n(`self`)` , the `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
         This is an internal function, used by :meth:`polylog`.
 
         INPUT:

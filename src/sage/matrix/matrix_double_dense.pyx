@@ -1777,7 +1777,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         ALGORITHM:
 
         Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module,
-        after taking the tranpose of the coefficient matrix.
+        after taking the transpose of the coefficient matrix.
 
         EXAMPLES:
 

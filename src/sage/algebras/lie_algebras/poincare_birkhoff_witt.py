@@ -155,8 +155,10 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             ....:     return -L.basis().keys().index(x)
             sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: prod(PBW.gens())  # indirect doctest
-            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+             - 4*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
+             - 2*PBW[alphacheck[1]]
 
         Check that :trac:`23266` is fixed::
 
@@ -193,7 +195,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: M = PBW.basis().keys()
             sage: prod(M.gens())  # indirect doctest
-            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
         """
         return self._basis_key(x[0])
 
@@ -206,23 +208,22 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
-            sage: E,F,H = PBW.algebra_generators()
-            sage: H*F*F*E  # indirect doctest
-            PBW[alpha[1]]*PBW[-alpha[1]]^2*PBW[alphacheck[1]]
-             - 2*PBW[alpha[1]]*PBW[-alpha[1]]^2
-             - 2*PBW[-alpha[1]]*PBW[alphacheck[1]]^2
-             + 6*PBW[-alpha[1]]*PBW[alphacheck[1]] - 4*PBW[-alpha[1]]
+            sage: E,H,F = PBW.algebra_generators()
+            sage: F*H*H*E  # indirect doctest
+            PBW[alpha[1]]*PBW[alphacheck[1]]^2*PBW[-alpha[1]]
+             + 8*PBW[alpha[1]]*PBW[alphacheck[1]]*PBW[-alpha[1]]
+             - PBW[alphacheck[1]]^3 + 16*PBW[alpha[1]]*PBW[-alpha[1]]
+             - 4*PBW[alphacheck[1]]^2 - 4*PBW[alphacheck[1]]
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
             sage: PBW = L.pbw_basis(basis_key=neg_key)
-            sage: E,F,H = PBW.algebra_generators()
-            sage: E*F*F*H  # indirect doctest
-            PBW[alphacheck[1]]*PBW[-alpha[1]]^2*PBW[alpha[1]]
-             + 2*PBW[alphacheck[1]]^2*PBW[-alpha[1]]
-             + 2*PBW[-alpha[1]]^2*PBW[alpha[1]]
-             + 6*PBW[alphacheck[1]]*PBW[-alpha[1]] + 4*PBW[-alpha[1]]
-
+            sage: E,H,F = PBW.algebra_generators()
+            sage: E*H*H*F  # indirect doctest
+            PBW[-alpha[1]]*PBW[alphacheck[1]]^2*PBW[alpha[1]]
+             - 8*PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+             + PBW[alphacheck[1]]^3 + 16*PBW[-alpha[1]]*PBW[alpha[1]]
+             - 4*PBW[alphacheck[1]]^2 + 4*PBW[alphacheck[1]]
         """
         return (-len(x), [self._basis_key(l) for l in x.to_word_list()])
 
@@ -253,17 +254,19 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW.has_coerce_map_from(L)
             True
             sage: [PBW(g) for g in L.basis()]
-            [PBW[alpha[1]], PBW[-alpha[1]], PBW[alphacheck[1]]]
+            [PBW[alpha[1]], PBW[alphacheck[1]], PBW[-alpha[1]]]
 
         We can go between PBW bases under different sorting orders::
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
             sage: PBW2 = L.pbw_basis(basis_key=neg_key)
-            sage: E,F,H = PBW.algebra_generators()
-            sage: PBW2(E*F*H)
-            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+            sage: E,H,F = PBW.algebra_generators()
+            sage: PBW2(E*H*F)
+            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+             - 4*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
+             - 2*PBW[alphacheck[1]]
         """
         if R == self._g:
             # Make this into the lift map
@@ -406,12 +409,13 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
-            sage: E,F,H = PBW.algebra_generators()
+            sage: E,H,F = PBW.algebra_generators()
             sage: PBW.degree_on_basis(E.leading_support())
             1
-            sage: PBW.degree_on_basis(((H*F)^10).leading_support())
+            sage: m = ((H*F)^10).trailing_support(key=PBW._monomial_key)  # long time
+            sage: PBW.degree_on_basis(m)  # long time
             20
-            sage: ((H*F*E)^4).maximal_degree()
+            sage: ((H*F*E)^4).maximal_degree()  # long time
             12
         """
         return m.length()

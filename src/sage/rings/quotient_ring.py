@@ -114,6 +114,7 @@ import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
 import sage.rings.polynomial.multi_polynomial_ideal
 from sage.structure.category_object import normalize_names
+from sage.structure.richcmp import richcmp_method, richcmp
 import sage.structure.parent_gens
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
@@ -343,6 +344,8 @@ from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRingsQuotients = CommutativeRings().Quotients()
 from sage.structure.category_object import check_default_category
 
+
+@richcmp_method
 class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of `R` by a twosided ideal `I`.
@@ -1062,7 +1065,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                     pass
         return C.has_coerce_map_from(R)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Only quotients by the *same* ring and same ideal (with the same
         generators!!) are considered equal.
@@ -1084,9 +1087,9 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             False
         """
         if not isinstance(other, QuotientRing_nc):
-            return cmp(type(self), type(other))
-        return cmp((self.cover_ring(), self.defining_ideal().gens()),
-                   (other.cover_ring(), other.defining_ideal().gens()))
+            return NotImplemented
+        return richcmp((self.cover_ring(), self.defining_ideal().gens()),
+                       (other.cover_ring(), other.defining_ideal().gens()), op)
 
     def ngens(self):
         r"""

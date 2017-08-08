@@ -283,6 +283,9 @@ ext_modules = [
     Extension('sage.dynamics.arithmetic_dynamics.projective_ds_helper',
               sources = ['sage/dynamics/arithmetic_dynamics/projective_ds_helper.pyx']),
 
+    Extension('sage.dynamics.complex_dynamics.mandel_julia_helper',
+                sources = ['sage/dynamics/complex_dynamics/mandel_julia_helper.pyx']),
+
     ################################
     ##
     ## sage.ext

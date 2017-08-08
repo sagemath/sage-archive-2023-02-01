@@ -55,10 +55,12 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from sage.arith.misc import is_prime
+from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import End
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.functions.all import sqrt
+from sage.functions.other import ceil
 from sage.libs.pari.all import PariError
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.cachefunc import cached_method
@@ -70,12 +72,15 @@ from sage.categories.finite_fields import FiniteFields
 from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field import FractionField
+from sage.rings.fraction_field import is_FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all import Qp
+from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.qqbar import QQbar
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.qqbar import QQbar
@@ -1434,6 +1439,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         The sum of the Green's function at the archimedean places and the places of
         bad reduction.
 
+        If function is defined over ``QQ`` uses Wells' Algorithm, which allows us to
+        not have to factor the resultant.
+
         INPUT:
 
         - ``P`` -- a projective point.
@@ -1465,7 +1473,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2]);
             sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            2.9868196689972114460185071428e-7
+            2.5736717542538205822319812073e-7
 
         ::
 
@@ -1491,12 +1499,65 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             sage: f = DynamicalSystem_projective([1000*x^2-29*y^2, 1000*y^2])
             sage: Q = P(-1/4, 1)
             sage: f.canonical_height(Q, error_bound=0.01)
-            3.8004512297710411807356032428
+            3.7996079979254623065837411853
+
+        ::
+
+            sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
+                1726400507263657518745202199786469389956474942774063845925192557326303453731548\
+                2685079170261221429134616704292143116022212404792747377940806653514195974598569\
+                02143413
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([RSA768*x^2 + y^2, x*y])
+            sage: Q = P(RSA768,1)
+            sage: f.canonical_height(Q, error_bound=0.00000000000000001)
+            931.18256422718241278672729195
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
+
+        #Wells' Algorithm
+        if K is QQ and self.codomain().ambient_space().dimension_relative() == 1:
+            # write our point with coordinates whose gcd is 1
+            P.normalize_coordinates()
+            if P.parent().value_ring() is QQ:
+                P.clear_denominators()
+            #assures integer coeffcients
+            coeffs = self[0].coefficients() + self[1].coefficients()
+            t = 1
+            for c in coeffs:
+                t = lcm(t, c.denominator())
+            A = t*self[0]
+            B = t*self[1]
+            Res = self.resultant(normalize=True)
+            H = 0
+            x_i = P[0]
+            y_i = P[1]
+            d = self.degree()
+            R = RealField(prec)
+            N = kwds.get('N', 10)
+            err = kwds.get('error_bound', None)
+            #computes the error bound as defined in Algorithm 3.1 of [WELLS]
+            if Res > 1:
+                if not err is None:
+                    err = err/2
+                    N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
+                    if N < 1:
+                        N = 1
+                    kwds.update({'error_bound': err})
+                    kwds.update({'N': N})
+                for n in range(N):
+                    x = A(x_i,y_i) % Res**(N-n)
+                    y = B(x_i,y_i) % Res**(N-n)
+                    g = gcd([x, y, Res])
+                    H = H + R(g).abs().log()/(d**(n+1))
+                    x_i = x/g
+                    y_i = y/g
+            # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
+            # and what Green's Function returns for the infinite place
+            return self.green_function(P, 0 , **kwds) - H + R(t).log()
 
         if not K in _NumberFields:
             if not K is QQbar:
@@ -2786,9 +2847,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-    def multiplier_spectra(self, n, formal=True, embedding=None):
+    def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
         r"""
-        Computes the formal ``n`` multiplier spectra of this dynamical system.
+        Computes the ``n`` multiplier spectra of this dynamical system.
 
         This is the set of multipliers of the periodic points of formal period
         ``n`` included with the appropriate multiplicity.
@@ -2802,9 +2863,12 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
             of this map. False specifies to find the ``n`` multiplier spectra
-            of this map. Default: True.
+            of this map. Default: False.
 
         - ``embedding`` - embedding of the base field into `\QQbar`.
+
+        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
+            compute one multiplier per point or one per cycle. Default : ``point``.
 
         OUTPUT:
 
@@ -2828,7 +2892,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
-            sage: f.multiplier_spectra(2, False, embedding=K.embeddings(QQbar)[0])
+            sage: f.multiplier_spectra(2, formal=False, embedding=K.embeddings(QQbar)[0], type='cycle')
             [0,
              5.931851652578137? + 0.?e-47*I,
              0.0681483474218635? - 1.930649271699173?*I,
@@ -2838,22 +2902,26 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
-            sage: f.multiplier_spectra(2)
-            [1]
+            sage: f.multiplier_spectra(2, formal=False, type='cycle')
+            [0, 1, 1, 9]
+            sage: f.multiplier_spectra(2, formal=False, type='point')
+            [0, 1, 1, 1, 9]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2 - 7/4*y^2, y^2])
-            sage: f.multiplier_spectra(3)
+            sage: f.multiplier_spectra(3, formal=True, type='cycle')
             [1, 1]
+            sage: f.multiplier_spectra(3, formal=True, type='point')
+            [1, 1, 1, 1, 1, 1]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
-            sage: f.sigma_invariants(1)
-            [3, 3, 1]
+            sage: f.multiplier_spectra(1)
+            [1, 1, 1]
         """
         PS = self.domain()
         n = Integer(n)
@@ -2902,44 +2970,69 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             for i in range(R[1]):
                 points.append(PS([R[0],1])) # include copies of higher multiplicity roots
 
-        newpoints = [] # should include one representative point per cycle, included with the right multiplicity
+        if type == 'cycle':
+            # should include one representative point per cycle, included with the right multiplicity
+            newpoints = []
 
-        while(points != []):
-            P = points[0]
-            newpoints.append(P)
-            points.pop(0)
-            Q = P
-            for i in range(1,n):
-                try:
-                    points.remove(f(Q))
-                except ValueError:
-                    pass
-                Q = f(Q)
+            while(points != []):
+                P = points[0]
+                newpoints.append(P)
+                points.pop(0)
+                Q = P
+                for i in range(1,n):
+                    try:
+                        points.remove(f(Q))
+                    except ValueError:
+                        pass
+                    Q = f(Q)
+            points = newpoints
 
-        multipliers = [f.multiplier(P,n)[0,0] for P in newpoints]
+        multipliers = [f.multiplier(P,n)[0,0] for P in points]
 
         return multipliers
 
-    def sigma_invariants(self, n, formal=True, embedding=None):
+    def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
-        Computes the values of the elementary symmetric polynomials of the formal ``n``
+        Computes the values of the elementary symmetric polynomials of the ``n``
         multilpier spectra of this dynamical system.
 
-        Can specify to instead compute the values corresponding to the elementary symmetric
-        polynomials of the ``n`` multiplier spectra, which includes the multipliers of all periodic
-        points of period ``n``. The map must be defined over projective space of dimension 1 over
-        a number field.
+        Can specify to instead compute the values corresponding to the elementary
+        symmetric polynomials of the formal ``n`` multiplier spectra. The map must
+        be defined over projective space of dimension 1. The base ring should be a
+        number field, number field order, or a finite field or a polynomial ring or
+        function field over a number field, number field order, or finite field.
+
+        The parameter ``type`` determines if the sigma are computed from the multipliers
+        calculated at one per cycle (with multiplicity) or one per point (with
+        multiplicity). Note that in the ``cycle`` case, a map with a cycle which collapses
+        into multiple smaller cycles, this is still considered one cycle. In other words,
+        if a 4-cycle collapses into a 2-cycle with multiplicity 2, there is only one
+        multiplier used for the doubled 2-cycle when computing ``n=4``.
+
+        ALGORITHM: We use the Poisson product of the resultant of two polynomials.
+
+        .. MATH::
+
+            res(f,g) = \prod_{f(a) = 0}g(a)
+
+        Letting `f` be the polynomial defining the periodic or formal periodic points
+        and `g` the polynomial `w - f'` for an auxilarly variable `w`. Note that if
+        `f` is a rational function, we clear denominators for `g`.
 
         INPUT:
 
         - ``n`` - a positive integer, the period.
 
-        - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
-            corresponding to the formal ``n`` multiplier spectra of this map. False specifies to instead find
-            the values corresponding to the ``n`` multiplier spectra of this map, which includes the multipliers
-            of all periodic points of period ``n`` of this map. Default: True.
+        - ``formal`` - a Boolean. True specifies to find the values of the elementary
+            symmetric polynomials corresponding to the formal ``n`` multiplier spectra
+            of this map. False specifies to instead find the values corresponding to
+            the ``n`` multiplier spectra of this map, which includes the multipliers
+            of all periodic points of period ``n`` of this map. Default: False.
 
-        - ``embedding`` - embedding of the base field into `\QQbar`.
+        - ``embedding`` - Deprecated in ticket 23333.
+
+        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
+            compute with one multiplier per point or one per cycle. Default : ``point``.
 
         OUTPUT: a list of elements in the base ring.
 
@@ -2958,11 +3051,26 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
             sage: set_verbose(None)
             sage: z = QQ['z'].0
-            sage: K = NumberField(z^4 - 4*z^2 + 1,'z')
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: K = NumberField(z^4 - 4*z^2 + 1, 'z')
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: f = DynamicalSystem_projective([x^2 - 5/4*y^2, y^2])
-            sage: f.sigma_invariants(2, False, embedding=K.embeddings(QQbar)[0])
+            sage: f.sigma_invariants(2, formal=False, type='cycle')
             [13, 11, -25, 0]
+            sage: f.sigma_invariants(2, formal=False, type='point')
+            [12, -2, -36, 25, 0]
+
+        check that infinity as part of a longer cycle is handled correctly::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([y^2, x^2])
+            sage: f.sigma_invariants(2, type='cycle')
+            [12, 48, 64, 0]
+            sage: f.sigma_invariants(2, type='point')
+            [12, 48, 64, 0, 0]
+            sage: f.sigma_invariants(2, type='cycle', formal=True)
+            [0]
+            sage: f.sigma_invariants(2, type='point', formal=True)
+            [0, 0]
 
         ::
 
@@ -2972,18 +3080,163 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             Traceback (most recent call last):
             ...
             NotImplementedError: only implemented for dimension 1
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem_projective([x^2 - w*y^2, (1-w)*x*y])
+            sage: f.sigma_invariants(2, formal=False, type='cycle')
+            [6*w + 21, 78*w + 159, 210*w + 367, 90*w + 156]
+            sage: f.sigma_invariants(2, formal=False, type='point')
+            [6*w + 24, 96*w + 222, 444*w + 844, 720*w + 1257, 270*w + 468]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y + y^2, y^2 + x*y])
+            sage: f.sigma_invariants(1)
+            [3, 3, 1]
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: Pc.<x,y> = ProjectiveSpace(R, 1)
+            sage: f = DynamicalSystem_projective([x^2 + c*y^2, y^2])
+            sage: f.sigma_invariants(1)
+            [2, 4*c, 0]
+            sage: f.sigma_invariants(2, formal=True, type='point')
+            [8*c + 8, 16*c^2 + 32*c + 16]
+            sage: f.sigma_invariants(2, formal=True, type='cycle')
+            [4*c + 4]
+
+        doubled fixed point::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
+            sage: f.sigma_invariants(2, formal=True)
+            [2, 1]
+
+        doubled 2 cycle::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 5/4*y^2, y^2])
+            sage: f.sigma_invariants(4, formal=False, type='cycle')
+            [170, 5195, 172700, 968615, 1439066, 638125, 0]
         """
-        polys = []
+        n = ZZ(n)
+        if n < 1:
+            raise ValueError("period must be a positive integer")
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        dom = self.domain()
+        if not is_ProjectiveSpace(dom):
+            raise NotImplementedError("not implemented for subschemes")
+        if dom.dimension_relative() > 1:
+            raise NotImplementedError("only implemented for dimension 1")
+        if not embedding is None:
+            from sage.misc.superseded import deprecation
+            deprecation(23333, "embedding keyword no longer used")
+        if self.degree() <= 1:
+            raise TypeError("must have degree at least 2")
+        if not type in ['point', 'cycle']:
+            raise ValueError("type must be either point or cycle")
 
-        multipliers = self.multiplier_spectra(n, formal, embedding=embedding)
+        base_ring = dom.base_ring()
+        if is_FractionField(base_ring):
+            base_ring = base_ring.ring()
+        if is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)\
+            or base_ring in FunctionFields():
+            base_ring = base_ring.base_ring()
+        if not (base_ring in NumberFields() or is_NumberFieldOrder(base_ring)\
+                or (base_ring in FiniteFields())):
+            raise NotImplementedError("incompatible base field, see documentation")
 
-        e = SymmetricFunctions(QQbar).e()
+        #now we find the two polynomials for the resultant
+        Fn = self.nth_iterate_map(n)
+        fn = Fn.dehomogenize(1)
+        R = fn.domain().coordinate_ring()
+        S = PolynomialRing(FractionField(self.base_ring()), 'z', 2)
+        phi = R.hom([S.gen(0)], S)
+        psi = dom.coordinate_ring().hom([S.gen(0), 1], S)  #dehomogenize
+        dfn = fn[0].derivative(R.gen())
 
-        N = len(multipliers)
-        R = self.base_ring()
-        for i in range(0,N):
-            polys.append(R(e([i+1]).expand(N)(multipliers)))
-        return polys
+        #polynomial to be evaluated at the periodic points
+        mult_poly = phi(dfn.denominator())*S.gen(1) - phi(dfn.numerator()) #w-f'(z)
+
+        #polynomial defining the periodic points
+        x,y = dom.gens()
+        if formal:
+            fix_poly = self.dynatomic_polynomial(n)  #f(z)-z
+        else:
+            fix_poly = Fn[0]*y - Fn[1]*x #f(z) - z
+
+        #check infinity
+        inf = dom(1,0)
+        inf_per = ZZ(1)
+        Q = self(inf)
+        while Q != inf and inf_per <= n:
+            inf_per += 1
+            Q = self(Q)
+        #get multiplicity
+        if inf_per <= n:
+            e_inf = 0
+            while (y**(e_inf + 1)).divides(fix_poly):
+                e_inf += 1
+
+        if type == 'cycle':
+            #now we need to deal with having the correct number of factors
+            #1 multiplier for each cycle. But we need to be careful about
+            #the length of the cycle and the mutliplicities
+            good_res = 1
+            if formal:
+                #then we are working with the n-th dynatomic and just need
+                #to take one multiplier per cycle
+
+                #evaluate the resultant
+                fix_poly = psi(fix_poly)
+                res = fix_poly.resultant(mult_poly, S.gen(0))
+                #take infinty into consideration
+                if inf_per.divides(n):
+                    res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
+                res = res.univariate_polynomial()
+                #adjust multiplicities
+                L = res.factor()
+                for p,e in L:
+                    good_res *= p**(e/n)
+            else:
+                #For each d-th dynatomic for d dividing n, take
+                #one multiplier per cycle; e.g., this treats a double 2
+                #cycle as a single 4 cycle for n=4
+                for d in n.divisors():
+                    fix_poly_d = self.dynatomic_polynomial(d)
+                    resd = mult_poly.resultant(psi(fix_poly_d), S.gen(0))
+                    #check infinity
+                    if inf_per == d:
+                        e_inf_d = 0
+                        while (y**(e_inf_d + 1)).divides(fix_poly_d):
+                            e_inf_d += 1
+                        resd *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
+                    resd = resd.univariate_polynomial()
+                    Ld = resd.factor()
+                    for pd,ed in Ld:
+                        good_res *= pd**(ed/d)
+            res = good_res
+        else: #type is 'point'
+            #evaluate the resultant
+            fix_poly = psi(fix_poly)
+            res = fix_poly.resultant(mult_poly, S.gen(0))
+            #take infinty into consideration
+            if inf_per.divides(n):
+                res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
+            res = res.univariate_polynomial()
+
+        #the sigmas are the coeficients
+        #need to fix the signs and the order
+        sig = res.coefficients(sparse=False)
+        den = sig.pop(-1)
+        sig.reverse()
+        sig = [sig[i]*(-1)**(i+1)/den for i in range(len(sig))]
+        return sig
 
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
         r"""

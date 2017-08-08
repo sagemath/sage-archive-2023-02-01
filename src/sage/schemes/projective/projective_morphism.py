@@ -52,6 +52,7 @@ from sage.rings.complex_field import ComplexField_class
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.fraction_field import FractionField
+from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -71,6 +72,7 @@ _NumberFields = NumberFields()
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     r"""
@@ -1620,9 +1622,37 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.periodic_points instead")
         return self.as_dynamical_system().periodic_points(n, minimal, R, algorithm, return_scheme)
 
-    def multiplier_spectra(self, n, formal=True, embedding=None):
-        """
-        Return the multiplier spectra.
+    def multiplier_spectra(self, n, formal=False, embedding=None, type='point'):
+        r"""
+        Computes the formal ``n`` multiplier spectra of this map.
+
+        This is the set of multipliers of the periodic points of formal period
+        ``n`` included with the appropriate multiplicity.
+        User can also specify to compute the ``n`` multiplier spectra instead which includes the
+        multipliers of all periodic points of period ``n``.The map must be defined over
+        projective space of dimension 1 over a number field.
+
+        The parameter ``type`` determines if the multipliers are computed one per cycle
+        (with multiplicity) or one per point (with multiplicity). Note that in the
+        ``cycle`` case, a map with a cycle which collapses into multiple smaller cycles
+        will have more multipliers than one that does not.
+
+        INPUT:
+
+        - ``n`` - a positive integer, the period.
+
+        - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
+            of this map. False specifies to find the ``n`` multiplier spectra
+            of this map. Default: False.
+
+        - ``embedding`` - embedding of the base field into `\QQbar`.
+
+        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
+            compute one multiplier per point or one per cycle. Default : ``point``.
+
+        OUTPUT:
+
+        - a list of `\QQbar` elements.
 
         EXAMPLES::
 
@@ -1642,16 +1672,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.multiplier_spectra instead")
         return self.as_dynamical_system().multiplier_spectra(n, formal, embedding)
 
-    def sigma_invariants(self, n, formal=True, embedding=None):
-        """
-        Return the sigma invariants.
+    def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
+        r"""
+        Computes the values of the elementary symmetric polynomials of the ``n``
+        multilpier spectra of this dynamical system.
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
-            sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3 - 2630045017*x*y^4\
-            + 28193217129*y^5, 512*y^5])
+            sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3\
+             - 2630045017*x*y^4 + 28193217129*y^5, 512*y^5])
             sage: f.sigma_invariants(1)
             doctest:warning
             ...

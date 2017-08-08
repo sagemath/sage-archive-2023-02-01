@@ -30,6 +30,7 @@ import six
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 from . import constructor
 import sage.databases.cremona
 from sage.rings.all import ZZ, QQ
@@ -39,6 +40,8 @@ from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
 from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
 
+
+@richcmp_method
 class IsogenyClass_EC(SageObject):
     r"""
     Isogeny class of an elliptic curve.
@@ -139,9 +142,9 @@ class IsogenyClass_EC(SageObject):
                 return i
         raise ValueError("%s is not in isogeny class %s" % (C,self))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self and other are the same isogeny class.
+        Compare self and other.
 
         If they are different, compares the sorted underlying lists of
         curves.
@@ -158,8 +161,8 @@ class IsogenyClass_EC(SageObject):
             True
         """
         if isinstance(other, IsogenyClass_EC):
-            return cmp(sorted(self.curves), sorted(other.curves))
-        return cmp(type(self), type(other))
+            return richcmp(sorted(self.curves), sorted(other.curves), op)
+        return NotImplemented
 
     def __hash__(self):
         """

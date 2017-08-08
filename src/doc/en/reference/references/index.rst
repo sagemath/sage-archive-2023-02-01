@@ -165,6 +165,12 @@ REFERENCES:
              Pseudo-Random Number Generator. *SIAM Journal on
              Computing*, 15(2):364--383, 1986.
 
+.. [BIANCO] L. Bianco, P. Dell‘Olmo, S. Giordani
+            An Optimal Algorithm to Find the Jump Number of Partially Ordered Sets
+            Computational Optimization and Applications,
+            1997, Volume 8, Issue 2, pp 197--210,
+            :doi:`10.1023/A:1008625405476`
+
 .. [BC1977] \R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and
             3-Connectivity. In Graph theory and related topics
             (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
@@ -188,6 +194,11 @@ REFERENCES:
                  of Lecture Notes in Computer Science, pages
                  203–218. Springer, 2010. pre-print available at
                  http://eprint.iacr.org/2010/313.pdf
+
+.. [BF1999] Thomas Britz, Sergey Fomin,
+            *Finite posets and Ferrers shapes*,
+            Advances in Mathematics 158, pp. 86-127 (2001),
+            :arxiv:`math/9912126` (the arXiv version has fewer errors).
 
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
    *On Maximal Green Sequences*
@@ -241,6 +252,11 @@ REFERENCES:
 .. [BK2001] W. Bruns and R. Koch, Computing the integral closure of an
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
+
+.. [Bj1980] Anders Björner,
+            *Shellable and Cohen-Macaulay partially ordered sets*,
+            Trans. Amer. Math. Soc. 260 (1980), 159-183,
+            :doi:`10.1090/S0002-9947-1980-0570784-2`
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -678,6 +694,10 @@ REFERENCES:
 .. [EZ1950] \S. Eilenberg and J. Zilber, "Semi-Simplicial Complexes
             and Singular Homology", Ann. Math. (2) 51 (1950), 499-513.
 
+.. [EPW14] Ben Elias, Nicholas Proudfoot, and Max Wakefield.
+           *The Kazhdan-Lusztig polynomial of a matroid*. 2014.
+           :arxiv:`1412.7408`.
+
 .. _ref-F:
 
 **F**
@@ -686,6 +706,12 @@ REFERENCES:
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
             Computational Geometry 18 (1997),
             257-267. http://page.math.tu-berlin.de/~felsner/Paper/numarr.pdf
+
+.. [FT00] Stefan Felsner, William T. Trotter,
+          Dimension, Graph and Hypergraph Coloring,
+          Order,
+          2000, Volume 17, Issue 2, pp 167-177,
+          http://link.springer.com/article/10.1023%2FA%3A1006429830221
 
 .. [Fe2012] Hans L. Fetter, "A Polyhedron Full of Surprises",
             Mathematics Magazine 85 (2012), no. 5, 334-342.
@@ -817,6 +843,10 @@ REFERENCES:
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion
             I*. http://web.mit.edu/~darij/www/algebra/skeletal.pdf
+
+.. [Grinb2016a] Darij Grinberg,
+                *Double posets and the antipode of QSym*,
+                :arxiv:`1509.08355v2`.
 
 .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
              4-polytopes with 8 vertices", J. Comb. Th. 2,
@@ -964,6 +994,10 @@ REFERENCES:
 
 .. [Jon2005] \V. Jones, The Jones
              Polynomial, 2005. https://math.berkeley.edu/~vfr/jones.pdf
+
+.. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
+           (1994), "Computing on-line the lattice of maximal antichains
+           of posets", Order 11 (3) p. 197-210, :doi:`10.1007/BF02115811`
 
 .. [Joy2004] \D. Joyner, Toric codes over finite fields, Applicable
              Algebra in Engineering, Communication and Computing, 15,
@@ -1476,6 +1510,12 @@ REFERENCES:
 .. [PZ2008] \J. H. Palmieri and J. J. Zhang, "Commutators in the
             Steenrod algebra," New York J. Math. 19 (2013), 23-37.
 
+.. [Propp1997] James Propp,
+               *Generating Random Elements of Finite Distributive Lattices*,
+               Electron. J. Combin. 4 (1997), no. 2, The Wilf Festschrift volume,
+               Research Paper 15.
+               http://www.combinatorics.org/ojs/index.php/eljc/article/view/v4i2r15
+
 .. _ref-Q:
 .. _ref-R:
 
@@ -1625,11 +1665,26 @@ REFERENCES:
             Electronic Journal of Combinatorics. **19(2)**. 2012.
             :arXiv:`1104.2359`
 
+.. [St1986] Richard Stanley. *Two poset polytopes*,
+            Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
+
 .. [Sta2007] Stanley, Richard: *Hyperplane Arrangements*, Geometric
              Combinatorics (E. Miller, V. Reiner, and B. Sturmfels,
              eds.), IAS/Park City Mathematics Series, vol. 13,
              American Mathematical Society, Providence, RI, 2007,
              pp. 389-496.
+
+.. [EnumComb1] Stanley, Richard P.
+               *Enumerative Combinatorics, volume 1*,
+               Second Edition,
+               Cambridge University Press (2011).
+               http://math.mit.edu/~rstan/ec/ec1/
+
+.. [Stan2009] Richard Stanley,
+              *Promotion and evacuation*,
+              Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
+              Anders Björner,
+              Research Paper 9, 24 pp.
 
 .. [Ste2003] John R. Stembridge, A local characterization of
              simply-laced crystals, Transactions of the American

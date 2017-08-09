@@ -47,6 +47,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cpython.list cimport *
 from cpython.dict cimport *

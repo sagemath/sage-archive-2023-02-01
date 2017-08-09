@@ -31,6 +31,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import weakref
 from cysignals.memory cimport sig_malloc, sig_free
@@ -573,13 +574,13 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         if PC is not None:
             return PC
     if prec_type == 'capped-rel':
-        from padic_capped_relative_element import PowComputer_ as PC_class
+        from .padic_capped_relative_element import PowComputer_ as PC_class
     elif prec_type == 'capped-abs':
-        from padic_capped_absolute_element import PowComputer_ as PC_class
+        from .padic_capped_absolute_element import PowComputer_ as PC_class
     elif prec_type == 'fixed-mod':
-        from padic_fixed_mod_element import PowComputer_ as PC_class
+        from .padic_fixed_mod_element import PowComputer_ as PC_class
     elif prec_type == 'floating-point':
-        from padic_floating_point_element import PowComputer_ as PC_class
+        from .padic_floating_point_element import PowComputer_ as PC_class
     else:
         PC_class = PowComputer_base
     PC = PC_class(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), mpz_get_ui(prec_cap.value), in_field)

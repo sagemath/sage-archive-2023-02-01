@@ -181,7 +181,7 @@ REFERENCES:
   available at
   http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 from cysignals.memory cimport sig_malloc, sig_free

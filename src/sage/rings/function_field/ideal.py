@@ -702,35 +702,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         return hash((self._ring,self._module))
 
-    def __eq__(self, other):
-        """
-        Test equality of the ideal with the other ideal.
-
-        INPUT:
-
-        - ``other`` -- ideal
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x^3 - 1)
-            sage: O = L.equation_order()
-            sage: I = O.ideal_with_gens_over_base([1, y])
-            sage: I + I == I  # indirect doctest
-            True
-        """
-        if not isinstance(other, FunctionFieldIdeal_module):
-            other = self.ring().ideal(other)
-        if self.ring() != other.ring():
-            raise ValueError("rings must be the same")
-
-        if (self.module().is_submodule(other.module()) and
-            other.module().is_submodule(self.module())):
-            return True
-        else:
-            return False
-
-    def _richcmp__(self, other, op):
+    def _richcmp_(self, other, op):
         """
         Compare this ideal with the other ideal with respect to ``op``.
 
@@ -740,14 +712,17 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
             sage: L.<y> = K.extension(y^2 - x^3 - 1)
             sage: O = L.equation_order()
             sage: I = O.ideal(y*(y + 1)); J = O.ideal((y^2 - 2)*(y + 1))
-            sage: I + J == J + I            # indirect test
+            sage: I + J == J + I  # indirect test
+            True
+            sage: I + I == I  # indirect doctest
             True
             sage: I == J
             False
+            sage: I < J
+            True
+            sage: J < I
+            False
         """
-        if self.ring() != other.ring():
-            raise ValueError("rings must be the same")
-
         return richcmp(self.module(), other.module(), op)
 
     def module(self):

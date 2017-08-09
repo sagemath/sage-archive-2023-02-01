@@ -43,9 +43,9 @@ class Algebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: RootSystem(["A",2,1]).ambient_space().algebra(QQ) # indirect doctest
-                Group algebra of the Ambient space of the Root system of type ['A', 2, 1] over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2, 1] over Rational Field
             """
-            return "Group algebra of the %s over %s"%(self.basis().keys(),self.base_ring())
+            return "Algebra of the %s over %s"%(self.basis().keys(),self.base_ring())
 
         def some_elements(self):
             r"""
@@ -256,13 +256,13 @@ class Algebras(AlgebrasCategory):
             This is indeed a Schur function::
 
                 sage: s = SymmetricFunctions(QQ).s()
-                sage: s[2,1].expand(3, P.gens())
+                sage: s[2,1].expand(3, P.variable_names())
                 x^2*y + x*y^2 + x^2*z + 2*x*y*z + y^2*z + x*z^2 + y*z^2
 
             Let us check this systematically on Schur functions of degree 6::
 
                 sage: for p in Partitions(6, max_length=3).list():
-                ....:     assert s.monomial(p).expand(3, P.gens()) == pi0(KL.monomial(L(tuple(p)))).expand(P.gens())
+                ....:     assert s.monomial(p).expand(3, P.variable_names()) == pi0(KL.monomial(L(tuple(p)))).expand(P.gens())
 
             We check systematically that these operators satisfy the Iwahori-Hecke algebra relations::
 
@@ -867,7 +867,7 @@ class Algebras(AlgebrasCategory):
 
                 sage: KL = RootSystem(["A",2,1]).ambient_space().algebra(QQ)
                 sage: KL.classical()
-                Group algebra of the Ambient space of the Root system of type ['A', 2] over Rational Field
+                Algebra of the Ambient space of the Root system of type ['A', 2] over Rational Field
             """
             return self.basis().keys().classical().algebra(self.base_ring())
 

@@ -476,7 +476,7 @@ cpdef rectangular_box_points(list box_min, list box_max,
         ....:      (0,1,1,1),(1,2,2,2),(-1,0,0,1),(1,1,1,1),(2,1,1,1)])   # computed with PALP
         True
 
-    Long ints and non-integral polyhedra are explictly allowed::
+    Long ints and non-integral polyhedra are explicitly allowed::
 
         sage: polytope = Polyhedron([[1], [10*pi.n()]], base_ring=RDF)
         sage: len( rectangular_box_points([-100], [100], polytope) )

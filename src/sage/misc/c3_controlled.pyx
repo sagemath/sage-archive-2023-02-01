@@ -316,9 +316,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    67
-    sage: x.all_bases_controlled_len()
     70
+    sage: x.all_bases_controlled_len()
+    74
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
@@ -346,7 +346,8 @@ doctest::
      Category of finite dimensional hopf algebras with basis over Rational Field,
      Category of finite enumerated permutation groups,
      Category of finite weyl groups,
-     Category of graded hopf algebras with basis over Rational Field]
+     Category of graded hopf algebras with basis over Rational Field,
+     Category of group algebras over Rational Field]
 
 AUTHOR:
 

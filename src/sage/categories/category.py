@@ -2014,7 +2014,8 @@ class Category(UniqueRepresentation, SageObject):
             sage: Rings().Division()._with_axiom_as_tuple('Finite')
             (Category of division rings,
              Category of finite monoids,
-             Category of commutative magmas)
+             Category of commutative magmas,
+             Category of finite additive groups)
             sage: HopfAlgebras(QQ)._with_axiom_as_tuple('FiniteDimensional')
             (Category of hopf algebras over Rational Field,
              Category of finite dimensional modules over Rational Field)

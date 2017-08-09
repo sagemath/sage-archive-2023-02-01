@@ -359,7 +359,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy * _right._vector_numpy)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Multiply a scalar and vector
 
@@ -375,8 +375,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(self._python_dtype(left)*self._vector_numpy)
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiply a scalar and vector
 

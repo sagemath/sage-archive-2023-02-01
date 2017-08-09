@@ -387,7 +387,8 @@ class Cusp(Element):
 
     def __hash__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: hash(Cusp(1/3))
             1298787075             # 32-bit
             3713081631933328131    # 64-bit

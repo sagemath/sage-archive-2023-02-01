@@ -4116,7 +4116,7 @@ class LPDictionary(LPAbstractDictionary):
             basic_variable = str(basic_variable)
 
         R = PolynomialRing(
-            BR, list(B.base_ring().gens()) + [basic_variable], order="neglex")
+            BR, list(B.base_ring().variable_names()) + [basic_variable], order="neglex")
         B = list(B) + [basic_variable]
         B = map(R, B)
         N = map(R, N)

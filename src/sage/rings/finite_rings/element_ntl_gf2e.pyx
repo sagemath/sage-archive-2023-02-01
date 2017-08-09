@@ -43,6 +43,7 @@ from cypari2.gen cimport Gen
 from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
+from sage.misc.long cimport pyobject_to_long
 
 from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
@@ -128,9 +129,9 @@ cdef little_endian():
     return htonl(1) != 1
 
 cdef unsigned int switch_endianess(unsigned int i):
-    cdef int j
+    cdef size_t j
     cdef unsigned int ret = 0
-    for j from 0 <= j < sizeof(int):
+    for j in range(sizeof(int)):
         (<unsigned char*>&ret)[j] = (<unsigned char*>&i)[sizeof(int)-j-1]
     return ret
 
@@ -709,7 +710,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_mul(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef _div_(self, right):
+    cpdef _div_(self, other):
         """
         Divide two elements.
 
@@ -723,12 +724,13 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: k(1) / k(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
         """
-        cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
-        if GF2E_IsZero((<FiniteField_ntl_gf2eElement>right).x):
-            raise ZeroDivisionError('division by zero in finite field.')
-        GF2E_div(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
+        cdef FiniteField_ntl_gf2eElement o = <FiniteField_ntl_gf2eElement>other
+        if GF2E_IsZero(o.x):
+            raise ZeroDivisionError('division by zero in finite field')
+        cdef FiniteField_ntl_gf2eElement r = self._new()
+        GF2E_div(r.x, self.x, o.x)
         return r
 
     cpdef _sub_(self, right):
@@ -761,7 +763,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         r.x = (<FiniteField_ntl_gf2eElement>self).x
         return r
 
-    def __invert__(FiniteField_ntl_gf2eElement self):
+    def __invert__(self):
         """
         Return the multiplicative inverse of an element.
 
@@ -772,13 +774,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             a^15 + a^4 + a^2 + a
             sage: a * ~a
             1
+            sage: ~k(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field
         """
-        cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
-        cdef FiniteField_ntl_gf2eElement o = (<FiniteField_ntl_gf2eElement>self)._parent._cache._one_element
-        GF2E_div(r.x, o.x, (<FiniteField_ntl_gf2eElement>self).x)
-        return r
+        cdef FiniteField_ntl_gf2eElement o = self._parent._cache._one_element
+        return o._div_(self)
 
-    def __pow__(FiniteField_ntl_gf2eElement self, exp, other):
+    def __pow__(self, exp, mod):
         """
         EXAMPLES::
 
@@ -791,20 +795,42 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             a^2
             sage: a^(2^128)
             a^4
+
+        TESTS::
+
+            sage: k(0) ^ (-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field
+            sage: k(0) ^ (-10^100)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field
+            sage: 2 ^ a
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: non-integral exponents not supported
+            sage: a ^ "exp"
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: non-integral exponents not supported
         """
-        cdef int exp_int
-        cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
+        cdef long exp_int
+        cdef FiniteField_ntl_gf2eElement s, r
 
         try:
-            exp_int = exp
-            if exp != exp_int:
-                raise OverflowError
-            GF2E_power(r.x, (<FiniteField_ntl_gf2eElement>self).x, exp_int)
-            return r
-        except OverflowError:
+            s = <FiniteField_ntl_gf2eElement?>self
+            exp_int = pyobject_to_long(exp)
+        except (OverflowError, TypeError):
             # we could try to factor out the order first
             from sage.groups.generic import power
-            return power(self,exp)
+            return power(self, exp)
+        else:
+            if exp_int < 0 and GF2E_IsZero(s.x):
+                raise ZeroDivisionError('division by zero in finite field')
+            r = s._new()
+            GF2E_power(r.x, s.x, exp_int)
+            return r
 
     cpdef _richcmp_(left, right, int op):
         """
@@ -943,7 +969,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             return 0
 
         if little_endian():
-            while GF2X_deg(r) >= sizeof(int)*8:
+            while GF2X_deg(r) >= <long>(8 * sizeof(int)):
                 BytesFromGF2X(<unsigned char *>&i, r, sizeof(int))
                 ret += int(i) << shift
                 shift += sizeof(int)*8
@@ -951,7 +977,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             BytesFromGF2X(<unsigned char *>&i, r, sizeof(int))
             ret += int(i) << shift
         else:
-            while GF2X_deg(r) >= sizeof(int)*8:
+            while GF2X_deg(r) >= <long>(8 * sizeof(int)):
                 BytesFromGF2X(<unsigned char *>&i, r, sizeof(int))
                 ret += int(switch_endianess(i)) << shift
                 shift += sizeof(int)*8

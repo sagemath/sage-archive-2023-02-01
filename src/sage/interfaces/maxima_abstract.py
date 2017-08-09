@@ -60,6 +60,7 @@ import subprocess
 from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
+from sage.misc.misc import ECL_TMP
 from sage.misc.multireplace import multiple_replace
 import sage.server.support
 
@@ -168,9 +169,14 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         if sage.server.support.EMBEDDED_MODE:
             cmd += '< /dev/null'
 
+        env = os.environ.copy()
+        env['TMPDIR'] = str(ECL_TMP)
+
         if redirect:
-            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(cmd, shell=True, env=env,
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
             res = p.stdout.read()
             # We get 4 lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
@@ -178,7 +184,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
                 res = res[res.find('\n')+1:]
             return AsciiArtString(res)
         else:
-            subprocess.Popen(cmd, shell=True)
+            subprocess.Popen(cmd, shell=True, env=env)
 
     def help(self, s):
         r"""
@@ -403,7 +409,8 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
 
         OUTPUT: float
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = maxima.cputime()
             sage: _ = maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
             sage: maxima.cputime(t) # output random

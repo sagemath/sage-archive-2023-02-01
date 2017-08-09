@@ -105,7 +105,7 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
                    for r in range(nrows)])
 
 
-cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_complex_ball_dense(Matrix_dense):
     """
     Matrix over a complex ball field. Implemented using the
     ``acb_mat`` type of the Arb library.

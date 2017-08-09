@@ -2,7 +2,7 @@
 Givaro Finite Field
 
 Finite fields that are implemented using Zech logs and the
-cardinality must be less than `2^{16}`. By default, conway polynomials are
+cardinality must be less than `2^{16}`. By default, Conway polynomials are
 used as minimal polynomial.
 
 TESTS:
@@ -40,7 +40,7 @@ from sage.libs.pari.all import pari
 class FiniteField_givaro(FiniteField):
     """
     Finite field implemented using Zech logs and the cardinality must be
-    less than `2^{16}`. By default, conway polynomials are used as minimal
+    less than `2^{16}`. By default, Conway polynomials are used as minimal
     polynomials.
 
     INPUT:
@@ -74,7 +74,7 @@ class FiniteField_givaro(FiniteField):
 
     EXAMPLES:
 
-    By default conway polynomials are used for extension fields::
+    By default, Conway polynomials are used for extension fields::
 
         sage: k.<a> = GF(2**8)
         sage: -a ^ k.degree()
@@ -331,7 +331,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(R(1/5))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         PARI elements are interpreted as finite field elements; this PARI
         flexibility is (absurdly!) liberal::

@@ -1030,13 +1030,25 @@ class PythonSource(SourceLanguage):
             sage: FDS.starting_docstring("class NewClass(object):")
             sage: FDS.starting_docstring("    '''")
             <_sre.SRE_Match object at ...>
+            sage: FDS.ending_docstring("    '''")
+            <_sre.SRE_Match object at ...>
             sage: FDS.qualified_name
             sage.doctest.sources.NewClass
+            sage: FDS.starting_docstring("print(")
+            sage: FDS.starting_docstring("    '''Not a docstring")
+            sage: FDS.starting_docstring("    ''')")
+            sage: FDS.starting_docstring("def foo():")
+            sage: FDS.starting_docstring("    '''This is a docstring'''")
+            <_sre.SRE_Match object at ...>
         """
         indent = whitespace.match(line).end()
         quotematch = None
-        if self.quotetype is None:
-            # We're not inside a triple quote
+        if self.quotetype is None and not self.code_wrapping:
+            # We're not inside a triple quote and not inside code like
+            # print(
+            #     """Not a docstring
+            #     """)
+
             if line[indent] != '#' and (indent == 0 or indent > self.last_indent):
                 quotematch = triple_quotes.match(line)
                 # It would be nice to only run the name_regex when

@@ -35,7 +35,7 @@ from sage.rings.real_double import RDF
 cimport numpy
 
 
-cdef class Vector_real_double_dense(vector_double_dense.Vector_double_dense):
+cdef class Vector_real_double_dense(Vector_double_dense):
     """
     Vectors over the Real Double Field.  These are supposed to be fast
     vector operations using C doubles. Most operations are implemented

@@ -80,6 +80,7 @@ from sage.arith.all import gcd
 from sage.rings.fraction_field import FractionField
 from sage.misc.functional import cyclotomic_polynomial
 from sage.rings.number_field.number_field import CyclotomicField
+from sage.combinat.integer_vector import IntegerVectors
 
 from sage.groups.matrix_gps.matrix_group import (
     is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
@@ -846,7 +847,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         - ``variable`` -- string (default: ``'t'``); Variable name for the Molien series
 
-        OUTPUT: single variable rational function or power series with integer cofficients
+        OUTPUT: single variable rational function or power series with integer coefficients
 
         EXAMPLES::
 
@@ -1205,3 +1206,101 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         except (TypeError, ValueError):
             pass
         return F
+
+    def invariants_of_degree(self, deg, chi=None, R=None):
+        r"""
+        Return the (relative) invariants of given degree for this group.
+
+        For this group, compute the invariants of degree ``deg``
+        with respect to the group character ``chi``. The method
+        is to project each possible monomial of degree ``deg`` via
+        the Reynolds operator. Note that if the polynomial ring ``R``
+        is specified it's base ring may be extended if the resulting
+        invariant is defined over a bigger field.
+
+        INPUT:
+
+        - ``degree`` -- a positive integer
+
+        - ``chi`` -- (default: trivial character) a linear group character of this group
+
+        - ``R`` -- (optional) a polynomial ring
+
+        OUTPUT: list of polynomials
+
+        EXAMPLES::
+
+            sage: Gr = MatrixGroup(SymmetricGroup(2))
+            sage: Gr.invariants_of_degree(3)
+            [x0^3 + x1^3, x0^2*x1 + x0*x1^2]
+            sage: R.<x,y> = QQ[]
+            sage: Gr.invariants_of_degree(4, R=R)
+            [x^3*y + x*y^3, x^2*y^2, x^4 + y^4]
+
+        ::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: Gr = MatrixGroup(DihedralGroup(3))
+            sage: ct = Gr.character_table()
+            sage: chi = Gr.character(ct[0])
+            sage: [f(*(g.matrix()*vector(R.gens()))) == chi(g)*f \
+                  for f in Gr.invariants_of_degree(3, R=R, chi=chi) for g in Gr]
+            [True, True, True, True, True, True]
+
+        ::
+
+            sage: i = GF(7)(3)
+            sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
+            sage: G.invariants_of_degree(25)
+            []
+
+        ::
+
+            sage: G = MatrixGroup(SymmetricGroup(5))
+            sage: R = QQ['x,y']
+            sage: G.invariants_of_degree(3, R=R)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of variables in polynomial ring must match size of matrices
+
+        ::
+
+            sage: K.<i> = CyclotomicField(4)
+            sage: G =  MatrixGroup(CyclicPermutationGroup(3))
+            sage: chi = G.character(G.character_table()[1])
+            sage: R.<x,y,z> = K[]
+            sage: G.invariants_of_degree(2, R=R, chi=chi)
+            [x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 +
+            3*izeta3^2 + 8*izeta3 + 3)*z^2,
+             x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 -
+            3*izeta3^2 - 8*izeta3 - 4)*y*z]
+
+        ::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: chi = S3.character(S3.character_table()[0])
+            sage: S3.invariants_of_degree(5, chi=chi)
+            [x0^4*x1 - x0*x1^4 - x0^4*x2 + x1^4*x2 + x0*x2^4 - x1*x2^4,
+             x0^3*x1^2 - x0^2*x1^3 - x0^3*x2^2 + x1^3*x2^2 + x0^2*x2^3 - x1^2*x2^3]
+        """
+        D = self.degree()
+        deg = int(deg)
+        if deg <= 0:
+            raise ValueError("degree must be a positive integer")
+        if R is None:
+            R = PolynomialRing(self.base_ring(), 'x', D)
+        elif R.ngens() != D:
+            raise TypeError("number of variables in polynomial ring must match size of matrices")
+
+        ms = self.molien_series(prec=deg+1,chi=chi)
+        if ms[deg].is_zero():
+            return []
+        inv = set()
+        for e in IntegerVectors(deg, D):
+            F = self.reynolds_operator(R.monomial(*e), chi=chi)
+            if not F.is_zero():
+                F = F/F.lc()
+                inv.add(F)
+                if len(inv) == ms[deg]:
+                    break
+        return list(inv)

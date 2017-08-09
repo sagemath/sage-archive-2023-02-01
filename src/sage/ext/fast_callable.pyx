@@ -88,10 +88,17 @@ We also have support for ``RR``::
     sage: timeit('fc_wilk_rr(30.0)') # random, long time
     625 loops, best of 3: 13 us per loop
 
+For ``CC``::
+
+    sage: fc_wilk_cc = fast_callable(wilk, vars=[x], domain=CC)
+    sage: timeit('fc_wilk_cc(30.0)') # random, long time
+    625 loops, best of 3: 23 us per loop
+
+
 And support for ``CDF``::
 
-    sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
-    sage: timeit('fc_wilk_rr(30.0)') # random, long time
+    sage: fc_wilk_cdf = fast_callable(wilk, vars=[x], domain=CDF)
+    sage: timeit('fc_wilk_cdf(30.0)') # random, long time
     625 loops, best of 3: 10.2 us per loop
 
 Currently, :func:`fast_callable` can accept two kinds of objects:
@@ -298,8 +305,10 @@ AUTHOR:
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
+from sage.rings.complex_field import ComplexField_class
 from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
+from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent
@@ -395,7 +404,7 @@ def fast_callable(x, domain=None, vars=None,
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
-        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent is not None else x*y
         sage: x,y = var('x,y')
         sage: f = function('f', evalf_func=evalf_func)
         sage: fc = fast_callable(f(x, y), vars=[x, y])
@@ -404,7 +413,7 @@ def fast_callable(x, domain=None, vars=None,
 
     And also when there are complex values involved::
 
-        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent is not None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
         sage: fc = fast_callable(g(x, y), vars=[x, y])
         sage: fc(3, 4)
@@ -462,6 +471,14 @@ def fast_callable(x, domain=None, vars=None,
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
+
+    elif isinstance(domain, ComplexField_class):
+        import sage.ext.interpreters.wrapper_cc
+        builder = sage.ext.interpreters.wrapper_cc.Wrapper_cc
+        str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
+                                len(vars),
+                                domain)
+
     elif domain == RDF or domain is float:
         import sage.ext.interpreters.wrapper_rdf
         builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf

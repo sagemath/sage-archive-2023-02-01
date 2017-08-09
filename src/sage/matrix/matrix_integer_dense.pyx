@@ -871,8 +871,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -5136,7 +5135,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             TypeError: number of rows must be the same, not 2 != 3
         """
-        if hasattr(right, '_vector_'):
+        if not isinstance(right, Matrix) and hasattr(right, '_vector_'):
             right = right.column()
         if self._nrows != right.nrows():
             raise TypeError('number of rows must be the same, not {0} != {1}'.format(self._nrows, right.nrows()))

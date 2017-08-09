@@ -90,7 +90,7 @@ lists::
     1: (St000042: The number of crossings of a perfect matching. , [], 105)
     ...
 
-This results tells us that the database contains another entriy that is
+This results tells us that the database contains another entry that is
 equidistributed with the number of nestings on perfect matchings of
 length `8`, namely the number of crossings.
 

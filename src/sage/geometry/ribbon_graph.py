@@ -1067,7 +1067,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
             found = i+1 in darts_rho
             #if a value is not in darts_rho, we take the next number that appears
             #and change it to the new value.
-            if found == False:
+            if not found:
                 aux_val = min(x for x in darts_rho if x > i+1)
                 pos_darts = darts_rho.index(aux_val)
                 pos_rho = _find(aux_rho,aux_val)

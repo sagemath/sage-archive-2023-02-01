@@ -40,7 +40,7 @@ from cysignals.signals cimport sig_on, sig_off
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, Element
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -681,8 +681,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 (<Polynomial_integer_dense_ntl>right).__poly)
         return x
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -701,8 +700,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         ZZX_mul_ZZ(x.__poly, self.__poly, _right)
         return x
 
-
-    cpdef _rmul_(self, RingElement right):
+    cpdef _rmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 

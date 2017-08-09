@@ -1661,7 +1661,7 @@ class GenericGraph(GenericGraph_pyx):
         return d
 
     def adjacency_matrix(self, sparse=None, vertices=None):
-        r""" 
+        r"""
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring
@@ -10159,14 +10159,19 @@ class GenericGraph(GenericGraph_pyx):
         `\exists v'\in S: (u,v')\in G`.
 
         The new vertex is named after the first vertex in the list
-        given in argument. If this first name is None, a new vertex
+        given in argument. If this first name is `None`, a new vertex
         is created.
 
         In the case of multigraphs, the multiplicity is preserved.
 
         INPUT:
 
-        - ``vertices`` -- the set of vertices to be merged
+        - ``vertices`` -- the list of vertices to be merged.
+
+        .. NOTE::
+
+            If ``u`` and ``v`` are distinct vertices in ``vertices``,
+            any edges between ``u`` and ``v`` will be lost.
 
         EXAMPLES::
 
@@ -10194,26 +10199,64 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.edges(labels=False)
             [(0, 4), (0, 5), (2, 5), (4, 5)]
 
-        """
+        TESTS:
 
-        if len(vertices) > 0 and vertices[0] is None:
+        Check that :trac:`23290` was fixed::
+
+            sage: edgelist = [(0,0,'a'),(0,1,'b'),(1,1,'c')]
+            sage: G = Graph(edgelist, loops=True, multiedges=True)
+            sage: G.merge_vertices([0,1]); G.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+            sage: D = DiGraph(edgelist, loops=True, multiedges=True)
+            sage: D.merge_vertices([0,1]); D.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+
+        Without multiedges::
+
+            sage: edgelist = [(0,0,'a'),(0,1,'b'),(1,1,'c')]
+            sage: G = Graph(edgelist, loops=True, multiedges=False)
+            sage: G.merge_vertices([0,1]); G.edges()
+            [(0, 0, 'c')]
+            sage: edgelist = [(0,0,'a'),(0,1,'b'),(1,1,'c'), (1, 2, 'd'), (2, 2, 'e')]
+            sage: G = Graph(edgelist, loops=True, multiedges=False)
+            sage: G.merge_vertices([0,1,2]); G.edges()
+            [(0, 0, 'e')]
+            sage: G = Graph(edgelist, loops=True, multiedges=False)
+            sage: G.merge_vertices([0,2,1]); G.edges()
+            [(0, 0, 'c')]
+
+
+        """
+        if len(vertices) <= 1:
+            return None
+        if vertices[0] is None:
             vertices[0] = self.add_vertex()
+
+        u = vertices[0]
+        if self.allows_loops():
+            for v in vertices[1:]:
+                if self.has_edge(v, v):
+                    if self.allows_multiple_edges():
+                        for l in self.edge_label(v, v):
+                            self.add_edge(u, u, l)
+                    else:
+                        self.add_edge(u, u, self.edge_label(v, v))
 
         if self.is_directed():
             out_edges=self.edge_boundary(vertices)
             in_edges=self.edge_boundary([v for v in self if not v in vertices])
             self.delete_vertices(vertices[1:])
-            self.add_edges([(vertices[0],v,l) for (u,v,l) in out_edges if u!=vertices[0]])
-            self.add_edges([(v,vertices[0],l) for (v,u,l) in in_edges if u!=vertices[0]])
+            self.add_edges([(u, v0, l) for (u0, v0, l) in out_edges if u0 != u])
+            self.add_edges([(v0, u, l) for (v0, u0, l) in in_edges if u0 != u])
         else:
             edges=self.edge_boundary(vertices)
             self.delete_vertices(vertices[1:])
             add_edges=[]
-            for (u,v,l) in edges:
-                if v in vertices and v != vertices[0]:
-                    add_edges.append((vertices[0],u,l))
-                if u in vertices and u!=vertices[0]:
-                    add_edges.append((vertices[0],v,l))
+            for (u0, v0, l) in edges:
+                if v0 in vertices and v0 != u:
+                    add_edges.append((u, u0, l))
+                if u0 in vertices and u0 != u:
+                    add_edges.append((u, v0, l))
             self.add_edges(add_edges)
 
     ### Edge handlers
@@ -13942,7 +13985,7 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
 
-        if algorithm==None and not by_weight:
+        if algorithm is None and not by_weight:
             algorithm = 'iFUB'
         elif algorithm=='BFS':
             algorithm = 'standard'
@@ -17201,9 +17244,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if verbose_relabel is not None:
             deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel == True:
+            if verbose_relabel:
                 labels="pairs"
-            if verbose_relabel == False:
+            if not verbose_relabel:
                 labels="integers"
 
         if labels not in ['pairs', 'integers']:
@@ -18668,6 +18711,10 @@ class GenericGraph(GenericGraph_pyx):
           False, but if True, the result of str(l) is printed on the
           edge for each label l. Labels equal to None are not printed
           (to set edge labels, see set_edge_label).
+
+        - ``edge_labels_background`` - The color of the edge labels 
+          background. The default is "white". To achieve a transparent
+          background use "transparent".
 
         - ``vertex_size`` - size of vertices displayed
 
@@ -21372,7 +21419,7 @@ class GenericGraph(GenericGraph_pyx):
             (True, None)
 
         Deprecation from :trac:`21111`::
- 
+
             sage: G = DiGraph({'a':['b']})
             sage: H = DiGraph({0:[1]})
             sage: G.is_isomorphic(H, certify=True)

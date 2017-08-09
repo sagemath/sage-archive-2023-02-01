@@ -555,7 +555,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         right._poly = A._current_ring(right._poly)
         return FreeAlgebraElement_letterplace(self._parent,self._poly-right._poly,check=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiplication from the right with an element of the base ring.
 
@@ -569,7 +569,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return FreeAlgebraElement_letterplace(self._parent,self._poly._lmul_(right),check=False)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Multiplication from the left with an element of the base ring.
 

@@ -930,7 +930,7 @@ cdef class ReductionMap(Map):
             sage: f(1/h)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         An example to show that the issue raised in :trac:`1951`
         has been fixed::

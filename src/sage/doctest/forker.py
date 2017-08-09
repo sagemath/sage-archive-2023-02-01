@@ -1421,7 +1421,8 @@ class DocTestDispatcher(SageObject):
         """
         for source in self.controller.sources:
             heading = self.controller.reporter.report_head(source)
-            self.controller.log(heading)
+            if not self.controller.options.only_errors:
+                self.controller.log(heading)
 
             with tempfile.TemporaryFile() as outtmpfile:
                 result = DocTestTask(source)(self.controller.options,
@@ -1504,15 +1505,15 @@ class DocTestDispatcher(SageObject):
         # If timeout was 0, simply set a very long time
         if opt.timeout <= 0:
             opt.timeout = 2**60
-        # Timeout we give a process to die (after it received a SIGHUP
+        # Timeout we give a process to die (after it received a SIGQUIT
         # signal). If it doesn't exit by itself in this many seconds, we
         # SIGKILL it. This is 5% of doctest timeout, with a maximum of
-        # 10 minutes and a minimum of 20 seconds.
+        # 10 minutes and a minimum of 60 seconds.
         die_timeout = opt.timeout * 0.05
         if die_timeout > 600:
             die_timeout = 600
-        elif die_timeout < 20:
-            die_timeout = 20
+        elif die_timeout < 60:
+            die_timeout = 60
 
         # List of alive DocTestWorkers (child processes). Workers which
         # are done but whose messages have not been read are also
@@ -1642,7 +1643,8 @@ class DocTestDispatcher(SageObject):
                             # Start a new worker.
                             w = DocTestWorker(source, options=opt, funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
-                            w.messages = heading + "\n"
+                            if not self.controller.options.only_errors:
+                                w.messages = heading + "\n"
                             # Store length of heading to detect if the
                             # worker has something interesting to report.
                             w.heading_len = len(w.messages)
@@ -1707,7 +1709,7 @@ class DocTestDispatcher(SageObject):
             # killing the remaining workers.
             if len(workers) > 0 and os.fork() == 0:
                 # Block these signals
-                with PSelecter([signal.SIGHUP, signal.SIGINT]):
+                with PSelecter([signal.SIGQUIT, signal.SIGINT]):
                     try:
                         from time import sleep
                         sleep(die_timeout)
@@ -2010,9 +2012,18 @@ class DocTestWorker(multiprocessing.Process):
 
     def kill(self):
         """
-        Kill this worker. The first time this is called, use
-        ``SIGHUP``. Subsequent times, use ``SIGKILL``.  Also close the
-        message pipe if it was still open.
+        Kill this worker
+
+        This method is only called if there is something wrong with the
+        worker. Under normal circumstances, the worker is supposed to
+        exit by itself after finishing.
+
+        The first time this is called, use ``SIGQUIT``. This will trigger
+        the cysignals ``SIGQUIT`` handler and try to print an enhanced
+        traceback.
+
+        Subsequent times, use ``SIGKILL``.  Also close the message pipe
+        if it was still open.
 
         EXAMPLES::
 
@@ -2026,14 +2037,14 @@ class DocTestWorker(multiprocessing.Process):
             sage: DD = DocTestDefaults()
             sage: FDS = FileDocTestSource(filename,DD)
 
-        We set up the worker to start by blocking ``SIGHUP``, such that
+        We set up the worker to start by blocking ``SIGQUIT``, such that
         killing will fail initially::
 
             sage: from cysignals.pselect import PSelecter
             sage: import signal
             sage: def block_hup():
             ....:     # We never __exit__()
-            ....:     PSelecter([signal.SIGHUP]).__enter__()
+            ....:     PSelecter([signal.SIGQUIT]).__enter__()
             sage: W = DocTestWorker(FDS, DD, [block_hup])
             sage: W.start()
             sage: W.killed
@@ -2052,7 +2063,7 @@ class DocTestWorker(multiprocessing.Process):
             self.rmessages = None
         if not self.killed:
             self.killed = True
-            os.killpg(self.pid, signal.SIGHUP)
+            os.killpg(self.pid, signal.SIGQUIT)
         else:
             os.killpg(self.pid, signal.SIGKILL)
 

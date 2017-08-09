@@ -375,7 +375,7 @@ class FormsRingElement(six.with_metaclass(
             True
         """
 
-        return self._weight != None
+        return self._weight is not None
 
     def weight(self):
         r"""
@@ -1118,7 +1118,7 @@ class FormsRingElement(six.with_metaclass(
             mon_summand *= z**(mon.degree(Z))
             new_rat     += op.monomial_coefficient(mon)*mon_summand
         res = self.parent().rat_field()(new_rat)
-        if (new_parent == None):
+        if (new_parent is None):
             new_parent = self.parent().extend_type(["quasi", "mero"], ring=True)
         return new_parent(res).reduce()
 
@@ -1552,7 +1552,7 @@ class FormsRingElement(six.with_metaclass(
             True
         """
 
-        if (fix_prec == False):
+        if not fix_prec:
             #if (prec <1):
             #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
@@ -1692,9 +1692,9 @@ class FormsRingElement(six.with_metaclass(
             2*d*q^-1 + 1/2 + 39/(512*d)*q + O(q^2)
         """
 
-        if prec == None:
+        if prec is None:
             prec = self.parent().default_prec()
-        if d_num_prec == None:
+        if d_num_prec is None:
             d_num_prec = self.parent().default_num_prec()
         if not isinstance(fix_d, bool):
             subs_d = fix_d
@@ -1817,11 +1817,11 @@ class FormsRingElement(six.with_metaclass(
             (516987/(8388608*d^4), 442989/(33554432*d^5))
         """
 
-        if (max_exp == None):
+        if (max_exp is None):
             max_exp = self.parent().default_prec() - 1
         else:
             max_exp = ZZ(max_exp)
-        if (prec == None):
+        if (prec is None):
             prec = max_exp + 1
         else:
             prec = ZZ(prec)
@@ -1830,7 +1830,7 @@ class FormsRingElement(six.with_metaclass(
 
         qexp = self.q_expansion(prec=prec, **kwargs)
 
-        if (min_exp == None):
+        if (min_exp is None):
             min_exp = qexp.valuation()
         else:
             min_exp = ZZ(min_exp)
@@ -2157,9 +2157,9 @@ class FormsRingElement(six.with_metaclass(
         if (tau in HyperbolicPlane()):
            tau = tau.to_model('UHP').coordinates()
 
-        if (prec == None):
+        if (prec is None):
             prec = self.parent().default_prec()
-        if (num_prec == None):
+        if (num_prec is None):
             num_prec = self.parent().default_num_prec()
 
         # In case the order is known

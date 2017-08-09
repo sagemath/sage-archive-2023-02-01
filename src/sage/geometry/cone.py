@@ -211,6 +211,7 @@ from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
 from sage.arith.all import gcd
 from sage.structure.all import SageObject, parent
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
@@ -595,6 +596,7 @@ def normalize_rays(rays, lattice):
     return rays
 
 
+@richcmp_method
 class IntegralRayCollection(SageObject,
                             collections.Hashable,
                             collections.Iterable):
@@ -656,7 +658,7 @@ class IntegralRayCollection(SageObject,
         self._rays = PointCollection(rays, lattice)
         self._lattice = lattice
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -666,32 +668,34 @@ class IntegralRayCollection(SageObject,
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self``, they have the same
-          ambient lattices, and their rays are the same and listed in the same
-          order. 1 or -1 otherwise.
+        boolean
+
+        There is equality if ``right`` is of the same type as
+        ``self``, they have the same ambient lattices, and their
+        rays are the same and listed in the same order.
 
         TESTS::
 
             sage: c1 = Cone([(1,0), (0,1)])
             sage: c2 = Cone([(0,1), (1,0)])
             sage: c3 = Cone([(0,1), (1,0)])
-            sage: cmp(c1, c2)
-            1
-            sage: cmp(c2, c1)
-            -1
-            sage: cmp(c2, c3)
-            0
+            sage: c1 > c2
+            True
+            sage: c2 < c1
+            True
+            sage: c2 == c3
+            True
             sage: c2 is c3
             False
         """
-        c = cmp(type(self), type(right))
-        if c:
-            return c
+        if type(self) != type(right):
+            return NotImplemented
+
         # We probably do need to have explicit comparison of lattices here
         # since if one of the collections does not live in a toric lattice,
         # comparison of rays may miss the difference.
-        return cmp((self.lattice(), self.rays()),
-                   (right.lattice(), right.rays()))
+        return richcmp((self.lattice(), self.rays()),
+                       (right.lattice(), right.rays()), op)
 
     def __hash__(self):
         r"""
@@ -1289,6 +1293,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # Derived classes MUST allow construction of their objects using ``ambient``
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
+@richcmp_method
 class ConvexRationalPolyhedralCone(IntegralRayCollection,
                                    collections.Container):
     r"""
@@ -1690,7 +1695,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         rc = super(ConvexRationalPolyhedralCone, self).__neg__()
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -1700,30 +1705,32 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - 0 if ``self`` and ``right`` are cones of any kind in the same
-          lattice with the same rays listed in the same order. 1 or -1
-          otherwise.
+        boolean
+
+        There is equality if ``self`` and ``right`` are cones of any
+        kind in the same lattice with the same rays listed in the
+        same order.
 
         TESTS::
 
             sage: c1 = Cone([(1,0), (0,1)])
             sage: c2 = Cone([(0,1), (1,0)])
             sage: c3 = Cone([(0,1), (1,0)])
-            sage: cmp(c1, c2)
-            1
-            sage: cmp(c2, c1)
-            -1
-            sage: cmp(c2, c3)
-            0
+            sage: c1 > c2
+            True
+            sage: c2 < c1
+            True
+            sage: c2 == c3
+            True
             sage: c2 is c3
             False
         """
         if is_Cone(right):
             # We don't care about particular type of right in this case
-            return cmp((self.lattice(), self.rays()),
-                       (right.lattice(), right.rays()))
+            return richcmp((self.lattice(), self.rays()),
+                           (right.lattice(), right.rays()), op)
         else:
-            return cmp(type(self), type(right))
+            return NotImplemented
 
     def _latex_(self):
         r"""
@@ -4574,7 +4581,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(0,0)])
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
+            sage: list(M.basis()) == K.lyapunov_like_basis()
             True
 
         And by duality, every transformation is Lyapunov-like on the
@@ -4584,7 +4591,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_full_space()
             True
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
+            sage: list(M.basis()) == K.lyapunov_like_basis()
             True
 
         However, in a trivial space, there are no non-trivial linear maps,

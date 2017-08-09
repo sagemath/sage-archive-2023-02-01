@@ -50,7 +50,7 @@ of initial cluster variables and/or permuting both cluster variables
 and coefficients.
 
 :class:`ClusterAlgebraElement` is a thin wrapper around
-:class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_generic`
+:class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
 providing all the functions specific to cluster variables.
 Elemets of a cluster algebra with principal coefficients have special methods
 and these are grouped in the subclass :class:`PrincipalClusterAlgebraElement`.

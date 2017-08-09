@@ -172,7 +172,7 @@ cdef class Dist(ModuleElement):
         """
         return self.parent().prime() ** (self.ordp) * self._moments
 
-    cpdef normalize(self, include_zeroth_moment = True):
+    cpdef normalize(self, include_zeroth_moment=True):
         r"""
         Normalize so that the precision of the `i`-th moment is `n-i`,
         where `n` is the number of moments.
@@ -1080,7 +1080,7 @@ cdef class Dist_vector(Dist):
         """
         return Integer(len(self._moments) + self.ordp)
 
-    cpdef normalize(self, include_zeroth_moment = True):
+    cpdef normalize(self, include_zeroth_moment=True):
         r"""
         Normalize by reducing modulo `Fil^N`, where `N` is the number of moments.
 

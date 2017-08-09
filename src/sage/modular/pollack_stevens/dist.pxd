@@ -5,7 +5,7 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 
 
 cdef class Dist(ModuleElement):
-    cpdef normalize(self, include_zeroth_moment = *)
+    cpdef normalize(self, include_zeroth_moment=*)
     cdef long ordp
     cpdef long _ord_p(self)
     cdef long _relprec(self)

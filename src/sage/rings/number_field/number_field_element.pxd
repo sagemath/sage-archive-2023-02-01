@@ -23,6 +23,9 @@ cdef class NumberFieldElement(FieldElement):
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
 
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+
     cdef number_field(self)
 
     cdef void _ntl_coeff_as_mpz(self, mpz_t z, long i)

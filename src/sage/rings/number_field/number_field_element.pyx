@@ -176,7 +176,6 @@ def _inverse_mod_generic(elt, I):
             y += v[j] * sum([b[j,i+n] * B[i] for i in xrange(n)])
     return I.small_residue(y)
 
-__pynac_pow = False
 
 cdef class NumberFieldElement(FieldElement):
     """

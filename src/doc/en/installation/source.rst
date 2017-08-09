@@ -1143,10 +1143,6 @@ Here are some of the more commonly used variables affecting the build process:
      of Sage; it may be replaced by (for example) ``configure``
      options.
 
-- :envar:`SAGE_OPENBLAS_TARGET` - set this to ``HASWELL`` if your cpu
-  is a modern CPU. This will automatically add a target of HASWELL
-  for the openblas package in case the package installation fails. (see :trac:`23272`)
-
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 

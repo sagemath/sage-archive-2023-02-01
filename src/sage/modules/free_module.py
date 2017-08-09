@@ -1937,8 +1937,10 @@ done from the right side.""")
 
     def __bool__(self):
         """
-        Return ``False`` if this is the zero module, in other words
-        if the rank is zero. Return ``True`` otherwise.
+        Return ``True`` if and only if the rank of this module is
+        non-zero. In other words, this returns ``False`` for the zero
+        module and ``True`` otherwise (apart from the exceptional case
+        where the base ring is the zero ring).
 
         EXAMPLES::
 
@@ -1951,6 +1953,18 @@ done from the right side.""")
             True
             sage: bool(M.left_kernel())
             False
+
+        When the base ring is the zero ring, we still look at the
+        "rank" (which may not be mathematically meaningful)::
+
+            sage: M = Integers(1)^4; M
+            Ambient free module of rank 4 over Ring of integers modulo 1
+            sage: M.rank()
+            4
+            sage: bool(M)
+            True
+            sage: M.cardinality()
+            1
         """
         return bool(self.rank())
 

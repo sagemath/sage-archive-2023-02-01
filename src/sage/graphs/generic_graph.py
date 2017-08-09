@@ -21872,20 +21872,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return c
 
-import types
+    # Aliases to functions defined in other modules
+    from sage.graphs.distances_all_pairs import distances_distribution
+    from sage.graphs.base.boost_graph import dominator_tree
+    from sage.graphs.base.static_sparse_graph import spectral_radius
+    from sage.graphs.line_graph import line_graph
 
-import sage.graphs.distances_all_pairs
-GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
-
-from sage.graphs.base.boost_graph import dominator_tree
-GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
-
-from sage.graphs.base.static_sparse_graph import spectral_radius
-GenericGraph.spectral_radius = types.MethodType(spectral_radius, None, GenericGraph)
-
-# From Python modules
-import sage.graphs.line_graph
-GenericGraph.line_graph = sage.graphs.line_graph.line_graph
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

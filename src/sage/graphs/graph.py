@@ -2818,7 +2818,8 @@ class Graph(GenericGraph):
 
         if k is not None and k >= g.order()-1:
             if certificate:
-                return Graph({sage.sets.set.Set(g.vertices()):[]},
+                from sage.sets.set import Set
+                return Graph({Set(g.vertices()):[]},
                              name="Tree decomposition")
             return True
 
@@ -7819,60 +7820,24 @@ class Graph(GenericGraph):
         else:
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
+    # Aliases to functions defined in other modules
+    from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
+    from sage.graphs.asteroidal_triples import is_asteroidal_triple_free
+    from sage.graphs.chrompoly import chromatic_polynomial
+    from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
+    from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.matchpoly import matching_polynomial
+    from sage.graphs.cliquer import all_max_clique as cliques_maximum
+    from sage.graphs.spanning_tree import random_spanning_tree
+    from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
+    from sage.graphs.distances_all_pairs import is_distance_regular
+    from sage.graphs.base.static_dense_graph import is_strongly_regular
+    from sage.graphs.line_graph import is_line_graph
+    from sage.graphs.tutte_polynomial import tutte_polynomial
+    from sage.graphs.lovasz_theta import lovasz_theta
+    from sage.graphs.partial_cube import is_partial_cube
+    from sage.graphs.orientations import strong_orientations_iterator
 
-# Aliases to functions defined in Cython modules
-import types
-
-import sage.graphs.weakly_chordal
-Graph.is_long_hole_free         = types.MethodType(sage.graphs.weakly_chordal.is_long_hole_free, None, Graph)
-Graph.is_long_antihole_free     = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
-Graph.is_weakly_chordal         = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
-
-import sage.graphs.asteroidal_triples
-Graph.is_asteroidal_triple_free = types.MethodType(sage.graphs.asteroidal_triples.is_asteroidal_triple_free, None, Graph)
-
-import sage.graphs.chrompoly
-Graph.chromatic_polynomial      = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)
-
-import sage.graphs.graph_decompositions.rankwidth
-Graph.rank_decomposition        = types.MethodType(sage.graphs.graph_decompositions.rankwidth.rank_decomposition, None, Graph)
-
-import sage.graphs.graph_decompositions.vertex_separation
-Graph.pathwidth                 = types.MethodType(sage.graphs.graph_decompositions.vertex_separation.pathwidth, None, Graph)
-
-import sage.graphs.matchpoly
-Graph.matching_polynomial       = types.MethodType(sage.graphs.matchpoly.matching_polynomial, None, Graph)
-
-import sage.graphs.cliquer
-Graph.cliques_maximum           = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
-
-import sage.graphs.spanning_tree
-Graph.random_spanning_tree      = types.MethodType(sage.graphs.spanning_tree.random_spanning_tree, None, Graph)
-
-import sage.graphs.graph_decompositions.graph_products
-Graph.is_cartesian_product      = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
-
-import sage.graphs.distances_all_pairs
-Graph.is_distance_regular       = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
-
-import sage.graphs.base.static_dense_graph
-Graph.is_strongly_regular       = types.MethodType(sage.graphs.base.static_dense_graph.is_strongly_regular, None, Graph)
-
-# From Python modules
-import sage.graphs.line_graph
-Graph.is_line_graph             = sage.graphs.line_graph.is_line_graph
-
-from sage.graphs.tutte_polynomial import tutte_polynomial
-Graph.tutte_polynomial          = tutte_polynomial
-
-from sage.graphs.lovasz_theta import lovasz_theta
-Graph.lovasz_theta              = lovasz_theta
-
-from sage.graphs.partial_cube import is_partial_cube
-Graph.is_partial_cube           = is_partial_cube
-
-from sage.graphs.orientations import strong_orientations_iterator
-Graph.strong_orientations_iterator    =    strong_orientations_iterator
 
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",

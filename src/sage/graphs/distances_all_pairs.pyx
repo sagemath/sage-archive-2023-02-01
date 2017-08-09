@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Distances/shortest paths between all pairs of vertices
 

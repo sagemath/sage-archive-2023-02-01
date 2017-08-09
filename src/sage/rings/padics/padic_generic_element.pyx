@@ -2664,12 +2664,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _polylog_res_1(self, n):
         """
-        Return `Li_n(`self`)` , the `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
+        Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
         This is an internal function, used by :meth:`polylog`.
 
         INPUT:
 
-            - ``self`` -- a p-adic element
             - ``n`` -- a non-negative integer
 
         OUTPUT:
@@ -2688,7 +2687,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: Polylogarithm is not defined for 1.
         """
         from sage.rings.power_series_ring import PowerSeriesRing
-        from sage.functions.log import log
         from sage.functions.other import ceil,floor
         from sage.rings.padics.factory import Qp
         from sage.misc.all import verbose
@@ -2703,24 +2701,33 @@ cdef class pAdicGenericElement(LocalGenericElement):
         z = K(self)
 
         hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2))
-        N = floor(prec - n*log(hsl - 1, p))
+        N = floor(prec - n*(hsl - 1).log(p))
 
         verbose(hsl, level=3)
 
-        verbose(K.precision_cap(), level=3)
-        gsl = max([_findprec(1/(p-1), 1, N - m + _polylog_c(m,p) + Integer(1-2**(m-1)).valuation(p) + (n-m)*((hsl-1).log(p)), p) for m in range(2,n+1)])
+        def bound(m):
+            return prec - m + Integer(1-2**(m-1)).valuation(p) - m*(hsl - 1).log(p)
+
+        gsl = max([_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1)])
         verbose(gsl, level=3)
-        g = _compute_g(p, n, max([N - m + Integer(1-2**(m-1)).valuation(p) + (n - m)*((hsl-1).log(p)) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
+        g = _compute_g(p, n, max([bound(m) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
         verbose(g, level=3)
         S = PowerSeriesRing(K, default_prec = ceil(hsl), names='t')
         t = S.gen()
-        G = [(((1+t).log())**i)/Integer(i).factorial() for i in range(n+4)]
+        log1plust = (1+t).log()
+        log1plusti = 1
+
+        G = (n+1)*[0]
+        for i in range(n+1):
+            G[i] = (log1plusti)/Integer(i).factorial()
+            log1plusti *= log1plust
+
         verbose(G, level=3)
 
         H = (n+1)*[0]
         H[2] = -sum([((-t)**i)/Integer(i)**2 for i in range(1,hsl+2)])
-        for i in range(2,n):
-            H[i+1] = (H[i]/(1+t) + G[i]/t).integral()#.truncate(hsl)
+        for i in range(2, n):
+            H[i+1] = (H[i]/(1+t) + G[i]/t).integral()
             if (i + 1) % 2 == 1:
                 if p != 2:
                     H[i+1] += (2**i*p**(i+1)*g[i+1](1/K(2)))/((1-2**i)*(p**(i+1) - 1))
@@ -2732,11 +2739,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def polylog(self, n):
         """
-        Return `Li_n(self)` , the `p`-adic polylogarithm of ``self``.
+        Return `Li_n(self)` , `n`th the `p`-adic polylogarithm of this element.
 
         INPUT:
 
-            - ``self`` -- a p-adic element
             - ``n`` -- a non-negative integer
 
         OUTPUT:
@@ -2812,12 +2818,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
 
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.rings.padics.factory import Qp
         from sage.misc.all import verbose
-        from sage.functions.log import log
-        from sage.functions.other import ceil,floor
+        from sage.functions.other import floor
+        from sage.rings.infinity import PlusInfinity
 
         if self.parent().degree() != 1:
             raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
@@ -2829,6 +2834,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         K = self.parent().fraction_field()
 
         z = K(self)
+        n = Integer(n)
 
         if z.valuation() < 0:
             verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(self)), level=2)
@@ -2838,12 +2844,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # Which residue disk are we in?
         if zeta == 0:
-            if z == 0: # must handle corner case of residue 0, relative precision 0 here
+            if z.precision_absolute() == PlusInfinity():
                 return K(0)
             verbose("residue 0, using series. %d %s"%(n,str(self)), level=2)
-            M = floor(log(z.precision_relative(), p))
+            M = floor((prec/z.valuation()).log(p))
             N = prec - n*M
-            return sum(K(p)**(-m*n)*sum(z**(k*p**m)/Integer(k)**n for k in range(1, _findprec(p**m*z.valuation(), 0, N + n*m,p)) if k % p != 0) for m in range(M + 1)).add_bigoh(N)
+            ret = K(0)
+            for m in range(M + 1):
+                zpm = z**(p**m)
+                ret += p**(-m*n)*sum(zpm**k/Integer(k)**n for k in
+                        range(1, _findprec(p**m*z.valuation(), 0, N + n*m,p)) if k % p != 0)
+
+            return ret.add_bigoh(N)
 
         if zeta == 1:
             if z == 1:
@@ -2853,12 +2865,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # Set up precision bounds
         tsl = prec / (z - zeta).valuation() + 1
-        N = floor(prec - n*log(tsl - 1, p))
-        gsl = max([_findprec(1/(p-1), 1, N - m + _polylog_c(m,p) + (n - m)*(tsl - 1).log(p), p) for m in range(1,n+1)])
+        N = floor(prec - n*(tsl - 1).log(p))
+        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p), p) for m in range(1,n+1)])
 
-        gtr = _compute_g(p, n, N + n*(tsl -1).log(p) + n*(gsl-1).log(p), gsl)
+        gtr = _compute_g(p, n, prec + n*(gsl - 1).log(p), gsl)
 
-        K = Qp(p, ceil(N + n*log(tsl - 1, p)))
+        K = Qp(p, prec)
 
         # Residue disk around zeta
         verbose("general case. %d %s"%(n, str(self)), level=2)
@@ -2895,8 +2907,7 @@ def _polylog_c(n, p):
              (2008): 1105-1134.
 
     """
-    from sage.functions.log import log
-    return p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p)
+    return p/(p-1) - (n-1)/p.log() + (n-1)*(n*(p-1)/p.log()).log(p) + (2*p*(p-1)*n/p.log()).log(p)
 
 def _findprec(c_1, c_2, c_3, p):
     """
@@ -2927,7 +2938,7 @@ def _findprec(c_1, c_2, c_3, p):
              for Computing p-Adic Polylogarithms." Mathematics of computation
              (2008): 1105-1134.
     """
-    from sage.functions.other import ceil,floor
+    from sage.functions.other import ceil
     k = Integer(max(ceil(c_2/c_1), 2))
     while True:
         if c_1*k - c_2*k.log(p) > c_3:
@@ -2946,7 +2957,7 @@ def _compute_g(p, n, prec, terms):
 
     """
     from sage.rings.power_series_ring import PowerSeriesRing
-    from sage.functions.other import ceil,floor
+    from sage.functions.other import ceil
     from sage.rings.padics.factory import Qp
 
     # Compute the sequence of power series g

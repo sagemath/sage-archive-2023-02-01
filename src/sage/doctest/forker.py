@@ -35,6 +35,7 @@ AUTHORS:
 
 from __future__ import print_function
 from __future__ import absolute_import
+import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
@@ -45,7 +46,11 @@ from .sources import DictAsObject
 from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
-from sage.repl.user_globals import set_globals
+from sage.repl.user_globals import set_globals, get_globals
+
+
+# All doctests run as if the following future imports are present
+MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
 
 
 def init_sage():
@@ -128,6 +133,7 @@ def init_sage():
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
+
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
@@ -630,6 +636,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
         self.test = test
         if compileflags is None:
             compileflags = doctest._extract_future_flags(test.globs)
+        compileflags |= MANDATORY_COMPILE_FLAGS
         # We use this slightly modified version of Pdb because it
         # interacts better with the doctesting framework (like allowing
         # doctests for sys.settrace()). Since we already have output

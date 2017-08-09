@@ -200,13 +200,22 @@ def FinitelyGeneratedAbelianPresentation(int_list):
     ret_rls = ret_rls + [x[0]**(-1)*x[1]**(-1)*x[0]*x[1] for x in gen_pairs]
     return FinitelyPresentedGroup(F, tuple(ret_rls))
 
-def FinitelyGeneratedHeisenbergPresentation():
+def FinitelyGeneratedHeisenbergPresentation(p = 0):
     r"""
-    Return a presentation of the Heisenberg group with three generators and three relators presentation.
+    Return a presentation of the Heisenberg group with three generators and
+    three relators presentation.
+
+    INPUT:
+
+    - ``p`` -- If p is a prime number, then the underlying group is set to
+    the finite field of order ``p``. Otherwise, the set of integers is used
+    as the underlying field. The default value of ``p`` is 0.
 
     OUTPUT:
 
-    Finitely generated Heisenberg group: group of 3x3 upper triangular matrices with diagonal equal elements equal to 1.
+    Finitely generated Heisenberg group over the finite field of order ``p`` or
+    over the integers: group of 3x3 upper triangular matrices with diagonal
+    elements equal to 1.
 
     EXAMPLES::
 
@@ -232,11 +241,21 @@ def FinitelyGeneratedHeisenbergPresentation():
         [1 0 0]
         [0 1 0]
         [0 0 1]
+        sage: p = 3
+        sage: Hp = groups.presentation.Heisenberg(p)
+        sage: Hp.order() == p**3 
+        True
 
+    REFERENCES:
+
+        - :wikipedia:`Heisenberg_group`
     """
+    from sage.sets.primes import Primes
     F = FreeGroup('a,b,c')
     a,b,c = F.gens()
-    rls = ((a*b*a**-1*b**-1) * c**-1, c*a*c**-1*a**-1, c*b*c**-1*b**-1)
+    rls = ((a*b*a**-1*b**-1) * c**-1, c*a*c**-1*a**-1, c*b*c**-1*b**-1) 
+    if p in Primes():
+        rls += (a**p, b**p, c**p) # in Z/pZ, powers of p equal the identity
     return FinitelyPresentedGroup(F, rls)
 
 def DihedralPresentation(n):

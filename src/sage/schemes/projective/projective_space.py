@@ -1150,7 +1150,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         """
         d = ZZ(d)
         if d <= 0:
-            raise ValueError("(=%s) must be a positive integer")
+            raise ValueError("(=%s) must be a positive integer"%d)
         N = self.dimension()
         # construct codomain space if not given
         if CS is None:
@@ -1159,7 +1159,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             if not is_ProjectiveSpace(CS):
                 raise TypeError("(=%s) must be a projective space"%CS)
             if CS.dimension() != binomial(N + d, d) - 1:
-                raise TypeError("(=%s) has the wrong dimension to serve as the codomain space")
+                raise TypeError("(=%s) has the wrong dimension to serve as the codomain space"%CS)
 
         R = self.coordinate_ring().change_ring(order=order)
         monomials = sorted([R({tuple(v) : 1}) for v in WeightedIntegerVectors(d, [1] * (N + 1))])

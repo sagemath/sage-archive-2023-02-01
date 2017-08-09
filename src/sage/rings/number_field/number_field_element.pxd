@@ -20,6 +20,8 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __matrix
 
     cdef _new(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 
     cdef number_field(self)
 

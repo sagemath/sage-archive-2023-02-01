@@ -208,6 +208,31 @@ def FinitelyGeneratedHeisenbergPresentation():
 
     Finitely generated Heisenberg group: group of 3x3 upper triangular matrices with diagonal equal elements equal to 1.
 
+    EXAMPLES::
+
+        sage: H = groups.presentation.Heisenberg(); H
+        Finitely presented group < a, b, c | a*b*a^-1*b^-1*c^-1, c*a*c^-1*a^-1, c*b*c^-1*b^-1 >
+        sage: H.order()
+        +Infinity
+        sage: r1, r2, r3 = H.relations()
+        sage: r1
+        a*b*a^-1*b^-1*c^-1
+        sage: A = matrix([[1, 1, 0], [0, 1, 0], [0, 0, 1]])
+        sage: B = matrix([[1, 0, 0], [0, 1, 1], [0, 0, 1]])
+        sage: C = matrix([[1, 0, 1], [0, 1, 0], [0, 0, 1]])
+        sage: r1(A, B, C)
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        sage: r2(A, B, C)
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        sage: r3(A, B, C)
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+
     """
     F = FreeGroup('a,b,c')
     a,b,c = F.gens()

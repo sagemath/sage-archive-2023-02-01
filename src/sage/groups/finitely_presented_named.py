@@ -25,6 +25,9 @@ Groups available as finite presentations:
 - Finitely generated abelian group, `\ZZ_{n_1} \times \ZZ_{n_2} \times \cdots \times \ZZ_{n_k}` --
   :func:`groups.presentation.FGAbelian <sage.groups.finitely_presented_named.FinitelyGeneratedAbelianPresentation>`
 
+- Finitely generated Heisenberg group --
+  :func:`groups.presentation.Heisenberg <sage.groups.finitely_presented_named.FinitelyGeneratedHeisenbergPresentation>`
+
 - Klein four group, `C_2 \times C_2` --
   :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
 
@@ -196,6 +199,20 @@ def FinitelyGeneratedAbelianPresentation(int_list):
     gen_pairs = [[F.gen(i),F.gen(j)] for i in range(F.ngens()-1) for j in range(i+1,F.ngens())]
     ret_rls = ret_rls + [x[0]**(-1)*x[1]**(-1)*x[0]*x[1] for x in gen_pairs]
     return FinitelyPresentedGroup(F, tuple(ret_rls))
+
+def FinitelyGeneratedHeisenbergPresentation():
+    r"""
+    Return a presentation of the Heisenberg group with three generators and three relators presentation.
+
+    OUTPUT:
+
+    Finitely generated Heisenberg group: group of 3x3 upper triangular matrices with diagonal equal elements equal to 1.
+
+    """
+    F = FreeGroup('a,b,c')
+    a,b,c = F.gens()
+    rls = ((a*b*a**-1*b**-1) * c**-1, c*a*c**-1*a**-1, c*b*c**-1*b**-1)
+    return FinitelyPresentedGroup(F, rls)
 
 def DihedralPresentation(n):
     r"""

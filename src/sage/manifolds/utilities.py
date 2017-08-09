@@ -56,12 +56,12 @@ def simplify_sqrt_real(expr):
         sage: sqrt(x^2).canonicalize_radical()
         x
         sage: assume(x<0)
-        sage: sqrt(x^2).canonicalize_radical() # wrong output
-        x
+        sage: sqrt(x^2).canonicalize_radical()
+        -x
         sage: sqrt(x^2-2*x+1).canonicalize_radical() # wrong output
         x - 1
-        sage: ( sqrt(x^2) + sqrt(x^2-2*x+1) ).canonicalize_radical() # wrong output
-        2*x - 1
+        sage: ( sqrt(x^2) + sqrt(x^2-2*x+1) ).canonicalize_radical()
+        -1
 
     Simplification of nested ``sqrt``'s::
 
@@ -77,8 +77,8 @@ def simplify_sqrt_real(expr):
     Again, :meth:`~sage.symbolic.expression.Expression.canonicalize_radical`
     fails on the last one::
 
-        sage: (sqrt(x^2 + sqrt(4*x^2) + 1)).canonicalize_radical()  # wrong output
-        x + 1
+        sage: (sqrt(x^2 + sqrt(4*x^2) + 1)).canonicalize_radical()
+        x - 1
 
     """
     from sage.symbolic.ring import SR
@@ -168,7 +168,7 @@ def simplify_abs_trig(expr):
 
         sage: from sage.manifolds.utilities import simplify_abs_trig
         sage: simplify_abs_trig( abs(sin(x)) + abs(sin(y)) + abs(sin(3*z)) )
-        abs(sin(x)) + sin(y) - sin(3*z)
+        abs(sin(x)) + sin(y) + sin(-3*z)
 
     Note that neither Sage's function
     :meth:`~sage.symbolic.expression.Expression.simplify_trig` nor
@@ -177,9 +177,9 @@ def simplify_abs_trig(expr):
 
         sage: s = abs(sin(x)) + abs(sin(y)) + abs(sin(3*z))
         sage: s.simplify_trig()
-        abs(4*cos(z)^2 - 1)*abs(sin(z)) + abs(sin(x)) + abs(sin(y))
+        abs(4*cos(-z)^2 - 1)*abs(sin(-z)) + abs(sin(x)) + abs(sin(y))
         sage: s.simplify_full()
-        abs(4*cos(z)^2 - 1)*abs(sin(z)) + abs(sin(x)) + abs(sin(y))
+        abs(4*cos(-z)^2 - 1)*abs(sin(-z)) + abs(sin(x)) + abs(sin(y))
 
     despite the following assumptions hold::
 
@@ -193,9 +193,9 @@ def simplify_abs_trig(expr):
         sage: simplify_abs_trig( abs(sin(2*y)) )  # must not simplify
         abs(sin(2*y))
         sage: simplify_abs_trig( abs(sin(z/2)) )  # shall simplify
-        -sin(1/2*z)
+        sin(-1/2*z)
         sage: simplify_abs_trig( abs(sin(4*z)) )  # must not simplify
-        abs(sin(4*z))
+        abs(sin(-4*z))
 
     """
     from sage.symbolic.ring import SR
@@ -294,13 +294,12 @@ def simplify_chain_real(expr):
         abs(y)
 
     The above result is correct since ``y`` is real. It is obtained by
-    :meth:`~sage.symbolic.expression.Expression.simplify_real` as well,
-    but not by :meth:`~sage.symbolic.expression.Expression.simplify_full`::
+    :meth:`~sage.symbolic.expression.Expression.simplify_real` as well.
 
         sage: s.simplify_real()
         abs(y)
         sage: s.simplify_full()
-        sqrt(y^2)
+        abs(y)
 
     Furthermore, we have::
 

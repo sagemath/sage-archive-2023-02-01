@@ -1455,7 +1455,7 @@ class CoordFunctionSymb(CoordFunction):
             sage: X.<x,y> = M.chart()
             sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
             sage: f.display()
-            (x, y) |--> cos(x)^2 + sin(x)^2 + sqrt(x^2)
+            (x, y) |--> cos(x)^2 + sin(x)^2 + abs(x)
             sage: f.simplify()
             abs(x) + 1
 
@@ -1489,7 +1489,7 @@ class CoordFunctionSymb(CoordFunction):
             sage: X.<x,y> = M.chart('x:(-oo,0) y')
             sage: f = X.function(sqrt(x^2))
             sage: f
-            sqrt(x^2)
+            -x
             sage: f.simplify()
             -x
 

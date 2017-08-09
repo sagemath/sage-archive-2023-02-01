@@ -32,10 +32,13 @@ echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
 
 $MAKE libs netlib shared $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
-    # See https://github.com/xianyi/OpenBLAS/issues/1204
-    # If the error was a target error, try and fix it
-    if grep -q "Detecting CPU failed. Please set TARGET explicitly" "${SAGE_ROOT}/logs/pkgs/openblas-$(<${SAGE_ROOT}/build/pkgs/openblas/package-version.txt).log"; then
+    # First make sure we already didn't set a target
+    if [[ $OPENBLAS_CONFIGURE == *"TARGET"* ]]; then
+        echo >&2 "Error building OpenBLAS"
+        exit 1
+    else
         # The recommended TARGET is ATOM if CPU fails
+        # See https://github.com/xianyi/OpenBLAS/issues/1204
         OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=ATOM"
         echo "Error building OpenBLAS"
         echo "Retrying building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
@@ -44,9 +47,6 @@ if [ $? -ne 0 ]; then
             echo >&2 "Error building OpenBLAS a second time"
             exit 1
         fi
-    else
-        echo >&2 "Error building OpenBLAS"
-        exit 1
     fi
 
 fi

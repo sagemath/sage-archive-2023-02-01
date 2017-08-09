@@ -31,21 +31,21 @@ echo "Running OpenBLAS testsuite"
 
 $MAKE tests $OPENBLAS_CONFIGURE
 if [ $? -ne 0 ]; then
-    # See https://github.com/xianyi/OpenBLAS/issues/1204
-    # If the error was a target error, try and fix it
-    if grep -q "Detecting CPU failed. Please set TARGET explicitly" "${SAGE_ROOT}/logs/pkgs/openblas-$(<${SAGE_ROOT}/build/pkgs/openblas/package-version.txt).log"; then
+    # First make sure we already didn't set a target
+    if [[ $OPENBLAS_CONFIGURE == *"TARGET"* ]]; then
+        echo >&2 "Error while running the OpenBlas testsuite ... exiting"
+        exit 1
+    else
         # The recommended TARGET is ATOM if CPU fails
-        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=$target"
+        # See https://github.com/xianyi/OpenBLAS/issues/1204
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=ATOM"
         echo "Error while testing the OpenBLAS testsuite"
-        echo "Retrying the OpenBAS testsuit with new target"
+        echo "Retrying the OpenBAS testsuit with TARGET=ATOM"
         $MAKE tests $OPENBLAS_CONFIGURE
         if [ $? -ne 0 ]; then
             echo >&2 "Error while running the OpenBLAS testsuite ... exiting"
             exit 1
         fi
-    else
-        echo >&2 "Error while running the OpenBLAS testsuite ... exiting"
-        exit 1
     fi
 fi
 

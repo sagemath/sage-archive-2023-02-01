@@ -2821,7 +2821,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.rings.power_series_ring import PowerSeriesRing
         from sage.rings.padics.factory import Qp
         from sage.misc.all import verbose
-        from sage.functions.other import floor
+        from sage.functions.other import ceil,floor
         from sage.rings.infinity import PlusInfinity
 
         if self.parent().degree() != 1:
@@ -2876,7 +2876,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         verbose("general case. %d %s"%(n, str(self)), level=2)
         Li_i_zeta = [0] + [p**i/(p**i-1)*gtr[i](1/(1-zeta)) for i in range(1,n+1)]
 
-        T = PowerSeriesRing(K, default_prec=tsl, names='t')
+        T = PowerSeriesRing(K, default_prec=ceil(tsl), names='t')
         t = T.gen()
         F = (n+1)*[0]
         F[0] = (zeta+t)/(1-zeta-t)

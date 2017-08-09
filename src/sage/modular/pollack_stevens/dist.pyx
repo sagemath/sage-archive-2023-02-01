@@ -27,7 +27,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.rings.integer_ring import ZZ
@@ -61,7 +62,7 @@ from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
 
 #from sage.libs.flint.ulong_extras cimport *
 
-from sigma0 import Sigma0
+from .sigma0 import Sigma0
 
 cdef long overflow = 1 << (4 * sizeof(long) - 1)
 cdef long underflow = -overflow

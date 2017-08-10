@@ -368,13 +368,6 @@ class ClusterQuiver(SageObject):
 
             else:
                   raise ValueError("The optional parameter 'frozen' must be a list of vertices of the digraph.")
-            #    if (not ZZ(frozen) == frozen):
-            #        raise ValueError("The optional argument frozen (=%s) must be an integer."%frozen)
-            #    m = self._m = frozen
-            #    n = self._n = data.order() - m
-            #    nlist = self._nlist = range(n)
-            #    mlist = self._mlist = range(n,n+m)
-            #    Code changed so that the parameter 'frozen' may only be a list, no longer allowed to be a nonnegative number.
                 
             dg = copy( data )
             dg_labelling = False
@@ -1518,6 +1511,11 @@ class ClusterQuiver(SageObject):
             [ 0  0 -1  0]
             [ 0 -1  1  0]
 
+            sage: Q = ClusterQuiver(DiGraph([['a','b'],['b','c']]));Q
+            Quiver on 3 vertices
+            sage: Q.mutate(['a','b'],inplace = False).digraph().edges()
+            [('a', 'b', (1, -1)), ('c', 'b', (1, -1))]
+
         TESTS::
 
             sage: Q = ClusterQuiver(['A',4]); Q.mutate(0,1)
@@ -1573,7 +1571,7 @@ class ClusterQuiver(SageObject):
             self._M.set_immutable()
             self._digraph = dg
         else:
-            Q = ClusterQuiver( M )
+            Q = ClusterQuiver( dg, frozen = self._mlist )
             Q._mutation_type = self._mutation_type
             return Q
 
@@ -1808,16 +1806,13 @@ class ClusterQuiver(SageObject):
             return_dig6 = True
         else:
             return_dig6 = False
-        #dg = DiGraph( self._digraph )
         dg = DiGraph( ClusterQuiver(self._M)._digraph )        
         MC_iter = _mutation_class_iter( dg, self._n, self._m, depth=depth, return_dig6=return_dig6, show_depth=show_depth, up_to_equivalence=up_to_equivalence, sink_source=sink_source )
         for data in MC_iter:
             if data_type == "quiver":
-                #next_element = ClusterQuiver( data[0], frozen=self._mlist )
                 next_element = ClusterQuiver( data[0], frozen = list(range(self._m)) )
                 next_element._mutation_type = self._mutation_type
             elif data_type == "matrix":
-                #next_element = ClusterQuiver( data[0], frozen=self._mlist )._M
                 next_element = ClusterQuiver( data[0], frozen = list(range(self._m)) )._M                
             elif data_type == "digraph":
                 next_element = data[0]
@@ -1935,6 +1930,7 @@ class ClusterQuiver(SageObject):
         if depth is infinity and not self.is_mutation_finite():
             raise ValueError('The mutation class can - for infinite mutation types - only be computed up to a given depth')
         return [ Q for Q in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, data_type=data_type, up_to_equivalence=up_to_equivalence, sink_source=sink_source ) ]
+        
 
     def is_finite( self ):
         """

@@ -96,8 +96,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         EXAMPLES::
 
             sage: M = ModularSymbols(21,4) ; N = ModularSymbols(Gamma1(5),6)
-            sage: M.cuspidal_submodule().__cmp__(N)
-            1
+            sage: M.cuspidal_submodule() > N
+            True
             sage: M.cuspidal_submodule() == N
             False
         """

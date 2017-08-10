@@ -1421,7 +1421,8 @@ class DocTestDispatcher(SageObject):
         """
         for source in self.controller.sources:
             heading = self.controller.reporter.report_head(source)
-            self.controller.log(heading)
+            if not self.controller.options.only_errors:
+                self.controller.log(heading)
 
             with tempfile.TemporaryFile() as outtmpfile:
                 result = DocTestTask(source)(self.controller.options,
@@ -1642,7 +1643,8 @@ class DocTestDispatcher(SageObject):
                             # Start a new worker.
                             w = DocTestWorker(source, options=opt, funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
-                            w.messages = heading + "\n"
+                            if not self.controller.options.only_errors:
+                                w.messages = heading + "\n"
                             # Store length of heading to detect if the
                             # worker has something interesting to report.
                             w.heading_len = len(w.messages)

@@ -720,18 +720,18 @@ class pAdicValuation_base(DiscreteValuation):
         A case where there was at some point an internal error in the
         approximants code::
 
-			sage: R.<x> = QQ[]
-			sage: L.<a> = NumberField(x^4 + 2*x^3 + 2*x^2 + 8)
-			sage: QQ.valuation(2).extensions(L)
+            sage: R.<x> = QQ[]
+            sage: L.<a> = NumberField(x^4 + 2*x^3 + 2*x^2 + 8)
+            sage: QQ.valuation(2).extensions(L)
 
         A case where the extension was incorrect at some point::
 
-			sage: v = QQ.valuation(2)
-			sage: L.<a> = NumberField(x^2 + 2)
-			sage: M.<b> = L.extension(x^2 + 1)
-			sage: w = v.extension(L).extension(M)
-			sage: w(w.uniformizer())
-			1/2
+            sage: v = QQ.valuation(2)
+            sage: L.<a> = NumberField(x^2 + 2)
+            sage: M.<b> = L.extension(x^2 + 1)
+            sage: w = v.extension(L).extension(M)
+            sage: w(w.uniformizer())
+            1/2
 
         """
         if self.domain() is ring:

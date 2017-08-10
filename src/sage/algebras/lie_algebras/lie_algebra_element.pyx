@@ -22,14 +22,11 @@ from cpython.object cimport Py_EQ, Py_NE
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport (have_same_parent, classify_elements,
-                                     HAVE_SAME_PARENT, BOTH_ARE_ELEMENT,
-                                     coercion_model, parent)
+from sage.structure.element cimport have_same_parent, coercion_model, parent
 from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 from sage.structure.element_wrapper cimport ElementWrapper
 from sage.structure.richcmp cimport richcmp
-from sage.data_structures.blas_dict cimport axpy, negate, scal
-from operator import mul
+from sage.data_structures.blas_dict cimport axpy, add, negate, scal
 
 # TODO: Do we want a dense version?
 cdef class LieAlgebraElement(IndexedFreeModuleElement):

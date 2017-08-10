@@ -2143,7 +2143,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
         sage: R.<a> = ZqCR(27, implementation='FLINT')
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Ring
           To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
 
@@ -2267,7 +2267,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Ring
               To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
             sage: g == f
@@ -2295,7 +2295,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: g = copy(f)   # indirect doctest
             sage: g
-            Ring Coercion morphism:
+            Ring morphism:
               From: Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Ring
               To:   Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
             sage: g == f

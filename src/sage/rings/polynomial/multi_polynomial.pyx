@@ -2131,7 +2131,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         if self.parent().ngens() != 2:
             raise ValueError("(=%s) must have two variables"%self)
-        if self.is_homogeneous() != True:
+        if not self.is_homogeneous():
             raise ValueError("(=%s) must be homogenous"%self)
 
         #getting a numerical approximation of the roots of our polynomial

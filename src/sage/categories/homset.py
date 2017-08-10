@@ -5,7 +5,7 @@ The class :class:`Hom` is the base class used to represent sets of morphisms
 between objects of a given category.
 :class:`Hom` objects are usually "weakly" cached upon creation so that they
 don't have to be generated over and over but can be garbage collected together
-with the corresponding objects when these are are not stongly ref'ed anymore.
+with the corresponding objects when these are not strongly ref'ed anymore.
 
 EXAMPLES:
 

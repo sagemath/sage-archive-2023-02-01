@@ -106,16 +106,20 @@ Note that Sage's weak value dictionary is actually an instance of
 
 See :trac:`13394` for a discussion of some of the design considerations.
 """
-########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #                          Nils Bruin <nbruin@sfu.ca>
 #                          Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
-from __future__ import print_function
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 import weakref
 from weakref import KeyedRef
@@ -125,7 +129,7 @@ from cpython.dict cimport *
 from cpython.weakref cimport PyWeakref_NewRef
 from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
-from dict_del_by_value cimport *
+from sage.cpython.dict_del_by_value cimport *
 
 cdef extern from "Python.h":
     PyObject* Py_None

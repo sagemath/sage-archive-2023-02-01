@@ -1470,7 +1470,7 @@ class IntegerListsLexIter(object):
 
         lower_bound = max(0, p.floor(i))
         upper_bound = min(max_sum, p.ceiling(i))
-        if prev != None:
+        if prev is not None:
             lower_bound = max(lower_bound, prev + p.min_slope)
             upper_bound = min(upper_bound, prev + p.max_slope)
 

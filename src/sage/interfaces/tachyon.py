@@ -173,7 +173,7 @@ class TachyonRT(SageObject):
             Tachyon Parallel/Multiprocessor Ray Tracer   Version...
         """
         r = os.popen('tachyon').read()
-        if use_pager == True:
+        if use_pager:
             pager()(r)
         else:
             print(r)
@@ -781,7 +781,7 @@ properly.
         from sage.misc.sagedoc import format
         f = format(s)
         f = f.replace('{ ','').replace('}','').replace('{','')
-        if use_pager == True:
+        if use_pager:
             pager()(f)
         else:
             print(f)

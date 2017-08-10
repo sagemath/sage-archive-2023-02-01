@@ -14,7 +14,7 @@ How to use
 ==========
 
 To enable this metaclass mechanism, you need to put
-``cimport sage.misc.cython_metaclass`` in your module (in the ``.pxd``
+``cimport sage.cpython.cython_metaclass`` in your module (in the ``.pxd``
 file if you are using one).
 
 In the extension type (a.k.a. ``cdef class``) for which you want to
@@ -24,7 +24,7 @@ metaclass:
 
 .. code-block:: cython
 
-    cimport sage.misc.cython_metaclass
+    cimport sage.cpython.cython_metaclass
     cdef class MyCustomType(object):
         def __getmetaclass__(_):
             from foo import MyMetaclass
@@ -65,7 +65,7 @@ In Python, this would be ``meta.__init__(cls, name, bases, dict)``.
 EXAMPLES::
 
     sage: cython('''
-    ....: cimport sage.misc.cython_metaclass
+    ....: cimport sage.cpython.cython_metaclass
     ....: cdef class MyCustomType(object):
     ....:     def __getmetaclass__(_):
     ....:         class MyMetaclass(type):
@@ -102,7 +102,7 @@ Check that a proper exception is raised if ``__getmetaclass__``
 returns a non-type::
 
     sage: cython('''
-    ....: cimport sage.misc.cython_metaclass
+    ....: cimport sage.cpython.cython_metaclass
     ....: cdef class MyCustomType(object):
     ....:     def __getmetaclass__(_):
     ....:         return 2

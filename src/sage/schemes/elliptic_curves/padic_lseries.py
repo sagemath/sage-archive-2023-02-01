@@ -90,6 +90,7 @@ from sage.rings.integer import Integer
 from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 
 from sage.misc.all import verbose, denominator, get_verbose
 import sage.arith.all as arith
@@ -102,6 +103,8 @@ from sage.misc.functional import log
 
 from sage.misc.decorators import rename_keyword
 
+
+@richcmp_method
 class pAdicLseries(SageObject):
     r"""
     The `p`-adic L-series of an elliptic curve.
@@ -216,7 +219,7 @@ class pAdicLseries(SageObject):
         """
         self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
-    def __cmp__(self,other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self and other.
 
@@ -232,11 +235,9 @@ class pAdicLseries(SageObject):
             sage: lp1 == lp3
             False
         """
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return cmp((self._E, self._p), (other._E, other._p))
-
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self._E, self._p), (other._E, other._p), op)
 
     def elliptic_curve(self):
         r"""

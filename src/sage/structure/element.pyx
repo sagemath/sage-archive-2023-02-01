@@ -297,7 +297,7 @@ from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type
-from sage.structure.misc cimport getattr_from_other_class
+from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
@@ -387,11 +387,34 @@ cdef class Element(SageObject):
 
     def _set_parent(self, parent):
         r"""
+        Set the parent of ``self`` to ``parent``.
+
         INPUT:
 
-        - ``parent`` - a SageObject
+        - ``parent`` -- a :class:`Parent`
+
+        .. WARNING::
+
+            Changing the parent of an object is not something you
+            should normally need. It is mainly meant for constructing a
+            new element from scratch, when ``__new__`` or ``__init__``
+            did not set the right parent. Using this method incorrectly
+            can break things badly.
+
+        EXAMPLES::
+
+            sage: q = 3/5
+            sage: parent(q)
+            Rational Field
+            sage: q._set_parent(CC)
+            sage: parent(q)
+            Complex Field with 53 bits of precision
+            sage: q._set_parent(float)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert type to sage.structure.parent.Parent
         """
-        self._parent = parent
+        self._parent = <Parent?>parent
 
     def __getattr__(self, name):
         """
@@ -489,7 +512,7 @@ cdef class Element(SageObject):
             sage: dir(1)         # todo: not implemented
             ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
-        from .misc import dir_with_other_class
+        from sage.cpython.getattr import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
 
     def _repr_(self):

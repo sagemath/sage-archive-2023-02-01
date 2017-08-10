@@ -127,6 +127,24 @@ def SAGE_TMP():
     sage_makedirs(d)
     return d
 
+
+@lazy_string
+def ECL_TMP():
+    """
+    Temporary directory that should be used by ECL interfaces launched from
+    Sage.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import ECL_TMP
+        sage: ECL_TMP
+        l'.../temp/.../ecl'
+    """
+    d = os.path.join(SAGE_TMP, 'ecl')
+    sage_makedirs(d)
+    return d
+
+
 @lazy_string
 def SPYX_TMP():
     """

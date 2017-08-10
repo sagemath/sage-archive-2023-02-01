@@ -145,6 +145,7 @@ Interfaces
 
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
+* :doc:`Python technicalities <cpython/index>`
 
 General Information
 ===================

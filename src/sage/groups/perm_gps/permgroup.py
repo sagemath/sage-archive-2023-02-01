@@ -152,6 +152,9 @@ from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.functions.other import factorial
 from sage.groups.generic import structure_description
+from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
+                                    richcmp, rich_to_bool, op_EQ)
+
 
 def load_hap():
     """
@@ -348,6 +351,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
                                     canonicalize=canonicalize, category=category)
 
 
+@richcmp_method
 class PermutationGroup_generic(group.FiniteGroup):
     """
     A generic permutation group.
@@ -548,7 +552,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         g = ', '.join([g._gap_cycle_string() for g in self.gens()])
         return 'PermutationGroup<%s | %s>'%(self.degree(), g)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         Compare ``self`` and ``right``.
 
@@ -583,21 +587,23 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: H3 < H1 # since H3 is a subgroup of H1
             True
         """
-        if (not isinstance(right, PermutationGroup_generic) or
-            self.domain() != right.domain()):
-            return -1
+        if not isinstance(right, PermutationGroup_generic):
+            return NotImplemented
+
         if self is right:
-            return 0
+            return rich_to_bool(op, 0)
+
         gSelf = self._gap_()
         gRight = right._gap_()
         gapcmp = gSelf.__cmp__(gRight)
         if not gapcmp:
-            return 0
+            return rich_to_bool(op, 0)
+
         if gSelf.IsSubgroup(gRight):
-            return 1
+            return rich_to_bool(op, 1)
         if gRight.IsSubgroup(gSelf):
-            return -1
-        return gapcmp
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, gapcmp)
 
     def _element_class(self):
         r"""
@@ -2249,7 +2255,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         - Kevin Halasz (2012-8-12)
 
         """
-        if check == True:
+        if check:
             from sage.categories.finite_permutation_groups import FinitePermutationGroups
             if N not in FinitePermutationGroups():
                 raise TypeError("{0} is not a permutation group".format(N))
@@ -4189,6 +4195,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
 PermutationGroup_generic.structure_description = types.MethodType(structure_description, None, PermutationGroup_generic)
 
+
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """
     Subgroup subclass of ``PermutationGroup_generic``, so instance methods
@@ -4274,12 +4281,12 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
                 if g not in ambient:
                     raise TypeError("each generator must be in the ambient group")
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare ``self`` and ``other``.
 
         First, ``self`` and ``other`` are compared as permutation
-        groups, see :meth:`PermutationGroup_generic.__cmp__`.
+        groups, see :meth:`PermutationGroup_generic.__richcmp__`.
 
         Second, if both are equal, the ambient groups are compared,
         where (if necessary) ``other`` is considered a subgroup of
@@ -4287,25 +4294,25 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: G=SymmetricGroup(6)
-            sage: G1=G.subgroup([G((1,2,3,4,5)),G((1,2))])
-            sage: G2=G.subgroup([G((1,2,3,4)),G((1,2))])
-            sage: K=G2.subgroup([G2((1,2,3))])
-            sage: H=G1.subgroup([G1(())])
+            sage: G = SymmetricGroup(6)
+            sage: G1 = G.subgroup([G((1,2,3,4,5)),G((1,2))])
+            sage: G2 = G.subgroup([G((1,2,3,4)),G((1,2))])
+            sage: K = G2.subgroup([G2((1,2,3))])
+            sage: H = G1.subgroup([G1(())])
 
         ``H`` is subgroup of ``K``, and therefore we have::
 
-            sage: H<K
+            sage: H < K
             True
-            sage: K<H
+            sage: K < H
             False
 
         In the next example, both ``H`` and ``H2`` are trivial
         groups, but the ambient group of ``H2`` is strictly contained
         in the ambient group of ``H``, and thus we obtain::
 
-            sage: H2=G2.subgroup([G2(())])
-            sage: H2<H
+            sage: H2 = G2.subgroup([G2(())])
+            sage: H2 < H
             True
 
         Of course, ``G`` as a permutation group and ``G`` considered
@@ -4335,17 +4342,20 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
+
         if not isinstance(other, PermutationGroup_generic):
-            return -1
-        c = PermutationGroup_generic.__cmp__(self, other)
-        if c:
-            return c
+            return NotImplemented
+
+        c = PermutationGroup_generic.__richcmp__(self, other, op_EQ)
+        if not c:
+            return PermutationGroup_generic.__richcmp__(self, other, op)
+
         if hasattr(other, 'ambient_group'):
             o_ambient = other.ambient_group()
         else:
             o_ambient = other
-        return cmp(self.ambient_group(), o_ambient)
+        return richcmp(self.ambient_group(), o_ambient, op)
 
     def _repr_(self):
         r"""

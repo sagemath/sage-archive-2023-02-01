@@ -3339,7 +3339,8 @@ class ClusterSeed(SageObject):
 
     def mutation_class_iter( self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False ):
         r"""
-        Returns an iterator for the mutation class of ``self`` with respect to certain constrains.
+        Returns an iterator for the mutation class of ``self`` with respect to certain constrains. 
+        
 
         INPUT:
 
@@ -3545,6 +3546,8 @@ class ClusterSeed(SageObject):
     def mutation_class( self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False ):
         r"""
         Returns the mutation class of ``self`` with respect to certain constraints.
+
+        NOTE: Vertex labels are not tracked in this method.
 
         INPUT:
 

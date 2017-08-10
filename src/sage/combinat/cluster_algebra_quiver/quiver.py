@@ -318,7 +318,7 @@ class ClusterQuiver(SageObject):
             if not _principal_part(data).is_skew_symmetrizable( positive=True ):
                 raise ValueError('The principal part of the matrix data must be skew-symmetrizable.')
 
-            if frozen is not None and type(frozen) in [int,Integer]:
+            if frozen is not None:
                 print('The input data is a matrix, therefore the additional parameter frozen is ignored.  Frozen vertices read off accordingly if the matrix is not square.')
 
             self._M = copy(data).sparse_matrix()
@@ -1074,26 +1074,26 @@ class ClusterQuiver(SageObject):
         """
         return self._m
 
-    def nlist(self):
+    def free_vertices(self):
         """
-        Returns the list of free vertices of self.
+        Returns the list of *free vertices* of self.
         
         EXAMPLES::
         
             sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['b','d'])
-            sage: Q.nlist()
+            sage: Q.free_vertices()
             ['a', 'c', 'e']
         """
         return self._nlist
     
-    def mlist(self):
+    def frozen_vertices(self):
         """
-        Returns the list of frozen vertices of self.
+        Returns the list of *frozen vertices* of self.
         
         EXAMPLES::
         
             sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['b','d'])
-            sage: Q.mlist()
+            sage: Q.frozen_vertices()
             ['b', 'd']
         """
         return self._mlist
@@ -1150,12 +1150,12 @@ class ClusterQuiver(SageObject):
             if not set(new_frozen).issubset(set(dg.vertices())):
                 raise ValueError("The optional list of frozen elements must be vertices of the digraph.")
             else:
-                if keep_previous_frozen == True:
+                if keep_previous_frozen:
                     total_frozen = self._mlist
                     for fz in new_frozen:
                         if fz not in total_frozen:
                             total_frozen.append(fz)
-                elif keep_previous_frozen == False:
+                else:
                     total_frozen = new_frozen
 
         else:

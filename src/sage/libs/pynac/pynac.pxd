@@ -118,7 +118,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
         GEx subs_map "subs" (GExMap map, unsigned options) except +
-        GEx coeff(GEx expr, int n)    except +
+        GEx coeff(GEx expr, GEx n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
         void coefficients(GEx s, vector[pair[GEx,GEx]]) except +

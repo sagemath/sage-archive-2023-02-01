@@ -364,7 +364,7 @@ class ClusterQuiver(SageObject):
                 else:
                     mlist = self._mlist = list(frozen)
                     nlist = self._nlist = [x for x in data.vertices() if x not in mlist]
-                    labelDict = dict(zip(nlist + mlist, range(len(nlist) + len(mlist))))
+                    labelDict = {(nlist + mlist)[i]: range(len(nlist) + len(mlist))[i] for i in range(data.order())}
                     m = self._m = len(frozen)
                     n = self._n = data.order() - m
 

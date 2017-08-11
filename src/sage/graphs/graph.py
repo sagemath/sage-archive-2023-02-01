@@ -7080,12 +7080,6 @@ class Graph(GenericGraph):
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.
 
-        .. NOTE::
-
-            In order to use this method you must install the
-            ``modular_decomposition`` optional package. See
-            :mod:`sage.misc.package`.
-
         EXAMPLES:
 
         The Petersen Graph and the Bull Graph are both prime::

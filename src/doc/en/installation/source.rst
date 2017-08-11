@@ -964,8 +964,8 @@ Here are some of the more commonly used variables affecting the build process:
 
   .. note::
 
-     As of this writing (April 2013, Sage 5.8), the test suite for the
-     Python 2 and 3 spkgs fails on most platforms.
+     As of this writing (April 2013, Sage 5.8), the test suites for the
+     Python 2 and 3 spkgs fail on most platforms.
      So when this variable is empty or unset, Sage uses a default of
      ``!python2,!python3``.
 

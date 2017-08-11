@@ -3229,8 +3229,8 @@ class DiGraph(GenericGraph):
 
         A flowgraph `G = (V, A, r)` is a digraph where every vertex in `V` is
         reachable from a distinguished root vertex `r\in V`. In such digraph, a
-        vertex `w` dominates a vertex `v` if every path from `root` to `v`
-        includes `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
+        vertex `w` dominates a vertex `v` if every path from `r` to `v` includes
+        `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
         Obviously, `r` and `v`, the trivial dominators of `v`, are in
         `dom(v)`. For `v \neq r`, the immediate dominator of `v`, denoted by
         `d(v)`, is the unique vertex `w \neq v` that dominates `v` and is
@@ -3255,12 +3255,6 @@ class DiGraph(GenericGraph):
 
         OUTPUT: The (immediate) dominator tree rooted at `r`, encoded as a
         predecessor dictionary.
-
-        .. SEEALSO::
-
-            - :wikipedia:`Dominator_(graph_theory)`
-            - :meth:`~DiGraph.strong_articulation_points`
-            - :meth:`~DiGraph.strongly_connected_components`
 
         EXAMPLES:
 
@@ -3301,6 +3295,12 @@ class DiGraph(GenericGraph):
             sage: D_reverse = D.reverse()
             sage: D_reverse.immediate_dominators(0) == idom
             True
+
+        .. SEEALSO::
+
+            - :wikipedia:`Dominator_(graph_theory)`
+            - :meth:`~DiGraph.strong_articulation_points`
+            - :meth:`~DiGraph.strongly_connected_components`
 
         TESTS:
 
@@ -3384,11 +3384,6 @@ class DiGraph(GenericGraph):
 
         OUTPUT: The list of strong articulation points.
 
-        .. SEEALSO::
-
-            - :meth:`~DiGraph.strongly_connected_components`
-            - :meth:`~DiGraph.immediate_dominators`
-
         EXAMPLES:
 
         Two cliques sharing a vertex::
@@ -3410,6 +3405,11 @@ class DiGraph(GenericGraph):
             sage: D.add_edge(6, 2)
             sage: D.strong_articulation_points()
             []
+
+        .. SEEALSO::
+
+            - :meth:`~DiGraph.strongly_connected_components`
+            - :meth:`~DiGraph.immediate_dominators`
 
         TESTS:
 

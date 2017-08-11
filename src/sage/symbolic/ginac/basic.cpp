@@ -346,12 +346,12 @@ int basic::ldegree(const ex & s) const
 }
 
 /** Return coefficient of degree n in object s. */
-ex basic::coeff(const ex & s, int n) const
+ex basic::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
-		return n==1 ? _ex1 : _ex0;
+		return n.is_integer_one() ? _ex1 : _ex0;
 	else
-		return n==0 ? *this : _ex0;
+		return n.is_zero() ? *this : _ex0;
 }
 
 /** Sort expanded expression in terms of powers of some object(s).

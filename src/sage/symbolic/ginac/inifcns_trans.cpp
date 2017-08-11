@@ -99,7 +99,7 @@ static ex exp_eval(const ex & x)
                                 // like I. To make this check should be faster
                                 // than the following
 
-		ex coef_pi = x.coeff(Pi).expand();
+		ex coef_pi = x.coeff(Pi,_ex1).expand();
 		ex rem = _ex0;
 		if (is_exactly_a<add>(coef_pi)) {
 			for (size_t i=0; i < coef_pi.nops(); i++) {

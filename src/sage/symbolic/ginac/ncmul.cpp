@@ -230,15 +230,15 @@ int ncmul::ldegree(const ex & s) const
 	return deg_sum;
 }
 
-ex ncmul::coeff(const ex & s, int n) const
+ex ncmul::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
-		return n==1 ? _ex1 : _ex0;
+		return n.is_integer_one() ? _ex1 : _ex0;
 
 	exvector coeffseq;
 	coeffseq.reserve(seq.size());
 
-	if (n == 0) {
+	if (n.is_zero()) {
 		// product of individual coeffs
 		// if a non-zero power of s is found, the resulting product will be 0
 		auto it=seq.begin();

@@ -232,7 +232,7 @@ public:
 	virtual bool is_polynomial(const ex & var) const;
 	virtual int degree(const ex & s) const;
 	virtual int ldegree(const ex & s) const;
-	virtual ex coeff(const ex & s, int n = 1) const;
+	virtual ex coeff(const ex & s, const ex & n) const;
 
 	// expand/collect
 	virtual ex expand(unsigned options = 0) const;

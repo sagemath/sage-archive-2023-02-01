@@ -1027,8 +1027,8 @@ int numeric::ldegree(const ex & s) const {
         return 0;
 }
 
-ex numeric::coeff(const ex & s, int n) const {
-        return n == 0 ? * this : _ex0;
+ex numeric::coeff(const ex & s, const ex & n) const {
+        return n.is_zero() ? * this : _ex0;
 }
 
 /** Disassemble real part and imaginary part to scan for the occurrence of a

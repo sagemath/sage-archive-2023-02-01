@@ -599,12 +599,12 @@ int mul::ldegree(const ex & s) const
 	return deg_sum;
 }
 
-ex mul::coeff(const ex & s, int n) const
+ex mul::coeff(const ex & s, const ex & n) const
 {
 	exvector coeffseq;
 	coeffseq.reserve(seq.size()+1);
 	
-	if (n==0) {
+	if (n.is_zero()) {
 		// product of individual coeffs
 		// if a non-zero power of s is found, the resulting product will be 0
                 for (const auto & elem : seq)

@@ -354,7 +354,7 @@ int add::ldegree(const ex & s) const
 	return deg;
 }
 
-ex add::coeff(const ex & s, int n) const
+ex add::coeff(const ex & s, const ex & n) const
 {
 	epvector coeffseq;
 	epvector coeffseq_cliff;

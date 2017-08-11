@@ -431,32 +431,24 @@ int power::ldegree(const ex & s) const
 		return 0;
 }
 
-ex power::coeff(const ex & s, int n) const
+ex power::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
-		return n==1 ? _ex1 : _ex0;
+		return n.is_integer_one() ? _ex1 : _ex0;
 	else if (!basis.is_equal(s)) {
 		// basis not equal to s
-		if (n == 0)
+		if (n.is_zero())
 			return *this;
 		else
 			return _ex0;
 	} else {
 		// basis equal to s
-		if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_integer()) {
-			// integer exponent
-			int int_exp = ex_to<numeric>(exponent).to_int();
-			if (n == int_exp)
-				return _ex1;
-			else
-				return _ex0;
-		} else {
-			// non-integer exponents are treated as zero
-			if (n == 0)
-				return *this;
-			else
-				return _ex0;
-		}
+                if (n.is_zero())
+                        return _ex0;
+                else if (exponent.is_equal(n))
+                        return _ex1;
+                else
+                        return _ex0;
 	}
 }
 

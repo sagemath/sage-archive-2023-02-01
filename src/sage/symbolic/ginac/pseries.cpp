@@ -336,14 +336,16 @@ int pseries::ldegree(const ex &s) const
  *  If s is not the expansion variable, an attempt is made to convert the
  *  series to a polynomial and return the corresponding coefficient from
  *  there. */
-ex pseries::coeff(const ex &s, int n) const
+ex pseries::coeff(const ex &s, const ex & n) const
 {
 	if (var.is_equal(s)) {
 		if (seq.empty())
 			return _ex0;
 		
 		// Binary search in sequence for given power
-		numeric looking_for = numeric(n);
+                if (not is_exactly_a<numeric>(n))
+                        throw std::runtime_error("can't happen in pseries::coeff");
+		numeric looking_for = ex_to<numeric>(n);
 		int lo = 0, hi = seq.size() - 1;
 		while (lo <= hi) {
 			int mid = (lo + hi) / 2;

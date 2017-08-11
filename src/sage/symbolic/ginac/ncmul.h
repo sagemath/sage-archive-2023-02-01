@@ -58,7 +58,7 @@ public:
 	int degree(const ex & s) const override;
 	int ldegree(const ex & s) const override;
 	ex expand(unsigned options=0) const override;
-	ex coeff(const ex & s, int n=1) const override;
+	ex coeff(const ex & s, const ex & n) const override;
 	ex eval(int level=0) const override;
 	ex evalm() const override;
 	exvector get_free_indices() const override;

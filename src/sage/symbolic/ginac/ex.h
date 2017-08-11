@@ -191,7 +191,7 @@ public:
 	bool is_polynomial(const ex & vars) const;
 	int degree(const ex & s) const { return bp->degree(s); }
 	int ldegree(const ex & s) const { return bp->ldegree(s); }
-	ex coeff(const ex & s, int n = 1) const { return bp->coeff(s, n); }
+	ex coeff(const ex & s, const ex & n) const { return bp->coeff(s, n); }
 	ex lcoeff(const ex & s) const { return coeff(s, degree(s)); }
 	ex tcoeff(const ex & s) const { return coeff(s, ldegree(s)); }
         void coefficients(const ex & s, expairvec & vec) const;

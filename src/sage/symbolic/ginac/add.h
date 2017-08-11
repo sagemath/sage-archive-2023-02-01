@@ -51,7 +51,7 @@ public:
 	bool is_polynomial(const ex & var) const override;
 	int degree(const ex & s) const override;
 	int ldegree(const ex & s) const override;
-	ex coeff(const ex & s, int n=1) const override;
+	ex coeff(const ex & s, const ex & n) const override;
 	ex eval(int level=0) const override;
 	ex series(const relational & r, int order, unsigned options = 0) const override;
         void useries(flint_series_t& fp, int order) const override;

@@ -48,7 +48,7 @@ public:
 	const ex op(size_t i) const override;
 	int degree(const ex &s) const override;
 	int ldegree(const ex &s) const override;
-	ex coeff(const ex &s, int n = 1) const override;
+	ex coeff(const ex &s, const ex & n) const override;
 	ex collect(const ex &s, bool distributed = false) const override;
 	ex eval(int level=0) const override;
 	ex evalf(int level=0, PyObject* parent=nullptr) const override;

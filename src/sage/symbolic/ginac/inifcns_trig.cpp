@@ -71,7 +71,7 @@ static ex sin_eval(const ex & x)
         ex x_red;
         if (has_pi(x)) {
 
-                ex coef_pi = x.coeff(Pi).expand();
+                ex coef_pi = x.coeff(Pi,_ex1).expand();
                 ex rem = _ex0;
                 if (is_exactly_a<add>(coef_pi)) {
                         for (size_t i=0; i < coef_pi.nops(); i++) {
@@ -282,7 +282,7 @@ static ex cos_eval(const ex & x)
         ex x_red;
         if (has_pi(x)) {
 
-                ex coef_pi = x.coeff(Pi).expand();
+                ex coef_pi = x.coeff(Pi,_ex1).expand();
                 ex rem = _ex0;
                 if (is_exactly_a<add>(coef_pi)) {
                         for (size_t i=0; i < coef_pi.nops(); i++) {
@@ -488,7 +488,7 @@ static ex tan_eval(const ex & x)
         ex x_red;
         if (has_pi(x)) {
 
-                ex coef_pi = x.coeff(Pi).expand();
+                ex coef_pi = x.coeff(Pi,_ex1).expand();
                 ex rem = _ex0;
                 if (is_exactly_a<add>(coef_pi)) {
                         for (size_t i=0; i < coef_pi.nops(); i++) {
@@ -755,7 +755,7 @@ static ex cot_eval(const ex & x)
         // Reflection at Pi/2
         const ex ExOverPi = x/Pi;
         if(is_exactly_a<numeric>(ExOverPi)) {
-		ex coef_pi = x.coeff(Pi).expand();
+		ex coef_pi = x.coeff(Pi,_ex1).expand();
 		if (is_exactly_a<numeric>(coef_pi)) {
 			const numeric c = ex_to<numeric>(coef_pi);
 		        if (c.is_rational()) {

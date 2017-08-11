@@ -396,7 +396,7 @@ static matrix solve_system(ex mpoly,
                         auto search = sym_idx.find(sym);
                         if (search == sym_idx.end())
                                 throw std::runtime_error("unknown symbol in solve_system()");
-                        ex coeff = term.coeff(sym);
+                        ex coeff = term.coeff(sym,_ex1);
                         int s = search->second;
                         mat(e, s) = coeff;
                 }

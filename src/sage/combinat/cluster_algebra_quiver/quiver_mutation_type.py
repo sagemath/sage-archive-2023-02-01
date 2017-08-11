@@ -2410,10 +2410,8 @@ def _edge_list_to_matrix(edges, nlist, mlist):
     INPUT:
 
     - ``edges``: the list of edges.
-
-    - ``nlist``: the list of mutable vertices of the quiver. Let n denote the number of mutable vertices.
-
-    - ``mlist``: the list of frozen vertices of the quiver.  Let m denote the number of frozen vertices.
+    - ``nlist``: the list of mutable vertices of the quiver.
+    - ``mlist``: the list of frozen vertices of the quiver.
 
     OUTPUT:
 
@@ -2427,13 +2425,13 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         [ 0  1]
         [-1  0]
         
-        sage: G2 = DiGraph([('a','b',1)])
-        sage: _edge_list_to_matrix(G2.edges(),['a','b'],[])
+        sage: G2 = DiGraph([('a', 'b', 1)])
+        sage: _edge_list_to_matrix(G2.edges(), ['a', 'b'], [])
         [ 0  1]
         [-1  0]
 
-        sage: G3 = DiGraph([('a','b',1),('b','c',1)])
-        sage: _edge_list_to_matrix(G3.edges(),['a','b'],['c'])
+        sage: G3 = DiGraph([('a', 'b', 1), ('b', 'c', 1)])
+        sage: _edge_list_to_matrix(G3.edges(), ['a', 'b'], ['c'])
         [ 0  1]
         [-1  0]
         [ 0 -1]

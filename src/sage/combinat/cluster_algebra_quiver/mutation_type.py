@@ -1476,8 +1476,7 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
                 while mut == mut_tmp:
                     mut = random.randint(0,dg.order()-1)
                 dg_new = _digraph_mutate( dg, mut, dg.order(), 0 )
-                M = _edge_list_to_matrix(dg.edges(),list(range(dg.order())),[])
-                # M_new = _edge_list_to_matrix(dg_new.edges(),range(dg_new.order()),[])
+                M = _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
                 mt_new = _connected_mutation_type( dg_new )
                 if not mt == mt_new:
                     print("FOUND ERROR!")

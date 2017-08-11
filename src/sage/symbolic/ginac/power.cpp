@@ -743,7 +743,33 @@ ex power::eval(int level) const
 					}
 				}
 			}
-		}
+                        else {
+                                // (x*y^(m/n)*z)^(r/s) ---> y^t*(x*z)^(r/s), if t integer
+                                exvector outer, inner;
+                                for (size_t i=0; i<mulref.nops(); ++i) {
+                                        const ex& fac = mulref.op(i);
+                                        ex pfac = power(fac, eexponent);
+                                        if (not is_exactly_a<power>(pfac)
+                                            or ex_to<power>(pfac).exponent.info(info_flags::integer))
+                                                outer.push_back(pfac);
+                                        else
+                                                inner.push_back(fac);
+                                }
+                                if (outer.size() > 0) {
+                                        ex outex, innex;
+                                        if (outer.size() == 1)
+                                                outex = outer[0];
+                                        else
+                                                outex = mul(outer).hold();
+                                        if (inner.size() == 1)
+                                                innex = inner[0];
+                                        else
+                                                innex = mul(inner).hold();
+                                        ex p = power(innex, eexponent).hold();
+                                        return (new mul(outex, p))->setflag(status_flags::dynallocated | status_flags::evaluated);
+                                }
+                        }
+                }
 	}
 
 	// Reduce x^(c/log(x)) to exp(c) if x is positive

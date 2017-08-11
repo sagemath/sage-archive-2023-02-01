@@ -7,7 +7,7 @@ of undirected graphs.
 
 
 #*****************************************************************************
-#       Copyright (C) 2013 YOUR NAME <your email>
+#       Copyright (C) 2017 Lokesh Jain <lokeshj1703@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@ of undirected graphs.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-from sage.all import Graph
+from sage.graphs.graph import Graph
 
 PRIME = 0
 SERIES = 1

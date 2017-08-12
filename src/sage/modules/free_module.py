@@ -5527,11 +5527,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if self.is_sparse():
             s = "Sparse free module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+                "User basis matrix:\n%r" % self.basis_matrix()
         else:
             s = "Free module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+                "User basis matrix:\n%r" % self.basis_matrix()
         return s
 
     def _latex_(self):
@@ -6414,11 +6414,11 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         if self.is_sparse():
             return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "User basis matrix:\n%s"%self.basis_matrix()
+                    "User basis matrix:\n%r" % self.basis_matrix()
         else:
             return "Vector space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "User basis matrix:\n%s"%self.basis_matrix()
+                    "User basis matrix:\n%r" % self.basis_matrix()
 
     def _denominator(self, B):
         """
@@ -6612,11 +6612,11 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         if self.is_sparse():
             return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s"%self.basis_matrix()
+                "Basis matrix:\n%r" % self.basis_matrix()
         else:
             return "Vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s"%self.basis_matrix()
+                "Basis matrix:\n%r" % self.basis_matrix()
 
     def echelon_coordinates(self, v, check=True):
         """

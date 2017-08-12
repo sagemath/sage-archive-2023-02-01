@@ -20780,12 +20780,6 @@ class GenericGraph(GenericGraph_pyx):
           "sage" uses Sage's implementation. If set to ``None`` (default), bliss
           is used when available.
 
-        .. WARNING::
-
-            Since :trac:`14319` the domain of the automorphism group is equal to
-            the graph's vertex set, and the ``translation`` argument has become
-            useless.
-
         OUTPUT: The order of the output is group, order, orbits. However, there
         are options to turn each of these on or off.
 

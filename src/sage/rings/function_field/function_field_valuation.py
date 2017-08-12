@@ -1070,6 +1070,23 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
             to_base = self._to_base._repr_defn().replace('\n', ', ')
         return "%r (in %r after %s)"%(self._base_valuation, self._base_valuation.domain(), to_base)
 
+    def is_discrete_valuation(self):
+        r"""
+        Return whether this is a discrete valuation.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^4 - 1)
+            sage: v = K.valuation(1/x)
+            sage: w0,w1 = v.extensions(L)
+            sage: w0.is_discrete_valuation()
+            True
+
+        """
+        return self._base_valuation.is_discrete_valuation()
+
 
 class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, RationalFunctionFieldValuation_base):
     r"""

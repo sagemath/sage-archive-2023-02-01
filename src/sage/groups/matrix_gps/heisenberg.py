@@ -94,7 +94,8 @@ class HeisenbergGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gap):
         if n in ZZ and n > 0:
             self._n = n
         else:
-            raise TypeError("Degree of Heisenberg group must be a positive integer.")
+            raise TypeError(
+                    "Degree of Heisenberg group must be a positive integer.")
 
         if p in ZZ and p > 1:
             self._ring = ZZ.quo(p)
@@ -160,17 +161,17 @@ class HeisenbergGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gap):
             sage: H = groups.matrix.Heisenberg(n=4);
             sage: H.order()
             +Infinity
-            sage: H = groups.matrix.Heisenberg(p=5);
+            sage: H = groups.matrix.Heisenberg(p=3);
             sage: H.order()
-            15
-            sage: H = groups.matrix.Heisenberg(n=2, p=7); H.order()
-            35
+            27
+            sage: H = groups.matrix.Heisenberg(n=2, p=3); H.order()
+            243
         """
         if self._ring is ZZ:
             from sage.rings.infinity import Infinity
             return Infinity
         else:
-            return ZZ((2*self._n + 1) * self._p)
+            return ZZ(self._p ** (2*self._n + 1))
 
     cardinality = order
 

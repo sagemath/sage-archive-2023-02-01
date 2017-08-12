@@ -205,15 +205,15 @@ def FinitelyGeneratedHeisenbergPresentation(p = 0, n = 1):
     Return a finite presentation of the Heisenberg group.
 
     INPUT:
-
-    - ``n`` -- Elements of the Heisenberg group are (2n+1)x(2n+1) matrices.
-    Notice that if ``n`` equals 1 (which is the default value), the usal Heseinberg group
-    of 3x3 matrices is constructed.
-    
+   
     - ``p`` -- If p is a prime number, then the underlying group is set to
     the finite field of order ``p``. Otherwise, the set of integers is used
     as the underlying field. The default value of ``p`` is 0.
 
+    - ``n`` -- Elements of the Heisenberg group are (n+2)x(n+2) matrices.
+    Notice that if ``n`` equals 1 (which is the default value), the usal Heseinberg group
+    of 3x3 matrices is constructed.
+ 
     OUTPUT:
 
     Finitely generated Heisenberg group over the finite field of order ``p`` or

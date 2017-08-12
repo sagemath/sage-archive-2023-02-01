@@ -67,24 +67,18 @@ public:
 #define GINAC_DECLARE_PRINT_CONTEXT(classname, supername) \
 public: \
 	typedef supername inherited; \
-	friend class function_options; \
-	friend class registered_class_options; \
 public: \
-	static const GiNaC::print_context_class_info &get_class_info_static(); \
+	static const print_context_class_info & get_class_info_static() \
+        { \
+	        static print_context_class_info reg_info = GiNaC::print_context_class_info(GiNaC::print_context_options(#classname, #supername, GiNaC::next_print_context_id++)); \
+        	return reg_info; \
+        } \
 	virtual const GiNaC::print_context_class_info &get_class_info() const { return classname::get_class_info_static(); } \
 	virtual const char *class_name() const { return classname::get_class_info_static().options.get_name(); } \
 	\
 	classname(); \
 	virtual classname * duplicate() const { return new classname(*this); } \
 private:
-
-/** Macro for inclusion in the implementation of each print_context class. */
-#define GINAC_IMPLEMENT_PRINT_CONTEXT(classname, supername) \
-const GiNaC::print_context_class_info &classname::get_class_info_static() \
-{ \
-	static GiNaC::print_context_class_info reg_info = GiNaC::print_context_class_info(GiNaC::print_context_options(#classname, #supername, GiNaC::next_print_context_id++)); \
-	return reg_info; \
-}
 
 
 extern unsigned next_print_context_id;
@@ -93,7 +87,23 @@ extern unsigned next_print_context_id;
 /** Base class for print_contexts. */
 class print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_context, void)
+	friend class function_options;
+	friend class registered_class_options;
+public:
+	typedef void inherited;
+	static const print_context_class_info &get_class_info_static()
+        {
+	        static print_context_class_info reg_info = print_context_class_info(print_context_options("print_context", "void", next_print_context_id++));
+        	return reg_info;
+        }
+	virtual const print_context_class_info &get_class_info() const
+          { return print_context::get_class_info_static(); }
+	virtual const char *class_name() const
+          { return print_context::get_class_info_static().options.get_name(); }
+
+	print_context();
+	virtual print_context * duplicate() const
+          { return new print_context(*this); }
 public:
 	print_context(std::ostream &, unsigned options = 0);
 	virtual ~print_context() {}

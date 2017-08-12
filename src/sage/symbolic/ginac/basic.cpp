@@ -137,11 +137,11 @@ void basic::print(const print_context & c, unsigned level) const
 void basic::print_dispatch(const registered_class_info & ri, const print_context & c, unsigned level) const
 {
 	// Double dispatch on object type and print_context type
-	const registered_class_info * reg_info = &ri;
+	const registered_class_info * r_info = &ri;
 	const print_context_class_info * pc_info = &c.get_class_info();
 
 next_class:
-	const std::vector<print_functor> & pdt = reg_info->options.get_print_dispatch_table();
+	const std::vector<print_functor> & pdt = r_info->options.get_print_dispatch_table();
 
 next_context:
 	unsigned id = pc_info->options.get_id();
@@ -155,9 +155,9 @@ next_context:
 		}
 
 		// Method still not found, try parent class
-		const registered_class_info * parent_reg_info = reg_info->get_parent();
+		const registered_class_info * parent_reg_info = r_info->get_parent();
 		if (parent_reg_info != nullptr) {
-			reg_info = parent_reg_info;
+			r_info = parent_reg_info;
 			pc_info = &c.get_class_info();
 			goto next_class;
 		}

@@ -929,15 +929,15 @@ void numeric::dbgprint() const
 {
         std::string ts;
         switch(t) {
-                case LONG: ts = {"LONG"};
+                case LONG: ts = "LONG";
                           break;
-                case MPZ: ts = {"MPZ"};
+                case MPZ: ts = "MPZ";
                           break;
-                case MPQ: ts = {"MPQ"};
+                case MPQ: ts = "MPQ";
                           break;
                 case PYOBJECT:
                 {
-                        ts = {"PYOBJECT: "};
+                        ts = "PYOBJECT: ";
                         PyObject* to = PyObject_Type(v._pyobject);
                         if (to == nullptr)
                                 ts.append("NULL");

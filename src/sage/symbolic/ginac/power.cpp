@@ -1233,7 +1233,11 @@ private:
 		explicit coolmulti(const std::vector<int>& partition)
 		  : head(nullptr), i(nullptr), after_i(nullptr)
 		{
-			for (unsigned n = 0; n < partition.size(); ++n) {
+                        if (partition.size() <= 0)
+                                throw std::runtime_error("can't happn in coolmuli");
+                        head = new element(partition[0], head);
+                        i = head;
+			for (unsigned n = 1; n < partition.size(); ++n) {
 				head = new element(partition[n], head);
 				if (n <= 1)
 					i = head;

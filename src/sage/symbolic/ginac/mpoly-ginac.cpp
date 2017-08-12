@@ -200,7 +200,7 @@ static void get_symbol_stats(const ex &a, const ex &b, sym_desc_vec &v)
 #endif
 }
 
-
+#if 0
 /** Exact polynomial division of a(X) by b(X) in Z[X].
  *  This functions works like divide() but the input and output polynomials are
  *  in Z[X] instead of Q[X] (i.e. they have integer coefficients). Unlike
@@ -384,6 +384,7 @@ static ex interpolate(const ex &gamma, const numeric &xi, const ex &x, int degre
 	}
 	return (new add(g))->setflag(status_flags::dynallocated);
 }
+#endif
 
 
 /** Compute LCM (Least Common Multiple) of multivariate polynomials in Z[X].

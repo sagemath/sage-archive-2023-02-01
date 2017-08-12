@@ -29,18 +29,6 @@ namespace GiNaC {
 /** Next free ID for print_context types. */
 unsigned next_print_context_id = 0;
 
-
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_context, void)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_dflt, print_context)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_latex, print_context)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_python, print_context)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_python_repr, print_context)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_tree, print_context)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_csrc, print_context)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_csrc_float, print_csrc)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_csrc_double, print_csrc)
-GINAC_IMPLEMENT_PRINT_CONTEXT(print_csrc_cl_N, print_csrc)
-
 print_context::print_context()
 	: s(std::cout), options(0) {}
 print_context::print_context(std::ostream & os, unsigned opt)

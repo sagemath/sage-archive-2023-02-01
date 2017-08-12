@@ -1935,6 +1935,41 @@ done from the right side.""")
         """
         return self.__rank
 
+    def __bool__(self):
+        """
+        Return ``True`` if and only if the rank of this module is
+        non-zero. In other words, this returns ``False`` for the zero
+        module and ``True`` otherwise (apart from the exceptional case
+        where the base ring is the zero ring).
+
+        EXAMPLES::
+
+            sage: bool(QQ^0)
+            False
+            sage: bool(QQ^1)
+            True
+            sage: M = Matrix(2, 3, range(6))
+            sage: bool(M.right_kernel())
+            True
+            sage: bool(M.left_kernel())
+            False
+
+        When the base ring is the zero ring, we still look at the
+        "rank" (which may not be mathematically meaningful)::
+
+            sage: M = Integers(1)^4; M
+            Ambient free module of rank 4 over Ring of integers modulo 1
+            sage: M.rank()
+            4
+            sage: bool(M)
+            True
+            sage: M.cardinality()
+            1
+        """
+        return bool(self.rank())
+
+    __nonzero__ = __bool__
+
     def uses_ambient_inner_product(self):
         r"""
         Return ``True`` if the inner product on this module is

@@ -733,8 +733,8 @@ void function::print(const print_context & c, unsigned level) const
 			    << ", nops=" << nops()
 			    << std::endl;
 			unsigned delta_indent = static_cast<const print_tree &>(c).delta_indent;
-			for (size_t i=0; i<seq.size(); ++i)
-				seq[i].print(c, level + delta_indent);
+			for (auto term : seq)
+				term.print(c, level + delta_indent);
 			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;
 		}
                 else {

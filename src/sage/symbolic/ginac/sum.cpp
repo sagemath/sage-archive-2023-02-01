@@ -548,10 +548,8 @@ ex gosper_term(ex e, ex n)
                 ex val = ex_to<numeric>(solution(i,0));
                 x = x.subs(sym == val);
         }
-        for (size_t i=0; i<syms.size(); ++i) {
-                ex sym = syms[i];
+        for (auto sym : syms)
                 x = x.subs(sym == _ex0);
-        }
         return B*x / C;
 }
 

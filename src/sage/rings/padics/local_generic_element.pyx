@@ -8,11 +8,12 @@ AUTHORS:
 
 - David Roe: initial version
 
-- Julian Rueth (2012-10-15): added inverse_of_unit()
+- Julian Rueth (2012-10-15, 2014-06-25): added inverse_of_unit(); improved
+  add_bigoh()
 """
 #*****************************************************************************
-#       Copyright (C) 2007,2008,2009 David Roe <roed@math.harvard.edu>
-#                     2012 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2007-2013 David Roe <roed@math.harvard.edu>
+#                     2012-2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -381,21 +382,75 @@ cdef class LocalGenericElement(CommutativeRingElement):
         # this doctest doesn't actually test this function, since _sub_ is overridden.
         return self + (-right)
 
-    def add_bigoh(self, prec):
+    def add_bigoh(self, absprec):
         """
-        Returns self to reduced precision ``prec``.
+        Return a copy of this element with ablsolute precision decreased to
+        ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or positive infinity
 
         EXAMPLES::
-            sage: K = Qp(11, 5)
-            sage: L.<a> = K.extension(x^20 - 11)
-            sage: b = a^3 + 3*a^5; b
-            a^3 + 3*a^5 + O(a^103)
-            sage: b.add_bigoh(17)
-            a^3 + 3*a^5 + O(a^17)
-            sage: b.add_bigoh(150)
-            a^3 + 3*a^5 + O(a^103)
+
+            sage: K = QpCR(3,4)
+            sage: o = K(1); o
+            1 + O(3^4)
+            sage: o.add_bigoh(2)
+            1 + O(3^2)
+            sage: o.add_bigoh(-5)
+            O(3^-5)
+
+        One cannot use ``add_bigoh`` to lift to a higher precision; this
+        can be accomplished with :meth:`lift_to_precision`::
+
+            sage: o.add_bigoh(5)
+            1 + O(3^4)
+
+        Negative values of ``absprec`` return an element in the fraction field
+        of the element's parent::
+
+            sage: R = ZpCA(3,4)
+            sage: R(3).add_bigoh(-5)
+            O(3^-5)
+
+        For fixed-mod elements this method truncates the element::
+
+            sage: R = ZpFM(3,4)
+            sage: R(3).add_bigoh(1)
+            O(3^4)
+
+        If ``absprec`` exceeds the precision of the element, then this method
+        has no effect::
+
+            sage: R(3).add_bigoh(5)
+            3 + O(3^4)
+
+        However, a negative value for ``absprec`` leads to an error, since
+        there is no fraction field for fixed-mod elements::
+
+            sage: R(3).add_bigoh(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: absprec must be at least 0
+
+        TESTS:
+
+        Test that this also works for infinity::
+
+            sage: R = ZpCR(3,4)
+            sage: R(3).add_bigoh(infinity)
+            3 + O(3^5)
+            sage: R(0).add_bigoh(infinity)
+            0
+
         """
-        return self.parent()(self, absprec=prec)
+        parent = self.parent()
+        if absprec >= self.precision_absolute():
+            return self
+        if absprec < 0:
+            parent = parent.fraction_field()
+        return parent(self, absprec=absprec)
 
     #def copy(self):
     #    raise NotImplementedError

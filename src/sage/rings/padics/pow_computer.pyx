@@ -190,7 +190,7 @@ cdef class PowComputer_class(SageObject):
                 raise ValueError("result too big")
             return self.pow_Integer(mpz_get_ui(_n.value))
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n) except NULL:
         """
         Provides fast access to an ``mpz_srcptr`` pointing to self.prime^n.
 
@@ -272,7 +272,7 @@ cdef class PowComputer_class(SageObject):
         """
         cdef Integer _n = Integer(n)
         cdef Integer ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.pow_mpz_t_tmp(mpz_get_ui(_n.value)))
+        mpz_set(ans.value, self.pow_mpz_t_tmp(mpz_get_si(_n.value)))
         return ans
 
     cdef mpz_srcptr pow_mpz_t_top(self):
@@ -482,7 +482,9 @@ cdef class PowComputer_base(PowComputer_class):
             mpz_set(self.small_powers[1], prime.value)
         for i in range(2, cache_limit + 1):
             mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
+        sig_on()
         mpz_pow_ui(self.top_power, prime.value, prec_cap)
+        sig_off()
         self.deg = 1
         self.e = 1
         self.f = 1
@@ -533,7 +535,7 @@ cdef class PowComputer_base(PowComputer_class):
         """
         return self.top_power
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n) except NULL:
         """
         Computes self.prime^n.
 
@@ -542,12 +544,27 @@ cdef class PowComputer_base(PowComputer_class):
             sage: PC = PowComputer(3, 5, 10)
             sage: PC._pow_mpz_t_tmp_test(4)
             81
+            sage: PC._pow_mpz_t_tmp_test(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be non-negative
+
         """
+        if n < 0:
+            raise ValueError("n must be non-negative")
         if n <= self.cache_limit:
             return self.small_powers[n]
         if n == self.prec_cap:
             return self.top_power
+        # n may exceed self.prec_cap. Very large values can, however, lead to
+        # out-of-memory situations in the following computation. This
+        # sig_on()/sig_off() prevents sage from crashing in such cases.
+        # It does not have a significant impact on performance. For small
+        # values of n the powers are taken from self.small_powers, for large
+        # values, the computation dominates the cost of the sig_on()/sig_off().
+        sig_on()
         mpz_pow_ui(self.temp_m, self.prime.value, n)
+        sig_off()
         return self.temp_m
 
 pow_comp_cache = {}

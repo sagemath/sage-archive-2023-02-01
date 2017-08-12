@@ -836,6 +836,49 @@ class LocalGeneric(CommutativeRing):
         """
         return self.extension(*args, **kwds)
 
+    def _test_add_bigoh(self, **options):
+        r"""
+        Perform tests on ``add_bigoh``.
+
+        EXAMPLES::
+
+            sage: K = Qp(3)
+            sage: K._test_add_bigoh()
+
+        """
+        tester = self._tester(**options)
+        for x in tester.some_elements():
+            tester.assertEqual(x.add_bigoh(x.precision_absolute()), x)
+            from sage.rings.all import infinity
+            tester.assertEqual(x.add_bigoh(infinity), x)
+            tester.assertEqual(x.add_bigoh(x.precision_absolute()+1), x)
+
+            y = x.add_bigoh(0)
+            tester.assertIs(y.parent(), self)
+            if self.is_capped_absolute():
+                tester.assertEqual(y.precision_absolute(), 0)
+                tester.assertEqual(y, self.zero())
+            elif self.is_capped_relative():
+                tester.assertLessEqual(y.precision_absolute(), 0)
+            elif self.is_fixed_mod() or self.is_floating_point():
+                tester.assertGreaterEqual((x-y).valuation(), 0)
+            else:
+                raise NotImplementedError
+
+            # if absprec < 0, then the result is in the fraction field (see #13591)
+            try:
+                y = x.add_bigoh(-1)
+            except ValueError:
+                tester.assertTrue(self.is_fixed_mod())
+            else:
+                tester.assertIs(y.parent(), self.fraction_field())
+                if not self.is_floating_point():
+                    tester.assertLessEqual(y.precision_absolute(), -1)
+
+            # make sure that we handle very large values correctly
+            absprec = Integer(2)**1000
+            tester.assertEqual(x.add_bigoh(absprec), x)
+
     def _test_residue(self, **options):
         r"""
         Perform some tests on the residue field of this ring.

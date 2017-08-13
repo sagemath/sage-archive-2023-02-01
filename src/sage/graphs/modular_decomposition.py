@@ -16,6 +16,7 @@ of undirected graphs.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
+
 from sage.graphs.graph import Graph
 
 PRIME = 0
@@ -137,19 +138,16 @@ class NodeInfo:
         return self.node_split == RIGHT_SPLIT or self.node_split == BOTH_SPLIT
 
     def __str__(self):
-        string = ""
         if self.node_type == SERIES:
-            string += "SERIES"
+            return "SERIES"
         elif self.node_type == PARALLEL:
-            string += "PARALLEL"
+            return "PARALLEL"
         elif self.node_type == PRIME:
-            string += "PRIME"
+            return "PRIME"
         elif self.node_type == FOREST:
-            string += "FOREST"
+            return "FOREST"
         else:
-            string += "NORMAL"
-
-        return string
+            return "NORMAL"
 
     def __repr__(self):
         return self.__str__()
@@ -178,7 +176,7 @@ def modular_decomposition(graph):
 
     EXAMPLES:
 
-    The Icosahedral graph is Prime:
+    The Icosahedral graph is Prime::
 
         sage: from sage.graphs.modular_decomposition import \
               modular_decomposition, test_modular_decomposition, print_md_tree
@@ -197,7 +195,7 @@ def modular_decomposition(graph):
               10
               3
 
-    The Octahedral graph is not Prime:
+    The Octahedral graph is not Prime::
 
         sage: print_md_tree(modular_decomposition(graphs.OctahedralGraph()))
         SERIES
@@ -211,7 +209,46 @@ def modular_decomposition(graph):
                 0
                 5
 
+    Tetrahedral Graph is Series::
+
+        sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()))
+        SERIES
+              3
+              2
+              1
+              0
+
+    Modular Decomposition tree containing combination of parallel and series modules::
+
+        sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
+        sage: g = Graph(d)
+        sage: print_md_tree(modular_decomposition(g))
+        SERIES
+              5
+              PARALLEL
+                3
+                4
+              PARALLEL
+                1
+                2
+
     TESTS:
+
+    Bad Input::
+
+        sage: g = DiGraph()
+        sage: modular_decomposition(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph must be undirected
+
+    Empty Graph is Prime::
+
+        sage: g = Graph()
+        sage: modular_decomposition(g)
+        [PRIME, []]
+
+    Graph from Marc Tedder implementation of modular decomposition::
 
         sage: d = {1:[5,4,3,24,6,7,8,9,2,10,11,12,13,14,16,17], 2:[1], \
                     3:[24,9,1], 4:[5,24,9,1], 5:[4,24,9,1], 6:[7,8,9,1], \
@@ -222,6 +259,8 @@ def modular_decomposition(graph):
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
 
+    Graph from wikipedia link https://en.wikipedia.org/wiki/File:ModularDecomposition.png ::
+
         sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
                     5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
                     7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
@@ -230,12 +269,16 @@ def modular_decomposition(graph):
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
 
+    Tetrahedral Graph is Series::
+
         sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()))
         SERIES
               3
               2
               1
               0
+
+    Modular Decomposition tree containing combination of parallel and series modules::
 
         sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
         sage: g = Graph(d)
@@ -251,7 +294,7 @@ def modular_decomposition(graph):
 
    """
     if graph._directed:
-        return ValueError("Graph must be undirected")
+        raise ValueError("Graph must be undirected")
 
     if graph.order() == 0:  #Empty Graph
         return create_prime_node()
@@ -317,9 +360,7 @@ def modular_decomposition(graph):
     # are placed left of Source in the forest. root[1][1] is the source
     # and root[1][0] is the MD tree for the neighbours therefore the
     # the first two elements in the list are replaced
-    temp = root[1][1]
-    root[1][1] = root[1][0]
-    root[1][0] = temp
+    root[1][0], root[1][1] = root[1][1], root[1][0]
 
     root[0].node_type = FOREST
     clear_node_split_info(root)
@@ -502,14 +543,14 @@ def assembly(graph, root, vertex_status, vertex_dist):
         # updated left or right are changed every time module is formed.
 
         # First series module is attempted
-        [result, source_index] = check_series(root, left, right,
+        result, source_index = check_series(root, left, right,
                                               source_index, mu)
         if result:
             left = root[1][source_index][1][0]
             continue
 
         # If series module cant be formed, parallel is tried
-        [result, source_index] = check_parallel(graph, root, left, right,
+        result, source_index = check_parallel(graph, root, left, right,
                                                 source_index, mu, vertex_dist,
                                                 vertices_in_component)
         if result:
@@ -518,7 +559,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
 
         # Finally a prime module is formed if both
         # series and parallel can not be created
-        [result, source_index] = check_prime(graph, root, left, right,
+        result, source_index = check_prime(graph, root, left, right,
                                              source_index, mu, vertex_dist,
                                              vertices_in_component)
         if result:
@@ -915,17 +956,13 @@ def compute_mu_for_co_component(graph, component_index, source_index,
 
     """
 
-    # default mu value for a cocomponent
-    mu_for_co_component = root[1][source_index]
-
     for index in range(len(root[1]) - 1, source_index, -1):
         if is_component_connected(graph, component_index,
                                   index, vertices_in_component):
-            mu_for_co_component = root[1][index]
-            return mu_for_co_component
+            return root[1][index]
 
     # return the default value
-    return mu_for_co_component
+    return root[1][source_index]
 
 
 def compute_mu_for_component(graph, component_index, source_index,
@@ -1037,7 +1074,7 @@ def promote_left(root):
 
     while not q.empty():
 
-        [parent, child] = q.get()
+        parent, child = q.get()
 
         if child[0].node_type == NORMAL:
             continue
@@ -1084,7 +1121,7 @@ def promote_right(root):
 
     while not q.empty():
 
-        [parent, child] = q.get()
+        parent, child = q.get()
 
         if child[0].node_type == NORMAL:
             continue
@@ -1130,7 +1167,7 @@ def promote_child(root):
 
     while not q.empty():
 
-        [parent, child] = q.get()
+        parent, child = q.get()
 
         if child[0].node_type == NORMAL:
             continue
@@ -1397,23 +1434,24 @@ def print_md_tree(root):
     - ``root`` -- root of the modular decomposition tree
 
     """
-    recursive_print_md_tree(root, 0)
 
-def recursive_print_md_tree(root, level):
-    """
-    Print the modular decomposition tree at root
-    
-    - ``root`` -- root of the modular decomposition tree 
-    - ``level`` -- indicates the depth of root in the original modular 
-                   decomposition tree
+    def recursive_print_md_tree(root, level):
+        """
+        Print the modular decomposition tree at root
+        
+        - ``root`` -- root of the modular decomposition tree 
+        - ``level`` -- indicates the depth of root in the original modular 
+                       decomposition tree
 
-    """
-    if root[0].node_type != NORMAL:
-        print "  " * level + str(root[0])
-        for tree in root[1]:
-            recursive_print_md_tree(tree, level + 1)
-    else:
-        print "  " * level + str(root[1][0])
+        """
+        if root[0].node_type != NORMAL:
+            print("{}{}".format(level,str(root[0])))
+            for tree in root[1]:
+                recursive_print_md_tree(tree, level + " ")
+        else:
+            print("{}{}".format(level,str(root[1][0])))
+
+    recursive_print_md_tree(root, "")
 
 #=============================================================================
 

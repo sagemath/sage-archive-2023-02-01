@@ -46,7 +46,7 @@ class Queue:
 
     def get(self):
         if self.empty():
-            return ValueError("Queue is empty")
+            raise ValueError("Queue is empty")
         return self.q.pop(0)
 
     def clear(self):
@@ -54,45 +54,45 @@ class Queue:
 
 
 class NodeInfo:
-    """Node class stores information about the node type,
-       node split and index of the node in the parent tree.
-       Node type can be PRIME, SERIES, PARALLEL, NORMAL or FOREST.
-       Node split can be NO_SPLIT, LEFT_SPLIT, RIGHT_SPLIT or BOTH_SPLIT.
-       A node is split in the refinement phase and the split used is
-       propagated to the ancestors.
+    """
+    Node class stores information about the node type, node split and index 
+    of the node in the parent tree. 
 
-       - ``node_type`` -- Specifies the type of node
+    Node type can be PRIME, SERIES, PARALLEL, NORMAL or FOREST. Node split can 
+    be NO_SPLIT, LEFT_SPLIT, RIGHT_SPLIT or BOTH_SPLIT. A node is split in the 
+    refinement phase and the split used is propagated to the ancestors.
 
-            * ``"PARALLEL"`` -- indicates the node is a parallel module
+    - ``node_type`` -- Specifies the type of node
 
-            * ``"SERIES"`` -- indicates the node is a series module
+        * ``"PARALLEL"`` -- indicates the node is a parallel module
 
-            * ``"PRIME"`` -- indicates the node is a prime module
+        * ``"SERIES"`` -- indicates the node is a series module
 
-            * ``"FOREST"`` -- indicates a forest containing trees
+        * ``"PRIME"`` -- indicates the node is a prime module
 
-            * ``"NORMAL"`` -- indicates the node is normal containing a vertex
+        * ``"FOREST"`` -- indicates a forest containing trees
 
-       - ``node_split`` -- Specifies the type of splits which have occurred in
-                           the node and its descendants
+        * ``"NORMAL"`` -- indicates the node is normal containing a vertex
 
-            * ``"LEFT_SPLIT"`` -- indicates a left split has occurred
+    - ``node_split`` -- Specifies the type of splits which have occurred in 
+                        the node and its descendants
 
-            * ``"RIGHT_SPLIT"`` -- indicates a right split has occurred
+        * ``"LEFT_SPLIT"`` -- indicates a left split has occurred
 
-            * ``"BOTH_SPLIT"`` -- indicates both left and right split have
-                                  occurred
+        * ``"RIGHT_SPLIT"`` -- indicates a right split has occurred
 
-            * ``"NO_SPLIT"`` -- indicates no split has occurred
+        * ``"BOTH_SPLIT"`` -- indicates both left and right split have occurred
 
-       - ``index_in_root`` -- specifies the index of the node in the forest
-                              obtained after promotion phase
+        * ``"NO_SPLIT"`` -- indicates no split has occurred
 
-       - ``comp_num`` -- specifies the number given to nodes in a
-                         (co)component before refinement
+    - ``index_in_root`` -- specifies the index of the node in the forest 
+                           obtained after promotion phase
 
-       - ``is_separated`` -- specifies whether a split has occurred with the
-                             node as the root
+    - ``comp_num`` -- specifies the number given to nodes in a (co)component 
+                      before refinement
+
+    - ``is_separated`` -- specifies whether a split has occurred with the node 
+                          as the root
 
     """
 
@@ -105,8 +105,9 @@ class NodeInfo:
 
     def set_node_split(self, node_split):
         """
-        Add node_split to the node split of self. LEFT_SPLIT and
-        RIGHT_SPLIT can exist together in self as BOTH_SPLIT.
+        Add node_split to the node split of self. 
+
+        LEFT_SPLIT and RIGHT_SPLIT can exist together in self as BOTH_SPLIT.
 
         INPUT:
 
@@ -160,10 +161,10 @@ class NodeInfo:
 def modular_decomposition(graph):
     """
     Compute the modular decomposition tree for the input graph.
-    The tree structure is represented in form of nested lists.
-    A tree node is a list with two elements. The first element is
-    object of class NodeInfo and second element is a list which
-    contains other tree nodes.
+
+    The tree structure is represented in form of nested lists. A tree node is 
+    a list with two elements. The first element is object of class NodeInfo 
+    and second element is a list which contains other tree nodes.
 
     INPUT:
 
@@ -181,7 +182,7 @@ def modular_decomposition(graph):
 
         sage: from sage.graphs.modular_decomposition import \
               modular_decomposition, test_modular_decomposition, print_md_tree
-        sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()), 0)
+        sage: print_md_tree(modular_decomposition(graphs.IcosahedralGraph()))
         PRIME
               8
               5
@@ -198,7 +199,7 @@ def modular_decomposition(graph):
 
     The Octahedral graph is not Prime:
 
-        sage: print_md_tree(modular_decomposition(graphs.OctahedralGraph()), 0)
+        sage: print_md_tree(modular_decomposition(graphs.OctahedralGraph()))
         SERIES
               PARALLEL
                 2
@@ -229,7 +230,7 @@ def modular_decomposition(graph):
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
 
-        sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()), 0)
+        sage: print_md_tree(modular_decomposition(graphs.TetrahedralGraph()))
         SERIES
               3
               2
@@ -238,7 +239,7 @@ def modular_decomposition(graph):
 
         sage: d = {2:[4,3,5], 1:[4,3,5], 5:[3,2,1,4], 3:[1,2,5], 4:[1,2,5]}
         sage: g = Graph(d)
-        sage: print_md_tree(modular_decomposition(g), 0)
+        sage: print_md_tree(modular_decomposition(g))
         SERIES
               5
               PARALLEL
@@ -335,276 +336,6 @@ def modular_decomposition(graph):
     else:
         return root
 
-
-def test_modular_decomposition(tree, graph):
-    """
-    This function tests the input modular decomposition tree using recursion.
-
-    INPUT:
-
-    - ``tree`` -- Modular decomposition tree to be tested
-    - ``graph`` -- Graph whose modular decomposition tree needs to be tested
-
-    OUTPUT:
-
-    ``True`` if input ``tree`` is a modular decomposition else ``False``
-
-    EXAMPLES:
-
-        sage: from sage.graphs.modular_decomposition import \
-              modular_decomposition, test_modular_decomposition
-        sage: g = graphs.HexahedralGraph()
-        sage: test_modular_decomposition(modular_decomposition(g), g)
-        True
-
-    """
-    if tree[0].node_type != NORMAL:
-        for module in tree[1]:
-            if not test_module(module, graph):
-                # test whether modules pass the defining
-                # characteristics of modules
-                return False
-            if not test_modular_decomposition(module,
-                                              graph.subgraph(
-                                                  get_vertices(module))):
-                # recursively test the modular decompostion subtrees
-                return False
-
-        if not test_maximal_modules(tree, graph):
-            # test whether the mdoules are maximal in nature
-            return False
-
-    return True
-
-
-def test_maximal_modules(tree, graph):
-    """
-    This function tests maximal nature of modules in a modular decomposition
-    tree. Suppose the module M = [M1, M2, ..., Mn] is the input modular
-    decomposition tree. Algorithm forms pairs like (M1, M2), (M1, M3),
-    ...(M1, Mn); (M2, M3), (M2, M4), ...(M2, Mn); ... and so on and tries to
-    form a module using the pair. If the module formed has same type as M and
-    is of type SERIES or PARALLEL then the formed module is not considered
-    maximal. Otherwise it is considered maximal and M is not a modular
-    decomposition tree.
-
-    INPUT:
-
-    - ``tree`` -- Modular decomposition tree whose modules are tested for
-                  maximal nature
-    - ``graph`` -- Graph whose modular decomposition tree is tested
-
-    OUTPUT:
-
-    ``True`` if all modules at first level in the modular ddecomposition tree
-    are maximal in nature
-
-    """
-    if tree[0].node_type != NORMAL:
-        for index, module in enumerate(tree[1]):
-            for other_index in range(index + 1, len(tree[1])):
-
-                # compute the module formed using modules at index and
-                # other_index
-                module_formed = form_module(index, other_index, tree, graph)
-
-                if module_formed[0]:
-                    # Module formed and the parent of the formed module
-                    # should not both be of type SERIES or PARALLEL
-                    if ((get_node_type(graph.subgraph(module_formed[1])) ==
-                             tree[0].node_type
-                         ) and
-                        (tree[0].node_type == PARALLEL or
-                             tree[0].node_type == SERIES
-                        )):
-                        continue
-                    return False
-    return True
-
-
-def get_node_type(graph):
-    """
-    Return the module type of the root of modular decomposition tree for the
-    input graph
-
-    INPUT:
-
-    - ``graph`` -- Input sage graph
-
-    OUTPUT:
-
-    ``PRIME`` if graph is PRIME, ``PARALLEL`` if graph is PARALLEL and
-    ``SERIES`` if graph is of type SERIES
-
-    """
-    if not graph.is_connected():
-        return PARALLEL
-    elif graph.complement().is_connected():
-        return PRIME
-    return SERIES
-
-
-def form_module(index, other_index, tree, graph):
-    """
-    This function forms a module out of the modules in the module pair. Let
-    modules input be M1 and M2. Let V be the set of vertices in these
-    modules. Suppose x is a neighbor of subset of the vertices in V but not
-    all the vertices and x does not belong to V. Then the set of modules also
-    include the module which contains x. This process is repeated until a
-    module is formed and the formed module if subset of V is returned.
-
-    INPUT:
-
-    - ``index`` -- First module in the module pair
-    - ``other_index`` -- Second module in the module pair
-    - ``tree`` -- Modular decomposition tree which contains the modules in
-                  the module pair
-    - ``graph`` -- Graph whose modular decomposition tree is created
-
-    OUTPUT:
-
-    ``[module_formed, vertices]`` where ``module_formed`` is ``True`` if
-    module is formed else ``False`` and ``vertices`` is a list of verices
-    included in the formed module
-
-    """
-    vertices = set(get_vertices(tree[1][index]) +
-                   get_vertices(tree[1][other_index]))
-
-    # stores all neighbors which are common for all vertices in V
-    common_neighbors = set()
-
-    # stores all neighbors of vertices in V which are outside V
-    all_neighbors = set()
-
-    flag = True
-    while flag:
-        # remove vertices from all_neighbors and common_neighbors
-        all_neighbors = all_neighbors - set(vertices)
-        common_neighbors = common_neighbors - set(vertices)
-
-        for v in vertices:
-            # stores the neighbors of v which are outside the set of vertices
-            neighbor_list = set(graph.neighbors(v))
-            neighbor_list = neighbor_list - vertices
-
-            # update all_neighbors and common_neighbors using the
-            # neighbor_list
-            all_neighbors = all_neighbors | neighbor_list
-            common_neighbors = common_neighbors & neighbor_list
-
-        if all_neighbors == common_neighbors:  # indicates a module is formed
-
-            # module formed covers the entire graph
-            if len(vertices) == graph.order():
-                return [False, vertices]
-
-            return [True, vertices]
-
-        # add modules containing uncommon neighbors into the formed module
-        for v in (all_neighbors - common_neighbors):
-            for index in range(len(tree[1])):
-                if v in get_vertices(tree[1][index]):
-                    vertices = vertices | set(get_vertices(tree[1][index]))
-                    break
-
-def test_module(module, graph):
-    """
-    Test whether input module is actually a module
-
-    INPUT:
-
-    - ``module`` -- Module which needs to be tested
-    - ``graph`` -- Input sage graph which contains the module
-
-    OUTPUT:
-
-    ``True`` if input module is a module by definition else ``False``
-
-    """
-
-    # A single vertex is a module
-    if module[0].node_type == NORMAL:
-        return True
-
-    #vertices contained in module
-    vertices_in_module = get_vertices(module)
-
-    #vertices outside module
-    vertices_outside = list(set(graph.vertices()) - set(vertices_in_module))
-
-    # Nested module with only one child
-    if module[0].node_type != NORMAL and len(module[1]) == 1:
-        return False
-
-    # If children of SERIES module are all SERIES modules
-    if module[0].node_type == SERIES:
-        if children_node_type(module, SERIES):
-            return False
-
-    # If children of PARALLEL module are all PARALLEL modules
-    if module[0].node_type == PARALLEL:
-        if children_node_type(module, PARALLEL):
-            return False
-
-    # check the module by definition. Vertices in a module should all either
-    # be connected or disconnected to any vertex outside module
-    for v in vertices_outside:
-        if not either_connected_or_not_connected(v, vertices_in_module,
-                                                 graph):
-            return False
-    return True
-
-
-def children_node_type(module, node_type):
-    """
-    Test whether node_type of children of a node is same as input node_type
-
-    INPUT:
-
-    - ``module`` -- module which is tested
-    - ``node_type`` -- input node_type
-
-    OUTPUT:
-
-    ``True`` if node_type of children of module is same as input node_type
-    else ``False``
-
-    """
-    for tree in module[1]:
-        if tree[0].node_type != node_type:
-            return False
-    return True
-
-
-def either_connected_or_not_connected(v, vertices_in_module, graph):
-    """
-    Test whether v is connected or disconnected to all vertices in the module
-
-    INPUT:
-
-    - ``v`` -- vertex tested
-    - ``vertices_in_module`` -- list containing vertices in the module
-    - ``graph`` -- graph to which the vertices belong
-
-    OUTPUT:
-
-    ``True`` if v is either connected or disconnected to all the vertices in
-    the module else ``False``
-
-    """
-
-    # marks whether vertex v is connected to first vertex in the module
-    connected = v in graph.neighbors(vertices_in_module[0])
-
-    # if connected is True then all vertices in module should be connected to
-    # v else disconnected
-    for u in vertices_in_module:
-        if ((v in graph.neighbors(u)) != connected):
-            return False
-    return True
-
-
 def number_components(root, vertex_status):
     """
     Function to number the components to the right of SOURCE vertex in the
@@ -660,9 +391,10 @@ def number_cocomponents(root, vertex_status):
 
 def recursively_number_cocomponents(tree, cocomp_num, by_type):
     """
-    recursively number the nodes in the (co)components. If the tree node_type
-    is same as by_type then cocomp_num is incremented before assigning to the
-    subtree else entire tree is numbered by cocomp_num
+    Recursively number the nodes in the (co)components. 
+
+    If the tree node_type is same as by_type then cocomp_num is incremented 
+    before assigning to the subtree else entire tree is numbered by cocomp_num
 
     INPUT:
 
@@ -676,6 +408,23 @@ def recursively_number_cocomponents(tree, cocomp_num, by_type):
     The value incremented to cocomp_num
 
     """
+    
+    # inner function
+    def number_subtree(tree, number):
+        """
+        set the ``comp_num`` for all the nodes in the subtree to ``number``
+
+        INPUT:
+
+        - ``tree`` -- tree to be numbered
+        - ``number`` -- number assigned to the tree
+
+        """
+        tree[0].comp_num = number
+        if tree[0].node_type != NORMAL:
+            for subtree in tree[1]:
+                number_subtree(subtree, number)
+
     orig_cocomp_num = cocomp_num
 
     if tree[0].node_type==by_type:
@@ -691,27 +440,10 @@ def recursively_number_cocomponents(tree, cocomp_num, by_type):
         cocomp_num+=1
     return cocomp_num - orig_cocomp_num
 
-
-def number_subtree(tree, number):
-    """
-    set the ``comp_num`` for all the nodes in the subtree to ``number``
-
-    INPUT:
-
-    - ``tree`` -- tree to be numbered
-    - ``number`` -- number assigned to the tree
-
-    """
-    tree[0].comp_num = number
-    if tree[0].node_type != NORMAL:
-        for subtree in tree[1]:
-            number_subtree(subtree, number)
-
-
 def assembly(graph, root, vertex_status, vertex_dist):
     """
-    It assembles the forest obtained after the promotion phase
-    into a modular decomposition tree.
+    Assemble the forest obtained after the promotion phase into a modular 
+    decomposition tree.
 
     INPUT:
 
@@ -765,7 +497,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
     # source_index
     right = root[1][source_index]
 
-    while not len(root[1]) == 1:
+    while len(root[1]) != 1:
         # source_index is changed everytime a new module is formed therefore
         # updated left or right are changed every time module is formed.
 
@@ -807,8 +539,8 @@ def update_comp_num(root):
     """
     if root[0].node_type != NORMAL:
         root[0].comp_num = root[1][0][0].comp_num
-        for tree in root[1]:
-            update_comp_num(tree)
+        for child in root[1]:
+            update_comp_num(child)
 
 
 def check_prime(graph, root, left, right,
@@ -870,7 +602,7 @@ def check_prime(graph, root, left, right,
             # cocomponent added while cocomponent at left_index
             # has cocomponent to its left with same comp_num
             while has_left_cocomponent_fragment(root, left_index):
-                if left_index - 1 >= 0:
+                if left_index >= 1:
                     left_index -= 1
                     if new_left_index > left_index:
                         left_queue.put(left_index)
@@ -1070,8 +802,8 @@ def check_series(root, left, right, source_index, mu):
 
 def has_left_cocomponent_fragment(root, cocomp_index):
     """
-    Return True if cocomponent at  cocomp_index has a cocomponent
-    to its left with same comp_num
+    Return True if cocomponent at cocomp_index has a cocomponent to its left 
+    with same comp_num
 
     INPUT:
 
@@ -1092,8 +824,8 @@ def has_left_cocomponent_fragment(root, cocomp_index):
 
 def has_right_component_fragment(root, comp_index):
     """
-    Return True if component at  comp_index has a component
-    to its right with same comp_num
+    Return True if component at comp_index has a component to its right with 
+    same comp_num
 
     INPUT:
 
@@ -1115,8 +847,8 @@ def has_right_component_fragment(root, comp_index):
 def has_right_layer_neighbor(graph, root, comp_index,
                              vertex_dist, vertices_in_component):
     """
-    Return True if component at  comp_index has a connected component
-    to its right with vertices at different level from the source vertex
+    Return True if component at comp_index has a connected component to its 
+    right with vertices at different level from the source vertex
 
     INPUT:
 
@@ -1147,7 +879,8 @@ def has_right_layer_neighbor(graph, root, comp_index,
 
 def get_vertex_in(tree):
     """
-    Return a vertex in the tree
+    Return the first vertex encountered in the depth-first traversal of the 
+    tree
 
     INPUT:
 
@@ -1158,10 +891,9 @@ def get_vertex_in(tree):
     Return the first vertex encountered in recursion
 
     """
-    if tree[0].node_type == NORMAL:
-        return tree[1][0]
-    return get_vertex_in(tree[1][0])
-
+    while tree[0].node_type != NORMAL:
+        tree = tree[1][0]
+    return tree[1][0]
 
 def compute_mu_for_co_component(graph, component_index, source_index,
                                 root, vertices_in_component):
@@ -1253,7 +985,7 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
 
     for vertex in vertices:
         neighbors = graph.neighbors(vertex)
-        if not index2_vertices_set.isdisjoint(set(neighbors)):
+        if not index2_vertices_set.isdisjoint(neighbors):
             return True
     return False
 
@@ -1272,23 +1004,25 @@ def get_vertices(component):
     list of vertices in the (co)component
     """
     vertices = []
+
+    # inner recursive function to recurse over the elements in the 
+    # ``component``
+    def recurse_component(root, vertices):
+        if root[0].node_type == NORMAL:
+            vertices.append(root[1][0])
+            return
+        for tree in root[1]:
+            recurse_component(tree, vertices)
+
     recurse_component(component, vertices)
     return vertices
 
-
-def recurse_component(root, vertices):
-    if root[0].node_type == NORMAL:
-        vertices.append(root[1][0])
-        return
-    for tree in root[1]:
-        recurse_component(tree, vertices)
-
-
 def promote_left(root):
     """
-    Perform the promotion phase on the forest root. If child and
-    parent both are marked by LEFT_SPLIT then child is removed and
-    placed just before the parent
+    Perform the promotion phase on the forest root. 
+
+    If child and parent both are marked by LEFT_SPLIT then child is removed 
+    and placed just before the parent
 
     INPUT:
 
@@ -1332,8 +1066,9 @@ def promote_left(root):
 
 def promote_right(root):
     """
-    Perform the promotion phase on the forest root. If child and
-    parent both are marked by RIGHT_SPLIT then child is removed
+    Perform the promotion phase on the forest root. 
+
+    If child and parent both are marked by RIGHT_SPLIT then child is removed 
     and placed just after the parent
 
     INPUT:
@@ -1377,9 +1112,10 @@ def promote_right(root):
 
 def promote_child(root):
     """
-    Perform the promotion phase on the forest `root`. If marked parent
-    has no children it is removed, if it has one child then it is
-    replaced by its child
+    Perform the promotion phase on the forest `root`. 
+
+    If marked parent has no children it is removed, if it has one child then 
+    it is replaced by its child
 
     INPUT:
 
@@ -1420,7 +1156,7 @@ def promote_child(root):
 
 def clear_node_split_info(root):
     """
-    set the node_split of nodes to NO_SPLIT
+    Set the node_split of nodes to NO_SPLIT
 
     INPUT:
 
@@ -1437,7 +1173,7 @@ def clear_node_split_info(root):
 
 def refine(graph, root, vertex_dist, vertex_status):
     """
-    refine the forest based on the active edges
+    Refine the forest based on the active edges
 
     INPUT:
 
@@ -1456,15 +1192,12 @@ def refine(graph, root, vertex_dist, vertex_status):
         if v in vertex_status and vertex_status[v] == SOURCE:
             continue
 
-        x = []  # list of vertices connected through active edges to v
+        # set of vertices connected through active edges to v
+        x = {u for u in graph.neighbor_iterator(v) 
+                        if vertex_dist[u] != vertex_dist[v]}
 
-        # test whether edge e is an active edge
-        for e in graph.edges_incident(v):
-            if vertex_dist[e[0]] != vertex_dist[e[1]]:
-                x.append(e[0] if e[0] != v else e[1])
-
-        if set(x) not in x_used:
-            x_used.append(set(x))
+        if x not in x_used:
+            x_used.append(x)
             maximal_subtrees_with_leaves_in_x(root, v, x,
                                               vertex_status, False, 0)
 
@@ -1495,7 +1228,7 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
 
     - ``root`` -- the forest which needs to be assembled into a MD tree
     - ``v`` -- the vertex used to refine
-    - ``x`` -- list of vertices connected to v and at different distance
+    - ``x`` -- set of vertices connected to v and at different distance
                from source compared to v
     - ``vertex_status`` -- dictionary mapping the vertex to the position
                            w.r.t source
@@ -1503,6 +1236,23 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
     - ``level`` -- indicates the recursion level, 0 for root
 
     """
+
+    def update_node_info(node, node_type, node_split, comp_num, subtree_list):
+        """
+        Set the various fields for a tree node and update its subtrees
+        
+        - ``node`` -- node whose fields need to be updated
+        - ``node_type`` -- node_type to be set
+        - ``node_split`` -- node_split to be set
+        - ``comp_num`` -- comp_num to be set
+        - ``subtree_list`` -- list containing the subtrees
+
+        """
+        node[0].node_type = node_type
+        node[0].node_split = node_split
+        node[0].comp_num = comp_num
+        node[1] = subtree_list
+
     return_split = NO_SPLIT     #initialize split to NO_SPLIT
 
     # all trees in a forest are refined using x
@@ -1589,16 +1339,14 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
             root[1] = []
 
             # add two nodes for Ta and Tb
-            root[1].append(create_parallel_node())
-            root[1][-1][0].node_type = node_type
-            root[1][-1][0].node_split = root[0].node_split
-            root[1].append(create_parallel_node())
-            root[1][-1][0].node_type = node_type
-            root[1][-1][0].node_split = root[0].node_split
-            root[1][-2][1] = Ta
-            root[1][-1][1] = Tb
-            root[1][-2][0].comp_num = Ta[0][0].comp_num
-            root[1][-1][0].comp_num = Tb[0][0].comp_num
+            a = create_parallel_node()
+            update_node_info(a, node_type, root[0].node_split, 
+                             Ta[0][0].comp_num, Ta)
+            b = create_parallel_node()
+            update_node_info(b, node_type, root[0].node_split, 
+                             Tb[0][0].comp_num, Tb)
+            root[1].append(a)
+            root[1].append(b)
 
         return_split = root[0].node_split
         return [flag, return_split]
@@ -1611,25 +1359,340 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
 
 
 def create_prime_node():
+    """
+    Return a prime node with no children
+
+    """
+
     return [NodeInfo(PRIME), []]
 
 
 def create_parallel_node():
+    """
+    Return a parallel node with no children
+
+    """
     return [NodeInfo(PARALLEL), []]
 
 
 def create_series_node():
+    """
+    Return a series node with no children
+
+    """
     return [NodeInfo(SERIES), []]
 
 
 def create_normal_node(vertex):
+    """
+    Return a normal node with no children
+
+    """
     return [NodeInfo(NORMAL), [vertex]]
 
+def print_md_tree(root):
+    """
+    Print the modular decomposition tree
+    
+    - ``root`` -- root of the modular decomposition tree
 
-def print_md_tree(root, level):
+    """
+    recursive_print_md_tree(root, 0)
+
+def recursive_print_md_tree(root, level):
+    """
+    Print the modular decomposition tree at root
+    
+    - ``root`` -- root of the modular decomposition tree 
+    - ``level`` -- indicates the depth of root in the original modular 
+                   decomposition tree
+
+    """
     if root[0].node_type != NORMAL:
         print "  " * level + str(root[0])
         for tree in root[1]:
-            print_md_tree(tree, level + 1)
+            recursive_print_md_tree(tree, level + 1)
     else:
         print "  " * level + str(root[1][0])
+
+#=============================================================================
+
+    # Below functions are implemented to test the modular decomposition tree
+
+#=============================================================================
+
+#Function implemented for testing
+def test_modular_decomposition(tree, graph):
+    """
+    This function tests the input modular decomposition tree using recursion.
+
+    INPUT:
+
+    - ``tree`` -- Modular decomposition tree to be tested
+    - ``graph`` -- Graph whose modular decomposition tree needs to be tested
+
+    OUTPUT:
+
+    ``True`` if input ``tree`` is a modular decomposition else ``False``
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import \
+              modular_decomposition, test_modular_decomposition
+        sage: g = graphs.HexahedralGraph()
+        sage: test_modular_decomposition(modular_decomposition(g), g)
+        True
+
+    """
+    if tree[0].node_type != NORMAL:
+        for module in tree[1]:
+            if not test_module(module, graph):
+                # test whether modules pass the defining
+                # characteristics of modules
+                return False
+            if not test_modular_decomposition(module,
+                                              graph.subgraph(
+                                                  get_vertices(module))):
+                # recursively test the modular decompostion subtrees
+                return False
+
+        if not test_maximal_modules(tree, graph):
+            # test whether the mdoules are maximal in nature
+            return False
+
+    return True
+
+#Function implemented for testing
+def test_maximal_modules(tree, graph):
+    """
+    This function tests maximal nature of modules in a modular decomposition
+    tree. 
+
+    Suppose the module M = [M1, M2, ..., Mn] is the input modular
+    decomposition tree. Algorithm forms pairs like (M1, M2), (M1, M3),
+    ...(M1, Mn); (M2, M3), (M2, M4), ...(M2, Mn); ... and so on and tries to
+    form a module using the pair. If the module formed has same type as M and
+    is of type SERIES or PARALLEL then the formed module is not considered
+    maximal. Otherwise it is considered maximal and M is not a modular
+    decomposition tree.
+
+    INPUT:
+
+    - ``tree`` -- Modular decomposition tree whose modules are tested for
+                  maximal nature
+    - ``graph`` -- Graph whose modular decomposition tree is tested
+
+    OUTPUT:
+
+    ``True`` if all modules at first level in the modular ddecomposition tree
+    are maximal in nature
+
+    """
+    if tree[0].node_type != NORMAL:
+        for index, module in enumerate(tree[1]):
+            for other_index in range(index + 1, len(tree[1])):
+
+                # compute the module formed using modules at index and
+                # other_index
+                module_formed = form_module(index, other_index, tree, graph)
+
+                if module_formed[0]:
+                    # Module formed and the parent of the formed module
+                    # should not both be of type SERIES or PARALLEL
+                    if ((get_node_type(graph.subgraph(module_formed[1])) ==
+                             tree[0].node_type
+                         ) and
+                        (tree[0].node_type == PARALLEL or
+                             tree[0].node_type == SERIES
+                        )):
+                        continue
+                    return False
+    return True
+
+
+#Function implemented for testing
+def get_node_type(graph):
+    """
+    Return the module type of the root of modular decomposition tree for the
+    input graph
+
+    INPUT:
+
+    - ``graph`` -- Input sage graph
+
+    OUTPUT:
+
+    ``PRIME`` if graph is PRIME, ``PARALLEL`` if graph is PARALLEL and
+    ``SERIES`` if graph is of type SERIES
+
+    """
+    if not graph.is_connected():
+        return PARALLEL
+    elif graph.complement().is_connected():
+        return PRIME
+    return SERIES
+
+
+#Function implemented for testing
+def form_module(index, other_index, tree, graph):
+    """
+    This function forms a module out of the modules in the module pair. 
+
+    Let modules input be M1 and M2. Let V be the set of vertices in these
+    modules. Suppose x is a neighbor of subset of the vertices in V but not
+    all the vertices and x does not belong to V. Then the set of modules also
+    include the module which contains x. This process is repeated until a
+    module is formed and the formed module if subset of V is returned.
+
+    INPUT:
+
+    - ``index`` -- First module in the module pair
+    - ``other_index`` -- Second module in the module pair
+    - ``tree`` -- Modular decomposition tree which contains the modules in
+                  the module pair
+    - ``graph`` -- Graph whose modular decomposition tree is created
+
+    OUTPUT:
+
+    ``[module_formed, vertices]`` where ``module_formed`` is ``True`` if
+    module is formed else ``False`` and ``vertices`` is a list of verices
+    included in the formed module
+
+    """
+    vertices = set(get_vertices(tree[1][index]) +
+                   get_vertices(tree[1][other_index]))
+
+    # stores all neighbors which are common for all vertices in V
+    common_neighbors = set()
+
+    # stores all neighbors of vertices in V which are outside V
+    all_neighbors = set()
+
+    while True:
+        # remove vertices from all_neighbors and common_neighbors
+        all_neighbors = all_neighbors - set(vertices)
+        common_neighbors = common_neighbors - set(vertices)
+
+        for v in vertices:
+            # stores the neighbors of v which are outside the set of vertices
+            neighbor_list = set(graph.neighbors(v))
+            neighbor_list = neighbor_list - vertices
+
+            # update all_neighbors and common_neighbors using the
+            # neighbor_list
+            all_neighbors = all_neighbors | neighbor_list
+            common_neighbors = common_neighbors & neighbor_list
+
+        if all_neighbors == common_neighbors:  # indicates a module is formed
+
+            # module formed covers the entire graph
+            if len(vertices) == graph.order():
+                return [False, vertices]
+
+            return [True, vertices]
+
+        # add modules containing uncommon neighbors into the formed module
+        for v in (all_neighbors - common_neighbors):
+            for index in range(len(tree[1])):
+                if v in get_vertices(tree[1][index]):
+                    vertices = vertices | set(get_vertices(tree[1][index]))
+                    break
+
+#Function implemented for testing
+def test_module(module, graph):
+    """
+    Test whether input module is actually a module
+
+    INPUT:
+
+    - ``module`` -- Module which needs to be tested
+    - ``graph`` -- Input sage graph which contains the module
+
+    OUTPUT:
+
+    ``True`` if input module is a module by definition else ``False``
+
+    """
+
+    # A single vertex is a module
+    if module[0].node_type == NORMAL:
+        return True
+
+    #vertices contained in module
+    vertices_in_module = get_vertices(module)
+
+    #vertices outside module
+    vertices_outside = list(set(graph.vertices()) - set(vertices_in_module))
+
+    # Nested module with only one child
+    if module[0].node_type != NORMAL and len(module[1]) == 1:
+        return False
+
+    # If children of SERIES module are all SERIES modules
+    if module[0].node_type == SERIES:
+        if children_node_type(module, SERIES):
+            return False
+
+    # If children of PARALLEL module are all PARALLEL modules
+    if module[0].node_type == PARALLEL:
+        if children_node_type(module, PARALLEL):
+            return False
+
+    # check the module by definition. Vertices in a module should all either
+    # be connected or disconnected to any vertex outside module
+    for v in vertices_outside:
+        if not either_connected_or_not_connected(v, vertices_in_module,
+                                                 graph):
+            return False
+    return True
+
+
+#Function implemented for testing
+def children_node_type(module, node_type):
+    """
+    Test whether node_type of children of a node is same as input node_type
+
+    INPUT:
+
+    - ``module`` -- module which is tested
+    - ``node_type`` -- input node_type
+
+    OUTPUT:
+
+    ``True`` if node_type of children of module is same as input node_type
+    else ``False``
+
+    """
+    for tree in module[1]:
+        if tree[0].node_type != node_type:
+            return False
+    return True
+
+
+#Function implemented for testing
+def either_connected_or_not_connected(v, vertices_in_module, graph):
+    """
+    Test whether v is connected or disconnected to all vertices in the module
+
+    INPUT:
+
+    - ``v`` -- vertex tested
+    - ``vertices_in_module`` -- list containing vertices in the module
+    - ``graph`` -- graph to which the vertices belong
+
+    OUTPUT:
+
+    ``True`` if v is either connected or disconnected to all the vertices in
+    the module else ``False``
+
+    """
+
+    # marks whether vertex v is connected to first vertex in the module
+    connected = graph.has_edge(vertices_in_module[0], v)
+
+    # if connected is True then all vertices in module should be connected to
+    # v else disconnected
+    for u in vertices_in_module:
+        if (graph.has_edge(u,v) != connected):
+            return False
+    return True

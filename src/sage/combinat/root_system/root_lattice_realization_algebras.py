@@ -737,7 +737,7 @@ class Algebras(AlgebrasCategory):
             # In type BC dual we used q^2 and q elsewhere
             # Not sure this is the right thing to do or just a workaround ...
             # This probably makes up for the fact that, in type BC
-            # dual, the null null coroot is twice Sage's deltacheck
+            # dual, the null coroot is twice Sage's deltacheck
             # whereas the null root is delta. So we need to map delta
             # to q^2 in the q_projection.
             # Should this go in q_project instead?

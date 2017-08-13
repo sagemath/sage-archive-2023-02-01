@@ -2033,7 +2033,7 @@ class MPolynomialIdeal_singular_repr(
             sage: x * (y*z + x) in I
             True
 
-        TEST:
+        TESTS:
 
         This example checks :trac:`16301`::
 
@@ -3110,7 +3110,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I < J
             True
 
-        TEST:
+        TESTS:
 
             We test to make sure that pickling works with the cached Groebner basis::
 
@@ -3303,7 +3303,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I == J
             True
 
-        TEST:
+        TESTS:
 
         This example checks :trac:`12802`::
 

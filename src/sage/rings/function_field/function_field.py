@@ -407,11 +407,11 @@ class FunctionField(Field):
         from .function_field_order import FunctionFieldOrder
         if isinstance(source, FunctionFieldOrder):
             K = source.fraction_field()
-            source_to_K = K._generic_convert_map(source)
             if K is self:
-                return source_to_K
+                return self._generic_coerce_map(source)
+            source_to_K = K.coerce_map_from(source)
             K_to_self = self.coerce_map_from(K)
-            if K_to_self:
+            if source_to_K and K_to_self:
                 return K_to_self * source_to_K
         from sage.categories.function_fields import FunctionFields
         if source in FunctionFields():

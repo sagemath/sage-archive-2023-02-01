@@ -365,6 +365,15 @@ class Dokchitser(SageObject):
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.num_coeffs()
             4
+
+        Verify that ``num_coeffs`` works with non-real spectral
+        parameters, e.g. for the L-function of the level 10 Maass form
+        with eigenvalue 2.7341055592527126::
+
+            sage: ev = 2.7341055592527126
+            sage: L = Dokchitser(conductor=10, gammaV=[ev*i, -ev*i],weight=2,eps=1)
+            sage: L.num_coeffs()
+            26
         """
         return Integer(self._gp_call_inst('cflength', T))
 

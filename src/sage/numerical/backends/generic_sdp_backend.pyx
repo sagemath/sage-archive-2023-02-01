@@ -6,7 +6,7 @@ interface with a SDP Solver. All these methods immediately raise
 ``NotImplementedError`` exceptions when called, and are obviously
 meant to be replaced by the solver-specific method. This file can also
 be used as a template to create a new interface : one would only need
-to replace the occurences of ``"Nonexistent_SDP_solver"`` by the
+to replace the occurrences of ``"Nonexistent_SDP_solver"`` by the
 solver's name, and replace ``GenericSDPBackend`` by
 ``SolverName(GenericSDPBackend)`` so that the new solver extends this
 class.

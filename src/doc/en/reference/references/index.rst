@@ -1541,6 +1541,10 @@ REFERENCES:
              related topics in matroid theory. Ph.D. Thesis,
              Northwestern university, 1987.
 
+.. [Ram1991] Arun Ram.
+             *A Frobenius formula for the characters of the Hecke algebras*.
+             Invent. Math. **106** (1991), pp. 461-488.
+
 .. [Rau1979] Gerard Rauzy, "Echanges d'intervalles et transformations
              induites", Acta Arith. 34, no. 3, 203-212, 1980
 
@@ -1603,6 +1607,12 @@ REFERENCES:
 
 .. [Rot2006] Ron Roth, Introduction to Coding Theory, Cambridge
              University Press, 2006
+
+
+.. [RR1997] Arun Ram and Jeffrey Remmel. *Applications of the Frobenius
+            formulas and the characters of the symmetric group and the
+            Hecke algebras of type A*. J. Algebraic Combin.
+            **6** (1997), 59-87.
 
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.

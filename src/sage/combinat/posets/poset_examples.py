@@ -1630,7 +1630,7 @@ def _random_stone_lattice(n):
     ALGORITHM:
 
     Randomly split `n` to some factors. For every factor `p` generate
-    a random distributive lattice on `p-1` elements and add a new new bottom
+    a random distributive lattice on `p-1` elements and add a new bottom
     element to it. Compute the cartesian product of those lattices.
     """
     from sage.arith.misc import factor

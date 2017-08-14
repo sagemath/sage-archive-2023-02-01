@@ -12,6 +12,8 @@ General matrix Constructor
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 import types
 from .matrix_space import MatrixSpace
 from sage.rings.ring import is_Ring

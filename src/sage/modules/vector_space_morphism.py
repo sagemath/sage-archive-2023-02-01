@@ -954,7 +954,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         """
         m = self.matrix()
         msg = ("Vector space morphism represented by the matrix:\n",
-               "{0}\n",
-               "Domain: {1}\n",
-               "Codomain: {2}")
+               "{!r}\n",
+               "Domain: {}\n",
+               "Codomain: {}")
         return ''.join(msg).format(m, self.domain(), self.codomain())

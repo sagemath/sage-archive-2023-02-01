@@ -48,10 +48,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.degree()
             3
 
+        The zero matrix has degree ``-1``::
+
             sage: M = Matrix( pR, 2, 3 )
             sage: M.degree()
             -1
+
+        Any "empty" matrix has degree ``None``::
+
+            sage: M = Matrix( pR, 3, 0 )
+            sage: M.degree()
+
         """
+        if self.nrows()==0 or self.ncols()==0:
+            return None
         return max([ self[i,j].degree() for i in range(self.nrows()) for j in range(self.ncols()) ])
 
     def degree_matrix(self, shifts=None, row_wise=True):
@@ -334,7 +344,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         left-multiplying $M$ by a unimodular matrix, then the shifted row
         (resp. column) degree of $M$ -- once sorted in nondecreasing order --
         is lexicographically minimal.
-        
 
         INPUT:
 

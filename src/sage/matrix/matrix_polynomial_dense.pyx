@@ -28,8 +28,31 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     """
     Dense matrix over a univariate polynomial ring over a field.
 
-    TODO: a word about shifts. And working row-wise/column-wise.
+    TODO a word about shifts. And working row-wise/column-wise.
     """
+
+    def degree(self):
+        r"""
+        Returns the degree of the matrix.
+
+        For a given polynomial matrix, its degree is the maximum of the degrees
+        of all its entries. If the matrix is zero, this is a nonnegative
+        integer; here, the degree of the zero matrix is -1.
+
+        OUTPUT: an integer, greater than or equal to -1.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix( pR, [[3*x+1, 0, 1], [x^3+3, 0, 0]])
+            sage: M.degree()
+            3
+
+            sage: M = Matrix( pR, 2, 3 )
+            sage: M.degree()
+            -1
+        """
+        return max([ self[i,j].degree() for i in range(self.nrows()) for j in range(self.ncols()) ])
 
     def degree_matrix(self, shifts=None, row_wise=True):
         r"""
@@ -57,7 +80,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           then shifts apply to the columns of the matrix and otherwise to its
           rows, as described above.
 
-        OUTPUT: An integer matrix.
+        OUTPUT: an integer matrix.
 
         EXAMPLES::
 

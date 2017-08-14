@@ -670,6 +670,7 @@ fi
 export MAKE
 
 export PIP_INSTALL="sage-pip-install"
+export PIP_FORMAT="columns"
 
 # When building documentation, use MathJax by default. To turn it off,
 # set SAGE_DOC_MATHJAX to be "no" or "False".

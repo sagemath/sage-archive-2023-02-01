@@ -39,7 +39,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         of all its entries. If the matrix is zero, this is a nonnegative
         integer; here, the degree of the zero matrix is -1.
 
-        OUTPUT: an integer, greater than or equal to -1.
+        OUTPUT: an integer.
 
         EXAMPLES::
 
@@ -119,6 +119,102 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return Matrix( ZZ, [[ self[i,j].degree()+shifts[i]
                 if self[i,j]!=0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
+
+    def row_degree(self, shifts=None):
+        r"""
+        Return the (shifted) row degree of the matrix.
+
+        For a given polynomial matrix $M = (M_{i,j})_{i,j}$ with $m$ rows and
+        $n$ columns, its row degree is the tuple $(d_1,\ldots,d_m)$ where $d_i
+        = \max_j(\deg(M_{i,j}))$ for $1\leq i \leq m$. Thus, $d_i=-1$ if
+        the $i$-th row of $M$ is zero, and $d_i \geq 0$ otherwise.
+
+        For given shifts $(s_1,\ldots,s_n) \in \mathbb{Z}^n$, the shifted row
+        degree of $M$ is $(d_1,\ldots,d_m)$ where $d_i =
+        \max_j(\deg(M_{i,j})+s_j)$. Here, if the $i$-th row of $M$ is zero then
+        $d_i =\min(s_1,\ldots,s_n)-1$; otherwise, $d_i$ is larger than this
+        value.
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        OUTPUT: a list of integers.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
+            sage: M.row_degree()
+            [1, 3]
+
+            sage: M.row_degree(shifts=[0,1,2])
+            [2, 3]
+
+        A zero row in a polynomial matrix can be identified in the (shifted)
+        row degree as the entries equal to ``min(shifts)-1``::
+
+            sage: M = Matrix(pR, [[3*x+1, 0, 1], [x^3+3, 0, 0], [0, 0, 0]])
+            sage: M.row_degree()
+            [1, 3, -1]
+
+            sage: M.row_degree(shifts=[-2,1,2])
+            [2, 1, -3]
+        """
+        if shifts==None:
+            return [ max([ self[i,j].degree() for j in range(self.ncols()) ])
+                    for i in range(self.nrows()) ]
+        zero_degree = min(shifts)-1
+        return [ max([ self[i,j].degree() + shifts[j]
+            if self[i,j]!=0 else zero_degree
+            for j in range(self.ncols()) ]) for i in range(self.nrows()) ]
+
+    def column_degree(self, shifts=None):
+        r"""
+        Return the (shifted) column degree of the matrix.
+
+        For a given polynomial matrix $M = (M_{i,j})_{i,j}$ with $m$ rows and
+        $n$ columns, its column degree is the tuple $(d_1,\ldots,d_n)$ where
+        $d_j = \max_i(\deg(M_{i,j}))$ for $1\leq j \leq n$. Thus, $d_j=-1$ if
+        the $j$-th column of $M$ is zero, and $d_j \geq 0$ otherwise.
+
+        For given shifts $(s_1,\ldots,s_m) \in \mathbb{Z}^m$, the shifted
+        column degree of $M$ is $(d_1,\ldots,d_n)$ where $d_j =
+        \max_i(\deg(M_{i,j})+s_i)$. Here, if the $j$-th column of $M$ is zero
+        then $d_j = \min(s_1,\ldots,s_m)-1$; otherwise $d_j$ is larger than
+        this value.
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        OUTPUT: a list of integers.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
+            sage: M.column_degree()
+            [3, -1, 0]
+
+            sage: M.column_degree(shifts=[0,2])
+            [5, -1, 0]
+
+        A zero column in a polynomial matrix can be identified in the (shifted)
+        column degree as the entries equal to ``min(shifts)-1``::
+
+            sage: M.column_degree(shifts=[-2,1])
+            [4, -3, -2]
+        """
+        if shifts==None:
+            return [ max([ self[i,j].degree() for i in range(self.nrows()) ])
+                    for j in range(self.ncols()) ]
+        zero_degree = min(shifts)-1
+        return [ max([ self[i,j].degree() + shifts[i]
+            if self[i,j]!=0 else zero_degree
+            for i in range(self.nrows()) ]) for j in range(self.ncols()) ]
 
     def is_weak_popov(self):
         r"""

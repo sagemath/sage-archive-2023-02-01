@@ -313,8 +313,8 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
 
     The `q`-Onsager algebra depends on a parameter `c` such that
     `c(1) = 1`. We denote the `q`-Onsager algebra with parameter `c`
-    `U_q(O_R)_c`, where `R` is the base ring of the defining Onsager
-    algebra.
+    `U_q(\mathcal{O}_R)_c`, where `R` is the base ring of the
+    defining Onsager algebra.
 
     EXAMPLES:
 
@@ -327,7 +327,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
     The generators are given as pairs, where `G[0,n]` is the generator
     `B_{n\delta+\alpha_1}` and `G[1,n]` is the generator `B_{n\delta}`.
     We use the convention that
-    `n\delta + \alpha_1 \equiv (-n-1)\delta + \alpha_0`.
+    `n\delta + \alpha_1 \equiv (-n-1)\delta + \alpha_0`. ::
 
         sage: G[0,5]
         B[5d+a1]
@@ -465,7 +465,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                                                              self.base_ring())
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -473,10 +473,10 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
             sage: O = lie_algebras.OnsagerAlgebra(QQ)
             sage: Q = O.quantum_group(q=-1)
             sage: latex(Q)
-            U_{-1}(O_{\Bold{Q}})_{-1}
+            U_{-1}(\mathcal{O}_{\Bold{Q}})_{-1}
         """
         from sage.misc.latex import latex
-        return "U_{{{}}}(O_{{{}}})_{{{}}}".format(latex(self._q),
+        return "U_{{{}}}(\\mathcal{{O}}_{{{}}})_{{{}}}".format(latex(self._q),
                             latex(self._g.base_ring()), latex(self._c))
 
     def _repr_term(self, m):

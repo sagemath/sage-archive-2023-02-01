@@ -27,21 +27,35 @@ from sage.rings.integer_ring import ZZ
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     """
     Dense matrix over a univariate polynomial ring over a field.
+
+    TODO: a word about shifts. And working row-wise/column-wise.
     """
 
     def degree_matrix(self, shifts=None, row_wise=True):
         r"""
         Return the matrix of the (shifted) degrees in this matrix.
 
-        math description
+        For a given polynomial matrix $M = (M_{i,j})_{i,j}$, its degree matrix
+        is the matrix $(\deg(M_{i,j}))_{i,j}$ formed by the degrees of its
+        entries. Here, the degree of the zero polynomial is $-1$.
 
-        INPUT::
+        For given shifts $(s_1,\ldots,s_m) \in \mathbb{Z}^m$, the shifted
+        degree matrix of $M$ is either $(\deg(M_{i,j})+s_j)_{i,j}$ if working
+        row-wise, or $(\deg(M_{i,j})+s_i)_{i,j}$ if working column-wise. In the
+        former case, $m$ has to be the number of columns of $M$; in the latter
+        case, the number of its rows. Here, if $M_{i,j}=0$ then the
+        corresponding entry in the shifted degree matrix is
+        $\min(s_1,\ldots,s_m)-1$. For more on shifts and working row-wise
+        versus column-wise, see the class documentation.
+
+        INPUT:
 
         - ``shifts`` -- (optional, default: ``None``) list of integers as
           described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
 
-        - ``row_wise`` -- (default: ``True``) boolean, if ``True``, interprets
-          shifts as column shifts as described above; otherwise as row shifts.
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows, as described above.
 
         OUTPUT: An integer matrix.
 
@@ -57,13 +71,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [ 1 -1  2]
             [ 3 -1 -1]
 
-        blabla::
+        The zero entries in the polynomial matrix can be identified in the
+        (shifted) degree matrix as the entries equal to ``min(shifts)-1``::
 
             sage: M.degree_matrix(shifts=[-2,1,2])
             [-1 -3  2]
             [ 1 -3 -3]
 
-        blabla::
+        Using ``row_wise=False``, the function supports shifts applied to the rows of the matrix (which, in terms of modules, means that we are working column-wise, see the class documentation)::
 
             sage: M.degree_matrix(shifts=[-1,2], row_wise=False)
             [ 0 -2 -1]

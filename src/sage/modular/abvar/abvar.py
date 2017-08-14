@@ -4321,7 +4321,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
     def is_ambient(self):
         """
         Return True if this abelian variety attached to a modular symbols
-        space space is attached to the cuspidal subspace of the ambient
+        space is attached to the cuspidal subspace of the ambient
         modular symbols space.
 
         OUTPUT: bool

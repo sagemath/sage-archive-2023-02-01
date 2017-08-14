@@ -707,7 +707,7 @@ class RiemannSurface(object):
                 wi-=delta
             # If we run 100 iterations without a result, terminate.
             else:
-                raise ConvergenceError("Newton interation fails to converge after %s iterations"%(j,))
+                raise ConvergenceError("Newton iteration fails to converge after %s iterations" % j)
         return neww
 
     def _newton_iteration(self, z0, oldw, epsilon):

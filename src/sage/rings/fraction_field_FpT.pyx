@@ -1105,7 +1105,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
             sage: f(2*t + 2, 2, reduce=False)
             (2*t + 2)/2
 
-        TEST:
+        TESTS:
 
         Check that :trac:`12217` and :trac:`16811` are fixed::
 

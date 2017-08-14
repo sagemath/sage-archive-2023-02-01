@@ -2251,7 +2251,7 @@ def SRG_276_140_58_84():
     r"""
     Return a `(276, 140, 58, 84)`-strongly regular graph.
 
-    The graph is built from from
+    The graph is built from
     :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph`, with
     an added isolated vertex. We then perform a
     :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques, which

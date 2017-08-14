@@ -2257,7 +2257,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
             2
 
-        TEST:
+        TESTS:
 
         Bugfix from :trac:`7673` ::
 

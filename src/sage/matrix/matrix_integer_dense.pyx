@@ -3271,7 +3271,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: B.rational_reconstruction(389) == A/3
             True
 
-        TEST:
+        TESTS:
 
         Check that :trac:`9345` is fixed::
 

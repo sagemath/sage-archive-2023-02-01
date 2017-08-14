@@ -142,6 +142,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         OUTPUT: a list of integers.
 
+        REFERENCES:
+
+        - Non-shifted case: Kailath, what about earlier works?
+
+        - Shifted case: (in sage biblio?) Van Barel - Bultheel 1992, A general
+          module theoretic framework for vector M-Padé and matrix rational
+          interpolation, Section 3.
+
+        - See also the notion of defect from Beckermann 1992. A reliable method
+          for computing M-Padé approximants on arbitrary staircases.
+
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
@@ -192,6 +203,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         OUTPUT: a list of integers.
 
+        REFERENCES:
+
+        - Non-shifted case: Kailath, what about earlier works?
+
+        - Shifted case: (in sage biblio?) Van Barel - Bultheel 1992, A general
+          module theoretic framework for vector M-Padé and matrix rational
+          interpolation, Section 3.
+
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
@@ -215,6 +234,93 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return [ max([ self[i,j].degree() + shifts[i]
             if self[i,j]!=0 else zero_degree
             for i in range(self.nrows()) ]) for j in range(self.ncols()) ]
+
+    def leading_matrix(self, shifts=None, row_wise=True):
+        r"""
+        Return the (shifted) leading matrix of the matrix.
+
+        Let $M = (M_{i,j})_{i,j}$ be a univariate polynomial matrix in
+        $\mathbb{K}[x]^{m \times n}$.  If working row-wise, let
+        $(s_1,\ldots,s_n) \in \mathbb{Z}^n$ be a shift, and let
+        $(d_1,\ldots,d_m)$ denote the shifted row degree of $M$.  If working
+        column-wise, let $(s_1,\ldots,s_m) \in \mathbb{Z}^m$ be a shift, and
+        let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$. Then,
+        the shifted leading matrix of $M$ is the matrix in $\mathbb{K}^{m
+        \times n}$ whose entry $i,j$ is the coefficient of degree $d_i-s_j$ of
+        the entry $i,j$ of $M$.
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows, as described above.
+
+        OUTPUT: a matrix over the base field.
+
+        REFERENCES:
+
+        - (in sage biblio?) Van Barel - Bultheel 1992, A general module theoretic
+          framework for vector M-Padé and matrix rational interpolation,
+          Section 3.
+
+        - Was maybe the non-shifted leading matrix already in Kailath?
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
+            sage: M.leading_matrix()
+            [3 0 0]
+            [1 0 0]
+
+            sage: M.leading_matrix(shifts=[0,1,2])
+            [0 0 1]
+            [1 0 0]
+
+            sage: M.leading_matrix(row_wise=False)
+            [0 0 1]
+            [1 0 0]
+
+            sage: M.leading_matrix(shifts=[-2,1], row_wise=False)
+            [0 0 1]
+            [1 0 0]
+
+            sage: M.leading_matrix(shifts=[2,0], row_wise=False)
+            [3 0 1]
+            [1 0 0]
+        """
+        from sage.matrix.constructor import Matrix
+        if row_wise:
+            row_degree = self.row_degree(shifts)
+            if shifts==None:
+                return Matrix([ [ self[i,j].leading_coefficient()
+                    if (self[i,j]==0 or self[i,j].degree() == row_degree[i])
+                    else 0
+                    for j in range(self.ncols()) ]
+                    for i in range(self.nrows()) ])
+            return Matrix([ [ self[i,j].leading_coefficient()
+                if (self[i,j]==0 or
+                    self[i,j].degree() + shifts[j] == row_degree[i])
+                else 0
+                for j in range(self.ncols()) ]
+                for i in range(self.nrows()) ])
+        else:
+            column_degree = self.column_degree(shifts)
+            if shifts==None:
+                return Matrix([ [ self[i,j].leading_coefficient()
+                    if (self[i,j]==0 or self[i,j].degree() == column_degree[j])
+                    else 0
+                    for j in range(self.ncols()) ]
+                    for i in range(self.nrows()) ])
+            return Matrix([ [ self[i,j].leading_coefficient()
+                if (self[i,j]==0 or
+                    self[i,j].degree() + shifts[i] == column_degree[j])
+                else 0
+                for j in range(self.ncols()) ]
+                for i in range(self.nrows()) ])
 
     def is_weak_popov(self):
         r"""

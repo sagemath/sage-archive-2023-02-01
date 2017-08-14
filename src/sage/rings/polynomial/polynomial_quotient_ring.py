@@ -1849,14 +1849,6 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
             sage: f.is_injective()
             True
 
-        When the leading coefficient is not a unit, then this can fail::
-
-            sage: f = S.quo(2).coerce_map_from(R.quo(2))
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
         """
         if self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus() and self.domain().modulus().leading_coefficient().is_unit():
             if self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective():

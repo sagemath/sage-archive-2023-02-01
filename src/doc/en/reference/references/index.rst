@@ -1176,6 +1176,11 @@ REFERENCES:
 .. [Kur2008] Chris Kurth, "K Farey package for Sage",
              http://wayback.archive-it.org/855/20100510123900/http://www.public.iastate.edu/~kurthc/research/index.html
 
+.. [Kwon2012] Jae-Hoon Kwon. *Crystal bases of* `q`-*deformed Kac Modules
+              over the Quantum Superalgebra* `U_q(\mathfrak{gl}(m|n))`.
+              International Mathematics Research Notices. Vol. 2014, No. 2,
+              pp. 512-550 (2012)
+
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
             singularities" Invent. math. 153, 631-678 (2003)

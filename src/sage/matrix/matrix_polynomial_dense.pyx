@@ -22,11 +22,65 @@ AUTHORS:
 
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.matrix.matrix2 cimport Matrix
+from sage.rings.integer_ring import ZZ
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     """
     Dense matrix over a univariate polynomial ring over a field.
     """
+
+    def degree_matrix(self, shifts=None, row_wise=True):
+        r"""
+        Return the matrix of the (shifted) degrees in this matrix.
+
+        math description
+
+        INPUT::
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (default: ``True``) boolean, if ``True``, interprets
+          shifts as column shifts as described above; otherwise as row shifts.
+
+        OUTPUT: An integer matrix.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix( pR, [[3*x+1, 0, 1], [x^3+3, 0, 0]])
+            sage: M.degree_matrix()
+            [ 1 -1  0]
+            [ 3 -1 -1]
+
+            sage: M.degree_matrix(shifts=[0,1,2])
+            [ 1 -1  2]
+            [ 3 -1 -1]
+
+        blabla::
+
+            sage: M.degree_matrix(shifts=[-2,1,2])
+            [-1 -3  2]
+            [ 1 -3 -3]
+
+        blabla::
+
+            sage: M.degree_matrix(shifts=[-1,2], row_wise=False)
+            [ 0 -2 -1]
+            [ 5 -2 -2]
+        """
+        if shifts==None:
+            return self.apply_map(lambda x: x.degree())
+        from sage.matrix.constructor import Matrix
+        zero_degree = min(shifts)-1
+        if row_wise: 
+            return Matrix( ZZ, [[ self[i,j].degree()+shifts[j]
+                if self[i,j]!=0 else zero_degree
+                for j in range(self.ncols()) ] for i in range(self.nrows())] )
+        else:
+            return Matrix( ZZ, [[ self[i,j].degree()+shifts[i]
+                if self[i,j]!=0 else zero_degree
+                for j in range(self.ncols()) ] for i in range(self.nrows())] )
 
     def is_weak_popov(self):
         r"""

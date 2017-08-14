@@ -36,19 +36,18 @@ AUTHORS:
 - Simon King (2010-05): Improve invariant_generators by using GAP
   for the construction of the Reynolds operator in Singular.
 """
-from __future__ import absolute_import
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
-import types
+from __future__ import absolute_import
 
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
@@ -59,7 +58,6 @@ from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_not_equal, rich_to_bool,
                                     richcmp_method, richcmp)
 from sage.misc.cachefunc import cached_method
-from sage.groups.generic import structure_description
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
@@ -696,4 +694,4 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         return FinitelyGeneratedMatrixGroup_gap(self.degree(), self.base_ring(),
                                                 libgap_subgroup, ambient=self)
 
-MatrixGroup_gap.structure_description = types.MethodType(structure_description, None, MatrixGroup_gap)
+    from sage.groups.generic import structure_description

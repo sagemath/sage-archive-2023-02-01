@@ -1253,13 +1253,13 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         if self.is_sparse():
             s = "Sparse free quadratic module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
             s = "Free quadratic module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
         return s
 
     def __cmp__(self, other):
@@ -1576,13 +1576,13 @@ class FreeQuadraticModule_submodule_with_basis_field(
         if self.is_sparse():
             return "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "Basis matrix:\n%s"%self.basis_matrix() + \
-                    "Inner product matrix:\n%s" % self.inner_product_matrix()
+                    "Basis matrix:\n%r" % self.basis_matrix() + \
+                    "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
             return "Quadratic space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "Basis matrix:\n%s\n"%self.basis_matrix() + \
-                    "Inner product matrix:\n%s" % self.inner_product_matrix()
+                    "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                    "Inner product matrix:\n%r" % self.inner_product_matrix()
 
 class FreeQuadraticModule_submodule_field(
     free_module.FreeModule_submodule_field, FreeQuadraticModule_submodule_with_basis_field):
@@ -1685,13 +1685,13 @@ class FreeQuadraticModule_submodule_field(
         if self.is_sparse():
             return "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
             return "Quadratic space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
 
 #class RealDoubleQuadraticSpace_class(free_module.RealDoubleVectorSpace_class, FreeQuadraticModule_ambient_field):
 #    def __init__(self, dimension, inner_product_matrix, sparse=False):

@@ -558,7 +558,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             if not base:
                 set_from_Rational(self, x.simplest_rational())
             else:
-                xstr = x.str(base)
+                # Truncate in base 10 to match repr(x).
+                # See https://trac.sagemath.org/ticket/21124
+                xstr = x.str(base, truncate=(base == 10))
                 if '.' in xstr:
                     exp = (len(xstr) - (xstr.index('.') +1))
                     p = base**exp

@@ -322,6 +322,59 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
+    def is_reduced(self, shifts=None, row_wise=True):
+        r"""
+        Return ``True`` if and only if the matrix is in shifted reduced form.
+
+        An $m \times n$ univariate polynomial matrix $M$ is said to be in
+        shifted row (resp.  column) reduced form if its shifted leading matrix
+        has rank $m$, with $m \leq n$ (resp. $n$, with $n \leq m$).
+        
+        Equivalently, when considering all the matrices obtained by
+        left-multiplying $M$ by a unimodular matrix, then the shifted row
+        (resp. column) degree of $M$ -- once sorted in nondecreasing order --
+        is lexicographically minimal.
+        
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows, as described above.
+
+        OUTPUT: a boolean value.
+
+        REFERENCES:
+
+        - (in sage biblio?) Van Barel - Bultheel 1992, A general module theoretic
+          framework for vector M-Padé and matrix rational interpolation,
+          Section 3.
+
+        - (in sage biblio?) Beckermann - Labahn - Villard, 1999.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
+            sage: M.is_reduced()
+            False
+
+            sage: M.is_reduced(shifts=[0,1,2])
+            True
+
+            sage: M.is_reduced(shifts=[2,0], row_wise=False)
+            False
+
+            sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0], [0, 1, 0] ])
+            sage: M.is_reduced(shifts=[2,0,0], row_wise=False)
+            True
+        """
+        number_generators = self.nrows() if row_wise else self.ncols()
+        return number_generators == self.leading_matrix(shifts, row_wise).rank()
+
     def is_weak_popov(self):
         r"""
         Return ``True`` if the matrix is in weak Popov form.

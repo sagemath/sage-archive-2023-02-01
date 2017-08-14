@@ -507,6 +507,18 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
             ...
             NotImplementedError
 
+        A case that caused some trouble at some point::
+
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, QQ.valuation(2))
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = K.valuation(v)
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - x^4 - 1)
+            sage: v.extensions(L)
+
         """
         K = self.domain()
         from sage.categories.function_fields import FunctionFields

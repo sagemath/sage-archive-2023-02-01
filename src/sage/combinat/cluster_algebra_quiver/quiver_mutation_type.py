@@ -2424,7 +2424,7 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         sage: _edge_list_to_matrix(G.edges(), [0,1], [])
         [ 0  1]
         [-1  0]
-        
+
         sage: G2 = DiGraph([('a', 'b', 1)])
         sage: _edge_list_to_matrix(G2.edges(), ['a', 'b'], [])
         [ 0  1]

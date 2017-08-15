@@ -400,11 +400,9 @@ class Mathematica(ExtraTabCompletion, Expect):
     Interface to the Mathematica interpreter.
     """
     def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None,
-                 server_tmpdir=None, command=None, verbose_start=False,
-                 use_pipe=True):
-        if command is None:
-            command = os.getenv('SAGE_MATHEMATICA_COMMAND') or 'math'
-        # The following works around the following issues of Mathematica 9 or later
+                 server_tmpdir=None, command=None, verbose_start=False):
+        # We use -rawterm to get a raw text interface in Mathematica 9 or later.
+        # This works around the following issues of Mathematica 9 or later
         # (tested with Mathematica 11.0.1 for Mac OS X x86 (64-bit))
         #
         # 1) If TERM is unset and input is a pseudoterminal, Mathematica shows no
@@ -415,28 +413,10 @@ class Mathematica(ExtraTabCompletion, Expect):
         # the terminal driver).  For example, with TERM=dumb, many spaces and
         # \r's are echoed.  With TERM=vt100 or better, in addition, many escape
         # sequences are printed.
-        if use_pipe:
-            # The fastest and most robust workaround is simply to feed
-            # mathematica input from a pipe, not a pty.  This is achieved by
-            # piping input through cat.
-            # However, in this mode, interrupting mathematica does not work.
-            # The process dies immediately.
-            eval_using_file_cutoff = 1024
-            restart_on_ctrlc = True
-            command = 'cat | {}'.format(command)
-        else:
-            # This workaround works with a pty and sets TERM and COLUMNS.
-            # COLUMNS needs to be big enough (80 is NOT enough -- a whole
-            # read_in_file_command (<<) with a possibly long path plus the
-            # input prompt needs to fit), or otherwise we will get multiline
-            # echo that will confuse the pexpect interface.
-            #
-            # In this mode, interrupting mathematica works in principle,
-            # though the interface is out of sync afterwards, and every other
-            # evaluation leads to an error. (This needs more work.)
-            eval_using_file_cutoff = 200
-            restart_on_ctrlc = False
-            command = 'env TERM=dumb COLUMNS={} {}'.format(eval_using_file_cutoff+20, command)
+        #
+        if command is None:
+            command = os.getenv('SAGE_MATHEMATICA_COMMAND') or 'math -rawterm'
+        eval_using_file_cutoff = 1024
         # Removing terminal echo using "stty -echo" is not essential but it slightly
         # improves performance (system time) and eliminates races of the terminal echo
         # as a possible source of error.
@@ -448,7 +428,6 @@ class Mathematica(ExtraTabCompletion, Expect):
                         name = 'mathematica',
                         command = command,
                         prompt = 'In[[0-9]+]:=',
-                        restart_on_ctrlc = restart_on_ctrlc,
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

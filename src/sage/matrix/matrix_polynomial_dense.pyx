@@ -182,7 +182,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: M.row_degree(shifts=[-2,1,2])
             [2, 1, -3]
+
+        The row degree of a $0\times n$ matrix is the empty list ``[]``, while
+        the row degree of a $m\times 0$ matrix is the list ``[None]*m``::
+            
+            sage: M = Matrix( pR, 0, 3 )
+            sage: M.row_degree()
+            []
+
+            sage: M = Matrix( pR, 3, 0 )
+            sage: M.row_degree()
+            [None, None, None]
         """
+        if self.ncols()==0:
+            return [None]*(self.nrows())
         if shifts==None:
             return [ max([ self[i,j].degree() for j in range(self.ncols()) ])
                     for i in range(self.nrows()) ]
@@ -236,7 +249,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: M.column_degree(shifts=[-2,1])
             [4, -3, -2]
+
+        The column degree of a $0\times n$ matrix is the list ``[None]*n``,
+        while the column degree of a $m\times 0$ matrix is the empty list::
+
+            sage: M = Matrix( pR, 0, 3 )
+            sage: M.column_degree()
+            [None, None, None]
+
+            sage: M = Matrix( pR, 3, 0 )
+            sage: M.column_degree()
+            []
         """
+        if self.nrows()==0:
+            return [None]*(self.ncols())
         if shifts==None:
             return [ max([ self[i,j].degree() for i in range(self.nrows()) ])
                     for j in range(self.ncols()) ]
@@ -383,6 +409,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == self.leading_matrix(shifts, row_wise).rank()
+
+    ##def pivot(self, shifts=None):
+    ##        # input: polynomial matrix A and degree shift s
+    ##        # output: s-pivot index and s-pivot degree of A
+    ##  if s==None:
+    ##    s=[0]*(A.ncols())
+    ##  rdeg = row_degree(A,s)
+    ##  pivind = [ max( [ j for j in range(A.ncols()) if (A[i,j].degree()+s[j] == rdeg[i]) ] ) for i in range(A.nrows()) ]
+    ##  pivdeg = [A[i,pivind[i]].degree() for i in range(A.nrows())]
+    ##  return (pivind,pivdeg)
 
     def is_weak_popov(self):
         r"""

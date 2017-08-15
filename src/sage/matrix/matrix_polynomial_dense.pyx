@@ -410,15 +410,264 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == self.leading_matrix(shifts, row_wise).rank()
 
-    ##def pivot(self, shifts=None):
-    ##        # input: polynomial matrix A and degree shift s
-    ##        # output: s-pivot index and s-pivot degree of A
-    ##  if s==None:
-    ##    s=[0]*(A.ncols())
-    ##  rdeg = row_degree(A,s)
-    ##  pivind = [ max( [ j for j in range(A.ncols()) if (A[i,j].degree()+s[j] == rdeg[i]) ] ) for i in range(A.nrows()) ]
-    ##  pivdeg = [A[i,pivind[i]].degree() for i in range(A.nrows())]
-    ##  return (pivind,pivdeg)
+    def pivot(self, shifts=None, row_wise=True):
+        r"""
+        Return the (shifted) pivot index and the (shifted) pivot degree
+        of the matrix.
+
+        If working row-wise, for a given shift $(s_1,\ldots,s_n) \in
+        \mathbb{Z}^n$, taken as $(0,\ldots,0)$ by default, and a row vector of
+        univariate polynomials $[p_1,\ldots,p_n]$, the pivot index of this
+        vector is the index $j$ of the rightmost nonzero entry $p_j$ such that
+        $\deg(p_j) + s_j$ is equal to the row degree of the vector. Then, for
+        this index $j$, the pivot degree of the vector is the degree
+        $\deg(p_j)$.
+        
+        For the zero row, both the pivot index and degree are $-1$.  For a $m
+        \times n$ polynomial matrix, the pivot index and degree are the two
+        lists containing the pivot index and the pivot degree of its rows.
+
+        The definition is similar if working column-wise.
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows, as described above.
+
+        OUTPUT: a pair of lists of integers.
+
+        REFERENCES:
+
+        - (check) Popov 1972, Invariant Description of Linear, Time-Invariant
+          Controllable Systems
+
+        - (already in sage's biblio?) Kailath Section 6.7.2
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
+            sage: M.pivot()
+            ([0, 0], [1, 3])
+
+            sage: M.pivot(shifts=[0,5,2])
+            ([2, 0], [0, 3])
+
+            sage: M.pivot(row_wise=False)
+            ([1, -1, 0], [3, -1, 0])
+
+            sage: M.pivot(shifts=[1,2], row_wise=False)
+            ([1, -1, 0], [3, -1, 0])
+
+        In case several entries in the row (resp. column) reach the shifted row
+        (resp. column) degree, the pivot is chosen as the rightmost (resp.
+        bottommost) such entry::
+
+            sage: M.pivot(shifts=[0,5,1])
+            ([2, 0], [0, 3])
+
+            sage: M.pivot(shifts=[2,0], row_wise=False)
+            ([1, -1, 0], [3, -1, 0])
+
+        If working row-wise, both the shifted pivot index and degree of a
+        $0\times n$ matrix are the empty list ``[]``, while for a $m\times 0$
+        matrix both are the list ``[None]*m``. A similar property holds when
+        working column-wise::
+            
+            sage: M = Matrix( pR, 0, 3 )
+            sage: M.pivot()
+            ([], [])
+
+            sage: M.pivot(row_wise=False)
+            ([None, None, None], [None, None, None])
+
+            sage: M = Matrix( pR, 3, 0 )
+            sage: M.pivot()
+            ([None, None, None], [None, None, None])
+
+            sage: M.pivot(row_wise=False)
+            ([], [])
+        """
+        if row_wise:
+            if self.ncols()==0:
+                pivot_list = [None]*(self.nrows())
+                return pivot_list,pivot_list
+            row_degree = self.row_degree(shifts)
+            if shifts==None:
+                pivot_index = [ (-1 if row_degree[i]==-1 else
+                    max( [ j for j in range(self.ncols()) if
+                    (self[i,j].degree() == row_degree[i]) ] ))
+                    for i in range(self.nrows()) ]
+            else:
+                zero_degree=min(shifts)-1
+                pivot_index = [ (-1 if row_degree[i]==zero_degree else
+                    max( [ j for j in range(self.ncols()) if
+                    (self[i,j]!=0 and
+                    self[i,j].degree()+shifts[j] == row_degree[i]) ] ))
+                    for i in range(self.nrows()) ]
+            pivot_degree = [ (-1 if pivot_index[i]==-1 else
+                self[i,pivot_index[i]].degree())
+                for i in range(self.nrows()) ]
+            return pivot_index,pivot_degree
+        # now in the column-wise case
+        if self.nrows()==0:
+            pivot_list = [None]*(self.ncols())
+            return pivot_list,pivot_list
+        column_degree = self.column_degree(shifts)
+        if shifts==None:
+            pivot_index = [ (-1 if column_degree[j]==-1 else
+                max( [ i for i in range(self.nrows()) if
+                (self[i,j].degree() == column_degree[j]) ] ))
+                for j in range(self.ncols()) ]
+        else:
+            zero_degree=min(shifts)-1
+            pivot_index = [ (-1 if column_degree[j]==zero_degree else
+                max( [ i for i in range(self.nrows()) if
+                (self[i,j]!=0 and
+                self[i,j].degree()+shifts[i] == column_degree[j]) ] ))
+                for j in range(self.ncols()) ]
+        pivot_degree = [ (-1 if pivot_index[j]==-1 else
+            self[pivot_index[j],j].degree())
+            for j in range(self.ncols()) ]
+        return pivot_index,pivot_degree
+
+    def is_ordered_weak_popov(self, shifts=None, row_wise=True):
+        r"""
+        Return a boolean indicating whether the matrix is in (shifted) ordered
+        weak Popov form.
+
+        If working row-wise (resp. column-wise), a polynomial matrix is said to
+        be in ordered weak Popov form if it has no zero row (resp. column) and
+        its pivot index is strictly increasing.
+
+        Concerning square matrices, this form is sometimes also called the
+        quasi-Popov form.
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows, as described above.
+
+        OUTPUT: a boolean.
+
+        REFERENCES:
+
+        - (already in sage's biblio?) Kailath Section 6.7.2
+
+        - Beckermann-Labahn-Villard 1999.
+
+        - (for the rectangular case ???  Neiger, 2016 phd ??? )
+        """
+        pivot_index = self.pivot(shifts, row_wise)[0]
+        # there should be no zero row (or column if not row_wise)
+        # and the matrix should not be m x 0 (or 0 x n if not row_wise)
+        if len(pivot_index) > 0 and \
+            (pivot_index[0] == None or pivot_index[0] < 0):
+            return False
+        # pivot_index should be strictly increasing
+        for index,next_pivot_index in enumerate(pivot_index[1:]):
+            if next_pivot_index <= pivot_index[index]:
+                return False
+        return True
+
+    def is_popov(self, shifts=None, row_wise=True):
+        r"""
+        Return a boolean indicating whether the matrix is in (shifted) Popov
+        form.
+
+        If working row-wise (resp. column-wise), a polynomial matrix is said to
+        be in Popov form if it has no zero row (resp. column), its pivot index
+        is strictly increasing, and for each row (resp. column) the pivot entry
+        is monic and has degree strictly larger than the other entries in its
+        column (resp. row).
+
+        TODO (optional parameter?). There is another convention, which replaces
+        "pivot index strictly increasing" by "row (resp. column) degree
+        nondecreasing, and for rows (resp. columns) of same degree, pivot
+        indices increasing".
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers as
+          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows, as described above.
+
+        OUTPUT: a boolean.
+
+        REFERENCES:
+
+        - (already in sage's biblio?) Kailath Section 6.7.2
+
+        - (for the shifted, rectangular case) Beckermann-Labahn-Villard 2006.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ], \
+                                   [x^2+6*x+6,       x^2+5*x+5, 2  ], \
+                                   [3*x,             6*x+5,     x+5] ])
+            sage: M.is_popov()
+            True
+
+            sage: M.is_popov(shifts=[0,1,2])
+            True
+
+            sage: M[:,:2].is_popov()
+            False
+
+            sage: M[:2,:].is_popov(shifts=[0,1,2])
+            True
+
+            sage: M = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, x^3+5*x^2+5*x+1], \
+                                   [6*x+1,               x^2 + 4*x + 1  ], \
+                                   [6,                   6              ] ])
+            sage: M.is_popov(row_wise=False)
+            False
+
+            sage: M.is_popov(shifts=[0,2,3], row_wise=False)
+            True
+        """
+        pivot_index,pivot_degree = self.pivot(shifts, row_wise)
+        # there should be no zero row (or column if not row_wise)
+        # and the matrix should not be m x 0 (or 0 x n if not row_wise)
+        if len(pivot_index) > 0 and \
+            (pivot_index[0] == None or pivot_index[0] < 0):
+            return False
+        # pivot_index should be strictly increasing
+        for index,next_pivot_index in enumerate(pivot_index[1:]):
+            if next_pivot_index <= pivot_index[index]:
+                return False
+        # pivot entries should be monic, and pivot degrees must be the greatest
+        # in their column (or in their row if column-wise)
+        for i,index in enumerate(pivot_index):
+            if row_wise:
+                if not self[i,index].is_monic():
+                    return False
+                for k in range(self.nrows()):
+                    if k==i:
+                        continue
+                    if self[k,index].degree() >= pivot_degree[i]:
+                        return False
+            else: # now column-wise
+                if not self[index,i].is_monic():
+                    return False
+                for k in range(self.ncols()):
+                    if k==i:
+                        continue
+                    if self[index,k].degree() >= pivot_degree[i]:
+                        return False
+        return True
 
     def is_weak_popov(self):
         r"""

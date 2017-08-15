@@ -2404,24 +2404,24 @@ def _mutation_type_error(data):
 
 
 def _edge_list_to_matrix(edges, nlist, mlist):
-    """
+    r"""
     Return the matrix obtained from the edge list of a quiver.
 
     INPUT:
 
-    - ``edges``: the list of edges.
-    - ``nlist``: the list of mutable vertices of the quiver.
-    - ``mlist``: the list of frozen vertices of the quiver.
+    - ``edges`` -- the list of edges
+    - ``nlist`` -- the list of mutable vertices of the quiver
+    - ``mlist`` -- the list of frozen vertices of the quiver
 
     OUTPUT:
 
-    - An `(n+m) \times n` matrix corresponding to the edge-list.
+    An `(n+m) \times n` matrix corresponding to the edge-list.
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
         sage: G = QuiverMutationType(['A',2])._digraph
-        sage: _edge_list_to_matrix(G.edges(),[0,1],[])
+        sage: _edge_list_to_matrix(G.edges(), [0,1], [])
         [ 0  1]
         [-1  0]
         
@@ -2450,3 +2450,4 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         if v2 in nlist:
             M[nmlist.index(v1), nmlist.index(v2)] = a
     return M
+

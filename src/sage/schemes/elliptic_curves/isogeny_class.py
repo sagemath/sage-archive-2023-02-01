@@ -990,7 +990,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             sage: E.isogeny_class(order='database')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm

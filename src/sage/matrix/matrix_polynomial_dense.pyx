@@ -77,10 +77,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def degree(self):
         r"""
-        Returns the degree of the matrix.
+        Return the degree of this matrix.
 
         For a given polynomial matrix, its degree is the maximum of the degrees
-        of all its entries. If the matrix is zero, this is a nonnegative
+        of all its entries. If the matrix is nonzero, this is a nonnegative
         integer; here, the degree of the zero matrix is -1.
 
         OUTPUT: an integer.
@@ -155,7 +155,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [-1 -3  2]
             [ 1 -3 -3]
 
-        Using ``row_wise=False``, the function supports shifts applied to the rows of the matrix (which, in terms of modules, means that we are working column-wise, see the class documentation)::
+        Using ``row_wise=False``, the function supports shifts applied to the
+        rows of the matrix (which, in terms of modules, means that we are
+        working column-wise, see the class documentation)::
 
             sage: M.degree_matrix(shifts=[-1,2], row_wise=False)
             [ 0 -2 -1]
@@ -176,7 +178,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def row_degree(self, shifts=None):
         r"""
-        Return the (shifted) row degree of the matrix.
+        Return the (shifted) row degree of this matrix.
 
         For a given polynomial matrix $M = (M_{i,j})_{i,j}$ with $m$ rows and
         $n$ columns, its row degree is the tuple $(d_1,\ldots,d_m)$ where $d_i
@@ -198,11 +200,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         REFERENCES:
 
-        - [Kai1980]_ (does not involve shifts).
+        - [Wol1974]_ (Section 2.5, without shifts), and [VBB1992]_ (Section 3).
 
-        - Section 3 in [VBB1992]_ .
-
-        - See also the notion of defect from [Bec1992]_ .
+        - Up to changes of signs, shifted row degrees coincide with the notion
+          of *defect* commonly used in the rational approximation literature
+          (see for example [Bec1992]_ ).
 
         EXAMPLES::
 
@@ -247,7 +249,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def column_degree(self, shifts=None):
         r"""
-        Return the (shifted) column degree of the matrix.
+        Return the (shifted) column degree of this matrix.
 
         For a given polynomial matrix $M = (M_{i,j})_{i,j}$ with $m$ rows and
         $n$ columns, its column degree is the tuple $(d_1,\ldots,d_n)$ where
@@ -267,7 +269,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         OUTPUT: a list of integers.
 
-        REFERENCES: see the documentation of :meth:`row_degree`.
+        REFERENCES:
+        
+        see the documentation of :meth:`row_degree`.
 
         EXAMPLES::
 
@@ -308,17 +312,34 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def leading_matrix(self, shifts=None, row_wise=True):
         r"""
-        Return the (shifted) leading matrix of the matrix.
+        Return the (shifted) leading matrix of this matrix.
 
-        Let $M = (M_{i,j})_{i,j}$ be a univariate polynomial matrix in
-        $\Bold{K}[x]^{m \times n}$.  If working row-wise, let
-        $(s_1,\ldots,s_n) \in \ZZ^n$ be a shift, and let
-        $(d_1,\ldots,d_m)$ denote the shifted row degree of $M$.  If working
-        column-wise, let $(s_1,\ldots,s_m) \in \ZZ^m$ be a shift, and
-        let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$. Then,
-        the shifted leading matrix of $M$ is the matrix in $\Bold{K}^{m
-        \times n}$ whose entry $i,j$ is the coefficient of degree $d_i-s_j$ of
-        the entry $i,j$ of $M$.
+        Let $M$ be a univariate polynomial matrix in $\Bold{K}[x]^{m \times
+        n}$. Working row-wise and without shifts, its leading matrix is the
+        matrix in $\Bold{K}^{m \times n}$ formed by the leading coefficients of
+        the entries of $M$ which reach the degree of the corresponding row.
+  
+        More precisely, if working row-wise, let $(s_1,\ldots,s_n) \in \ZZ^n$
+        be a shift, and let $(d_1,\ldots,d_m)$ denote the shifted row degree of
+        $M$. Then, the shifted leading matrix of $M$ is the matrix in
+        $\Bold{K}^{m \times n}$ whose entry $i,j$ is the coefficient of degree
+        $d_i-s_j$ of the entry $i,j$ of $M$. Going over the Laurent
+        polynomials, the shifted leading matrix of $M$ can also be described as
+        the coefficient of degree $0$ of the polynomial matrix
+        $\mathrm{diag}(x^{-d_1},\ldots,x^{-d_m}) M
+        \mathrm{diag}(x^{s_1},\ldots,x^{s_m})$ (which only has entries of
+        nonpositive degree).
+
+        If working column-wise, let $(s_1,\ldots,s_m) \in \ZZ^m$ be a shift,
+        and let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$.
+        Then, the shifted leading matrix of $M$ is the matrix in $\Bold{K}^{m
+        \times n}$ whose entry $i,j$ is the coefficient of degree $d_j-s_i$ of
+        the entry $i,j$ of $M$. Going over the Laurent polynomials, the shifted
+        leading matrix of $M$ can also be described as the coefficient of
+        degree $0$ of the polynomial matrix
+        $\mathrm{diag}(x^{s_1},\ldots,x^{s_m}) M
+        \mathrm{diag}(x^{-d_1},\ldots,x^{-d_m})$ (which only has entries of
+        nonpositive degree).
 
         INPUT:
 
@@ -331,10 +352,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         OUTPUT: a matrix over the base field.
 
         REFERENCES:
-
-        - Section 3 in [VBB1992]_ .
-
-        - Was maybe the non-shifted leading matrix already in Kailath?
+        
+        [Wol1974]_ (Section 2.5, without shifts) and [VBB1992]_ (Section 3).
 
         EXAMPLES::
 
@@ -365,43 +384,38 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             row_degree = self.row_degree(shifts)
             if shifts==None:
                 return Matrix([ [ self[i,j].leading_coefficient()
-                    if (self[i,j]==0 or self[i,j].degree() == row_degree[i])
-                    else 0
+                    if (self[i,j].degree() == row_degree[i]) else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
             return Matrix([ [ self[i,j].leading_coefficient()
-                if (self[i,j]==0 or
-                    self[i,j].degree() + shifts[j] == row_degree[i])
-                else 0
+                if ( self[i,j].degree() + shifts[j] == row_degree[i]) else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
         else:
             column_degree = self.column_degree(shifts)
             if shifts==None:
                 return Matrix([ [ self[i,j].leading_coefficient()
-                    if (self[i,j]==0 or self[i,j].degree() == column_degree[j])
-                    else 0
+                    if (self[i,j].degree() == column_degree[j]) else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
             return Matrix([ [ self[i,j].leading_coefficient()
-                if (self[i,j]==0 or
-                    self[i,j].degree() + shifts[i] == column_degree[j])
-                else 0
+                if (self[i,j].degree() + shifts[i] == column_degree[j]) else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
     def is_reduced(self, shifts=None, row_wise=True):
         r"""
-        Return ``True`` if and only if the matrix is in shifted reduced form.
+        Return ``True`` if and only if this matrix is in (shifted) reduced
+        form.
 
         An $m \times n$ univariate polynomial matrix $M$ is said to be in
         shifted row (resp.  column) reduced form if its shifted leading matrix
         has rank $m$, with $m \leq n$ (resp. $n$, with $n \leq m$).
         
         Equivalently, when considering all the matrices obtained by
-        left-multiplying $M$ by a unimodular matrix, then the shifted row
-        (resp. column) degree of $M$ -- once sorted in nondecreasing order --
-        is lexicographically minimal.
+        left-multiplying (resp. right-multiplying) $M$ by a unimodular matrix,
+        then the shifted row (resp. column) degree of $M$ -- once sorted in
+        nondecreasing order -- is lexicographically minimal.
 
         INPUT:
 
@@ -414,10 +428,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         OUTPUT: a boolean value.
 
         REFERENCES:
-
-        - Section 3 in [VBB1992]_ .
-
-        - (in sage biblio?) Beckermann - Labahn - Villard, 1999.
+        
+        [Wol1974]_ (Section 2.5, without shifts) and [VBB1992]_ (Section 3).
 
         EXAMPLES::
 
@@ -439,10 +451,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == self.leading_matrix(shifts, row_wise).rank()
 
-    def pivot(self, shifts=None, row_wise=True):
+    def pivot(self, shifts=None, row_wise=True, return_degree=False):
         r"""
         Return the (shifted) pivot index and the (shifted) pivot degree
-        of the matrix.
+        of this matrix.
 
         If working row-wise, for a given shift $(s_1,\ldots,s_n) \in
         \ZZ^n$, taken as $(0,\ldots,0)$ by default, and a row vector of
@@ -466,36 +478,40 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description).
 
-        OUTPUT: a pair of lists of integers.
+        - ``return_degree`` -- (optional, default: ``False``) boolean, ``True``
+          implies that the pivot degrees are returned.
+
+        OUTPUT: a list of integers if ``return_degree=False``; a pair of lists
+        of integers otherwise.
 
         REFERENCES:
-
-        - Section 6.7.2 in [Kai1980]_ .
+        
+        [Kai1980]_ (Section 6.7.2, without shifts).
 
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
-            sage: M.pivot()
+            sage: M.pivot(return_degree=True)
             ([0, 0], [1, 3])
 
-            sage: M.pivot(shifts=[0,5,2])
+            sage: M.pivot(shifts=[0,5,2],return_degree=True)
             ([2, 0], [0, 3])
 
-            sage: M.pivot(row_wise=False)
+            sage: M.pivot(row_wise=False,return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
-            sage: M.pivot(shifts=[1,2], row_wise=False)
+            sage: M.pivot(shifts=[1,2], row_wise=False,return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
         In case several entries in the row (resp. column) reach the shifted row
         (resp. column) degree, the pivot is chosen as the rightmost (resp.
         bottommost) such entry::
 
-            sage: M.pivot(shifts=[0,5,1])
+            sage: M.pivot(shifts=[0,5,1],return_degree=True)
             ([2, 0], [0, 3])
 
-            sage: M.pivot(shifts=[2,0], row_wise=False)
+            sage: M.pivot(shifts=[2,0], row_wise=False,return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
         If working row-wise, both the shifted pivot index and degree of a
@@ -504,23 +520,24 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         working column-wise::
             
             sage: M = Matrix( pR, 0, 3 )
-            sage: M.pivot()
+            sage: M.pivot(return_degree=True)
             ([], [])
 
-            sage: M.pivot(row_wise=False)
+            sage: M.pivot(row_wise=False,return_degree=True)
             ([None, None, None], [None, None, None])
 
             sage: M = Matrix( pR, 3, 0 )
-            sage: M.pivot()
+            sage: M.pivot(return_degree=True)
             ([None, None, None], [None, None, None])
 
-            sage: M.pivot(row_wise=False)
+            sage: M.pivot(row_wise=False,return_degree=True)
             ([], [])
         """
         if row_wise:
             if self.ncols()==0:
                 pivot_list = [None]*(self.nrows())
-                return pivot_list,pivot_list
+                return (pivot_list,pivot_list) if return_degree else pivot_list
+                        
             row_degree = self.row_degree(shifts)
             if shifts==None:
                 pivot_index = [ (-1 if row_degree[i]==-1 else
@@ -537,11 +554,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             pivot_degree = [ (-1 if pivot_index[i]==-1 else
                 self[i,pivot_index[i]].degree())
                 for i in range(self.nrows()) ]
-            return pivot_index,pivot_degree
+            return (pivot_index,pivot_degree) if return_degree else pivot_index
+                    
         # now in the column-wise case
         if self.nrows()==0:
             pivot_list = [None]*(self.ncols())
-            return pivot_list,pivot_list
+            return (pivot_list,pivot_list) if return_degree else pivot_list
+                    
         column_degree = self.column_degree(shifts)
         if shifts==None:
             pivot_index = [ (-1 if column_degree[j]==-1 else
@@ -558,19 +577,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         pivot_degree = [ (-1 if pivot_index[j]==-1 else
             self[pivot_index[j],j].degree())
             for j in range(self.ncols()) ]
-        return pivot_index,pivot_degree
+        return (pivot_index,pivot_degree) if return_degree else pivot_index
 
-    def is_ordered_weak_popov(self, shifts=None, row_wise=True):
+    def is_weak_popov(self, shifts=None, row_wise=True, ordered=False):
         r"""
-        Return a boolean indicating whether the matrix is in (shifted) ordered
-        weak Popov form.
+        Return a boolean indicating whether this matrix is in (shifted)
+        (ordered) weak Popov form.
 
         If working row-wise (resp. column-wise), a polynomial matrix is said to
-        be in ordered weak Popov form if it has no zero row (resp. column) and
-        its pivot index is strictly increasing.
+        be in weak Popov form if it has no zero row (resp. column) and its
+        pivot index has pairwise distinct entries (for the ordered weak Popov
+        form, this pivot index must be strictly increasing).
 
-        Concerning square matrices, this form is sometimes also called the
-        quasi-Popov form.
+        Concerning square matrices, the ordered weak Popov form is sometimes
+        also called the quasi-Popov form.
 
         INPUT:
 
@@ -580,13 +600,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description).
 
+        - ``ordered`` -- (optional, default: ``False``) boolean, ``True`` if
+          checking for an ordered weak Popov form.
+
         OUTPUT: a boolean.
 
         REFERENCES:
+        
+        [Kai1980]_ (Section 6.7.2, square case without shifts), [MS2003]_
+        (without shifts), [BLV1999]_ .
 
-        - For the square case, [Kai1980]_ (Section 6.7.2) and [BLV1999].
-
-        - (for the rectangular case ???  Neiger, 2016 phd ??? )
+        SEEALSO:  :meth:`weak_popov_form` .
 
         EXAMPLES::
 
@@ -594,24 +618,45 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M = Matrix([ [x^3+3*x^2+6*x+6, 3*x^2+3*x+6, 4*x^2+x+3], \
                                [5,               1,           0        ], \
                                [2*x^2+2,         2*x+5,       x^2+4*x+6] ])
-            sage: M.is_ordered_weak_popov()
+            sage: M.is_weak_popov()
             True
 
-            sage: M.is_ordered_weak_popov(shifts=[2,3,1])
+        One can check whether the pivot index, in addition to being pairwise
+        distinct, are actually in increasing order::
+
+            sage: M.is_weak_popov(ordered=True)
+            True
+
+            sage: N = M.with_swapped_rows(1,2)
+            sage: N.is_weak_popov(ordered=True)
             False
 
-            sage: M.is_ordered_weak_popov(shifts=[0,2,0],row_wise=False)
+        Shifts and orientation (row-wise or column-wise) are supported::
+
+            sage: M.is_weak_popov(shifts=[2,3,1])
+            False
+
+            sage: M.is_weak_popov(shifts=[0,2,0],row_wise=False,ordered=True)
             True
+
+        Rectangular matrices are supported::
 
             sage: M = Matrix([ \
                     [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0], \
                     [      6*x^2+3*x+1,       1,           2,         0], \
                     [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]  \
                     ])
-            sage: M.is_ordered_weak_popov(shifts=[0,2,1,3])
+            sage: M.is_weak_popov(shifts=[0,2,1,3])
+            True
+
+            sage: M.is_weak_popov(shifts=[0,2,1,3],ordered=True)
             True
         """
-        pivot_index = self.pivot(shifts, row_wise)[0]
+        pivot_index = self.pivot(shifts, row_wise)
+        # pivot index should not have duplicates, which is equivalent to:
+        # once sorted, it doesn't contain a pair of equal successive entries
+        if not ordered:
+            pivot_index.sort()
         # there should be no zero row (or column if not row_wise)
         # and the matrix should not be m x 0 (or 0 x n if not row_wise)
         if len(pivot_index) > 0 and \
@@ -625,7 +670,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def is_popov(self, shifts=None, row_wise=True):
         r"""
-        Return a boolean indicating whether the matrix is in (shifted) Popov
+        Return a boolean indicating whether this matrix is in (shifted) Popov
         form.
 
         If working row-wise (resp. column-wise), a polynomial matrix is said to
@@ -650,11 +695,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         OUTPUT: a boolean.
 
         REFERENCES:
-
-        - For the square case, without shifts: [Pop1972]_ and [Kai1980]_
-          (Section 6.7.2).
-
-        - For the general case: [BLV2006]_ .
+        
+        For the square case, without shifts: [Pop1972]_ and [Kai1980]_ (Section
+        6.7.2). For the general case: [BLV2006]_ .
 
         EXAMPLES::
 
@@ -683,7 +726,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_popov(shifts=[0,2,3], row_wise=False)
             True
         """
-        pivot_index,pivot_degree = self.pivot(shifts, row_wise)
+        pivot_index,pivot_degree = self.pivot(shifts, row_wise,
+                return_degree=True)
         # there should be no zero row (or column if not row_wise)
         # and the matrix should not be m x 0 (or 0 x n if not row_wise)
         if len(pivot_index) > 0 and \
@@ -717,98 +761,102 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     #def is_hermite(self, row_wise=True, lower_tri=True):
     # TODO
 
-    def is_weak_popov(self):
-        r"""
-        Return ``True`` if the matrix is in weak Popov form.
+    #def is_weak_popov(self):
+    #    r"""
+    #    Return ``True`` if this matrix is in weak Popov form.
 
-        OUTPUT:
+    #    OUTPUT:
 
-        A matrix over a polynomial ring is in weak Popov form if all
-        leading positions are different [MS2003]_. A leading position
-        is the position `i` in a row with the highest degree; in case of tie,
-        the maximal `i` is used (i.e. furthest to the right).
+    #    A matrix over a polynomial ring is in weak Popov form if all
+    #    leading positions are different [MS2003]_. A leading position
+    #    is the position `i` in a row with the highest degree; in case of tie,
+    #    the maximal `i` is used (i.e. furthest to the right).
 
-        EXAMPLES:
+    #    EXAMPLES:
 
-        A matrix with the same leading position in two rows is not in weak
-        Popov form::
+    #    A matrix with the same leading position in two rows is not in weak
+    #    Popov form::
 
-            sage: PF = PolynomialRing(GF(2^12,'a'),'x')
-            sage: A = matrix(PF,3,[x,   x^2, x^3,\
-                                   x^2, x^2, x^2,\
-                                   x^3, x^2, x    ])
-            sage: A.is_weak_popov()
-            False
+    #        sage: PF = PolynomialRing(GF(2^12,'a'),'x')
+    #        sage: A = matrix(PF,3,[x,   x^2, x^3,\
+    #                               x^2, x^2, x^2,\
+    #                               x^3, x^2, x    ])
+    #        sage: A.is_weak_popov()
+    #        False
 
-        If a matrix has different leading positions, it is in weak Popov
-        form::
+    #    If a matrix has different leading positions, it is in weak Popov
+    #    form::
 
-            sage: B = matrix(PF,3,[1,    1,  x^3,\
-                                   x^2,  1,  1,\
-                                   1,x^  2,  1  ])
-            sage: B.is_weak_popov()
-            True
+    #        sage: B = matrix(PF,3,[1,    1,  x^3,\
+    #                               x^2,  1,  1,\
+    #                               1,x^  2,  1  ])
+    #        sage: B.is_weak_popov()
+    #        True
 
-        Weak Popov form is not restricted to square matrices::
+    #    Weak Popov form is not restricted to square matrices::
 
-            sage: PF = PolynomialRing(GF(7),'x')
-            sage: D = matrix(PF,2,4,[x^2+1, 1, 2, x,\
-                                     3*x+2, 0, 0, 0 ])
-            sage: D.is_weak_popov()
-            False
+    #        sage: PF = PolynomialRing(GF(7),'x')
+    #        sage: D = matrix(PF,2,4,[x^2+1, 1, 2, x,\
+    #                                 3*x+2, 0, 0, 0 ])
+    #        sage: D.is_weak_popov()
+    #        False
 
-        Even a matrix with more rows than columns can still be in weak Popov
-        form::
+    #    Even a matrix with more rows than columns can still be in weak Popov
+    #    form::
 
-            sage: E = matrix(PF,4,2,[4*x^3+x, x^2+5*x+2,\
-                                     0,       0,\
-                                     4,       x,\
-                                     0,       0         ])
-            sage: E.is_weak_popov()
-            True
+    #        sage: E = matrix(PF,4,2,[4*x^3+x, x^2+5*x+2,\
+    #                                 0,       0,\
+    #                                 4,       x,\
+    #                                 0,       0         ])
+    #        sage: E.is_weak_popov()
+    #        True
 
-        A matrix with fewer columns than non-zero rows is never in weak
-        Popov form::
+    #    A matrix with fewer columns than non-zero rows is never in weak
+    #    Popov form::
 
-            sage: F = matrix(PF,3,2,[x^2,   x,\
-                                     x^3+2, x,\
-                                     4,     5])
-            sage: F.is_weak_popov()
-            False
+    #        sage: F = matrix(PF,3,2,[x^2,   x,\
+    #                                 x^3+2, x,\
+    #                                 4,     5])
+    #        sage: F.is_weak_popov()
+    #        False
 
-        TESTS:
+    #    TESTS:
 
-        Verify tie breaking by selecting right-most index::
+    #    Verify tie breaking by selecting right-most index::
 
-            sage: F = matrix(PF,2,2,[x^2, x^2,\
-                                     x,   5   ])
-            sage: F.is_weak_popov()
-            True
+    #        sage: F = matrix(PF,2,2,[x^2, x^2,\
+    #                                 x,   5   ])
+    #        sage: F.is_weak_popov()
+    #        True
 
-        .. SEEALSO::
+    #    .. SEEALSO::
 
-            - :meth:`weak_popov_form <sage.matrix.matrix_polynomial_dense.weak_popov_form>`
+    #        - :meth:`weak_popov_form <sage.matrix.matrix_polynomial_dense.weak_popov_form>`
 
-        AUTHOR:
+    #    AUTHOR:
 
-        - David Moedinger (2014-07-30)
-        """
-        t = set()
-        for r in range(self.nrows()):
-            max = -1
-            for c in range(self.ncols()):
-                if self[r, c].degree() >= max:
-                    max = self[r, c].degree()
-                    p = c
-            if not max == -1:
-                if p in t:
-                    return False
-                t.add(p)
-        return True
+    #    - David Moedinger (2014-07-30)
+    #    """
+    #    t = set()
+    #    for r in range(self.nrows()):
+    #        max = -1
+    #        for c in range(self.ncols()):
+    #            if self[r, c].degree() >= max:
+    #                max = self[r, c].degree()
+    #                p = c
+    #        if not max == -1:
+    #            if p in t:
+    #                return False
+    #            t.add(p)
+    #    return True
 
+    # TODO: the algorithm below probably outputs a matrix with zero rows
+    # in the case where the input matrix does not have full rank. What to
+    # do about this? I would probably return a full rank matrix, discarding
+    # the zero rows.
     def weak_popov_form(self, transformation=False, shifts=None):
         r"""
-        Return a weak Popov form of the matrix.
+        Return a weak Popov form of this matrix.
 
         A matrix is in weak Popov form if the leading positions of the nonzero
         rows are all different. The leading position of a row is the right-most
@@ -887,7 +935,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def _weak_popov_form(self, transformation=False, shifts=None):
         """
-        Transform the matrix in place into weak Popov form.
+        Transform this matrix in place into weak Popov form.
 
         EXAMPLES::
 

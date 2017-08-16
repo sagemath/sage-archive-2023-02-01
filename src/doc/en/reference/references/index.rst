@@ -1814,6 +1814,10 @@ REFERENCES:
              algebra*. Cambridge Studies in Advanced Math., vol. 38,
              Cambridge Univ. Press, 1994.
 
+.. [Wol1974] W. A. Wolovich. "Linear Multivariable Systems", Applied
+             Mathematical Sciences (volume 11). Springer-Verlag New-York, 1974.
+             doi.org/10.1007/978-1-4612-6392-0 .
+
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
 

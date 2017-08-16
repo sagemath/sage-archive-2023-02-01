@@ -1564,6 +1564,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()
+        if m == 1:
+            return True
         if m == 2:
             return self == 1
         if m == 4:
@@ -1585,7 +1587,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             # iff mod(self,p)**((p-1)//q) = 1 for some q
             self = self % p
         if self == 0:
-            return True
+            return False
         # Now self is modulo a prime and need the factorization of p-1.
         p1 = p - 1
         while mpz_cmpabs_ui(p1.value, 1):

@@ -2205,7 +2205,7 @@ class FiniteWord_class(Word_class):
             return False
         return True
 
-    def longest_forward_extension(self,x,y):
+    def longest_forward_extension(self, x, y):
         r"""
         Compute the length of le longest factor of ``self`` that starts at ``x`` and that
         matches a factor that starts at ``y``. Return 0 if ``x`` or ``y`` are not valid
@@ -2217,12 +2217,12 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage:w = Word('0011001')
-            sage:w.longest_forward_extension(0, 5)
+            sage: w = Word('0011001')
+            sage: w.longest_forward_extension(0, 5)
             3
-            sage:w.longest_forward_extension(0, 2)
+            sage: w.longest_forward_extension(0, 2)
             0
-            sage:w.longest_forward_extension(-3, 2)
+            sage: w.longest_forward_extension(-3, 2)
             0
         """
         length = self.length()
@@ -2235,7 +2235,7 @@ class FiniteWord_class(Word_class):
             y += 1
         return l
 
-    def longest_backward_extension(self,x,y):
+    def longest_backward_extension(self, x, y):
         r"""
         Compute the length of le longest factor of ``self`` that ends at ``x`` and that
         matches a factor that ends at ``y``. Return 0 if ``x`` or ``y`` are not valid position
@@ -2247,12 +2247,12 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
             
-            sage:w = Word('0011001')
-            sage:w.longest_backward_extension(7, 2)
+            sage: w = Word('0011001')
+            sage: w.longest_backward_extension(7, 2)
             3
-            sage:w.longest_backward_extension(1, 5)
+            sage: w.longest_backward_extension(1, 5)
             1
-            sage:w.longest_backward_extension(4, 23)
+            sage: w.longest_backward_extension(4, 23)
             0
         """
         length = self.length()

@@ -259,7 +259,7 @@ def modular_decomposition(graph):
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
 
-    Graph from wikipedia link https://en.wikipedia.org/wiki/File:ModularDecomposition.png ::
+    Graph from wikipedia link :wikipedia:`Modular_decomposition`::
 
         sage: d2 = {1:[2,3,4], 2:[1,4,5,6,7], 3:[1,4,5,6,7], 4:[1,2,3,5,6,7], \
                     5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
@@ -292,8 +292,8 @@ def modular_decomposition(graph):
                 1
                 2
 
-   """
-    if graph._directed:
+    """
+    if graph.is_directed():
         raise ValueError("Graph must be undirected")
 
     if graph.order() == 0:  #Empty Graph
@@ -388,6 +388,45 @@ def number_components(root, vertex_status):
     - ``vertex_status`` -- dictionary which stores the position of vertex
                            w.r.t SOURCE
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, number_components
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        create_normal_node(3), create_normal_node(1), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], [NodeInfo(PARALLEL), \
+                        [create_normal_node(6), create_normal_node(7)]]]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: RIGHT_OF_SOURCE, \
+                               5: RIGHT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: number_components(forest, vertex_status)
+        sage: print forest[1][-1][1][0][0].comp_num
+        2
+        sage: print forest[1][-1][1][1][0].comp_num
+        3
+
+    TESTS:
+
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        create_normal_node(3), create_normal_node(1), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], [NodeInfo(PARALLEL), \
+                        [create_normal_node(6), create_normal_node(7)]]]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: RIGHT_OF_SOURCE, \
+                               5: RIGHT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: number_components(forest, vertex_status)
+        sage: forest[1][-1][1][0][0].comp_num == 2 and \
+              forest[1][-1][1][1][0].comp_num == 3
+        True
+        sage: forest[1][-2][1][0][0].comp_num == 1 and \
+              forest[1][-2][1][1][0].comp_num == 1
+        True
+
     """
     comp_num = 0
     flag = False
@@ -419,6 +458,45 @@ def number_cocomponents(root, vertex_status):
     - ``vertex_status`` -- dictionary which stores the position of vertex
                            w.r.t SOURCE
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, number_cocomponents
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], [NodeInfo(PARALLEL), \
+                        [create_normal_node(6), create_normal_node(7)]], \
+                        create_normal_node(3), create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: LEFT_OF_SOURCE, \
+                               7: LEFT_OF_SOURCE}
+        sage: number_cocomponents(forest, vertex_status)
+        sage: print forest[1][1][1][0][0].comp_num
+        1
+        sage: print forest[1][1][1][1][0].comp_num
+        2
+
+    TESTS:
+
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], [NodeInfo(PARALLEL), \
+                        [create_normal_node(6), create_normal_node(7)]], \
+                        create_normal_node(3), create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: LEFT_OF_SOURCE, \
+                               7: LEFT_OF_SOURCE}
+        sage: number_cocomponents(forest, vertex_status)
+        sage: forest[1][1][1][0][0].comp_num == 1 and \
+              forest[1][1][1][1][0].comp_num == 2
+        True
+        sage: forest[1][2][1][0][0].comp_num == 3 and \
+              forest[1][2][1][1][0].comp_num == 3
+        True
+
     """
     cocomp_num = 0
     for tree in root[1]:
@@ -447,6 +525,34 @@ def recursively_number_cocomponents(tree, cocomp_num, by_type):
     OUTPUT:
 
     The value incremented to cocomp_num
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, recursively_number_cocomponents
+        sage: tree = [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]]
+        sage: print recursively_number_cocomponents(tree, 1, SERIES)
+        2
+        sage: print tree[0].comp_num 
+        1
+        sage: print tree[1][0][0].comp_num
+        1
+        sage: tree[1][1][0].comp_num
+        2
+
+    TESTS:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, recursively_number_cocomponents
+        sage: tree = [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]]
+        sage: print recursively_number_cocomponents(tree, 1, SERIES)
+        2
+        sage: tree[0].comp_num == 1 and tree[1][0][0].comp_num == 1 and tree[1][1][0].comp_num == 2
+        True
 
     """
     
@@ -492,6 +598,66 @@ def assembly(graph, root, vertex_status, vertex_dist):
     - ``root`` -- Forest which would be assembled into a MD tree
     - ``vertex_status`` -- Dictionary which stores the position of
                            vertex with respect to the source
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, number_cocomponents, number_components, \
+              assembly
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(6, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: forest[1][0][0].comp_num = 1
+        sage: forest[1][1][0].comp_num = 1
+        sage: forest[1][1][1][0][0].comp_num = 1
+        sage: forest[1][1][1][1][0].comp_num = 1
+        sage: number_components(forest, vertex_status)
+        sage: assembly(g, forest, vertex_status, vertex_dist)
+        sage: print forest[1]
+        [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
+
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: number_cocomponents(forest, vertex_status)
+        sage: assembly(g, forest, vertex_status, vertex_dist)
+        sage: print forest[1]
+        [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]], [NORMAL, [3]]]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
+
+    TESTS:
+
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: number_cocomponents(forest, vertex_status)
+        sage: number_components(forest, vertex_status)
+        sage: assembly(g, forest, vertex_status, vertex_dist)
+        sage: print forest[1]
+        [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]], [NORMAL, [3]]]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
 
     """
 
@@ -603,6 +769,59 @@ def check_prime(graph, root, left, right,
     ``[module_formed, source_index]`` where ``module_formed`` is ``True`` if
     module is formed else ``False`` and ``source_index`` is the index of the
     new module which contains the source vertex
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, number_cocomponents, number_components, \
+              check_prime, get_vertices, compute_mu_for_co_component, \
+              compute_mu_for_component
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(6, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: source_index = 2
+        sage: vertices_in_component = {}
+        sage: mu = {}
+        sage: left = right = forest[1][2]
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        ....:     component[0].index_in_root = index
+        sage: for index, component in enumerate(forest[1]):
+        ....:     if index < source_index:
+        ....:         mu[index] = compute_mu_for_co_component(g, index,
+        ....:                                           source_index, forest,
+        ....:                                           vertices_in_component)
+        ....:     elif index > source_index:
+        ....:         mu[index] = compute_mu_for_component(g, index,
+        ....:                                           source_index, forest,
+        ....:                                           vertices_in_component)
+        sage: forest[1][0][0].comp_num = 1
+        sage: forest[1][1][0].comp_num = 1
+        sage: forest[1][1][1][0][0].comp_num = 1
+        sage: forest[1][1][1][1][0].comp_num = 1
+        sage: number_components(forest, vertex_status)
+        sage: check_prime(g, forest, left, right,
+        ....:              source_index, mu, vertex_dist,
+        ....:              vertices_in_component)
+        [True, 0]
+        sage: print forest[1]
+        [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
 
     """
     # stores the index of rightmost component included in the prime module
@@ -718,6 +937,57 @@ def check_parallel(graph, root, left, right,
     ``[module_formed, source_index]`` where ``module_formed`` is ``True`` if
     module is formed else ``False`` and ``source_index`` is the index of the
     new module which contains the source vertex
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, number_cocomponents, number_components, \
+              check_parallel, get_vertices, compute_mu_for_co_component, \
+              compute_mu_for_component
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(4, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7), create_normal_node(1)]]]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 2}
+        sage: source_index = 2
+        sage: vertices_in_component = {}
+        sage: mu = {}
+        sage: left = right = forest[1][2]
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        ....:     component[0].index_in_root = index
+        sage: for index, component in enumerate(forest[1]):
+        ....:     if index < source_index:
+        ....:         mu[index] = compute_mu_for_co_component(g, index,
+        ....:                                           source_index, forest,
+        ....:                                           vertices_in_component)
+        ....:     elif index > source_index:
+        ....:         mu[index] = compute_mu_for_component(g, index,
+        ....:                                           source_index, forest,
+        ....:                                           vertices_in_component)
+        sage: number_components(forest, vertex_status)
+        sage: check_parallel(g, forest, left, right,
+        ....:              source_index, mu, vertex_dist,
+        ....:              vertices_in_component)
+        [True, 2]
+        sage: print forest[1]
+        [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [PARALLEL, [[NORMAL, [3]], [NORMAL, [6]], [NORMAL, [7]], [NORMAL, [1]]]]]
+
     """
 
     # stores the index of rightmost component included in the parallel module
@@ -792,6 +1062,58 @@ def check_series(root, left, right, source_index, mu):
     module is formed else ``False`` and ``source_index`` is the index of the
     new module which contains the source vertex
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, number_cocomponents, number_components, \
+              check_series, get_vertices, compute_mu_for_co_component, \
+              compute_mu_for_component
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: source_index = 2
+        sage: vertices_in_component = {}
+        sage: mu = {}
+        sage: left = right = forest[1][2]
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        ....:     component[0].index_in_root = index
+        sage: for index, component in enumerate(forest[1]):
+        ....:     if index < source_index:
+        ....:         mu[index] = compute_mu_for_co_component(g, index,
+        ....:                                           source_index, forest,
+        ....:                                           vertices_in_component)
+        ....:     elif index > source_index:
+        ....:         mu[index] = compute_mu_for_component(g, index,
+        ....:                                           source_index, forest,
+        ....:                                           vertices_in_component)
+        sage: number_cocomponents(forest, vertex_status)
+        sage: number_components(forest, vertex_status)
+        sage: check_series(forest, left, right,
+        ....:              source_index, mu)
+        [True, 1]
+        sage: print forest[1]
+        [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]], [NORMAL, [3]]]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]
+
     """
 
     # stores the index of leftmost component included in the parallel module
@@ -856,6 +1178,25 @@ def has_left_cocomponent_fragment(root, cocomp_index):
     ``True`` if cocomponent at  cocomp_index has a cocomponent
     to its left with same comp_num else ``False``
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, create_normal_node, \
+              has_left_cocomponent_fragment
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: forest[1][0][0].comp_num = 1
+        sage: forest[1][1][0].comp_num = 1
+        sage: forest[1][1][1][0][0].comp_num = 1
+        sage: forest[1][1][1][1][0].comp_num = 1
+        sage: has_left_cocomponent_fragment(forest, 1)
+        True
+        sage: has_left_cocomponent_fragment(forest, 0)
+        False
+
     """
     for index in range(cocomp_index):
         if root[1][index][0].comp_num == root[1][cocomp_index][0].comp_num:
@@ -877,6 +1218,23 @@ def has_right_component_fragment(root, comp_index):
 
     ``True`` if component at  comp_index has a component
     to its right with same comp_num else ``False``
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, create_normal_node, \
+              has_right_component_fragment
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: forest[1][3][0].comp_num = 1
+        sage: forest[1][4][0].comp_num = 1
+        sage: has_right_component_fragment(forest, 3)
+        True
+        sage: has_right_component_fragment(forest, 4)
+        False
 
     """
     for index in range(comp_index + 1, len(root[1])):
@@ -900,6 +1258,34 @@ def has_right_layer_neighbor(graph, root, comp_index,
 
     ``True`` if component at comp_index has a right layer neighbor
     else ``False``
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, create_normal_node, \
+              get_vertices, has_right_layer_neighbor
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: vertices_in_component = {}
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        ....:     component[0].index_in_root = index
+        sage: has_right_layer_neighbor(g, forest, 3, vertex_dist, 
+        ....:                          vertices_in_component)
+        True
 
     """
     for index in range(comp_index + 1, len(root[1])):
@@ -954,6 +1340,35 @@ def compute_mu_for_co_component(graph, component_index, source_index,
 
     The mu value (component in the forest) for the co-component
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, create_normal_node, \
+              get_vertices, compute_mu_for_co_component
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertices_in_component = {}
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        sage: compute_mu_for_co_component(g, 0, 2, forest, 
+        ....:                             vertices_in_component)
+        [NORMAL, [1]]
+        sage: compute_mu_for_co_component(g, 1, 2, forest, 
+        ....:                             vertices_in_component)
+        [NORMAL, [3]]
+        
     """
 
     for index in range(len(root[1]) - 1, source_index, -1):
@@ -983,6 +1398,34 @@ def compute_mu_for_component(graph, component_index, source_index,
     OUTPUT:
 
     The mu value (co-component in the forest) for the component
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, create_normal_node, \
+              get_vertices, compute_mu_for_component
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(6, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertices_in_component = {}
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        sage: compute_mu_for_component(g, 3, 2, forest, 
+        ....:                          vertices_in_component)
+        [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]]
+        sage: compute_mu_for_component(g, 4, 2, forest, 
+        ....:                          vertices_in_component)
+        [NORMAL, [2]]
 
     """
 
@@ -1015,6 +1458,32 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
     OUTPUT:
 
     ``True`` if the (co)components are connected else ``False``
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, create_normal_node, \
+              get_vertices, is_component_connected
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(6, 1)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertices_in_component = {}
+        sage: for index, component in enumerate(forest[1]):
+        ....:     vertices_in_component[index] = get_vertices(component)
+        sage: is_component_connected(g, 0, 1, vertices_in_component)
+        False
+        sage: is_component_connected(g, 0, 3, vertices_in_component)
+        True
 
     """
     vertices = vertices_in_component[index1]
@@ -1065,6 +1534,40 @@ def promote_left(root):
 
     - ``root`` -- The forest which needs to be promoted
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, maximal_subtrees_with_leaves_in_x, promote_left
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(4, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: x = {u for u in g.neighbor_iterator(2) 
+        ....:            if vertex_dist[u] != vertex_dist[2]}
+        sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status, 
+        ....:                                   False, 0)
+        sage: promote_left(forest)
+        sage: print forest
+        [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]], [PARALLEL, []], [NORMAL, [1]]]]
+
     """
     q = Queue()
 
@@ -1112,6 +1615,37 @@ def promote_right(root):
 
     - ``root`` -- The forest which needs to be promoted
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, refine, promote_right
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(4, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: refine(g, forest, vertex_dist, vertex_status)
+        sage: promote_right(forest)
+        sage: print forest
+        [FOREST, [[NORMAL, [2]], [SERIES, [[SERIES, [[NORMAL, [4]]]], [SERIES, [[NORMAL, [5]]]]]], [NORMAL, [3]], [PARALLEL, []], [PARALLEL, [[NORMAL, [7]]]], [PARALLEL, [[NORMAL, [6]]]], [NORMAL, [1]]]]
+
     """
     q = Queue()
 
@@ -1157,6 +1691,38 @@ def promote_child(root):
     INPUT:
 
     - ``root`` -- The forest which needs to be promoted
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, refine, promote_right, promote_child
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(4, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: refine(g, forest, vertex_dist, vertex_status)
+        sage: promote_right(forest)
+        sage: promote_child(forest)
+        sage: print forest
+        [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [NORMAL, [7]], [NORMAL, [6]], [NORMAL, [1]]]]
 
     """
     q = Queue()
@@ -1221,6 +1787,36 @@ def refine(graph, root, vertex_dist, vertex_status):
     - ``vertex_status`` -- dictionary mapping the vertex to the position
                            w.r.t source
 
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, refine
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: refine(g, forest, vertex_dist, vertex_status)
+        sage: print forest
+        [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]]]], [NORMAL, [1]]]]
+
     """
     x_used = []
 
@@ -1271,6 +1867,46 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
                            w.r.t source
     - ``tree_left_of_source`` -- flag indicating whether tree is
     - ``level`` -- indicates the recursion level, 0 for root
+
+    EXAMPLES:
+
+        sage: from sage.graphs.modular_decomposition import NodeInfo, \
+              FOREST, SERIES, PARALLEL, LEFT_OF_SOURCE, SOURCE, RIGHT_OF_SOURCE, \
+              create_normal_node, maximal_subtrees_with_leaves_in_x
+        sage: g = Graph()
+        sage: g.add_vertices([1, 2, 3, 4, 5, 6, 7])
+        sage: g.add_edge(2, 3)
+        sage: g.add_edge(4, 3)
+        sage: g.add_edge(5, 3)
+        sage: g.add_edge(2, 6)
+        sage: g.add_edge(2, 7)
+        sage: g.add_edge(2, 1)
+        sage: g.add_edge(6, 1)
+        sage: g.add_edge(4, 2)
+        sage: g.add_edge(5, 2)
+        sage: forest = [NodeInfo(FOREST), [create_normal_node(2), \
+                        [NodeInfo(SERIES), [create_normal_node(4), \
+                        create_normal_node(5)]], create_normal_node(3), \
+                        [NodeInfo(PARALLEL), [create_normal_node(6), \
+                        create_normal_node(7)]], create_normal_node(1)]]
+        sage: vertex_status = {2: LEFT_OF_SOURCE, 3: SOURCE, \
+                               1: RIGHT_OF_SOURCE, 4: LEFT_OF_SOURCE, \
+                               5: LEFT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
+                               7: RIGHT_OF_SOURCE}
+        sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
+        sage: x = {u for u in g.neighbor_iterator(2) 
+        ....:            if vertex_dist[u] != vertex_dist[2]}
+        sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status, 
+        ....:                                   False, 0)
+        sage: print forest
+        [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]
+        sage: x = {u for u in g.neighbor_iterator(1) 
+        ....:            if vertex_dist[u] != vertex_dist[1]}
+        sage: maximal_subtrees_with_leaves_in_x(forest, 1, x, vertex_status, 
+        ....:                                   False, 0)
+        sage: print forest
+        [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]]]], [NORMAL, [1]]]]
+
 
     """
 

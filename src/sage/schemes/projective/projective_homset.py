@@ -119,10 +119,24 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: E(P.base_ring()).points()
             [(-1 : -1 : 1), (-1 : 0 : 1), (-1 : 1 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1),
             (1 : -1 : 1), (1 : 0 : 1), (1 : 1 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(CC,2)
+            sage: E = P.subscheme([y^3-x^3-x*z^2,x*y*z])
+            sage: E(P.base_ring()).points()
+            [(-0.500000000000000 + 0.866025403784439*I : 1.00000000000000 : 0.000000000000000),
+            (-1.00000000000000*I : 0.000000000000000 : 1.00000000000000),
+            (1.00000000000000*I : 0.000000000000000 : 1.00000000000000)]
         """
         X = self.codomain()
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        from sage.rings.all import CC
         if not is_ProjectiveSpace(X) and X.base_ring() in Fields():
+            if X.base_ring() == CC:
+                complex = True
+            else:
+                complex = False
             #Then it must be a subscheme
             dim_ideal = X.defining_ideal().dimension()
             if dim_ideal < 1: # no points
@@ -157,18 +171,25 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                                 #variable polynomial (by elimination)
                                 L = G[i].substitute(P)
                                 if L != 0:
-                                    L = L.factor()
+                                    if complex:
+                                        for pol in L.univariate_polynomial().roots(multiplicities=False):
+                                            r = L.variables()[0]
+                                            varindex = R.gens().index(r)
+                                            P.update({R.gen(varindex):pol})
+                                            new_points.append(copy(P))
+                                    else:
+                                        L = L.factor()
                                     #the linear factors give the possible rational values of
                                     #this coordinate
-                                    for pol, pow in L:
-                                        if pol.degree() == 1 and len(pol.variables()) == 1:
-                                            good = 1
-                                            r = pol.variables()[0]
-                                            varindex = R.gens().index(r)
-                                            #add this coordinates information to
-                                            #each dictionary entry
-                                            P.update({R.gen(varindex):-pol.constant_coefficient() / pol.monomial_coefficient(r)})
-                                            new_points.append(copy(P))
+                                        for pol, pow in L:
+                                            if pol.degree() == 1 and len(pol.variables()) == 1:
+                                                good = 1
+                                                r = pol.variables()[0]
+                                                varindex = R.gens().index(r)
+                                                #add this coordinates information to
+                                                #each dictionary entry
+                                                P.update({R.gen(varindex):-pol.constant_coefficient() / pol.monomial_coefficient(r)})
+                                                new_points.append(copy(P))
                                 else:
                                     new_points.append(P)
                                     good = 1
@@ -178,10 +199,16 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                         #they are the rational solutions to the equations
                         #make them into projective points
                         for i in range(len(points)):
-                            if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
-                                S = X([points[i][R.gen(j)] for j in range(N + 1)])
-                                S.normalize_coordinates()
-                                rat_points.add(S)
+                            if complex:
+                                if len(points[i]) == N + 1:
+                                    S = X.ambient_space()([points[i][R.gen(j)] for j in range(N + 1)])
+                                    S.normalize_coordinates()
+                                    rat_points.add(S)
+                            else:
+                                if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
+                                    S = X([points[i][R.gen(j)] for j in range(N + 1)])
+                                    S.normalize_coordinates()
+                                    rat_points.add(S)
                 rat_points = sorted(rat_points)
                 return rat_points
         R = self.value_ring()

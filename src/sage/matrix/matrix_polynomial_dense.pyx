@@ -25,10 +25,54 @@ from sage.matrix.matrix2 cimport Matrix
 from sage.rings.integer_ring import ZZ
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
-    """
+    r"""
     Dense matrix over a univariate polynomial ring over a field.
 
-    TODO a word about shifts. And working row-wise/column-wise.
+    For a field $\Bold{K}$, we consider matrices over the univariate
+    polynomial ring $\Bold{K}[x]$.
+    
+    They are often used to represent bases of some $\Bold{K}[x]$-modules. In
+    this context, there are two possible representations which are both
+    commonly used in the literature.
+
+    - Working column-wise: each column of the matrix is a vector in the basis;
+      then, a $\\Bold{K}[x]$-submodule of $\\Bold{K}[x]^{m}$ of rank $n$ is
+      represented by an $m \\times n$ matrix, whose columns span the module
+      (via $\\Bold{K}[x]$-linear combinations). This matrix has full rank,
+      and $n \\leq m$.
+
+    - Working row-wise: each row of the matrix is a vector in the basis; then,
+      a $\\Bold{K}[x]$-submodule of $\\Bold{K}[x]^{n}$ of rank $m$ is
+      represented by an $m \\times n$ matrix, whose rows span the module (via
+      $\\Bold{K}[x]$-linear combinations). This matrix has full rank, and $m
+      \\leq n$.
+
+    For the rest of this class description, we assume that one is working
+    row-wise. For a given such module, all its bases are equivalent under
+    left-multiplication by a unimodular matrix, that is, a matrix which has
+    determinant in $\Bold{K}\setminus\{0\}$.
+
+    There are bases which are called reduced or minimal: their rows have the
+    minimal degree possible among all bases of this module. The degree of a row
+    is the maximum of the degrees of the entries of the row. An equivalent
+    condition is that the leading matrix of this basis has full rank (see the
+    description of ``leading_matrix`` below).  There is a unique minimal basis,
+    called the Popov basis of the module, which satisfies some additional
+    normalization condition (see the description of ``is_popov`` below).
+
+    These notions can be extended via a more general degree measure, involving
+    a tuple of integers which is called shift and acts as column degree shifts
+    in the definition of row degree. Precisely, for a given shift
+    $(s_1,\ldots,s_n) \in \ZZ^n$ and a row vector $[p_1 \; \cdots \;
+    p_n] \in \Bold{K}[x]^{1 \times n}$, its shifted row degree is the maximum
+    of $\deg(p_j) + s_j$ for $1 \leq j \leq n$. Then, minimal bases and Popov
+    bases are defined similarly, with respect to this notion of degree.
+
+    Another important canonical basis is the Hermite basis, which is a lower
+    triangular matrix satisfying a normalization condition similar to that for
+    the Popov basis. In fact, if $d$ is the largest degree appearing in the
+    Hermite basis, then the Hermite basis coincide with the shifted Popov basis
+    with the shift $(0,d,2d,\ldots,(n-1)d)$.
     """
 
     def degree(self):
@@ -72,8 +116,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         is the matrix $(\deg(M_{i,j}))_{i,j}$ formed by the degrees of its
         entries. Here, the degree of the zero polynomial is $-1$.
 
-        For given shifts $(s_1,\ldots,s_m) \in \mathbb{Z}^m$, the shifted
-        degree matrix of $M$ is either $(\deg(M_{i,j})+s_j)_{i,j}$ if working
+        For given shifts $(s_1,\ldots,s_m) \in \ZZ^m$, the shifted degree
+        matrix of $M$ is either $(\deg(M_{i,j})+s_j)_{i,j}$ if working
         row-wise, or $(\deg(M_{i,j})+s_i)_{i,j}$ if working column-wise. In the
         former case, $m$ has to be the number of columns of $M$; in the latter
         case, the number of its rows. Here, if $M_{i,j}=0$ then the
@@ -83,12 +127,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
           then shifts apply to the columns of the matrix and otherwise to its
-          rows, as described above.
+          rows (see the class description for more details).
 
         OUTPUT: an integer matrix.
 
@@ -139,7 +183,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         = \max_j(\deg(M_{i,j}))$ for $1\leq i \leq m$. Thus, $d_i=-1$ if
         the $i$-th row of $M$ is zero, and $d_i \geq 0$ otherwise.
 
-        For given shifts $(s_1,\ldots,s_n) \in \mathbb{Z}^n$, the shifted row
+        For given shifts $(s_1,\ldots,s_n) \in \ZZ^n$, the shifted row
         degree of $M$ is $(d_1,\ldots,d_m)$ where $d_i =
         \max_j(\deg(M_{i,j})+s_j)$. Here, if the $i$-th row of $M$ is zero then
         $d_i =\min(s_1,\ldots,s_n)-1$; otherwise, $d_i$ is larger than this
@@ -147,21 +191,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
         OUTPUT: a list of integers.
 
         REFERENCES:
 
-        - Non-shifted case: Kailath, what about earlier works?
+        - [Kai1980]_ (does not involve shifts).
 
-        - Shifted case: (in sage biblio?) Van Barel - Bultheel 1992, A general
-          module theoretic framework for vector M-Padé and matrix rational
-          interpolation, Section 3.
+        - Section 3 in [VBB1992]_ .
 
-        - See also the notion of defect from Beckermann 1992. A reliable method
-          for computing M-Padé approximants on arbitrary staircases.
+        - See also the notion of defect from [Bec1992]_ .
 
         EXAMPLES::
 
@@ -213,7 +254,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         $d_j = \max_i(\deg(M_{i,j}))$ for $1\leq j \leq n$. Thus, $d_j=-1$ if
         the $j$-th column of $M$ is zero, and $d_j \geq 0$ otherwise.
 
-        For given shifts $(s_1,\ldots,s_m) \in \mathbb{Z}^m$, the shifted
+        For given shifts $(s_1,\ldots,s_m) \in \ZZ^m$, the shifted
         column degree of $M$ is $(d_1,\ldots,d_n)$ where $d_j =
         \max_i(\deg(M_{i,j})+s_i)$. Here, if the $j$-th column of $M$ is zero
         then $d_j = \min(s_1,\ldots,s_m)-1$; otherwise $d_j$ is larger than
@@ -221,18 +262,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
         OUTPUT: a list of integers.
 
-        REFERENCES:
-
-        - Non-shifted case: Kailath, what about earlier works?
-
-        - Shifted case: (in sage biblio?) Van Barel - Bultheel 1992, A general
-          module theoretic framework for vector M-Padé and matrix rational
-          interpolation, Section 3.
+        REFERENCES: see the documentation of :meth:`row_degree`.
 
         EXAMPLES::
 
@@ -276,31 +311,28 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Return the (shifted) leading matrix of the matrix.
 
         Let $M = (M_{i,j})_{i,j}$ be a univariate polynomial matrix in
-        $\mathbb{K}[x]^{m \times n}$.  If working row-wise, let
-        $(s_1,\ldots,s_n) \in \mathbb{Z}^n$ be a shift, and let
+        $\Bold{K}[x]^{m \times n}$.  If working row-wise, let
+        $(s_1,\ldots,s_n) \in \ZZ^n$ be a shift, and let
         $(d_1,\ldots,d_m)$ denote the shifted row degree of $M$.  If working
-        column-wise, let $(s_1,\ldots,s_m) \in \mathbb{Z}^m$ be a shift, and
+        column-wise, let $(s_1,\ldots,s_m) \in \ZZ^m$ be a shift, and
         let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$. Then,
-        the shifted leading matrix of $M$ is the matrix in $\mathbb{K}^{m
+        the shifted leading matrix of $M$ is the matrix in $\Bold{K}^{m
         \times n}$ whose entry $i,j$ is the coefficient of degree $d_i-s_j$ of
         the entry $i,j$ of $M$.
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
-        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
-          then shifts apply to the columns of the matrix and otherwise to its
-          rows, as described above.
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
 
         OUTPUT: a matrix over the base field.
 
         REFERENCES:
 
-        - (in sage biblio?) Van Barel - Bultheel 1992, A general module theoretic
-          framework for vector M-Padé and matrix rational interpolation,
-          Section 3.
+        - Section 3 in [VBB1992]_ .
 
         - Was maybe the non-shifted leading matrix already in Kailath?
 
@@ -373,20 +405,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
-        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
-          then shifts apply to the columns of the matrix and otherwise to its
-          rows, as described above.
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description)
 
         OUTPUT: a boolean value.
 
         REFERENCES:
 
-        - (in sage biblio?) Van Barel - Bultheel 1992, A general module theoretic
-          framework for vector M-Padé and matrix rational interpolation,
-          Section 3.
+        - Section 3 in [VBB1992]_ .
 
         - (in sage biblio?) Beckermann - Labahn - Villard, 1999.
 
@@ -416,7 +445,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         of the matrix.
 
         If working row-wise, for a given shift $(s_1,\ldots,s_n) \in
-        \mathbb{Z}^n$, taken as $(0,\ldots,0)$ by default, and a row vector of
+        \ZZ^n$, taken as $(0,\ldots,0)$ by default, and a row vector of
         univariate polynomials $[p_1,\ldots,p_n]$, the pivot index of this
         vector is the index $j$ of the rightmost nonzero entry $p_j$ such that
         $\deg(p_j) + s_j$ is equal to the row degree of the vector. Then, for
@@ -431,21 +460,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
-        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
-          then shifts apply to the columns of the matrix and otherwise to its
-          rows, as described above.
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
 
         OUTPUT: a pair of lists of integers.
 
         REFERENCES:
 
-        - (check) Popov 1972, Invariant Description of Linear, Time-Invariant
-          Controllable Systems
-
-        - (already in sage's biblio?) Kailath Section 6.7.2
+        - Section 6.7.2 in [Kai1980]_ .
 
         EXAMPLES::
 
@@ -549,20 +574,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
-        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
-          then shifts apply to the columns of the matrix and otherwise to its
-          rows, as described above.
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
 
         OUTPUT: a boolean.
 
         REFERENCES:
 
-        - (already in sage's biblio?) Kailath Section 6.7.2
-
-        - Beckermann-Labahn-Villard 1999.
+        - For the square case, [Kai1980]_ (Section 6.7.2) and [BLV1999].
 
         - (for the rectangular case ???  Neiger, 2016 phd ??? )
         """
@@ -596,20 +618,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers as
-          described above; ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
-        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
-          then shifts apply to the columns of the matrix and otherwise to its
-          rows, as described above.
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
 
         OUTPUT: a boolean.
 
         REFERENCES:
 
-        - (already in sage's biblio?) Kailath Section 6.7.2
+        - For the square case, without shifts: [Pop1972]_ and [Kai1980]_
+          (Section 6.7.2).
 
-        - (for the shifted, rectangular case) Beckermann-Labahn-Villard 2006.
+        - For the general case: [BLV2006]_ .
 
         EXAMPLES::
 
@@ -668,6 +690,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     if self[index,k].degree() >= pivot_degree[i]:
                         return False
         return True
+
+    #def is_hermite(self, row_wise=True, lower_tri=True):
+    # TODO
 
     def is_weak_popov(self):
         r"""

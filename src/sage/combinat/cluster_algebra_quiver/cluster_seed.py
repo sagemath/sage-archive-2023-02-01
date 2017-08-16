@@ -2356,7 +2356,8 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A', 4], user_labels=['a', 'b', 'c']);
             Traceback (most recent call last):
             ...
-            ValueError: The number of user-defined labels is not the number of exchangeable and frozen variables.
+            ValueError: the number of user-defined labels is not
+             the number of exchangeable and frozen variables
 
             sage: S = ClusterSeed(['A', 4], user_labels=['x', 'y', 'w', 'z'])
             sage: S.mutate('x')
@@ -3596,17 +3597,27 @@ class ClusterSeed(SageObject):
         Return the mutation class of ``self`` with respect to
         certain constraints.
 
-        .. NOTE:: Vertex labels are not tracked in this method.
+        .. NOTE::
 
-        .. SEEALSO:: :meth:`mutation_class_iter`
+            Vertex labels are not tracked in this method.
+
+        .. SEEALSO::
+
+            :meth:`mutation_class_iter`
 
         INPUT:
 
-        - ``depth`` -- (default: infinity) integer, only seeds with distance at most depth from self are returned.
-        - ``show_depth`` -- (default: False) if True, the actual depth of the mutation is shown.
-        - ``return_paths`` -- (default: False) if True, a shortest path of mutation sequences from self to the given quiver is returned as well.
-        - ``up_to_equivalence`` -- (default: True) if True, only seeds up to equivalence are considered.
-        - ``sink_source`` -- (default: False) if True, only mutations at sinks and sources are applied.
+        - ``depth`` -- (default: ``infinity`) integer, only seeds with
+          distance at most depth from ``self`` are returned
+        - ``show_depth`` -- (default: ``False``) if ``True``, the actual depth
+          of the mutation is shown
+        - ``return_paths`` -- (default: ``False``) if ``True``, a shortest
+          path of mutation sequences from self to the given quiver is
+          returned as well
+        - ``up_to_equivalence`` -- (default: ``True``) if ``True``, only
+          seeds up to equivalence are considered
+        - ``sink_source`` -- (default: ``False``) if ``True``, only mutations
+          at sinks and sources are applied
 
         EXAMPLES:
 

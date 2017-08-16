@@ -1763,7 +1763,7 @@ class ClusterQuiver(SageObject):
           path of mutation sequences from self to the given quiver is
           returned as well
         - ``data_type`` -- (default: ``"quiver"``) can be one of
-          the following::
+          the following:
 
           * ``"quiver"`` -- the quiver is returned
           * ``"dig6"`` -- the dig6-data is returned

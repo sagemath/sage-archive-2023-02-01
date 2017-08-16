@@ -403,9 +403,9 @@ def number_components(root, vertex_status):
                                5: RIGHT_OF_SOURCE, 6: RIGHT_OF_SOURCE, \
                                7: RIGHT_OF_SOURCE}
         sage: number_components(forest, vertex_status)
-        sage: print forest[1][-1][1][0][0].comp_num
+        sage: forest[1][-1][1][0][0].comp_num
         2
-        sage: print forest[1][-1][1][1][0].comp_num
+        sage: forest[1][-1][1][1][0].comp_num
         3
 
     TESTS:
@@ -473,9 +473,9 @@ def number_cocomponents(root, vertex_status):
                                5: LEFT_OF_SOURCE, 6: LEFT_OF_SOURCE, \
                                7: LEFT_OF_SOURCE}
         sage: number_cocomponents(forest, vertex_status)
-        sage: print forest[1][1][1][0][0].comp_num
+        sage: forest[1][1][1][0][0].comp_num
         1
-        sage: print forest[1][1][1][1][0].comp_num
+        sage: forest[1][1][1][1][0].comp_num
         2
 
     TESTS:
@@ -533,11 +533,11 @@ def recursively_number_cocomponents(tree, cocomp_num, by_type):
               create_normal_node, recursively_number_cocomponents
         sage: tree = [NodeInfo(SERIES), [create_normal_node(4), \
                         create_normal_node(5)]]
-        sage: print recursively_number_cocomponents(tree, 1, SERIES)
+        sage: recursively_number_cocomponents(tree, 1, SERIES)
         2
-        sage: print tree[0].comp_num 
+        sage: tree[0].comp_num 
         1
-        sage: print tree[1][0][0].comp_num
+        sage: tree[1][0][0].comp_num
         1
         sage: tree[1][1][0].comp_num
         2
@@ -549,7 +549,7 @@ def recursively_number_cocomponents(tree, cocomp_num, by_type):
               create_normal_node, recursively_number_cocomponents
         sage: tree = [NodeInfo(SERIES), [create_normal_node(4), \
                         create_normal_node(5)]]
-        sage: print recursively_number_cocomponents(tree, 1, SERIES)
+        sage: recursively_number_cocomponents(tree, 1, SERIES)
         2
         sage: tree[0].comp_num == 1 and tree[1][0][0].comp_num == 1 and tree[1][1][0].comp_num == 2
         True
@@ -629,7 +629,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
         sage: forest[1][1][1][1][0].comp_num = 1
         sage: number_components(forest, vertex_status)
         sage: assembly(g, forest, vertex_status, vertex_dist)
-        sage: print forest[1]
+        sage: forest[1]
         [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
 
         sage: g.add_edge(4, 2)
@@ -641,7 +641,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
                         create_normal_node(7)]], create_normal_node(1)]]
         sage: number_cocomponents(forest, vertex_status)
         sage: assembly(g, forest, vertex_status, vertex_dist)
-        sage: print forest[1]
+        sage: forest[1]
         [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]], [NORMAL, [3]]]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
 
     TESTS:
@@ -656,7 +656,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
         sage: number_cocomponents(forest, vertex_status)
         sage: number_components(forest, vertex_status)
         sage: assembly(g, forest, vertex_status, vertex_dist)
-        sage: print forest[1]
+        sage: forest[1]
         [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]], [NORMAL, [3]]]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
 
     """
@@ -820,7 +820,7 @@ def check_prime(graph, root, left, right,
         ....:              source_index, mu, vertex_dist,
         ....:              vertices_in_component)
         [True, 0]
-        sage: print forest[1]
+        sage: forest[1]
         [[PRIME, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]]
 
     """
@@ -985,7 +985,7 @@ def check_parallel(graph, root, left, right,
         ....:              source_index, mu, vertex_dist,
         ....:              vertices_in_component)
         [True, 2]
-        sage: print forest[1]
+        sage: forest[1]
         [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [PARALLEL, [[NORMAL, [3]], [NORMAL, [6]], [NORMAL, [7]], [NORMAL, [1]]]]]
 
     """
@@ -1111,7 +1111,7 @@ def check_series(root, left, right, source_index, mu):
         sage: check_series(forest, left, right,
         ....:              source_index, mu)
         [True, 1]
-        sage: print forest[1]
+        sage: forest[1]
         [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]], [NORMAL, [3]]]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]
 
     """
@@ -1565,7 +1565,7 @@ def promote_left(root):
         sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status, 
         ....:                                   False, 0)
         sage: promote_left(forest)
-        sage: print forest
+        sage: forest
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]], [PARALLEL, []], [NORMAL, [1]]]]
 
     """
@@ -1643,7 +1643,7 @@ def promote_right(root):
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: refine(g, forest, vertex_dist, vertex_status)
         sage: promote_right(forest)
-        sage: print forest
+        sage: forest
         [FOREST, [[NORMAL, [2]], [SERIES, [[SERIES, [[NORMAL, [4]]]], [SERIES, [[NORMAL, [5]]]]]], [NORMAL, [3]], [PARALLEL, []], [PARALLEL, [[NORMAL, [7]]]], [PARALLEL, [[NORMAL, [6]]]], [NORMAL, [1]]]]
 
     """
@@ -1721,7 +1721,7 @@ def promote_child(root):
         sage: refine(g, forest, vertex_dist, vertex_status)
         sage: promote_right(forest)
         sage: promote_child(forest)
-        sage: print forest
+        sage: forest
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [NORMAL, [7]], [NORMAL, [6]], [NORMAL, [1]]]]
 
     """
@@ -1814,7 +1814,7 @@ def refine(graph, root, vertex_dist, vertex_status):
                                7: RIGHT_OF_SOURCE}
         sage: vertex_dist = {2: 1, 4: 1, 5: 1, 3: 0, 6: 2, 7: 2, 1: 3}
         sage: refine(g, forest, vertex_dist, vertex_status)
-        sage: print forest
+        sage: forest
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]]]], [NORMAL, [1]]]]
 
     """
@@ -1898,13 +1898,13 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
         ....:            if vertex_dist[u] != vertex_dist[2]}
         sage: maximal_subtrees_with_leaves_in_x(forest, 2, x, vertex_status, 
         ....:                                   False, 0)
-        sage: print forest
+        sage: forest
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]], [NORMAL, [7]]]], [NORMAL, [1]]]]
         sage: x = {u for u in g.neighbor_iterator(1) 
         ....:            if vertex_dist[u] != vertex_dist[1]}
         sage: maximal_subtrees_with_leaves_in_x(forest, 1, x, vertex_status, 
         ....:                                   False, 0)
-        sage: print forest
+        sage: forest
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]]]], [NORMAL, [1]]]]
 
 

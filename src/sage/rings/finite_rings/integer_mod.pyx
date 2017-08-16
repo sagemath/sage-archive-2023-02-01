@@ -1561,6 +1561,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:                 if not a.is_unit(): continue
             ....:                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
             ....:                     print("mod(%s,%s) incorrect" % (a, n))
+
+        `0` is not a primitive root mod `n` (:trac:`23624`) except for `n=0`::
+
+            sage: mod(0, 17).is_primitive_root()
+            False
+            sage: all(not mod(0, n).is_primitive_root() for n in srange(2, 20))
+            True
+            sage: mod(0, 1).is_primitive_root()
+            True
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()

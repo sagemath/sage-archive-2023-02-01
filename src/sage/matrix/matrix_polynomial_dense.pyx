@@ -587,6 +587,29 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - For the square case, [Kai1980]_ (Section 6.7.2) and [BLV1999].
 
         - (for the rectangular case ???  Neiger, 2016 phd ??? )
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix([ [x^3+3*x^2+6*x+6, 3*x^2+3*x+6, 4*x^2+x+3], \
+                               [5,               1,           0        ], \
+                               [2*x^2+2,         2*x+5,       x^2+4*x+6] ])
+            sage: M.is_ordered_weak_popov()
+            True
+
+            sage: M.is_ordered_weak_popov(shifts=[2,3,1])
+            False
+
+            sage: M.is_ordered_weak_popov(shifts=[0,2,0],row_wise=False)
+            True
+
+            sage: M = Matrix([ \
+                    [  x^3+5*x^2+5*x+1,       5,       6*x+4,         0], \
+                    [      6*x^2+3*x+1,       1,           2,         0], \
+                    [2*x^3+4*x^2+6*x+4, 5*x + 1, 2*x^2+5*x+5, x^2+5*x+6]  \
+                    ])
+            sage: M.is_ordered_weak_popov(shifts=[0,2,1,3])
+            True
         """
         pivot_index = self.pivot(shifts, row_wise)[0]
         # there should be no zero row (or column if not row_wise)

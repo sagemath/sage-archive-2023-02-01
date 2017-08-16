@@ -189,8 +189,7 @@ class CoordFunctionSymb(CoordFunction):
         1
 
     Another difference regards the display of partial derivatives:
-    for callable symbolic functions, it relies on Pynac notation
-    ``D[0]``, ``D[1]``, etc.::
+    for callable symbolic functions, it involves ``diff``::
 
         sage: g = function('g')(x, y)
         sage: f0(x,y) = diff(g, x) + diff(g, y)
@@ -211,13 +210,13 @@ class CoordFunctionSymb(CoordFunction):
         \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
 
     Note that this regards only the display of coordinate functions:
-    internally, the Pynac notation is still used, as we can check by asking
+    internally, the ``diff`` notation is still used, as we can check by asking
     for the symbolic expression stored in ``f``::
 
         sage: f.expr()
         diff(g(x, y), x) + diff(g(x, y), y)
 
-    One can switch to Pynac notation by changing the options::
+    One can switch to the standard symbolic notation by changing the options::
 
         sage: Manifold.options.textbook_output=False
         sage: latex(f)
@@ -518,6 +517,54 @@ class CoordFunctionSymb(CoordFunction):
         return not self._express.is_zero()
 
     __nonzero__ = __bool__   # For Python2 compatibility
+
+    def is_trivial_zero(self):
+        r"""
+        Check if ``self`` is trivially equal to zero without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self.is_zero()`` or ``self == 0`` and is intended to be
+        used in library code where trying to obtain a mathematically
+        correct result by applying potentially expensive rewrite rules
+        is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(0)
+            sage: f.is_trivial_zero()
+            True
+            sage: f = X.function(float(0.0))
+            sage: f.is_trivial_zero()
+            True
+            sage: f = X.function(x-x)
+            sage: f.is_trivial_zero()
+            True
+            sage: X.zero_function().is_trivial_zero()
+            True
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = X.function(cos(x)^2 + sin(x)^2 - 1)
+            sage: f.is_trivial_zero()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to zero involve some simplification algorithms and
+        return ``True``::
+
+            sage: f.is_zero()
+            True
+            sage: f == 0
+            True
+
+        """
+        return self._express.is_trivial_zero()
+
 
     def copy(self):
         r"""
@@ -1742,7 +1789,7 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
             0
         """
         return self._chart.manifold().base_field().characteristic()
-    
+
     def from_base_ring(self, r):
         """
         Return the canonical embedding of ``r`` into ``self``.

@@ -299,13 +299,11 @@ class RiemannSurface(object):
         self._R = f.parent()
         if len(self._R.gens()) != 2:
             raise ValueError('only bivariate polynomials supported.')
+        if f.degree() <= 1:
+            raise ValueError('equation must be of degree at least 2.')
         z, w = self._R.gen(0), self._R.gen(1)
-        if False:
-            self._CC = CDF
-            self._RR = RDF
-        else:
-            self._CC = ComplexField(self._prec)
-            self._RR = RealField(self._prec)
+        self._CC = ComplexField(self._prec)
+        self._RR = RealField(self._prec)
         self._CCz = PolynomialRing(self._CC, [self._R.gen(0)])
         self._CCw = PolynomialRing(self._CC, [self._R.gen(1)])
         self.f = f
@@ -1662,7 +1660,16 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
     Given two g x g matrices with complex entries, numerically determine
     an (approximate) ZZ-basis for the 2g x 2g matrices with integer entries
     of the shape (D, B; C, A) such that
-    C+M1*A=(D+M1*B)*M2
+    B+M1*A=(D+M1*C)*M2
+    By considering real and imaginary parts separately we obtain `2g^2`
+    equations with real coefficients in `4g^2` variables. We scale the
+    coefficients by a constant `2^b` and round them to integers, in order
+    to obtain an integer system of equations. Standard application of LLL
+    allows us to determine near solutions.
+
+    The user can specify the parameter `b`, but by default the system will
+    choose a `b` based on the size of the coefficients and the precision
+    with which they are given.
 
     INPUT:
 
@@ -1670,12 +1677,11 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
 
     - `M2` -- square complex valued matrix of same size as M1
 
-    - ``b`` -- integer (default: precision - 10). The equation coefficients
+    - ``b`` -- integer (default provided). The equation coefficients
       are scaled by `2^b` before rounding to integers.
 
-    - ``r`` -- integer (default: ``b/4``). Solutions that have all
-      coefficients smaller than `2^r` in absolute value are reported as
-      actual solutions.
+    - ``r`` -- integer (default: ``b/4``). The vectors found by LLL that satisfy
+      the scaled equations to withing `2^r` are reported as solutions.
 
     OUTPUT:
 
@@ -1689,7 +1695,7 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
         sage: T=integer_matrix_relations(M1,M2)
         sage: id=parent(M1)(1)
         sage: M1t=[id.augment(M1) * t for t in T]
-        sage: [((m[:,:2]^(-1)*m)[:,2:]-M2).norm() < 1e-13for m in M1t]
+        sage: [((m[:,:2]^(-1)*m)[:,2:]-M2).norm() < 1e-13 for m in M1t]
         [True, True]
 
     """
@@ -1698,11 +1704,11 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
     prec = min(M1.base_ring().precision(),M2.base_ring().precision())
     H = max(max( abs(m.real_part()) for m in M1.list()+M2.list()), max( abs(m.imag_part()) for m in M1.list()+M2.list()))
     if b is None:
-        b = prec - 10
+        b = prec-5-H.log2().floor()
     if r is None:
         r = b//4
     S = 2**b
-    if H*S > 2**(prec-5):
+    if H*S > 2**(prec-4):
         raise ValueError("insufficient precision for b=%s"%b)
     g = M1.ncols()
     CC = M1.base_ring()

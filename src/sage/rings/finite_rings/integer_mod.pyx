@@ -1570,6 +1570,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             True
             sage: mod(0, 1).is_primitive_root()
             True
+
+            sage: all(not mod(p^j, p^k).is_primitive_root()
+            ....:     for p in prime_range(3, 12)
+            ....:     for k in srange(1, 4)
+            ....:     for j in srange(0, k))
+            True
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()

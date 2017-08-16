@@ -18,6 +18,7 @@ of undirected graphs.
 """
 
 from sage.graphs.graph import Graph
+from collections import deque
 
 PRIME = 0
 SERIES = 1
@@ -31,28 +32,6 @@ NO_SPLIT = 0
 LEFT_OF_SOURCE = -1
 RIGHT_OF_SOURCE = 1
 SOURCE = 0
-
-
-class Queue:
-    def __init__(self):
-        self.q = []
-
-    def put(self, ele):
-        self.q.append(ele)
-
-    def empty(self):
-        if not self.q:
-            return True
-        return False
-
-    def get(self):
-        if self.empty():
-            raise ValueError("Queue is empty")
-        return self.q.pop(0)
-
-    def clear(self):
-        self.q = []
-
 
 class NodeInfo:
     """
@@ -834,30 +813,30 @@ def check_prime(graph, root, left, right,
 
     # stores the indices of the cocomponents included in the prime module
     # the cocomponents are extracted one by one for adding more components
-    left_queue = Queue()
+    left_queue = deque()
 
     # stores the indices of the components included in the prime module
     # the components are extracted one by one for adding more cocomponents
-    right_queue = Queue()
+    right_queue = deque()
 
     if new_left_index != source_index:
-        left_queue.put(new_left_index)
+        left_queue.append(new_left_index)
     if new_right_index != source_index:
-        right_queue.put(new_right_index)
+        right_queue.append(new_right_index)
 
-    while not left_queue.empty() or not right_queue.empty():
+    while left_queue or right_queue:
 
-        if not left_queue.empty():
+        if left_queue:
 
             # cocomponent indices extracted from the queue
-            left_index = left_queue.get()
+            left_index = left_queue.popleft()
 
             # more components added based on the below condition
             while new_right_index < len(root[1]) - 1 and \
                             root[1][new_right_index][0].index_in_root < \
                             mu[left_index][0].index_in_root:
                 new_right_index += 1
-                right_queue.put(new_right_index)
+                right_queue.append(new_right_index)
 
             # cocomponent added while cocomponent at left_index
             # has cocomponent to its left with same comp_num
@@ -865,20 +844,20 @@ def check_prime(graph, root, left, right,
                 if left_index >= 1:
                     left_index -= 1
                     if new_left_index > left_index:
-                        left_queue.put(left_index)
+                        left_queue.append(left_index)
                     new_left_index = min(left_index, new_left_index)
 
-        if not right_queue.empty():
+        if right_queue:
 
             # component indices extracted from the queue
-            right_index = right_queue.get()
+            right_index = right_queue.popleft()
 
             # more cocomponents added based on the below condition
             while new_left_index > 0 and \
                             root[1][new_left_index][0].index_in_root > \
                             mu[right_index][0].index_in_root:
                 new_left_index -= 1
-                left_queue.put(new_left_index)
+                left_queue.append(new_left_index)
 
             # component is added while component at right_index
             # has component to its right with same comp_num
@@ -899,7 +878,7 @@ def check_prime(graph, root, left, right,
                 if right_index + 1 < len(root[1]):
                     right_index += 1
                     if new_right_index < right_index:
-                        right_queue.put(right_index)
+                        right_queue.append(right_index)
                     new_right_index = max(right_index, new_right_index)
 
     node = create_prime_node()
@@ -1569,15 +1548,15 @@ def promote_left(root):
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [PARALLEL, [[NORMAL, [6]]]], [PARALLEL, [[NORMAL, [7]]]], [PARALLEL, []], [NORMAL, [1]]]]
 
     """
-    q = Queue()
+    q = deque()
 
     # q has [parent, child] elements as parent needs to be modified
     for tree in root[1]:
-        q.put([root, tree])
+        q.append([root, tree])
 
-    while not q.empty():
+    while q:
 
-        parent, child = q.get()
+        parent, child = q.popleft()
 
         if child[0].node_type == NORMAL:
             continue
@@ -1596,9 +1575,9 @@ def promote_left(root):
                 parent[1].insert(index, tree)
                 index += 1
                 to_remove.append(tree)
-                q.put([parent, tree])
+                q.append([parent, tree])
             else:
-                q.put([child, tree])
+                q.append([child, tree])
 
         for tree in to_remove:
             child[1].remove(tree)
@@ -1647,15 +1626,15 @@ def promote_right(root):
         [FOREST, [[NORMAL, [2]], [SERIES, [[SERIES, [[NORMAL, [4]]]], [SERIES, [[NORMAL, [5]]]]]], [NORMAL, [3]], [PARALLEL, []], [PARALLEL, [[NORMAL, [7]]]], [PARALLEL, [[NORMAL, [6]]]], [NORMAL, [1]]]]
 
     """
-    q = Queue()
+    q = deque()
 
     # q has [parent, child] elements as parent needs to be modified
     for tree in root[1]:
-        q.put([root, tree])
+        q.append([root, tree])
 
-    while not q.empty():
+    while q:
 
-        parent, child = q.get()
+        parent, child = q.popleft()
 
         if child[0].node_type == NORMAL:
             continue
@@ -1673,9 +1652,9 @@ def promote_right(root):
             if tree[0].has_right_split() and child[0].has_right_split():
                 parent[1].insert(index + 1, tree)
                 to_remove.append(tree)
-                q.put([parent, tree])
+                q.append([parent, tree])
             else:
-                q.put([child, tree])
+                q.append([child, tree])
 
         for tree in to_remove:
             child[1].remove(tree)
@@ -1725,15 +1704,15 @@ def promote_child(root):
         [FOREST, [[NORMAL, [2]], [SERIES, [[NORMAL, [4]], [NORMAL, [5]]]], [NORMAL, [3]], [NORMAL, [7]], [NORMAL, [6]], [NORMAL, [1]]]]
 
     """
-    q = Queue()
+    q = deque()
 
     # q has [parent, child] elements as parent needs to be modified
     for tree in root[1]:
-        q.put([root, tree])
+        q.append([root, tree])
 
-    while not q.empty():
+    while q:
 
-        parent, child = q.get()
+        parent, child = q.popleft()
 
         if child[0].node_type == NORMAL:
             continue
@@ -1747,14 +1726,14 @@ def promote_child(root):
             index = parent[1].index(child)
             parent[1].insert(index, tree)
             parent[1].remove(child)
-            q.put([parent, tree])
+            q.append([parent, tree])
         # if child node has no children
         elif ((not child[1]) and child[0].node_split != NO_SPLIT):
             # remove the child node
             parent[1].remove(child)
         else:
             for tree in child[1]:
-                q.put([child, tree])
+                q.append([child, tree])
 
 
 def clear_node_split_info(root):

@@ -611,7 +611,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: cp.solve()
             6.0
 
-        TEST:
+        TESTS:
 
         Test that `deepcopy` makes actual copies but preserves identities::
 
@@ -1071,7 +1071,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['x'] + p['y'] <= 1)
             sage: p.add_constraint(0 <= 3*p['y'] + p['x'] <= 2)
             sage: P = p.polyhedron(); P
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
 
         3-D Polyhedron::
 
@@ -1080,7 +1080,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['y'] + p['z'] + 3*p['x'] <= 1)
             sage: p.add_constraint(0 <= 2*p['z'] + p['x'] + 3*p['y'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 8 vertices
 
         An empty polyhedron::
 
@@ -1090,18 +1090,29 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(2*v['y'] + v['z'] + 3*v['x'] <= 1)
             sage: p.add_constraint(2*v['z'] + v['x'] + 3*v['y'] >= 2)
             sage: P = p.polyhedron(); P
-            The empty polyhedron in QQ^3
+            The empty polyhedron in RDF^3
 
         An unbounded polyhedron::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
 
         A square (see :trac:`14395`) ::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x,y = p['x'], p['y']
+            sage: p.add_constraint( x <= 1 )
+            sage: p.add_constraint( x >= -1 )
+            sage: p.add_constraint( y <= 1 )
+            sage: p.add_constraint( y >= -1 )
+            sage: p.polyhedron()
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
+
+        We can also use a backend that supports exact arithmetic::
+
+            sage: p = MixedIntegerLinearProgram(solver='PPL')
             sage: x,y = p['x'], p['y']
             sage: p.add_constraint( x <= 1 )
             sage: p.add_constraint( x >= -1 )
@@ -2716,7 +2727,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Raise exception if exist lower bound
         for constraint in self.constraints():
-            if constraint[0] != None:
+            if constraint[0] is not None:
                 raise ValueError('Problem constraints cannot have lower bounds')
 
         # Construct 'c'

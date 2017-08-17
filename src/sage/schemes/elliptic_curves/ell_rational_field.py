@@ -1598,7 +1598,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
           - ``True`` -- the computation is first run with small and then
             successively larger `\Delta` values up to max_Delta. If at any
-            point the computed bound is 0 (or 1 when when root_number is -1
+            point the computed bound is 0 (or 1 when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
           - ``False`` -- the computation is run a single time with `\Delta`

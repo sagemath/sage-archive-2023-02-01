@@ -11,6 +11,7 @@ Utilities for subprocess management.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import errno
 import signal

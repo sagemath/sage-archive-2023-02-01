@@ -1569,7 +1569,7 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``b`` -- integer (default: precision - 10). The equation coefficients
+        - ``b`` -- integer (default provided). The equation coefficients
           are scaled by `2^b` before rounding to integers.
 
         - ``r`` -- integer (default: ``b/4``). Solutions that have all
@@ -1608,13 +1608,13 @@ class RiemannSurface(object):
         such that if the columns of (I|M1) generate the lattice defining
         the Jacobian of the Riemann surface and the columns of (I|M2) do this
         for the codomain, then approximately we have
-        (I|M2)T=(D+M2B)(I|M1),
+        (I|M2)T=(D+M2C)(I|M1),
         i.e., up to a choice of basis for `\CC^g` as a complex vector space, we
         we realize (I|M1) as a sublattice of (I|M2).
 
         INPUT:
 
-        - ``b`` -- integer (default: precision - 10). The equation coefficients
+        - ``b`` -- integer (default provided). The equation coefficients
           are scaled by `2^b` before rounding to integers.
 
         - ``r`` -- integer (default: ``b/4``). Solutions that have all

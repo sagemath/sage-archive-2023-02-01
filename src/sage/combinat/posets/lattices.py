@@ -863,7 +863,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         They are also called as *Dilworth's lattices* and *upper locally
         distributive lattices*. They can be characterized in many other
-        ways, see [DIL1940]_.
+        ways, see [Dil1940]_.
 
         INPUT:
 
@@ -946,7 +946,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Actually this distributive sublattice is then a Boolean lattice.
 
         They are also called as *lower locally distributive lattices*.
-        They can be characterized in many other ways, see [DIL1940]_.
+        They can be characterized in many other ways, see [Dil1940]_.
 
         INPUT:
 
@@ -2330,7 +2330,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         (on the vertical axis) whenever `x<y` in the lattice.
 
         Note that the scientific litterature on posets often omits "upward" and
-        shortens it to "planar lattice" (e.g. [GW14]_), which can cause
+        shortens it to "planar lattice" (e.g. [GW2014]_), which can cause
         confusion with the notion of graph planarity in graph theory.
 
         .. NOTE::
@@ -2340,7 +2340,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         ALGORITHM:
 
-        Using the result from [Platt76]_, this method returns its result by
+        Using the result from [Platt1976]_, this method returns its result by
         testing that the Hasse diagram of the lattice is planar (in the sense of
         graph theory) when an edge is added between the top and bottom elements.
 

@@ -20,6 +20,7 @@ This adds the following to the main namespace:
         - :class:`BinaryMatroid <sage.matroids.linear_matroid.BinaryMatroid>`
         - :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`
         - :class:`QuaternaryMatroid <sage.matroids.linear_matroid.QuaternaryMatroid>`
+        - :class:`GraphicMatroid <sage.matroids.linear_matroid.GraphicMatroid>`
 
     Note that you can construct all of these through the
     :func:`Matroid() <sage.matroids.constructor.Matroid>` function, which is

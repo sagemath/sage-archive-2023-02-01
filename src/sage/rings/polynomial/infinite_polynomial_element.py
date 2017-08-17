@@ -1301,6 +1301,22 @@ class InfinitePolynomial_sparse(RingElement):
         P = lambda n: k*n
         return self ** P
 
+    def __iter__(self):
+        """
+        Return an iterator over all pairs ``(coefficient, monomial)``
+        of this polynomial.
+
+        EXAMPLES::
+
+            sage: X.<x,y> = InfinitePolynomialRing(QQ)
+            sage: a = x[0] + 2*x[1] + y[0]*y[1]
+            sage: list(a)
+            [(2, x_1), (1, x_0), (1, y_1*y_0)]
+        """
+        return iter((coefficient,
+                     self.__class__(self.parent(), monomial))
+                    for coefficient, monomial in self._p)
+
 
 class InfinitePolynomial_dense(InfinitePolynomial_sparse):
     """

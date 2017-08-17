@@ -309,7 +309,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
         .. SEEALSO::
 
-            - Dual function: :meth:~`FiniteJoinSemilattice.join`.
+            - Dual function: :meth:`~sage.combinat.posets.lattices.FiniteJoinSemilattice.join`
         """
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
@@ -563,7 +563,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
         .. SEEALSO::
 
-            - Dual function: :meth:~`FiniteMeetSemilattice.meet`.
+            - Dual function: :meth:`~sage.combinat.posets.lattices.FiniteMeetSemilattice.meet`
         """
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))

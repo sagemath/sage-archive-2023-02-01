@@ -4445,7 +4445,7 @@ class GenericGraph(GenericGraph_pyx):
         This method is deprecated since Sage-4.4.1.alpha2. Please use instead:
 
             sage: g.layout(layout = "planar", save_pos = True)
-            {0: [1, 1], 1: [2, 2], 2: [3, 2], 3: [1, 4], 4: [5, 1], 5: [0, 5], 6: [1, 0]}
+            {0: [1, 4], 1: [5, 1], 2: [0, 5], 3: [1, 0], 4: [1, 2], 5: [2, 1], 6: [4, 1]}
         """
         self.layout(layout = "planar", save_pos = True, test = test, **layout_options)
         if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
@@ -4878,22 +4878,22 @@ class GenericGraph(GenericGraph_pyx):
             * :meth:`get_embedding`
             * :meth:`is_planar`
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: T = graphs.TetrahedralGraph()
             sage: T.faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
             [[(0, 1), (1, 2), (2, 0)],
              [(3, 2), (2, 1), (1, 3)],
-             [(2, 3), (3, 0), (0, 2)],
-             [(0, 3), (3, 1), (1, 0)]]
+             [(3, 0), (0, 2), (2, 3)],
+             [(3, 1), (1, 0), (0, 3)]]
 
         With no embedding provided::
 
             sage: graphs.TetrahedralGraph().faces()
             [[(0, 1), (1, 2), (2, 0)],
              [(3, 2), (2, 1), (1, 3)],
-             [(2, 3), (3, 0), (0, 2)],
-             [(0, 3), (3, 1), (1, 0)]]
+             [(3, 0), (0, 2), (2, 3)],
+             [(3, 1), (1, 0), (0, 3)]]
 
         With no embedding provided (non-planar graph)::
 
@@ -4901,7 +4901,22 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: No embedding is provided and the graph is not planar.
+
+        TESTS:
+
+        The empty graph has no face::
+
+            sage: Graph().faces()
+            []
+
+        The Path Graph has a single face::
+
+            sage: graphs.PathGraph(3).faces()
+            [[(0, 1), (1, 2), (2, 1), (1, 0)]]
         """
+        if not self.order():
+            return []
+
         # Which embedding should we use ?
         if embedding is None:
             # Is self._embedding available ?
@@ -4914,37 +4929,29 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     raise ValueError("No embedding is provided and the graph is not planar.")
 
-        from sage.sets.set import Set
-
         # Establish set of possible edges
-        edgeset = Set([])
-        for edge in self.to_undirected().edges():
-            edgeset = edgeset.union(Set([(edge[0],edge[1]),(edge[1],edge[0])]))
+        edgeset = set()
+        for u,v in self.edge_iterator(labels=0):
+            edgeset.add((u, v))
+            edgeset.add((v, u))
 
         # Storage for face paths
         faces = []
-        path = []
-        for edge in edgeset:
-            path.append(edge)
-            edgeset -= Set([edge])
-            break  # (Only one iteration)
+        path = [edgeset.pop()]
 
         # Trace faces
-        while (len(edgeset) > 0):
-            neighbors = embedding[path[-1][-1]]
-            next_node = neighbors[(neighbors.index(path[-1][-2])+1)%(len(neighbors))]
-            tup = (path[-1][-1],next_node)
-            if tup == path[0]:
+        while edgeset:
+            u,v = path[-1]
+            neighbors = embedding[v]
+            next_node = neighbors[(neighbors.index(u)+1)%(len(neighbors))]
+            e = (v, next_node)
+            if e == path[0]:
                 faces.append(path)
-                path = []
-                for edge in edgeset:
-                    path.append(edge)
-                    edgeset -= Set([edge])
-                    break  # (Only one iteration)
+                path = [edgeset.pop()]
             else:
-                path.append(tup)
-                edgeset -= Set([tup])
-        if (len(path) != 0): faces.append(path)
+                path.append(e)
+                edgeset.discard(e)
+        if path: faces.append(path)
         return faces
 
     def num_faces(self,embedding=None):

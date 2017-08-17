@@ -101,7 +101,7 @@ class ReductionData(SageObject):
        the reduction (Namikawa, Ueno:"The complete classification of
        fibers in pencils of curves of genus two", Manuscripta Math., vol.
        9, (1973), pages 143-186.) The reduction symbol is followed by the
-       corresponding page number (or just an indiction) in the above
+       corresponding page number (or just an indication) in the above
        article. The lower index is printed by , for instance, [I2-II-5]
        means [I_2-II-5]. Note that if `K` and `K'` are
        Kodaira symbols for singular fibers of elliptic curves, [K-K'-m]

@@ -707,7 +707,7 @@ class RiemannSurface(object):
                 wi-=delta
             # If we run 100 iterations without a result, terminate.
             else:
-                raise ConvergenceError("Newton interation fails to converge after %s iterations"%(j,))
+                raise ConvergenceError("Newton iteration fails to converge after %s iterations" % j)
         return neww
 
     def _newton_iteration(self, z0, oldw, epsilon):
@@ -1316,7 +1316,7 @@ class RiemannSurface(object):
         if self.genus == 0:
             self._differentials = []
             return self._differentials[0]
-        if (self._differentials == None):
+        if self._differentials is None:
             # Computes differentials from the adjointIdeal using Singular
             # First we homogenize
             base = self.f.base_ring()

@@ -492,22 +492,23 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == self.leading_matrix(shifts, row_wise).rank()
 
-    def pivot(self, shifts=None, row_wise=True, return_degree=False):
+    def leading_positions(self, shifts=None, row_wise=True, return_degree=False):
         r"""
-        Return the (shifted) pivot index and the (shifted) pivot degree
-        of this matrix.
+        Return the (shifted) leading positions (also known as the pivot index),
+        and optionally the (shifted) pivot degree of this matrix.
 
         If working row-wise, for a given shift $s_1,\ldots,s_n \in
         \ZZ$, taken as $(0,\ldots,0)$ by default, and a row vector of
-        univariate polynomials $[p_1,\ldots,p_n]$, the pivot index of this
-        vector is the index $j$ of the rightmost nonzero entry $p_j$ such that
-        $\deg(p_j) + s_j$ is equal to the row degree of the vector. Then, for
-        this index $j$, the pivot degree of the vector is the degree
+        univariate polynomials $[p_1,\ldots,p_n]$, the leading positions of
+        this vector is the index $j$ of the rightmost nonzero entry $p_j$ such
+        that $\deg(p_j) + s_j$ is equal to the row degree of the vector. Then,
+        for this index $j$, the pivot degree of the vector is the degree
         $\deg(p_j)$.
         
-        For the zero row, both the pivot index and degree are $-1$.  For a $m
-        \times n$ polynomial matrix, the pivot index and degree are the two
-        lists containing the pivot index and the pivot degree of its rows.
+        For the zero row, both the leading positions and degree are $-1$.  For
+        a $m \times n$ polynomial matrix, the leading positions and pivot
+        degree are the two lists containing the leading positions and the pivot
+        degree of its rows.
 
         The definition is similar if working column-wise.
 
@@ -533,45 +534,46 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
-            sage: M.pivot(return_degree=True)
+            sage: M.leading_positions(return_degree=True)
             ([0, 0], [1, 3])
 
-            sage: M.pivot(shifts=[0,5,2],return_degree=True)
+            sage: M.leading_positions(shifts=[0,5,2], return_degree=True)
             ([2, 0], [0, 3])
 
-            sage: M.pivot(row_wise=False,return_degree=True)
+            sage: M.leading_positions(row_wise=False, return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
-            sage: M.pivot(shifts=[1,2], row_wise=False,return_degree=True)
+            sage: M.leading_positions(shifts=[1,2], row_wise=False, \
+                    return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
         In case several entries in the row (resp. column) reach the shifted row
-        (resp. column) degree, the pivot is chosen as the rightmost (resp.
-        bottommost) such entry::
+        (resp. column) degree, the leading position is chosen as the rightmost
+        (resp. bottommost) such entry::
 
-            sage: M.pivot(shifts=[0,5,1],return_degree=True)
+            sage: M.leading_positions(shifts=[0,5,1],return_degree=True)
             ([2, 0], [0, 3])
 
-            sage: M.pivot(shifts=[2,0], row_wise=False,return_degree=True)
+            sage: M.leading_positions(shifts=[2,0], row_wise=False,return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
-        If working row-wise, both the shifted pivot index and degree of a
-        $0\times n$ matrix are the empty list ``[]``, while for a $m\times 0$
-        matrix both are the list ``[None]*m``. A similar property holds when
+        If working row-wise, both the leading positions index and pivot degree
+        of a $0\times n$ matrix are the empty list ``[]``, while for a $m\times
+        0$ matrix both are the list ``[None]*m``. A similar property holds when
         working column-wise::
             
             sage: M = Matrix( pR, 0, 3 )
-            sage: M.pivot(return_degree=True)
+            sage: M.leading_positions(return_degree=True)
             ([], [])
 
-            sage: M.pivot(row_wise=False,return_degree=True)
+            sage: M.leading_positions(row_wise=False,return_degree=True)
             ([None, None, None], [None, None, None])
 
             sage: M = Matrix( pR, 3, 0 )
-            sage: M.pivot(return_degree=True)
+            sage: M.leading_positions(return_degree=True)
             ([None, None, None], [None, None, None])
 
-            sage: M.pivot(row_wise=False,return_degree=True)
+            sage: M.leading_positions(row_wise=False,return_degree=True)
             ([], [])
         """
         self._check_shift_dimension(shifts,row_wise)
@@ -696,7 +698,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
         """
         self._check_shift_dimension(shifts,row_wise)
-        pivot_index = self.pivot(shifts, row_wise)
+        pivot_index = self.leading_positions(shifts, row_wise)
         # pivot index should not have duplicates, which is equivalent to:
         # once sorted, it doesn't contain a pair of equal successive entries
         if not ordered:
@@ -772,7 +774,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
         """
         self._check_shift_dimension(shifts,row_wise)
-        pivot_index,pivot_degree = self.pivot(shifts, row_wise,
+        pivot_index,pivot_degree = self.leading_positions(shifts, row_wise,
                 return_degree=True)
         # there should be no zero row (or column if not row_wise)
         # and the matrix should not be m x 0 (or 0 x n if not row_wise)

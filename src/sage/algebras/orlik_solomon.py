@@ -252,7 +252,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         subset `S = \{ s_1 < s_2 < \cdots < s_k \}` of the ground set::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
-            sage: M = Matroid(G).regular_matroid()
+            sage: M = Matroid(G)
             sage: E = M.groundset_list()
             sage: OS = M.orlik_solomon_algebra(ZZ)
             sage: G = OS.algebra_generators()
@@ -324,7 +324,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             ([2, 5], -OS{0, 2} + OS{0, 5})
             ([4, 5], -OS{3, 4} + OS{3, 5})
 
-            sage: M4 = matroids.CompleteGraphic(4).regular_matroid()
+            sage: M4 = matroids.CompleteGraphic(4)
             sage: OS = M4.orlik_solomon_algebra(QQ)
             sage: OS.subset_image(frozenset({2,3,4}))
             OS{0, 2, 3} + OS{0, 3, 4}
@@ -332,7 +332,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         An example of a custom ordering::
 
             sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
-            sage: M = Matroid(G, regular=True)
+            sage: M = Matroid(G)
             sage: s = [(5, 6), (1, 2), (3, 5), (2, 3), (1, 4), (3, 6), (3, 4)]
             sage: sorted([sorted(c) for c in M.circuits()])
             [[(1, 2), (1, 4), (2, 3), (3, 4)],
@@ -359,7 +359,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         TESTS::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[2,3],[1,3],[1,3]], multiedges=True)
-            sage: M = Matroid(G, regular=True)
+            sage: M = Matroid(G)
             sage: sorted([sorted(c) for c in M.circuits()])
             [[0, 1], [0, 2, 4], [0, 2, 5], [0, 3, 4],
              [0, 3, 5], [1, 2, 4], [1, 2, 5], [1, 3, 4],

@@ -187,7 +187,7 @@ def QuotientRing(R, I, names=None):
     ::
 
         sage: P.<x> = QQ[]
-        sage: S.<xbar> = QuotientRing(P, P.ideal(x^2 - 2))
+        sage: S = QuotientRing(P, P.ideal(x^2 - 2))
         sage: S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 - 2
@@ -201,7 +201,7 @@ def QuotientRing(R, I, names=None):
     Sage coerces objects into ideals when possible::
 
         sage: P.<x> = QQ[]
-        sage: R.<xbar> = QuotientRing(P, x^2 + 1); R
+        sage: R = QuotientRing(P, x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
 

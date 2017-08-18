@@ -5020,7 +5020,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.planar_dual()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Finding the planar_dual is only works if the graph is at least 3 vertex-connected.
+            NotImplementedError: Finding the planar_dual is only works if the graph is at least 3-vertex-connected.
 
         .. TODO::
 
@@ -5033,7 +5033,7 @@ class GenericGraph(GenericGraph_pyx):
         self._scream_if_not_simple()
 
         if self.vertex_connectivity() < 3:
-            raise NotImplementedError("Finding the planar_dual is only works if the graph is at least 3 vertex-connected.")
+            raise NotImplementedError("Finding the planar_dual is only works if the graph is at least 3-vertex-connected.")
         from . import graph
         return graph.Graph([[tuple(_) for _ in self.faces()], lambda f,g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
 

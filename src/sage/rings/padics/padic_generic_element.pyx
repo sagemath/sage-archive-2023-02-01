@@ -2847,13 +2847,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if z.precision_absolute() == PlusInfinity():
                 return K(0)
             verbose("residue 0, using series. %d %s"%(n,str(self)), level=2)
-            M = floor((prec/z.valuation()).log(p))
+            M = ceil((prec/z.valuation()).log(p))
             N = prec - n*M
             ret = K(0)
             for m in range(M + 1):
                 zpm = z**(p**m)
                 ret += p**(-m*n)*sum(zpm**k/Integer(k)**n for k in
-                        range(1, _findprec(p**m*z.valuation(), 0, N + n*m,p)) if k % p != 0)
+                        range(1, _findprec(p**m*z.valuation(), 0, N + n*m, p)) if k % p != 0)
 
             return ret.add_bigoh(N)
 

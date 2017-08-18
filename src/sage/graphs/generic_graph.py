@@ -4983,7 +4983,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``embedding`` - a combinatorial embedding dictionary. Format:
-          ``{v1:[v2,v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
+          ``{v1:[v2, v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
           each vertex). If set to ``None`` (default) the method will use the
           embedding stored as ``self._embedding``. If none is stored, the method
           will compute the set of faces from the embedding returned by
@@ -5004,14 +5004,27 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.IcosahedralGraph().planar_dual().is_isomorphic(graphs.DodecahedralGraph())
             True
 
+        Identify self-dual planar graphs (:oeis:`A002841`)::
+
+            sage: [sum(g.planar_dual().is_isomorphic(g) for g in  [_ for _ in graphs.planar_graphs(i, minimum_connectivity=3)]) for i in range(4, 8)]
+            [1, 1, 2, 6]
+
+        The planar dual of the planar dual is isomorphic to the graph itself::
+
+            sage: g = [_ for _ in graphs.planar_graphs(9, minimum_connectivity=3)][ZZ.random_element(0, 2607)]; g
+            Graph on 9 vertices
+            sage: g.planar_dual().planar_dual().is_isomorphic(g)
+            True
+
+
         TESTS::
 
-            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G = graphs.CompleteMultipartiteGraph([3, 3])
             sage: G.planar_dual()
             Traceback (most recent call last):
             ...
             ValueError: No embedding is provided and the graph is not planar.
-            sage: G = Graph([[1,2,3,4], [[1,2],[2,3],[3,1],[3,2],[1,4],[2,4],[3,4]]], multiedges=True)
+            sage: G = Graph([[1, 2, 3, 4], [[1, 2], [2, 3], [3, 1], [3, 2], [1, 4], [2, 4], [3, 4]]], multiedges=True)
             sage: G.planar_dual()
             Traceback (most recent call last):
             ...
@@ -5035,7 +5048,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.vertex_connectivity() < 3:
             raise NotImplementedError("Finding the planar_dual is only works if the graph is at least 3-vertex-connected.")
         from . import graph
-        return graph.Graph([[tuple(_) for _ in self.faces()], lambda f,g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
+        return graph.Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
 
     ### Connectivity
 

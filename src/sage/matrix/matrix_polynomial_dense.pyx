@@ -58,15 +58,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     condition is that the leading matrix of this basis has full rank (see the
     description of ``leading_matrix`` below).  There is a unique minimal basis,
     called the Popov basis of the module, which satisfies some additional
-    normalization condition (see the description of ``is_popov`` below).
+    normalization condition (see the description of :meth:`row_degree` below).
 
     These notions can be extended via a more general degree measure, involving
     a tuple of integers which is called shift and acts as column degree shifts
-    in the definition of row degree. Precisely, for a given shift
-    $(s_1,\ldots,s_n) \in \ZZ^n$ and a row vector $[p_1 \; \cdots \;
-    p_n] \in \Bold{K}[x]^{1 \times n}$, its shifted row degree is the maximum
-    of $\deg(p_j) + s_j$ for $1 \leq j \leq n$. Then, minimal bases and Popov
-    bases are defined similarly, with respect to this notion of degree.
+    in the definition of row degree. Precisely, for given $s_1,\ldots,s_n \in
+    \ZZ$ and a row vector $[p_1 \; \cdots \; p_n] \in \Bold{K}[x]^{1 \times
+    n}$, its shifted row degree is the maximum of $\deg(p_j) + s_j$ for $1 \leq
+    j \leq n$. Then, minimal bases and Popov bases are defined similarly, with
+    respect to this notion of degree.
 
     Another important canonical basis is the Hermite basis, which is a lower
     triangular matrix satisfying a normalization condition similar to that for
@@ -116,7 +116,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         is the matrix $(\deg(M_{i,j}))_{i,j}$ formed by the degrees of its
         entries. Here, the degree of the zero polynomial is $-1$.
 
-        For given shifts $(s_1,\ldots,s_m) \in \ZZ^m$, the shifted degree
+        For given shifts $s_1,\ldots,s_m \in \ZZ$, the shifted degree
         matrix of $M$ is either $(\deg(M_{i,j})+s_j)_{i,j}$ if working
         row-wise, or $(\deg(M_{i,j})+s_i)_{i,j}$ if working column-wise. In the
         former case, $m$ has to be the number of columns of $M$; in the latter
@@ -185,11 +185,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         = \max_j(\deg(M_{i,j}))$ for $1\leq i \leq m$. Thus, $d_i=-1$ if
         the $i$-th row of $M$ is zero, and $d_i \geq 0$ otherwise.
 
-        For given shifts $(s_1,\ldots,s_n) \in \ZZ^n$, the shifted row
-        degree of $M$ is $(d_1,\ldots,d_m)$ where $d_i =
-        \max_j(\deg(M_{i,j})+s_j)$. Here, if the $i$-th row of $M$ is zero then
-        $d_i =\min(s_1,\ldots,s_n)-1$; otherwise, $d_i$ is larger than this
-        value.
+        For given shifts $s_1,\ldots,s_n \in \ZZ$, the shifted row degree of
+        $M$ is $(d_1,\ldots,d_m)$ where $d_i = \max_j(\deg(M_{i,j})+s_j)$.
+        Here, if the $i$-th row of $M$ is zero then $d_i
+        =\min(s_1,\ldots,s_n)-1$; otherwise, $d_i$ is larger than this value.
 
         INPUT:
 
@@ -256,11 +255,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         $d_j = \max_i(\deg(M_{i,j}))$ for $1\leq j \leq n$. Thus, $d_j=-1$ if
         the $j$-th column of $M$ is zero, and $d_j \geq 0$ otherwise.
 
-        For given shifts $(s_1,\ldots,s_m) \in \ZZ^m$, the shifted
-        column degree of $M$ is $(d_1,\ldots,d_n)$ where $d_j =
-        \max_i(\deg(M_{i,j})+s_i)$. Here, if the $j$-th column of $M$ is zero
-        then $d_j = \min(s_1,\ldots,s_m)-1$; otherwise $d_j$ is larger than
-        this value.
+        For given shifts $s_1,\ldots,s_m \in \ZZ$, the shifted column degree of
+        $M$ is $(d_1,\ldots,d_n)$ where $d_j = \max_i(\deg(M_{i,j})+s_i)$.
+        Here, if the $j$-th column of $M$ is zero then $d_j =
+        \min(s_1,\ldots,s_m)-1$; otherwise $d_j$ is larger than this value.
 
         INPUT:
 
@@ -319,7 +317,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         matrix in $\Bold{K}^{m \times n}$ formed by the leading coefficients of
         the entries of $M$ which reach the degree of the corresponding row.
   
-        More precisely, if working row-wise, let $(s_1,\ldots,s_n) \in \ZZ^n$
+        More precisely, if working row-wise, let $s_1,\ldots,s_n \in \ZZ$
         be a shift, and let $(d_1,\ldots,d_m)$ denote the shifted row degree of
         $M$. Then, the shifted leading matrix of $M$ is the matrix in
         $\Bold{K}^{m \times n}$ whose entry $i,j$ is the coefficient of degree
@@ -330,7 +328,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         \mathrm{diag}(x^{s_1},\ldots,x^{s_m})$ (which only has entries of
         nonpositive degree).
 
-        If working column-wise, let $(s_1,\ldots,s_m) \in \ZZ^m$ be a shift,
+        If working column-wise, let $s_1,\ldots,s_m \in \ZZ$ be a shift,
         and let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$.
         Then, the shifted leading matrix of $M$ is the matrix in $\Bold{K}^{m
         \times n}$ whose entry $i,j$ is the coefficient of degree $d_j-s_i$ of
@@ -456,8 +454,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Return the (shifted) pivot index and the (shifted) pivot degree
         of this matrix.
 
-        If working row-wise, for a given shift $(s_1,\ldots,s_n) \in
-        \ZZ^n$, taken as $(0,\ldots,0)$ by default, and a row vector of
+        If working row-wise, for a given shift $s_1,\ldots,s_n \in
+        \ZZ$, taken as $(0,\ldots,0)$ by default, and a row vector of
         univariate polynomials $[p_1,\ldots,p_n]$, the pivot index of this
         vector is the index $j$ of the rightmost nonzero entry $p_j$ such that
         $\deg(p_j) + s_j$ is equal to the row degree of the vector. Then, for

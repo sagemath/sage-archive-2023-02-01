@@ -402,6 +402,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 for i in range(self.nrows()) ])
 
     def is_reduced(self, shifts=None, row_wise=True):
+        #TODO should use def with zero rows
         r"""
         Return ``True`` if and only if this matrix is in (shifted) reduced
         form.
@@ -578,6 +579,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return (pivot_index,pivot_degree) if return_degree else pivot_index
 
     def is_weak_popov(self, shifts=None, row_wise=True, ordered=False):
+        #TODO should use def with zero rows
         r"""
         Return a boolean indicating whether this matrix is in (shifted)
         (ordered) weak Popov form.
@@ -667,6 +669,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return True
 
     def is_popov(self, shifts=None, row_wise=True):
+        #TODO should use def with zero rows
         r"""
         Return a boolean indicating whether this matrix is in (shifted) Popov
         form.

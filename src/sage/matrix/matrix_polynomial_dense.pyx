@@ -76,6 +76,42 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     with the shift $(0,d,2d,\ldots,(n-1)d)$.
     """
 
+    def _check_shift_dimension(self, shifts=None, row_wise=True):
+        r"""
+        Return a boolean indicating if the ``shifts`` argument has the
+        right length.
+
+        For an $m \times n$ polynomial matrix, if working row-wise then
+        ``shifts`` should have $n$ entries; if working column-wise, it should
+        have $m$ entries.
+
+        INPUT:
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
+          then shifts apply to the columns of the matrix and otherwise to its
+          rows (see the class description for more details).
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix( pR, [[3*x+1, 0, 1], [x^3+3, 0, 0]])
+            sage: M._check_shift_dimension()
+
+            sage: M._check_shift_dimension(shifts=[1,3,2])
+
+            sage: M._check_shift_dimension(shifts=[1,3,2], row_wise=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Shifts length should be the row dimension.
+        """
+        if shifts!=None and (not row_wise) and len(shifts) != self.nrows():
+            raise ValueError('Shifts length should be the row dimension.')
+        if shifts!=None and (row_wise and len(shifts) != self.ncols()):
+            raise ValueError('Shifts length should be the column dimension.')
+
     def degree(self):
         r"""
         Return the degree of this matrix.
@@ -164,6 +200,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [ 0 -2 -1]
             [ 5 -2 -2]
         """
+        self._check_shift_dimension(shifts,row_wise)
         if shifts==None:
             return self.apply_map(lambda x: x.degree())
         from sage.matrix.constructor import Matrix
@@ -237,6 +274,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.row_degree()
             [None, None, None]
         """
+        self._check_shift_dimension(shifts,row_wise=True)
         if self.ncols()==0:
             return [None]*(self.nrows())
         if shifts==None:
@@ -299,6 +337,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.column_degree()
             []
         """
+        self._check_shift_dimension(shifts,row_wise=False)
         if self.nrows()==0:
             return [None]*(self.ncols())
         if shifts==None:
@@ -378,6 +417,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [3 0 1]
             [1 0 0]
         """
+        self._check_shift_dimension(shifts,row_wise)
         from sage.matrix.constructor import Matrix
         if row_wise:
             row_degree = self.row_degree(shifts)
@@ -448,6 +488,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_reduced(shifts=[2,0,0], row_wise=False)
             True
         """
+        self._check_shift_dimension(shifts,row_wise)
         number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == self.leading_matrix(shifts, row_wise).rank()
 
@@ -533,6 +574,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.pivot(row_wise=False,return_degree=True)
             ([], [])
         """
+        self._check_shift_dimension(shifts,row_wise)
         if row_wise:
             if self.ncols()==0:
                 pivot_list = [None]*(self.nrows())
@@ -653,6 +695,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_weak_popov(shifts=[0,2,1,3],ordered=True)
             True
         """
+        self._check_shift_dimension(shifts,row_wise)
         pivot_index = self.pivot(shifts, row_wise)
         # pivot index should not have duplicates, which is equivalent to:
         # once sorted, it doesn't contain a pair of equal successive entries
@@ -728,6 +771,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_popov(shifts=[0,2,3], row_wise=False)
             True
         """
+        self._check_shift_dimension(shifts,row_wise)
         pivot_index,pivot_degree = self.pivot(shifts, row_wise,
                 return_degree=True)
         # there should be no zero row (or column if not row_wise)
@@ -928,6 +972,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
         """
+        self._check_shift_dimension(shifts,row_wise)
         M = self.__copy__()
         U = M._weak_popov_form(transformation=transformation, shifts=shifts)
         M.set_immutable()
@@ -1150,6 +1195,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
         """
+        self._check_shift_dimension(shifts,row_wise)
         if not row_wise:
             return self.T.reduced_form(transformation, shifts, row_wise=True).T
         return self.weak_popov_form(transformation, shifts)
@@ -1205,6 +1251,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U * A == H
             True
         """
+        self._check_shift_dimension(shifts,row_wise)
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,
                                       normalization=lambda p: ~p.lc())

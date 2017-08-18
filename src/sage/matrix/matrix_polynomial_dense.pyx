@@ -23,6 +23,7 @@ AUTHORS:
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.integer_ring import ZZ
+from sage.misc.superseded import deprecated_function_alias
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     r"""
@@ -1052,7 +1053,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             return U
 
-    def row_reduced_form(self, transformation=None, shifts=None):
+    def reduced_form(self, transformation=None, shifts=None, row_wise=True):
         r"""
         Return a row reduced form of this matrix.
 
@@ -1086,7 +1087,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: R.<t> = GF(3)['t']
             sage: M = matrix([[(t-1)^2],[(t-1)]])
-            sage: M.row_reduced_form()
+            sage: M.reduced_form()
             [    0]
             [t + 2]
 
@@ -1095,7 +1096,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         the greatest-common-divisor of the entries of the matrix::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form()
+            sage: output1 = M1.reduced_form()
             sage: output1
             [0]
             [0]
@@ -1106,7 +1107,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form()
+            sage: M.reduced_form()
             [      t    -t^2]
             [t^2 - 2       t]
 
@@ -1114,7 +1115,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: R.<t> = GF(5)['t']
             sage: M = matrix(R, 2, [0,0,0,0])
-            sage: M.row_reduced_form()
+            sage: M.reduced_form()
             [0 0]
             [0 0]
 
@@ -1128,7 +1129,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M = matrix([[t,t,t],[0,0,t]]); M
             [t t t]
             [0 0 t]
-            sage: M.row_reduced_form()
+            sage: M.reduced_form()
             [ t  t  t]
             [-t -t  0]
 
@@ -1137,7 +1138,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: Fq.<a> = GF(2^3)
             sage: Fx.<x> = Fq[]
             sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: W,U = A.row_reduced_form(transformation=True);
+            sage: W,U = A.reduced_form(transformation=True);
             sage: W,U
             (
             [          x^2 + a           x^4 + a]  [1 0]
@@ -1149,7 +1150,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
         """
+        if not row_wise:
+            return self.T.reduced_form(transformation, shifts, row_wise=True).T
         return self.weak_popov_form(transformation, shifts)
+
+    row_reduced_form = deprecated_function_alias(23619, reduced_form)
 
     def hermite_form(self, include_zero_rows=True, transformation=False):
         """

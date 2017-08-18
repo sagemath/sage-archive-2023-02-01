@@ -57,9 +57,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     minimal degree possible among all bases of this module. The degree of a row
     is the maximum of the degrees of the entries of the row. An equivalent
     condition is that the leading matrix of this basis has full rank (see the
-    description of ``leading_matrix`` below).  There is a unique minimal basis,
+    description of :meth:`leading_matrix`). There is a unique minimal basis,
     called the Popov basis of the module, which satisfies some additional
-    normalization condition (see the description of :meth:`row_degree` below).
+    normalization condition (see the description of :meth:`row_degree`).
 
     These notions can be extended via a more general degree measure, involving
     a tuple of integers which is called shift and acts as column degree shifts
@@ -201,7 +201,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [ 5 -2 -2]
         """
         self._check_shift_dimension(shifts,row_wise)
-        if shifts==None:
+        if shifts is None:
             return self.apply_map(lambda x: x.degree())
         from sage.matrix.constructor import Matrix
         zero_degree = min(shifts)-1
@@ -277,7 +277,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         self._check_shift_dimension(shifts,row_wise=True)
         if self.ncols()==0:
             return [None]*(self.nrows())
-        if shifts==None:
+        if shifts is None:
             return [ max([ self[i,j].degree() for j in range(self.ncols()) ])
                     for i in range(self.nrows()) ]
         zero_degree = min(shifts)-1
@@ -340,7 +340,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         self._check_shift_dimension(shifts,row_wise=False)
         if self.nrows()==0:
             return [None]*(self.ncols())
-        if shifts==None:
+        if shifts is None:
             return [ max([ self[i,j].degree() for i in range(self.nrows()) ])
                     for j in range(self.ncols()) ]
         zero_degree = min(shifts)-1
@@ -421,24 +421,24 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         from sage.matrix.constructor import Matrix
         if row_wise:
             row_degree = self.row_degree(shifts)
-            if shifts==None:
+            if shifts is None:
                 return Matrix([ [ self[i,j].leading_coefficient()
-                    if (self[i,j].degree() == row_degree[i]) else 0
+                    if self[i,j].degree() == row_degree[i] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
             return Matrix([ [ self[i,j].leading_coefficient()
-                if ( self[i,j].degree() + shifts[j] == row_degree[i]) else 0
+                if self[i,j].degree() + shifts[j] == row_degree[i] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
         else:
             column_degree = self.column_degree(shifts)
-            if shifts==None:
+            if shifts is None:
                 return Matrix([ [ self[i,j].leading_coefficient()
-                    if (self[i,j].degree() == column_degree[j]) else 0
+                    if self[i,j].degree() == column_degree[j] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
             return Matrix([ [ self[i,j].leading_coefficient()
-                if (self[i,j].degree() + shifts[i] == column_degree[j]) else 0
+                if self[i,j].degree() + shifts[i] == column_degree[j] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
@@ -583,7 +583,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 return (pivot_list,pivot_list) if return_degree else pivot_list
                         
             row_degree = self.row_degree(shifts)
-            if shifts==None:
+            if shifts is None:
                 pivot_index = [ (-1 if row_degree[i]==-1 else
                     max( [ j for j in range(self.ncols()) if
                     (self[i,j].degree() == row_degree[i]) ] ))
@@ -606,7 +606,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return (pivot_list,pivot_list) if return_degree else pivot_list
                     
         column_degree = self.column_degree(shifts)
-        if shifts==None:
+        if shifts is None:
             pivot_index = [ (-1 if column_degree[j]==-1 else
                 max( [ i for i in range(self.nrows()) if
                 (self[i,j].degree() == column_degree[j]) ] ))
@@ -714,8 +714,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 return False
         return True
 
-    def is_popov(self, shifts=None, row_wise=True):
+    def is_popov(self, shifts=None, row_wise=True, ordered_by_degree=False):
         #TODO should use def with zero rows
+        #TODO order by degree version
         r"""
         Return a boolean indicating whether this matrix is in (shifted) Popov
         form.
@@ -726,10 +727,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         is monic and has degree strictly larger than the other entries in its
         column (resp. row).
 
-        TODO (optional parameter?). There is another convention, which replaces
-        "pivot index strictly increasing" by "row (resp. column) degree
-        nondecreasing, and for rows (resp. columns) of same degree, pivot
-        indices increasing".
+        TODO. There is another convention, which replaces "pivot index strictly
+        increasing" by "row (resp. column) degree nondecreasing, and for rows
+        (resp. columns) of same degree, pivot indices increasing".
 
         INPUT:
 
@@ -898,10 +898,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     #            t.add(p)
     #    return True
 
-    # TODO: the algorithm below probably outputs a matrix with zero rows
-    # in the case where the input matrix does not have full rank. What to
-    # do about this? I would probably return a full rank matrix, discarding
-    # the zero rows.
+    #def order_by_degree(self, shifts=None, row_wise=True):
+    # TODO
+
+    #def order_by_leading_position(self, shifts=None, row_wise=True):
+    # TODO
+
     def weak_popov_form(self, transformation=False, shifts=None):
         r"""
         Return a weak Popov form of this matrix.

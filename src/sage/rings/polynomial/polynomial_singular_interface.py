@@ -315,6 +315,10 @@ class PolynomialRing_singular_repr:
 
                 self.base_ring().__minpoly = (str(base_ring.base_ring().modulus()).replace("x",ext_gen)).replace(" ","")
                 singular.eval('setring '+R._name);
+
+                from sage.misc.stopgap import stopgap
+                stopgap("Denominators of fraction field elements are sometimes dropped without warning.", 23644)
+
                 self.__singular = singular("std(ideal(%s))"%(self.base_ring().__minpoly),type='qring')
 
         elif sage.rings.function_field.function_field.is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field():

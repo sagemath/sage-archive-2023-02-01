@@ -4117,6 +4117,8 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
           - :meth:`~Graph.is_apex`
+          - :meth:`planar_dual`
+          - :meth:`faces`
 
         INPUT:
 
@@ -4877,6 +4879,7 @@ class GenericGraph(GenericGraph_pyx):
             * :meth:`set_embedding`
             * :meth:`get_embedding`
             * :meth:`is_planar`
+            * :meth:`planar_dual`
 
         EXAMPLES::
 
@@ -4968,6 +4971,70 @@ class GenericGraph(GenericGraph_pyx):
 
         return len(self.faces(embedding))
 
+    def planar_dual(self, embedding=None):
+        """
+        Return the planar dual an embedded graph.
+
+        A combinatorial embedding of a graph is a clockwise ordering of the
+        neighbors of each vertex. From this information one can obtain
+        the dual of a plane graph, which is what the method returns. The
+        vertices of the dual graph correspond to faces of the primal graph.
+
+        INPUT:
+
+        - ``embedding`` - a combinatorial embedding dictionary. Format:
+          ``{v1:[v2,v3], v2:[v1], v3:[v1]}`` (clockwise ordering of neighbors at
+          each vertex). If set to ``None`` (default) the method will use the
+          embedding stored as ``self._embedding``. If none is stored, the method
+          will compute the set of faces from the embedding returned by
+          :meth:`is_planar` (if the graph is, of course, planar).
+
+        .. SEEALSO::
+
+            * :meth:`faces`
+            * :meth:`set_embedding`
+            * :meth:`get_embedding`
+            * :meth:`is_planar`
+
+        EXAMPLES::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.planar_dual()
+            Graph on 6 vertices
+            sage: graphs.IcosahedralGraph().planar_dual().is_isomorphic(graphs.DodecahedralGraph())
+            True
+
+        TESTS::
+
+            sage: G = graphs.CompleteMultipartiteGraph([3,3])
+            sage: G.planar_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: No embedding is provided and the graph is not planar.
+            sage: G = Graph([[1,2,3,4], [[1,2],[2,3],[3,1],[3,2],[1,4],[2,4],[3,4]]], multiedges=True)
+            sage: G.planar_dual()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with multiedges. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges using allow_multiple_edges().
+            sage: G = graphs.CompleteGraph(3)
+            sage: G.planar_dual()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Finding the planar_dual is only works if the graph is at least 3 edge-connected.
+
+        .. TODO::
+
+            Implement the method for Graphs that are not at least 3 edge-connected
+            (or at least make the check for edge-connectivity faster;
+            we don't need to compute the exact edge_connectity,
+            but only need to know if it is smaller than 3)
+
+        """
+
+        if self.edge_connectivity() < 3:
+            raise NotImplementedError("Finding the planar_dual is only works if the graph is at least 3 edge-connected.")
+        from . import graph
+        return graph.Graph([[tuple(_) for _ in self.faces()], lambda f,g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
 
     ### Connectivity
 
@@ -18710,7 +18777,7 @@ class GenericGraph(GenericGraph_pyx):
           edge for each label l. Labels equal to None are not printed
           (to set edge labels, see set_edge_label).
 
-        - ``edge_labels_background`` - The color of the edge labels 
+        - ``edge_labels_background`` - The color of the edge labels
           background. The default is "white". To achieve a transparent
           background use "transparent".
 

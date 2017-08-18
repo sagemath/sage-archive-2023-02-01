@@ -135,11 +135,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.degree()
             -1
 
-        Any "empty" matrix has degree ``None``::
+        For an "empty" matrix, the degree is not defined::
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.degree()
-
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have a degree.
         """
         if self.nrows()==0 or self.ncols()==0:
             raise ValueError('Empty matrix does not have a degree.')
@@ -269,15 +271,19 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             
             sage: M = Matrix( pR, 0, 3 )
             sage: M.row_degree()
-            []
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have a row degree.
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.row_degree()
-            [None, None, None]
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have a row degree.
         """
         self._check_shift_dimension(shifts,row_wise=True)
         if self.ncols()==0 or self.nrows()==0:
-            raise ValueError('Empty matrix does not have a degree.')
+            raise ValueError('Empty matrix does not have a row degree.')
         if shifts is None:
             return [ max([ self[i,j].degree() for j in range(self.ncols()) ])
                     for i in range(self.nrows()) ]
@@ -327,19 +333,23 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.column_degree(shifts=[-2,1])
             [4, -3, -2]
 
-        The column degree of a $0\times n$ matrix is the list ``[None]*n``,
-        while the column degree of a $m\times 0$ matrix is the empty list::
+        The column degree of an empty matrix ($0\times n$ or $m\times 0$) is
+        not defined::
 
             sage: M = Matrix( pR, 0, 3 )
             sage: M.column_degree()
-            [None, None, None]
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have a column degree.
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.column_degree()
-            []
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have a column degree.
         """
         if self.ncols()==0 or self.nrows()==0:
-            raise ValueError('Empty matrix does not have a degree.')
+            raise ValueError('Empty matrix does not have a column degree.')
         self._check_shift_dimension(shifts,row_wise=False)
         if self.nrows()==0:
             return [None]*(self.ncols())
@@ -560,24 +570,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.leading_positions(shifts=[2,0], row_wise=False,return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
-        If working row-wise, both the leading positions index and pivot degree
-        of a $0\times n$ matrix are the empty list ``[]``, while for a $m\times
-        0$ matrix both are the list ``[None]*m``. A similar property holds when
-        working column-wise::
+        The leading positions and pivot degree of an empty matrix ($0\times n$
+        or $m\times 0$) is not defined::
             
             sage: M = Matrix( pR, 0, 3 )
             sage: M.leading_positions(return_degree=True)
-            ([], [])
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have leading positions.
 
             sage: M.leading_positions(row_wise=False,return_degree=True)
-            ([None, None, None], [None, None, None])
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have leading positions.
 
             sage: M = Matrix( pR, 3, 0 )
-            sage: M.leading_positions(return_degree=True)
-            ([None, None, None], [None, None, None])
-
             sage: M.leading_positions(row_wise=False,return_degree=True)
-            ([], [])
+            Traceback (most recent call last):
+            ...
+            ValueError: Empty matrix does not have leading positions.
         """
         self._check_shift_dimension(shifts,row_wise)
 

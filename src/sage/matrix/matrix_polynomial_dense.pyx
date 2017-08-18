@@ -972,7 +972,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
         """
-        self._check_shift_dimension(shifts,row_wise)
+        self._check_shift_dimension(shifts,row_wise=True)
         M = self.__copy__()
         U = M._weak_popov_form(transformation=transformation, shifts=shifts)
         M.set_immutable()
@@ -1251,7 +1251,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U * A == H
             True
         """
-        self._check_shift_dimension(shifts,row_wise)
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,
                                       normalization=lambda p: ~p.lc())

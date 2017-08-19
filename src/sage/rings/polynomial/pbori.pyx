@@ -181,7 +181,7 @@ REFERENCES:
   available at
   http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 from cysignals.memory cimport sig_malloc, sig_free
@@ -1138,7 +1138,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         -  ``choose_degree`` - choose degree of monomials
            randomly first, rather than monomials uniformly random
 
-        -  ``vars_set`` - list of integer indicies of
+        -  ``vars_set`` - list of integer indices of
            generators of self to use in the generated polynomial
 
 
@@ -1246,7 +1246,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         -  ``monom_counts`` - a list containing total number
            of monomials up to given degree
 
-        -  ``vars_set`` - list of variable indicies to use in
+        -  ``vars_set`` - list of variable indices to use in
            the generated polynomial
 
         -  ``dfirst`` - if ``True`` choose degree
@@ -1289,7 +1289,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         -  ``monom_counts`` - list of number of monomials up
            to given degree
 
-        -  ``vars_set`` - list of variable indicies to use in
+        -  ``vars_set`` - list of variable indices to use in
            the generated monomial
 
 
@@ -1330,7 +1330,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         -  ``degree`` - maximum degree
 
-        -  ``vars_set`` - list of variable indicies of self
+        -  ``vars_set`` - list of variable indices of self
 
 
         EXAMPLES::
@@ -2305,7 +2305,7 @@ cdef class BooleanMonomial(MonoidElement):
 
         INPUT:
 
-        -  ``d`` - dictionary with integer indicies
+        - ``d`` -- dictionary with integer indices
 
         EXAMPLES::
 
@@ -4745,7 +4745,7 @@ cdef class PolynomialConstruct:
     def lead(self, x):
         """
         Return the leading monomial of boolean polynomial ``x``, with
-        respect to to the order of parent ring.
+        respect to the order of parent ring.
 
         EXAMPLES::
 
@@ -8039,7 +8039,7 @@ cdef class BooleConstant:
 
     def has_constant_part(self):
         """
-        This is true for for `BooleConstant(1)`.
+        This is true for `BooleConstant(1)`.
 
         EXAMPLES::
 
@@ -8151,7 +8151,7 @@ cdef class MonomialFactory:
     def __init__(self, ring=None):
         """
         Initialized a polynomial factory of ring is given.
-        Otherwise it it initializes a plain constructor.
+        Otherwise it initializes a plain constructor.
 
         EXAMPLES::
 
@@ -8235,7 +8235,7 @@ cdef class PolynomialFactory:
     def lead(self, x):
         """
         Return the leading monomial of boolean polynomial ``x``, with
-        respect to to the order of parent ring.
+        respect to the order of parent ring.
 
         EXAMPLES::
 

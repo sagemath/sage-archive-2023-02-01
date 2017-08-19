@@ -46,6 +46,7 @@ Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
 
@@ -294,6 +295,7 @@ cpdef clustering_coeff(g, vertices=None):
     return (average_clustering, clust_v_sage)
 
 
+@cython.binding(True)
 cpdef dominator_tree(g, root, return_dict=False):
     r"""
     Uses Boost to compute the dominator tree of ``g``, rooted at ``root``.

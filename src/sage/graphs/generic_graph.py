@@ -303,7 +303,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.disjoint_routed_paths` | Return a set of disjoint routed paths.
     :meth:`~GenericGraph.dominating_set` | Return a minimum dominating set of the graph
     :meth:`~GenericGraph.subgraph_search` | Return a copy of ``G`` in ``self``.
-    :meth:`~GenericGraph.subgraph_search_count` | Return the number of labelled occurences of ``G`` in ``self``.
+    :meth:`~GenericGraph.subgraph_search_count` | Return the number of labelled occurrences of ``G`` in ``self``.
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
@@ -1483,8 +1483,7 @@ class GenericGraph(GenericGraph_pyx):
         try:
             import igraph
         except ImportError:
-            raise ImportError("The package igraph is not available. To " +
-                              "install it, run 'sage -i python_igraph'")
+            raise PackageNotFoundError("python_igraph")
 
         v_to_int = {v: i for i, v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -8078,7 +8077,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: abs(flow_ff-flow_igraph) < 0.00001         # optional python_igraph
            True
         """
-        from sage.misc.package import is_package_installed
+        from sage.misc.package import is_package_installed, PackageNotFoundError
         self._scream_if_not_simple(allow_loops=True)
         if vertex_bound and algorithm in ["FF", "igraph"]:
             raise ValueError("This method does not support both " +
@@ -8108,8 +8107,7 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 import igraph
             except ImportError:
-                raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i python_igraph")
+                raise PackageNotFoundError("python_igraph")
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -12147,7 +12145,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def subgraph_search_count(self, G, induced=False):
         r"""
-        Returns the number of labelled occurences of ``G`` in ``self``.
+        Return the number of labelled occurrences of ``G`` in ``self``.
 
         INPUT:
 
@@ -13985,7 +13983,7 @@ class GenericGraph(GenericGraph_pyx):
         if weight_function is not None:
             by_weight = True
 
-        if algorithm==None and not by_weight:
+        if algorithm is None and not by_weight:
             algorithm = 'iFUB'
         elif algorithm=='BFS':
             algorithm = 'standard'
@@ -16435,7 +16433,7 @@ class GenericGraph(GenericGraph_pyx):
            results in the theory of the Wiener number. *Indian Journal of
            Chemistry*, 32A:651--661, 1993.
 
-        TEST:
+        TESTS:
 
         Giving an empty graph::
 
@@ -17244,9 +17242,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if verbose_relabel is not None:
             deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel == True:
+            if verbose_relabel:
                 labels="pairs"
-            if verbose_relabel == False:
+            if not verbose_relabel:
                 labels="integers"
 
         if labels not in ['pairs', 'integers']:
@@ -20782,12 +20780,6 @@ class GenericGraph(GenericGraph_pyx):
           "sage" uses Sage's implementation. If set to ``None`` (default), bliss
           is used when available.
 
-        .. WARNING::
-
-            Since :trac:`14319` the domain of the automorphism group is equal to
-            the graph's vertex set, and the ``translation`` argument has become
-            useless.
-
         OUTPUT: The order of the output is group, order, orbits. However, there
         are options to turn each of these on or off.
 
@@ -21874,20 +21866,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return c
 
-import types
+    # Aliases to functions defined in other modules
+    from sage.graphs.distances_all_pairs import distances_distribution
+    from sage.graphs.base.boost_graph import dominator_tree
+    from sage.graphs.base.static_sparse_graph import spectral_radius
+    from sage.graphs.line_graph import line_graph
 
-import sage.graphs.distances_all_pairs
-GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
-
-from sage.graphs.base.boost_graph import dominator_tree
-GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
-
-from sage.graphs.base.static_sparse_graph import spectral_radius
-GenericGraph.spectral_radius = types.MethodType(spectral_radius, None, GenericGraph)
-
-# From Python modules
-import sage.graphs.line_graph
-GenericGraph.line_graph = sage.graphs.line_graph.line_graph
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

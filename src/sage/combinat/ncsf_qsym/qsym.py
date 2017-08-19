@@ -691,7 +691,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             if I not in z:
                 z[I] = c
         out = self.Monomial()._from_dict(z)
-        if check and out.expand(f.parent().ngens(), f.parent().gens()) != f:
+        if check and out.expand(f.parent().ngens(), f.parent().variable_names()) != f:
             raise ValueError("%s is not a quasi-symmetric polynomial" % f)
         return out
 

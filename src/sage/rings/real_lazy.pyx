@@ -19,7 +19,7 @@ specified in the forward direction).
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 import math
 
@@ -826,7 +826,7 @@ cdef class LazyFieldElement(FieldElement):
         try:
             return self.eval(complex)
         except Exception:
-            from complex_field import ComplexField
+            from .complex_field import ComplexField
             return complex(self.eval(ComplexField(53)))
 
     cpdef eval(self, R):
@@ -1192,7 +1192,7 @@ cdef class LazyBinop(LazyFieldElement):
         """
         For pickling.
 
-        TEST:
+        TESTS:
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(CLF, 3, 2, operator.div)
             sage: loads(dumps(a)) == a

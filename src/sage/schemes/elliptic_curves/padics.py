@@ -1116,7 +1116,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     A = (-X.a1()/2 - A) * f
 
     # Convert to a power series and remove the -1/x term.
-    # Also we artificially bump up the accuracy from N-2 to to N-1 digits;
+    # Also we artificially bump up the accuracy from N-2 to N-1 digits;
     # the constant term needs to be known to N-1 digits, so we compute
     # it directly
     assert A.valuation() == -1 and A[-1] == 1
@@ -1532,7 +1532,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
 
     INPUT:
 
-    -  ``p`` - prime (= 5) for which `E` is good
+    -  ``p`` - prime (>= 3) for which `E` is good
        and ordinary
 
     -  ``prec`` - (relative) `p`-adic precision for
@@ -1579,6 +1579,10 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         6 + 10*11 + 10*11^2 + O(11^3)
         sage: E.ap(11)
         -5
+        sage: E = EllipticCurve('83a1')
+        sage: E.matrix_of_frobenius(3,6)
+        [                      2*3 + 3^5 + O(3^6)             2*3 + 2*3^2 + 2*3^3 + O(3^6)]
+        [              2*3 + 3^2 + 2*3^5 + O(3^6) 2 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + O(3^6)]
 
     """
     # TODO change the basis back to the original equation.
@@ -1598,9 +1602,16 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     # it selects an appropriate precision based on how large the prime
     # is
 
-    # todo: implement the p == 3 case
-    if p < 5:
-        raise NotImplementedError("p (=%s) must be at least 5" % p)
+    # for p = 3, we create the corresponding hyperelliptic curve
+    # and call matrix of frobenius on it
+
+    if p == 3:
+        from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
+        f,g = self.hyperelliptic_polynomials()
+        return HyperellipticCurve(f + (g/2)**2).matrix_of_frobenius(p,prec)
+
+    if p < 3:
+        raise NotImplementedError("p (=%s) must be at least 3" % p)
 
     prec = int(prec)
     if prec < 1:

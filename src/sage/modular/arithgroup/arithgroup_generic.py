@@ -487,21 +487,6 @@ class ArithmeticSubgroup(Group):
         else:
             return count // 2
 
-    def __cmp__(self, other):
-        r"""
-        Compare self to other.
-
-        NOTE: This function must be overridden by all subclasses.
-
-        EXAMPLES::
-
-            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().__cmp__(ZZ)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def is_abelian(self):
         r"""
         Return True if this arithmetic subgroup is abelian.
@@ -554,7 +539,7 @@ class ArithmeticSubgroup(Group):
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().is_subgroup(SL2Z)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Please implement _contains_sl2 for <class 'sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup_with_category'>
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup.is_subgroup(Gamma1(18), Gamma0(6))
             True
         """

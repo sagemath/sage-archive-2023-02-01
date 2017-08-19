@@ -31,6 +31,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
+from sage.structure.richcmp import richcmp_method, richcmp
 
 
 _gammaH_cache = {}
@@ -143,6 +144,7 @@ def _normalize_H(H, level):
     return H
 
 
+@richcmp_method
 class GammaH_class(CongruenceSubgroup):
     r"""
     The congruence subgroup `\Gamma_H(N)` for some subgroup `H \trianglelefteq
@@ -302,7 +304,7 @@ class GammaH_class(CongruenceSubgroup):
         else:
             return GammaH_constructor(self.level(), self._generators_for_H() + [-1])
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self to other.
 
@@ -355,11 +357,12 @@ class GammaH_class(CongruenceSubgroup):
             [1, 5, 7, 11, 13, 17, 19, 23]]
         """
         if isinstance(other, GammaH_class):
-            return (cmp(self.level(), other.level())
-                or -cmp(self.index(), other.index())
-                or cmp(self._list_of_elements_in_H(), other._list_of_elements_in_H()))
+            return richcmp((self.level(), -self.index(),
+                            self._list_of_elements_in_H()),
+                           (other.level(), -other.index(),
+                            other._list_of_elements_in_H()), op)
         else:
-            return CongruenceSubgroup.__cmp__(self, other)
+            return NotImplemented
 
     def _generators_for_H(self):
         """

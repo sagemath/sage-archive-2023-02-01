@@ -1401,11 +1401,11 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: S.cluster_variable(1) == g(A3.cluster_variable((1, -2, 2)))
             True
 
-		 Check that :trac:`23654` is fixed::
-			sage: A = ClusterAlgebra(['A',2])
-			sage: AA = ClusterAlgebra(['A',3])
-			sage: A.has_coerce_map_from(AA)
-			False
+         Check that :trac:`23654` is fixed::
+            sage: A = ClusterAlgebra(['A',2])
+            sage: AA = ClusterAlgebra(['A',3])
+            sage: A.has_coerce_map_from(AA)
+            False
         """
         if isinstance(other, ClusterAlgebra):
             gen_s = self.gens()

@@ -1402,6 +1402,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             True
 
          Check that :trac:`23654` is fixed::
+
             sage: A = ClusterAlgebra(['A',2])
             sage: AA = ClusterAlgebra(['A',3])
             sage: A.has_coerce_map_from(AA)

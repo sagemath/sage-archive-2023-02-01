@@ -96,7 +96,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             raise TypeError("parent must be a Hom space")
         sage.categories.morphism.Morphism.__init__(self, parent)
 
-    def _richmp_(self, other, op):
+    def _richcmp_(self, other, op):
         """
         Compare two matrix morphisms.
 

@@ -1514,7 +1514,8 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
         }
         numeric numer = b.numer();
         numeric denom = b.denom();
-        if (a.t == MPZ and not mpz_fits_ulong_p(denom.v._bigint)) {
+        if (denom.t == MPZ
+            and not mpz_fits_ulong_p(denom.v._bigint)) {
                 c = *_num1_p;
                 c_unit = true;
                 d = a;

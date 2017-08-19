@@ -260,6 +260,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.set_embedding` | Set a combinatorial embedding dictionary to ``_embedding`` attribute.
     :meth:`~GenericGraph.get_embedding` | Return the attribute _embedding if it exists.
     :meth:`~GenericGraph.faces` | Return the faces of an embedded graph.
+    :meth:`~GenericGraph.planar_dual` | Return the planar dual of an embedded graph.
     :meth:`~GenericGraph.get_pos` | Return the position dictionary
     :meth:`~GenericGraph.set_pos` | Set the position dictionary.
     :meth:`~GenericGraph.set_planar_positions` | Compute a planar layout for self using Schnyder's algorithm
@@ -4973,7 +4974,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def planar_dual(self, embedding=None):
         """
-        Return the planar dual an embedded graph.
+        Return the planar dual of an embedded graph.
 
         A combinatorial embedding of a graph is a clockwise ordering of the
         neighbors of each vertex. From this information one can obtain
@@ -4989,13 +4990,6 @@ class GenericGraph(GenericGraph_pyx):
           will compute the set of faces from the embedding returned by
           :meth:`is_planar` (if the graph is, of course, planar).
 
-        .. SEEALSO::
-
-            * :meth:`faces`
-            * :meth:`set_embedding`
-            * :meth:`get_embedding`
-            * :meth:`is_planar`
-
         EXAMPLES::
 
             sage: C = graphs.CubeGraph(3)
@@ -5004,18 +4998,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.IcosahedralGraph().planar_dual().is_isomorphic(graphs.DodecahedralGraph())
             True
 
-        Identify self-dual planar graphs (:oeis:`A002841`)::
-
-            sage: [sum(g.planar_dual().is_isomorphic(g) for g in  [_ for _ in graphs.planar_graphs(i, minimum_connectivity=3)]) for i in range(4, 8)]
-            [1, 1, 2, 6]
-
         The planar dual of the planar dual is isomorphic to the graph itself::
 
-            sage: g = [_ for _ in graphs.planar_graphs(9, minimum_connectivity=3)][ZZ.random_element(0, 2607)]; g
-            Graph on 9 vertices
+            sage: g = graphs.BuckyBall()
             sage: g.planar_dual().planar_dual().is_isomorphic(g)
             True
 
+        .. SEEALSO::
+
+            * :meth:`faces`
+            * :meth:`set_embedding`
+            * :meth:`get_embedding`
+            * :meth:`is_planar`
 
         TESTS::
 
@@ -5033,22 +5027,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.planar_dual()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Finding the planar_dual is only works if the graph is at least 3-vertex-connected.
+            NotImplementedError: the graph must be 3-vertex-connected.
 
         .. TODO::
 
-            Implement the method for Graphs that are not at least 3 vertex-connected
-            (or at least make the check for edge-connectivity faster;
-            we don't need to compute the exact edge_connectity,
-            but only need to know if it is smaller than 3)
+            Implement the method for graphs that are not 3-vertex-connected
+            (or at least have a faster 3-vertex-connectivity test).
 
         """
         self._scream_if_not_simple()
 
         if self.vertex_connectivity() < 3:
-            raise NotImplementedError("Finding the planar_dual is only works if the graph is at least 3-vertex-connected.")
-        from . import graph
-        return graph.Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
+            raise NotImplementedError("the graph must be 3-vertex-connected.")
+
+        from sage.graphs.graph import Graph
+        return Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
 
     ### Connectivity
 

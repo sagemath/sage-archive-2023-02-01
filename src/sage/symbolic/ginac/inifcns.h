@@ -248,6 +248,9 @@ DECLARE_FUNCTION_6P(appell_F1)
 /** Order term function (for truncated power series). */
 DECLARE_FUNCTION_1P(Order)
 
+/** Formal piecewise function */
+DECLARE_FUNCTION_1P(cases)
+
 ex lsolve(const ex &eqns, const ex &symbols, unsigned options = solve_algo::automatic);
 
 /** Find a real root of real-valued function f(x) numerically within a given

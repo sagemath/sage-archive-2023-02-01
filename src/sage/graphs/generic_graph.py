@@ -4906,9 +4906,11 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        The empty graph has no face::
+        The empty graph and a graph without edge have no face::
 
             sage: Graph().faces()
+            []
+            sage: Graph(1).faces()
             []
 
         The Path Graph has a single face::
@@ -4916,7 +4918,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.PathGraph(3).faces()
             [[(0, 1), (1, 2), (2, 1), (1, 0)]]
         """
-        if not self.order():
+        if not self.order() or not self.size():
             return []
 
         # Which embedding should we use ?

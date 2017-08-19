@@ -294,7 +294,7 @@ def simplify_chain_real(expr):
         abs(y)
 
     The above result is correct since ``y`` is real. It is obtained by
-    :meth:`~sage.symbolic.expression.Expression.simplify_real` as well.
+    :meth:`~sage.symbolic.expression.Expression.simplify_real` as well::
 
         sage: s.simplify_real()
         abs(y)

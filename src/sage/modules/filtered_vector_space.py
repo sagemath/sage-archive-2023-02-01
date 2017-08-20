@@ -49,7 +49,7 @@ V_{d-1}`. In the above example, this means that
 
 That is::
 
-    sage: V.get_degree(0) == V.span([r1,r2,r3])
+    sage: V.get_degree(0) == V
     True
     sage: V.get_degree(1) == V.span([r1, r2])
     True

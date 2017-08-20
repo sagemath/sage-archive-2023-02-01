@@ -254,7 +254,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - `X` -- an object with Python's ``frozenset`` interface.
+        - ``X`` -- an object with Python's ``frozenset`` interface
 
         OUTPUT:
 
@@ -318,10 +318,6 @@ class GraphicMatroid(Matroid):
         Computes the set of edge labels around each vertex.
 
         Internal method for hashing purposes.
-
-        INPUT:
-
-        None.
 
         OUTPUT:
 
@@ -388,7 +384,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- a matroid
 
         OUTPUT:
 
@@ -439,7 +435,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- a matroid
 
         OUTPUT:
 
@@ -530,8 +526,8 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``contractions`` -- frozenset, subset of ``self.groundset()`` to be contracted
-        -  ``deletions`` -- frozenset, subset of ``self.groundset()`` to be deleted
+        - ``contractions`` -- frozenset; subset of ``self.groundset()`` to be contracted
+        -  ``deletions`` -- frozenset; subset of ``self.groundset()`` to be deleted
 
         Assumptions: contractions are independent, deletions are coindependent,
         contractions and deletions are disjoint.
@@ -568,16 +564,16 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``N`` - A matroid.
-        - ``certificate`` - (default: ``False``) If ``True``, returns
-          either ``False, None`` or
-          ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
-          and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
+        - ``N`` - a matroid
+        - ``certificate`` - (default: ``False``) if ``True``, returns the certificate
+          isomorphism from the minor of ``self`` to ``N``
 
         OUTPUT:
 
-        Boolean, or tuple if the ``certificate`` option is used.
-
+        Boolean, or tuple if the ``certificate`` option is used. If ``certificate``
+        is ``True``, then the output will either be ``False, None`` or
+        ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
+        and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
         EXAMPLES::
 
@@ -697,7 +693,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- an iterable container of ground set elements
 
         OUTPUT:
 
@@ -725,7 +721,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- an iterable container of ground set elements
 
         OUTPUT:
 
@@ -750,7 +746,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- an iterable container of ground set elements
 
         OUTPUT:
 
@@ -804,7 +800,7 @@ class GraphicMatroid(Matroid):
         INPUT:
 
         - ``X`` -- An object with Python's ``frozenset`` interface containing
-          a subset of ``self.groundset()``.
+          a subset of ``self.groundset()``
 
         OUTPUT:
 
@@ -843,7 +839,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- an iterable container of ground set elements
 
         OUTPUT:
 
@@ -882,7 +878,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- an iterable container of ground set elements
 
         OUTPUT:
 
@@ -958,7 +954,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An iterable container of ground set elements.
+        - ``X`` -- an iterable container of ground set elements
 
         OUTPUT:
 
@@ -996,8 +992,8 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- An object with Python's ``frozenset`` interface containing
-          a subset of ``self.groundset()``.
+        - ``X`` -- an object with Python's ``frozenset`` interface containing
+          a subset of ``self.groundset()``
 
         OUTPUT:
 
@@ -1043,8 +1039,8 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
-        - ``certificate`` -- Boolean
+        - ``other`` -- a matroid
+        - ``certificate`` -- boolean
 
         OUTPUT:
 
@@ -1121,7 +1117,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- a matroid
 
         OUTPUT:
 
@@ -1178,6 +1174,10 @@ class GraphicMatroid(Matroid):
 
         The graph will always have loops and multiedges enabled.
 
+        OUTPUT:
+
+        A Graph.
+
         EXAMPLES::
 
             sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
@@ -1199,6 +1199,10 @@ class GraphicMatroid(Matroid):
         Python dictionary given by this method has the vertices from the
         input graph as keys, and the corresponding vertex label after any
         merging as values.
+
+        OUTPUT:
+
+        A dictionary.
 
         EXAMPLES::
 
@@ -1228,7 +1232,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- a subset of the ground set.
+        - ``X`` -- a subset of the ground set
 
         OUTPUT:
 
@@ -1256,7 +1260,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- a subset of the ground set.
+        - ``X`` -- a subset of the ground set
 
         OUTPUT:
 
@@ -1276,7 +1280,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- a subset of the ground set.
+        - ``X`` -- a subset of the ground set
 
         OUTPUT:
 
@@ -1304,7 +1308,7 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- a subset of the ground set.
+        - ``X`` -- a subset of the ground set
 
         OUTPUT:
 
@@ -1329,15 +1333,15 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``u`` -- a vertex in the matroid's graph.
-        - ``v`` -- (default: ``None``) another vertex. If not specified or if ``v`` is
-          ``u``, then, the new element will be a loop.
-        - ``element`` -- (default: ``None``) the label of the new element. If
-          not specified, a new label will be generated automatically.
+        - ``u`` -- a vertex in the matroid's graph
+        - ``v`` -- (optional) another vertex
+        - ``element`` -- (optional) the label of the new element
 
         OUTPUT:
 
-        A GraphicMatroid with the specified element added.
+        A GraphicMatroid with the specified element added. Note that if ``v`` is not
+        specifies or if ``v`` is ``u``, then the new element will be a loop. If the
+        new element's label is not specified, it will be generated automatically.
 
         EXAMPLES::
 
@@ -1398,16 +1402,17 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``element`` -- (optional) The name of the newly added element in
-          each extension.
-        - ``vertices`` -- (optional) A set of vertices over which the extension
-          may be taken. If not given, will use all vertices.
-        - ``simple`` -- (default: ``False``) If true, extensions by loops and parallel
-          elements are not taken.
+        - ``element`` -- (optional) the name of the newly added element in
+          each extension
+        - ``vertices`` -- (optional) a set of vertices over which the extension
+          may be taken
+        - ``simple`` -- (default: ``False``) if true, extensions by loops and parallel
+          elements are not taken
 
         OUTPUT:
 
-        An iterable containing instances of GraphicMatroid.
+        An iterable containing instances of GraphicMatroid. If ``vertices`` is not
+        specified, every vertex is used.
 
         .. NOTE::
 
@@ -1473,16 +1478,16 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``u`` -- The vertex to be split.
-        - ``v`` -- (optional) The name of the new vertex after splitting.
-        - ``X`` -- (optional) A list of the matroid elements corresponding to
-          edges of ``u`` that move to the new vertex after splitting. If ``None``,
-          the new element will be a coloop.
-        - ``element`` -- (optional) The name of the newly added element.
+        - ``u`` -- the vertex to be split
+        - ``v`` -- (optional) the name of the new vertex after splitting
+        - ``X`` -- (optional) a list of the matroid elements corresponding to
+          edges of ``u`` that move to the new vertex after splitting
+        - ``element`` -- (optional) The name of the newly added element
 
         OUTPUT:
 
-        An instance of GraphicMatroid coextended by the new element.
+        An instance of GraphicMatroid coextended by the new element. If ``X``
+        is not specified, the new element will be a coloop.
 
         .. NOTE::
 
@@ -1605,16 +1610,16 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``vertices`` -- (optional) The vertices to be split. If not
-          specified, the coextensions will be taken over all vertices.
-        - ``v`` -- (optional) The name of the new vertex.
-        - ``element`` -- (optional) The name of the new element.
-        - ``cosimple`` -- (default: ``False``) If true, coextensions
-          by a coloop or series elements will not be taken.
+        - ``vertices`` -- (optional) the vertices to be split
+        - ``v`` -- (optional) the name of the new vertex
+        - ``element`` -- (optional) the name of the new element
+        - ``cosimple`` -- (default: ``False``) if true, coextensions
+          by a coloop or series elements will not be taken
 
         OUTPUT:
 
-        An iterable containing instances of GraphicMatroid.
+        An iterable containing instances of GraphicMatroid. If ``vertices`` is not
+        specified, the method iterates over all vertices.
 
         EXAMPLES::
 
@@ -1751,8 +1756,8 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- The set of elements to be twisted with respect
-          to the rest of the matroid.
+        - ``X`` -- the set of elements to be twisted with respect
+          to the rest of the matroid
 
         OUTPUT:
 
@@ -1862,9 +1867,9 @@ class GraphicMatroid(Matroid):
 
         INPUT:
 
-        - ``X`` -- A subset of the ground set.
-        - ``u`` -- A vertex spanned by the edges of the elements in ``X``.
-        - ``v`` -- A vertex spanned by the edges of the elements not in ``X``.
+        - ``X`` -- a subset of the ground set
+        - ``u`` -- a vertex spanned by the edges of the elements in ``X``
+        - ``v`` -- a vertex spanned by the edges of the elements not in ``X``
 
         OUTPUT:
 

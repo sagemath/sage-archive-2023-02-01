@@ -643,14 +643,14 @@ class GraphicMatroid(Matroid):
                     return False
 
             if certificate:
-            # This is where it gets complicated.
-            # The Graph.minor() method gives a dictionary of vertices
-            # as its certificate. There is currently no easy way to
-            # determine the edges.
-            # From the dictionary, we can get an idea of what the
-            # contractions are, and what vertices are not used.
-            # So we'll merge the appropriate vertices, delete the
-            # unused vertices, and pass to Matroid._has_minor().
+                # This is where it gets complicated.
+                # The Graph.minor() method gives a dictionary of vertices
+                # as its certificate. There is currently no easy way to
+                # determine the edges.
+                # From the dictionary, we can get an idea of what the
+                # contractions are, and what vertices are not used.
+                # So we'll merge the appropriate vertices, delete the
+                # unused vertices, and pass to Matroid._has_minor().
 
                 # Determine contractions:
                 vertices_for_minor = cert.values()

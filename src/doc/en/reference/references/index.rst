@@ -600,6 +600,11 @@ REFERENCES:
             (Toronto, 1993-1994), 39-133.  CMS Conference
             Proceedings 17.  American Mathematical Society, 1995.
 
+.. [Dil1940] Lattice with Unique Irreducible Decompositions
+             \R. P. Dilworth, 1940 (Annals of Mathematics 41, 771-777)
+             With comments by B. Monjardet
+             http://cams.ehess.fr/docannexe.php?id=1145
+
 .. [Di2000] \L. Dissett, Combinatorial and computational aspects of
             finite geometries, 2000,
             https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
@@ -875,6 +880,10 @@ REFERENCES:
             155-170.
 
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+
+.. [GW2014] \G. Gratzer and F. Wehrung,
+            Lattice Theory: Special Topics and Applications Vol. 1,
+            Springer, 2014.
 
 .. [GZ1983] Greene; Zaslavsky, "On the Interpretation of Whitney
             Numbers Through Arrangements of Hyperplanes, Zonotopes,
@@ -1483,6 +1492,11 @@ REFERENCES:
 
 .. [Piz1980] \A. Pizer. An Algorithm for Computing Modular Forms on
              `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
+
+.. [Platt1976] \C. R. Platt,
+               Planar lattices and planar graphs,
+               Journal of Combinatorial Theory Series B,
+               Vol 21, no. 1 (1976): 30-39.
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.

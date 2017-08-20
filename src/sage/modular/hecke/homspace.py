@@ -60,6 +60,12 @@ class HeckeModuleHomspace(HomsetWithBase):
             TypeError: X and Y must have the same base ring
             sage: M.Hom(M) == loads(dumps(M.Hom(M)))
             True
+
+        TESTS::
+
+            sage: M = ModularForms(Gamma0(7), 4)
+            sage: H = M.Hom(M)
+            sage: TestSuite(H).run(skip='_test_elements')
         """
         if not is_HeckeModule(X) or not is_HeckeModule(Y):
             raise TypeError("X and Y must be Hecke modules")

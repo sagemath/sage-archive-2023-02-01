@@ -19,7 +19,7 @@ invoking the class directly is possible too. To get access to it, type::
 
 See also :mod:`sage.matroids.advanced`.
 
-SageMath graphic matroids do not have a representation matrix or any of the
+Graphic matroids do not have a representation matrix or any of the
 functionality of regular matroids. It is possible to get an instance of the
 :mod:`RegularMatroid <sage.matroids.linear_matroid.RegularMatroid>` class
 by using the ``regular`` keyword when constructing the matroid.
@@ -107,7 +107,7 @@ class GraphicMatroid(Matroid):
 
     INPUT:
 
-    - ``G`` -- a SageMath graph
+    - ``G`` -- a Graph
     - ``groundset`` -- (optional) a list in 1-1 correspondence with
       ``G.edge_iterator()``
 
@@ -1279,7 +1279,7 @@ class GraphicMatroid(Matroid):
 
         OUTPUT:
 
-        A SageMath graph.
+        A Graph.
 
         EXAMPLES::
 
@@ -1307,7 +1307,7 @@ class GraphicMatroid(Matroid):
 
         OUTPUT:
 
-        A SageMath graph.
+        A Graph.
 
         EXAMPLES::
 

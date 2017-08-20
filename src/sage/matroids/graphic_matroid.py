@@ -27,7 +27,7 @@ It is also possible to cast a GraphicMatroid as a RegularMatroid with the
 :meth:`regular_matroid <sage.matroids.graphic_matroids.GraphicMatroid.regular_matroid>`
 method::
 
-    sage: M1 = Matroid(graphs.DiamondGraph(), regular = True)
+    sage: M1 = Matroid(graphs.DiamondGraph(), regular=True)
     sage: M2 = Matroid(graphs.DiamondGraph())
     sage: M3 = M2.regular_matroid()
 
@@ -39,7 +39,7 @@ Below are some examples of constructing a graphic matroid.
     sage: edgelist = [(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')]
     sage: G = Graph(edgelist)
     sage: M1 = Matroid(G)
-    sage: M2 = Matroid(graph = edgelist)
+    sage: M2 = Matroid(graph=edgelist)
     sage: M3 = Matroid(graphs.CycleGraph(3))
     sage: M1 == M3
     False
@@ -583,15 +583,15 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.CompleteBipartiteGraph(3, 3))
             sage: N = Matroid(graphs.CycleGraph(3))
-            sage: N1 = Matroid(groundset = range(3), graph = graphs.CycleGraph(3),
-            ....: regular = True)
-            sage: M._has_minor(N1, certificate = True)
+            sage: N1 = Matroid(groundset=range(3), graph=graphs.CycleGraph(3),
+            ....: regular=True)
+            sage: M._has_minor(N1, certificate=True)
             (True, (frozenset({0, 2, 3}), frozenset({4, 5, 8}), {0: 1, 1: 6, 2: 7}))
             sage: M._has_minor(N)
             True
             sage: M._has_minor(N1)
             True
-            sage: M._has_minor(N, certificate = True)
+            sage: M._has_minor(N, certificate=True)
             (True, (frozenset({3, 6, 8}), frozenset({2, 4, 5}), {0: 0, 1: 1, 2: 7}))
 
         ::
@@ -600,14 +600,14 @@ class GraphicMatroid(Matroid):
             sage: N = Matroid(graphs.WheelGraph(5))
             sage: M.has_minor(N)
             True
-            sage: M.has_minor(N, certificate = True)
+            sage: M.has_minor(N, certificate=True)
             (True,
              (frozenset({8}),
               frozenset({0, 4, 9, 11, 13, 14}),
               {0: 3, 1: 10, 2: 7, 3: 12, 4: 1, 5: 2, 6: 5, 7: 6}))
             sage: N.has_minor(M)
             False
-            sage: N.has_minor(M, certificate = True)
+            sage: N.has_minor(M, certificate=True)
             (False, None)
 
         If the matroids are not 3-connected, then the default matroid algorithms
@@ -671,7 +671,7 @@ class GraphicMatroid(Matroid):
                 # take contractions and deletions with what we have so far
                 # then use method from abstract matroid class
                 conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
-                M = self.minor(contractions = conset, deletions = delset)
+                M = self.minor(contractions=conset, deletions=delset)
                 (should_be_true, elements) =  Matroid._has_minor(M, N, certificate=True)
 
                 # elements is a tuple (contractions, deletions, dict)
@@ -1005,7 +1005,7 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: edgelist = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 2), (1, 2)]
-            sage: M = Matroid(Graph(edgelist, loops = True, multiedges = True))
+            sage: M = Matroid(Graph(edgelist, loops=True, multiedges=True))
             sage: M._is_closed(frozenset([0,4,5]))
             True
             sage: M._is_closed(frozenset([0,4]))
@@ -1054,11 +1054,11 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.DiamondGraph())
-            sage: N = Matroid(graphs.DiamondGraph(), regular = True)
-            sage: M._is_isomorphic(N, certificate = True)
+            sage: N = Matroid(graphs.DiamondGraph(), regular=True)
+            sage: M._is_isomorphic(N, certificate=True)
             (True, {0: (0, 1), 1: (0, 2), 2: (1, 2), 3: (1, 3), 4: (2, 3)})
             sage: O = Matroid(graphs.WheelGraph(5))
-            sage: M._is_isomorphic(O, certificate = True)
+            sage: M._is_isomorphic(O, certificate=True)
             (False, None)
 
         ::
@@ -1076,9 +1076,9 @@ class GraphicMatroid(Matroid):
             sage: edgelist = [(0,1,'a'),(0,2,'b'),(0,3,'c'),(1,2,'d'),(1,3,'e'),(2,3,'f')]
             sage: M = Matroid(Graph(edgelist))
             sage: N = Matroid(graphs.WheelGraph(4))
-            sage: M._is_isomorphic(N, certificate = True)
+            sage: M._is_isomorphic(N, certificate=True)
             (True, {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5})
-            sage: N._is_isomorphic(M, certificate = True)
+            sage: N._is_isomorphic(M, certificate=True)
             (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
             sage: O = Matroid(graphs.CycleGraph(6))
             sage: M._is_isomorphic(O)
@@ -1144,7 +1144,7 @@ class GraphicMatroid(Matroid):
             sage: N = Matroid(graphs.WheelGraph(4))
             sage: M._isomorphism(N)
             {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5}
-            sage: O = Matroid(Graph(edgelist), regular = True)
+            sage: O = Matroid(Graph(edgelist), regular=True)
             sage: M._isomorphism(O)
             {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
         """
@@ -1618,7 +1618,7 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(graphs.WheelGraph(5))
-            sage: I = M.graphic_coextensions(vertices = [0], element = 'a')
+            sage: I = M.graphic_coextensions(vertices=[0], element='a')
             sage: for N in I:
             ....:     N.graph().edges_incident(0)
             [(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 5, 'a')]
@@ -1884,7 +1884,7 @@ class GraphicMatroid(Matroid):
              (3, 5, 6),
              (4, 6, 7),
              (5, 6, 8)]
-            sage: M1 = M.one_sum(u = 3, v = 1, X = [5, 6, 7, 8])
+            sage: M1 = M.one_sum(u=3, v=1, X=[5, 6, 7, 8])
             sage: M1.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
@@ -1895,7 +1895,7 @@ class GraphicMatroid(Matroid):
              (2, 3, 4),
              (4, 6, 7),
              (5, 6, 8)]
-            sage: M2 = M.one_sum(u = 4, v = 3, X = [5, 6, 7, 8])
+            sage: M2 = M.one_sum(u=4, v=3, X=[5, 6, 7, 8])
             sage: M2.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
@@ -1910,7 +1910,7 @@ class GraphicMatroid(Matroid):
         TESTS::
 
             sage: M = Matroid(graphs.CompleteGraph(4))
-            sage: M.one_sum(u = 1, v = 2, X = [0,1])
+            sage: M.one_sum(u=1, v=2, X=[0,1])
             Traceback (most recent call last):
             ...
             ValueError: the input must display a 1-separation
@@ -1920,26 +1920,26 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(graphs.BullGraph())
             sage: M.graph().edges()
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 4, 4)]
-            sage: M1 = M.one_sum(u = 3, v = 0, X = [3,4])
+            sage: M1 = M.one_sum(u=3, v=0, X=[3,4])
             Traceback (most recent call last):
             ...
             ValueError: too many vertices in the intersection
 
-            sage: M1 = M.one_sum(u = 3, v = 2, X = [3])
+            sage: M1 = M.one_sum(u=3, v=2, X=[3])
             sage: M1.graph().edges()
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (2, 4, 4), (2, 5, 3)]
 
-            sage: M2 = M1.one_sum(u = 5, v = 0, X = [3,4])
+            sage: M2 = M1.one_sum(u=5, v=0, X=[3,4])
             sage: M2.graph().edges()
             [(0, 1, 0), (0, 2, 1), (0, 3, 3), (1, 2, 2), (3, 4, 4)]
 
             sage: M = Matroid(graphs.BullGraph())
-            sage: M.one_sum(u = 0, v = 1, X = [3])
+            sage: M.one_sum(u=0, v=1, X=[3])
             Traceback (most recent call last):
             ...
             ValueError: first vertex must be spanned by the input
 
-            sage: M.one_sum(u = 1, v = 3, X = [3])
+            sage: M.one_sum(u=1, v=3, X=[3])
             Traceback (most recent call last):
             ...
             ValueError: second vertex must be spanned by the rest of the graph

@@ -252,7 +252,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         subset `S = \{ s_1 < s_2 < \cdots < s_k \}` of the ground set::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
-            sage: M = Matroid(G)
+            sage: M = Matroid(G).regular_matroid()
             sage: E = M.groundset_list()
             sage: OS = M.orlik_solomon_algebra(ZZ)
             sage: G = OS.algebra_generators()
@@ -332,7 +332,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         An example of a custom ordering::
 
             sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
-            sage: M = Matroid(G)
+            sage: M = Matroid(graph=G, groundset=[(u, v) for u, v, _ in G.edge_iterator()])
             sage: s = [(5, 6), (1, 2), (3, 5), (2, 3), (1, 4), (3, 6), (3, 4)]
             sage: sorted([sorted(c) for c in M.circuits()])
             [[(1, 2), (1, 4), (2, 3), (3, 4)],

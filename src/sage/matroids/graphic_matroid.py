@@ -959,6 +959,7 @@ class GraphicMatroid(Matroid):
         INPUT:
 
         - ``X`` -- An iterable container of ground set elements.
+
         OUTPUT:
 
         ``frozenset`` instance containing a subset of the groundset.

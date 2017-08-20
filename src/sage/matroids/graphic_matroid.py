@@ -1653,7 +1653,7 @@ class GraphicMatroid(Matroid):
             [(0, 1, 'a')]
             sage: N = Matroid(graphs.CycleGraph(4))
             sage: I = N.graphic_coextensions(vertices=[3, 4], element='a')
-            sage: I.next()
+            sage: next(I)
             Traceback (most recent call last):
             ...
             ValueError: vertices are not all in the graph

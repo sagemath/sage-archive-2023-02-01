@@ -2207,7 +2207,7 @@ class FiniteWord_class(Word_class):
 
     def longest_forward_extension(self, x, y):
         r"""
-        Compute the length of le longest factor of ``self`` that starts at ``x`` and that
+        Compute the length of the longest factor of ``self`` that starts at ``x`` and that
         matches a factor that starts at ``y``. Return 0 if ``x`` or ``y`` are not valid
         position in self.
 
@@ -2226,8 +2226,8 @@ class FiniteWord_class(Word_class):
             0
         """
         length = self.length()
-        if not (0 <= x and 0 <= y):
-            return 0
+        if not (0 <= x and 0 <= y and x < length and y < length):
+            raise ValueError("x and y must be valid positions in self")
         l = 0
         while x < length and y < length and self[x] == self[y]:
             l += 1
@@ -2237,13 +2237,13 @@ class FiniteWord_class(Word_class):
 
     def longest_backward_extension(self, x, y):
         r"""
-        Compute the length of le longest factor of ``self`` that ends at ``x`` and that
+        Compute the length of the longest factor of ``self`` that ends at ``x`` and that
         matches a factor that ends at ``y``. Return 0 if ``x`` or ``y`` are not valid position
         in ``self``.
 
         INPUT:
 
-        - ``x``, ``y`` - positions in ``self``
+        - ``x``, ``y`` -- positions in ``self``
 
         EXAMPLES::
             
@@ -2256,8 +2256,8 @@ class FiniteWord_class(Word_class):
             0
         """
         length = self.length()
-        if not (x < length and y < length):
-            return 0
+        if not (0 <= x and 0 <= y and x < length and y < length):
+            raise ValueError("x and y must be valid positions in self")
         l = 0
         while x >= 0 and y >= 0 and self[x] == self[y]:
             l += 1

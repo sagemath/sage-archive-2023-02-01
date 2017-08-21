@@ -231,7 +231,7 @@ Check :trac:`22552`::
     sage: Polyhedron(vertices =[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)], base_ring=RealField(40))
     Traceback (most recent call last):
     ...
-    ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+    ValueError: invalid base ring
 
 Base classes
 ------------

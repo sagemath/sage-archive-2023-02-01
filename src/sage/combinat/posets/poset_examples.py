@@ -887,8 +887,6 @@ class Posets(object):
         except when `i + n = j`. The poset `P` is the so-called
         *standard example* of a poset with dimension `n`.
 
-        For more information see [Gar2015]_ or [Ros1999]_.
-
         INPUT:
 
         - ``n`` -- an integer `\ge 2`, dimension of the constructed poset
@@ -907,6 +905,11 @@ class Posets(object):
             Finite poset containing 6 elements
             sage: A.dimension()
             3
+
+        REFERENCES:
+
+        - [Gar2015]_
+        - [Ros1999]_
 
         TESTS::
 

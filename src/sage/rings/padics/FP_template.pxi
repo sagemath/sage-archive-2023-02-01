@@ -1889,6 +1889,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
     TESTS::
 
         sage: TestSuite(f).run()
+
     """
     def __init__(self, R, K):
         r"""

@@ -431,13 +431,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(3).add_bigoh(5)
             3 + O(3^4)
 
-        However, a negative value for ``absprec`` leads to an error, since
-        there is no fraction field for fixed-mod elements::
+        A negative value for ``absprec`` returns an element in the fraction field::
 
-            sage: R(3).add_bigoh(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: absprec must be at least 0
+            sage: R(3).add_bigoh(-1).parent()
+            3-adic Field with floating precision 4
 
         TESTS:
 

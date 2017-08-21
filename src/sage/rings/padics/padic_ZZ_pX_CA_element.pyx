@@ -1703,7 +1703,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         """
         R = self.base_ring()
         S = R[var]
-        if self.absprec == 0:
+        if self.is_zero():
             return S([])
         e = self.parent().e()
         L = [Integer(c) for c in self._ntl_rep().list()]

@@ -236,7 +236,7 @@ class BackendIPythonCommandline(BackendIPython):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: dm.displayhook(Foo())
-            ({u'text/plain': u'Mot\xc3\xb6rhead'}, {})
+            ({u'text/plain': u'Mot\xf6rhead'}, {})
         """
         if isinstance(rich_output, OutputPlainText):
             return ({u'text/plain': rich_output.text.get_unicode()}, {})

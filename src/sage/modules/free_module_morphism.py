@@ -157,7 +157,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             Domain: Vector space of dimension 40 over Rational Field
             Codomain: Vector space of dimension 40 over Rational Field
         """
-        r = "Free module morphism defined by the matrix\n{0}\nDomain: {1}\nCodomain: {2}"
+        r = "Free module morphism defined by the matrix\n{!r}\nDomain: {}\nCodomain: {}"
         return r.format(self.matrix(), self.domain(), self.codomain())
 
     def change_ring(self, R):

@@ -147,7 +147,7 @@ def merge_js_index(app):
             # merge the filenames
             filenames = app.builder.indexer._filenames
             for (res, filename) in six.iteritems(index._filenames):
-                filenames[fixpath(res)] = filename
+                filenames[fixpath(res)] = fixpath(filename)
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
             # Setup source symbolic links
@@ -264,13 +264,14 @@ def init_subdoc(app):
             # Master file with indexes computed by merging indexes:
             # Monkey patch index fetching to silence warning about broken index
             def load_indexer(docnames):
-                app.builder.info(bold('Skipping loading of indexes'), nonl=1)
+                app.builder.info(bold('skipping loading of indexes... '), nonl=1)
             app.builder.load_indexer = load_indexer
 
     else:
         app.info(bold("Compiling a sub-document"))
-        app.connect('env-updated', fetch_citation)
         app.connect('html-page-context', fix_path_html)
+        if not app.config.multidoc_first_pass:
+            app.connect('env-updated', fetch_citation)
 
         # Monkey patch copy_static_files to make a symlink to "../"
         def link_static_files():

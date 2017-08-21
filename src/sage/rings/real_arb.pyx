@@ -163,7 +163,7 @@ TESTS::
     Full MatrixSpace of 3 by 3 dense matrices over Real ball field
     with 53 bits precision
 
-    sage: polygen(RBF, x)^3
+    sage: polygen(RBF, 'x')^3
     x^3
 
 ::
@@ -188,6 +188,7 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
@@ -374,7 +375,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     ::
 
-        sage: (1/2*RBF(1)) + AA(sqrt(2)) - 1 + polygen(QQ, x)
+        sage: (1/2*RBF(1)) + AA(sqrt(2)) - 1 + polygen(QQ, 'x')
         x + [0.914213562373095 +/- 4.10e-16]
 
     TESTS::

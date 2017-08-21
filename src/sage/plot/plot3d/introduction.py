@@ -50,7 +50,7 @@ The following plotting functions for basic shapes are supported
 
 -  :func:`~sage.plot.plot3d.shapes.ColorCube` - a cube with given size and sides with given colors
 
--  :func:`~sage.plot.plot3d.shapes.LineSegment` - a line segment, which is drawn as a cylinder from start to end with radius radius
+-  :func:`~sage.plot.plot3d.shapes.LineSegment` - a line segment, which is drawn as a cylinder from start to end with given radius
 
 -  :func:`~sage.plot.plot3d.shapes2.line3d` - a 3d line joining a sequence of points
 

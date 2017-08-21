@@ -473,6 +473,7 @@ import pexpect
 from random import randrange
 
 from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.misc.misc import ECL_TMP
 
 from .expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled)
@@ -556,6 +557,7 @@ class Maxima(MaximaAbstract, Expect):
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
+                        env = {'TMPDIR': str(ECL_TMP)},
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,

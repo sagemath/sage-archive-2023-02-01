@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Rank Decompositions of graphs
 

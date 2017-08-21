@@ -30,12 +30,15 @@ import six
 from six.moves import range
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 import sage.databases.cremona
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import flatten, cached_method
 from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
 
+
+@richcmp_method
 class IsogenyClass_EC(SageObject):
     r"""
     Isogeny class of an elliptic curve.
@@ -136,9 +139,9 @@ class IsogenyClass_EC(SageObject):
                 return i
         raise ValueError("%s is not in isogeny class %s" % (C,self))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self and other are the same isogeny class.
+        Compare self and other.
 
         If they are different, compares the sorted underlying lists of
         curves.
@@ -155,8 +158,8 @@ class IsogenyClass_EC(SageObject):
             True
         """
         if isinstance(other, IsogenyClass_EC):
-            return cmp(sorted(self.curves), sorted(other.curves))
-        return cmp(type(self), type(other))
+            return richcmp(sorted(self.curves), sorted(other.curves), op)
+        return NotImplemented
 
     def __hash__(self):
         """
@@ -1008,7 +1011,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             sage: E.isogeny_class(order='database')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
+            RuntimeError: unable to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm
@@ -1061,13 +1064,13 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             try:
                 label = self.E.cremona_label(space=False)
             except RuntimeError:
-                raise RuntimeError("unable to to find %s in the database"%self.E)
+                raise RuntimeError("unable to find %s in the database" % self.E)
             db = sage.databases.cremona.CremonaDatabase()
             curves = db.isogeny_class(label)
             if len(curves) == 0:
-                raise RuntimeError("unable to to find %s in the database"%self.E)
+                raise RuntimeError("unable to find %s in the database" % self.E)
             # All curves will have the same conductor and isogeny class,
-            # and there are are most 8 of them, so lexicographic sorting is okay.
+            # and there are most 8 of them, so lexicographic sorting is okay.
             self.curves = tuple(sorted(curves, key = lambda E: E.cremona_label()))
             self._mat = None
         elif algorithm == "sage":

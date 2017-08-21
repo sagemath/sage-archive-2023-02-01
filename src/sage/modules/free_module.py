@@ -1935,6 +1935,41 @@ done from the right side.""")
         """
         return self.__rank
 
+    def __bool__(self):
+        """
+        Return ``True`` if and only if the rank of this module is
+        non-zero. In other words, this returns ``False`` for the zero
+        module and ``True`` otherwise (apart from the exceptional case
+        where the base ring is the zero ring).
+
+        EXAMPLES::
+
+            sage: bool(QQ^0)
+            False
+            sage: bool(QQ^1)
+            True
+            sage: M = Matrix(2, 3, range(6))
+            sage: bool(M.right_kernel())
+            True
+            sage: bool(M.left_kernel())
+            False
+
+        When the base ring is the zero ring, we still look at the
+        "rank" (which may not be mathematically meaningful)::
+
+            sage: M = Integers(1)^4; M
+            Ambient free module of rank 4 over Ring of integers modulo 1
+            sage: M.rank()
+            4
+            sage: bool(M)
+            True
+            sage: M.cardinality()
+            1
+        """
+        return bool(self.rank())
+
+    __nonzero__ = __bool__
+
     def uses_ambient_inner_product(self):
         r"""
         Return ``True`` if the inner product on this module is
@@ -5492,11 +5527,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if self.is_sparse():
             s = "Sparse free module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+                "User basis matrix:\n%r" % self.basis_matrix()
         else:
             s = "Free module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+                "User basis matrix:\n%r" % self.basis_matrix()
         return s
 
     def _latex_(self):
@@ -6379,11 +6414,11 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         if self.is_sparse():
             return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "User basis matrix:\n%s"%self.basis_matrix()
+                    "User basis matrix:\n%r" % self.basis_matrix()
         else:
             return "Vector space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "User basis matrix:\n%s"%self.basis_matrix()
+                    "User basis matrix:\n%r" % self.basis_matrix()
 
     def _denominator(self, B):
         """
@@ -6577,11 +6612,11 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         if self.is_sparse():
             return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s"%self.basis_matrix()
+                "Basis matrix:\n%r" % self.basis_matrix()
         else:
             return "Vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s"%self.basis_matrix()
+                "Basis matrix:\n%r" % self.basis_matrix()
 
     def echelon_coordinates(self, v, check=True):
         """

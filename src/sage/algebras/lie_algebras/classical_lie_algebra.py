@@ -1056,7 +1056,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         names += ['f{}'.format(i) for i in range(1, num_sroots+1)]
         names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
-        index_set = p_roots + n_roots + list(alphacheck)
+        index_set = p_roots + list(alphacheck) + n_roots
         names = tuple(names)
         from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
         index_set = FiniteEnumeratedSet(index_set)
@@ -1135,7 +1135,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: K = L.basis().keys()
             sage: L._repr_generator(K[0])
             'E[alpha[2]]'
-            sage: L._repr_generator(K[-1])
+            sage: L._repr_generator(K[4])
             'h2'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():
@@ -1152,7 +1152,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: K = L.basis().keys()
             sage: L._latex_generator(K[0])
             'E_{\\alpha_{2}}'
-            sage: L._latex_generator(K[-1])
+            sage: L._latex_generator(K[4])
             'h_{2}'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():

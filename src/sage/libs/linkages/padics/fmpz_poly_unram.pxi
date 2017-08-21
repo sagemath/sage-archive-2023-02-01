@@ -570,6 +570,36 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
 # The element is filled in for zero in the output of clist if necessary.
 _list_zero = []
 
+cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime_pow):
+    """
+    Return a list of coefficients, as elements that can be converted into the base ring.
+
+    INPUT:
+
+    - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
+    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
+    - ``prime_pow`` -- the ``PowComputer`` of the ring
+    """
+    cdef Integer ansz
+    cdef Rational ansq
+    cdef long i
+    ans = []
+    for i in range(fmpz_poly_length(x)):
+        if valshift >= 0:
+            ansz = PY_NEW(Integer)
+            fmpz_poly_get_coeff_mpz(ansz.value, x, i)
+            if valshift > 0:
+                mpz_mul(ansz.value, ansz.value, prime_pow.pow_mpz_t_tmp(valshift))
+            ans.append(ansz)
+        else:
+            ansq = Rational.__new__(Rational)
+            fmpz_poly_get_coeff_mpz(mpq_numref(ansq.value), x, i)
+            mpz_set(mpq_denref(ansq.value), prime_pow.pow_mpz_t_tmp(-valshift))
+            mpq_canonicalize(ansq.value)
+            ans.append(ansq)
+    return ans
+
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:
     """
     Teichmuller lifting.
@@ -581,7 +611,7 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
                  \pmod{\pi}`.
     - ``value`` -- an ``celement``, the element mod `\pi` to lift.
     - ``prec`` -- a long, the precision to which to lift.
-    - ``prime_pow`` -- the Powcomputer of the ring.
+    - ``prime_pow`` -- the ``PowComputer`` of the ring.
 
     ALGORITHM:
 

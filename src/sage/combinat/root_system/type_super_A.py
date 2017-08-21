@@ -21,18 +21,28 @@ from six import iteritems
 
 class AmbientSpace(ambient_space.AmbientSpace):
     r"""
+    Abstract class for ambient spaces.
+
     EXAMPLES::
 
         sage: R = RootSystem(['A', [4,2]])
-        sage: e = R.ambient_space(); e
+        sage: AL = R.ambient_space(); AL
         Ambient space of the Root system of type ['A', [4, 2]]
-        sage: TestSuite(e).run()
+        sage: TestSuite(AL).run()
+
+        sage: R = RootSystem(['A', [2,1]])
+        sage: AL = R.ambient_space(); AL
+        Ambient space of the Root system of type ['A', [2, 1]]
+        sage: AL.basis()
+        Finite family {-2: (0, 1, 0, 0, 0), 2: (0, 0, 0, 0, 1), -3: (1, 0, 0, 0, 0),
+        -1: (0, 0, 1, 0, 0), 1: (0, 0, 0, 1, 0)}
     """
-    def __init__(self, root_system, base_ring):
+    def __init__(self, root_system, base_ring, index_set=None):
         ct = root_system.cartan_type()
-        I = tuple(range(-ct.m-1,0) + range(1,ct.n+2))
+        if index_set is None:
+            index_set = tuple(range(-ct.m-1,0) + range(1,ct.n+2))
         ambient_space.AmbientSpace.__init__(self, root_system, base_ring,
-                                            index_set=I)
+                                            index_set=index_set)
 
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
@@ -53,6 +63,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def dimension(self):
         """
+        Return the dimension of this ambient space.
+
         EXAMPLES::
 
             sage: e = RootSystem(['A', [4,2]]).ambient_space()
@@ -64,6 +76,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def simple_root(self, i):
         """
+        Return the i-th simple root of ``self``.
+
         EXAMPLES::  
 
             sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
@@ -79,6 +93,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def positive_roots(self):
         """
+        Return the positive roots of ``self``.
+
         EXAMPLES::
 
             sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
@@ -97,6 +113,15 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return self.positive_even_roots() + self.positive_odd_roots()
 
     def positive_even_roots(self):
+        """
+        Return the positive even roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.positive_even_roots()
+            [(0, 1, -1, 0, 0), (1, 0, -1, 0, 0), (1, -1, 0, 0, 0), (0, 0, 0, 1, -1)]
+        """
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-j) - self.monomial(-i)
@@ -108,6 +133,16 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return ret
 
     def positive_odd_roots(self):
+        """
+        Return the positive odd roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.positive_odd_roots()
+            [(0, 0, 1, -1, 0), (0, 0, 1, 0, -1), (0, 1, 0, -1, 0), (0, 1, 0, 0, -1),
+             (1, 0, 0, -1, 0), (1, 0, 0, 0, -1)]
+        """
         ct = self.root_system.cartan_type()
         return [self.monomial(-i) - self.monomial(j)
                 for i in range(1,ct.m+2)
@@ -115,6 +150,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def highest_root(self):
         """
+        Return the highest root of ``self``.
+
         EXAMPLES::
 
            sage: e = RootSystem(['A', [4,2]]).ambient_lattice()
@@ -126,24 +163,28 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def negative_roots(self):
         """
+        Return the negative roots of ``self``.
+
         EXAMPLES::
 
             sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
-            sage: e.positive_roots()
-            [(0, 1, -1, 0, 0),
-             (1, 0, -1, 0, 0),
-             (1, -1, 0, 0, 0),
-             (0, 0, 0, 1, -1),
-             (0, 0, 1, -1, 0),
-             (0, 0, 1, 0, -1),
-             (0, 1, 0, -1, 0),
-             (0, 1, 0, 0, -1),
-             (1, 0, 0, -1, 0),
-             (1, 0, 0, 0, -1)]
+            sage: e.negative_roots()
+            [(0, -1, 1, 0, 0), (-1, 0, 1, 0, 0), (-1, 1, 0, 0, 0), (0, 0, 0, -1, 1),
+             (0, 0, -1, 1, 0), (0, 0, -1, 0, 1), (0, -1, 0, 1, 0), (0, -1, 0, 0, 1),
+             (-1, 0, 0, 1, 0), (-1, 0, 0, 0, 1)]
         """
         return self.negative_even_roots() + self.negative_odd_roots()
 
     def negative_even_roots(self):
+        """
+        Return negative even roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.negative_even_roots()
+            [(0, -1, 1, 0, 0), (-1, 0, 1, 0, 0), (-1, 1, 0, 0, 0), (0, 0, 0, -1, 1)]
+        """
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-i) - self.monomial(-j)
@@ -155,6 +196,16 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return ret
 
     def negative_odd_roots(self):
+        """
+        Return negative odd roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.negative_odd_roots()
+            [(0, 0, -1, 1, 0), (0, 0, -1, 0, 1), (0, -1, 0, 1, 0), (0, -1, 0, 0, 1),
+             (-1, 0, 0, 1, 0), (-1, 0, 0, 0, 1)]
+        """
         ct = self.root_system.cartan_type()
         return [self.monomial(j) - self.monomial(-i)
                 for i in range(1,ct.m+2)

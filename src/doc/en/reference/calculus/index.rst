@@ -7,8 +7,7 @@ of symbols and numeric objects linked by operators (functions).
 .. NOTE::
 
     While polynomial manipulation can be done with expressions,
-    it is more efficient to use
-    :doc:`polynomial ring elements <polynomial_rings/index>`
+    it is more efficient to use polynomial ring elements
 
 Using calculus
 ^^^^^^^^^^^^^^
@@ -61,11 +60,9 @@ Internal functionality supporting calculus
 - :doc:`External integrators <sage/symbolic/integration/external>`
 - :doc:`External interpolators <sage/calculus/interpolators>`
 
-Table of Contents
-^^^^^^^^^^^^^^^^^
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
 
    sage/symbolic/expression
    sage/symbolic/callable
@@ -97,15 +94,12 @@ Table of Contents
    sage/calculus/interpolators
    sage/calculus/functions
    sage/calculus/var
-
    sage/symbolic/getitem
    sage/symbolic/maxima_wrapper
    sage/symbolic/operators
    sage/symbolic/substitution_map
-
    sage/symbolic/benchmark
    sage/symbolic/random_tests
-
    sage/libs/pynac/pynac
 
 .. include:: ../footer.txt

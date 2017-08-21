@@ -140,7 +140,7 @@ def ECL_TMP():
         sage: ECL_TMP
         l'.../temp/.../ecl'
     """
-    d = os.path.join(SAGE_TMP, 'ecl')
+    d = os.path.join(str(SAGE_TMP), 'ecl')
     sage_makedirs(d)
     return d
 
@@ -154,7 +154,8 @@ def SPYX_TMP():
         sage: SPYX_TMP
         l'.../temp/.../spyx'
     """
-    return os.path.join(SAGE_TMP, 'spyx')
+    return os.path.join(str(SAGE_TMP), 'spyx')
+
 
 @lazy_string
 def SAGE_TMP_INTERFACE():
@@ -165,7 +166,7 @@ def SAGE_TMP_INTERFACE():
         sage: SAGE_TMP_INTERFACE
         l'.../temp/.../interface'
     """
-    d = os.path.join(SAGE_TMP, 'interface')
+    d = os.path.join(str(SAGE_TMP), 'interface')
     sage_makedirs(d)
     return d
 

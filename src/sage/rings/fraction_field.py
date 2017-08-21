@@ -346,7 +346,7 @@ class FractionField_generic(ring.Field):
 
         -  Element of ``self``
 
-        TEST:
+        TESTS:
 
         We demonstrate that :trac:`7958` is resolved in the case of
         number fields::
@@ -933,7 +933,9 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             True
 
         """
-        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
     def __hash__(self):
         r"""
@@ -946,7 +948,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             True
 
         """
-        return hash((type(self), self.codomain()))
+        return hash((type(self), self.domain()))
 
 
 class FractionFieldEmbeddingSection(Section):
@@ -1046,7 +1048,9 @@ class FractionFieldEmbeddingSection(Section):
             True
 
         """
-        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
     def __hash__(self):
         r"""
@@ -1059,4 +1063,4 @@ class FractionFieldEmbeddingSection(Section):
             True
 
         """
-        return hash((type(self), self.domain()))
+        return hash((type(self), self.codomain()))

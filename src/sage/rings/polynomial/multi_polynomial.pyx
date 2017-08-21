@@ -1236,7 +1236,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.sylvester_matrix(g, x).determinant() == f.resultant(g, x)
             True
 
-        TEST:
+        TESTS:
 
         The variable is optional::
 
@@ -2214,7 +2214,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 a += b
                 d = (t-(L[j].real()))/((t-(L[j])) * (t-(L[j].conjugate())) + u**2)
                 c += d
-            #Newton's Method, to to find solutions. Error bound is while less than diameter of our z
+            #Newton's Method, to find solutions. Error bound is while less than diameter of our z
             err = z.diameter()
             zz = z.diameter()
             n = F.degree()

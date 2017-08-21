@@ -19,14 +19,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
 
 import operator
 
-import homset
+
 
 from sage.structure.element cimport Element
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
@@ -407,8 +407,9 @@ cdef class CallMorphism(Morphism):
 cdef class IdentityMorphism(Morphism):
 
     def __init__(self, parent):
-        if not isinstance(parent, homset.Homset):
-            parent = homset.Hom(parent, parent)
+        from .homset import Homset, Hom
+        if not isinstance(parent, Homset):
+            parent = Hom(parent, parent)
         Morphism.__init__(self, parent)
 
     def _repr_type(self):

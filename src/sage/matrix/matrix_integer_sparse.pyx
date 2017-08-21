@@ -387,7 +387,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             [  7   2   2   3]
             [  4   3   4 5/7]
 
-        TEST:
+        TESTS:
 
         Check that :trac:`9345` is fixed::
 

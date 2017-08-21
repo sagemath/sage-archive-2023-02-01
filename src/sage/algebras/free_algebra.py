@@ -404,7 +404,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
             Free Algebra on 3 generators (x, y, z) over Rational Field
 
-        TEST:
+        TESTS:
 
         Note that the following is *not* the recommended way to create
         a free algebra::

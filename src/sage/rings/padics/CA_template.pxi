@@ -495,7 +495,7 @@ cdef class CAElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -513,16 +513,34 @@ cdef class CAElement(pAdicTemplateElement):
             2 + 3 + 3^2 + 3^3 + O(3^5)
             sage: a.add_bigoh(3)
             2 + 3 + 3^2 + O(3^3)
+
+        TESTS:
+
+        Verify that :trac:`13591` has been resolved::
+
+            sage: k(3).add_bigoh(-1)
+            O(3^-1)
+
         """
         cdef long aprec, newprec
+        if absprec is infinity:
+            return self
         if isinstance(absprec, int):
             aprec = absprec
         else:
             if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
-            aprec = mpz_get_si((<Integer>absprec).value)
+            if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                if mpz_sgn((<Integer>absprec).value) == -1:
+                    raise ValueError("absprec must fit into a signed long")
+                else:
+                    aprec = self.prime_pow.ram_prec_cap
+            else:
+                aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.absprec:
             return self
+        if aprec < 0:
+            return self.parent().fraction_field()(self).add_bigoh(absprec)
         cdef CAElement ans = self._new_c()
         ans.absprec = aprec
         creduce(ans.value, self.value, ans.absprec, ans.prime_pow)

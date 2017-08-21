@@ -1130,7 +1130,7 @@ cdef class ClonableList(ClonableArray):
 
     cpdef remove(self, el):
         """
-        Remove the first occurence of ``el`` from ``self``
+        Remove the first occurrence of ``el`` from ``self``
 
         INPUT: ``el`` - any object
 

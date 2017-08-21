@@ -199,6 +199,40 @@ triangle, that would be::
     A 2-dimensional polyhedron in (Number Field in sqrt3 with defining
     polynomial x^2 - 3)^2 defined as the convex hull of 3 vertices
 
+If the input consists of decimal numbers and the `base_ring` is not specified,
+the base ring is set to be the `RealField` with the precision given by the
+minimal precision of the input. If it has 53 bits of precision, the constructor
+converts automatically the base ring to `RDF`::
+
+    sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
+    A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+    sage: Polyhedron(vertices = [[1.12345678901234, 2.123456789012345]])
+    A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+    sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]])
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with 54 bits of precision
+
+    sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]], base_ring=RDF)
+    A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+
+.. SEEALSO::
+
+    :mod:`Parents for polyhedra <sage.geometry.polyhedron.parent.Polyhedra>`
+
+.. TESTS:
+
+Check :trac:`22552`::
+
+    sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with 57 bits of precision
+    sage: Polyhedron(vertices =[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)], base_ring=RealField(40))
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+
 Base classes
 ------------
 

@@ -96,8 +96,9 @@ class RegularSuperCrystals(Category_singleton):
         r"""
         EXAMPLES::
 
-            sage: from sage.categories.regular_supercrystals import RegularSuperCrystalCategory
-            sage: RegularSuperCrystalCategory().super_categories()
+            sage: from sage.categories.regular_supercrystals import RegularSuperCrystals
+            sage: C = RegularSuperCrystals()
+            sage: C.super_categories()
             [Category of finite crystals]
         """
         return [Crystals().Finite()]
@@ -194,11 +195,11 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: T = B.tensor(B)
                 sage: T.connected_components()
-                [Subcrystal of Full tensor product of the crystals 
-                [The crystal of letters for type ['A', [1, 2]], 
+                [Subcrystal of Full tensor product of the crystals
+                [The crystal of letters for type ['A', [1, 2]],
                  The crystal of letters for type ['A', [1, 2]]],
-                 Subcrystal of Full tensor product of the crystals 
-                 [The crystal of letters for type ['A', [1, 2]], 
+                 Subcrystal of Full tensor product of the crystals
+                 [The crystal of letters for type ['A', [1, 2]],
                  The crystal of letters for type ['A', [1, 2]]]]
             """
             category = RegularSuperCrystals()
@@ -226,10 +227,10 @@ class RegularSuperCrystals(Category_singleton):
                 sage: B = crystals.Letters(['A',[1,2]])
                 sage: C = crystals.Tableaux(['A',[1,2]], shape = [2,1])
                 sage: T = C.tensor(B); T
-                Full tensor product of the crystals [Crystal of BKK tableaux of shape [2, 1] of gl(2|3), 
+                Full tensor product of the crystals [Crystal of BKK tableaux of shape [2, 1] of gl(2|3),
                 The crystal of letters for type ['A', [1, 2]]]
                 sage: S = B.tensor(C); S
-                Full tensor product of the crystals [The crystal of letters for type ['A', [1, 2]], 
+                Full tensor product of the crystals [The crystal of letters for type ['A', [1, 2]],
                 Crystal of BKK tableaux of shape [2, 1] of gl(2|3)]
                 sage: G = T.digraph()
                 sage: H = S.digraph()
@@ -253,7 +254,7 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Letters(['A',[1,2]])
                 sage: B.character()
-                B[(1, 0, 0, 0, 0)] + B[(0, 1, 0, 0, 0)] + B[(0, 0, 1, 0, 0)] + B[(0, 0, 0, 1, 0)] 
+                B[(1, 0, 0, 0, 0)] + B[(0, 1, 0, 0, 0)] + B[(0, 0, 1, 0, 0)] + B[(0, 0, 0, 1, 0)]
                 + B[(0, 0, 0, 0, 1)]
             """
             from sage.rings.all import ZZ
@@ -266,6 +267,17 @@ class RegularSuperCrystals(Category_singleton):
             """
             Return `\varepsilon_i` of ``self``.
 
+            EXAMPLES::
+
+                sage: C = crystals.Tableaux(['A',[1,2]], shape = [2,1])
+                sage: c = C.an_element(); c
+                [[-2, -2], [-1]]
+                sage: c.epsilon(2)
+                0
+                sage: c.epsilon(0)
+                0
+                sage: c.epsilon(-1)
+                0
             """
             string_length = 0
             x = self
@@ -277,6 +289,21 @@ class RegularSuperCrystals(Category_singleton):
                     string_length += 1
 
         def phi(self, i):
+            """
+            Return `\varphi_i` of ``self``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Tableaux(['A',[1,2]], shape = [2,1])
+                sage: c = C.an_element(); c
+                [[-2, -2], [-1]]
+                sage: c.phi(1)
+                0
+                sage: c.phi(2)
+                0
+                sage: c.phi(0)
+                1
+            """
             string_length = 0
             x = self
             while True:

@@ -56,7 +56,7 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
 
     n = group.n()
     k = QQ(k)
-    if (ep == None):
+    if (ep is None):
         if (n == infinity):
             ep = (-1)**(k/ZZ(2))
         elif (ZZ(2).divides(n)):

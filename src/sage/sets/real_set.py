@@ -312,8 +312,8 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             (1, 3]
             sage: I2 = RealSet.open_closed(0, 5)[0];  I2
             (0, 5]
-            sage: cmp(I1, I2)
-            1
+            sage: I1 > I2
+            True
             sage: sorted([I1, I2])
             [(0, 5], (1, 3]]
 
@@ -434,19 +434,17 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: I3.is_connected(I1)
             True
         """
-        cmp_lu = cmp(self._lower, other._upper)
-        cmp_ul = cmp(self._upper, other._lower)
         # self is separated and below other
-        if cmp_ul == -1:
+        if self._upper < other._lower:
             return False
         # self is adjacent and below other 
-        if cmp_ul == 0:
+        if self._upper == other._lower:
             return self._upper_closed or other._lower_closed
         # self is separated and above other
-        if cmp_lu == +1:
+        if other._upper < self._lower:
             return False
         # self is adjacent and above other 
-        if cmp_lu == 0:
+        if other._upper == self._lower:
             return self._lower_closed or other._upper_closed
         # They are not separated
         return True
@@ -480,28 +478,22 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: I1.convex_hull(I3)
             (0, 3/2]
         """
-        cmp_ll = cmp(self._lower, other._lower)
-        cmp_uu = cmp(self._upper, other._upper)
-        lower = upper = None
-        lower_closed = upper_closed = None
-        if cmp_ll == -1:
+        if self._lower < other._lower:
             lower = self._lower
             lower_closed = self._lower_closed
-        elif cmp_ll == +1:
+        elif self._lower > other._lower:
             lower = other._lower
             lower_closed = other._lower_closed
         else:
-            assert(cmp_ll == 0)
             lower = self._lower
             lower_closed = self._lower_closed or other._lower_closed
-        if cmp_uu == +1:
+        if self._upper > other._upper:
             upper = self._upper
             upper_closed = self._upper_closed
-        elif cmp_uu == -1:
+        elif self._upper < other._upper:
             upper = other._upper
             upper_closed = other._upper_closed
         else:
-            assert(cmp_uu == 0)
             upper = self._upper
             upper_closed = self._upper_closed or other._upper_closed
         return InternalRealInterval(lower, lower_closed, upper, upper_closed)
@@ -540,28 +532,24 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: I3.intersection(I1)
             (0, 0)
         """
-        cmp_ll = cmp(self._lower, other._lower)
-        cmp_uu = cmp(self._upper, other._upper)
         lower = upper = None
         lower_closed = upper_closed = None
-        if cmp_ll == -1:
+        if self._lower < other._lower:
             lower = other._lower
             lower_closed = other._lower_closed
-        elif cmp_ll == +1:
+        elif self._lower > other._lower:
             lower = self._lower
             lower_closed = self._lower_closed
         else:
-            assert(cmp_ll == 0)
             lower = self._lower
             lower_closed = self._lower_closed and other._lower_closed
-        if cmp_uu == +1:
+        if self._upper > other._upper:
             upper = other._upper
             upper_closed = other._upper_closed
-        elif cmp_uu == -1:
+        elif self._upper < other._upper:
             upper = self._upper
             upper_closed = self._upper_closed
         else:
-            assert(cmp_uu == 0)
             upper = self._upper
             upper_closed = self._upper_closed and other._upper_closed
         if lower > upper:
@@ -592,13 +580,11 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: i.contains(2)
             True
         """
-        cmp_lower = cmp(self._lower, x)
-        cmp_upper = cmp(x, self._upper)
-        if cmp_lower == cmp_upper == -1:
+        if self._lower < x < self._upper:
             return True
-        if cmp_lower == 0:
+        if self._lower == x:
             return self._lower_closed
-        if cmp_upper == 0:
+        if self._upper == x:
             return self._upper_closed
         return False
 
@@ -698,8 +684,8 @@ class RealSet(UniqueRepresentation, Parent):
              (1, 3]
              sage: I2 = RealSet.open_closed(0, 5);  I2
              (0, 5]
-             sage: cmp(I1, I2)
-             1
+             sage: I1 > I2
+             True
              sage: sorted([I1, I2])
              [(0, 5], (1, 3]]
              sage: I1 == I1
@@ -852,15 +838,15 @@ class RealSet(UniqueRepresentation, Parent):
         """
         # sort by lower bound
         intervals = sorted(intervals)
-        if len(intervals) == 0:
+        if not intervals:
             return tuple()
         merged = []
         curr = intervals.pop(0)
-        while len(intervals) != 0:
+        while intervals:
             next = intervals.pop(0)
-            cmp_ul = cmp(curr._upper, next._lower)
-            if cmp_ul == +1 or (
-                cmp_ul == 0 and (curr._upper_closed or next._lower_closed)):
+            if curr._upper > next._lower or (
+                    curr._upper == next._lower and
+                    (curr._upper_closed or next._lower_closed)):
                 curr = curr.convex_hull(next)
             else:
                 if not curr.is_empty():

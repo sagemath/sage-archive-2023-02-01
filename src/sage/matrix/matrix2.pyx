@@ -1647,7 +1647,7 @@ cdef class Matrix(Matrix1):
         # resulted in further exceptions/ errors.
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
         try:
             c = self.charpoly(var, algorithm="df")[0]
         except ValueError:
@@ -7239,7 +7239,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``check`` -- (default: ``False``) If ``True`` return a tuple of
-            the maximal matrix and the permutations taking taking ``self``
+            the maximal matrix and the permutations taking ``self``
             to the maximal matrix.
             If ``False``, return only the maximal matrix.
 
@@ -7347,7 +7347,7 @@ cdef class Matrix(Matrix1):
                     SN = [[k[1] for k in s] for s in SN]
                     # Maximal row in this entry of X = MS
                     nb = max(SN)
-                    # Number of occurences.
+                    # Number of occurrences.
                     n = [j for j in range(nrows - l) if SN[j] == nb]
                     # Now compare to our previous max
                     if b < nb:
@@ -10216,7 +10216,7 @@ cdef class Matrix(Matrix1):
         ALGORITHM:
 
         For each eigenvalue, this routine checks that the algebraic
-        multiplicity (number of occurences as a root of the characteristic
+        multiplicity (number of occurrences as a root of the characteristic
         polynomial) is equal to the geometric multiplicity (dimension
         of the eigenspace), which is sufficient to ensure a basis of
         eigenvectors for the columns of `S`.
@@ -12372,6 +12372,11 @@ cdef class Matrix(Matrix1):
             sage: A == L*D*L.transpose()
             True
 
+        This works correctly for the 0x0 matrix::
+
+            sage: Matrix(0).indefinite_factorization()
+            ([], ())
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12544,6 +12549,11 @@ cdef class Matrix(Matrix1):
             ValueError: Could not see Finite Field in a of size 5^3 as a subring
             of the real or complex numbers
 
+        The 0x0 matrix is trivially positive definite::
+
+            sage: Matrix(0).is_positive_definite()
+            True
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12694,7 +12704,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t size,i,j
         cdef object M
 
-        if indices is False:
+        if not indices:
             L = self._list()
             size = PyList_GET_SIZE(L)
             M = PyList_New(0)
@@ -14871,7 +14881,7 @@ def _smith_onestep(m):
             isdone = False
 
     # if not we recurse -- algorithm must terminate if R is Noetherian.
-    if isdone == False:
+    if not isdone:
         s,t,u = _smith_onestep(a.transpose())
         left_mat = u.transpose() * left_mat
         a = t.transpose()

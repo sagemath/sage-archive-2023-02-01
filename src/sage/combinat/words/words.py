@@ -1879,7 +1879,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
            For iterators: Infinity if you know the iterator will not
            terminate (default); "unknown" if you do not know whether the
            iterator terminates; "finite" if you know that the iterator
-           terminates, but do know know the length.
+           terminates, but do not know the length.
 
         -  ``datatype`` - (default: None) None, "char", "list", "str",
            "tuple", "iter", "callable" or "pickled_function". If None, then

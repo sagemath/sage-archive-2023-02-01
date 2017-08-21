@@ -1757,9 +1757,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``certificate`` -- (boolean; default: ``False``) -- whether to
-          return an integer (the breadth) or a certificate, i.e. a biggest
-          set whose join differs from the join of any subset.
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return the pair `(b, a)` where `b` is
+          the breadth and `a` is an antichain such that the join of `a`
+          differs from the join of any proper subset of `a`.
+          If ``certificate=False`` return just the breadth.
 
         EXAMPLES::
 
@@ -1771,7 +1777,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: B3.breadth()
             3
             sage: B3.breadth(certificate=True)
-            [1, 2, 4]
+            (3, [1, 2, 4])
 
         ALGORITHM:
 
@@ -1781,6 +1787,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         of elements between `A` and `j`.  So we start by searching
         elements that could be our `j` and then just check possible
         antichains `A`.
+
+        .. NOTE::
+
+            Prior to version 8.1 this function returned just an
+            antichain with ``certificate=True``.
 
         TESTS::
 
@@ -1798,9 +1809,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # First check if breadth is zero (empty lattice) or one (a chain).
         n = self.cardinality()
         if n == 0:
-            return [] if certificate else 0
+            return (0, []) if certificate else 0
         if self.is_chain():
-            return [self.bottom()] if certificate else 1
+            return (1, [self.bottom()]) if certificate else 1
         # Breadth is at least two.
 
         # Work directly with the Hasse diagram
@@ -1835,7 +1846,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     if join(A) == j:
                         if all(join(A[:i]+A[i+1:]) != j for i in range(B)):
                             if certificate:
-                                return [self._vertex_to_element(e) for e in A]
+                                return (B, [self._vertex_to_element(e) for e in A])
                             else:
                                 return B
         assert False, "BUG: breadth() in lattices.py have an error."

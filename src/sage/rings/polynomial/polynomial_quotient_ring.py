@@ -1850,7 +1850,8 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
             True
 
         """
-        if self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus() and self.domain().modulus().leading_coefficient().is_unit():
+        if (self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus()
+            and self.domain().modulus().leading_coefficient().is_unit()):
             if self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective():
                 return True
             else:

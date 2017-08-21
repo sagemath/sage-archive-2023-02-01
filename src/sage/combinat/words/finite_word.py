@@ -2207,9 +2207,8 @@ class FiniteWord_class(Word_class):
 
     def longest_forward_extension(self, x, y):
         r"""
-        Compute the length of the longest factor of ``self`` that starts at ``x`` and that
-        matches a factor that starts at ``y``. Return 0 if ``x`` or ``y`` are not valid
-        position in self.
+        Compute the length of the longest factor of ``self`` that
+        starts at ``x`` and that matches a factor that starts at ``y``.
 
         INPUT:
 
@@ -2218,12 +2217,14 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = Word('0011001')
-            sage: w.longest_forward_extension(0, 5)
+            sage: w.longest_forward_extension(0, 4)
             3
             sage: w.longest_forward_extension(0, 2)
             0
             sage: w.longest_forward_extension(-3, 2)
-            0
+            Traceback (most recent call last):
+            ...
+            ValueError: x and y must be valid positions in self
         """
         length = self.length()
         if not (0 <= x and 0 <= y and x < length and y < length):
@@ -2237,9 +2238,8 @@ class FiniteWord_class(Word_class):
 
     def longest_backward_extension(self, x, y):
         r"""
-        Compute the length of the longest factor of ``self`` that ends at ``x`` and that
-        matches a factor that ends at ``y``. Return 0 if ``x`` or ``y`` are not valid position
-        in ``self``.
+        Compute the length of the longest factor of ``self`` that
+        ends at ``x`` and that matches a factor that ends at ``y``.
 
         INPUT:
 
@@ -2248,12 +2248,16 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
             
             sage: w = Word('0011001')
-            sage: w.longest_backward_extension(7, 2)
+            sage: w.longest_backward_extension(6, 2)
             3
-            sage: w.longest_backward_extension(1, 5)
+            sage: w.longest_backward_extension(1, 4)
             1
-            sage: w.longest_backward_extension(4, 23)
+            sage: w.longest_backward_extension(1, 3)
             0
+            sage: w.longest_backward_extension(4, 23)
+            Traceback (most recent call last):
+            ...
+            ValueError: x and y must be valid positions in self
         """
         length = self.length()
         if not (0 <= x and 0 <= y and x < length and y < length):

@@ -198,8 +198,7 @@ class DocBuilder(object):
         """
         Builds the PDF files for this document.  This is done by first
         (re)-building the LaTeX output, going into that LaTeX
-        directory, and running 'make all-pdf' (or for the special case of
-        the ja docs, 'all-pdf-ja(ex,to run platex)' there.
+        directory, and running 'make all-pdf' there.
 
         EXAMPLES::
 
@@ -212,13 +211,7 @@ class DocBuilder(object):
         pdf_dir = self._output_dir('pdf')
         make_target = "cd '%s' && $MAKE %s && mv -f *.pdf '%s'"
         error_message = "failed to run $MAKE %s in %s"
-        MB_LANG = {'ja': 'all-pdf-ja'} # language name : the modified target
-
-        # Replace the command for languages that require special processing
-        if self.lang in MB_LANG:
-            command = MB_LANG[self.lang]
-        else:
-            command = 'all-pdf'
+        command = 'all-pdf'
 
         if subprocess.call(make_target%(tex_dir, command, pdf_dir), shell=True):
             raise RuntimeError(error_message%(command, tex_dir))
@@ -774,14 +767,16 @@ class ReferenceSubBuilder(DocBuilder):
         Returns the Sphinx environment for this project.
         """
         from sphinx.environment import BuildEnvironment
-        class Foo(object):
-            pass
-        config = Foo()
-        config.values = []
+        class FakeConfig(object):
+            values = tuple()
+        class FakeApp(object):
+            def __init__(self, dir):
+                self.srcdir = dir
+                self.config = FakeConfig()
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
+            env = BuildEnvironment.frompickle(env_pickle, FakeApp(self.dir))
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:

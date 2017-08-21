@@ -4,6 +4,8 @@ Regular Supercrystals
 
 #*****************************************************************************
 #       Copyright (C) 2017 Franco Saliola <saliola@gmail.com>
+#                     2017 Anne Schilling <anne at math.ucdavis.edu>
+#                     2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +25,73 @@ from sage.combinat.subset import Subsets
 from sage.graphs.dot2tex_utils import have_dot2tex
 
 class RegularSuperCrystals(Category_singleton):
+    r"""
+    The category of crystals for super Lie algebras.
+
+    EXAMPLES::
+
+        sage: from sage.categories.regular_supercrystals import RegularSuperCrystals
+        sage: C = RegularSuperCrystals()
+        sage: C
+        Category of regular super crystals
+        sage: C.super_categories()
+        [Category of finite crystals]
+
+    Parents in this category should implement the following methods:
+
+    - either an attribute ``_cartan_type`` or a method ``cartan_type``
+
+    - ``module_generators``: a list (or container) of distinct elements
+      which generate the crystal using `f_i`
+
+    Furthermore, their elements ``x`` should implement the following
+    methods:
+
+    - ``x.e(i)`` (returning `e_i(x)`)
+
+    - ``x.f(i)`` (returning `f_i(x)`)
+
+    - ``x.weight()`` (returning `weight(x)`)
+
+    EXAMPLES::
+
+        sage: from sage.misc.abstract_method import abstract_methods_of_class
+        sage: from sage.categories.regular_supercrystals import RegularSuperCrystals
+        sage: abstract_methods_of_class(RegularSuperCrystals().element_class)
+        {'optional': [], 'required': ['e', 'f', 'weight']}
+
+    TESTS::
+
+        sage: from sage.categories.regular_supercrystals import RegularSuperCrystals
+        sage: C = RegularSuperCrystals()
+        sage: TestSuite(C).run()
+        sage: B = crystals.Letters(['A',[1,1]]); B
+        The crystal of letters for type ['A', [1, 1]]
+        sage: TestSuite(B).run(verbose = True)
+        running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_new() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_enumerated_set_contains() . . . pass
+        running ._test_enumerated_set_iter_cardinality() . . . pass
+        running ._test_enumerated_set_iter_list() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_new() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
+    """
     def super_categories(self):
         r"""
         EXAMPLES::
@@ -37,12 +106,26 @@ class RegularSuperCrystals(Category_singleton):
         @cached_method
         def digraph(self):
             r"""
+            Return the :class:`DiGraph` associated to ``self``.
+
+            INPUT:
+
+            - ``subset`` -- (optional) a subset of vertices for
+              which the digraph should be constructed
+
+            - ``index_set`` -- (optional) the index set to draw arrows
+
             EXAMPLES::
 
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.digraph()
-                Digraph on 5 vertices
+                sage: B = crystals.Letters(['A', [1,3]])
+                sage: G = B.digraph(); G
+                Digraph on 6 vertices
+
+            The edges of the crystal graph are by default colored using
+            blue for edge 1, red for edge 2, green for edge 3, and dashed with
+            the corresponding color for barred edges. Edge 0 is dotted black::
+
+                sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
             """
             from sage.graphs.digraph import DiGraph
             from sage.misc.latex import LatexExpr
@@ -75,19 +158,18 @@ class RegularSuperCrystals(Category_singleton):
 
         def connected_components_generators(self):
             r"""
+            Return tuple of generators for each of the connected components of ``self``.
+
             EXAMPLES::
 
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.connected_components_generators()
+                sage: B = crystals.Letters(['A',[1,2]])
+                sage: B.connected_components_generators()
                 [(-2,)]
 
-                sage: t = c.tensor(c)
-                sage: t.connected_components_generators()
+                sage: T = B.tensor(B)
+                sage: T.connected_components_generators()
                 [([-2, -1],), ([-2, -2],)]
-
-                sage: t = c.tensor(c)
-                sage: s1, s2 = t.connected_components()
+                sage: s1, s2 = T.connected_components()
                 sage: s = s1 + s2
                 sage: s.connected_components_generators()
                 [([-2, -1],), ([-2, -2],)]
@@ -102,16 +184,22 @@ class RegularSuperCrystals(Category_singleton):
 
         def connected_components(self):
             r"""
+            Return the connected components of ``self`` as subcrystals.
+
             EXAMPLES::
 
-                sage: from bkk_crystals import BKKOneBoxCrystal
-                sage: c = BKKOneBoxCrystal(2, 3)
-                sage: c.connected_components()
-                [Subcrystal of BKK crystal on semistandard tableaux of shape [1] with entries in (-2, -1, 1, 2, 3)]
-                sage: t = c.tensor(c)
-                sage: t.connected_components()
-                [Subcrystal of <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>,
-                 Subcrystal of <class 'bkk_crystals.TensorProductOfSuperCrystals_with_category'>]
+                sage: B = crystals.Letters(['A',[1,2]])
+                sage: B.connected_components()
+                [Subcrystal of The crystal of letters for type ['A', [1, 2]]]
+
+                sage: T = B.tensor(B)
+                sage: T.connected_components()
+                [Subcrystal of Full tensor product of the crystals 
+                [The crystal of letters for type ['A', [1, 2]], 
+                 The crystal of letters for type ['A', [1, 2]]],
+                 Subcrystal of Full tensor product of the crystals 
+                 [The crystal of letters for type ['A', [1, 2]], 
+                 The crystal of letters for type ['A', [1, 2]]]]
             """
             category = RegularSuperCrystals()
             index_set = self.index_set()
@@ -134,6 +222,19 @@ class RegularSuperCrystals(Category_singleton):
             Return the tensor product of ``self`` with the crystals ``B``.
 
             EXAMPLES::
+
+                sage: B = crystals.Letters(['A',[1,2]])
+                sage: C = crystals.Tableaux(['A',[1,2]], shape = [2,1])
+                sage: T = C.tensor(B); T
+                Full tensor product of the crystals [Crystal of BKK tableaux of shape [2, 1] of gl(2|3), 
+                The crystal of letters for type ['A', [1, 2]]]
+                sage: S = B.tensor(C); S
+                Full tensor product of the crystals [The crystal of letters for type ['A', [1, 2]], 
+                Crystal of BKK tableaux of shape [2, 1] of gl(2|3)]
+                sage: G = T.digraph()
+                sage: H = S.digraph()
+                sage: G.is_isomorphic(H, edge_labels= True)
+                True
             """
             cartan_type = self.cartan_type()
             from sage.combinat.crystals.tensor_product import FullTensorProductOfSuperCrystals
@@ -142,12 +243,30 @@ class RegularSuperCrystals(Category_singleton):
             return FullTensorProductOfSuperCrystals((self,) + tuple(crystals), **options)
 
         def character(self):
+            """
+            Returns the character of ``self``.
+
+            TODO: once the `WeylCharacterRing` is implemented, make this consistent
+                  with the implementation in `sage.categories.classical_crystals.character`.
+
+            EXAMPLES::
+
+                sage: B = crystals.Letters(['A',[1,2]])
+                sage: B.character()
+                B[(1, 0, 0, 0, 0)] + B[(0, 1, 0, 0, 0)] + B[(0, 0, 1, 0, 0)] + B[(0, 0, 0, 1, 0)] 
+                + B[(0, 0, 0, 0, 1)]
+            """
             from sage.rings.all import ZZ
             A = self.weight_lattice_realization().algebra(ZZ)
             return A.sum(A(x.weight()) for x in self)
 
     class ElementMethods:
+
         def epsilon(self, i):
+            """
+            Return `\varepsilon_i` of ``self``.
+
+            """
             string_length = 0
             x = self
             while True:

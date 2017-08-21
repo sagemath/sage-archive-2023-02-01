@@ -1,5 +1,5 @@
 """
-Benkart-Kang-Kashiwara crystals for the general-linear Lie superalgebra
+Benkart-Kang-Kashiwara crystal for the general-linear Lie superalgebra
 """
 
 #*****************************************************************************
@@ -31,7 +31,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
     """
     Crystal of tableaux for type `A(m,n)`.
 
-    This is an implementation of the tableaux model of the Benkart, Kang, Kashiwara
+    This is an implementation of the tableaux model of the Benkart-Kang-Kashiwara
     crystal [BKK2000]_ for the super Lie algebra `\mathfrak{gl}(m+1,n+1)`.
 
     INPUT:
@@ -53,6 +53,10 @@ class CrystalOfBKKTableaux(CrystalOfWords):
 
             sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
             Crystal of BKK tableaux of shape [2, 1] of gl(2|3)
+            sage: crystals.Tableaux(['A', [1, 1]], shape=[3,3,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid hook shape
         """
         ct = CartanType(ct)
         shape = _Partitions(shape)
@@ -62,7 +66,7 @@ class CrystalOfBKKTableaux(CrystalOfWords):
 
     def __init__(self, ct, shape):
         r"""
-        EXAMPLES::
+        TESTS::
 
             sage: T = crystals.Tableaux(['A', [1,1]], shape = [2,1]); T
             Crystal of BKK tableaux of shape [2, 1] of gl(2|2)

@@ -508,7 +508,7 @@ Check that :trac:`22202` is fixed::
     1/4
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 from six.moves import range
 from six import integer_types, iteritems
 

@@ -787,6 +787,9 @@ REFERENCES:
             Theory, Version 13.1.2.*. http://www.gambit-project.org
             (2014).
 
+.. [Gar2015] \V. Garg *Introduction to Lattice Theory with Computer
+             Science Applications* (2015), Wiley.
+
 .. [GDR1999] \R. González-Díaz and P. Réal, *A combinatorial method
              for computing Steenrod squares* in J. Pure Appl. Algebra
              139 (1999), 89-108.
@@ -1609,6 +1612,9 @@ REFERENCES:
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
 
+.. [Ros1999] \K. Rosen *Handbook of Discrete and Combinatorial
+             Mathematics* (1999), Chapman and Hall.
+
 .. [Rot2001] Gunter Rote, *Division-Free Algorithms for the
              Determinant and the Pfaffian: Algebraic and Combinatorial
              Approaches*, H. Alt (Ed.): Computational Discrete
@@ -1737,6 +1743,11 @@ REFERENCES:
 
 .. [Str1969] Volker Strassen. Gaussian elimination is not
              optimal. Numerische Mathematik, 13:354-356, 1969.
+
+.. [Striker2011] \J. Striker. *A unifying poset perspective on
+                 alternating sign matrices, plane partitions, Catalan objects,
+                 tournaments, and tableaux*, Advances in Applied Mathematics 46
+                 (2011), no. 4, 583-609. :arXiv:`1408.5391`
 
 .. [Stu1987] \J. Sturm, On the congruence of modular forms, Number
              theory (New York, 1984-1985), Springer, Berlin, 1987,

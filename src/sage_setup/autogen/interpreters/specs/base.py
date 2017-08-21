@@ -105,9 +105,9 @@ class StackInterpreter(InterpreterSpec):
         INPUT:
 
         - type -- A StorageType; the basic type that this interpreter
-                  operates on
+          operates on
         - mc_retval -- default None; if not None, a special-purpose
-                       MemoryChunk to use as a return value
+          MemoryChunk to use as a return value
 
         Initializes the fields described in the documentation for
         InterpreterSpec.__init__, as well as the following:
@@ -148,7 +148,6 @@ class StackInterpreter(InterpreterSpec):
             sage: el.implement_call_c
             False
         """
-
         super(StackInterpreter, self).__init__()
         self.mc_args = MemoryChunkArguments('args', type)
         self.mc_constants = MemoryChunkConstants('constants', type)

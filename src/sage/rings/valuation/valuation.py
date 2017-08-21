@@ -714,6 +714,13 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v.mac_lane_approximants(f) # is_squarefree() is not yet implemented on this ring
             sage: v.mac_lane_approximants(f, assume_squarefree=True)
 
+        A case that triggered an assertion at some point::
+
+            sage: v = QQ.valuation(3)
+            sage: R.<x> = QQ[]
+            sage: f = x^36 + 60552000*x^33 + 268157412*x^30 + 173881701*x^27 + 266324841*x^24 + 83125683*x^21 + 111803814*x^18 + 31925826*x^15 + 205726716*x^12 +17990262*x^9 + 351459648*x^6 + 127014399*x^3 + 359254116
+            sage: v.mac_lane_approximants(f)
+
         """
         R = G.parent()
         if R.base_ring() is not self.domain():

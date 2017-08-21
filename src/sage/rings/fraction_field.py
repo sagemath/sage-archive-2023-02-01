@@ -839,6 +839,25 @@ class FractionField_1poly_field(FractionField_generic):
         """
         return 1
 
+    def _factor_univariate_polynomial(self, f):
+        r"""
+        Return the factorization of ``f`` over this field.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(9)
+            sage: K = k['t'].fraction_field()
+            sage: R.<x> = K[]
+            sage: f = x^3 + a
+            sage: f.factor()
+            (t + 2*a + 1)^3
+
+        """
+        # The default implementation would try to convert this element to singular and factor there.
+        # This fails silently over some base fields, see #23642, so we convert
+        # to the function field and factor there.
+        return f.change_ring(self.function_field()).factor().base_change(self)
+
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):
     r"""

@@ -384,7 +384,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if v.positions[k] in c:
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y
-                        s += x
+                        s = (s + x) % self.p
                 set_entry(&ans.rows[i], j, s)
         return ans
 

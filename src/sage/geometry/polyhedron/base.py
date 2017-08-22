@@ -161,12 +161,13 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: P = Polyhedron([(1,0), (0,1)], rays=[(1,1)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='ppl')
             sage: sage_input(P)
-            Polyhedron(base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            Polyhedron(backend='ppl', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
        """
         kwds = dict()
         kwds['base_ring'] = sib(self.base_ring())
+        kwds['backend'] = sib(self.backend())
         if self.n_vertices() > 0:
             kwds['vertices'] = [sib(tuple(v)) for v in self.vertices()]
         if self.n_rays() > 0:

@@ -2970,7 +2970,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def polylog(self, n):
         """
-        Return `Li_n(self)` , `n`th the `p`-adic polylogarithm of this element.
+        Return `Li_n(self)` , the `n`th `p`-adic polylogarithm of this element.
 
         INPUT:
 
@@ -2987,7 +2987,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Qp(13)(-1).polylog(6) == 0
             True
 
-        We can check some identities, for example those mentioned in [DCW2015]_ ::
+        We can check some identities, for example those mentioned in [DCW2016]_ ::
 
             sage: x = Qp(7, prec=30)(1/3)
             sage: (x^2).polylog(4) - 8*x.polylog(4) - 8*(-x).polylog(4) == 0
@@ -3029,11 +3029,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         REFERENCES:
 
-        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
-        .. [DCW2015] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
+        .. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
              unit equation." International Mathematics Research Notices
              2016.17 (2015): 5291-5354.
 
@@ -3121,7 +3121,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 def _polylog_c(n, p):
     """
     Return c(n, p) = p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p)
-    as defined in prop 6.1 of [BdJ2008]_ which is used as a precision bound.
+    as defined in Prop 6.1 of [BdJ2008]_ which is used as a precision bound.
     This is an internal function, used by :meth:`polylog`.
 
     EXAMPLES::
@@ -3133,7 +3133,7 @@ def _polylog_c(n, p):
 
     Prop. 6.1 of
 
-        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of computation
              (2008): 1105-1134.
 
@@ -3165,7 +3165,7 @@ def _findprec(c_1, c_2, c_3, p):
 
     Remark 7.11 of
 
-        .. [BdJ2008] Besser, Amnon, and Rob De Jeu. "Li^(p)-Service? An Algorithm
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of computation
              (2008): 1105-1134.
     """

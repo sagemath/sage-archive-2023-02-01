@@ -186,7 +186,8 @@ symbolic ring. This is currently not supported as SR is not exact::
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
     Traceback (most recent call last):
     ...
-    ValueError: invalid base ring
+    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
+
     sage: SR.is_exact()
     False
 
@@ -217,7 +218,7 @@ triangle, that would be::
         sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]])
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 54 bits of precision
+        ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
 
     The strongly suggested method to input floating point numbers is to specify the
     `base_ring` to be `RDF`::
@@ -480,16 +481,18 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
         Traceback (most recent call last):
         ...
-        ValueError: no appropriate backend for computations with Real Field with 57 bits of precision
+        ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
     
-    Check that ``RealField`` with a bit precision not equal to 53 returns an
-    error (see :trac:`22552`)::
+    Check that setting ``base_ring`` to a ``RealField`` returns an error (see :trac:`22552`)::
     
-        sage: Polyhedron(vertices =[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)], base_ring=RealField(40))
+        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
         Traceback (most recent call last):
         ...
-        ValueError: invalid base ring
-
+        ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(53))
+        Traceback (most recent call last):
+        ...
+        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)
@@ -551,15 +554,16 @@ def Polyhedron(vertices=None, rays=None, lines=None,
             base_ring = base_ring.fraction_field()
             convert = True
 
-    # TODO: find a more robust way of checking that the coefficients are indeed
-    # real numbers
-    if base_ring not in Rings() or not RDF.has_coerce_map_from(base_ring):
-        raise ValueError("invalid base ring")
+        if base_ring not in Rings():
+            raise ValueError('invalid base ring')
 
-    # TODO: remove this hack
-    if base_ring is RR:
-        base_ring = RDF
-        convert = True
+        if not base_ring.is_exact():
+            # TODO: remove this hack?
+            if base_ring is RR:
+                base_ring = RDF
+                convert = True
+            elif base_ring is not RDF:
+                raise ValueError("for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'")
 
     # Add the origin if necessary
     if got_Vrep and len(vertices)==0:
@@ -569,7 +573,6 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     from sage.geometry.polyhedron.parent import Polyhedra
     parent = Polyhedra(base_ring, ambient_dim, backend=backend)
     base_ring = parent.base_ring()
-
 
     # finally, construct the Polyhedron
     Hrep = Vrep = None

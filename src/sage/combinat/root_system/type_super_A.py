@@ -238,22 +238,20 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: L.fundamental_weight(-1)
             (1, 1, 1, 0, 0, 0, 0)
             sage: L.fundamental_weight(0)
-            (1/2, 1/2, 1/2, 1/2, 1/2, 1/2, 1/2)
+            (1, 1, 1, 1, 0, 0, 0)
             sage: L.fundamental_weight(2)
             (1, 1, 1, 1, -1, -1, 0)
             sage: list(L.fundamental_weights())
             [(1, 0, 0, 0, 0, 0, 0),
              (1, 1, 0, 0, 0, 0, 0),
              (1, 1, 1, 0, 0, 0, 0),
-             (1/2, 1/2, 1/2, 1/2, 1/2, 1/2, 1/2),
+             (1, 1, 1, 1, 0, 0, 0),
              (1, 1, 1, 1, -1, 0, 0),
              (1, 1, 1, 1, -1, -1, 0)]
         """
         m = self.root_system.cartan_type().m
-        if i < 0:
+        if i <= 0:
             return self.sum(self.monomial(j) for j in range(-m-1,i))
-        if i == 0:
-            return self.sum(self.basis()) / 2
         return (self.sum(self.monomial(j) for j in range(-m-1,1))
                 - self.sum(self.monomial(j) for j in range(i+1)))
 

@@ -2104,12 +2104,13 @@ cdef class NumberFieldElement(FieldElement):
         roots = f.roots()
         if all:
             return [r[0] for r in roots]
-        elif len(roots) > 0:
+        elif len(roots):
             return roots[0][0]
         else:
             try:
                 # This is what integers, rationals do...
-                from sage.all import SR, sqrt
+                from sage.functions.other import sqrt
+                from sage.symbolic.ring import SR
                 return sqrt(SR(self))
             except TypeError:
                 raise ValueError("%s not a square in %s"%(self, self._parent))

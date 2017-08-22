@@ -4393,8 +4393,9 @@ cdef class Expression(CommutativeRingElement):
             x*y^3
 
         """
-        from sage.all import SR, Integer
-        A=args
+        from sage.rings.integer import Integer
+        from sage.symbolic.ring import SR
+        A = args
         try:
             if isinstance(A[0],tuple):
                 B=[]
@@ -10617,7 +10618,7 @@ cdef class Expression(CommutativeRingElement):
             import indefinite_integral as opii, definite_integral as opdi
         from sage.symbolic.operators import add_vararg as opadd, \
             mul_vararg as opmul
-        from sage.all import prod
+        from sage.misc.misc_c import prod
 
         def treat_term(op, term, args):
             l = sage.all.copy(args)

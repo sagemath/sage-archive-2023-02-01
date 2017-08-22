@@ -933,6 +933,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not result[0]:
             return (False, self.meet(result[1]))
 
+        from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
         return (False, diamond[0])
@@ -1016,6 +1017,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not result[0]:
             return (False, self.join(result[1]))
 
+        from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
         return (False, diamond[4])
@@ -1362,6 +1364,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_semidistributive`
+            - Weaker properties: :meth:`is_join_pseudocomplemented`
             - Stronger properties: :meth:`is_semidistributive`,
               :meth:`is_meet_distributive`,
               :meth:`is_constructible_by_doublings` (by lower pseudo-intervals)
@@ -1997,7 +2000,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ``False`` otherwise.
 
         A lattice is join-pseudocomplemented if every element `e` has a
-        join-pseudocomplement `e'`, i.e. the greatest element such that
+        join-pseudocomplement `e'`, i.e. the least element such that
         the join of `e` and `e'` is the top element.
 
         INPUT:
@@ -2204,6 +2207,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`~FiniteLatticePoset.is_coatomic`
             - Stronger properties: :meth:`is_sectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
         """
         if not certificate:
             return (self.cardinality() == 0 or
@@ -2258,6 +2262,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`~FiniteLatticePoset.is_atomic`
             - Stronger properties: :meth:`is_cosectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
         """
         n = self.cardinality()
         if not certificate:
@@ -2439,7 +2444,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_upper_semimodular`,
-              :meth:`is_lower_semimodular`
+              :meth:`is_lower_semimodular`, :meth:`is_supersolvable`
             - Stronger properties: :meth:`is_distributive`
             - Other: :meth:`is_modular_element`
 
@@ -2932,6 +2937,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_subdirectly_reducible`
+            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`
             - Other: :meth:`vertical_decomposition`
 
         TESTS::

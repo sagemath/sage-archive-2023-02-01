@@ -5177,6 +5177,10 @@ def gauss_sum(m, p, f, ring=None):
         sage: gauss_sum(2,11,1,ComplexField(60))
         2.6361055643248352 + 2.0126965627574471*I
 
+        sage: D = DirichletGroup(7, QQbar)
+        sage: all(D[i].gauss_sum()==gauss_sum(i,7,1,QQbar) for i in range(6))
+        True
+
     .. SEEALSO::
 
         - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version

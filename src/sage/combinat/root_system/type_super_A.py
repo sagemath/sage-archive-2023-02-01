@@ -97,6 +97,16 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return self.positive_even_roots() + self.positive_odd_roots()
 
     def positive_even_roots(self):
+        """
+        Return the positive even roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.positive_even_roots()
+            [(0, 1, -1, 0, 0), (1, 0, -1, 0, 0),
+             (1, -1, 0, 0, 0), (0, 0, 0, 1, -1)]
+        """
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-j) - self.monomial(-i)
@@ -108,6 +118,20 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return ret
 
     def positive_odd_roots(self):
+        """
+        Return the positive odd roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.positive_odd_roots()
+            [(0, 0, 1, -1, 0),
+             (0, 0, 1, 0, -1),
+             (0, 1, 0, -1, 0),
+             (0, 1, 0, 0, -1),
+             (1, 0, 0, -1, 0),
+             (1, 0, 0, 0, -1)]
+        """
         ct = self.root_system.cartan_type()
         return [self.monomial(-i) - self.monomial(j)
                 for i in range(1,ct.m+2)
@@ -129,21 +153,31 @@ class AmbientSpace(ambient_space.AmbientSpace):
         EXAMPLES::
 
             sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
-            sage: e.positive_roots()
-            [(0, 1, -1, 0, 0),
-             (1, 0, -1, 0, 0),
-             (1, -1, 0, 0, 0),
-             (0, 0, 0, 1, -1),
-             (0, 0, 1, -1, 0),
-             (0, 0, 1, 0, -1),
-             (0, 1, 0, -1, 0),
-             (0, 1, 0, 0, -1),
-             (1, 0, 0, -1, 0),
-             (1, 0, 0, 0, -1)]
+            sage: e.negative_roots()
+            [(0, -1, 1, 0, 0),
+             (-1, 0, 1, 0, 0),
+             (-1, 1, 0, 0, 0),
+             (0, 0, 0, -1, 1),
+             (0, 0, -1, 1, 0),
+             (0, 0, -1, 0, 1),
+             (0, -1, 0, 1, 0),
+             (0, -1, 0, 0, 1),
+             (-1, 0, 0, 1, 0),
+             (-1, 0, 0, 0, 1)]
         """
         return self.negative_even_roots() + self.negative_odd_roots()
 
     def negative_even_roots(self):
+        """
+        Return the negative even roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.negative_even_roots()
+            [(0, -1, 1, 0, 0), (-1, 0, 1, 0, 0),
+             (-1, 1, 0, 0, 0), (0, 0, 0, -1, 1)]
+        """
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-i) - self.monomial(-j)
@@ -155,20 +189,78 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return ret
 
     def negative_odd_roots(self):
+        """
+        Return the negative odd roots of ``self``.
+
+        EXAMPLES::
+
+            sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
+            sage: e.negative_odd_roots()
+            [(0, 0, -1, 1, 0),
+             (0, 0, -1, 0, 1),
+             (0, -1, 0, 1, 0),
+             (0, -1, 0, 0, 1),
+             (-1, 0, 0, 1, 0),
+             (-1, 0, 0, 0, 1)]
+        """
         ct = self.root_system.cartan_type()
         return [self.monomial(j) - self.monomial(-i)
                 for i in range(1,ct.m+2)
                 for j in range(1,ct.n+2)]
 
-    def fundamental_weight(self, i): # FIXME
+    def fundamental_weight(self, i):
         """
+        Return the fundamental weight `\Lambda_i` of ``self``.
+
         EXAMPLES::
 
-            sage: e = RootSystem(['A', [4,2]]).ambient_lattice()
-            sage: e.fundamental_weights()
-            Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1, 1, 1, 0)}
+            sage: L = RootSystem(['A', [3,2]]).ambient_space()
+            sage: L.fundamental_weight(-1)
+            (1, 1, 1, 0, 0, 0, 0)
+            sage: L.fundamental_weight(0)
+            (1/2, 1/2, 1/2, 1/2, 1/2, 1/2, 1/2)
+            sage: L.fundamental_weight(2)
+            (1, 1, 1, 1, -1, -1, 0)
+            sage: list(L.fundamental_weights())
+            [(1, 0, 0, 0, 0, 0, 0),
+             (1, 1, 0, 0, 0, 0, 0),
+             (1, 1, 1, 0, 0, 0, 0),
+             (1/2, 1/2, 1/2, 1/2, 1/2, 1/2, 1/2),
+             (1, 1, 1, 1, -1, 0, 0),
+             (1, 1, 1, 1, -1, -1, 0)]
         """
-        return self.sum(self.monomial(j) for j in range(i))
+        m = self.root_system.cartan_type().m
+        if i < 0:
+            return self.sum(self.monomial(j) for j in range(-m-1,i))
+        if i == 0:
+            return self.sum(self.basis()) / 2
+        return (self.sum(self.monomial(j) for j in range(-m-1,1))
+                - self.sum(self.monomial(j) for j in range(i+1)))
+
+    def simple_coroot(self, i):
+        """
+        Return the simple coroot `h_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A', [3,2]]).ambient_space()
+            sage: L.simple_coroot(-2)
+            (0, 1, -1, 0, 0, 0, 0)
+            sage: L.simple_coroot(0)
+            (0, 0, 0, 1, -1, 0, 0)
+            sage: L.simple_coroot(2)
+            (0, 0, 0, 0, 0, -1, 1)
+            sage: list(L.simple_coroots())
+            [(1, -1, 0, 0, 0, 0, 0),
+             (0, 1, -1, 0, 0, 0, 0),
+             (0, 0, 1, -1, 0, 0, 0),
+             (0, 0, 0, 1, -1, 0, 0),
+             (0, 0, 0, 0, -1, 1, 0),
+             (0, 0, 0, 0, 0, -1, 1)]
+        """
+        if i <= 0:
+            return self.simple_root(i)
+        return -self.simple_root(i)
 
     class Element(ambient_space.AmbientSpaceElement):
         def inner_product(self, lambdacheck):
@@ -200,18 +292,45 @@ class AmbientSpace(ambient_space.AmbientSpace):
         scalar = inner_product
         dot_product = inner_product
 
-        def associated_coroot(self): # FIXME
+        def associated_coroot(self):
             """
+            Return the coroot associated to ``self``, which is
+            precisely ``self``.
+
             EXAMPLES::
 
-                sage: e = RootSystem(['F',4]).ambient_space()
-                sage: a = e.simple_root(0); a
-                (1/2, -1/2, -1/2, -1/2)
+                sage: L = RootSystem(['A', [3,2]]).ambient_space()
+                sage: al = L.simple_roots()
+                sage: al[-1].associated_coroot()
+                (0, 0, 1, -1, 0, 0, 0)
+                sage: al[0].associated_coroot()
+                (0, 0, 0, 1, -1, 0, 0)
+                sage: al[1].associated_coroot()
+                (0, 0, 0, 0, -1, 1, 0)
+
+                sage: a = al[-1] + al[0] + al[1]; a
+                (0, 0, 1, 0, 0, -1, 0)
                 sage: a.associated_coroot()
-                (1, -1, -1, -1)
+                (0, 0, 1, 0, -2, 1, 0)
+                sage: h = L.simple_coroots()
+                sage: h[-1] + h[0] + h[1]
+                (0, 0, 1, 0, -2, 1, 0)
+
+                sage: (al[-1] + al[0] + al[2]).associated_coroot()
+                (0, 0, 1, 0, -1, -1, 1)
             """
-            # FIXME: make it work over ZZ!
-            return self * self.base_ring()(2/self.inner_product(self))
+            P = self.parent()
+            al = P.simple_roots()
+            h = P.simple_coroots()
+            try:
+                return h[al.inverse_family()[self]]
+            except KeyError:
+                pass
+            V = P._dense_free_module()
+            dep = V.linear_dependence([self._vector_()] +
+                                      [al[i]._vector_() for i in P.index_set()])[0]
+            I = P.index_set()
+            return P.sum((-c/dep[0]) * h[I[i]] for i,c in dep[1:].iteritems())
 
 class CartanType(SuperCartanType_standard):
     """
@@ -226,7 +345,7 @@ class CartanType(SuperCartanType_standard):
             sage: ct = CartanType(['A', [4,2]])
             sage: ct
             ['A', [4, 2]]
-            sage: ct._repr_(compact = True)
+            sage: ct._repr_(compact=True)
             'A4|2'
 
             sage: ct.is_irreducible()
@@ -235,10 +354,8 @@ class CartanType(SuperCartanType_standard):
             True
             sage: ct.is_affine()
             False
-            sage: ct.is_crystallographic()
-            True
-            sage: ct.affine()
-            ['A', 4, 1]
+            sage: ct.affine() # Not tested -- to be implemented
+            ['A', [4, 2], 1]
             sage: ct.dual()
             ['A', [4, 2]]
 

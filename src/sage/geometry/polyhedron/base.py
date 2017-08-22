@@ -4400,11 +4400,11 @@ class Polyhedron_base(Element):
         if measure == 'induced_rational' and engine not in ['auto', 'latte']:
             raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
         if engine == 'auto' and measure == 'induced_rational':
-                engine = 'latte'
+            engine = 'latte'
 
         if measure == 'ambient':
             if self.dim() < self.ambient_dim():
-                    return self.base_ring().zero()
+                return self.base_ring().zero()
             if engine == 'lrs':
                 return self._volume_lrs(**kwds)
             elif engine == 'latte':

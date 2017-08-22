@@ -288,11 +288,13 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
             EXAMPLES::
 
-                sage: e = RootSystem(['A',2]).ambient_space()
-                sage: a = e.simple_root(0); a
-                (-1, 0, 0)
-                sage: a.inner_product(a)
-                2
+                sage: L = RootSystem(['A', [2,1]]).ambient_space()
+                sage: a = L.simple_roots()
+                sage: matrix([[a[i].inner_product(a[j]) for j in L.index_set()] for i in L.index_set()])
+                [ 2 -1  0  0]
+                [-1  2 -1  0]
+                [ 0 -1  0  1]
+                [ 0  0  1 -2]
             """
             self_mc = self._monomial_coefficients
             lambdacheck_mc = lambdacheck._monomial_coefficients
@@ -399,6 +401,11 @@ class CartanType(SuperCartanType_standard):
     def index_set(self):
         """
         Return the index set of ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).index_set()
+            (-2, -1, 0, 1, 2, 3)
         """
         return tuple(range(-self.m, self.n+1))
 
@@ -418,23 +425,71 @@ class CartanType(SuperCartanType_standard):
     # A lot of these methods should be implemented by the ABCs of CartanType
 
     def is_affine(self):
+        """
+        Return whether ``self`` is affine or not.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).is_affine()
+            False
+        """
         return False
 
     def is_finite(self):
+        """
+        Return whether ``self`` is finite or not.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).is_finite()
+            True
+        """
         return True
 
     def dual(self):
+        """
+        Return dual of ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).dual()
+            ['A', [2, 3]]
+        """
         return self
 
     def type(self):
+        """
+        Return type of ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).type()
+            'A'
+        """
         return 'A'
 
     def root_system(self):
+        """
+        Return root system of ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).root_system()
+            Root system of type ['A', [2, 3]]
+        """
         from sage.combinat.root_system.root_system import RootSystem
         return RootSystem(self)
 
     @cached_method
     def symmetrizer(self):
+        """
+        Return symmetrizing matrix for ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', [2,3]]).symmetrizer()
+            Finite family {0: 1, 1: -1, 2: -1, 3: -1, -1: 1, -2: 1}
+        """
         from sage.sets.family import Family
         def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()
         return Family(self.index_set(), ell)

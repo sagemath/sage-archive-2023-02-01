@@ -201,8 +201,9 @@ triangle, that would be::
 
 If the input consists of decimal numbers and the `base_ring` is not specified,
 the base ring is set to be the `RealField` with the precision given by the
-minimal precision of the input. If it has 53 bits of precision, the constructor
-converts automatically the base ring to `RDF`::
+minimal bit precision of the input and 53 (the precision of `RDF`). 
+Then, if the obtained minimum was 53 bits of precision, the constructor
+converts automatically the base ring to `RDF`. Otherwise, it returns an error::
 
     sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
     A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
@@ -213,25 +214,15 @@ converts automatically the base ring to `RDF`::
     ...
     ValueError: no appropriate backend for computations with Real Field with 54 bits of precision
 
+The strongly suggested method to input decimal numbers is to specify the
+`base_ring` to be `RDF`::
+
     sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]], base_ring=RDF)
     A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
 
 .. SEEALSO::
 
     :mod:`Parents for polyhedra <sage.geometry.polyhedron.parent.Polyhedra>`
-
-.. TESTS:
-
-Check :trac:`22552`::
-
-    sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
-    Traceback (most recent call last):
-    ...
-    ValueError: no appropriate backend for computations with Real Field with 57 bits of precision
-    sage: Polyhedron(vertices =[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)], base_ring=RealField(40))
-    Traceback (most recent call last):
-    ...
-    ValueError: invalid base ring
 
 Base classes
 ------------
@@ -477,6 +468,23 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: f = Fraction(int(6), int(8))
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
+
+    Check that input with too many bits of precision returns an error (see
+    :trac:`22552`)::
+
+        sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
+        Traceback (most recent call last):
+        ...
+        ValueError: no appropriate backend for computations with Real Field with 57 bits of precision
+    
+    Check that ``RealField`` with a bit precision not equal to 53 returns an
+    error (see :trac:`22552`)::
+    
+        sage: Polyhedron(vertices =[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)], base_ring=RealField(40))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid base ring
+
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)

@@ -5122,3 +5122,69 @@ def dedekind_sum(p, q, algorithm='default'):
 
     raise ValueError('unknown algorithm')
 
+
+def gauss_sum(m, p, f):
+    r"""
+    Return the Gauss sums for a general finite field `\GF(q)`.
+
+    INPUT:
+
+    - ``m`` -- integer, the power of the generator of character group
+
+    - ``p`` -- a prime number
+
+    - ``f`` -- an integer, such that `q = p ^ f`
+
+    OUTPUT:
+
+    an element of the universal cyclotomic field
+
+    The character used for the Gauss sum is the `m`-th power of the
+    character `\chi` (a generator of the character group) that satisfies
+
+    .. MATH::
+
+        \chi(x) = e^{2 i \pi / (q-1)}
+
+    where `x` is the multiplicative generator of `\GF(q)` that is
+    returned by ``GF(q).multiplicative_generator()``.
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import gauss_sum
+        sage: L = [gauss_sum(i,5,1) for i in range(5)]; L
+        [-1,
+         E(20)^4 + E(20)^13 - E(20)^16 - E(20)^17,
+         E(5) - E(5)^2 - E(5)^3 + E(5)^4,
+         E(20)^4 - E(20)^13 - E(20)^16 + E(20)^17,
+         -1]
+        sage: [g*g.conjugate() for g in L]
+        [1, 5, 5, 5, 1]
+
+        sage: g = gauss_sum(4,11,2)
+        sage: g*g.conjugate()
+        121
+
+    .. SEEALSO::
+
+        - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
+    """
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField
+    from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+    q = p ** f
+    Fq = FiniteField(q, 'a')
+    gen = Fq.multiplicative_generator()
+    UCF = UniversalCyclotomicField()
+    zeta_p = UCF.gen(p)
+    zeta_q = UCF.gen(q - 1) ** m
+
+    resu = UCF.zero()
+    gen_power = Fq.one()
+    zq_power = UCF.one()
+    for k in range(q - 1):
+        resu += zq_power * zeta_p**(gen_power.trace())
+        gen_power *= gen
+        zq_power *= zeta_q
+    return resu

@@ -943,6 +943,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi = G([z^2])
             sage: chi.gauss_sum()
             zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
+
+        .. SEEALSO::
+
+            - :func:`sage.arith.misc.gauss_sum` for general finite fields
+            - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
         """
         G = self.parent()
         K = G.base_ring()

@@ -5123,7 +5123,7 @@ def dedekind_sum(p, q, algorithm='default'):
     raise ValueError('unknown algorithm')
 
 
-def gauss_sum(m, p, f):
+def gauss_sum(m, p, f, ring=None):
     r"""
     Return the Gauss sums for a general finite field `\GF(q)`.
 
@@ -5134,6 +5134,9 @@ def gauss_sum(m, p, f):
     - ``p`` -- a prime number
 
     - ``f`` -- an integer, such that `q = p ^ f`
+
+    - ``ring`` -- optional, (defaut: UniversalCyclotomicField)
+      Other possible values are QQbar or ComplexField.
 
     OUTPUT:
 
@@ -5165,26 +5168,38 @@ def gauss_sum(m, p, f):
         sage: g*g.conjugate()
         121
 
+    TESTS::
+
+        sage: gauss_sum(2,11,1).n(60)
+        2.6361055643248352 + 2.0126965627574471*I
+        sage: gauss_sum(2,11,1,QQbar)
+        2.636105564324836? + 2.012696562757447?*I
+        sage: gauss_sum(2,11,1,ComplexField(60))
+        2.6361055643248352 + 2.0126965627574471*I
+
     .. SEEALSO::
 
         - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
         - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
           for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
-    from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+    if ring is None:
+        from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+        ring = UniversalCyclotomicField()
     q = p ** f
-    Fq = FiniteField(q, 'a')
+    Fq = FiniteField(q)
     gen = Fq.multiplicative_generator()
-    UCF = UniversalCyclotomicField()
-    zeta_p = UCF.gen(p)
-    zeta_q = UCF.gen(q - 1) ** m
+    zeta_p = ring.zeta(p)
+    zeta_q = ring.zeta(q - 1) ** m
 
-    resu = UCF.zero()
+    resu = ring.zero()
     gen_power = Fq.one()
-    zq_power = UCF.one()
+    zq_power = ring.one()
     for k in range(q - 1):
-        resu += zq_power * zeta_p**(gen_power.trace())
+        resu += zq_power * zeta_p**(gen_power.trace().lift())
         gen_power *= gen
         zq_power *= zeta_q
     return resu

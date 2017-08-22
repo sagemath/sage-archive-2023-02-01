@@ -106,6 +106,8 @@ def gauss_sum(a, p, f, prec=20):
         - :func:`sage.arith.misc.gauss_sum` for general finite fields
         - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
           for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
     """
     from sage.rings.padics.factory import Zp
     from sage.rings.all import PolynomialRing

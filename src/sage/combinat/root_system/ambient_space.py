@@ -127,7 +127,7 @@ class AmbientSpace(CombinatorialFreeModule):
     # FIXME: attribute or method?
     def dimension(self):
         """
-        Returns the dimension of this ambient space.
+        Return the dimension of this ambient space.
 
         EXAMPLES::
 
@@ -144,7 +144,7 @@ class AmbientSpace(CombinatorialFreeModule):
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
         """
-        Returns the smallest ground ring over which the ambient space can be realized.
+        Return the smallest ground ring over which the ambient space can be realized.
 
         This class method will get called with the Cartan type as
         input. This default implementation returns `\QQ`; subclasses

@@ -775,6 +775,7 @@ cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
 cdef op_div = operator.truediv
+cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
 cdef op_neg = operator.neg
@@ -927,7 +928,7 @@ cdef class Expression:
             sage: x.__rtruediv__(1)
             div(1, v_0)
         """
-        return _expression_binop_helper(s, o, op_div)
+        return _expression_binop_helper(s, o, op_truediv)
 
     def __div__(s, o):
         r"""

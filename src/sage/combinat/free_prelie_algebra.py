@@ -622,6 +622,24 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         return False
 
     def construction(self):
+        """
+        Return a pair ``(F, R)``, where ``F`` is a :class:`PreLieFunctor`
+        and `R` is a ring, such that ``F(R)`` returns ``self``.
+
+        EXAMPLES::
+
+            sage: P = algebras.FreePreLie(ZZ, 'x,y')
+            sage: x,y = P.gens()
+            sage: F, R = P.construction()
+            sage: F
+            PreLie[x,y]
+            sage: R
+            Integer Ring
+            sage: F(ZZ) is P
+            True
+            sage: F(QQ)
+            Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
+        """
         return PreLieFunctor(self.variable_names()), self.base_ring()
 
 
@@ -727,7 +745,7 @@ class PreLieFunctor(ConstructionFunctor):
 
             sage: F = sage.combinat.free_prelie_algebra.PreLieFunctor(['x','y'])
             sage: G = sage.combinat.free_prelie_algebra.PreLieFunctor(['t'])
-            sage: G*F
+            sage: G * F
             PreLie[x,y,t]
         """
         if isinstance(other, IdentityConstructionFunctor):
@@ -752,42 +770,38 @@ class PreLieFunctor(ConstructionFunctor):
 
             sage: F = sage.combinat.free_prelie_algebra.PreLieFunctor(['x','y'])
             sage: G = sage.combinat.free_prelie_algebra.PreLieFunctor(['t'])
-            sage: F.merge(G) is None
-            True
+            sage: F.merge(G)
+            PreLie[x,y,t]
             sage: F.merge(F)
             PreLie[x,y]
-        """
-        if self == other:
-            return self
-        else:
-            return None
 
-    def expand(self):
-        """
-        Decompose ``self`` into a list of construction functors.
-
-        EXAMPLES::
-
-            sage: F = algebras.FreePreLie(QQ, 'x,y,z,t').construction()[0]; F
-            PreLie[x,y,z,t]
-            sage: F.expand()
-            [PreLie[t], PreLie[z], PreLie[y], PreLie[x]]
-
-        Now an actual use case::
+        Now some actual use cases::
 
             sage: R = algebras.FreePreLie(ZZ, 'xyz')
             sage: x,y,z = R.gens()
+            sage: 1/2 * x
+            1/2*B[x[]]
+            sage: parent(1/2 * x)
+            Free PreLie algebra on 3 generators ['x', 'y', 'z'] over Rational Field
+
             sage: S = algebras.FreePreLie(QQ, 'zt')
             sage: z,t = S.gens()
-            sage: x+t
-            x + t
-            sage: parent(x+t)
-            Free PreLie algebra in x, y, z, t over Rational Field
+            sage: x + t
+            B[t[]] + B[x[]]
+            sage: parent(x + t)
+            Free PreLie algebra on 4 generators ['z', 't', 'x', 'y'] over Rational Field
         """
-        if len(self.vars) <= 1:
-            return [self]
+        if isinstance(other, PreLieFunctor):
+            if self.vars == other.vars:
+                return self
+            ret = list(self.vars)
+            cur_vars = set(ret)
+            for v in other.vars:
+                if v not in cur_vars:
+                    ret.append(v)
+            return PreLieFunctor(Alphabet(ret))
         else:
-            return [PreLieFunctor((x,)) for x in reversed(self.vars)]
+            return None
 
     def _repr_(self):
         """
@@ -797,3 +811,4 @@ class PreLieFunctor(ConstructionFunctor):
             PreLie[x,y,z,t]
         """
         return "PreLie[%s]" % ','.join(self.vars)
+

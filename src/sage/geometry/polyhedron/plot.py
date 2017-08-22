@@ -1244,17 +1244,18 @@ class Projection(SageObject):
             sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
             Graphics3d Object
         """
-        from sage.plot.plot3d.base import Graphics3d
-        plt = Graphics3d()
+        pplt = None
+        lplt = None
+        pgplt = None
         if isinstance(point_opts, dict):
             point_opts.setdefault('width', 3)
-            plt += self.render_vertices_3d(**point_opts)
+            pplt = self.render_vertices_3d(**point_opts)
         if isinstance(line_opts, dict):
             line_opts.setdefault('width', 3)
-            plt += self.render_wireframe_3d(**line_opts)
+            lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
-            plt += self.render_solid_3d(**polygon_opts)
-        return plt
+            pgplt = self.render_solid_3d(**polygon_opts)
+        return pplt + lplt + pgplt
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=2,
              edge_color='blue!95!black', facet_color='blue!95!black',

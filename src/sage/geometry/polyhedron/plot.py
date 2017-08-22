@@ -1243,6 +1243,15 @@ class Projection(SageObject):
             Graphics3d Object
             sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
             Graphics3d Object
+
+        The origin is no included, if it is not in the polyhedron (:trac:`23555`)::
+
+            sage: Q = Polyhedron([[100],[101]])
+            sage: P = Q*Q*Q; P
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: p = P.plot()
+            sage: p.bounding_box()
+            ((100.0, 100.0, 100.0), (101.0, 101.0, 101.0))
         """
         pplt = None
         lplt = None

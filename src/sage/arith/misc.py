@@ -5167,7 +5167,9 @@ def gauss_sum(m, p, f):
 
     .. SEEALSO::
 
-        :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
+        - :func:`sage.rings.padics.misc.gauss_sum` for a `p`-adic version
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField

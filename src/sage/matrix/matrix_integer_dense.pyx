@@ -2626,7 +2626,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         - ``self`` -- a gram matrix of a positive definite quadratic form
 
-        - ``flag`` -- an optional flag passed to ``qfllgram``. According  to :pari:`qfllgram`'s documentation the options are:
+        - ``flag`` -- an optional flag passed to ``qflllgram``. According  to :pari:`qflllgram`'s documentation the options are:
 
             - ``0`` -- (default), assume that ``self`` has either exact (integral or rational) or real floating point entries. The matrix is rescaled, converted to integers and the behavior is then as in ``flag = 1``.
 
@@ -2637,7 +2637,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         A dense matrix ``U`` over the integers that represents a unimodular transformation matrix such that ``U.T * M * U``  is LLL-reduced.
 
-        ALGORITHM: Calls PARI's :pari:`qfllgram`.
+        ALGORITHM: Calls PARI's :pari:`qflllgram`.
 
         EXAMPLES::
 

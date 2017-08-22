@@ -129,6 +129,19 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
     - ``ambient_dim`` -- integer. The ambient space dimension.
 
+    - ``backend`` -- string. The name of the backend for computations. There are
+       several backends implemented:
+
+         * ``backend="ppl"`` uses the Parma Polyhedra Library
+
+         * ``backend="cdd"`` uses CDD
+
+         * ``backend="normaliz"`` uses normaliz
+
+         * ``backend="polymake"`` uses polymake
+
+         * ``backend="field"`` a generic Sage implementation
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.parent import Polyhedra

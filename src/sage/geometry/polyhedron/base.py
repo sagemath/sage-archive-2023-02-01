@@ -1820,18 +1820,6 @@ class Polyhedron_base(Element):
         """
         return self.parent().ambient_dim()
 
-    def backend(self):
-        r"""
-        Return the backend.
-
-        EXAMPLES::
-
-            sage: P = Polyhedron(vertices = [[1,0,0,0],[0,1,0,0],[0,0,1,0]])
-            sage: P.backend()
-            'ppl'
-        """
-        return self.parent().backend()
-
     def dim(self):
         """
         Return the dimension of the polyhedron.
@@ -2124,6 +2112,39 @@ class Polyhedron_base(Element):
             True
         """
         return self.parent().base_ring()
+
+    def backend(self):
+        """
+        Return the backend used.
+
+        OUTPUT:
+
+        The name of the backend used for computations. It will be one of
+        the following backends:
+
+         * ``ppl`` the Parma Polyhedra Library
+
+         * ``cdd`` CDD
+
+         * ``normaliz`` normaliz
+
+         * ``polymake`` polymake
+
+         * ``field`` a generic Sage implementation
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron(vertices = [[1, 0], [0, 1], [1, 1]])
+            sage: triangle.backend()
+            'ppl'
+            sage: D = polytopes.dodecahedron()
+            sage: D.backend()
+            'field'
+            sage: P = Polyhedron([[1.23]])
+            sage: P.backend()
+            'cdd'
+        """
+        return self.parent().backend()
 
     field = deprecated_function_alias(22551, base_ring)
 

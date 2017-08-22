@@ -274,6 +274,15 @@ class Polyhedron_base(Element):
             [0 1 1]
             [1 0 1]
             [1 1 0]
+
+        Checks that :trac:`22455` is fixed::
+
+            sage: s = polytopes.simplex(2)
+            sage: s._facet_adjacency_matrix()
+            [0 1 1]
+            [1 0 1]
+            [1 1 0]
+
         """
         # TODO: This implementation computes the whole face lattice,
         # which is much more information than necessary.

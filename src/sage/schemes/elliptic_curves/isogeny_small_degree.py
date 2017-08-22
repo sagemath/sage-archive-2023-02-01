@@ -2075,9 +2075,9 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
     if l==2:
-        return isogenies_2(E)
+        return isogenies_2(E, minimal_models=minimal_models)
     if l==3:
-        return isogenies_3(E)
+        return isogenies_3(E, minimal_models=minimal_models)
 
     psi_l = E.division_polynomial(l)
 
@@ -2222,9 +2222,9 @@ def isogenies_prime_degree(E, l, minimal_models=True):
     generic code must be used::
 
         sage: E = EllipticCurve(GF(101), [-3440, 77658])
-        sage: E.isogenies_prime_degree(71, minimal_models=minimal_models) # fast
+        sage: E.isogenies_prime_degree(71) # fast
         []
-        sage: E.isogenies_prime_degree(73, minimal_models=minimal_models) # not tested (very long time: 32s)
+        sage: E.isogenies_prime_degree(73) # slower (2s)
         []
     """
     if not l.is_prime():

@@ -47,13 +47,14 @@ def gauss_sum(a, p, f, prec=20):
     Rend. Sem. Mat. Univ. Padova 105 (2001), 157--170.
 
     Let `p` be a prime, `f` a positive integer, `q=p^f`, and `\pi` be
-    a root of `f(x) = x^{p-1}+p`.  Let `0\leq a < q-1`. Then the
+    the unique root of `f(x) = x^{p-1}+p` congruent to `\zeta_p - 1` modulo
+     `(\zeta_p - 1)^2`. Let `0\leq a < q-1`. Then the
     Gross-Koblitz formula gives us the value of the Gauss sum `g_q(a)`
-    as a product of p-adic Gamma functions as follows:
+    as a product of `p`-adic Gamma functions as follows:
 
     .. MATH::
 
-        g_q(a) = \pi^s \prod_{0\leq i < f} \Gamma_p(a^{(i)}/(q-1)),
+        g_q(a) = -\pi^s \prod_{0\leq i < f} \Gamma_p(a^{(i)}/(q-1)),
 
     where `s` is the sum of the digits of `a` in base `p` and the
     `a^{(i)}` have `p`-adic expansions obtained from cyclic

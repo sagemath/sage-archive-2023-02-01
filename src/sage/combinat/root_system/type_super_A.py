@@ -25,11 +25,6 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     EXAMPLES::
 
-        sage: R = RootSystem(['A', [4,2]])
-        sage: AL = R.ambient_space(); AL
-        Ambient space of the Root system of type ['A', [4, 2]]
-        sage: TestSuite(AL).run()
-
         sage: R = RootSystem(['A', [2,1]])
         sage: AL = R.ambient_space(); AL
         Ambient space of the Root system of type ['A', [2, 1]]
@@ -38,11 +33,63 @@ class AmbientSpace(ambient_space.AmbientSpace):
         -1: (0, 0, 1, 0, 0), 1: (0, 0, 0, 1, 0)}
     """
     def __init__(self, root_system, base_ring, index_set=None):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: R = RootSystem(['A', [4,2]])
+            sage: AL = R.ambient_space(); AL
+            Ambient space of the Root system of type ['A', [4, 2]]
+            sage: TestSuite(AL).run(skip="_test_norm_of_simple_roots")
+        """
         ct = root_system.cartan_type()
         if index_set is None:
             index_set = tuple(range(-ct.m-1,0) + range(1,ct.n+2))
         ambient_space.AmbientSpace.__init__(self, root_system, base_ring,
                                             index_set=index_set)
+
+    def _test_weight_lattice_realization(self, **options):
+        """
+        Runs sanity checks on this weight lattice realization
+
+        - scalar products between the fundamental weights and simple coroots
+        - embeddings from the weight lattice and weight space
+        - rho, highest_root, ...
+
+        .. SEEALSO:: :class:`TestSuite`
+
+        EXAMPLES::
+
+            sage: RootSystem(['A',3]).weight_lattice()._test_weight_lattice_realization()
+        """
+        from sage.rings.all import ZZ
+        tester     = self._tester(**options)
+        Lambda     = self.fundamental_weights()
+        alphacheck = self.simple_coroots()
+        tester.assertEqual(tuple(Lambda.keys()), self.index_set())
+
+        # Check the consistency between simple_root and simple_roots
+        for i in self.index_set():
+            tester.assertEqual(self.fundamental_weight(i), Lambda[i])
+
+        # Check the embeddings from:
+        # - the weight lattice
+        # - the weight space over the same base ring
+        domains = [self.root_system.weight_space(base_ring)
+                   for base_ring in set([ZZ, self.base_ring()])]
+        for domain in domains:
+            tester.assert_(self._internal_coerce_map_from(domain) is not None)
+            for i in self.index_set():
+                # This embedding maps fundamental weights to fundamental weights
+                tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
+
+        # Check that the fundamental weights form the dual basis of the simple coroots
+        sym = self.cartan_type().symmetrizer()
+        for i in self.index_set():
+            assert(Lambda[i].is_dominant())
+            for j in self.index_set():
+                tester.assertEqual(Lambda[j].scalar(alphacheck[i]), (sym[i] if i==j else 0))
 
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
@@ -352,6 +399,75 @@ class AmbientSpace(ambient_space.AmbientSpace):
             I = P.index_set()
             return P.sum((-c/dep[0]) * h[I[i]] for i,c in dep[1:].iteritems())
 
+        def has_descent(self, i, positive=False):
+            """
+            Test if ``self`` has a descent at position `i`, that is if ``self``
+            is on the strict negative side of the `i^{th}` simple reflection
+            hyperplane.
+
+            If positive if ``True``, tests if it is on the strict positive
+            side instead.
+
+            EXAMPLES::
+
+                sage: space=RootSystem(['A',5]).weight_space()
+                sage: alpha=RootSystem(['A',5]).weight_space().simple_roots()
+                sage: [alpha[i].has_descent(1) for i in space.index_set()]
+                [False, True, False, False, False]
+                sage: [(-alpha[i]).has_descent(1) for i in space.index_set()]
+                [True, False, False, False, False]
+                sage: [alpha[i].has_descent(1, True) for i in space.index_set()]
+                [True, False, False, False, False]
+                sage: [(-alpha[i]).has_descent(1, True) for i in space.index_set()]
+                [False, True, False, False, False]
+                sage: (alpha[1]+alpha[2]+alpha[4]).has_descent(3)
+                True
+                sage: (alpha[1]+alpha[2]+alpha[4]).has_descent(1)
+                False
+                sage: (alpha[1]+alpha[2]+alpha[4]).has_descent(1, True)
+                True
+            """
+            s = self.scalar(self.parent().simple_coroots()[i])
+            if i > 0:
+                s = -s
+            if positive:
+                return s > 0
+            else:
+                return s < 0
+
+        def is_dominant_weight(self):
+            """
+            Test whether ``self`` is a dominant element of the weight lattice.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A',2]).ambient_lattice()
+                sage: Lambda = L.fundamental_weights()
+                sage: [x.is_dominant() for x in Lambda]
+                [True, True]
+                sage: (3*Lambda[1]+Lambda[2]).is_dominant()
+                True
+                sage: (Lambda[1]-Lambda[2]).is_dominant()
+                False
+                sage: (-Lambda[1]+Lambda[2]).is_dominant()
+                False
+
+           Tests that the scalar products with the coroots are all
+           nonnegative integers. For example, if `x` is the sum of a
+           dominant element of the weight lattice plus some other element
+           orthogonal to all coroots, then the implementation correctly
+           reports `x` to be a dominant weight::
+
+               sage: x = Lambda[1] + L([-1,-1,-1])
+               sage: x.is_dominant_weight()
+               True
+            """
+            alphacheck = self.parent().simple_coroots()
+            l = self.parent().cartan_type().symmetrizer()
+            from sage.rings.semirings.non_negative_integer_semiring import NN
+            return all(l[i] * self.inner_product(alphacheck[i]) in NN
+                       for i in self.parent().index_set())
+
 class CartanType(SuperCartanType_standard):
     """
     Cartan Type `A(m|n)`.
@@ -494,9 +610,9 @@ class CartanType(SuperCartanType_standard):
         def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()
         return Family(self.index_set(), ell)
 
-    def dynkin_diagram(self): # FIXME
+    def dynkin_diagram(self):
         """
-        Returns the Dynkin diagram of super type A.
+        Return the Dynkin diagram of super type A.
 
         EXAMPLES::
 
@@ -506,24 +622,98 @@ class CartanType(SuperCartanType_standard):
             -4  -3  -2  -1  0   1   2   
             A4|2
             sage: sorted(a.edges())
-            [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
+            [(-4, -3, 1), (-3, -4, 1), (-3, -2, 1), (-2, -3, 1),
+             (-2, -1, 1), (-1, -2, 1), (-1, 0, 1), (0, -1, 1),
+             (0, 1, 1), (1, 0, -1), (1, 2, 1), (2, 1, 1)]
 
         TESTS::
 
-            sage: a = DynkinDiagram(['A',1])
-            sage: a
-            O
-            1
-            A1
+            sage: a = DynkinDiagram(['A', [0,0]]); a
+            X
+            0
+            A0|0
             sage: a.vertices(), a.edges()
-            ([1], [])
+            ([0], [])
+
+            sage: a = DynkinDiagram(['A', [1,0]]); a
+            O---X
+            -1  0
+            A1|0
+            sage: a.vertices(), a.edges()
+            ([-1, 0], [(-1, 0, 1), (0, -1, 1)])
+
+            sage: a = DynkinDiagram(['A', [0,1]]); a
+            X---O
+            0   1
+            A0|1
+            sage: a.vertices(), a.edges()
+            ([0, 1], [(0, 1, 1), (1, 0, -1)])
         """
         from .dynkin_diagram import DynkinDiagram_class
-        n = self.n
-        g = DynkinDiagram_class(self)
-        for i in range(1, n):
+        g = DynkinDiagram_class(self, odd_isotropic_roots=[0])
+        for i in range(0, self.m):
+            g.add_edge(-i-1, -i)
+        for i in range(1, self.n):
             g.add_edge(i, i+1)
+        g.add_vertex(0) # Usually there, but not when m == n == 0
+        if self.m > 0:
+            g.add_edge(-1, 0)
+        if self.n > 0:
+            g.add_edge(1, 0, -1)
         return g
+
+    def cartan_matrix(self):
+        """
+        Return the Cartan matrix associated to ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A', [2,3]])
+            sage: ct.cartan_matrix()
+            [ 2 -1  0  0  0  0]
+            [-1  2 -1  0  0  0]
+            [ 0 -1  0  1  0  0]
+            [ 0  0 -1  2 -1  0]
+            [ 0  0  0 -1  2 -1]
+            [ 0  0  0  0 -1  2]
+
+        TESTS::
+
+            sage: ct = CartanType(['A', [0,0]])
+            sage: ct.cartan_matrix()
+            [0]
+
+            sage: ct = CartanType(['A', [1,0]])
+            sage: ct.cartan_matrix()
+            [ 2 -1]
+            [-1  0]
+
+            sage: ct = CartanType(['A', [0,1]])
+            sage: ct.cartan_matrix()
+            [ 0  1]
+            [-1  2]
+        """
+        return self.dynkin_diagram().cartan_matrix()
+
+    def relabel(self, relabelling):
+        """
+        Return a relabelled copy of this Cartan type.
+
+        INPUT:
+
+        - ``relabelling`` -- a function (or a list or dictionary)
+
+        OUTPUT:
+
+        an isomorphic Cartan type obtained by relabelling the nodes of
+        the Dynkin diagram. Namely, the node with label ``i`` is
+        relabelled ``f(i)`` (or, by ``f[i]`` if ``f`` is a list or
+        dictionary).
+
+        EXAMPLES::
+        """
+        from . import type_relabel
+        return type_relabel.CartanType(self, relabelling)
 
     def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2): # FIXME
         r"""
@@ -596,7 +786,7 @@ class CartanType(SuperCartanType_standard):
             else:
                 ret += "---X---"
         ret += "---".join(node(label(i)) for i in range(1,self.n+1)) + "\n"
-        ret += "".join("{!s:4}".format(-label(i)) for i in reversed(range(1,self.m+1)))
+        ret += "".join("{!s:4}".format(label(-i)) for i in reversed(range(1,self.m+1)))
         ret += "{!s:4}".format(label(0))
         ret += "".join("{!s:4}".format(label(i)) for i in range(1,self.n+1))
         return ret

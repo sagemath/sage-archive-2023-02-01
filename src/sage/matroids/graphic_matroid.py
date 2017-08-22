@@ -182,6 +182,13 @@ class GraphicMatroid(Matroid):
             sage: M.is_connected()
             False
 
+        TESTS::
+
+            sage: TestSuite(M).run(verbose=True)
+            running ._test_category() . . . pass
+            running ._test_new() . . . pass
+            running ._test_not_implemented_methods() . . . pass
+            running ._test_pickling() . . . pass
         """
 
         if groundset is None:

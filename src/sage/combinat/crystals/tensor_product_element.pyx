@@ -1318,6 +1318,32 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
         """
         return self.to_tableau()._latex_()
 
+    def is_highest_weight(self, fake = False):
+        """
+        Return whether ``self`` is highest weight.
+
+        INPUT:
+
+        - ``fake`` -- (default: ``True``) boolean; if ``False`` returns genuine highest weight elements,
+                                                   if ``True`` returns genuine and fake highest weight elements
+
+        A fake highest weight vector is one which is annihilated by `e_i` for all `i` in the index set, but
+        whose weight is not bigger in dominance order than all other elements in the crystal.
+
+        EXAMPLES::
+
+             sage: B = crystals.Tableaux(['A', [1,1]], shape = [3,2,1])
+             sage: [b for b in B if b.is_highest_weight()]
+             [[[-2, -2, -2], [-1, -1], [1]]]
+             sage: [b for b in B if b.is_highest_weight(fake=True)]
+             [[[-2, -2, -2], [-1, -1], [1]],
+              [[-2, -2, -2], [-1, 2], [1]],
+               [[-2, -2, 2], [-1, -1], [1]]]
+        """
+        if not fake:
+           return self in self.parent().module_generators
+        return all(self.epsilon(i)==0 for i in self.parent().index_set())
+
     @cached_method
     def to_tableau(self):
         """

@@ -125,7 +125,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         Return the i-th simple root of ``self``.
 
-        EXAMPLES::  
+        EXAMPLES::
 
             sage: e = RootSystem(['A', [2,1]]).ambient_lattice()
             sage: list(e.simple_roots())
@@ -619,7 +619,7 @@ class CartanType(SuperCartanType_standard):
             sage: a = CartanType(['A', [4,2]]).dynkin_diagram()
             sage: a
             O---O---O---O---X---O---O
-            -4  -3  -2  -1  0   1   2   
+            -4  -3  -2  -1  0   1   2
             A4|2
             sage: sorted(a.edges())
             [(-4, -3, 1), (-3, -4, 1), (-3, -2, 1), (-2, -3, 1),

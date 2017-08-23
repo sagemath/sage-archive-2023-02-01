@@ -111,6 +111,32 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         """
         return self._shape
 
+    def highest_weight_elements(self, fake = False):
+        """
+        Return list of highest weight elements.
+
+        INPUT:
+
+        - ``fake`` -- (default: ``True``) boolean; if ``False`` returns genuine highest weight elements,
+                                                   if ``True`` returns genuine and fake highest weight elements
+
+        A fake highest weight vector is one which is annihilated by `e_i` for all `i` in the index set, but
+        whose weight is not bigger in dominance order than all other elements in the crystal.
+
+        EXAMPLES::
+
+            sage: B = crystals.Tableaux(['A', [1,1]], shape = [3,2,1])
+            sage: B.highest_weight_elements()
+            ([[-2, -2, -2], [-1, -1], [1]],)
+            sage: B.highest_weight_elements(fake=True)
+            ([[-2, -2, -2], [-1, -1], [1]],
+             [[-2, -2, -2], [-1, 2], [1]],
+             [[-2, -2, 2], [-1, -1], [1]])
+        """
+        if not fake:
+           return self.module_generators
+        return tuple([b for b in self if b.is_highest_weight(fake=True)])
+
     class Element(CrystalOfBKKTableauxElement):
         pass
 

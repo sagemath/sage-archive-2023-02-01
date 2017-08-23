@@ -544,7 +544,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: D = DynkinDiagram(['A', [1,2]])
             sage: Dp = D.relabel({-1:4, 0:-3, 1:3, 2:2}); Dp
             O---X---O---O
-            4   -3  3   2   
+            4   -3  3   2
             A1|2 relabelled by {0: -3, 1: 3, 2: 2, -1: 4}
             sage: Dp.odd_isotropic_roots()
             (-3,)

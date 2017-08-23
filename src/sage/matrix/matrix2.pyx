@@ -6292,7 +6292,7 @@ cdef class Matrix(Matrix1):
 
     def eigenvalue_multiplicity(self, s):
         r"""
-        Return the multiplicity of `s` as a generalized eigenvalue
+        Return the multiplicity of ``s`` as a generalized eigenvalue
         of the matrix.
 
         EXAMPLES::

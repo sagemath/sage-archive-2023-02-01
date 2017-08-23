@@ -700,8 +700,6 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         else:
             return LaurentPolynomialFunctor(vars[-1], True), LaurentPolynomialRing(self.base_ring(), vars[:-1])
 
-
-
     def completion(self, p, prec=20, extras=None):
         """
         EXAMPLES::
@@ -723,9 +721,6 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             return LaurentSeriesRing(self.base_ring(), name=self._names[0])
         else:
             raise TypeError("Cannot complete %s with respect to %s" % (self, p))
-
-
-
 
     def remove_var(self, var):
         """
@@ -782,27 +777,49 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             from sage.categories.morphism import CallMorphism
             return CallMorphism(Hom(self._R, self)) * f
 
-    def __cmp__(left, right):
+    def __eq__(self, right):
         """
+        Check whether ``self`` is equal to ``right``.
+
         EXAMPLES::
 
             sage: R = LaurentPolynomialRing(QQ,'x,y,z')
             sage: P = LaurentPolynomialRing(ZZ,'x,y,z')
             sage: Q = LaurentPolynomialRing(QQ,'x,y')
 
-            sage: cmp(R,R)
-            0
-            sage: cmp(R,Q) == 0
+            sage: R == R
+            True
+            sage: R == Q
             False
-            sage: cmp(Q,P) == 0
+            sage: Q == P
             False
-            sage: cmp(R,P) == 0
+            sage: P == R
             False
         """
-        c = cmp(type(left), type(right))
-        if c == 0:
-            c = cmp(left._R, right._R)
-        return c
+        if type(self) != type(right):
+            return False
+        return self._R == right._R
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R = LaurentPolynomialRing(QQ,'x,y,z')
+            sage: P = LaurentPolynomialRing(ZZ,'x,y,z')
+            sage: Q = LaurentPolynomialRing(QQ,'x,y')
+
+            sage: R != R
+            False
+            sage: R != Q
+            True
+            sage: Q != P
+            True
+            sage: P != R
+            True
+        """
+        return not (self == other)
 
     def _latex_(self):
         """

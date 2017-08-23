@@ -4396,6 +4396,23 @@ class Polyhedron_base(Element):
             1
             sage: Q.volume(measure='induced_rational') # optional -- latte_int
             1/2
+
+        The volume of a full-dimensional unbounded polyhedron is infinity::
+
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P.volume()
+            +Infinity
+
+        The volume of a non full-dimensional unbounded polyhedron depends on the measure used::
+
+            sage: P = Polyhedron(ieqs = [[1,1,1],[-1,-1,-1],[3,1,0]]); P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.volume()
+            0
+            sage: P.volume(measure='induced')
+            +Infinity
+            sage: P.volume(measure='ambient')
+            0
         """
         if measure == 'induced_rational' and engine not in ['auto', 'latte']:
             raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
@@ -4409,6 +4426,10 @@ class Polyhedron_base(Element):
                 return self._volume_lrs(**kwds)
             elif engine == 'latte':
                 return self._volume_latte(**kwds)
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             triangulation = self.triangulate(engine=engine, **kwds)
             pc = triangulation.point_configuration()
             return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
@@ -4416,6 +4437,10 @@ class Polyhedron_base(Element):
             # if polyhedron is actually full-dimensional, return volume with ambient measure
             if self.dim() == self.ambient_dim():
                 return self.volume(measure='ambient', engine=engine, **kwds)
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
             A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
             Adet = (A.matrix().transpose() * A.matrix()).det()

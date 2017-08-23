@@ -758,6 +758,13 @@ class CrystalOfTableaux(CrystalOfWords):
         ([++-, [[1]]],)
         sage: TestSuite(T).run()
 
+    We can also construct the tableaux for `\mathfrak{gl}(m|n)` as
+    given by [BKK2000]_::
+
+        sage: T = crystals.Tableaux(['A', [1,2]], shape=[4,2,1,1,1])
+        sage: T.cardinality()
+        1392
+
     TESTS:
 
     Base cases::

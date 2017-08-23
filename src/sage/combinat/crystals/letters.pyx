@@ -46,9 +46,15 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     filled by elements of the crystal of letters (possibly tensored with
     the crystal of spins).
 
+    We also have the crystal of fundamental representation of the
+    general linear Lie superalgebra, which are used as letters inside
+    of tableaux following [BKK2000]_. Similarly, all of these crystals
+    appear as a subcrystal of a sufficiently large tensor power of
+    this crystal.
+
     INPUT:
 
-    - ``T`` -- A Cartan type
+    - ``T`` -- a Cartan type
 
     REFERENCES:
 

@@ -62,7 +62,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         EXAMPLES::
 
-            sage: RootSystem(['A', [3,2]]).weight_lattice()._test_weight_lattice_realization()
+            sage: RootSystem(['A', [3,2]]).ambient_space()._test_weight_lattice_realization()
         """
         from sage.rings.all import ZZ
         tester     = self._tester(**options)

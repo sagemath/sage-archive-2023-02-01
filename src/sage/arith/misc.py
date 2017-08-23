@@ -5129,8 +5129,8 @@ def gauss_sum(char_value, finite_field):
 
     INPUT:
 
-    - ``char_value`` -- choice of multiplicative character, given by its value
-      on the ``finite_field.multiplicative_generator()``
+    - ``char_value`` -- choice of multiplicative character, given by
+      its value on the ``finite_field.multiplicative_generator()``
 
     - ``finite_field`` -- a finite field
 
@@ -5139,6 +5139,17 @@ def gauss_sum(char_value, finite_field):
     an element of the parent ring of ``char_value``, that can be any
     field containing enough roots of unity, for example the
     UniversalCyclotomicField, QQbar or ComplexField
+
+    For a finite field `F` of characteristic `p`, the Gauss sum
+    associated to a multiplicative character `\chi` (with values in a
+    ring `K`) is defined as
+
+    .. MATH::
+
+        \sum_{x \in F^{\times}} \chi(x) \zeta_p^{\operatorname{Tr} x},
+
+    where `\zeta_p \in K` is a primitive root of unity of order `p` and
+    Tr is the trace map from `F` to its prime field `\GF(p)`.
 
     For more info on Gauss sums, see :wikipedia:`Gauss_sum`.
 

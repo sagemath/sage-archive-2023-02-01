@@ -3630,7 +3630,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         OUTPUT:
 
-        A full binary tree. See :meth: `is_full` for the definition of full.
+        A full binary tree. See :meth:`is_full` for the definition of full.
 
         .. SEEALSO::
 

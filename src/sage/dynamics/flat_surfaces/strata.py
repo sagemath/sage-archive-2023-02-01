@@ -664,7 +664,7 @@ class AbelianStratum(SageObject):
     :meth:`sage.dynamics.interval_exchanges.template.Permutation.symmetric`
     operation of Boissy-Lanneau).
 
-    When you want to specify a marked separatrix, the degree on which it is is
+    When you want to specify a marked separatrix, the degree on which it is
     the first term of your degrees list.
 
     INPUT:

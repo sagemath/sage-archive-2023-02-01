@@ -2,6 +2,7 @@
 """
 Dependency usage tracking for citations
 """
+from __future__ import absolute_import
 
 from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT

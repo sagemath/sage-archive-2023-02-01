@@ -402,7 +402,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -412,14 +412,36 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7,4,'fixed-mod','series'); a = R(8); a.add_bigoh(1)
             1 + O(7^4)
+
+        TESTS:
+
+        We handle very large and very small values for ``absprec`` correctly::
+
+            sage: a = R(7)
+            sage: a.add_bigoh(2^1000)
+            7 + O(7^4)
+            sage: a.add_bigoh(-2^1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: absprec must be at least 0
+
         """
-        cdef long aprec, newprec
+        cdef long aprec
+        if absprec is infinity:
+            return self
         if isinstance(absprec, int):
             aprec = absprec
         else:
             if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
-            aprec = mpz_get_si((<Integer>absprec).value)
+            if mpz_sgn((<Integer>absprec).value) == -1:
+                aprec = -1
+            elif mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                aprec = self.prime_pow.ram_prec_cap
+            else:
+                aprec = mpz_get_si((<Integer>absprec).value)
+        if aprec < 0:
+            raise ValueError("absprec must be at least 0")
         if aprec >= self.prime_pow.prec_cap:
             return self
         cdef FMElement ans = self._new_c()
@@ -828,16 +850,21 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return chash(self.value, 0, self.prime_pow.prec_cap, self.prime_pow)
 
-cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
+cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
     """
     The canonical inclusion from ZZ to a fixed modulus ring.
 
     EXAMPLES::
 
         sage: f = ZpFM(5).coerce_map_from(ZZ); f
-        Ring Coercion morphism:
+        Ring morphism:
           From: Integer Ring
           To:   5-adic Ring of fixed modulus 5^20
+
+    TESTS::
+
+        sage: TestSuite(f).run()
+
     """
     def __init__(self, R):
         """
@@ -848,7 +875,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             sage: f = ZpFM(5).coerce_map_from(ZZ); type(f)
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicCoercion_ZZ_FM'>
         """
-        RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
+        RingHomomorphism.__init__(self, ZZ.Hom(R))
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_FM_ZZ(R)
 
@@ -869,7 +896,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return RingHomomorphism_coercion._extra_slots(self, _slots)
+        return RingHomomorphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -888,7 +915,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        RingHomomorphism_coercion._update_slots(self, _slots)
+        RingHomomorphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """

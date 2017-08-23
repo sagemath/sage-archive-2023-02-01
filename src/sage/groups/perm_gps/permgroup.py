@@ -137,7 +137,6 @@ from functools import wraps
 
 from sage.misc.randstate import current_randstate
 import sage.groups.old as group
-import types
 
 from sage.rings.all import QQ, Integer
 from sage.interfaces.expect import is_ExpectElement
@@ -146,12 +145,14 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, stan
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction
-from sage.misc.package import is_package_installed
+from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.functions.other import factorial
-from sage.groups.generic import structure_description
+from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
+                                    richcmp, rich_to_bool, op_EQ)
+
 
 def load_hap():
     """
@@ -192,7 +193,7 @@ def hap_decorator(f):
     @wraps(f)
     def wrapped(self, n, p=0):
         if not is_package_installed('gap_packages'):
-            raise RuntimeError("You must install the optional gap_packages package.")
+            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
@@ -348,6 +349,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
                                     canonicalize=canonicalize, category=category)
 
 
+@richcmp_method
 class PermutationGroup_generic(group.FiniteGroup):
     """
     A generic permutation group.
@@ -548,7 +550,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         g = ', '.join([g._gap_cycle_string() for g in self.gens()])
         return 'PermutationGroup<%s | %s>'%(self.degree(), g)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         """
         Compare ``self`` and ``right``.
 
@@ -583,21 +585,23 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: H3 < H1 # since H3 is a subgroup of H1
             True
         """
-        if (not isinstance(right, PermutationGroup_generic) or
-            self.domain() != right.domain()):
-            return -1
+        if not isinstance(right, PermutationGroup_generic):
+            return NotImplemented
+
         if self is right:
-            return 0
+            return rich_to_bool(op, 0)
+
         gSelf = self._gap_()
         gRight = right._gap_()
         gapcmp = gSelf.__cmp__(gRight)
         if not gapcmp:
-            return 0
+            return rich_to_bool(op, 0)
+
         if gSelf.IsSubgroup(gRight):
-            return 1
+            return rich_to_bool(op, 1)
         if gRight.IsSubgroup(gSelf):
-            return -1
-        return gapcmp
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, gapcmp)
 
     def _element_class(self):
         r"""
@@ -1701,7 +1705,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             return [Integer(n) for n in self._gap_().IdGroup()]
         except RuntimeError:
             if not is_package_installed('database_gap'):
-                raise RuntimeError("You must install the optional database_gap package first.")
+                raise PackageNotFoundError("database_gap")
             raise
 
     def id(self):
@@ -1754,7 +1758,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             return Integer(self._gap_().PrimitiveIdentification())
         except RuntimeError:
             if not is_package_installed('database_gap'):
-                raise RuntimeError("You must install the optional database_gap package first.")
+                raise PackageNotFoundError("database_gap")
             raise
 
     def center(self):
@@ -2249,7 +2253,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         - Kevin Halasz (2012-8-12)
 
         """
-        if check == True:
+        if check:
             from sage.categories.finite_permutation_groups import FinitePermutationGroups
             if N not in FinitePermutationGroups():
                 raise TypeError("{0} is not a permutation group".format(N))
@@ -4128,7 +4132,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         """
         if not is_package_installed('gap_packages'):
-            raise RuntimeError("You must install the optional gap_packages package.")
+            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
@@ -4187,7 +4191,9 @@ class PermutationGroup_generic(group.FiniteGroup):
         UCS = self._gap_().UpperCentralSeriesOfGroup()
         return [self.subgroup(gap_group=group) for group in UCS]
 
-PermutationGroup_generic.structure_description = types.MethodType(structure_description, None, PermutationGroup_generic)
+    from sage.groups.generic import structure_description
+
+
 
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """
@@ -4274,12 +4280,12 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
                 if g not in ambient:
                     raise TypeError("each generator must be in the ambient group")
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare ``self`` and ``other``.
 
         First, ``self`` and ``other`` are compared as permutation
-        groups, see :meth:`PermutationGroup_generic.__cmp__`.
+        groups, see :meth:`PermutationGroup_generic.__richcmp__`.
 
         Second, if both are equal, the ambient groups are compared,
         where (if necessary) ``other`` is considered a subgroup of
@@ -4287,25 +4293,25 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: G=SymmetricGroup(6)
-            sage: G1=G.subgroup([G((1,2,3,4,5)),G((1,2))])
-            sage: G2=G.subgroup([G((1,2,3,4)),G((1,2))])
-            sage: K=G2.subgroup([G2((1,2,3))])
-            sage: H=G1.subgroup([G1(())])
+            sage: G = SymmetricGroup(6)
+            sage: G1 = G.subgroup([G((1,2,3,4,5)),G((1,2))])
+            sage: G2 = G.subgroup([G((1,2,3,4)),G((1,2))])
+            sage: K = G2.subgroup([G2((1,2,3))])
+            sage: H = G1.subgroup([G1(())])
 
         ``H`` is subgroup of ``K``, and therefore we have::
 
-            sage: H<K
+            sage: H < K
             True
-            sage: K<H
+            sage: K < H
             False
 
         In the next example, both ``H`` and ``H2`` are trivial
         groups, but the ambient group of ``H2`` is strictly contained
         in the ambient group of ``H``, and thus we obtain::
 
-            sage: H2=G2.subgroup([G2(())])
-            sage: H2<H
+            sage: H2 = G2.subgroup([G2(())])
+            sage: H2 < H
             True
 
         Of course, ``G`` as a permutation group and ``G`` considered
@@ -4335,17 +4341,20 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
+
         if not isinstance(other, PermutationGroup_generic):
-            return -1
-        c = PermutationGroup_generic.__cmp__(self, other)
-        if c:
-            return c
+            return NotImplemented
+
+        c = PermutationGroup_generic.__richcmp__(self, other, op_EQ)
+        if not c:
+            return PermutationGroup_generic.__richcmp__(self, other, op)
+
         if hasattr(other, 'ambient_group'):
             o_ambient = other.ambient_group()
         else:
             o_ambient = other
-        return cmp(self.ambient_group(), o_ambient)
+        return richcmp(self.ambient_group(), o_ambient, op)
 
     def _repr_(self):
         r"""

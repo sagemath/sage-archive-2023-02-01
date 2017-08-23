@@ -702,7 +702,7 @@ class PreLieFunctor(ConstructionFunctor):
         """
         Apply the functor ``self`` to the ring morphism `f`.
 
-        TEST::
+        TESTS::
 
             sage: R = algebras.FreePreLie(ZZ, 'x').construction()[0]
             sage: R(ZZ.hom(GF(3)))  # indirect doctest
@@ -805,10 +805,9 @@ class PreLieFunctor(ConstructionFunctor):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: algebras.FreePreLie(QQ,'x,y,z,t').construction()[0]
             PreLie[x,y,z,t]
         """
         return "PreLie[%s]" % ','.join(self.vars)
-

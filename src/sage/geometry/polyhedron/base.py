@@ -159,6 +159,10 @@ class Polyhedron_base(Element):
 
         See :mod:`sage.misc.sage_input` for details.
 
+        TODO::
+
+            Add the option `preparse` to the method.
+
         EXAMPLES::
 
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='ppl')
@@ -169,7 +173,7 @@ class Polyhedron_base(Element):
             Polyhedron(backend='normaliz', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
             sage: sage_input(P)                                                                    # optional - polymake
-            Polyhedron(backend='polymake', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
        """
         kwds = dict()
         kwds['base_ring'] = sib(self.base_ring())

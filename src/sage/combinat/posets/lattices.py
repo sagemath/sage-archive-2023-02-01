@@ -920,6 +920,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
             sage: L.is_join_distributive(certificate=True)
             (False, 1)
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: L.is_join_distributive(certificate=True)
+            (False, 2)
         """
         if ((self.is_ranked() and len(self.meet_irreducibles()) == self.rank())
             or self.cardinality() == 0):
@@ -936,7 +940,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
-        return (False, diamond[0])
+        return (False, self[diamond[0]])
 
     def is_meet_distributive(self, certificate=False):
         """
@@ -1004,6 +1008,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
             sage: L.is_meet_distributive(certificate=True)
             (False, 7)
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: L.is_meet_distributive(certificate=True)
+            (False, 6)
         """
         if ((self.is_ranked() and len(self.join_irreducibles()) == self.rank())
             or self.cardinality() == 0):
@@ -1020,7 +1028,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
-        return (False, diamond[4])
+        return (False, self[diamond[4]])
 
     def is_stone(self, certificate=False):
         r"""

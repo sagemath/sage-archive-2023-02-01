@@ -7855,13 +7855,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         INPUT:
         - ``m`` -- a univariate polynomial
-        - ``n_deg`` -- an integer
-        - ``d_deg`` -- an integer
+        - ``n_deg`` -- an integer or `None`. If `None`, then it's value is set to `floor(\deg(m) - 1)/2)`.
+        - ``d_deg`` -- an integer or `None`. If `None`, then it's value is set to `floor(\deg(m) - 1)/2)`.
 
         OUTPUT:
-        Returns a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m`.
+        Returns a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m` and `\deg(n) \leq n_deg` and `\deg(d) \leq d_deg`.
 
-        Where `\deg(n) \leq n_deg` and `\deg(d) \leq d_deg`, the default value of `n_deg` and `d_deg` is `floor(\deg(m) - 1)/2)`.
 
         ALGORITHM:
             The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor.

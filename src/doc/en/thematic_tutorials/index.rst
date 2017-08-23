@@ -75,7 +75,6 @@ Geometry
 
 * :ref:`geometry`
 
-
 Combinatorics
 -------------
 

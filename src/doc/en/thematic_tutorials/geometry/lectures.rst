@@ -33,6 +33,7 @@ in :math:`\mathbb{R}^d` define a (convex) **polyhedron** :math:`P` as the set of
 of the system of linear inequalities:
 
 .. MATH::
+
     A\cdot x + b \geq 0.
 
 Each row of :math:`A` defines a closed half-space of :math:`\mathbb{R}^d`.
@@ -47,6 +48,7 @@ The maximal affine subspace :math:`L` contained in a polyhedron is the
 as the *origin*, one can write every point :math:`p` inside a polyhedron as a combination
 
 .. MATH::
+
     p = \ell +\sum_{i=1}^{n}\lambda_iv_i+\sum_{i=1}^{m}\mu_ir_i,
 
 where :math:`\ell\in L` (using :math:`o` as the origin), :math:`\sum_{i=1}^n\lambda_i=1`, 

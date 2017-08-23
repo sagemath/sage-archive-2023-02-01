@@ -1,24 +1,19 @@
 .. -*- coding: utf-8 -*-
+
 .. _geometry:
 
-=============================================
-Tutorials for the Geometry module of Sage
-=============================================
+==========
+Polyhedra
+==========
 
-.. MODULEAUTHOR:: sarah-marie belcastro <smbelcas@toroidalsnark.net>, Jean-Philippe Labbé <labbe@math.fu-berlin.de>
-
-These notes explain how to use Sage for computations related to geometry in Sage. 
-So far, the tutorials cover mostly things related to polyhedral computations.
-
+Here you can find various documents that explain how to perform polyhedral computations in Sage.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    geometry/polytutorial
    geometry/lectures
-   geometry/new_from_old
-   geometry/related_objects
-   geometry/is_this_polyhedron
+   geometry/polyhedra_quickref
    geometry/tips
    geometry/visualization
    geometry/polytope_tikz

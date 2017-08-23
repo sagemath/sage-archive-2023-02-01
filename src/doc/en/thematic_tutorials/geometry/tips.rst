@@ -4,9 +4,9 @@
 
 .. _tips:
 
-==============================================================
-Tips, Tricks and Good Things to Know
-==============================================================
+=========================
+Polyhedra tips and tricks
+=========================
 
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>
 

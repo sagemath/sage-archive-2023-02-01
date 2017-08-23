@@ -760,9 +760,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C = L.chevalley_eilenberg_complex(); C
                 Chain complex with at most 4 nonzero terms over Integer Ring
                 sage: ascii_art(C)
-                                          [ 0  2  0]       [0]
-                                          [ 0  0 -2]       [0]
-                            [0 0 0]       [-1  0  0]       [0]
+                                          [ 2  0  0]       [0]
+                                          [ 0 -1  0]       [0]
+                            [0 0 0]       [ 0  0  2]       [0]
                  0 <-- C_0 <-------- C_1 <----------- C_2 <---- C_3 <-- 0
 
                 sage: L = LieAlgebra(QQ, cartan_type=['C',2])

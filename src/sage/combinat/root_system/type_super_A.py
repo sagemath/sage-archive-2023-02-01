@@ -711,11 +711,24 @@ class CartanType(SuperCartanType_standard):
         dictionary).
 
         EXAMPLES::
+
+            sage: ct = CartanType(['A', [1,2]])
+            sage: ct.dynkin_diagram()
+            O---X---O---O
+            -1  0   1   2
+            A1|2
+            sage: f={1:2,2:1,0:0,-1:-1}
+            sage: ct.relabel(f)
+            ['A', [1, 2]] relabelled by {0: 0, 1: 2, 2: 1, -1: -1}
+            sage: ct.relabel(f).dynkin_diagram()
+            O---X---O---O
+            -1  0   2   1
+            A1|2 relabelled by {0: 0, 1: 2, 2: 1, -1: -1}
         """
         from . import type_relabel
         return type_relabel.CartanType(self, relabelling)
 
-    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2): # FIXME
+    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 

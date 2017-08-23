@@ -67,7 +67,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -143,8 +143,8 @@ def Mod(n, m, parent=None):
 
     # m is non-zero, so return n mod m
     cdef IntegerMod_abstract x
-    import integer_mod_ring
-    x = IntegerMod(integer_mod_ring.IntegerModRing(m), n)
+    from .integer_mod_ring import IntegerModRing
+    x = IntegerMod(IntegerModRing(m), n)
     if parent is None:
         return x
     x._parent = parent
@@ -388,7 +388,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         if not isinstance(self, IntegerMod_abstract):
             # something % Mod(x,y) makes no sense
             return NotImplemented
-        from integer_mod_ring import IntegerModRing
+        from .integer_mod_ring import IntegerModRing
         R = IntegerModRing(modulus)
         if (<Element>self)._parent._IntegerModRing_generic__order % R.order():
             raise ArithmeticError(f"reduction modulo {modulus!r} not defined")
@@ -1561,9 +1561,26 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:                 if not a.is_unit(): continue
             ....:                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
             ....:                     print("mod(%s,%s) incorrect" % (a, n))
+
+        `0` is not a primitive root mod `n` (:trac:`23624`) except for `n=0`::
+
+            sage: mod(0, 17).is_primitive_root()
+            False
+            sage: all(not mod(0, n).is_primitive_root() for n in srange(2, 20))
+            True
+            sage: mod(0, 1).is_primitive_root()
+            True
+
+            sage: all(not mod(p^j, p^k).is_primitive_root()
+            ....:     for p in prime_range(3, 12)
+            ....:     for k in srange(1, 4)
+            ....:     for j in srange(0, k))
+            True
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()
+        if m == 1:
+            return True
         if m == 2:
             return self == 1
         if m == 4:
@@ -1584,6 +1601,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             # self**(p**(k-1)*(p-1)//q) = 1 for some q
             # iff mod(self,p)**((p-1)//q) = 1 for some q
             self = self % p
+        if self == 0:
+            return False
         # Now self is modulo a prime and need the factorization of p-1.
         p1 = p - 1
         while mpz_cmpabs_ui(p1.value, 1):
@@ -1933,8 +1952,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         modulus = self.__modulus.sageInteger
         other_modulus = other.__modulus.sageInteger
-        import integer_mod_ring
-        lift = IntegerMod_gmp(integer_mod_ring.IntegerModRing(modulus*other_modulus), None, empty=True)
+        from .integer_mod_ring import IntegerModRing
+        lift = IntegerMod_gmp(IntegerModRing(modulus*other_modulus), None, empty=True)
         try:
             if mpz_cmp(self.value, other.value) > 0:
                 x = (other - IntegerMod_gmp(other._parent, self.lift())) / IntegerMod_gmp(other._parent, modulus)
@@ -2350,8 +2369,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         cdef IntegerMod_int lift
         cdef int_fast32_t x
 
-        import integer_mod_ring
-        lift = IntegerMod_int(integer_mod_ring.IntegerModRing(self.__modulus.int32 * other.__modulus.int32), None, empty=True)
+        from .integer_mod_ring import IntegerModRing
+        lift = IntegerMod_int(IntegerModRing(self.__modulus.int32 * other.__modulus.int32), None, empty=True)
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int32) * mod_inverse_int(self.__modulus.int32, other.__modulus.int32)
@@ -3176,8 +3195,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         cdef IntegerMod_int64 lift
         cdef int_fast64_t x
 
-        import integer_mod_ring
-        lift = IntegerMod_int64(integer_mod_ring.IntegerModRing(self.__modulus.int64 * other.__modulus.int64), None, empty=True)
+        from .integer_mod_ring import IntegerModRing
+        lift = IntegerMod_int64(IntegerModRing(self.__modulus.int64 * other.__modulus.int64), None, empty=True)
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int64) * mod_inverse_int64(self.__modulus.int64, other.__modulus.int64)
@@ -4166,6 +4185,30 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     def _repr_type(self):
         return "Natural"
 
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: Zmod(4).hom(Zmod(2)).is_surjective()
+            True
+
+        """
+        return True
+
+    def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: Zmod(4).hom(Zmod(2)).is_injective()
+            False
+
+        """
+        return self.domain().order() == self.codomain().order()
+
 cdef class Integer_to_IntegerMod(IntegerMod_hom):
     r"""
     Fast `\ZZ \rightarrow \ZZ/n\ZZ`
@@ -4210,6 +4253,30 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
 
     def section(self):
         return IntegerMod_to_Integer(self._codomain)
+
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: ZZ.hom(Zmod(2)).is_surjective()
+            True
+
+        """
+        return True
+
+    def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: ZZ.hom(Zmod(2)).is_injective()
+            False
+
+        """
+        return False
 
 cdef class IntegerMod_to_Integer(Map):
     """

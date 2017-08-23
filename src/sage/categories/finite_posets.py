@@ -51,49 +51,70 @@ class FinitePosets(CategoryWithAxiom):
 
         def is_lattice(self):
             r"""
-            Returns whether this poset is both a meet and a join semilattice.
+            Return whether the poset is a lattice.
+
+            A poset is a lattice if all pairs of elements have
+            both a least upper bound ("join") and a greatest lower bound
+            ("meet") in the poset.
 
             EXAMPLES::
 
-                sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
+                sage: P = Poset([[1, 3, 2], [4], [4, 5, 6], [6], [7], [7], [7], []])
                 sage: P.is_lattice()
                 True
 
-                sage: P = Poset([[1,2],[3],[3],[]])
+                sage: P = Poset([[1, 2], [3], [3], []])
                 sage: P.is_lattice()
                 True
 
-                sage: P = Poset({0:[2,3],1:[2,3]})
+                sage: P = Poset({0: [2, 3], 1: [2, 3]})
                 sage: P.is_lattice()
                 False
+
+                sage: P = Poset({1: [2, 3, 4], 2: [5, 6], 3: [5, 7], 4: [6, 7], 5: [8, 9],
+                ....:            6: [8, 10], 7: [9, 10], 8: [11], 9: [11], 10: [11]})
+                sage: P.is_lattice()
+                False
+
+            TESTS::
+
+                sage: P = Poset()
+                sage: P.is_lattice()
+                True
+
+            .. SEEALSO::
+
+                - Weaker properties: :meth:`~sage.combinat.posets.posets.FinitePoset.is_join_semilattice`,
+                  :meth:`~sage.combinat.posets.posets.FinitePoset.is_meet_semilattice`
             """
             return (self.cardinality() == 0 or
                      (self.has_bottom() and self.is_join_semilattice()))
 
         def is_selfdual(self):
             r"""
-            Returns whether this poset is *self-dual*, that is
-            isomorphic to its dual poset.
+            Return whether the poset is *self-dual*.
+
+            A poset is self-dual if it is isomorphic to its dual poset.
 
             EXAMPLES::
 
-                sage: P = Poset(([1,2,3],[[1,3],[2,3]]),cover_relations=True)
-                sage: P.is_selfdual()
-                False
-
-                sage: P = Poset(([1,2,3,4],[[1,3],[1,4],[2,3],[2,4]]),cover_relations=True)
+                sage: P = Poset({1: [3, 4], 2: [3, 4]})
                 sage: P.is_selfdual()
                 True
 
+                sage: P = Poset({1: [2, 3]})
+                sage: P.is_selfdual()
+                False
+
             TESTS::
 
-                sage: P = Poset( {} )
+                sage: P = Poset()
                 sage: P.is_selfdual()
                 True
 
             .. SEEALSO::
 
-                - Stronger properties: :meth:`~sage.combinat.posets.lattices.FiniteLattice.is_orthocomplemented`
+                - Stronger properties: :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.is_orthocomplemented` (for lattices)
             """
             # Two quick checks before full isomorphic test.
             if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):

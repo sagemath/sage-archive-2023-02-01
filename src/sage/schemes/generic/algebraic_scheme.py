@@ -175,7 +175,7 @@ def is_AlgebraicScheme(x):
 
     OUTPUT:
 
-    Boolean. Whether ``x`` is an an algebraic scheme, that is, a
+    Boolean. Whether ``x`` is an algebraic scheme, that is, a
     subscheme of an ambient space over a ring defined by polynomial
     equations.
 
@@ -2462,6 +2462,60 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
           x^2 - y*z
     """
+
+    def point(self, v, check=True):
+        """
+        Create a point on this projective subscheme.
+
+        INPUT:
+
+        - ``v`` -- anything that defines a point
+
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
+
+        OUTPUT: A point of the subscheme.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P2.subscheme([x-y,y-z])
+            sage: X.point([1,1,1])
+            (1 : 1 : 1)
+
+        ::
+
+            sage: P2.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P2.subscheme([y])
+            sage: X.point(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P.subscheme(x^2+2*y^2)
+            sage: X.point(infinity)
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [1, 0] do not define a point on Closed subscheme
+            of Projective Space of dimension 1 over Rational Field defined by:
+              x^2 + 2*y^2
+        """
+        from sage.rings.infinity import infinity
+        if v is infinity  or\
+          (isinstance(v, (list,tuple)) and len(v) == 1 and v[0] is infinity):
+            if self.ambient_space().dimension_relative() > 1:
+                raise ValueError("%s not well defined in dimension > 1"%v)
+            v = [1, 0]
+        # todo: update elliptic curve stuff to take point_homset as argument
+        from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+        if is_EllipticCurve(self):
+            try:
+                return self._point(self.point_homset(), v, check=check)
+            except AttributeError:  # legacy code without point_homset
+                return self._point(self, v, check=check)
+
+        return self.point_homset()(v, check=check)
 
     def _morphism(self, *args, **kwds):
         r"""

@@ -16,7 +16,7 @@ Factory for Character-Based Art
 #
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
-from six import iteritems, string_types
+from six import iteritems, string_types, text_type, binary_type
 
 from sage.structure.sage_object import SageObject
 
@@ -187,10 +187,10 @@ class CharacterArtFactory(SageObject):
             bb
             ccc
         """
-        if self.string_type is unicode and not isinstance(obj, unicode):
-            obj = str(obj).decode('utf-8')
-        if self.string_type is str and not isinstance(obj, str):
-            obj = unicode(obj).encode('utf-8')
+        if self.string_type is text_type and not isinstance(obj, text_type):
+            obj = binary_type(obj).decode('utf-8')
+        if self.string_type is binary_type and not isinstance(obj, binary_type):
+            obj = text_type(obj).encode('utf-8')
         return self.art_type(obj.splitlines())
 
     def build_container(self, content, left_border, right_border):

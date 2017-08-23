@@ -929,7 +929,7 @@ cdef class Converter(SageObject):
 
         - ``to_convert`` - a Singular ``leftv``
 
-        TEST:
+        TESTS:
 
         Check that negative integers come through unscathed::
 

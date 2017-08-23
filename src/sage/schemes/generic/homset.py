@@ -394,7 +394,6 @@ class SchemeHomset_generic(HomsetWithBase):
 
         raise TypeError("x must be a ring homomorphism, list or tuple")
 
-
 #*******************************************************************
 # Base class for points
 #*******************************************************************

@@ -52,6 +52,7 @@ from cpython.number cimport PyNumber_TrueDivide, PyNumber_Check
 
 import operator, copy, re
 
+from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 import sage.rings.rational
 import sage.rings.integer
 from . import polynomial_ring
@@ -66,7 +67,6 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
-from sage.structure.element import coerce_binop
 from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
         rich_to_bool, rich_to_bool_sgn)
 
@@ -82,7 +82,7 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import generic_power
+from sage.structure.element import generic_power, coerce_binop
 from sage.structure.element cimport (parent, have_same_parent,
         Element, RingElement, coercion_model)
 
@@ -2023,8 +2023,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return self.roots(ring=ring, multiplicities=False)[0]
 
-
-    def __truediv__(self, right):
+    def __truediv__(left, right):
         """
         EXAMPLES::
 
@@ -2089,20 +2088,35 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: division by zero in finite field
+
+        Check that :trac:`23611` is fixed::
+
+            sage: int(1) / x
+            1/x
         """
-        try:
-            if not isinstance(right, Element) or right.parent() != self.parent():
-                R = self.parent().base_ring()
+        # Same parents => bypass coercion
+        if have_same_parent(left, right):
+            return (<Element>left)._div_(right)
+
+        # Try division of polynomial by a scalar
+        if isinstance(left, Polynomial):
+            R = (<Polynomial>left)._parent._base
+            try:
                 x = R._coerce_(right)
-                return self * ~x
-        except (TypeError, ValueError):
-            pass
-        return RingElement.__div__(self, right)
+                return left * ~x
+            except TypeError:
+                pass
 
-    def __div__(self, other):
-        return PyNumber_TrueDivide(self, other)
+        # Delegate to coercion model. The line below is basically
+        # RingElement.__truediv__(left, right), except that it also
+        # works if left is not of type RingElement.
+        return wrapperdescr_fastcall(RingElement.__truediv__,
+                left, (right,), <object>NULL)
 
-    def __pow__(self, right, modulus):
+    def __div__(left, right):
+        return PyNumber_TrueDivide(left, right)
+
+    def __pow__(left, right, modulus):
         """
         EXAMPLES::
 
@@ -2126,6 +2140,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: non-integral exponents not supported
+
+        ::
+
+            sage: int(1)^x
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'int' and 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'
 
         ::
 
@@ -2183,6 +2204,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pow(y*x+1, 51, x^7)
             18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
         """
+        if not isinstance(left, Polynomial):
+            return NotImplemented
+        cdef Polynomial self = <Polynomial>left
+
         if type(right) is not Integer:
             try:
                 right = Integer(right)
@@ -2200,7 +2225,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                modulus.leading_coefficient().is_one():
                 return self.power_trunc(right, modulus.degree())
             return power_mod(self, right, modulus)
-        if (<Polynomial>self).is_gen():   # special case x**n should be faster!
+        if self.is_gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():
@@ -4198,13 +4223,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
-    def splitting_field(self, names, map=False, **kwds):
+    def splitting_field(self, names=None, map=False, **kwds):
         """
         Compute the absolute splitting field of a given polynomial.
 
         INPUT:
 
-        - ``names`` -- a variable name for the splitting field.
+        - ``names`` -- (default: ``None``)  a variable name for the splitting field.
 
         - ``map`` -- (default: ``False``) also return an embedding of
           ``self`` into the resulting field.
@@ -4338,7 +4363,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t.splitting_field('b')
             Finite Field in b of size 401^52
 
+            sage: R.<x> = QQ[]
+            sage: f = x^2 - 2
+            sage: f.splitting_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: You must specify the name of the generator.
+
         """
+        if names is None:
+            raise TypeError("You must specify the name of the generator.")
         name = normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField

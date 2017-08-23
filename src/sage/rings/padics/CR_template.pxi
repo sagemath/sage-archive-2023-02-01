@@ -867,7 +867,15 @@ cdef class CRElement(pAdicTemplateElement):
         else:
             if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
-            aprec = mpz_get_si((<Integer>absprec).value)
+            if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                if mpz_sgn((<Integer>absprec).value) == -1:
+                    raise ValueError("absprec must fit into a signed long")
+                else:
+                    aprec = self.prime_pow.ram_prec_cap
+            else:
+                aprec = mpz_get_si((<Integer>absprec).value)
+        if aprec < 0 and not self.parent().is_field():
+            return self.parent().fraction_field()(self).add_bigoh(absprec)
         if aprec < self.ordp:
             ans = self._new_c()
             ans._set_inexact_zero(aprec)
@@ -2328,7 +2336,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
 
     def is_surjective(self):
         r"""
-        Return whether this map is injective.
+        Return whether this map is surjective.
 
         EXAMPLES::
 

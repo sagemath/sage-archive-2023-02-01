@@ -18,6 +18,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
 cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _pbpoly
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
 
 cdef class BooleSet:
     cdef BooleanPolynomialRing _ring
@@ -30,6 +32,7 @@ cdef class CCuddNavigator:
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _pbmonom
     cdef BooleanPolynomialRing _ring
+    cpdef _mul_(self, other)
 
 cdef class BooleanMonomialVariableIterator:
     cdef object parent

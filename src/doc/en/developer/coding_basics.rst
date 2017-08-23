@@ -862,6 +862,18 @@ written.
       5
       7
 
+- **Python3 print:** even if Python2 syntax for print can still be
+  used in your own code for the moment, Python3 syntax for print must
+  be used in Sage code and doctests. If you use an old-style print in
+  doctests, it will raise a SyntaxError::
+
+      sage: print "not like that"
+      Traceback (most recent call last):
+      ...
+      SyntaxError: invalid syntax
+      sage: print("but like this")
+      but like this
+
 - **Split long lines:** You may want to split long lines of code with a
   backslash. Note: this syntax is non-standard and may be removed in the
   future::

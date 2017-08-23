@@ -21,10 +21,10 @@ See also :mod:`sage.matroids.advanced`.
 
 Graphic matroids do not have a representation matrix or any of the
 functionality of regular matroids. It is possible to get an instance of the
-:class:`RegularMatroid <sage.matroids.linear_matroid.RegularMatroid>` class
+:class:`~sage.matroids.linear_matroid.RegularMatroid` class
 by using the ``regular`` keyword when constructing the matroid.
 It is also possible to cast a GraphicMatroid as a RegularMatroid with the
-:meth:`regular_matroid <sage.matroids.graphic_matroids.GraphicMatroid.regular_matroid>`
+:meth:`~sage.matroids.graphic_matroids.GraphicMatroid.regular_matroid`
 method::
 
     sage: M1 = Matroid(graphs.DiamondGraph(), regular=True)

@@ -92,6 +92,7 @@ class DocTestDefaults(SageObject):
         self.abspath = True         # sage-runtests default is False
         self.verbose = False
         self.debug = False
+        self.only_errors = False
         self.gdb = False
         self.valgrind = False
         self.massif = False

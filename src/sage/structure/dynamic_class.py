@@ -123,6 +123,7 @@ from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonMetaclass, InheritComparisonClasscallMetaclass
 
+
 def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
                   prepend_cls_bases=True, cache=True):
     r"""
@@ -309,6 +310,10 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     """
     bases = tuple(bases)
     #assert(len(bases) > 0 )
+    try:
+        name = str(name)
+    except UnicodeEncodeError:
+        pass
     assert(isinstance(name, str))
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
     if cache is True:

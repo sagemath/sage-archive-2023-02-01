@@ -411,7 +411,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Interrupt a computation with <Ctrl-c>
 
-        TEST:
+        TESTS:
 
         For reasons that are not clear to the author, the following test
         is very flaky. Therefore, this test is marked as "not tested".

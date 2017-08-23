@@ -24,7 +24,7 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 

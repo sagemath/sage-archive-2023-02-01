@@ -102,7 +102,7 @@ TESTS::
     True
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -701,7 +701,6 @@ cdef class NCPolynomialRing_plural(Ring):
         result = ringlist(self, ring=self)
         return result
 
-
     def relations(self, add_commutative = False):
         """
         Return the relations of this g-algebra.
@@ -734,7 +733,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 return self._relations_commutative
 
             from sage.algebras.free_algebra import FreeAlgebra
-            A = FreeAlgebra( self.base_ring(), self.ngens(), self.variable_names() )
+            A = FreeAlgebra(self.base_ring(), self.ngens(), self.variable_names())
 
             res = {}
             n = self.ngens()
@@ -748,7 +747,7 @@ cdef class NCPolynomialRing_plural(Ring):
             return self._relations
 
         from sage.algebras.free_algebra import FreeAlgebra
-        A = FreeAlgebra( self.base_ring(), self.ngens(), self.variable_names() )
+        A = FreeAlgebra(self.base_ring(), self.ngens(), self.variable_names())
 
         res = {}
         n = self.ngens()

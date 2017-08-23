@@ -1599,6 +1599,23 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         H = Hom(ProjectiveSpace(R.base_ring(), 1, R.gens()), C)
         return H(param)
 
+    def riemann_surface(self,**kwargs):
+        r"""Return the complex riemann surface determined by this curve
+
+        OUTPUT:
+
+         - RiemannSurface object
+
+        EXAMPLES::
+
+            sage: R.<x,y,z>=QQ[]
+            sage: C=Curve(x^3+3*y^3+5*z^3)
+            sage: C.riemann_surface()
+            Riemann surface defined by polynomial f = x0^3 + 3*x1^3 + 5 = 0, with 53 bits of precision
+
+        """
+        return self.affine_patch(2).riemann_surface(**kwargs)
+
 class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 
     _point = point.ProjectivePlaneCurvePoint_finite_field

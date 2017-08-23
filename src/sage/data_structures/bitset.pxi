@@ -85,7 +85,7 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
 
 cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
-    Reallocate a bitset to size size. If reallocation is larger, new bitset
+    Reallocate a bitset to size ``size``. If reallocation is larger, new bitset
     does not contain any of the extra bits.
     """
     cdef mp_size_t limbs_old = bits.limbs

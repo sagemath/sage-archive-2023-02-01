@@ -1090,7 +1090,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         OUTPUT:
 
-        - the matrix representing representing the automorphism ``self`` w.r.t
+        - the matrix representing the automorphism ``self`` w.r.t
           to bases ``basis1`` and ``basis2``; more precisely, the columns of
           this matrix are formed by the components w.r.t. ``basis2`` of
           the images of the elements of ``basis1``.

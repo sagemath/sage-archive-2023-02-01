@@ -750,10 +750,8 @@ def CompleteGraphic(n):
 
     OUTPUT:
 
-    The regular matroid associated with the `n`-vertex complete graph.
+    The graphic matroid associated with the `n`-vertex complete graph.
     This matroid has rank `n - 1`.
-
-    The maximum-sized regular matroid of rank `n` is `M(K_n)`.
 
     EXAMPLES::
 

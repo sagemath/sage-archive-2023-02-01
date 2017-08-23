@@ -51,17 +51,18 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def _test_weight_lattice_realization(self, **options):
         """
-        Runs sanity checks on this weight lattice realization
+        Runs sanity checks on this weight lattice realization.
 
-        - scalar products between the fundamental weights and simple coroots
-        - embeddings from the weight lattice and weight space
-        - rho, highest_root, ...
+        This tests the following:
+
+        - Scalar products between the fundamental weights and simple coroots.
+        - Embeddings from the weight lattice and weight space.
 
         .. SEEALSO:: :class:`TestSuite`
 
         EXAMPLES::
 
-            sage: RootSystem(['A',3]).weight_lattice()._test_weight_lattice_realization()
+            sage: RootSystem(['A', [3,2]]).weight_lattice()._test_weight_lattice_realization()
         """
         from sage.rings.all import ZZ
         tester     = self._tester(**options)
@@ -94,7 +95,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
         """
-        Return the smallest base ring the ambient space can be defined upon
+        Return the smallest base ring the ambient space can be defined upon.
 
         .. SEEALSO::
 
@@ -102,7 +103,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         EXAMPLES::
 
-            sage: e = RootSystem(['A',[3,1]]).ambient_space()
+            sage: e = RootSystem(['A', [3,1]]).ambient_space()
             sage: e.smallest_base_ring()
             Integer Ring
         """
@@ -123,7 +124,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def simple_root(self, i):
         """
-        Return the i-th simple root of ``self``.
+        Return the `i`-th simple root of ``self``.
 
         EXAMPLES::
 
@@ -728,33 +729,78 @@ class CartanType(SuperCartanType_standard):
         from . import type_relabel
         return type_relabel.CartanType(self, relabelling)
 
+    def _latex_draw_node(self, x, y, label, position="below=4pt"):
+        r"""
+        Draw (possibly marked [crossed out]) circular node ``i`` at the
+        position ``(x,y)`` with node label ``label`` .
+
+        - ``position`` -- position of the label relative to the node
+        - ``anchor`` -- (optional) the anchor point for the label
+
+        EXAMPLES::
+
+            sage: t = CartanType(['A', [3,2]])
+            sage: print(t._latex_draw_node(0, 0, 0))
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            \draw[-,thick] (0.17 cm, 0.17 cm) -- (-0.17 cm, -0.17 cm);
+            \draw[-,thick] (0.17 cm, -0.17 cm) -- (-0.17 cm, 0.17 cm);
+            sage: print(t._latex_draw_node(0, 0, 1))
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+        """
+        ret = "\\draw[fill={}] ({} cm, {} cm) circle (.25cm) node[{}]{{${}$}};\n".format(
+              'white', x, y, position, label)
+        if label == 0:
+            ret += "\\draw[-,thick] ({} cm, {} cm) -- ({} cm, {} cm);\n".format(
+                                    x+.17, y+.17, x-.17, y-.17)
+            ret += "\\draw[-,thick] ({} cm, {} cm) -- ({} cm, {} cm);\n".format(
+                                    x+.17, y-.17, x-.17, y+.17)
+        return ret
+
     def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 
         EXAMPLES::
 
-            sage: print(CartanType(['A',4])._latex_dynkin_diagram())
-            \draw (0 cm,0) -- (6 cm,0);
-            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
-            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$4$};
-            <BLANKLINE>
+            sage: print(CartanType(['A', [3,2]])._latex_dynkin_diagram())
+            \draw (0 cm, 0 cm) -- (10 cm, 0 cm);
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$-3$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$-2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$-1$};
+            \draw[fill=white] (6 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            \draw[-,thick] (6.17 cm, 0.17 cm) -- (5.83 cm, -0.17 cm);
+            \draw[-,thick] (6.17 cm, -0.17 cm) -- (5.83 cm, 0.17 cm);
+            \draw[fill=white] (8 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (10 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
 
-            sage: print(CartanType(['A',0])._latex_dynkin_diagram())
-            <BLANKLINE>
-            sage: print(CartanType(['A',1])._latex_dynkin_diagram())
-            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
-            <BLANKLINE>
+            sage: print(CartanType(['A', [0,2]])._latex_dynkin_diagram())
+            \draw (0 cm, 0 cm) -- (4 cm, 0 cm);
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            \draw[-,thick] (0.17 cm, 0.17 cm) -- (-0.17 cm, -0.17 cm);
+            \draw[-,thick] (0.17 cm, -0.17 cm) -- (-0.17 cm, 0.17 cm);
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+
+            sage: print(CartanType(['A', [2,0]])._latex_dynkin_diagram())
+            \draw (0 cm, 0 cm) -- (4 cm, 0 cm);
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$-2$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$-1$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            \draw[-,thick] (4.17 cm, 0.17 cm) -- (3.83 cm, -0.17 cm);
+            \draw[-,thick] (4.17 cm, -0.17 cm) -- (3.83 cm, 0.17 cm);
+
+            sage: print(CartanType(['A', [0,0]])._latex_dynkin_diagram())
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$0$};
+            \draw[-,thick] (0.17 cm, 0.17 cm) -- (-0.17 cm, -0.17 cm);
+            \draw[-,thick] (0.17 cm, -0.17 cm) -- (-0.17 cm, 0.17 cm);
         """
         if node is None:
             node = self._latex_draw_node
-        if self.n > 1:
-            ret = "\\draw (0 cm,0) -- ({} cm,0);\n".format((self.n-1)*node_dist)
+        if self.n + self.m > 1:
+            ret = "\\draw (0 cm, 0 cm) -- ({} cm, 0 cm);\n".format((self.n+self.m)*node_dist)
         else:
             ret = ""
-        return ret + "".join(node((i-1)*node_dist, 0, label(i))
+        return ret + "".join(node((self.m+i)*node_dist, 0, label(i))
                              for i in self.index_set())
 
     def ascii_art(self, label=lambda i: i, node=None):

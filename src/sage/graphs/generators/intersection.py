@@ -333,7 +333,7 @@ def ToleranceGraph(tolrep):
         sage: g.is_isomorphic(graphs.PathGraph(3))
         True
 
-    TEST:
+    TESTS:
 
     Giving negative third value::
 

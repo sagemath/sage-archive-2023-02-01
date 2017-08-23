@@ -402,7 +402,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -412,14 +412,36 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7,4,'fixed-mod','series'); a = R(8); a.add_bigoh(1)
             1 + O(7^4)
+
+        TESTS:
+
+        We handle very large and very small values for ``absprec`` correctly::
+
+            sage: a = R(7)
+            sage: a.add_bigoh(2^1000)
+            7 + O(7^4)
+            sage: a.add_bigoh(-2^1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: absprec must be at least 0
+
         """
-        cdef long aprec, newprec
+        cdef long aprec
+        if absprec is infinity:
+            return self
         if isinstance(absprec, int):
             aprec = absprec
         else:
             if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
-            aprec = mpz_get_si((<Integer>absprec).value)
+            if mpz_sgn((<Integer>absprec).value) == -1:
+                aprec = -1
+            elif mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                aprec = self.prime_pow.ram_prec_cap
+            else:
+                aprec = mpz_get_si((<Integer>absprec).value)
+        if aprec < 0:
+            raise ValueError("absprec must be at least 0")
         if aprec >= self.prime_pow.prec_cap:
             return self
         cdef FMElement ans = self._new_c()

@@ -444,7 +444,7 @@ class RijndaelGF(SageObject):
         - ``Nb`` -- The block length of this instantiation. Must be between 4
           and 8.
 
-        - ``Nk`` -- The key length of this instantion. Must be between 4 and 8.
+        - ``Nk`` -- The key length of this instantiation. Must be between 4 and 8.
 
         - ``state_chr`` -- The variable name for polynomials representing
           elements from state matrices.

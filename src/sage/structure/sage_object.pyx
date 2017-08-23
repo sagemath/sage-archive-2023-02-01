@@ -235,8 +235,8 @@ cdef class SageObject:
             return str(type(self))
         else:
             result = repr_func()
-            if isinstance(result, unicode):
-                # Py3 compatibility: allow _repr_ to return unicode
+            if sys.version_info[0] < 3 and isinstance(result, unicode):
+                # for Py3 compatibility: allow _repr_ to return unicode
                 return result.encode('utf-8')
             else:
                 return result

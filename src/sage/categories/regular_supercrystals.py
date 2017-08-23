@@ -157,31 +157,27 @@ class RegularSuperCrystals(Category_singleton):
 
             return G
 
-        def connected_components_generators(self):
+        def genuine_highest_weight_vectors(self):
             r"""
-            Return tuple of generators for each of the connected components of ``self``.
+            Return the tuple of genuine highest weight elements of ``self``.
 
             EXAMPLES::
 
-                sage: B = crystals.Letters(['A',[1,2]])
-                sage: B.connected_components_generators()
-                [(-2,)]
+                sage: B = crystals.Letters(['A', [1,2]])
+                sage: B.genuine_highest_weight_vectors()
+                (-2,)
 
                 sage: T = B.tensor(B)
-                sage: T.connected_components_generators()
-                [([-2, -1],), ([-2, -2],)]
+                sage: T.genuine_highest_weight_vectors()
+                ([-2, -1], [-2, -2])
                 sage: s1, s2 = T.connected_components()
                 sage: s = s1 + s2
-                sage: s.connected_components_generators()
-                [([-2, -1],), ([-2, -2],)]
+                sage: s.genuine_highest_weight_vectors()
+                ([-2, -1], [-2, -2])
             """
-            # NOTE: we compute the connected components of the digraph,
-            # then highest weight elements in each connected components
-            X = []
-            for connected_component_vertices in self.digraph().connected_components():
-                gens = [g for g in connected_component_vertices if g.is_highest_weight()]
-                X.append(tuple(gens))
-            return X
+            return tuple([x[0] for x in self._genuine_highest_lowest_weight_vectors()])
+
+        connected_components_generators = genuine_highest_weight_vectors
 
         def connected_components(self):
             r"""
@@ -189,18 +185,18 @@ class RegularSuperCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = crystals.Letters(['A',[1,2]])
+                sage: B = crystals.Letters(['A', [1,2]])
                 sage: B.connected_components()
                 [Subcrystal of The crystal of letters for type ['A', [1, 2]]]
 
                 sage: T = B.tensor(B)
                 sage: T.connected_components()
                 [Subcrystal of Full tensor product of the crystals
-                [The crystal of letters for type ['A', [1, 2]],
-                 The crystal of letters for type ['A', [1, 2]]],
+                  [The crystal of letters for type ['A', [1, 2]],
+                   The crystal of letters for type ['A', [1, 2]]],
                  Subcrystal of Full tensor product of the crystals
-                 [The crystal of letters for type ['A', [1, 2]],
-                 The crystal of letters for type ['A', [1, 2]]]]
+                  [The crystal of letters for type ['A', [1, 2]],
+                   The crystal of letters for type ['A', [1, 2]]]]
             """
             category = RegularSuperCrystals()
             index_set = self.index_set()
@@ -217,6 +213,67 @@ class RegularSuperCrystals(Category_singleton):
                 CCs.append(subcrystal)
 
             return CCs
+
+        def genuine_lowest_weight_vectors(self):
+            r"""
+            Return the tuple of genuine lowest weight elements of ``self``.
+
+            EXAMPLES::
+
+                sage: B = crystals.Letters(['A', [1,2]])
+                sage: B.genuine_lowest_weight_vectors()
+                (3,)
+
+                sage: T = B.tensor(B)
+                sage: T.genuine_lowest_weight_vectors()
+                ([3, 3], [3, 2])
+                sage: s1, s2 = T.connected_components()
+                sage: s = s1 + s2
+                sage: s.genuine_lowest_weight_vectors()
+                ([3, 3], [3, 2])
+            """
+            return tuple([x[1] for x in self._genuine_highest_lowest_weight_vectors()])
+
+        @cached_method
+        def _genuine_highest_lowest_weight_vectors(self):
+            r"""
+            Return the genuine lowest and highest weight elements of ``self``.
+
+            EXAMPLES::
+
+                sage: B = crystals.Letters(['A', [1,2]])
+                sage: B._genuine_highest_lowest_weight_vectors()
+                ((-2, 3),)
+
+                sage: T = B.tensor(B)
+                sage: T._genuine_highest_lowest_weight_vectors()
+                (([-2, -1], [3, 3]), ([-2, -2], [3, 2]))
+                sage: s1, s2 = T.connected_components()
+                sage: s = s1 + s2
+                sage: s._genuine_highest_lowest_weight_vectors()
+                (([-2, -1], [3, 3]), ([-2, -2], [3, 2]))
+
+            An example with fake highest/lowest weight elements
+            from [BKK2000]_::
+
+                sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
+                sage: B._genuine_highest_lowest_weight_vectors()
+                (([[-2, -2, -2], [-1, -1], [1]], [[-1, 1, 2], [1, 2], [2]]),)
+            """
+            X = []
+            for G in self.digraph().connected_components_subgraphs():
+                src = G.sources()
+                sinks = G.sinks()
+                max_dist = -1
+                pair = None
+                for s in src:
+                    for t in sinks:
+                        d = G.distance(s, t)
+                        if d < float('inf') and d > max_dist:
+                            pair = (s, t)
+                            max_dist = d
+                X.append(pair)
+            return tuple(X)
 
         def tensor(self, *crystals, **options):
             """
@@ -245,26 +302,86 @@ class RegularSuperCrystals(Category_singleton):
 
         def character(self):
             """
-            Returns the character of ``self``.
+            Return the character of ``self``.
 
-            TODO: once the `WeylCharacterRing` is implemented, make this consistent
-                  with the implementation in `sage.categories.classical_crystals.character`.
+            .. TODO::
+
+                Once the `WeylCharacterRing` is implemented, make this
+                consistent with the implementation in
+                :meth:`sage.categories.classical_crystals.ClassicalCrystals.ParentMethods.character`.
 
             EXAMPLES::
 
                 sage: B = crystals.Letters(['A',[1,2]])
                 sage: B.character()
-                B[(1, 0, 0, 0, 0)] + B[(0, 1, 0, 0, 0)] + B[(0, 0, 1, 0, 0)] + B[(0, 0, 0, 1, 0)]
-                + B[(0, 0, 0, 0, 1)]
+                B[(1, 0, 0, 0, 0)] + B[(0, 1, 0, 0, 0)] + B[(0, 0, 1, 0, 0)]
+                 + B[(0, 0, 0, 1, 0)] + B[(0, 0, 0, 0, 1)]
             """
             from sage.rings.all import ZZ
             A = self.weight_lattice_realization().algebra(ZZ)
             return A.sum(A(x.weight()) for x in self)
 
-    class ElementMethods:
-
-        def epsilon(self, i):
+        @cached_method
+        def highest_weight_vectors(self):
             """
+            Return the highest weight vectors of ``self``.
+
+            EXAMPLES::
+
+                sage: B = crystals.Letters(['A', [1,2]])
+                sage: B.highest_weight_vectors()
+                (-2,)
+
+                sage: T = B.tensor(B)
+                sage: T.highest_weight_vectors()
+                ([-2, -2], [-2, -1])
+
+            We give an example from [BKK2000]_ that has fake
+            highest weight vectors::
+
+                sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
+                sage: B.highest_weight_vectors()
+                ([[-2, -2, -2], [-1, 2], [1]],
+                 [[-2, -2, -2], [-1, -1], [1]],
+                 [[-2, -2, 2], [-1, -1], [1]])
+
+                sage: B.genuine_highest_weight_vectors()
+                ([[-2, -2, -2], [-1, -1], [1]],)
+            """
+            return tuple(self.digraph().sources())
+
+        @cached_method
+        def lowest_weight_vectors(self):
+            """
+            Return the lowest weight vectors of ``self``.
+
+            EXAMPLES::
+
+                sage: B = crystals.Letters(['A', [1,2]])
+                sage: B.lowest_weight_vectors()
+                (3,)
+
+                sage: T = B.tensor(B)
+                sage: T.lowest_weight_vectors()
+                ([3, 3], [3, 2])
+
+            We give an example from [BKK2000]_ that has fake
+            lowest weight vectors::
+
+                sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
+                sage: B.lowest_weight_vectors()
+                ([[-2, 1, 2], [-1, 2], [1]],
+                 [[-1, 1, 2], [1, 2], [2]],
+                 [[-2, 1, 2], [-1, 2], [2]])
+
+                sage: B.genuine_lowest_weight_vectors()
+                ([[-1, 1, 2], [1, 2], [2]],)
+            """
+            return tuple(self.digraph().sinks())
+
+    class ElementMethods:
+        def epsilon(self, i):
+            r"""
             Return `\varepsilon_i` of ``self``.
 
             EXAMPLES::
@@ -289,7 +406,7 @@ class RegularSuperCrystals(Category_singleton):
                     string_length += 1
 
         def phi(self, i):
-            """
+            r"""
             Return `\varphi_i` of ``self``.
 
             EXAMPLES::
@@ -312,6 +429,36 @@ class RegularSuperCrystals(Category_singleton):
                     return string_length
                 else:
                     string_length += 1
+
+        def is_genuine_highest_weight(self, index_set=None):
+            """
+            Return whether ``self`` is a genuine highest weight element.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) the index set of the (sub)crystal
+              on which to check
+            """
+            P = self.parent()
+            if index_set is None or set(index_set) == set(P.index_set()):
+                return self in P.genuine_highest_weight_vectors()
+            S = P.subcrystal(generators=P, index_set=index_set, category=P.category())
+            return any(self == x.value for x in S.genuine_highest_weight_elements())
+
+        def is_genuine_lowest_weight(self, index_set=None):
+            """
+            Return whether ``self`` is a genuine lowest weight element.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) the index set of the (sub)crystal
+              on which to check
+            """
+            P = self.parent()
+            if index_set is None or set(index_set) == set(P.index_set()):
+                return self in P.genuine_lowest_weight_vectors()
+            S = P.subcrystal(generators=P, index_set=index_set, category=P.category())
+            return any(self == x.value for x in S.genuine_lowest_weight_elements())
 
     class TensorProducts(TensorProductsCategory):
         """

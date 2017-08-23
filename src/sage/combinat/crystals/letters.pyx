@@ -2290,7 +2290,7 @@ cdef class Crystal_of_letters_type_E7_element(LetterTuple):
             return None
 
 #########################
-# Type A(m,n) (in BKK)
+# Type A(m|n) (in BKK)
 #########################
 
 cdef class BKKLetter(Letter):

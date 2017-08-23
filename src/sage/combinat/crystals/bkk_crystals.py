@@ -1,5 +1,5 @@
 """
-Benkart-Kang-Kashiwara crystal for the general-linear Lie superalgebra
+Benkart-Kang-Kashiwara crystals for the general-linear Lie superalgebra
 """
 
 #*****************************************************************************
@@ -28,17 +28,18 @@ from sage.combinat.crystals.tensor_product_element import CrystalOfBKKTableauxEl
 
 
 class CrystalOfBKKTableaux(CrystalOfWords):
-    """
-    Crystal of tableaux for type `A(m,n)`.
+    r"""
+    Crystal of tableaux for type `A(m|n)`.
 
-    This is an implementation of the tableaux model of the Benkart-Kang-Kashiwara
-    crystal [BKK2000]_ for the super Lie algebra `\mathfrak{gl}(m+1,n+1)`.
+    This is an implementation of the tableaux model of the
+    Benkart-Kang-Kashiwara crystal [BKK2000]_ for the super
+    Lie algebra `\mathfrak{gl}(m+1,n+1)`.
 
     INPUT:
 
-    - ``ct`` -- a super Lie Cartan type of type `A`
-    - ``shape`` -- shape specifying the highest weight; this should be a partition
-                   contained in a hook of height `n+1` and width `m+1`
+    - ``ct`` -- a super Lie Cartan type of type `A(m|n)`
+    - ``shape`` -- shape specifying the highest weight; this should be
+      a partition contained in a hook of height `n+1` and width `m+1`
 
     EXAMPLES::
 
@@ -49,6 +50,8 @@ class CrystalOfBKKTableaux(CrystalOfWords):
     @staticmethod
     def __classcall_private__(cls, ct, shape):
         """
+        Normalize input to ensure a unique representation.
+
         TESTS::
 
             sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
@@ -66,6 +69,8 @@ class CrystalOfBKKTableaux(CrystalOfWords):
 
     def __init__(self, ct, shape):
         r"""
+        Initialize ``self``.
+
         TESTS::
 
             sage: T = crystals.Tableaux(['A', [1,1]], shape = [2,1]); T
@@ -90,6 +95,8 @@ class CrystalOfBKKTableaux(CrystalOfWords):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         TESTS::
 
             sage: crystals.Tableaux(['A', [1, 2]], shape=[2,1])
@@ -111,31 +118,29 @@ class CrystalOfBKKTableaux(CrystalOfWords):
         """
         return self._shape
 
-    def highest_weight_elements(self, fake = False):
+    def genuine_highest_weight_vectors(self, index_set=None):
         """
-        Return list of highest weight elements.
+        Return a tuple of genuine highest weight elements.
 
-        INPUT:
-
-        - ``fake`` -- (default: ``True``) boolean; if ``False`` returns genuine highest weight elements,
-                                                   if ``True`` returns genuine and fake highest weight elements
-
-        A fake highest weight vector is one which is annihilated by `e_i` for all `i` in the index set, but
-        whose weight is not bigger in dominance order than all other elements in the crystal.
+        A *fake highest weight vector* is one which is annihilated by
+        `e_i` for all `i` in the index set, but whose weight is not
+        bigger in dominance order than all other elements in the
+        crystal. A *genuine highest weight vector* is a highest
+        weight element that is not fake.
 
         EXAMPLES::
 
-            sage: B = crystals.Tableaux(['A', [1,1]], shape = [3,2,1])
-            sage: B.highest_weight_elements()
+            sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
+            sage: B.genuine_highest_weight_vectors()
             ([[-2, -2, -2], [-1, -1], [1]],)
-            sage: B.highest_weight_elements(fake=True)
-            ([[-2, -2, -2], [-1, -1], [1]],
-             [[-2, -2, -2], [-1, 2], [1]],
+            sage: B.highest_weight_vectors()
+            ([[-2, -2, -2], [-1, 2], [1]],
+             [[-2, -2, -2], [-1, -1], [1]],
              [[-2, -2, 2], [-1, -1], [1]])
         """
-        if not fake:
-           return self.module_generators
-        return tuple([b for b in self if b.is_highest_weight(fake=True)])
+        if index_set is None or index_set == self.index_set():
+            return self.module_generators
+        return super(CrystalOfBKKTableaux, self).genuine_highest_weight_vectors(index_set)
 
     class Element(CrystalOfBKKTableauxElement):
         pass

@@ -5123,39 +5123,31 @@ def dedekind_sum(p, q, algorithm='default'):
     raise ValueError('unknown algorithm')
 
 
-def gauss_sum(m, p, f, ring=None):
+def gauss_sum(char_value, p, f):
     r"""
     Return the Gauss sums for a general finite field `\GF(q)`.
 
     INPUT:
 
-    - ``m`` -- integer, the power of the generator of character group
+    - ``char_value`` -- choice of multiplicative character, given by its value
+      on the ``GF(q).multiplicative_generator()``
 
     - ``p`` -- a prime number
 
     - ``f`` -- an integer, such that `q = p ^ f`
 
-    - ``ring`` -- optional, (defaut: UniversalCyclotomicField)
-      Other possible values are QQbar or ComplexField.
-
     OUTPUT:
 
-    an element of the universal cyclotomic field (or of the given ring)
-
-    The character used for the Gauss sum is the `m`-th power of the
-    character `\chi` (a generator of the character group) that satisfies
-
-    .. MATH::
-
-        \chi(x) = e^{2 i \pi / (q-1)}
-
-    where `x` is the multiplicative generator of `\GF(q)` that is
-    returned by ``GF(q).multiplicative_generator()``.
+    an element of the parent ring of ``char_value``, that can be any
+    field containing enough roots of unity, for example the
+    UniversalCyclotomicField, QQbar or ComplexField
 
     EXAMPLES::
 
         sage: from sage.arith.misc import gauss_sum
-        sage: L = [gauss_sum(i,5,1) for i in range(5)]; L
+        sage: q = 5
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: L = [gauss_sum(zq**i,5,1) for i in range(5)]; L
         [-1,
          E(20)^4 + E(20)^13 - E(20)^16 - E(20)^17,
          E(5) - E(5)^2 - E(5)^3 + E(5)^4,
@@ -5164,21 +5156,32 @@ def gauss_sum(m, p, f, ring=None):
         sage: [g*g.conjugate() for g in L]
         [1, 5, 5, 5, 1]
 
-        sage: g = gauss_sum(4,11,2)
+        sage: q = 11**2
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: g = gauss_sum(zq**4,11,2)
         sage: g*g.conjugate()
         121
 
     TESTS::
 
-        sage: gauss_sum(2,11,1).n(60)
-        2.6361055643248352 + 2.0126965627574471*I
-        sage: gauss_sum(2,11,1,QQbar)
-        2.636105564324836? + 2.012696562757447?*I
-        sage: gauss_sum(2,11,1,ComplexField(60))
+        sage: q = 11
+        sage: zq = UniversalCyclotomicField().zeta(q-1)
+        sage: gauss_sum(zq**2,11,1).n(60)
         2.6361055643248352 + 2.0126965627574471*I
 
+        sage: zq = QQbar.zeta(q-1)
+        sage: gauss_sum(zq**2,11,1)
+        2.636105564324836? + 2.012696562757447?*I
+
+        sage: zq = ComplexField(60).zeta(q-1)
+        sage: gauss_sum(zq**2,11,1)
+        2.6361055643248352 + 2.0126965627574471*I
+
+        sage: q = 7
+        sage: zq = QQbar.zeta(q-1)
         sage: D = DirichletGroup(7, QQbar)
-        sage: all(D[i].gauss_sum()==gauss_sum(i,7,1,QQbar) for i in range(6))
+        sage: all(D[i].gauss_sum()==gauss_sum(zq**i,7,1)
+        ....:     for i in range(6))
         True
 
     .. SEEALSO::
@@ -5190,14 +5193,12 @@ def gauss_sum(m, p, f, ring=None):
           for prime finite fields
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
-    if ring is None:
-        from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-        ring = UniversalCyclotomicField()
+    ring = char_value.parent()
     q = p ** f
     Fq = FiniteField(q)
     gen = Fq.multiplicative_generator()
     zeta_p_powers = ring.zeta(p).powers(p)
-    zeta_q = ring.zeta(q - 1) ** m
+    zeta_q = char_value
 
     resu = ring.zero()
     gen_power = Fq.one()

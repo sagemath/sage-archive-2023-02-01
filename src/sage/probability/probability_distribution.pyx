@@ -94,7 +94,7 @@ cdef class ProbabilityDistribution:
 
         raise NotImplementedError("implement in derived class")
 
-    def generate_histogram_data(self, num_samples = 1000, bins = 50):
+    def generate_histogram_data(self, num_samples=1000, bins=50):
         """
         Compute a histogram of the probability distribution.
 
@@ -132,10 +132,9 @@ cdef class ProbabilityDistribution:
             sage: b
             [0.0, 0.20000000000000001, 0.40000000000000002, 0.60000000000000009, 0.80000000000000004, 1.0, 1.2000000000000002, 1.4000000000000001, 1.6000000000000001, 1.8, 2.0]
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        S = pylab.hist(l, bins, normed = True, hold = False)
+        S = pylab.hist(l, bins, normed=True)
         return [list(S[0]), list(S[1])]
 
     def generate_histogram_plot(self, name, num_samples = 1000, bins = 50):
@@ -166,10 +165,9 @@ cdef class ProbabilityDistribution:
             sage: file = os.path.join(SAGE_TMP, "my_general_distribution_plot")
             sage: X.generate_histogram_plot(file)
         """
-
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
-        pylab.hist(l, bins, normed = True, hold = False)
+        pylab.hist(l, bins, normed=True)
         pylab.savefig(name)
 
 

@@ -3134,7 +3134,7 @@ def _polylog_c(n, p):
     Prop. 6.1 of
 
         .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
-             for Computing p-Adic Polylogarithms." Mathematics of computation
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
     """
@@ -3166,7 +3166,7 @@ def _findprec(c_1, c_2, c_3, p):
     Remark 7.11 of
 
         .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
-             for Computing p-Adic Polylogarithms." Mathematics of computation
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
     """
     from sage.functions.other import ceil

@@ -4797,6 +4797,23 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
                     return False
         return True
 
+    def is_schon(self):
+        r"""
+        Check if ``self`` is schon (nondegenerate).
+        
+        See `is_nondegenerate` for further documentation.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: X = P2.subscheme([(x-y)^2*(x+y) + x*y*z + z^3])
+            sage: X.is_smooth()
+            True
+            sage: X.is_schon()
+            False
+    
+        """
+        return self.is_nondegenerate()
 
 class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
     r"""

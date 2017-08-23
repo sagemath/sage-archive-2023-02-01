@@ -311,7 +311,7 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
 
 def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
     r"""
-    Return a dynamical system on a projective scheme
+    Return a dynamical system on a projective scheme.
 
     INPUT:
 
@@ -352,7 +352,7 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
           Defn: Defined on coordinates by sending (x : y) to
                 (y : 2*x)
 
-    We can define dynamical systems on P^1 by giving a polynomial or
+    We can define dynamical systems on `P^1` by giving a polynomial or
     rational function::
 
         sage: R.<t> = QQ[]
@@ -646,9 +646,7 @@ def DynamicalSystem(morphism_or_polys, domain=None, names=None):
         1-dimensional projective space over the base ring of
         ``morphism_or_polys`` with coordinate names given by ``names``.
 
-    OUTPUT:
-
-    :class:`DynamicalSystem_projective` or :class:`DynamicalSystem_affine`.
+    OUTPUT: :class:`DynamicalSystem_projective` or :class:`DynamicalSystem_affine`.
 
     EXAMPLES::
 
@@ -725,6 +723,17 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
     """
 
     def __init__(self, polys_or_rat_fncts, domain):
+        r"""
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_generic
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2+y^2, y^2])
+            sage: isinstance(f, DynamicalSystem_generic)
+            True
+        """
         H = End(domain)
         # All consistency checks are done by the public class constructors,
         # so we can set check=False here.
@@ -818,7 +827,7 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
 
     def change_ring(self, R, check=True):
         r"""
-        Returns a new dynamical system which is this map coerced to ``R``.
+        Return a new dynamical system which is this map coerced to ``R``.
 
         If ``check`` is ``True``, then the initialization checks are performed.
 

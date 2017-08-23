@@ -54,8 +54,8 @@ from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine
 from sage.symbolic.ring import is_SymbolicExpressionRing
 from sage.symbolic.ring import var
 
-class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
-                             DynamicalSystem_generic):
+class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
+                                  DynamicalSystem_generic):
     r"""
     An endomorphism of affine schemes determined by rational functions.
 
@@ -95,16 +95,6 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
         The Python constructor.
 
         See :class:`DynamicalSystem_generic` for details.
-
-        INPUT:
-
-        - ``polys_or_rat_fncts`` -- a list of polynomials or rational functions.
-
-        - ``domain`` -- the domain of the map to be constructed.
-
-        OUTPUT:
-
-        - :class:`DynamicalSystem_affine`.
 
         EXAMPLES::
 
@@ -344,7 +334,9 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
             This could be improved.
 
-        INPUT: ``n`` - a positive integer.
+        INPUT:
+
+        - ``n`` - a positive integer.
 
         OUTPUT: A dynamical system of affine space.
 
@@ -458,10 +450,11 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
     def orbit(self, P, n):
         r"""
-        Returns the orbit of ``P`` by the dynamical system.
+        Return the orbit of ``P`` by the dynamical system.
 
-        If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
-        If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
+        Let `F` be this dynamical system. If `n` is an integer
+        return `[P,F(P),\ldots,F^n(P)]`.
+        If `n` is a list or tuple `n=[m,k]` return `[F^m(P),\ldots,F^k(P)]`.
 
         INPUT:
 
@@ -518,7 +511,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
 
     def multiplier(self, P, n, check=True):
         r"""
-        Returns the multiplier of the point ``P`` of period ``n`` by this
+        Return the multiplier of the point ``P`` of period ``n`` by this
         dynamical system.
 
         INPUT:
@@ -590,7 +583,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,\
             Q = R
         return l
 
-class DynamicalSystem_affine_field(DynamicalSystem_affine_ring,\
+class DynamicalSystem_affine_field(DynamicalSystem_affine_ring,
                                    SchemeMorphism_polynomial_affine_space_field):
 
     @cached_method
@@ -639,7 +632,7 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine_ring,\
         F = self.as_scheme_morphism().weil_restriction()
         return F.as_dynamical_system()
 
-class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,\
+class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
                                     SchemeMorphism_polynomial_affine_space_finite_field):
 
     def orbit_structure(self, P):
@@ -683,7 +676,7 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,\
 
     def cyclegraph(self):
         r"""
-        Returns digraph of all orbits of this morphism mod `p`.
+        Return the digraph of all orbits of this morphism mod `p`.
 
         For subschemes, only points on the subscheme whose
         image are also on the subscheme are in the digraph.

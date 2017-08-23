@@ -32,8 +32,8 @@ from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
 
 
-class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
-                                             ProductProjectiveSpaces_morphism_ring):
+class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
+                                              ProductProjectiveSpaces_morphism_ring):
     r"""
     The class of dynamical systems on products of projective spaces.
 
@@ -67,16 +67,6 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
         The Python constructor.
 
         See :class:`DynamicalSystem_generic` for details.
-
-        INPUT:
-
-        - ``polys`` -- a list of homogeneosu polynomials.
-
-        - ``domain`` -- the domain of the map to be constructed.
-
-        OUTPUT:
-
-        - :class:`DynamicalSystem_projective`.
 
         EXAMPLES::
 
@@ -181,9 +171,9 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,\
         r"""
         Return the orbit of `P` by this dynamcial system.
 
-        If `N` is an integer it returns `[P,self(P),\ldots,self^N(P)]`.
+        Let `F` be this dynamical system. If `N` is an integer return `[P,F(P),\ldots,F^N(P)]`.
 
-        If `N` is a list or tuple `N = [m, k]` it returns `[self^m(P),\ldots,self^k(P)]`.
+        If `N` is a list or tuple `N = [m, k]` return `[F^m(P),\ldots,F^k(P)]`.
         Automatically normalize the points if ``normalize == True``. Perform the checks on point initialize if
         ``check==True``.
 

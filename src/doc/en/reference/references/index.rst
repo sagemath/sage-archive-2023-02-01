@@ -745,7 +745,7 @@ REFERENCES:
              und Geometrie", Dissertation, University of
              Bayreuth, 2013.
 
-.. [FH2015]     \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
+.. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
             Wehler K3 Surfaces over finite fields. New Zealand Journal
             of Mathematics 45 (2015), 19–31.
 

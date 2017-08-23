@@ -106,8 +106,8 @@ from sage.rings.number_field.number_field import NumberField
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_generic
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
 
-class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space,\
-                             DynamicalSystem_generic):
+class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space,
+                                      DynamicalSystem_generic):
     r"""A dynamical system of projective schemes determined by homogeneous
     polynomials that define what the morphism does on points in the
     ambient projective space.
@@ -133,16 +133,6 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         The Python constructor.
 
         See :class:`DynamicalSystem_generic` for details.
-
-        INPUT:
-
-        - ``polys`` -- a list of homogeneosu polynomials.
-
-        - ``domain`` -- the domain of the map to be constructed.
-
-        OUTPUT:
-
-        - :class:`DynamicalSystem_projective`.
 
         EXAMPLES::
 
@@ -178,7 +168,8 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
 
     def dehomogenize(self, n):
-        r"""Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain
+        r"""
+        Return the standard dehomogenization at the ``n[0]`` coordinate for the domain
         and the ``n[1]`` coordinate for the codomain.
 
         Note that the new function is defined over the fraction field
@@ -235,7 +226,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
             \Phi^{\ast}_{m,n}(f)(x,y) = \Phi^{\ast}_n(f)(F_m,G_m)/\Phi^{\ast}_n(f)(F_{m-1},G_{m-1})
 
-        REFERENCES: [Hutz2015]_, [MoPa1994]_
+        REFERENCES:
+
+        - [Hutz2015]_
+
+        - [MoPa1994]_
 
         INPUT:
 
@@ -479,7 +474,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
             v^3*xbar^2 + u^2*v + u*v^2
             sage: dyn.parent()
             Symbolic Ring
-       """
+        """
         if self.domain().ngens() > 2:
             raise TypeError("does not make sense in dimension >1")
         if not isinstance(period, (list, tuple)):
@@ -538,7 +533,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def nth_iterate_map(self, n, normalize=False):
         r"""
-        Returns the ``n``-th iterate of this dynamical system.
+        Return the ``n``-th iterate of this dynamical system.
 
         ALGORITHM:
 
@@ -835,8 +830,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         r"""
         Return the orbit of the point ``P`` by this dynamical system.
 
-        If ``N`` is an integer it returns `[P,self(P),\ldots,self^N(P)]`.
-        If ``N`` is a list or tuple `N=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
+        Let `F` be this dynamical system. If ``N`` is an integer return
+        `[P,F(P),\ldots,F^N(P)]`. If ``N`` is a list or tuple `N=[m,k]`
+        return `[F^m(P),\ldots,F^k(P)]`.
         Automatically normalize the points if ``normalize=True``. Perform the checks on
         point initialization if ``check=True``.
 
@@ -1166,7 +1162,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         If possible the new map will be defined over the same space.
         Otherwise, will try to coerce to the base ring of ``M``.
 
-        INPUT: ``M`` -- a square invertible matrix.
+        INPUT:
+
+        - ``M`` -- a square invertible matrix.
 
         OUTPUT: a dynamical system.
 
@@ -1504,9 +1502,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         ::
 
             sage: RSA768 = 123018668453011775513049495838496272077285356959533479219732245215\
-                1726400507263657518745202199786469389956474942774063845925192557326303453731548\
-                2685079170261221429134616704292143116022212404792747377940806653514195974598569\
-                02143413
+            ....: 1726400507263657518745202199786469389956474942774063845925192557326303453731548\
+            ....: 2685079170261221429134616704292143116022212404792747377940806653514195974598569\
+            ....: 02143413
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([RSA768*x^2 + y^2, x*y])
             sage: Q = P(RSA768,1)
@@ -1634,8 +1632,8 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         ALGORITHM:
 
-            Uses a Nullstellensatz argument to compute the constant.
-            For details: see [Hutz2015]_.
+        Uses a Nullstellensatz argument to compute the constant.
+        For details: see [Hutz2015]_.
 
         INPUT:
 
@@ -1719,7 +1717,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def multiplier(self, P, n, check=True):
         r"""
-        Returns the multiplier of the point ``P`` of period ``n`` with
+        Return the multiplier of the point ``P`` of period ``n`` with
         respect to this dynamical system.
 
         INPUT:
@@ -1814,7 +1812,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def _multipliermod(self, P, n, p, k):
         r"""
-        Returns the multiplier of the point ``P`` of period ``n`` with respect to
+        Return the multiplier of the point ``P`` of period ``n`` with respect to
         this dynamical system modulo `p^k`.
 
         This map must be an endomorphism of projective space defined over `\QQ` or '\ZZ'.
@@ -1881,14 +1879,15 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def possible_periods(self, **kwds):
         r"""
-        Returns the set of possible periods for rational periodic points of
+        Return the set of possible periods for rational periodic points of
         this dynamical system.
 
         Must be defined over `\ZZ` or `\QQ`.
 
         ALGORITHM:
-            Calls ``self.possible_periods()`` modulo all primes of good reduction in range
-            ``prime_bound``. Returns the intersection of those lists.
+
+        Calls ``self.possible_periods()`` modulo all primes of good reduction in range
+        ``prime_bound``. Return the intersection of those lists.
 
         INPUT:
 
@@ -2312,7 +2311,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def critical_subscheme(self):
         r"""
-        Returns the critical subscheme of this dynamical system.
+        Return the critical subscheme of this dynamical system.
 
         OUTPUT: projective subscheme.
 
@@ -2375,7 +2374,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def critical_points(self, R=None):
         r"""
-        Returns the critical points of this dynamcial system defined over
+        Return the critical points of this dynamcial system defined over
         the ring ``R`` or the base ring of this map.
 
         Must be dimension 1.
@@ -3240,7 +3239,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
         r"""
-        Returns reduced form of this dynamical system.
+        Return reduced form of this dynamical system.
 
         The reduced form is the `SL(2, \ZZ)` equivalent morphism obtained by applying
         the binary form reduction algorithm from Stoll and Cremona [SC]_
@@ -3259,7 +3258,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         - ``prec`` -- integer, desired precision (default: 300).
 
-        - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, \ZZ)`. (default: True).
+        - ``return_conjuagtion`` -- A Boolean. Return an element of `SL(2, \ZZ)`. (default: True).
 
         - ``error_limit`` -- sets the error tolerance (default:0.000001).
 
@@ -3518,7 +3517,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         else:
             return False
 
-class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
+class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
                                        SchemeMorphism_polynomial_projective_space_field):
 
     def lift_to_rational_periodic(self, points_modp, B=None):
@@ -4305,7 +4304,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
     def conjugating_set(self, other):
         r"""
-        Returns the set of elements in PGL that conjugates one dynamical system to the other.
+        Return the set of elements in PGL that conjugates one dynamical system to the other.
 
         Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that
         conjugates one rational function to another. It does this by taking the fixed points of one map and mapping
@@ -4447,7 +4446,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
     def is_conjugate(self, other):
         r"""
-        Returns whether or not two dynamcial systems are conjugate.
+        Return whether or not two dynamcial systems are conjugate.
 
         ALGORITHM:
 
@@ -4674,7 +4673,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
 
     def normal_form(self, return_conjugation=False):
         r"""
-        Returns a normal form in the moduli space of dynamical systems.
+        Return a normal form in the moduli space of dynamical systems.
 
         Currently implemented only for polynomials. The totally ramified fixed point is
         moved to infinity and the map is conjugated to the form
@@ -4866,7 +4865,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,\
                 return gccc, m*mc*mc2, psi
         return gccc
 
-class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,\
+class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):
 
     def orbit_structure(self, P):
@@ -5007,7 +5006,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,\
 
     def possible_periods(self, return_points=False):
         r"""
-        Returns the list of possible minimal periods of a periodic point
+        Return the list of possible minimal periods of a periodic point
         over `\QQ` and (optionally) a point in each cycle.
 
         ALGORITHM:

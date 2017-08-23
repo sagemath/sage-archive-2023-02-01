@@ -5,7 +5,6 @@ from __future__ import absolute_import, print_function
 
 import sage.misc.latex
 from sage.misc.cachefunc import cached_method
-from sage.misc.latex import latex_variable_name
 from sage.misc.misc_c import prod
 
 from sage.structure.element cimport parent
@@ -17,6 +16,7 @@ from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
 from sage.arith.all import binomial
+from sage.misc.decorators import rename_keyword
 
 from sage.combinat.integer_vector import IntegerVectors
 
@@ -154,6 +154,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         return self.ideal(self.gens(), check=False)
 
+    @rename_keyword(deprecation=23377, p='names')
     def completion(self, names, prec=20, extras=None):
         """
         Return the completion of self with respect to the ideal
@@ -208,6 +209,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: q is not a variable of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: P.completion(p='x')
+            doctest:...: DeprecationWarning: use the option 'names' instead of 'p'
+            See http://trac.sagemath.org/23377 for details.
+            Power Series Ring in x over Univariate Polynomial Ring in y over Integer Ring
             sage: P.completion('x', extras="foo")
             doctest:...: DeprecationWarning: the 'extras' keyword to completion() is deprecated and ignored
             See http://trac.sagemath.org/23377 for details.
@@ -603,9 +608,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if n < 0 or n >= self.__ngens:
             raise ValueError("Generator not defined.")
         return self._gens[int(n)]
-
-    #def gens(self):
-        #return self._gens
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""

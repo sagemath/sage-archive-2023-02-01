@@ -209,12 +209,18 @@ cdef class Matrix(sage.structure.element.Matrix):
                 x.append(self.get_unsafe(i, j))
         return x
 
-    def dict(self):
-        """
-        Dictionary of the elements of self with keys pairs (i,j) and values
-        the nonzero entries of self.
+    def dict(self, copy=True):
+        r"""
+        Dictionary of the elements of ``self`` with keys pairs ``(i,j)``
+        and values the nonzero entries of ``self``.
 
-        It is safe to change the returned dictionary.
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) make a copy of the ``dict``
+          corresponding to ``self``
+
+        If ``copy=True``, then is safe to change the returned dictionary.
+        Otherwise, this can cause undesired behavior by mutating the ``dict``.
 
         EXAMPLES::
 
@@ -233,7 +239,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
         """
-        return dict(self._dict())
+        if copy:
+            return dict(self._dict())
+        return self._dict()
+
+    monomial_coefficients = dict
 
     def _dict(self):
         """
@@ -507,6 +517,31 @@ cdef class Matrix(sage.structure.element.Matrix):
         checking.
         """
         raise NotImplementedError("this must be defined in the derived type.")
+
+    def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
+        r"""
+        Add ``elt`` to the entry at position ``(i, j)``.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ['x,y'], 2, 2)
+            sage: m.add_to_entry(0, 1, 2)
+            sage: m
+            [0 2]
+            [0 0]
+        """
+        elt = self.base_ring()(elt)
+        if i < 0:
+            i += self._nrows
+        if i < 0 or i >= self._nrows:
+            raise IndexError("row index out of range")
+        if j < 0:
+            j += self._ncols
+        if j < 0 or j >= self._ncols:
+            raise IndexError("column index out of range")
+
+        self.set_unsafe(i, j, elt + self.get_unsafe(i, j))
+
 
 ##     def _get_very_unsafe(self, i, j):
 ##         r"""
@@ -1645,8 +1680,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
             '100 x 100 dense matrix over Integer Ring'
-            sage: print(A)
-            100 x 100 dense matrix over Integer Ring
 
         When a big matrix returned, include a hint on how to get the entries.
         This is a feature of the sage command-line::
@@ -1668,6 +1701,41 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             s = 'dense'
         return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
+
+    def __str__(self):
+        r"""
+        Return a string representation of this matrix. Unlike
+        ``__repr__`` (used by interactive sessions), this always prints
+        the matrix entries.
+
+        EXAMPLES::
+
+            sage: A = zero_matrix(ZZ, 20)
+            sage: A
+            20 x 20 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: print(A)
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        """
+        return self.str()
 
     def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
             *, unicode=False, shape=None):
@@ -4805,8 +4873,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.change_ring(self._base_ring.quotient_ring(p))
 
-
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -4843,7 +4910,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES:
 

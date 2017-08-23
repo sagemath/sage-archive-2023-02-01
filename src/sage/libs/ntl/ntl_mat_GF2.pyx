@@ -26,7 +26,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 

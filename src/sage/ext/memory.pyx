@@ -31,8 +31,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
+from cysignals.signals cimport sig_error
+
 from sage.libs.gmp.misc cimport mp_set_memory_functions
-include "cysignals/memory.pxi"
 
 cdef extern from "Python.h":
     # Declare as returning void without except value

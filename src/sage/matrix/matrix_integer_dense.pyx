@@ -65,7 +65,7 @@ from libc.string cimport strcpy, strlen
 
 from sage.ext.stdsage cimport PY_NEW
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
-from cysignals.memory cimport sig_malloc, sig_free, check_malloc
+from cysignals.memory cimport sig_malloc, sig_free, check_allocarray
 
 from sage.libs.gmp.mpz cimport *
 
@@ -140,22 +140,27 @@ fplll_fp_map = {None: None,
                 'xd': 'dpe',
                 'rr': 'mpfr'}
 
-cdef inline mpz_t * fmpz_mat_to_mpz_array(fmpz_mat_t m):
-    cdef mpz_t * entries = <mpz_t *> check_malloc(sizeof(mpz_t) * fmpz_mat_nrows(m) * fmpz_mat_ncols(m))
+
+cdef inline mpz_t * fmpz_mat_to_mpz_array(fmpz_mat_t m) except? NULL:
+    cdef mpz_t * entries = <mpz_t *>check_allocarray(fmpz_mat_nrows(m), sizeof(mpz_t) * fmpz_mat_ncols(m))
     cdef size_t i, j
     cdef size_t k = 0
+    sig_on()
     for i in range(fmpz_mat_nrows(m)):
         for j in range(fmpz_mat_ncols(m)):
             mpz_init(entries[k])
             fmpz_get_mpz(entries[k], fmpz_mat_entry(m, i, j))
             k += 1
+    sig_off()
     return entries
+
 
 cdef inline void mpz_array_clear(mpz_t * a, size_t length):
     cdef size_t i
     for i in range(length):
         mpz_clear(a[i])
     sig_free(a)
+
 
 cdef class Matrix_integer_dense(Matrix_dense):
     r"""
@@ -871,8 +876,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_off()
         return M
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -3272,7 +3276,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: B.rational_reconstruction(389) == A/3
             True
 
-        TEST:
+        TESTS:
 
         Check that :trac:`9345` is fixed::
 
@@ -5136,7 +5140,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             TypeError: number of rows must be the same, not 2 != 3
         """
-        if hasattr(right, '_vector_'):
+        if not isinstance(right, Matrix) and hasattr(right, '_vector_'):
             right = right.column()
         if self._nrows != right.nrows():
             raise TypeError('number of rows must be the same, not {0} != {1}'.format(self._nrows, right.nrows()))
@@ -5511,7 +5515,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: type(pari(a))
             <type 'cypari2.gen.Gen'>
         """
-        return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
+        return integer_matrix(self._matrix, 0)
 
     def _rank_pari(self):
         """
@@ -5592,7 +5596,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         cdef GEN A
         sig_on()
-        A = _new_GEN_from_fmpz_mat_t_rotate90(self._matrix, self._nrows, self._ncols)
+        A = _new_GEN_from_fmpz_mat_t_rotate90(self._matrix)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
         clear_stack()  # This calls sig_off()
@@ -5652,7 +5656,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [1 2 3]
             [0 3 6]
         """
-        cdef Gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        cdef Gen H = integer_matrix(self._matrix, 1)
         H = H.mathnf(flag)
         sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
@@ -5819,7 +5823,7 @@ cdef inline GEN pari_GEN(Matrix_integer_dense B):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef GEN A = _new_GEN_from_fmpz_mat_t(B._matrix, B._nrows, B._ncols)
+    cdef GEN A = _new_GEN_from_fmpz_mat_t(B._matrix)
     return A
 
 

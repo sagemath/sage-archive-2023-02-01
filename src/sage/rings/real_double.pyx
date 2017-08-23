@@ -40,18 +40,19 @@ Test NumPy conversions::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
+cimport libc.math
+from libc.string cimport memcpy
 from cpython.object cimport *
 from cpython.float cimport *
 
 from cysignals.signals cimport sig_on, sig_off
 
-include "sage/ext/python_debug.pxi"
 from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gsl.all cimport *
-cimport libc.math
-from libc.string cimport memcpy
 
 gsl_set_error_handler_off()
 
@@ -68,7 +69,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 
 
 def is_RealDoubleField(x):
@@ -338,12 +339,12 @@ cdef class RealDoubleField_class(Field):
         if S is int or S is float:
             return ToRDF(S)
 
-        from rational_field import QQ
-        from real_lazy import RLF
+        from .rational_field import QQ
+        from .real_lazy import RLF
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
-        from real_mpfr import RR, RealField_class
+        from .real_mpfr import RR, RealField_class
         if isinstance(S, RealField_class):
             if S.prec() >= 53:
                 return ToRDF(S)
@@ -423,7 +424,7 @@ cdef class RealDoubleField_class(Field):
         if prec == 53:
             return self
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return RealField(prec)
 
 
@@ -515,7 +516,7 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True

@@ -421,7 +421,7 @@ cpdef list enhance_braid_move_chain(braid_move_chain, cartan_type):
     - ``interval_of_change`` is the (half-open) interval of indices where
       the braid move occurs; this is `None` for the first tuple
     - ``cartan_sub_matrix`` is the off-diagonal entries of the `2 \times 2`
-      submatrix of the cartan matrix corresponding to the braid move;
+      submatrix of the Cartan matrix corresponding to the braid move;
       this is `None` for the first tuple
 
     For a matrix::

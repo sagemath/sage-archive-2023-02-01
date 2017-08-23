@@ -14,21 +14,26 @@ TESTS::
     []
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 from __future__ import absolute_import
 
+from cysignals.memory cimport check_calloc, sig_free
+from collections import Iterator, Sequence
+        
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_modn_sparse cimport *
 
 from cpython.sequence cimport *
-
-include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
@@ -59,9 +64,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         # set the parent, nrows, ncols, etc.
         Matrix_sparse.__init__(self, parent)
 
-        self._matrix = <mpz_vector*> sig_malloc(parent.nrows()*sizeof(mpz_vector))
-        if self._matrix == NULL:
-            raise MemoryError("error allocating sparse matrix")
+        self._matrix = <mpz_vector*>check_calloc(parent.nrows(), sizeof(mpz_vector))
 
         # initialize the rows
         for i from 0 <= i < parent.nrows():
@@ -105,7 +108,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         cdef PyObject** X
 
         # fill in entries in the dict case
-        if entries is None: return
+        if entries is None:
+            return
         if isinstance(entries, dict):
             R = self.base_ring()
             for ij, x in entries.iteritems():
@@ -116,7 +120,9 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
                         raise IndexError("invalid entries list")
                     mpz_vector_set_entry(&self._matrix[i], j, z.value)
 
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
 
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
@@ -184,7 +190,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -381,7 +387,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             [  7   2   2   3]
             [  4   3   4 5/7]
 
-        TEST:
+        TESTS:
 
         Check that :trac:`9345` is fixed::
 

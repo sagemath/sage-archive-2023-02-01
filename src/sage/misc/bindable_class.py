@@ -117,7 +117,7 @@ class BindableClass(six.with_metaclass(ClasscallMetaclass)):
             sage: type(outer.Inner).mro()
             [<class 'sage.misc.bindable_class.BoundClass'>,
              <type 'functools.partial'>,
-             <type 'object'>]
+             <... 'object'>]
 
         Still, documentation works as usual::
 
@@ -193,7 +193,7 @@ class BoundClass(functools.partial):
 
         Until a better approach is found, we reset the documentation
         of ``BoundClass`` below, and make an exception for
-        :meth:`__init__`` to the strict rule that every method should
+        :meth:`__init__` to the strict rule that every method should
         be doctested::
 
             sage: c.__class__.__doc__

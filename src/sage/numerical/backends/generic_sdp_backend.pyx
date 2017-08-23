@@ -6,7 +6,7 @@ interface with a SDP Solver. All these methods immediately raise
 ``NotImplementedError`` exceptions when called, and are obviously
 meant to be replaced by the solver-specific method. This file can also
 be used as a template to create a new interface : one would only need
-to replace the occurences of ``"Nonexistent_SDP_solver"`` by the
+to replace the occurrences of ``"Nonexistent_SDP_solver"`` by the
 solver's name, and replace ``GenericSDPBackend`` by
 ``SolverName(GenericSDPBackend)`` so that the new solver extends this
 class.
@@ -191,8 +191,7 @@ cdef class GenericSDPBackend:
             sage: [p.objective_coefficient(x) for x in range(5)]  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
 
-        Constants in the objective function are respected::
-
+        Constants in the objective function are respected.
         """
         raise NotImplementedError()
 
@@ -674,7 +673,7 @@ def default_sdp_solver(solver = None):
 
 cpdef GenericSDPBackend get_solver(solver = None):
     """
-    Return a solver according to the given preferences
+    Return a solver according to the given preferences.
 
     INPUT:
 
@@ -688,7 +687,7 @@ cpdef GenericSDPBackend get_solver(solver = None):
 
     .. SEEALSO::
 
-    - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
+        - :func:`default_sdp_solver` -- Returns/Sets the default SDP solver.
 
     EXAMPLES::
 

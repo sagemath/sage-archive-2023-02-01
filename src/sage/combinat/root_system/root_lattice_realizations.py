@@ -491,7 +491,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             Return the basic imaginary roots of ``self``.
 
             The basic imaginary roots `\delta` are the set of imaginary roots
-            in `-C^{\vee}` where `C` is the dominant chamger (i.e.,
+            in `-C^{\vee}` where `C` is the dominant chamber (i.e.,
             `\langle \beta, \alpha_i^{\vee} \rangle \leq 0` for all `i \in I`).
             All imaginary roots are `W`-conjugate to a simple imaginary root.
 
@@ -1194,11 +1194,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             """
             if not self.cartan_type().is_finite():
-                raise ValueError("%s is not a finite Cartan type"%(self.cartan_type()))
-            from sage.combinat.combinat import MapCombinatorialClass
-            return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
-            # Todo: use this instead once RecursivelyEnumeratedSet will be a proper enumerated set
-            #return self.positive_roots().map(attrcall('__negate__'))
+                raise ValueError("%s is not a finite Cartan type" % self.cartan_type())
+            return self.positive_roots().map(attrcall('__neg__'))
 
         ##########################################################################
         # coroots
@@ -1510,7 +1507,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: s[1]( r.simple_root(1) )
                 -alpha[1]
 
-            TEST::
+            TESTS::
 
                 sage: s
                 simple reflections
@@ -1599,7 +1596,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: pi[1](x[2])
                 -Lambda[1] + 2*Lambda[2]
 
-            TESTS:
+            TESTS::
+
                 sage: pi
                 pi
             """
@@ -2730,7 +2728,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             G = plot_options.empty()
             if alcoves is not True:
                 alcoves = list(alcoves)
-            if alcoves is True or (len(alcoves)>0 and W.is_parent_of(alcoves[0])):
+            if alcoves is True or (alcoves and W.is_parent_of(alcoves[0])):
                 if alcoves is True:
                     alcoves = W.weak_order_ideal(alcove_in_bounding_box, side="right")
                 # We assume that the fundamental alcove lies within
@@ -3223,7 +3221,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             For example, if invoked on the root lattice of type `['B',2]`, returns the
             coroot lattice of type `['C',2]`.
 
-            ..warning::
+            .. WARNING::
 
                 Not implemented for ambient spaces.
 
@@ -3777,7 +3775,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: ``None`` for all of them)
+              nodes of the Dynkin diagram; (default: ``None`` for all of them)
 
             If ``index_set`` is specified, the successors for the
             corresponding parabolic subsystem are returned.
@@ -3806,7 +3804,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: ``None`` for all of them)
+              nodes of the Dynkin diagram; (default: ``None`` for all of them)
 
             If ``index_set`` is specified, the successors for the
             corresponding parabolic subsystem are returned.

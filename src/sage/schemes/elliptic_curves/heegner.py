@@ -4383,7 +4383,8 @@ class KolyvaginCohomologyClass(SageObject):
 
     def __eq__(self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: y = EllipticCurve('37a').heegner_point(-7)
             sage: c = y.kolyvagin_cohomology_class(3)
             sage: c == y.kolyvagin_cohomology_class(3)

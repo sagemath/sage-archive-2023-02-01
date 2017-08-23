@@ -41,7 +41,7 @@ def example_type_space(example_no = 0):
 
         sage: from sage.modular.local_comp.type_space import example_type_space
         sage: example_type_space()  # takes a while but caches stuff (21s on sage.math, 2012)
-        6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+        6-dimensional type space at prime 7 of form q + ... + O(q^6)
 
     The above test takes a long time, but it precomputes and caches
     various things such that subsequent doctests can be very quick.
@@ -161,7 +161,7 @@ class TypeSpace(SageObject):
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space() # indirect doctest
-            6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+            6-dimensional type space at prime 7 of form q + ... + O(q^6)
         """
         self._p = p
         self._f = f
@@ -188,7 +188,7 @@ class TypeSpace(SageObject):
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space()._repr_()
-            '6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)'
+            '6-dimensional type space at prime 7 of form q + ... + O(q^6)'
         """
         return "%s-dimensional type space at prime %s of form %s" % (self.t_space.rank(), self.prime(), self.form())
 
@@ -212,7 +212,7 @@ class TypeSpace(SageObject):
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().form()
-            q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+            q + ... + O(q^6)
         """
         return self._f
 

@@ -23,8 +23,8 @@ Check that operations with numpy elements work well (see :trac:`18076` and
 """
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
@@ -443,7 +443,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         EXAMPLES::
 

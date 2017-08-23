@@ -350,7 +350,7 @@ class PrimarySimilarityClassType(Element):
     of order `|\lambda| \cdot d` with entries in a finite field of order `q`
     which correspond to the `\GF{q[t]}`-module
 
-    .. MATH ::
+    .. MATH::
 
         \frac{\GF{q[t]}}{p(t)^{\lambda_1} } \oplus
         \frac{\GF{q[t]}}{p(t)^{\lambda_2}} \oplus \dotsb

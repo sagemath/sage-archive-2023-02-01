@@ -1839,7 +1839,7 @@ def ChvatalGraph():
         2
         4
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.ChvatalGraph()
@@ -2675,7 +2675,7 @@ def FruchtGraph():
         'KhCKM?_EGK?L'
         sage: (graphs.FruchtGraph()).show() # long time
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.FruchtGraph()
@@ -2924,7 +2924,7 @@ def HeawoodGraph():
         'MhEGHC@AI?_PC@_G_'
         sage: (graphs.HeawoodGraph()).show() # long time
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.HeawoodGraph()
@@ -3393,7 +3393,7 @@ def KrackhardtKiteGraph():
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.KrackhardtKiteGraph()
@@ -4793,14 +4793,16 @@ def _EllipticLinesProjectivePlaneScheme(k):
     from sage.matrix.constructor import matrix
     from itertools import product
     q = 2**k
-    g0 = libgap.GeneralOrthogonalGroup(3,q) # invariant form x0^2+x1*x2
-    g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(),libgap.TransposedMat))
+    g0 = libgap.GeneralOrthogonalGroup(3,q)  # invariant form x0^2+x1*x2
+    g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(), libgap.TransposedMat))
     W = libgap.FullRowSpace(libgap.GF(q), 3)
-    l=sum(libgap.Elements(libgap.Basis(W)))
-    gp = libgap.Action(g,libgap.Orbit(g,l,libgap.OnLines),libgap.OnLines)
-    orbitals = gp.Orbits(list(product(gp.Orbit(1),gp.Orbit(1))),libgap.OnTuples)
-    mats = map(lambda o: map(lambda x: (int(x[0])-1,int(x[1])-1), o), orbitals)
-    return map(lambda x: matrix(q*(q-1)/2, lambda i,j: 1 if (i,j) in x else 0), mats)
+    l = sum(libgap.Elements(libgap.Basis(W)))
+    gp = libgap.Action(g, libgap.Orbit(g, l, libgap.OnLines), libgap.OnLines)
+    orbitals = gp.Orbits(list(product(gp.Orbit(1), gp.Orbit(1))),
+                         libgap.OnTuples)
+    mats = map(lambda o: [(int(x[0]) - 1, int(x[1]) - 1) for x in o], orbitals)
+    return [matrix(q * (q - 1) / 2, lambda i, j: 1 if (i, j) in x else 0)
+            for x in mats]
 
 
 def MathonStronglyRegularGraph(t):

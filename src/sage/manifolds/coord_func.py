@@ -71,7 +71,7 @@ class CoordFunction(AlgebraElement):
         r"""
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()

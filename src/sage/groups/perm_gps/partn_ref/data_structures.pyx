@@ -29,8 +29,8 @@ REFERENCES:
 from libc.math cimport log, ceil
 from libc.string cimport memcpy, memset
 from libc.stdlib cimport rand
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 
-include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 from sage.rings.integer cimport Integer
 from sage.libs.flint.ulong_extras cimport n_is_prime
@@ -292,7 +292,7 @@ cdef int PS_first_smallest(PartitionStack *PS, bitset_t b, int *second_pos=NULL,
     bitset_zero(b)
     while 1:
         if PS.levels[i] <= PS.depth:
-            if i != j and n > i - j + 1 and (partn_ref_alg==None or 
+            if i != j and n > i - j + 1 and (partn_ref_alg is None or 
                                 partn_ref_alg._minimization_allowed_on_col(PS.entries[j])):
                 n = i - j + 1
                 location = j

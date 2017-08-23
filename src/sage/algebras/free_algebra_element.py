@@ -40,7 +40,6 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element import AlgebraElement
-from sage.structure.sage_object import richcmp
 
 
 import six
@@ -49,6 +48,18 @@ import six
 class FreeAlgebraElement(IndexedFreeModuleElement, AlgebraElement):
     """
     A free algebra element.
+
+    TESTS:
+
+    The ordering is inherited from ``IndexedFreeModuleElement``::
+
+        sage: R.<x,y> = FreeAlgebra(QQ,2)
+        sage: x < y
+        True
+        sage: x * y < y * x
+        True
+        sage: y * x < x * y
+        False
     """
     def __init__(self, A, x):
         """
@@ -171,27 +182,6 @@ class FreeAlgebraElement(IndexedFreeModuleElement, AlgebraElement):
         if result is None:
             return self.parent()(0)
         return result
-
-    def _richcmp_(left, right, op):
-        """
-        Compare two free algebra elements with the same parents.
-
-        The ordering is the one on the underlying sorted list of
-        (monomial,coefficients) pairs.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: x < y
-            True
-            sage: x * y < y * x
-            True
-            sage: y * x < x * y
-            False
-        """
-        v = sorted(left._monomial_coefficients.items())
-        w = sorted(right._monomial_coefficients.items())
-        return richcmp(v, w, op)
 
     def _mul_(self, y):
         """

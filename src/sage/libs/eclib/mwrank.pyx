@@ -18,15 +18,15 @@ EXAMPLES::
     sage: t
     [[1:2:1]]
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import os
 import sys
 
-from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
 
 cdef extern from "wrap.cpp":
     ### misc functions ###

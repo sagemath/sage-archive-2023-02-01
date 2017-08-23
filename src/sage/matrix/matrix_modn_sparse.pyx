@@ -68,17 +68,22 @@ TESTS::
     []
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
 
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from collections import Iterator, Sequence
+
+from cysignals.memory cimport check_calloc, sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.modules.vector_modn_sparse cimport *
 
@@ -145,20 +150,18 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         p = parent.base_ring().order()
         self.p = p
 
-
-        self.rows = <c_vector_modint*> sig_malloc(nr*sizeof(c_vector_modint))
-        if self.rows == NULL:
-            raise MemoryError("error allocating memory for sparse matrix")
+        self.rows = <c_vector_modint*>check_calloc(nr, sizeof(c_vector_modint))
 
         for i from 0 <= i < nr:
             init_c_vector_modint(&self.rows[i], p, nc, 0)
 
 
     def __dealloc__(self):
-        cdef int i
-        for i from 0 <= i < self._nrows:
-            clear_c_vector_modint(&self.rows[i])
-        sig_free(self.rows)
+        cdef Py_ssize_t i
+        if self.rows:
+            for i in range(self._nrows):
+                clear_c_vector_modint(&self.rows[i])
+            sig_free(self.rows)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -203,7 +206,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
                         raise IndexError("invalid entries list")
                     set_entry(&self.rows[i], j, z)
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
             # Dense input format
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
@@ -657,7 +662,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -696,7 +701,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            cols = list(cols)
 
         A = self.new_matrix(ncols = len(cols))
 

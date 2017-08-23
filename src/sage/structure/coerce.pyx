@@ -73,7 +73,7 @@ see the documentation for :class:`Parent`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport (PyObject, PyTypeObject,
         PyObject_CallObject, PyObject_RichCompare, Py_TYPE)
@@ -85,7 +85,8 @@ import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
-from .sage_object cimport SageObject, rich_to_bool
+from .richcmp cimport rich_to_bool
+from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
@@ -96,6 +97,8 @@ from sage.categories.action cimport Action, InverseAction, PrecomposedAction
 
 import traceback
 
+from fractions import Fraction
+cdef type FractionType = <type>Fraction
 
 cpdef py_scalar_parent(py_type):
     """
@@ -118,6 +121,10 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(dict),
         (None,)
 
+        sage: import fractions
+        sage: py_scalar_parent(fractions.Fraction)
+        Rational Field
+
         sage: import numpy
         sage: py_scalar_parent(numpy.int16)
         Integer Ring
@@ -137,6 +144,9 @@ cpdef py_scalar_parent(py_type):
     if issubclass(py_type, int) or issubclass(py_type, long):
         import sage.rings.integer_ring
         return sage.rings.integer_ring.ZZ
+    if py_type is FractionType:
+        import sage.rings.rational_field
+        return sage.rings.rational_field.QQ
     elif issubclass(py_type, float):
         import sage.rings.real_double
         return sage.rings.real_double.RDF
@@ -187,6 +197,11 @@ cpdef py_scalar_to_element(x):
         sage: py_scalar_to_element('hello')
         'hello'
 
+        sage: from fractions import Fraction
+        sage: f = Fraction(int(2^100), int(3^100))
+        sage: py_scalar_to_element(f)
+        1267650600228229401496703205376/515377520732011331036461129765621272702107522001
+
     Note that bools are converted to 0 or 1::
 
         sage: py_scalar_to_element(False), py_scalar_to_element(True)
@@ -215,6 +230,9 @@ cpdef py_scalar_to_element(x):
     elif isinstance(x, int):
         from sage.rings.integer import Integer
         return Integer(x)
+    elif type(x) is FractionType:
+        from sage.rings.rational import Rational
+        return Rational(x)
     elif isinstance(x, float):
         from sage.rings.real_double import RDF
         return RDF(x)
@@ -278,7 +296,7 @@ cpdef bint is_numpy_type(t):
         sage: 1 + object()
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<type 'object'>'
+        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<... 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -534,7 +552,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If the stack has not yet been flagged as cleared, we clear it now (rather
         than wasting time to do so for successful operations).
 
-        TEST::
+        TESTS::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.record_exceptions()
@@ -1000,9 +1018,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         TESTS::
 
-            sage: class Foo:
-            ....:    def __rmul__(self, left):
-            ....:        return 'hello'
+            sage: class Foo(object):
+            ....:     def __rmul__(self, left):
+            ....:         return 'hello'
             sage: H = Foo()
             sage: print(int(3)*H)
             hello
@@ -1011,9 +1029,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print(H*3)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<type 'instance'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<class '__main__.Foo'>' and 'Integer Ring'
 
-            sage: class Nonsense:
+            sage: class Nonsense(object):
             ....:     def __init__(self, s):
             ....:         self.s = s
             ....:     def __repr__(self):
@@ -1033,7 +1051,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             blahblahP
             sage: 80+a
             Pblahblah
-
         """
         self._exceptions_cleared = False
         if (op is not sub) and (op is not isub):
@@ -1308,14 +1325,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.coercion_maps(V, W)
             (None, (map internal to coercion system -- copy before use)
-            Conversion map:
-              From: Vector space of dimension 3 over Rational Field
-              To:   Vector space of dimension 3 over Rational Field)
+             Coercion map:
+               From: Vector space of dimension 3 over Rational Field
+               To:   Vector space of dimension 3 over Rational Field)
             sage: cm.coercion_maps(W, V)
             (None, (map internal to coercion system -- copy before use)
-            Conversion map:
-              From: Vector space of dimension 3 over Rational Field
-              To:   Vector space of dimension 3 over Rational Field)
+             Coercion map:
+               From: Vector space of dimension 3 over Rational Field
+               To:   Vector space of dimension 3 over Rational Field)
             sage: v = V([1,2,3])
             sage: w = W([1,2,3])
             sage: parent(v+w) is V
@@ -1807,7 +1824,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: from sage.structure.element import get_coercion_model
-            sage: from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
+            sage: from sage.structure.richcmp import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
             sage: richcmp = get_coercion_model().richcmp
             sage: richcmp(None, None, op_EQ)
             True

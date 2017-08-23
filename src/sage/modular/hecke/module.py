@@ -121,20 +121,6 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         return hash((self.base_ring(), self.__level))
 
-    def __cmp__(self, other):
-        r"""
-        Compare self to other. This must be overridden in all subclasses.
-
-        EXAMPLES::
-
-            sage: M = ModularForms(Gamma0(3))
-            sage: sage.modular.hecke.module.HeckeModule_generic.__cmp__(M, M)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ...
-        """
-        raise NotImplementedError("Derived class %s should implement __cmp__" % type(self))
-
     def _compute_hecke_matrix_prime_power(self, p, r, **kwds):
         r"""
         Compute the Hecke matrix T_{p^r}, where `p` is prime and `r \ge 2`, assuming that
@@ -1707,8 +1693,8 @@ class HeckeModule_free_module(HeckeModule_generic):
 
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()
-            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]
-            [[1, 1, 0], [1, -1, 1/2*alpha + 1/2]]
+            sage: [[o.minpoly() for o in A.system_of_eigenvalues(3)] for A in S.decomposition()]
+            [[x - 1, x - 1, x], [x - 1, x + 1, x^2 - 2*x - 2]]
 
         Next we define a function that does the above::
 

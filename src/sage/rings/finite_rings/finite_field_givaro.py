@@ -2,7 +2,7 @@
 Givaro Finite Field
 
 Finite fields that are implemented using Zech logs and the
-cardinality must be less than `2^{16}`. By default, conway polynomials are
+cardinality must be less than `2^{16}`. By default, Conway polynomials are
 used as minimal polynomial.
 
 TESTS:
@@ -40,7 +40,7 @@ from sage.libs.pari.all import pari
 class FiniteField_givaro(FiniteField):
     """
     Finite field implemented using Zech logs and the cardinality must be
-    less than `2^{16}`. By default, conway polynomials are used as minimal
+    less than `2^{16}`. By default, Conway polynomials are used as minimal
     polynomials.
 
     INPUT:
@@ -74,7 +74,7 @@ class FiniteField_givaro(FiniteField):
 
     EXAMPLES:
 
-    By default conway polynomials are used for extension fields::
+    By default, Conway polynomials are used for extension fields::
 
         sage: k.<a> = GF(2**8)
         sage: -a ^ k.degree()
@@ -130,8 +130,6 @@ class FiniteField_givaro(FiniteField):
             True
             sage: TestSuite(GF(2^3, 'a')).run()
         """
-        self._kwargs = {}
-
         if repr not in ['int', 'log', 'poly']:
             raise ValueError("Unknown representation %s"%repr)
 
@@ -149,9 +147,6 @@ class FiniteField_givaro(FiniteField):
 
         from .finite_field_constructor import GF
         FiniteField.__init__(self, GF(p), name, normalize=False)
-
-        self._kwargs['repr'] = repr
-        self._kwargs['cache'] = cache
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if not is_Polynomial(modulus):
@@ -276,7 +271,7 @@ class FiniteField_givaro(FiniteField):
             0
 
         Rational are interpreted as ``self(numerator)/self(denominator)``.
-        Both may not be greater than :meth:characteristic()`.
+        Both may not be greater than :meth:`characteristic`.
         ::
 
             sage: k = GF(3**8, 'a')
@@ -336,7 +331,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(R(1/5))
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         PARI elements are interpreted as finite field elements; this PARI
         flexibility is (absurdly!) liberal::

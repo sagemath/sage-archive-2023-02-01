@@ -550,7 +550,7 @@ class Decorator(object):
 
         Needs to be implemented in derived subclass.
 
-        TEST::
+        TESTS::
 
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()

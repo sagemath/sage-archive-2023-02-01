@@ -1015,7 +1015,7 @@ elliptic_pi = EllipticPi()
 
 def error_fcn(x):
     """
-    Deprecated in :trac:21819`. Please use ``erfc()``.
+    Deprecated in :trac:`21819`. Please use ``erfc()``.
 
     EXAMPLES::
 

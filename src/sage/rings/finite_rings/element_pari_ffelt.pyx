@@ -16,10 +16,11 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from cypari2.paridecl cimport *
 from cypari2.paripriv cimport *
 from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
@@ -27,7 +28,7 @@ from cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
 from cypari2.gen cimport Gen as pari_gen, objtogen
 
 from .element_base cimport FinitePolyExtElement
-from integer_mod import IntegerMod_abstract
+from .integer_mod import IntegerMod_abstract
 
 import sage.rings.integer
 from sage.interfaces.gap import is_GapElement
@@ -142,7 +143,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         This is called when constructing elements from Python.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.finite_rings.element_pari_ffelt import FiniteFieldElement_pari_ffelt
             sage: K = FiniteField(101^2, 'a', impl='pari_ffelt')
@@ -358,7 +359,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         For pickling.
 
-        TEST::
+        TESTS::
 
             sage: K.<a> = FiniteField(10007^10, impl='pari_ffelt')
             sage: loads(a.dumps()) == a
@@ -648,11 +649,15 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         x.construct(FF_pow(self.val, (<pari_gen>exp).g))
         return x
 
-    def polynomial(FiniteFieldElement_pari_ffelt self):
+    def polynomial(FiniteFieldElement_pari_ffelt self, name=None):
         """
         Return the unique representative of ``self`` as a polynomial
         over the prime field whose degree is less than the degree of
         the finite field over its prime field.
+
+        INPUT:
+
+        - ``name`` -- (optional) variable name
 
         EXAMPLES::
 
@@ -669,13 +674,15 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: a = k.gen()
             sage: a.polynomial()
             alpha
-            sage: (a**2 + 1).polynomial()
-            alpha^2 + 1
+            sage: (a**2 + 1).polynomial('beta')
+            beta^2 + 1
             sage: (a**2 + 1).polynomial().parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
+            sage: (a**2 + 1).polynomial('beta').parent()
+            Univariate Polynomial Ring in beta over Finite Field of size 3
         """
         sig_on()
-        return self._parent.polynomial_ring()(new_gen(FF_to_FpXQ_i(self.val)))
+        return self._parent.polynomial_ring(name)(new_gen(FF_to_FpXQ_i(self.val)))
 
     def minpoly(self, var='x'):
         """

@@ -23,7 +23,7 @@ TESTS:
 
 """
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.arb.acb cimport *
 from sage.rings.integer cimport Integer, smallInteger

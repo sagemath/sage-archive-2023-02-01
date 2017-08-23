@@ -118,7 +118,7 @@ class Function_sin(GinacFunction):
             sin(1/42*pi)
         """
         GinacFunction.__init__(self, 'sin', latex_name=r"\sin",
-                conversions=dict(maxima='sin',mathematica='Sin'))
+                conversions=dict(maxima='sin',mathematica='Sin',giac='sin'))
 
 sin = Function_sin()
 
@@ -180,7 +180,7 @@ class Function_cos(GinacFunction):
             -cos(1/42*pi)
         """
         GinacFunction.__init__(self, 'cos', latex_name=r"\cos",
-                conversions=dict(maxima='cos',mathematica='Cos'))
+                conversions=dict(maxima='cos',mathematica='Cos',giac='cos'))
 
 cos = Function_cos()
 
@@ -538,7 +538,7 @@ class Function_arcsin(GinacFunction):
             False
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
-                conversions=dict(maxima='asin', sympy='asin', fricas="asin"))
+                conversions=dict(maxima='asin', sympy='asin', fricas="asin", giac="asin"))
 
 arcsin = asin = Function_arcsin()
 
@@ -604,7 +604,7 @@ class Function_arccos(GinacFunction):
             False
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
-                conversions=dict(maxima='acos', sympy='acos', fricas='acos'))
+                conversions=dict(maxima='acos', sympy='acos', fricas='acos', giac='acos'))
 
 arccos = acos = Function_arccos()
 
@@ -672,7 +672,7 @@ class Function_arctan(GinacFunction):
             1/2*pi
         """
         GinacFunction.__init__(self, 'arctan', latex_name=r"\arctan",
-                conversions=dict(maxima='atan', sympy='atan', fricas='atan'))
+                conversions=dict(maxima='atan', sympy='atan', fricas='atan', giac='atan'))
 
 arctan = atan = Function_arctan()
 
@@ -722,7 +722,7 @@ class Function_arccot(GinacFunction):
 
         """
         GinacFunction.__init__(self, 'arccot', latex_name=r"\operatorname{arccot}",
-                conversions=dict(maxima='acot', sympy='acot', fricas='acot'))
+                conversions=dict(maxima='acot', sympy='acot', fricas='acot',giac='acot'))
 
     def _eval_numpy_(self, x):
         """
@@ -778,7 +778,7 @@ class Function_arccsc(GinacFunction):
             (0.45227844715119064-0.5306375309525178j)
         """
         GinacFunction.__init__(self, 'arccsc', latex_name=r"\operatorname{arccsc}",
-                               conversions=dict(maxima='acsc', sympy='acsc', fricas='acsc'))
+                               conversions=dict(maxima='acsc', sympy='acsc', fricas='acsc', giac='acsc'))
 
     def _eval_numpy_(self, x):
         """
@@ -836,7 +836,7 @@ class Function_arcsec(GinacFunction):
             (1.118517879643706+0.5306375309525178j)
         """
         GinacFunction.__init__(self, 'arcsec', latex_name=r"\operatorname{arcsec}",
-                               conversions=dict(maxima='asec', sympy='asec', fricas='asec'))
+                               conversions=dict(maxima='asec', sympy='asec', fricas='asec', giac='asec'))
 
     def _eval_numpy_(self, x):
         """

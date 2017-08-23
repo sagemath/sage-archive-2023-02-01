@@ -96,6 +96,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import SymmetricGroupElement
 from sage.structure.unique_representation import CachedRepresentation
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -146,7 +147,7 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
 
             The hash currently is broken for this comparison.
         """
-        return self.__cmp__(other) == 0
+        return super(CachedRepresentation, self).__eq__(other)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):
@@ -312,7 +313,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         return tuple(self.domain()[:-1])
 
-    def __cmp__(self, x):
+    def __richcmp__(self, x, op):
         """
         Fast comparison for SymmetricGroups.
 
@@ -324,8 +325,8 @@ class SymmetricGroup(PermutationGroup_symalt):
             True
         """
         if isinstance(x, SymmetricGroup):
-            return cmp((self._deg, self._domain), (x._deg, x._domain))
-        return PermutationGroup_generic.__cmp__(self, x)
+            return richcmp((self._deg, self._domain), (x._deg, x._domain), op)
+        return super(SymmetricGroup, self).__richcmp__(x, op)
 
     def _repr_(self):
         """
@@ -607,11 +608,11 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S = SymmetricGroup([2,3,5])
             sage: S.algebra(QQ)
-            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            Algebra of Symmetric group of order 3! as a permutation group over Rational Field
             sage: a = S.an_element(); a
             (2,3,5)
             sage: S.algebra(QQ)(a)
-            B[(2,3,5)]
+            (2,3,5)
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
@@ -2244,7 +2245,7 @@ def PrimitiveGroups(d=None):
     isomorphisms using GAP. If ``d`` is not specified, it returns the
     set of all primitive groups up to isomorphisms stored in GAP.
 
-    .. attention::
+    .. WARNING::
 
         PrimitiveGroups requires the optional GAP database package.
         Please install it by running ``sage -i database_gap``.

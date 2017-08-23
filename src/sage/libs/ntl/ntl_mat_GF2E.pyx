@@ -22,7 +22,10 @@
 #    2006-01: initial version (based on code by William Stein)
 #
 ##############################################################################
-include "cysignals/signals.pxi"
+from __future__ import absolute_import
+
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -607,7 +610,7 @@ cdef class ntl_mat_GF2E(object):
 
     def image(self):
         """
-        The rows of X are computed as basis of A's row space.  X is is
+        The rows of X are computed as basis of A's row space.  X is
         row echelon form.
 
         EXAMPLES::

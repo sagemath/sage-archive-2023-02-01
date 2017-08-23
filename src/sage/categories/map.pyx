@@ -35,7 +35,7 @@ def unpickle_map(_class, parent, _dict, _slots):
     """
     Auxiliary function for unpickling a map.
 
-    TEST::
+    TESTS::
 
         sage: R.<x,y> = QQ[]
         sage: f = R.hom([x+y, x-y], R)
@@ -131,6 +131,7 @@ cdef class Map(Element):
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
+        self._is_coercion = False
         if D.is_exact() and C.is_exact():
             self._coerce_cost = 10 # default value.
         else:
@@ -403,6 +404,11 @@ cdef class Map(Element):
             self._repr_type_str = _slots['_repr_type_str']
         else:
             self._repr_type_str = None
+        # Same for _is_coercion
+        if '_is_coercion' in _slots:
+            self._is_coercion = _slots['_is_coercion']
+        else:
+            self._is_coercion = None
 
     def _update_slots_test(self, _slots):
         """
@@ -438,6 +444,7 @@ cdef class Map(Element):
         """
         _slots['_domain'] = self.domain()
         _slots['_codomain'] = self._codomain
+        _slots['_is_coercion'] = self._is_coercion
         _slots['_repr_type_str'] = self._repr_type_str
         return _slots
 
@@ -452,6 +459,7 @@ cdef class Map(Element):
             sage: f._extra_slots_test({"bla": 1})
             {'_codomain': Integer Ring,
              '_domain': Rational Field,
+            '_is_coercion': False,
              '_repr_type_str': None,
              'bla': 1}
         """
@@ -475,7 +483,7 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (type(self), self.parent(), _dict, self._extra_slots({}))
 
     def _repr_type(self):
         """
@@ -691,7 +699,7 @@ cdef class Map(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        TEST:
+        TESTS:
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
@@ -795,7 +803,7 @@ cdef class Map(Element):
         """
         Call method with a single argument, not implemented in the base class.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -810,7 +818,7 @@ cdef class Map(Element):
         """
         Call method with multiple arguments, not implemented in the base class.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -994,7 +1002,7 @@ cdef class Map(Element):
             sage: phi_xz.category_for()
             Category of monoids
 
-        TEST:
+        TESTS:
 
         This illustrates that it is not tested whether the maps can actually
         be composed, i.e., whether codomain and domain match.
@@ -1184,7 +1192,7 @@ cdef class Map(Element):
         """
         Tells whether the map is surjective (not implemented in the base class).
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -1251,7 +1259,7 @@ cdef class Map(Element):
 
             By default, it returns ``None``. You may override it in subclasses.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
@@ -1326,7 +1334,7 @@ cdef class Section(Map):
 
         A map.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1345,7 +1353,7 @@ cdef class Section(Map):
         """
         Helper for pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1363,7 +1371,7 @@ cdef class Section(Map):
         """
         Helper for pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1381,7 +1389,7 @@ cdef class Section(Map):
         """
         Return a string describing the type of this map (which is "Section").
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1398,7 +1406,7 @@ cdef class Section(Map):
         """
         Return inverse of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1481,7 +1489,7 @@ cdef class FormalCompositeMap(Map):
             some cases return a more efficient map object than a
             formal composite map.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1552,7 +1560,7 @@ cdef class FormalCompositeMap(Map):
         """
         Used in pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1571,7 +1579,7 @@ cdef class FormalCompositeMap(Map):
         """
         Used in pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1588,7 +1596,7 @@ cdef class FormalCompositeMap(Map):
 
     def __richcmp__(self, other, int op):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1683,7 +1691,7 @@ cdef class FormalCompositeMap(Map):
         """
         Call with a single argument
 
-        TEST::
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1701,7 +1709,7 @@ cdef class FormalCompositeMap(Map):
         """
         Additional arguments are only passed to the last applied map.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
@@ -1732,7 +1740,7 @@ cdef class FormalCompositeMap(Map):
         """
         Return a string describing the type of ``self``, namely "Composite"
 
-        TEST::
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1761,7 +1769,7 @@ cdef class FormalCompositeMap(Map):
         The return value is obtained from the string representations
         of the two constituents.
 
-        TEST::
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1870,13 +1878,38 @@ cdef class FormalCompositeMap(Map):
             sage: c3 = FormalCompositeMap(Hom(V2, QQ^1, phi2.category_for()), psi2, psi1)
             sage: c3.is_injective()
             False
+
+        TESTS:
+
+        Check that :trac:`23205` has been resolved::
+
+            sage: f = QQ.hom(QQbar)*ZZ.hom(QQ)
+            sage: f.is_injective()
+            True
+
         """
-        without_bij = (f for f in self.__list if not (f.is_injective() and f.is_surjective()))
-        if not next(without_bij).is_injective():
+        try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
+            return self.getattr_from_category('is_injective')()
+        except (AttributeError, NotImplementedError):
+            pass
+
+        injectives = []
+        for f in self.__list:
+            if f.is_injective():
+                injectives.append(f)
+            else:
+                break
+        else:
+            return True
+
+        if all([f.is_surjective() for f in injectives]):
             return False
 
-        if all(f.is_injective() for f in without_bij):
-            return True
         raise NotImplementedError("Not enough information to deduce injectivity.")
 
     def is_surjective(self):
@@ -1921,12 +1954,28 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
-        without_bij = (f for f in self.__list[-1::-1] if not (f.is_injective() and f.is_surjective()))
-        if not next(without_bij).is_surjective():
+        try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
+            return self.getattr_from_category('is_surjective')()
+        except (AttributeError, NotImplementedError):
+            pass
+
+        surjectives = []
+        for f in self.__list[::-1]:
+            if f.is_surjective():
+                surjectives.append(f)
+            else:
+                break
+        else:
+            return True
+
+        if all([f.is_injective() for f in surjectives]):
             return False
 
-        if all(f.is_surjective() for f in without_bij):
-            return True
         raise NotImplementedError("Not enough information to deduce surjectivity.")
 
     def domains(self):

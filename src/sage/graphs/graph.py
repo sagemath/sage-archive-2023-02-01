@@ -1177,7 +1177,7 @@ class Graph(GenericGraph):
                 pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
-            self.add_edges(data.edge_iterator())
+            self.add_edges(data.edge_iterator(), loops=loops)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
                 r = lambda x:None if x=={} else x
@@ -1223,7 +1223,8 @@ class Graph(GenericGraph):
             from itertools import combinations
             self.add_vertices(verts)
             self.add_edges(e for e in combinations(verts,2) if f(*e))
-            self.add_edges((v,v) for v in verts if f(v,v))
+            if loops:
+                self.add_edges((v,v) for v in verts if f(v,v))
 
         elif format == "vertices_and_edges":
             self.allow_multiple_edges(bool(multiedges), check=False)
@@ -1359,7 +1360,7 @@ class Graph(GenericGraph):
             sage: Graph(':?',data_structure="sparse") == G
             True
 
-        TEST:
+        TESTS:
 
         Check that :trac:`18445` is fixed::
 
@@ -1831,6 +1832,48 @@ class Graph(GenericGraph):
         if self.blocks_and_cut_vertices()[1]:
             return False
         return True
+
+    @doc_index("Graph properties")
+    def is_block_graph(self):
+        r"""
+        Return whether this graph is a block graph.
+
+        A block graph is a connected graph in which every biconnected component
+        (block) is a clique.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Block_graph` for more details on these graphs
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomBlockGraph`
+              -- generator of random block graphs
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
+
+
+        EXAMPLES::
+
+            sage: G = graphs.RandomBlockGraph(6, 2, kmax=4)
+            sage: G.is_block_graph()
+            True
+            sage: from sage.graphs.isgci import graph_classes
+            sage: G in graph_classes.Block
+            True
+            sage: graphs.CompleteGraph(4).is_block_graph()
+            True
+            sage: graphs.RandomTree(6).is_block_graph()
+            True
+            sage: graphs.PetersenGraph().is_block_graph()
+            False
+            sage: Graph(4).is_block_graph()
+            False
+        """
+        if not self.is_connected():
+            return False
+        if self.is_clique():
+            return True
+
+        B,C = self.blocks_and_cut_vertices()
+        return all(self.is_clique(vertices=block) for block in B)
 
     @doc_index("Graph properties")
     def is_apex(self):
@@ -2775,7 +2818,8 @@ class Graph(GenericGraph):
 
         if k is not None and k >= g.order()-1:
             if certificate:
-                return Graph({sage.sets.set.Set(g.vertices()):[]},
+                from sage.sets.set import Set
+                return Graph({Set(g.vertices()):[]},
                              name="Tree decomposition")
             return True
 
@@ -2884,7 +2928,7 @@ class Graph(GenericGraph):
         # immediate subcall of C1
         from sage.sets.set import Set
         G = Graph(name="Tree decomposition")
-        G.add_edges([(Set(x),Set(y)) for x,y in TD])
+        G.add_edges(((Set(x),Set(y)) for x,y in TD), loops=False)
 
         # The Tree-Decomposition contains a lot of useless nodes.
         #
@@ -2967,7 +3011,7 @@ class Graph(GenericGraph):
             sage: g.is_perfect(certificate = True)
             Subgraph of (Petersen graph): Graph on 5 vertices
 
-        TEST:
+        TESTS:
 
         Check that :trac:`13546` has been fixed::
 
@@ -3446,6 +3490,11 @@ class Graph(GenericGraph):
 
         while next_:
             e = next_.pop(-1)
+
+            # Ignore loops
+            if e[0] == e[1]:
+                continue
+
             # We assume e[0] to be a `seen` vertex
             e = e if seen.get(e[0],False) is not False else (e[1],e[0],e[2])
 
@@ -3903,6 +3952,78 @@ class Graph(GenericGraph):
                 right.add(u)
 
         return left, right
+
+    @doc_index("Algorithmically hard stuff")
+    def chromatic_index(self, solver=None, verbose=0):
+        r"""
+        Return the chromatic index of the graph.
+
+        The chromatic index is the minimal number of colors needed to properly
+        color the edges of the graph.
+
+        INPUT:
+
+        - ``solver`` (default: ``None``) Specify the Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        This method is a frontend for method
+        :meth:`sage.graphs.graph_coloring.edge_coloring` that uses a mixed
+        integer-linear programming formulation to compute the chromatic index.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Edge_coloring` for further details on edge coloring
+            - :meth:`sage.graphs.graph_coloring.edge_coloring`
+            - :meth:`~Graph.fractional_chromatic_index`
+            - :meth:`~Graph.chromatic_number`
+
+        EXAMPLES:
+
+        The clique `K_n` has chromatic index `n` when `n` is odd and `n-1` when
+        `n` is even::
+
+            sage: graphs.CompleteGraph(4).chromatic_index()
+            3
+            sage: graphs.CompleteGraph(5).chromatic_index()
+            5
+            sage: graphs.CompleteGraph(6).chromatic_index()
+            5
+
+        The path `P_n` with `n \geq 2` has chromatic index 2::
+
+            sage: graphs.PathGraph(5).chromatic_index()
+            2
+
+        The windmill graph with parameters `k,n` has chromatic index `(k-1)n`::
+
+            sage: k,n = 3,4
+            sage: G = graphs.WindmillGraph(k,n)
+            sage: G.chromatic_index() == (k-1)*n
+            True
+
+        TESTS:
+
+        Graphs without vertices or edges::
+
+            sage: Graph().chromatic_index()
+            0
+            sage: Graph(2).chromatic_index()
+            0
+        """
+        if self.order() == 0 or self.size() == 0:
+            return 0
+        
+        from sage.graphs.graph_coloring import edge_coloring
+        return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
+
 
     @doc_index("Algorithmically hard stuff")
     def chromatic_number(self, algorithm="DLX", verbose = 0):
@@ -4363,6 +4484,15 @@ class Graph(GenericGraph):
             sage: g.matching(algorithm="LP", use_edge_labels=True)
             [(1, 2, 999)]
 
+        With loops and multiedges::
+
+            sage: edge_list = [(0,0,5), (0,1,1), (0,2,2), (0,3,3), (1,2,6)
+            ....: , (1,2,3), (1,3,3), (2,3,3)]
+            sage: g = Graph(edge_list, loops=True, multiedges=True)
+            sage: g.matching(use_edge_labels=True)
+            [(0, 3, 3), (1, 2, 6)]
+
+
         TESTS:
 
         If ``algorithm`` is set to anything different from ``"Edmonds"`` or
@@ -4374,7 +4504,6 @@ class Graph(GenericGraph):
            ...
            ValueError: algorithm must be set to either "Edmonds" or "LP"
         """
-        self._scream_if_not_simple(allow_loops=True)
         from sage.rings.real_mpfr import RR
         def weight(x):
             if x in RR:
@@ -4382,47 +4511,51 @@ class Graph(GenericGraph):
             else:
                 return 1
 
+        W = dict()
+        L = dict()
+        for u,v,l in self.edge_iterator():
+            if u is v:
+                continue
+            if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
+                L[u, v] = l
+                if use_edge_labels:
+                    W[u, v] = weight(l)
+
         if algorithm == "Edmonds":
             import networkx
             g = networkx.Graph()
             if use_edge_labels:
-                for u, v, l in self.edge_iterator():
-                    g.add_edge(u, v, attr_dict={"weight": weight(l)})
+                for u, v in W:
+                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
             else:
-                for u, v in self.edge_iterator(labels=False):
+                for u, v in L:
                     g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(weight(self.edge_label(u, v))
-                               for u, v in six.iteritems(d)) / Integer(2)
+                    return sum(W[u, v] for u, v in six.iteritems(d) if u < v)
                 else:
                     return Integer(len(d) // 2)
             else:
-                return [(u, v, self.edge_label(u, v))
-                        for u, v in six.iteritems(d) if u < v]
+                return [(u, v, L[u, v]) for u, v in six.iteritems(d) if u < v]
 
         elif algorithm == "LP":
-            from sage.numerical.mip import MixedIntegerLinearProgram
             g = self
+            from sage.numerical.mip import MixedIntegerLinearProgram
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary=True)
             if use_edge_labels:
-                p.set_objective(
-                    p.sum(weight(w) * b[min(u, v), max(u, v)]
-                          for u, v, w in g.edge_iterator()))
+                p.set_objective( p.sum( W[u, v] * b[u, v] for u, v in W ) )
             else:
-                p.set_objective(
-                    p.sum(b[min(u, v), max(u, v)]
-                          for u, v in g.edge_iterator(labels=False)))
+                p.set_objective( p.sum( b[u, v] for u, v in L ) )
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum(b[min(u, v),max(u, v)]
-                          for u in g.neighbors(v)), max=1)
+                    p.sum(b[min(u, v), max(u,v)]
+                          for u in self.neighbors(v) if u != v), max=1)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -4431,11 +4564,11 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbose)
                 b = p.get_values(b)
-                return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v), max(u, v)] == 1]
+                return [(u, v, L[u, v]) for u, v in L if b[u, v] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
+
 
     @doc_index("Algorithmically hard stuff")
     def has_homomorphism_to(self, H, core = False, solver = None, verbose = 0):
@@ -5874,7 +6007,8 @@ class Graph(GenericGraph):
             try:
                 from sage.graphs.mcqd import mcqd
             except ImportError:
-                raise ImportError("Please install the mcqd package")
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("mcqd")
             return mcqd(self)
         else:
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
@@ -5965,7 +6099,8 @@ class Graph(GenericGraph):
             try:
                 from sage.graphs.mcqd import mcqd
             except ImportError:
-                raise ImportError("Please install the mcqd package")
+                from sage.misc.package import PackageNotFoundError
+                raise PackageNotFoundError("mcqd")
             return len(mcqd(self))
         else:
             raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")
@@ -6735,10 +6870,10 @@ class Graph(GenericGraph):
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
-            sage: a=random_matrix(ZZ,20,x=2,sparse=True, density=.1)
-            sage: b=Graph(20)
-            sage: b.add_edges(a.nonzero_positions())
-            sage: cores=b.cores(with_labels=True); cores
+            sage: a = random_matrix(ZZ,20,x=2,sparse=True, density=.1)
+            sage: b = Graph(20)
+            sage: b.add_edges(a.nonzero_positions(), loops=False)
+            sage: cores = b.cores(with_labels=True); cores
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 2, 5: 2, 6: 3, 7: 1, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 2, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3}
             sage: [v for v,c in cores.items() if c>=2] # the vertices in the 2-core
             [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
@@ -7515,7 +7650,7 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def perfect_matchings(self, labels=False):
         """
-        Return an interator over all perfect matchings of the graph.
+        Return an iterator over all perfect matchings of the graph.
 
         ALGORITHM:
 
@@ -7596,7 +7731,7 @@ class Graph(GenericGraph):
             find a matching of maximal cardinality, then check whether this
             cardinality is half the number of vertices of the graph.
 
-          - ``"LP_matching"`` uses uses a Linear Program to find a matching of
+          - ``"LP_matching"`` uses a Linear Program to find a matching of
             maximal cardinality, then check whether this cardinality is half the
             number of vertices of the graph.
 
@@ -7685,60 +7820,24 @@ class Graph(GenericGraph):
         else:
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
+    # Aliases to functions defined in other modules
+    from sage.graphs.weakly_chordal import is_long_hole_free, is_long_antihole_free, is_weakly_chordal
+    from sage.graphs.asteroidal_triples import is_asteroidal_triple_free
+    from sage.graphs.chrompoly import chromatic_polynomial
+    from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
+    from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.matchpoly import matching_polynomial
+    from sage.graphs.cliquer import all_max_clique as cliques_maximum
+    from sage.graphs.spanning_tree import random_spanning_tree
+    from sage.graphs.graph_decompositions.graph_products import is_cartesian_product
+    from sage.graphs.distances_all_pairs import is_distance_regular
+    from sage.graphs.base.static_dense_graph import is_strongly_regular
+    from sage.graphs.line_graph import is_line_graph
+    from sage.graphs.tutte_polynomial import tutte_polynomial
+    from sage.graphs.lovasz_theta import lovasz_theta
+    from sage.graphs.partial_cube import is_partial_cube
+    from sage.graphs.orientations import strong_orientations_iterator
 
-# Aliases to functions defined in Cython modules
-import types
-
-import sage.graphs.weakly_chordal
-Graph.is_long_hole_free         = types.MethodType(sage.graphs.weakly_chordal.is_long_hole_free, None, Graph)
-Graph.is_long_antihole_free     = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
-Graph.is_weakly_chordal         = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
-
-import sage.graphs.asteroidal_triples
-Graph.is_asteroidal_triple_free = types.MethodType(sage.graphs.asteroidal_triples.is_asteroidal_triple_free, None, Graph)
-
-import sage.graphs.chrompoly
-Graph.chromatic_polynomial      = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)
-
-import sage.graphs.graph_decompositions.rankwidth
-Graph.rank_decomposition        = types.MethodType(sage.graphs.graph_decompositions.rankwidth.rank_decomposition, None, Graph)
-
-import sage.graphs.graph_decompositions.vertex_separation
-Graph.pathwidth                 = types.MethodType(sage.graphs.graph_decompositions.vertex_separation.pathwidth, None, Graph)
-
-import sage.graphs.matchpoly
-Graph.matching_polynomial       = types.MethodType(sage.graphs.matchpoly.matching_polynomial, None, Graph)
-
-import sage.graphs.cliquer
-Graph.cliques_maximum           = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
-
-import sage.graphs.spanning_tree
-Graph.random_spanning_tree      = types.MethodType(sage.graphs.spanning_tree.random_spanning_tree, None, Graph)
-
-import sage.graphs.graph_decompositions.graph_products
-Graph.is_cartesian_product      = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
-
-import sage.graphs.distances_all_pairs
-Graph.is_distance_regular       = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
-
-import sage.graphs.base.static_dense_graph
-Graph.is_strongly_regular       = types.MethodType(sage.graphs.base.static_dense_graph.is_strongly_regular, None, Graph)
-
-# From Python modules
-import sage.graphs.line_graph
-Graph.is_line_graph             = sage.graphs.line_graph.is_line_graph
-
-from sage.graphs.tutte_polynomial import tutte_polynomial
-Graph.tutte_polynomial          = tutte_polynomial
-
-from sage.graphs.lovasz_theta import lovasz_theta
-Graph.lovasz_theta              = lovasz_theta
-
-from sage.graphs.partial_cube import is_partial_cube
-Graph.is_partial_cube           = is_partial_cube
-
-from sage.graphs.orientations import strong_orientations_iterator
-Graph.strong_orientations_iterator    =    strong_orientations_iterator
 
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",

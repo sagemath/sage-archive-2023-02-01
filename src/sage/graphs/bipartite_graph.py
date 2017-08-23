@@ -551,7 +551,7 @@ class BipartiteGraph(Graph):
             sage: bg.right
             {4, 6, 8, 9, 10, 11}
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=True)
@@ -756,7 +756,7 @@ class BipartiteGraph(Graph):
         one will be added to the left partition, the second to the right
         partition.
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=[True,False,True])
@@ -855,7 +855,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def project_right(self):
@@ -874,7 +874,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def plot(self, *args, **kwds):
@@ -1385,8 +1385,23 @@ class BipartiteGraph(Graph):
             2
             sage: B.matching(use_edge_labels=False, value_only=True, algorithm='LP')
             2
+
+        With multiedges enabled::
+
+            sage: G = BipartiteGraph(graphs.CubeGraph(3))
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], int(e[0]) + int(e[1]))
+            ....:
+            sage: G.allow_multiple_edges(True)
+            sage: G.matching(use_edge_labels=True, value_only=True)
+            444
         """
-        self._scream_if_not_simple()
+        from sage.rings.real_mpfr import RR
+        def weight(x):
+            if x in RR:
+                return x
+            else:
+                return 1
 
         if algorithm is None:
             algorithm = "Edmonds" if use_edge_labels else "Hopcroft-Karp"
@@ -1395,18 +1410,32 @@ class BipartiteGraph(Graph):
             if use_edge_labels:
                 raise ValueError('use_edge_labels can not be used with ' +
                                  '"Hopcroft-Karp" or "Eppstein"')
+            W = dict()
+            L = dict()
+            for u,v,l in self.edge_iterator():
+                if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
+                    L[u, v] = l
+                    if use_edge_labels:
+                        W[u, v] = weight(l)
             import networkx
-            #this is necessary to call the methods for bipartite matchings
-            g = self.networkx_graph()
+            g = networkx.Graph()
+            if use_edge_labels:
+                for u, v in W:
+                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
+            else:
+                for u, v in L:
+                    g.add_edge(u, v)
             if algorithm == "Hopcroft-Karp":
                 d = networkx.bipartite.hopcroft_karp_matching(g)
             else:
                 d = networkx.bipartite.eppstein_matching(g)
             if value_only:
-                return Integer(len(d) // 2)
+                if use_edge_labels:
+                    return sum(W[u, v] for u, v in iteritems(d) if u < v)
+                else:
+                    return Integer(len(d) // 2)
             else:
-                return [(u, v, self.edge_label(u, v))
-                        for u, v in iteritems(d) if u < v]
+                return [(u, v, L[u, v]) for u, v in iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only,
                                   algorithm=algorithm,

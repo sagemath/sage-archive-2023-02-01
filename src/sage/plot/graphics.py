@@ -693,8 +693,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:
@@ -3028,14 +3027,15 @@ class Graphics(WithEqualityById, SageObject):
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
+        Save an image representation of self.
 
-        .. Note::
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.  Currently this is implemented by calling
+        the :meth:`save` method of self, passing along all arguments
+        and keywords.
+
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.

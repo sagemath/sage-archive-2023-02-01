@@ -485,7 +485,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _repr_(self, mode=None, do_latex=False):
         """
-        Returns a string representation of self.
+        Returns a string representation of this element.
 
         INPUT:
 
@@ -1266,6 +1266,61 @@ cdef class pAdicGenericElement(LocalGenericElement):
             #won't work for general extensions...
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
+    def is_squarefree(self):
+        r"""
+        Return whether this element is squarefree, i.e., whether there exists
+        no non-unit `g` such that `g^2` divides this element.
+
+        EXAMPLES:
+
+        The zero element is never squarefree::
+
+            sage: K = Qp(2)
+            sage: K.zero().is_squarefree()
+            False
+
+        In `p`-adic rings, only elements of valuation at most 1 are
+        squarefree::
+
+            sage: R = Zp(2)
+            sage: R(1).is_squarefree()
+            True
+            sage: R(2).is_squarefree()
+            True
+            sage: R(4).is_squarefree()
+            False
+
+        This works only if the precision is known sufficiently well::
+
+            sage: R(0,1).is_squarefree()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: element not known to sufficient precision to decide squarefreeness
+            sage: R(0,2).is_squarefree()
+            False
+            sage: R(1,1).is_squarefree()
+            True
+
+        For fields we are not so strict about the precision and treat inexact
+        zeros as the zero element::
+
+            K(0,0).is_squarefree()
+            False
+
+        """
+        if self.parent().is_field():
+            if self.is_zero():
+                return False
+            return True
+        else:
+            v = self.valuation()
+            if v >= 2:
+                return False
+            elif self.is_zero():
+                raise PrecisionError("element not known to sufficient precision to decide squarefreeness")
+            else:
+                return True
+
     #def log_artin_hasse(self):
     #    raise NotImplementedError
 
@@ -1418,6 +1473,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         cdef long v = self.valuation_c()
         if v == maxordp:
             return infinity
+        if v == -maxordp:
+            return -infinity
         cdef Integer ans = PY_NEW(Integer)
         mpz_set_si(ans.value, v)
         return ans
@@ -1493,11 +1550,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def rational_reconstruction(self):
         r"""
-        Returns a rational approximation to this p-adic number
+        Returns a rational approximation to this `p`-adic number
 
-        INPUT:
+        This will raise an ArithmeticError if there are no valid
+        approximations to the unit part with numerator and
+        denominator bounded by ``sqrt(p^absprec / 2)``.
 
-        - ``self`` -- a p-adic element
+        .. SEEALSO::
+
+            :meth:`_rational_`
 
         OUTPUT:
 
@@ -1521,9 +1582,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
-    def _shifted_log(self, aprec, mina=0):
+    def _rational_(self):
         r"""
-        Return ``-\log(1-self)`` for elements of positive valuation.
+        Return a rational approximation to this `p`-adic number.
+
+        If there is no good rational approximation to the unit part,
+        will just return the integer approximation.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: QQ(R(125)) # indirect doctest
+            125
+        """
+        try:
+            return self.rational_reconstruction()
+        except ArithmeticError:
+            p = self.parent().prime()
+            return Rational(p**self.valuation() * self.unit_part().lift())
+
+    def _log_generic(self, aprec, mina=0):
+        r"""
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
 
         This is a helper method for :meth:`log`.
 
@@ -1550,28 +1630,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         EXAMPLES::
 
-            sage: r = Qp(5,prec=4)(5)
-            sage: r._shifted_log(2)
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_generic(2)
             5 + O(5^2)
-            sage: r._shifted_log(4)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
-            sage: r._shifted_log(100)
-            5 + 3*5^2 + 4*5^3 + O(5^5)
+            sage: r._log_generic(4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+            sage: r._log_generic(100)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
-            sage: r = Zp(5,prec=4,type='fixed-mod')(5)
-            sage: r._shifted_log(5)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
+            sage: r._log_generic(5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
-        Only implemented for elements of positive valuation::
+        Only implemented for elements congruent to 1 modulo the maximal ideal::
 
-            sage: r = Zp(5,prec=4,type='fixed-mod')(1)
-            sage: r._shifted_log(5)
+            sage: r = Zp(5,prec=4,type='fixed-mod')(2)
+            sage: r._log_generic(5)
             Traceback (most recent call last):
             ...
-            ValueError: Input value (=1 + O(5^4)) must have strictly positive valuation
+            ValueError: Input value (=2 + O(5^4)) must be 1 in the residue field
 
         """
-        x = self
+        x = 1-self
         R = self.parent()
         # to get the precision right over capped-absolute rings, we have to
         # work over the capped-relative fraction field
@@ -1581,7 +1661,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         alpha=x.valuation()
         if alpha<=0:
-            raise ValueError('Input value (=%s) must have strictly positive valuation' % self)
+            raise ValueError('Input value (=%s) must be 1 in the residue field' % self)
 
         e=R.ramification_index()
         p=R.prime()
@@ -1590,7 +1670,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         total=R.zero()
 
         # pre-compute x^p/p into x2p_p
-        if R.is_capped_relative():
+        if mina == 0 and alpha*p - e > aprec:
+            # The value of x^p/p is not needed in that case
+            x2p_p = R(0)
+        elif R.is_capped_relative():
             if p*alpha >= e:
                 x2p_p = x**p/p
             else:
@@ -1610,44 +1693,113 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # Two sum over these terms, we run two nested loops, the outer one
         # iterates over the possible values for a, the inner one iterates over
         # the possible values for u.
-        a=0
-        p2a=1       # p^a
-        x2pa = x    # x^(p^a)
+        upper_u = (aprec/alpha).floor()
+        if mina > 0 or upper_u > 0:
+            a=0
+            p2a=1       # p^a
+            x2pa = x    # x^(p^a)
 
-        while True:
-            upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
             # In the unramified case, we can stop summing terms as soon as
             # there are no u for a given a to sum over. In the ramified case,
             # it can happen that for some initial a there are no such u but
             # later in the series there are such u again. mina can be set to
             # take care of this by summing at least to a=mina-1
-            if a >= mina and upper_u<=0:
-                break
-            # we compute the sum for the possible values for u using Horner's method
-            inner_sum = R.zero()
-            for u in xrange(upper_u,0,-1):
-                # We want u to be a p-adic unit
-                if u%p==0:
-                    new_term = R.zero()
-                else:
-                    new_term = ~R(u)
+            while True:
+                # we compute the sum for the possible values for u using Horner's method
+                inner_sum = R.zero()
+                for u in xrange(upper_u,0,-1):
+                    # We want u to be a p-adic unit
+                    if u%p==0:
+                        new_term = R.zero()
+                    else:
+                        new_term = ~R(u)
 
-                # This hack is to deal with rings that don't lift to fields
-                if u>1 or x2p_p.is_zero():
-                    inner_sum = (inner_sum+new_term)*x2pa
-                else:
-                    inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
+                    # This hack is to deal with rings that don't lift to fields
+                    if u > 1 or x2p_p.is_zero():
+                        inner_sum = (inner_sum+new_term)*x2pa
+                    else:
+                        inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
 
-            total += inner_sum
+                total -= inner_sum
 
-            # Now increase the power of p
-            a += 1
-            p2a = p2a*p
-            x2pa = x2pa**p
+                # Now increase a and check if a new iteration of the loop is needed
+                a += 1
+                p2a = p2a*p
+                upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
+                if a >= mina and upper_u <= 0: break
+
+                # We perform this last operation after the test
+                # because it is costly and may raise OverflowError
+                x2pa = x2pa**p
 
         return total.add_bigoh(aprec)
 
-    def log(self, p_branch=None, pi_branch=None, aprec=None, change_frac=False):
+    def _log_binary_splitting(self, aprec, mina=0):
+        r"""
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
+
+        This is a helper method for :meth:`log`. 
+        It uses a fast binary splitting algorithm.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which the result is
+          correct. ``aprec`` must not exceed the precision cap of the ring over
+          which this element is defined.
+
+        - ``mina`` -- an integer (default: 0), the series will check `n` up to
+          this valuation (and beyond) to see if they can contribute to the
+          series.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            1 in the residue field. If this assumption is not fullfiled
+            the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        1. Raise `u` to the power `p^v` for a suitable `v` in order
+           to make it closer to 1. (`v` is chosen such that `p^v` is
+           close to the precision.)
+
+        2. Write
+
+        .. MATH::
+
+            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{(v+1)*2^i})
+
+        with `0 \leq a_i < p^{(v+1)*2^i}` and compute 
+        `\log(1 - a_i p^{(v+1)*2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+        together with a binary splitting method.
+
+        3. Divide the result by `p^v`
+
+        The complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_binary_splitting(2)
+            5 + O(5^2)
+            sage: r._log_binary_splitting(4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+            sage: r._log_binary_splitting(100)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
+            sage: r._log_binary_splitting(5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
+        """
+        raise NotImplementedError
+
+    def log(self, p_branch=None, pi_branch=None, aprec=None, change_frac=False, algorithm=None):
         r"""
         Compute the `p`-adic logarithm of this element.
 
@@ -1685,6 +1837,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
           the same as the input (default) or if it should change to the
           fraction field of the input.
 
+        - ``algorithm`` -- ``generic``, ``binary_splitting`` or ``None`` (default)
+          The generic algorithm evaluates naively the series defining the log,
+          namely
+
+          .. MATH::
+ 
+              \log(1-x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+          Its binary complexity is quadratic with respect to the precision.
+
+          The binary splitting algorithm is faster, it has a quasi-linear
+          complexity.
+          By default, we use the binary splitting if it is available. Otherwise
+          we switch to the generic algorithm.
+
         NOTES:
 
         What some other systems do:
@@ -1700,53 +1867,30 @@ cdef class pAdicGenericElement(LocalGenericElement):
             by Dan Berstein at
             http://cr.yp.to/lineartime/multapps-20041007.pdf
 
-        ALGORITHM:
-
-        1. Take the unit part `u` of the input.
-
-        2. Raise `u` to `q-1` where `q` is the inertia degree of the ring
-        extension, to obtain a 1-unit.
-
-        3. Use the series expansion
-
-        .. MATH::
-
-            \log(1-x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
-
-        to compute the logarithm `\log(u)`.
-
-        4. Divide the result by ``q-1`` and multiply by ``self.valuation()*log(pi)``
-
         EXAMPLES::
 
             sage: Z13 = Zp(13, 10)
             sage: a = Z13(14); a
             1 + 13 + O(13^10)
-
-        Note that the relative precision decreases when we take log -- it is
-        the absolute precision that is preserved::
-
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+
             sage: Q13 = Qp(13, 10)
             sage: a = Q13(14); a
             1 + 13 + O(13^10)
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
 
-        The next few examples illustrate precision when computing `p`-adic
-        logarithms::
+        Note that the relative precision decreases when we take log.
+        Precisely the absolute precision on ``\log(a)`` agrees with the relative
+        precision on ``a`` thanks to the relation ``d\log(a) = da/a``.
 
-            sage: R = Zp(5,10)
-            sage: e = R(389); e
-            4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
-            sage: K = Qp(5,10)
-            sage: e = K(389); e
-            4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+        The call `log(a)` works as well::
+
+            sage: log(a)
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+            sage: log(a) == a.log()
+            True
 
         The logarithm is not only defined for 1-units::
 
@@ -1871,9 +2015,60 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...
             ValueError: logarithm is not integral, use change_frac=True to obtain a result in the fraction field
             sage: w.log(p_branch=2, change_frac=True)
-            2*w^-3 + O(w^21)
+            2*w^-3 + O(w^24)
 
         TESTS:
+
+        Check that the generic algorithm and the binary splitting algorithm
+        returns the same answers::
+
+            sage: p = 17
+            sage: R = Zp(p)
+            sage: a = 1 + p*R.random_element()
+            sage: l1 = a.log(algorithm='generic')
+            sage: l2 = a.log(algorithm='binary_splitting')
+            sage: l1 == l2
+            True
+            sage: l1.precision_absolute() == l2.precision_absolute()
+            True
+
+        Check multiplicativity::
+
+            sage: p = 11
+            sage: R = Zp(p, prec=1000)
+
+            sage: x = 1 + p*R.random_element()
+            sage: y = 1 + p*R.random_element()
+            sage: log(x*y) == log(x) + log(y)
+            True
+
+            sage: x = y = 0
+            sage: while x == 0:
+            ....:     x = R.random_element()
+            sage: while y == 0:
+            ....:     y = R.random_element()
+            sage: branch = R.random_element()
+            sage: (x*y).log(p_branch=branch) == x.log(p_branch=branch) + y.log(p_branch=branch)
+            True
+
+        Note that multiplicativity may fail in the fixed modulus setting
+        due to rounding errors::
+
+            sage: R = ZpFM(2, prec=5)
+            sage: R(180).log(p_branch=0) == R(30).log(p_branch=0) + R(6).log(p_branch=0)
+            False            
+
+        Check that log is the inverse of exp::
+
+            sage: p = 11
+            sage: R = Zp(p, prec=1000)
+            sage: a = 1 + p*R.random_element()
+            sage: exp(log(a)) == a
+            True
+
+            sage: a = p*R.random_element()
+            sage: log(exp(a)) == a
+            True
 
         Check that results are consistent over a range of precision::
 
@@ -1934,6 +2129,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: z.log().precision_relative()
             250
 
+        Performances::
+
+            sage: R = Zp(17, prec=10^6)
+            sage: a = R.random_element()
+            sage: b = a.log(p_branch=0)   # should be rather fast
+
         AUTHORS:
 
         - William Stein: initial version
@@ -1947,11 +2148,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
           generic `p`-adic rings.
 
         - Soroosh Yazdani (2013-02-1): Fixed a precision issue in
-          :meth:`_shifted_log`.  This should really fix the issue with
+          :meth:`_log_generic`.  This should really fix the issue with
           divisions.
 
         - Julian Rueth (2013-02-14): Added doctests, some changes for
           capped-absolute implementations.
+
+        - Xavier Caruso (2017-06): Added binary splitting type algorithms 
+          over Qp
 
         """
         if self.is_zero():
@@ -2008,14 +2212,217 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if aprec is None or aprec > minaprec:
             aprec=minaprec
 
-        retval = total - x._shifted_log(aprec, minn)*R(denom).inverse_of_unit()
+        if algorithm is None:
+            try:
+                # The binary splitting algorithm is supposed to be faster
+                log_unit = y._log_binary_splitting(aprec, minn)
+            except NotImplementedError:
+                log_unit = y._log_generic(aprec, minn)
+        elif algorithm == "generic":
+            log_unit = y._log_generic(aprec, minn)
+        elif algorithm == "binary_splitting":
+            log_unit = y._log_binary_splitting(aprec, minn)
+        else:
+            raise ValueError("Algorithm must be either 'generic', 'binary_splitting' or None")
+
+        retval = total + log_unit*R(denom).inverse_of_unit()
         if not change_frac:
             if retval.valuation() < 0 and not R.is_field():
                 raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")
             retval=R(retval)
         return retval.add_bigoh(aprec)
 
-    def exp(self, aprec = None):
+
+    def _exp_generic(self, aprec):
+        r"""
+        Compute the exponential power series of this element, using Horner's
+        evaluation and only one division.
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="generic")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+
+        AUTHORS:
+
+        - Genya Zaytman (2007-02-15)
+
+        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
+
+        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
+
+        - Julian Rueth (2013-02-14): Rewrite to solve some precision problems
+          in the capped-absolute case
+
+        """
+        R=self.parent()
+        p=self.parent().prime()
+        e=self.parent().ramification_index()
+        x_unit=self.unit_part()
+        p_unit=R(p).unit_part().lift_to_precision()
+        x_val=self.valuation()
+
+        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
+        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
+        # have to sum terms for which n does not exceed N
+        N = (aprec // (x_val - e/(p-1))).floor()
+
+        # We evaluate the exponential series:
+        # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
+        # Horner's method. Then, we divide by N!.
+        # This would only work for capped relative elements since for other
+        # elements, we would lose too much precision in the multiplications
+        # with natural numbers. Therefore, we emulate the behaviour of
+        # capped-relative elements and keep track of the unit part and the
+        # valuation separately.
+
+        # the value of x^N+N*x^(N-1)+...+x*N!+N!
+        series_unit,series_val = R.one(), 0
+
+        # we compute the value of N! as we go through the loop
+        nfactorial_unit,nfactorial_val = R.one(),0
+
+        nmodp = N%p
+        for n in range(N,0,-1):
+            # multiply everything by x
+            series_val += x_val
+            series_unit *= x_unit
+
+            # compute the new value of N*(N-1)*...
+            if nmodp == 0:
+                n_pval, n_punit = Integer(n).val_unit(p)
+                nfactorial_unit *= R(n_punit) * p_unit**n_pval
+                nfactorial_val += n_pval*e
+                nmodp = p
+            else:
+                nfactorial_unit *= n
+            nmodp -= 1
+
+            # now add N*(N-1)*...
+            common_val = min(nfactorial_val, series_val)
+            series_unit = (series_unit<<(series_val-common_val)) + (nfactorial_unit<<(nfactorial_val-common_val))
+            series_val = common_val
+
+        # multiply the result by N!
+        return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
+
+    def _exp_binary_splitting(self, aprec):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Write
+
+        .. MATH::
+
+            self = \sum_{i=1}^\infty a_i p^{2^i}
+
+        with `0 \leq a_i < p^{2^i}` and compute 
+        `\exp(a_i p^{2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+        together with a binary splitting method.
+
+        The binary complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: x = R(7)
+            sage: x.exp(algorithm="binary_splitting")   # indirect doctest
+            1 + 7 + 4*7^2 + 2*7^3 + O(7^5)
+
+        """
+        raise NotImplementedError("The binary splitting algorithm is not implemented for the parent: %s" % self.parent())
+
+    def _exp_newton(self, aprec, log_algorithm=None):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        - ``log_algorithm`` (default: None) -- the algorithm used for
+          computing the logarithm. This attribute is passed to the log
+          method. See :meth:`log` for more details about the possible
+          algorithms.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Solve the equation `\log(x) = self` using the Newton scheme::
+
+        .. MATH::
+
+            x_{i+1} = x_i \cdot (1 + self - \log(x_i))
+
+        The binary complexity of this algorithm is roughly the same
+        than that of the computation of the logarithm.
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="newton")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+        """
+        R = self.parent()
+        e = R.e()
+        a = R(1,aprec)
+        l = R(0,aprec)
+        if R.prime() == 2:
+            trunc = e + 1
+            while trunc < aprec:
+                trunc = 2*trunc - e
+                b = (self-l).add_bigoh(trunc).lift_to_precision(aprec)
+                a *= 1+b
+                l += (1+b).log(aprec, algorithm=log_algorithm)
+        else:
+            trunc = 1
+            while trunc < aprec:
+                trunc = 2*trunc
+                b = (self-l).add_bigoh(trunc).lift_to_precision(aprec)
+                a *= 1+b
+                l += (1+b).log(aprec, algorithm=log_algorithm)
+        return a
+
+
+    def exp(self, aprec = None, algorithm=None):
         r"""
         Compute the `p`-adic exponential of this element if the exponential
         series converges.
@@ -2025,12 +2432,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - ``aprec`` -- an integer or ``None`` (default: ``None``); if
           specified, computes only up to the indicated precision.
 
-        ALGORITHM: If self has a ``lift`` method (which should happen for
-        elements of `\QQ_p` and `\ZZ_p`), then one uses the rule:
-        `\exp(x)=\exp(p)^{x/p}` modulo the precision. The value of `\exp(p)` is
-        precomputed. Otherwise, use the power series expansion of `\exp`,
-        evaluating a certain number of terms which does about `O(\mbox{prec})`
-        multiplications.
+        - ``algorithm`` -- ``generic``, ``binary_splitting``, ``newton`` 
+          or ``None`` (default)
+          The generic algorithm evaluates naively the series defining the
+          exponential, namely
+
+          .. MATH::
+ 
+              \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+          Its binary complexity is quadratic with respect to the precision.
+
+          The binary splitting algorithm is faster, it has a quasi-linear
+          complexity.
+
+          The ``Newton`` algorithms solve the equation `\log(x) = self` using
+          a Newton scheme. It runs roughly as fast as the computation of the
+          logarithm.
+
+          By default, we use the binary splitting if it is available. 
+          If it is not, we use the Newton algorithm if a fast algorithm for
+          computing the logarithm is available.
+          Otherwise we switch to the generic algorithm.
 
         EXAMPLES:
 
@@ -2122,9 +2545,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
             sage: z.log().exp()
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
 
         Check that this also works for fixed-mod implementations::
 
@@ -2164,6 +2587,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (w^4).exp()
             1 + w^4 + w^5 + w^7 + w^9 + w^10 + w^14 + O(w^15)
 
+        Check that all algorithms output the same result::
+
+            sage: R = Zp(5,50)
+            sage: a = 5 * R.random_element()
+            sage: bg = a.exp(algorithm="generic")
+            sage: bbs = a.exp(algorithm="binary_splitting")
+            sage: bn = a.exp(algorithm="newton")
+            sage: bg == bbs
+            True
+            sage: bg == bn
+            True
+
+        Performances::
+
+            sage: R = Zp(17,10^6)
+            sage: a = 17 * R.random_element()
+            sage: b = a.exp()    # should be rather fast
+
         AUTHORS:
 
         - Genya Zaytman (2007-02-15)
@@ -2172,107 +2613,36 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - Julian Rueth (2013-02-14): Added doctests, fixed some corner cases
 
+        - Xavier Caruso (2017-06): Added binary splitting and Newton algorithms
+
         """
         p = self.parent().prime()
 
         if (p-1)*self.valuation() <= self.parent().ramification_index():
             raise ValueError('Exponential does not converge for that input.')
 
-        if aprec is None or aprec > self.parent().precision_cap():
-            aprec=self.parent().precision_cap()
+        # The optimal absolute precision on exp(self)
+        # is the absolution precision on self
+        maxprec = min(self.precision_absolute(), self.parent().precision_cap())
+        if aprec is None or aprec > maxprec:
+            aprec = maxprec
 
-        if hasattr(self,'lift'):
-            y=Rational(self.lift())
-            if p == 2:
-                # in Z_2, the element has at least valuation 2, so we can
-                # divide it by 4 (and use the exponential of 4 since the
-                # exponential of 2 does not exist)
-                p = 4
-            return (self.parent()._exp_p()**Integer(y/p)).add_bigoh(min(aprec,self.precision_absolute()))
-        else:
-            return self._exp(aprec)
-
-    def _exp(self, aprec):
-        r"""
-        Compute the exponential power series of this element, using Horner's
-        evaluation and only one division.
-
-        This is a helper method for :meth:`exp`.
-
-        INPUT:
-
-        - ``aprec`` -- an integer, the precision to which to compute the
-          exponential
-
-        EXAMPLES::
-
-            sage: R.<w> = Zq(7^2,5)
-            sage: x = R(7*w)
-            sage: x._exp(5)
-            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
-
-        AUTHORS:
-
-        - Genya Zaytman (2007-02-15)
-
-        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
-
-        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
-
-        - Julian Rueth (2013-02-14): Rewrite to solve some precision problems
-          in the capped-absolute case
-
-        """
-        R=self.parent()
-        p=self.parent().prime()
-        e=self.parent().ramification_index()
-        x_unit=self.unit_part()
-        p_unit=R(p).unit_part().lift_to_precision()
-        x_val=self.valuation()
-
-        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
-        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
-        # have to sum terms for which n does not exceed N
-        N = (aprec // (x_val - e/(p-1))).floor()
-
-        # We evaluate the exponential series:
-        # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
-        # Horner's method. Then, we divide by N!.
-        # This would only work for capped relative elements since for other
-        # elements, we would lose too much precision in the multiplications
-        # with natural numbers. Therefore, we emulate the behaviour of
-        # capped-relative elements and keep track of the unit part and the
-        # valuation separately.
-
-        # the value of x^N+N*x^(N-1)+...+x*N!+N!
-        series_unit,series_val = R.one(), 0
-
-        # we compute the value of N! as we go through the loop
-        nfactorial_unit,nfactorial_val = R.one(),0
-
-        nmodp = N%p
-        for n in range(N,0,-1):
-            # multiply everything by x
-            series_val += x_val
-            series_unit *= x_unit
-
-            # compute the new value of N*(N-1)*...
-            if nmodp == 0:
-                n_pval, n_punit = Integer(n).val_unit(p)
-                nfactorial_unit *= R(n_punit) * p_unit**n_pval
-                nfactorial_val += n_pval*e
-                nmodp = p
-            else:
-                nfactorial_unit *= n
-            nmodp -= 1
-
-            # now add N*(N-1)*...
-            common_val = min(nfactorial_val, series_val)
-            series_unit = (series_unit<<(series_val-common_val)) + (nfactorial_unit<<(nfactorial_val-common_val))
-            series_val = common_val
-
-        # multiply the result by N!
-        return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
+        if algorithm is None:
+            try:
+                ans = self._exp_binary_splitting(aprec)
+            except NotImplementedError:
+                try:
+                    ans = self._exp_newton(aprec, log_algorithm='binary_splitting')
+                except NotImplementedError:
+                    ans = self._exp_generic(aprec)
+        elif algorithm == 'generic':
+            ans = self._exp_generic(aprec)
+        elif algorithm == 'binary_splitting':
+            ans = self._exp_binary_splitting(aprec)
+        elif algorithm == 'newton':
+            ans = self._exp_newton(aprec)
+        return ans.add_bigoh(aprec)
+        
 
     def square_root(self, extend = True, all = False):
         r"""

@@ -197,7 +197,7 @@ def slider(vmin, vmax=None, step_size=None, default=None, label=None, display_va
         sage: w = slider(int(5)); w
         IntSlider(value=5, min=5, max=100, step=1)
         sage: parent(w.get_interact_value())
-        <type 'int'>
+        <... 'int'>
         sage: w = slider(5, 20, step_size=RDF("0.1")); w
         TransformFloatSlider(value=5.0, min=5.0, max=20.0, step=0.1)
         sage: parent(w.get_interact_value())
@@ -371,7 +371,7 @@ def range_slider(*args, **kwds):
         sage: w = range_slider(int(5)); w
         IntRangeSlider(value=(28, 76), min=5, max=100, step=1)
         sage: [parent(x) for x in w.get_interact_value()]
-        [<type 'int'>, <type 'int'>]
+        [<... 'int'>, <... 'int'>]
         sage: w = range_slider(5, 20, step_size=RDF("0.1")); w
         TransformFloatRangeSlider(value=(8.75, 16.25), min=5.0, max=20.0, step=0.1)
         sage: [parent(x) for x in w.get_interact_value()]

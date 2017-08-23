@@ -286,7 +286,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         r"""
         Restart Macaulay2 interpreter.
 
-        TEST::
+        TESTS::
 
             sage: macaulay2.restart()  # optional - macaulay2
         """
@@ -587,8 +587,8 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
     def new_from(self, type, value):
         """
-        Returns a new Macaulay2Element of type type constructed from
-        value.
+        Return a new ``Macaulay2Element`` of type ``type`` constructed from
+        ``value``.
 
         EXAMPLES::
 
@@ -883,7 +883,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
         Return type: list of strings
 
-        TEST::
+        TESTS::
 
             sage: a = macaulay2("QQ[x,y]")   # optional - macaulay2
             sage: traits = a._tab_completion()   # optional - macaulay2

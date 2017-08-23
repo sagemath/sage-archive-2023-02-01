@@ -696,7 +696,7 @@ def CirculantGraph(n, adjacency):
     Returns a circulant graph with n nodes.
 
     A circulant graph has the property that the vertex `i` is connected
-    with the vertices `i+j` and `i-j` for each j in adj.
+    with the vertices `i+j` and `i-j` for each j in ``adjacency``.
 
     INPUT:
 
@@ -737,15 +737,13 @@ def CirculantGraph(n, adjacency):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ....:  k = graphs.CirculantGraph(i+3,i)
-        ....:  g.append(k)
-        ...
+        ....:     k = graphs.CirculantGraph(i+4, i+1)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ....:  n = []
-        ....:  for m in range(3):
-        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:  j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -754,16 +752,14 @@ def CirculantGraph(n, adjacency):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ....:  spr = networkx.cycle_graph(i+3)
-        ....:  k = Graph(spr)
-        ....:  g.append(k)
-        ...
+        ....:     spr = networkx.cycle_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
         ....:  n = []
         ....:  for m in range(3):
         ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:  j.append(n)
-        ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -2674,7 +2670,7 @@ def RingedTree(k, vertex_labels = True):
          '1000', '1001', '101', '1010', '1011', '11', '110', '1100', '1101',
          '111', '1110', '1111']
 
-    TEST::
+    TESTS::
 
         sage: G = graphs.RingedTree(-1)
         Traceback (most recent call last):
@@ -2975,7 +2971,7 @@ def TuranGraph(n,r):
         sage: g.size() == floor((r-1)*(n**2)/(2*r))
         True
 
-    TEST::
+    TESTS::
 
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):

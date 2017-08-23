@@ -26,10 +26,6 @@ NEW METHODS
 
 **SandpileDivisor**:  help, is_linearly_equivalent, is_q_reduced, is_weierstrass_pt, polytope, polytope_integer_pts, q_reduced, rank, simulate_threshold, stabilize, weierstrass_div, weierstrass_gap_seq, weierstrass_pts, weierstrass_rank_seq.
 
-DEPRECATED
-
-SandpileDivisor.linear_system, SandpileDivisor.r_of_D.
-
 MINOR CHANGES
 
 * The ``sink`` argument to ``Sandpile.__init__`` now defaults to the first vertex.
@@ -340,7 +336,6 @@ from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
 from sage.arith.srange import xsrange
-from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
 from sage.arith.all import falling_factorial, lcm
@@ -1941,16 +1936,17 @@ class Sandpile(DiGraph):
             [0 4 0 0]
             [0 0 4 0]
             [0 0 0 0]
-            sage: U*s.laplacian()*V == D  # Laplacian symmetric => tranpose not necessary
+            sage: U*s.laplacian()*V == D  # Laplacian symmetric => transpose not necessary
             True
         """
         return deepcopy(self._smith_form)
 
     def reorder_vertices(self):
         r"""
-        A copy of the sandpile with vertex names permuted.  After reordering,
-        vertex `u` comes before vertex `v` in the list of vertices if `u` is
-        closer to the sink.
+        A copy of the sandpile with vertex names permuted.
+
+        After reordering, vertex `u` comes before vertex `v` in the
+        list of vertices if `u` is closer to the sink.
 
         OUTPUT:
 
@@ -4160,9 +4156,9 @@ class SandpileConfig(dict):
             sage: c.show(directed=False)
             sage: c.show(sink=False,colors=False,heights=True)
         """
-        if directed==True:
+        if directed:
             T = DiGraph(self.sandpile())
-        elif directed==False:
+        elif directed is False:
             T = Graph(self.sandpile())
         elif self.sandpile().is_directed():
             T = DiGraph(self.sandpile())
@@ -4237,11 +4233,9 @@ class SandpileDivisor(dict):
             is_q_reduced           -- Is the divisor q-reduced?
             is_symmetric           -- Is the divisor symmetric?
             is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
-            linear_system          -- The complete linear system (deprecated: use "polytope_integer_pts").
             polytope               -- The polytope determinining the complete linear system.
             polytope_integer_pts   -- The integer points inside divisor's polytope.
             q_reduced              -- The linearly equivalent q-reduced divisor.
-            r_of_D                 -- The rank of the divisor (deprecated: use "rank", instead).
             rank                   -- The rank of the divisor.
             sandpile               -- The divisor's underlying sandpile.
             show                   -- Show the divisor.
@@ -5146,7 +5140,7 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: D._set_linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
 
-        .. WARNING:
+        .. WARNING::
 
             This method requires 4ti2.
         """
@@ -5228,43 +5222,6 @@ class SandpileDivisor(dict):
         inhomog = [map(int,i.split()) for i in b[1:-1]]
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
-
-    def linear_system(self):
-        r"""
-        The complete linear system (deprecated: use ``polytope_integer_pts``).
-
-        OUTPUT:
-
-        dict - ``{num_homog: int, homog:list, num_inhomog:int, inhomog:list}``
-
-        EXAMPLES::
-
-            sage: S = Sandpile({0: {},
-            ....:  1: {0: 1, 3: 1, 4: 1},
-            ....:  2: {0: 1, 3: 1, 5: 1},
-            ....:  3: {2: 1, 5: 1},
-            ....:  4: {1: 1, 3: 1},
-            ....:  5: {2: 1, 3: 1}}
-            ....: )
-            sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
-            sage: D.linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
-            {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
-             'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
-             'num_homog': 2,
-             'num_inhomog': 3}
-
-        .. NOTE::
-
-            If `L` is the Laplacian, an arbitrary `v` such that `v\cdot L\geq -D`
-            has the form `v = w + t` where `w` is in ``inhomg`` and `t` is in the
-            integer span of ``homog`` in the output of ``linear_system(D)``.
-
-        .. WARNING::
-
-            This method requires 4ti2.
-        """
-        deprecation(18618,'D.linear_system() will be removed soon.  See D.rank() and D.polytope().')
-        return self._linear_system
 
     def _set_polytope(self):
         r"""
@@ -5630,49 +5587,6 @@ class SandpileDivisor(dict):
                                 self._r_of_D = (r, SandpileDivisor(self._sandpile,list(w)))
                                 return
                 level = new_level
-
-    def r_of_D(self, verbose=False):
-        r"""
-        The rank of the divisor (deprecated: use ``rank``, instead).  Returns
-        `r(D)` and, if ``verbose`` is ``True``, an effective divisor `F` such
-        that `|D - F|` is empty.
-
-        INPUT:
-
-        ``verbose`` -- (default: ``False``) boolean
-
-        OUTPUT:
-
-        integer ``r(D)`` or tuple (integer ``r(D)``, divisor ``F``)
-
-        EXAMPLES::
-
-            sage: S = Sandpile({0: {},
-            ....:  1: {0: 1, 3: 1, 4: 1},
-            ....:  2: {0: 1, 3: 1, 5: 1},
-            ....:  3: {2: 1, 5: 1},
-            ....:  4: {1: 1, 3: 1},
-            ....:  5: {2: 1, 3: 1}}
-            ....: )
-            sage: D = SandpileDivisor(S, [0,0,0,0,0,4]) # optional - 4ti2
-            sage: E = D.r_of_D(True) # optional - 4ti2
-            doctest:... DeprecationWarning: D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.
-            See http://trac.sagemath.org/18618 for details.
-            sage: E # optional - 4ti2
-            (1, {0: 0, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0})
-            sage: F = E[1] # optional - 4ti2
-            sage: (D - F).values() # optional - 4ti2
-            [0, -1, 0, -1, 0, 4]
-            sage: (D - F).effective_div() # optional - 4ti2
-            []
-            sage: SandpileDivisor(S, [0,0,0,0,0,-4]).r_of_D(True) # optional - 4ti2
-            (-1, {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: -4})
-        """
-        deprecation(18618,'D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.')
-        if verbose:
-            return self._r_of_D
-        else:
-            return self._r_of_D[0]
 
     def weierstrass_rank_seq(self, v='sink'):
         r"""
@@ -6167,9 +6081,9 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S,[1,-2,0,2])
             sage: D.show(graph_border=True,vertex_size=700,directed=False)
         """
-        if directed==True:
+        if directed:
             T = DiGraph(self.sandpile())
-        elif directed==False:
+        elif directed is False:
             T = Graph(self.sandpile())
         elif self.sandpile().is_directed():
             T = DiGraph(self.sandpile())

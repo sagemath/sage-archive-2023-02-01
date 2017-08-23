@@ -105,19 +105,23 @@ edges. ``num_longs`` stores the length of the ``edges`` array. Recall that this
 length reflects the number of available vertices, not the number of "actual"
 vertices. For more details about this, refer to the documentation for
 ``CGraph``.
-
 """
 
-#*******************************************************************************
-#        Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*******************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 include 'sage/data_structures/bitset.pxi'
 
 from libc.string cimport memcpy
+
+from cysignals.memory cimport sig_calloc, sig_realloc, sig_free
 
 cdef int radix = sizeof(unsigned long) * 8 # number of bits per 'unsigned long'
 cdef int radix_mod_mask = radix - 1        # (assumes that radis is a power of 2)
@@ -708,6 +712,18 @@ cdef class DenseGraphBackend(CGraphBackend):
             sage: list(D.iterator_edges(range(9), True))
             [(0, 1, None)]
 
+        TESTS:
+
+        Check :trac:`22991`::
+
+            sage: G = Graph(3, sparse=False)
+            sage: G.add_edge(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: G = Graph(3, sparse=True, loops=True)
+            sage: G.add_edge(0,0); G.edges()
+            [(0, 0, None)]
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
@@ -715,7 +731,11 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int = self.check_labelled_vertex(u, 0)
         cdef int v_int = self.check_labelled_vertex(v, 0)
 
-        if directed or u_int == v_int:
+        if u_int == v_int:
+            if not self._loops:
+                raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
+            self._cg.add_arc(u_int, u_int)
+        elif directed:
             self._cg.add_arc(u_int, v_int)
         else:
             self._cg.add_arc(u_int, v_int)

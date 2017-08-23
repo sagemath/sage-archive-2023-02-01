@@ -129,12 +129,12 @@ import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.groups.all import AbelianGroup
+from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
 import sage.groups.generic as generic
 from sage.libs.pari import pari
 from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
@@ -1058,18 +1058,18 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         r"""
         Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
-        ..WARNING:
+        .. WARNING::
 
-        It is up to the caller to make sure that this does not loop
-        endlessly.  It is used in
-        ``EllipticCurve_generic._p_primary_torsion_basis()``, when
-        self will always have (finite) order which is a power of `p`,
-        so that the order of `Q` increases by a factor of `p` at each
-        stage.
+            It is up to the caller to make sure that this does not loop
+            endlessly.  It is used in
+            ``EllipticCurve_generic._p_primary_torsion_basis()``, when
+            self will always have (finite) order which is a power of `p`,
+            so that the order of `Q` increases by a factor of `p` at each
+            stage.
 
-        Since it will clearly be in danger of looping when
-        self.is_zero(), this case is caught, but otherwise caveat
-        user.
+            Since it will clearly be in danger of looping when
+            self.is_zero(), this case is caught, but otherwise caveat
+            user.
 
         EXAMPLES::
 
@@ -1256,7 +1256,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: Q must be nonzero.
 
-        ..NOTES:
+        .. NOTE::
 
             This function is used in _miller_ algorithm.
 
@@ -1342,7 +1342,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Px._miller_(2*Px,41)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         A small example of embedding degree 6::
 
@@ -2044,11 +2044,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         E = self.curve()
 
-        # Special code for curves over Q, calling PARI
+        # First try PARI
         from sage.libs.pari.all import PariError
         try:
-            n = int(E.pari_curve().ellorder(self))
-            if n == 0:
+            n = E.pari_curve().ellorder(self)
+            if n:
+                n = Integer(n)
+            else:
                 n = oo
             self._order = n
             return n
@@ -3543,8 +3545,9 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if 2*N > bounds[1]:  # then we have a generator, so cache this
             if not hasattr(E, '_order'):
                 E._order = N
-            if not hasattr(E, '__abelian_group'):
-                E.__abelian_group = AbelianGroup([N]), (self, )
+            if not E.abelian_group.is_in_cache():
+                g = AdditiveAbelianGroupWrapper(E.point_homset(), [self], [N])
+                E.abelian_group.set_cache(g)
 
         self._order = N
         return self._order

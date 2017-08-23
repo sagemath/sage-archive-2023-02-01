@@ -38,7 +38,7 @@ class LeviCivitaConnection(AffineConnection):
     Levi-Civita connection on a pseudo-Riemannian manifold.
 
     Let `M` be a differentiable manifold of class `C^\infty` (smooth manifold)
-    over `\RR` endowed with with a pseudo-Riemannian metric `g`.
+    over `\RR` endowed with a pseudo-Riemannian metric `g`.
     Let `C^\infty(M)` be the algebra of smooth functions
     `M\rightarrow \RR` (cf.
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`)
@@ -255,7 +255,7 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -269,7 +269,7 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')

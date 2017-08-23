@@ -3697,7 +3697,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     def harmonic_cocycle_from_elliptic_curve(self, E, prec=None):
         r"""
-        Return a harmonic cocycle with the same hecke eigenvalues as ``E``.
+        Return a harmonic cocycle with the same Hecke eigenvalues as ``E``.
 
         Given an elliptic curve `E` having a conductor `N` of the form `pN^-N^+`,
         return the harmonic cocycle over ``self`` which is attached to ``E`` via

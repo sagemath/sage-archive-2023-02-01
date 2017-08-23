@@ -678,7 +678,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         OUTPUT:
 
         A tuple ``(L, R)``, where ``R`` is an element of
-        the hecke triangle group that conjugates the
+        the Hecke triangle group that conjugates the
         described primitive representative to the primitive
         part of ``self``.
 
@@ -1528,7 +1528,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         OUTPUT:
 
         A tuple ``(L, R, sgn)``, where ``R`` is an element of
-        the hecke triangle group that conjugates the
+        the Hecke triangle group that conjugates the
         described representative to ``self`` up to the given sign.
 
         In the hyperbolic and parabolic case ``L`` is an
@@ -1955,8 +1955,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [  lam + 2 7*lam + 2]
             ]
 
-            This agrees with the results (p.16) from Culp-Ressler on
-            binary quadratic forms for hecke triangle groups:
+        This agrees with the results (p.16) from Culp-Ressler on
+        binary quadratic forms for Hecke triangle groups::
 
             sage: [v.continued_fraction() for v in R]
             [((1,), (1, 1, 4, 2)),

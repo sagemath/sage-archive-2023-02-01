@@ -64,8 +64,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
+from sage.structure.richcmp import richcmp
 from sage.modular.dirichlet import DirichletGroup, trivial_character
 from sage.rings.all import ZZ, QQ, IntegerModRing, Qp, Infinity
 from sage.arith.all import divisors
@@ -285,6 +287,7 @@ class WeightSpace_class(ParentWithBase):
         else:
             return ArbitraryWeight(self, self.base_ring()(x.w()), x.teichmuller_type())
 
+
 class WeightCharacter(Element):
     r"""
     Abstract base class representing an element of the p-adic weight space
@@ -392,18 +395,15 @@ class WeightCharacter(Element):
             sage: pAdicWeightSpace(11)(0).is_trivial()
             True
         """
-        if self.values_on_gens() == (1, 0):
-            return True
-        else:
-            return False
+        return self.values_on_gens() == (1, 0)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
-            sage: W=pAdicWeightSpace(11)
+            sage: W = pAdicWeightSpace(11)
             sage: W(2) == W(3)
             False
             sage: W(2, DirichletGroup(11, QQ).0) == W(2)
@@ -411,10 +411,7 @@ class WeightCharacter(Element):
             sage: W(2, DirichletGroup(11, QQ).0) == W(144 + O(11^20), 7, False)
             True
         """
-        if not isinstance(other, WeightCharacter):
-            return cmp(type(self), type(other))
-        else:
-            return cmp(self.values_on_gens(), other.values_on_gens())
+        return richcmp(self.values_on_gens(), other.values_on_gens(), op)
 
     def Lvalue(self):
         r"""
@@ -435,7 +432,9 @@ class WeightCharacter(Element):
     def one_over_Lvalue(self):
         r"""
         Return the reciprocal of the p-adic L-function evaluated at this
-        weight-character. If the weight-character is odd, then the L-function
+        weight-character.
+
+        If the weight-character is odd, then the L-function
         is zero, so an error will be raised.
 
         EXAMPLES::
@@ -457,6 +456,7 @@ class WeightCharacter(Element):
             return ZZ(0)
         else:
             return 1/self.Lvalue()
+
 
 class AlgebraicWeight(WeightCharacter):
     r"""

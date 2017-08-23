@@ -35,7 +35,7 @@ The list is a copy, so changing the list does not change the element::
 #*****************************************************************************
 from six import integer_types
 
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 

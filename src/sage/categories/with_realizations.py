@@ -115,12 +115,9 @@ def WithRealizations(self):
     ``Out``, as above one can just do::
 
         sage: A.inject_shorthands()
-        Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
-        doctest:...: RuntimeWarning: redefining global value `F`
-        Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
-        doctest:...: RuntimeWarning: redefining global value `In`
-        Injecting Out as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Out basis
-        doctest:...: RuntimeWarning: redefining global value `Out`
+        Defining F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
+        Defining In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
+        Defining Out as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Out basis
 
     .. RUBRIC:: Rationale
 

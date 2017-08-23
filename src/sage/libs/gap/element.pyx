@@ -6,18 +6,20 @@ elements. For general information about libGAP, you should read the
 :mod:`~sage.libs.gap.libgap` module documentation.
 """
 
-###############################################################################
-#       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#   Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-###############################################################################
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include "cysignals/signals.pxi"
+from __future__ import absolute_import, print_function
+
 from cpython.object cimport *
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
@@ -1368,24 +1370,64 @@ cdef class GapElement_FiniteField(GapElement):
             sage: n.sage(ring=GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: the given finite field has incompatible size
+            ValueError: the given ring is incompatible ...
+
+        TESTS::
+
+            sage: n = libgap.eval('Z(2^4)^2 + Z(2^4)^1 + Z(2^4)^0')
+            sage: n
+            Z(2^2)^2
+            sage: n.sage()
+            a + 1
+            sage: parent(_)
+            Finite Field in a of size 2^2
+            sage: n.sage(ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=CC)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=GF(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=GF(2^3))
+            Traceback (most recent call last):
+            ...
+            ValueError: the given ring is incompatible ...
+            sage: n.sage(ring=GF(2^2, 'a'))
+            a + 1
+            sage: n.sage(ring=GF(2^4, 'a'))
+            a^2 + a + 1
+            sage: n.sage(ring=GF(2^8, 'a'))
+            a^7 + a^6 + a^4 + a^2 + a + 1
+
+        Check that :trac:`23153` is fixed::
+
+            sage: n = libgap.eval('Z(2^4)^2 + Z(2^4)^1 + Z(2^4)^0')
+            sage: n.sage(ring=GF(2^4, 'a'))
+            a^2 + a + 1
         """
         deg = self.DegreeFFE().sage()
         char = self.Characteristic().sage()
         if ring is None:
             from sage.rings.finite_rings.finite_field_constructor import GF
             ring = GF(char**deg, name=var)
+        elif not (ring.is_field() and ring.is_finite() and \
+                  ring.characteristic() == char and ring.degree() % deg == 0):
+            raise ValueError(('the given ring is incompatible (must be a '
+                              'finite field of characteristic {} and degree '
+                              'divisible by {})').format(char, deg))
 
         if self.IsOne():
             return ring.one()
         if deg == 1 and char == ring.characteristic():
             return ring(self.lift().sage())
         else:
-            field = self.DefaultField()
-            if field.Size().sage() != ring.cardinality():
-                raise ValueError('the given finite field has incompatible size')
-            root = self.DefaultField().PrimitiveRoot()
-            exp = self.LogFFE(root)
+            gap_field = make_GapElement_Ring(self.parent(), gap_eval(ring._gap_init_()))
+            exp = self.LogFFE(gap_field.PrimitiveRoot())
             return ring.multiplicative_generator() ** exp.sage()
 
 

@@ -11,8 +11,7 @@ Modular symbols using eclib newforms
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from ..eclib cimport *
 from sage.libs.gmp.mpq cimport mpq_numref
@@ -345,7 +344,7 @@ cdef class ECModularSymbol:
             n = n % d
         sig_on()
         _r = rational(n,d)
-        if sign==None or not sign in [-1,0,1]:
+        if sign is None or not sign in [-1,0,1]:
            sign = self.sign
         if sign==+1:
             _sp = self.nfs.plus_modular_symbol(_r, 0, int(base_at_infinity))

@@ -63,6 +63,7 @@ from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.element cimport RingElement, Element, ModuleElement
@@ -77,7 +78,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.superseded import deprecated_function_alias
 from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
-from sage.structure.sage_object cimport rich_to_bool, richcmp
+from sage.structure.richcmp cimport rich_to_bool, richcmp
+from sage.categories.fields import Fields
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -299,6 +301,10 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             Complex Field with 1042 bits of precision and rounding RNDDZ
 
         ALGORITHMS: Computations are done using the MPC library.
+
+        TESTS::
+
+            sage: TestSuite(MPComplexField(17)).run()
         """
         if prec < mpfr_prec_min() or prec > mpfr_prec_max():
             raise ValueError("prec (=%s) must be >= %s and <= %s." % (
@@ -317,7 +323,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         self.__real_field = real_mpfr.RealField(prec, rnd=_mpfr_rounding_modes[rnd_re(n)])
         self.__imag_field = real_mpfr.RealField(prec, rnd=_mpfr_rounding_modes[rnd_im(n)])
 
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False)
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Infinite())
         self._populate_coercion_lists_(coerce_list=[MPFRtoMPC(self._real_field(), self)])
 
     cdef MPComplexNumber _new(self):
@@ -472,7 +478,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
 
         late_import()
         if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
-            return self._generic_convert_map(S)
+            return self._generic_coerce_map(S)
 
         return self._coerce_map_via([CLF], S)
 
@@ -910,7 +916,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: MPComplexField()(2, -3) # indirect doctest
             2.00000000000000 - 3.00000000000000*I
         """
-        return self.str()
+        return self.str(truncate=True)
 
     def _latex_(self):
         """
@@ -922,7 +928,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             2.00000000000000 - 3.00000000000000i
         """
         import re
-        s = self.str().replace('*I', 'i')
+        s = repr(self).replace('*I', 'i')
         return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
     def __hash__(self):
@@ -1024,40 +1030,40 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpfr_set (y.value, self.value.im, (<RealField_class>y._parent).rnd)
         return y
 
-    def str(self, int base=10, int truncate=True):
+    def str(self, base=10, **kwds):
         """
         Return a string of ``self``.
 
         INPUT:
 
-        - ``base`` -- base for output
+        - ``base`` -- (default: 10) base for output
 
-        - ``truncate`` -- if ``True``, round off the last digits in printing
-          to lessen confusing base-2 roundoff issues.
+        - ``**kwds`` -- other arguments to pass to the ``str()``
+          method of the real numbers in the real and imaginary parts.
 
         EXAMPLES::
 
             sage: MPC = MPComplexField(64)
             sage: z = MPC(-4, 3)/7
             sage: z.str()
-            '-0.571428571428571429 + 0.428571428571428571*I'
+            '-0.571428571428571428564 + 0.428571428571428571436*I'
             sage: z.str(16)
             '-0.92492492492492490 + 0.6db6db6db6db6db70*I'
             sage: z.str(truncate=True)
             '-0.571428571428571429 + 0.428571428571428571*I'
-            sage: z.str(2, True)
+            sage: z.str(2)
             '-0.1001001001001001001001001001001001001001001001001001001001001001 + 0.01101101101101101101101101101101101101101101101101101101101101110*I'
         """
         s = ""
         if self.real() != 0:
-            s = self.real().str(base, truncate=truncate)
+            s = self.real().str(base, **kwds)
         if self.imag() != 0:
             if mpfr_signbit(self.value.im):
-                s += ' - ' + (-self.imag()).str(base, truncate=truncate) + '*I'
+                s += ' - ' + (-self.imag()).str(base, **kwds) + '*I'
             else:
                 if s:
                     s += ' + '
-                s += self.imag().str(base, truncate=truncate) + '*I'
+                s += self.imag().str(base, **kwds) + '*I'
         if not s:
             return "0"
         return s

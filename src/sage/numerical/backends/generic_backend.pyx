@@ -170,7 +170,7 @@ cdef class GenericBackend:
         """
         Run tests on the method :meth:`.add_linear_constraints`.
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
@@ -260,7 +260,7 @@ cdef class GenericBackend:
         """
         Run tests on `set_sense` and `is_maximization`.
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
@@ -514,7 +514,7 @@ cdef class GenericBackend:
         """
         Run tests on the method :meth:`.add_linear_constraint_vector`.
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
@@ -581,7 +581,7 @@ cdef class GenericBackend:
         """
         Run tests on the method :meth:`.add_col`
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
@@ -635,7 +635,7 @@ cdef class GenericBackend:
         """
         Run tests on the method :meth:`.add_linear_constraints`.
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
@@ -697,7 +697,7 @@ cdef class GenericBackend:
         """
         Trivial test for the solve method.
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()
@@ -1487,7 +1487,7 @@ cdef class GenericBackend:
         """
         Run tests regarding :trac:`18572`::
 
-        TEST::
+        TESTS::
 
             sage: from sage.numerical.backends.generic_backend import GenericBackend
             sage: p = GenericBackend()

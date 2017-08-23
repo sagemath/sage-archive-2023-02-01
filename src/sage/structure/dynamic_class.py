@@ -123,6 +123,7 @@ from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonMetaclass, InheritComparisonClasscallMetaclass
 
+
 def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
                   prepend_cls_bases=True, cache=True):
     r"""
@@ -198,13 +199,13 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         '__main__'
 
         sage: Foo.__bases__
-        (<type 'object'>,)
+        (<... 'object'>,)
         sage: FooBar.__bases__
-        (<type 'object'>, <class __main__.Bar at ...>)
+        (<... 'object'>, <class __main__.Bar at ...>)
         sage: Foo.mro()
-        [<class '__main__.Foo'>, <type 'object'>]
+        [<class '__main__.Foo'>, <... 'object'>]
         sage: FooBar.mro()
-        [<class '__main__.FooBar'>, <type 'object'>, <class __main__.Bar at ...>]
+        [<class '__main__.FooBar'>, <... 'object'>, <class __main__.Bar at ...>]
 
     .. RUBRIC:: Pickling
 
@@ -309,6 +310,10 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     """
     bases = tuple(bases)
     #assert(len(bases) > 0 )
+    try:
+        name = str(name)
+    except UnicodeEncodeError:
+        pass
     assert(isinstance(name, str))
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
     if cache is True:
@@ -466,7 +471,7 @@ class DynamicMetaclass(type):
             sage: C = sage.structure.dynamic_class.dynamic_class_internal("bla", (object,), Foo, doccls = DocClass)
             sage: type(C).__reduce__(C)
             (<function dynamic_class at ...>,
-             ('bla', (<type 'object'>,), <class __main__.Foo at ...>, None, <class __main__.DocClass at ...>))
+             ('bla', (<... 'object'>,), <class __main__.Foo at ...>, None, <class __main__.DocClass at ...>))
             sage: C = sage.structure.dynamic_class.dynamic_class_internal("bla", (object,), Foo, doccls = DocClass, reduction = "blah")
             sage: type(C).__reduce__(C)
             'blah'

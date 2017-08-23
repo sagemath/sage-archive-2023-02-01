@@ -7,14 +7,18 @@ templating.
 AUTHOR:
     -- Yann Laigle-Chapuy (2010-01): initial version
 """
+
 #*****************************************************************************
 #       Copyright (C) 2010 Yann Laigle-Chapuy
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
 from sage.libs.ntl.ZZ_pEX cimport *

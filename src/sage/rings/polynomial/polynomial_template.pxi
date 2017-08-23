@@ -17,7 +17,7 @@ Polynomial Template for C/C++ Library Interfaces
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element, RingElement
 from sage.structure.element import coerce_binop, bin_op
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer cimport Integer
 from sage.libs.all import pari_gen
@@ -209,7 +209,7 @@ cdef class Polynomial_template(Polynomial):
             sage: P.<x> = GF(2)[]
             sage: del x
 
-        TEST:
+        TESTS:
 
         The following has been a problem in a preliminary version of
         :trac:`12313`::
@@ -275,7 +275,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(-pari(self)) == r)
         return r
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -813,7 +813,7 @@ cdef class Polynomial_template(Polynomial):
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
-        .. seealso:: :meth:`.derivative`
+        .. SEEALSO:: :meth:`.derivative`
 
         EXAMPLES::
 

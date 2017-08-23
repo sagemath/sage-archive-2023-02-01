@@ -120,7 +120,8 @@ class FreeMonoidElement(MonoidElement):
 ##         The ordering is the one on the underlying sorted list of
 ##         (monomial,coefficients) pairs.
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: R.<x,y> = FreeMonoid(2)
 ##             sage: x < y
 ##             True

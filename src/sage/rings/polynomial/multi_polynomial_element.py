@@ -566,7 +566,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             ...
             TypeError: x must be one of the generators of the parent
 
-        TEST::
+        TESTS::
 
             sage: R = PolynomialRing(GF(2)['t'],'x,y',order=TermOrder('wdeglex',(2,3)))
             sage: x,y = R.gens()
@@ -720,7 +720,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     #    returning tuples of the form (coeff, mon) for each
     #    non-zero monomial.
     #
-    #    EXAMPLES:
+    #    EXAMPLES::
+
     #        sage: R = ZZ['t']
     #        sage: P.<x,y,z> = PolynomialRing(R,3)
     #        sage: f = 3*x^3*y + 16*x + 7

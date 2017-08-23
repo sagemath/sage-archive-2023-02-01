@@ -15,7 +15,7 @@ animated GIFs.
 For `browsers which support it`_, APNG_ can be used as another
 alternative which works without any extra dependencies.
 
-.. Warning::
+.. WARNING::
 
     Note that ImageMagick and FFmpeg are not included with Sage, and
     must be installed by the user.  On unix systems, type ``which
@@ -98,12 +98,12 @@ AUTHORS:
 - Niles Johnson (2013-12): Expand to animate more graphics objects
 - Martin von Gagern (2014-12): Added APNG support
 
-.. REFERENCES (not rendered as a section, but linked inline):
+REFERENCES:
 
-.. _ImageMagick: http://www.imagemagick.org
-.. _FFmpeg: http://www.ffmpeg.org
-.. _APNG: https://wiki.mozilla.org/APNG_Specification
-.. _`browsers which support it`: http://caniuse.com/#feat=apng
+- `ImageMagick <http://www.imagemagick.org>`_
+- `FFmpeg <http://www.ffmpeg.org>`_
+- `APNG <https://wiki.mozilla.org/APNG_Specification>`_
+- `browsers which support it <http://caniuse.com/#feat=apng>`_
 
 """
 
@@ -577,10 +577,10 @@ class Animation(WithEqualityById, SageObject):
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
 
-        .. REFERENCES (not rendered as a section, but linked inline):
+        REFERENCES:
 
-        .. _ImageMagick: http://www.imagemagick.org
-        .. _FFmpeg: http://www.ffmpeg.org
+        - `ImageMagick <http://www.imagemagick.org>`_
+        - `FFmpeg <http://www.ffmpeg.org>`_
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
@@ -1127,9 +1127,9 @@ class APngAssembler(object):
         sage: assembleAPNG()  # long time
         '...png'
 
-    .. REFERENCES:
+    REFERENCES:
 
-    .. _APNG: https://wiki.mozilla.org/APNG_Specification
+    - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
     """
 
     magic = b"\x89PNG\x0d\x0a\x1a\x0a"

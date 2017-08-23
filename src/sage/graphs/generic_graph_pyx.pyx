@@ -22,8 +22,9 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/data_structures/binary_matrix.pxi"
 from libc.math cimport sqrt
 from libc.string cimport memset

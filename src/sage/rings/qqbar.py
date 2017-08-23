@@ -498,6 +498,14 @@ Verify that :trac:`10981` is fixed::
     sage: P = 1/(1+x^4)
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
+
+Check that :trac:`22202` is fixed::
+
+    sage: R1.<x> = AA[]; R2.<s> = QQbar[]
+    sage: v = QQbar.polynomial_root(x^2 - x + 1, CIF(0.5, RIF(-0.87, -0.85)))
+    sage: a = QQbar.polynomial_root((-4*v + 2)*s + (v - 1/2), CIF(RIF(0.24, 0.26), RIF(0)))
+    sage: QQ(a)
+    1/4
 """
 
 from __future__ import absolute_import, print_function
@@ -510,10 +518,11 @@ import operator
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import (SageObject, richcmp,
-                                        rich_to_bool, richcmp_not_equal,
-                                        op_EQ, op_NE, op_LE, op_LT,
-                                        op_GE, op_GT)
+from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import (richcmp,
+                                    rich_to_bool, richcmp_not_equal,
+                                    op_EQ, op_NE, op_LE, op_LT,
+                                    op_GE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
 from sage.rings.complex_field import ComplexField
@@ -1475,6 +1484,42 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         # could we instead just compute one root "randomly"?
         m = sage.misc.prandom.randint(0, len(roots)-1)
         return roots[m]
+
+    def _is_irreducible_univariate_polynomial(self, f):
+        r"""
+        Return whether ``f`` is irreducible.
+
+        INPUT:
+
+        - ``f`` -- a non-constant univariate polynomial defined over the
+          algebraic field
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_irreducible`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (x^2).is_irreducible() # indirect doctest
+            False
+
+        Note that this method does not handle constant polynomials::
+
+            sage: QQbar._is_irreducible_univariate_polynomial(R(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial must not be constant
+            sage: R(1).is_irreducible()
+            False
+
+        """
+        if f.degree() < 1:
+            # this case is handled by the caller (PolynomialElement.is_irreducible())
+            raise ValueError("polynomial must not be constant")
+
+        return f.degree() == 1
 
     def _factor_univariate_polynomial(self, f):
         """
@@ -4542,7 +4587,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         real which isn't the case without calling _ensure_real (see
         :trac:`11728`)::
 
-            sage: P = AA[x](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
+            sage: P = AA['x'](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
             x^4 + 1.000000000000000?
             sage: a1,a2
             (x^2 - 1.414213562373095?*x + 1, x^2 + 1.414213562373095?*x + 1)

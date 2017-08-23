@@ -161,7 +161,7 @@ class LetterplaceIdeal(Ideal_nc):
           is a left, right or twosided ideal. Groebner bases or
           only supported in the twosided case.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: from sage.algebras.letterplace.letterplace_ideal import LetterplaceIdeal

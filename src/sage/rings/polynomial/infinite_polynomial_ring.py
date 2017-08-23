@@ -1053,7 +1053,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         NOTE:
 
-        Infinite Polynomial Rings over a field `F` are notherian as
+        Infinite Polynomial Rings over a field `F` are noetherian as
         `F(G)` modules, where `G` is the symmetric group of the
         natural numbers. But this is not what the method
         ``is_noetherian()`` is answering.

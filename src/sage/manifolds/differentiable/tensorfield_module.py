@@ -172,7 +172,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     The coercion::
 
         sage: T20U.coerce_map_from(T20)
-        Conversion map:
+        Coercion map:
           From: Module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional differentiable manifold M
           To:   Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open subset U of the 2-dimensional differentiable manifold M
 
@@ -355,7 +355,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unnamed) tensor field.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
@@ -452,7 +452,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         r"""
         Return a LaTeX representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
@@ -651,7 +651,7 @@ class TensorFieldFreeModule(TensorFreeModule):
         sage: T20.has_coerce_map_from(T20U)  # the reverse is not true
         False
         sage: T20U.coerce_map_from(T20)
-        Conversion map:
+        Coercion map:
           From: Free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional differentiable manifold R^3
           To:   Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open subset U of the 3-dimensional differentiable manifold R^3
 

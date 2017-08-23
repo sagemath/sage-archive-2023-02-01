@@ -89,6 +89,7 @@ Root system data and code for specific families of Cartan types
 - :ref:`sage.combinat.root_system.type_folded`
 - :ref:`sage.combinat.root_system.type_reducible`
 - :ref:`sage.combinat.root_system.type_relabel`
+- :ref:`sage.combinat.root_system.type_marked`
 
 Root system data and code for specific Cartan types
 ---------------------------------------------------

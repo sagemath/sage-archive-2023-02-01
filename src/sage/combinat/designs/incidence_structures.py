@@ -540,7 +540,7 @@ class IncidenceStructure(object):
 
         They begin to differ if we make one vertex universal::
 
-            sage: P.add_edges([(0,x) for x in P])
+            sage: P.add_edges([(0,x) for x in P], loops=False)
             sage: IP = IncidenceStructure(P.edges(labels=False))
             sage: IC = IncidenceStructure(C.edges(labels=False))
             sage: sum(1 for _ in IP.isomorphic_substructures_iterator(IC))

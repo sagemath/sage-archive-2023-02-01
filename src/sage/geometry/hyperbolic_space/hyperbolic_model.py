@@ -234,7 +234,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
     def point_in_model(self, p):
         r"""
-        Return ``True`` if the point ``p`` is in the interiror of the
+        Return ``True`` if the point ``p`` is in the interior of the
         given model and ``False`` otherwise.
 
         INPUT:

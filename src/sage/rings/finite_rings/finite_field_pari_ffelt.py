@@ -119,7 +119,6 @@ class FiniteField_pari_ffelt(FiniteField):
 
         self._modulus = modulus
         self._degree = n
-        self._kwargs = {}
 
         self._gen_pari = modulus._pari_with_name(self._names[0]).ffgen()
         self._zero_element = self.element_class(self, 0)

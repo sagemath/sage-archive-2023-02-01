@@ -134,10 +134,10 @@ I. ``canonical_parent``:
 
     Apply the ``permutation`` to the ``child``, determine an arbitrary but fixed
     parent, apply the inverse of ``permutation`` to that parent, and return the
-    resulting object. Must also set the integer ``degree`` points to to the
+    resulting object. Must also set the integer ``degree`` points to the
     degree of the returned object.
 
-NOTE:
+.. NOTE::
 
     It is a good idea to try to implement an augmentation scheme where the
     degree of objects on each level of the augmentation tree is constant. The
@@ -167,7 +167,8 @@ REFERENCE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
+
 from .data_structures cimport*
 
 

@@ -185,6 +185,8 @@ from __future__ import absolute_import, print_function
 
 from copy import copy
 
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
+
 from sage.groups.perm_gps.partn_ref.data_structures cimport *
 include "sage/data_structures/bitset.pxi"
 
@@ -257,6 +259,7 @@ cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best,
         i += 1
     return (True, newly_fixed)
 
+
 cdef class _BestValStore:
     r"""
     This class implements a dynamic array of integer vectors of length `n`.
@@ -272,9 +275,7 @@ cdef class _BestValStore:
         """
         self.default_data_length = n
         self.storage_length = 0
-        self.values = <long *> sig_malloc(0)
-        if self.values is NULL:
-            raise MemoryError('allocating _BestValStore')
+        self.values = NULL
 
     def __dealloc__(self):
         """
@@ -296,6 +297,7 @@ cdef class _BestValStore:
                 raise MemoryError('resizing _BestValStore')
             self.storage_length = i + 1
         return self.values+(i*self.default_data_length)
+
 
 cdef class LabelledBranching:
     r"""

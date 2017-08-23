@@ -40,7 +40,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import operator
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
@@ -457,7 +457,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        - The image of this element under the hecke operator
+        - The image of this element under the Hecke operator
           `T_{\ell}`
 
         ALGORITHMS:
@@ -720,9 +720,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: a = f[3]
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2))
-            False
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
+            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2)) !=  phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
             True
             sage: phi.is_ordinary(3)
             Traceback (most recent call last):

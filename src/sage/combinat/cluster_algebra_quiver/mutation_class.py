@@ -349,11 +349,12 @@ def _dig6_to_digraph( dig6 ):
 
 def _dig6_to_matrix( dig6 ):
     """
-    Returns the matrix obtained from the dig6 and edge data.
+    Return the matrix obtained from the dig6 and edge data.
 
     INPUT:
 
-    - ``dig6`` -- a pair ``(dig6, edges)`` where ``dig6`` is a string encoding a digraph and ``edges`` is a dict or tuple encoding edges
+    - ``dig6`` -- a pair ``(dig6, edges)`` where ``dig6`` is a string
+      encoding a digraph and ``edges`` is a dict or tuple encoding edges
 
     EXAMPLES::
 
@@ -367,8 +368,8 @@ def _dig6_to_matrix( dig6 ):
         [ 0  1  0  1]
         [ 0  0 -1  0]
     """
-    dg = _dig6_to_digraph( dig6 )
-    return _edge_list_to_matrix( dg.edges(), dg.order(), 0 )
+    dg = _dig6_to_digraph(dig6)
+    return _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
 
 def _dg_is_sink_source( dg, v ):
     """

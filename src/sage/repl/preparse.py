@@ -199,7 +199,9 @@ Behind the scenes what happens is the following::
     sage: preparse('v = [ 2r * i for i in range(10000r)]')
     'v = [ 2 * i for i in range(10000)]'
 
-.. warning: The result of the above two expressions is different.  The
+.. WARNING::
+
+   The results of the above two expressions are different.  The
    first one computes a list of Sage integers, whereas the second
    creates a list of Python integers.  Python integers are typically
    much more efficient than Sage integers when they are very small;

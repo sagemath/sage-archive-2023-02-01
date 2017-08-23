@@ -17,11 +17,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_on, sig_off
+from cysignals.memory cimport sig_malloc, sig_free
+
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport *
-
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 
 cdef inline celement *celement_new(unsigned long n):

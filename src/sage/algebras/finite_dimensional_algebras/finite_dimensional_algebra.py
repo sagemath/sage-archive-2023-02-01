@@ -189,7 +189,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         """
         Return a string representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: FiniteDimensionalAlgebra(RR, [Matrix([1])])._repr_()
             'Finite-dimensional algebra of degree 1 over Real Field with 53 bits of precision'

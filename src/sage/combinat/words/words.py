@@ -674,7 +674,7 @@ class FiniteWords(AbstractLanguage):
            The check makes this method about 10 times slower (20µs instead
            of 2µs), so make sure to set it to False if you know the
            alphabet is OK. Fast creation (about 1µs) of a word can be
-           done using the class directly (see :meth:``_element_classes``).
+           done using the class directly (see :meth:`_element_classes`).
 
         .. WARNING::
 
@@ -1587,7 +1587,7 @@ class InfiniteWords(AbstractLanguage):
            The check makes this method about 10 times slower (20µs instead
            of 2µs), so make sure to set it to False if you know the
            alphabet is OK. Fast creation (about 1µs) of a word can be
-           done using the class directly (see :meth:``_element_classes``).
+           done using the class directly (see :meth:`_element_classes`).
 
         .. WARNING::
 
@@ -1879,7 +1879,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
            For iterators: Infinity if you know the iterator will not
            terminate (default); "unknown" if you do not know whether the
            iterator terminates; "finite" if you know that the iterator
-           terminates, but do know know the length.
+           terminates, but do not know the length.
 
         -  ``datatype`` - (default: None) None, "char", "list", "str",
            "tuple", "iter", "callable" or "pickled_function". If None, then
@@ -1899,7 +1899,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
            The check makes this method about 10 times slower (20µs instead
            of 2µs), so make sure to set it to False if you know the
            alphabet is OK. Fast creation (about 1µs) of a word can be
-           done using the class directly (see :meth:``_element_classes``).
+           done using the class directly (see :meth:`_element_classes`).
 
         .. WARNING::
 

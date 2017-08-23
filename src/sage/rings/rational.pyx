@@ -26,6 +26,8 @@ AUTHORS:
 
 - Vincent Delecroix (2013): continued fraction
 
+- Vincent Delecroix (2017-05-03): faster integer-rational comparison
+
 TESTS::
 
     sage: a = -2/3
@@ -35,6 +37,7 @@ TESTS::
 
 #*****************************************************************************
 #       Copyright (C) 2004, 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -45,16 +48,20 @@ TESTS::
 from __future__ import absolute_import
 
 from cpython cimport *
+from cpython.object cimport Py_EQ, Py_NE
 
 from cysignals.signals cimport sig_on, sig_off
 
 import sys
 import operator
+import fractions
 
 from sage.misc.mathml import mathml
 from sage.misc.long cimport pyobject_to_long
 
 import sage.misc.misc as misc
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool_sgn
 import sage.rings.rational_field
 
 cimport sage.rings.integer as integer
@@ -68,6 +75,9 @@ from .integer_ring import ZZ
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
+
+from sage.libs.gmp.pylong cimport mpz_set_pylong
+
 from sage.structure.element cimport Element, RingElement, ModuleElement, coercion_model
 from sage.structure.element import bin_op, coerce_binop
 from sage.structure.parent cimport Parent
@@ -80,6 +90,8 @@ import sage.rings.real_mpfr
 import sage.rings.real_double
 from libc.stdint cimport uint64_t
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
+
+from cpython.int cimport PyInt_AS_LONG
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
@@ -379,6 +391,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: QQ(RDF(1.2))
         6/5
 
+    Conversion from fractions::
+
+        sage: import fractions
+        sage: f = fractions.Fraction(1r, 2r)
+        sage: Rational(f)
+        1/2
+
     Conversion from PARI::
 
         sage: Rational(pari('-939082/3992923'))
@@ -539,7 +558,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             if not base:
                 set_from_Rational(self, x.simplest_rational())
             else:
-                xstr = x.str(base)
+                # Truncate in base 10 to match repr(x).
+                # See https://trac.sagemath.org/ticket/21124
+                xstr = x.str(base, truncate=(base == 10))
                 if '.' in xstr:
                     exp = (len(xstr) - (xstr.index('.') +1))
                     p = base**exp
@@ -610,6 +631,10 @@ cdef class Rational(sage.structure.element.FieldElement):
                 self.__set_value(sage.rings.real_mpfr.RR(x), base)
             else:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
+
+        elif isinstance(x, fractions.Fraction):
+            mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
+            mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
 
         else:
             raise TypeError("unable to convert {!r} to a rational".format(x))
@@ -754,7 +779,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    cpdef int _cmp_(left, right) except -2:
+    def __richcmp__(left, right, int op):
         """
         Compare two rational numbers.
 
@@ -774,12 +799,60 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
             sage: 4/5 < 0.8
             False
+
+            sage: ones = [1, 1r, 1l, 1/1, 1.0r, 1.0]
+            sage: twos = [2, 2r, 2l, 2/1, 2.0r, 2.0]
+            sage: threes = [3, 3r, 3l, 3/1, 3.0r, 3.0]
+            sage: from itertools import product
+            sage: for one,two,three in product(ones,twos,threes):
+            ....:     assert one < two < three
+            ....:     assert one <= two <= three
+            ....:     assert three > two > one
+            ....:     assert three >= two >= one
+            ....:     assert one != two and one != three and two != three
+            sage: for one1, one2 in product(ones,repeat=2):
+            ....:     assert (one1 == one2) is True
+            ....:     assert (one1 <= one2) is True
+            ....:     assert (one1 >= one2) is True
         """
-        cdef int i
-        i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
-        if i < 0: return -1
-        elif i == 0: return 0
-        else: return 1
+        cdef int c
+        cdef mpz_t mpz_tmp
+
+        assert isinstance(left, Rational)
+
+        if isinstance(right, Rational):
+            if op == Py_EQ:
+                return <bint> mpq_equal((<Rational>left).value, (<Rational>right).value)
+            elif op == Py_NE:
+                return not mpq_equal((<Rational>left).value, (<Rational>right).value)
+            else:
+                c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
+        elif isinstance(right, Integer):
+            c = mpq_cmp_z((<Rational>left).value, (<Integer>right).value)
+        elif isinstance(right, int):
+            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
+        elif isinstance(right, long):
+            mpz_init(mpz_tmp)
+            mpz_set_pylong(mpz_tmp, right)
+            c = mpq_cmp_z((<Rational>left).value, mpz_tmp)
+            mpz_clear(mpz_tmp)
+        else:
+            return coercion_model.richcmp(left, right, op)
+
+        return rich_to_bool_sgn(op, c)
+
+    cpdef int _cmp_(left, right) except -2:
+        r"""
+        TESTS::
+
+            sage: (2/3)._cmp_(3/4)
+            -1
+            sage: (1/2)._cmp_(1/2)
+            0
+        """
+        cdef int c
+        c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
+        return (c > 0) - (c < 0)
 
     def __copy__(self):
         """
@@ -1473,7 +1546,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             if (mpz_cmp_ui(mpq_denref(self.value), 1) == 0):
                 return mpz_perfect_power_p(mpq_numref(self.value))
-            if expected_value == False:
+            if not expected_value:
                 # A necessary condition is that both the numerator and denominator
                 # be perfect powers, which can be faster to disprove than the full
                 # product (especially if both have a large prime factor).
@@ -1502,7 +1575,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mpz_clear(prod)
                 return s == 1
 
-            if expected_value == False:
+            if not expected_value:
                 if mpz_cmpabs(mpq_numref(self.value), mpq_denref(self.value)) < 0:
                     mpz_init(prod)
                     mpz_mul_si(prod, mpq_numref(self.value), -1)
@@ -2841,12 +2914,20 @@ cdef class Rational(sage.structure.element.FieldElement):
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
-    # TODO -- this should be deprecated
-    def numer(self):
+    def numerator(self):
         """
         Return the numerator of this rational number.
+        numer is an alias of numerator.
 
         EXAMPLES::
+
+            sage: x = 5/11
+            sage: x.numerator()
+            5
+
+            sage: x = 9/3
+            sage: x.numerator()
+            3
 
             sage: x = -5/11
             sage: x.numer()
@@ -2856,25 +2937,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
-    def numerator(self):
-        """
-        Return the numerator of this rational number.
-
-        EXAMPLES::
-
-            sage: x = 5/11
-            sage: x.numerator()
-            5
-
-        ::
-
-            sage: x = 9/3
-            sage: x.numerator()
-            3
-        """
-        cdef Integer n = Integer.__new__(Integer)
-        n.set_from_mpz(mpq_numref(self.value))
-        return n
+    #Define an alias for numerator
+    numer = numerator
 
     def __int__(self):
         """
@@ -2916,39 +2980,31 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             return mpz_get_pylong(mpq_numref(self.value))
 
-    def denom(self):
-        """
-        Returns the denominator of this rational number.
-
-        EXAMPLES::
-
-            sage: x = 5/13
-            sage: x.denom()
-            13
-            sage: x = -9/3
-            sage: x.denom()
-            1
-        """
-        cdef Integer n = Integer.__new__(Integer)
-        n.set_from_mpz(mpq_denref(self.value))
-        return n
-
     def denominator(self):
         """
         Returns the denominator of this rational number.
+        denom is an alias of denominator.
 
         EXAMPLES::
 
             sage: x = -5/11
             sage: x.denominator()
             11
+
             sage: x = 9/3
             sage: x.denominator()
             1
+
+            sage: x = 5/13
+            sage: x.denom()
+            13
         """
         cdef Integer n = Integer.__new__(Integer)
         n.set_from_mpz(mpq_denref(self.value))
         return n
+
+    #Define an alias for denominator
+    denom = denominator
 
     def factor(self):
         """
@@ -3978,6 +4034,18 @@ cdef class Z_to_Q(Morphism):
         """
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         return Q_to_Z(self._codomain.Hom(self.domain(), category=SetsWithPartialMaps()))
+
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: QQ.coerce_map_from(ZZ).is_surjective()
+            False
+
+        """
+        return False
 
 cdef class Q_to_Z(Map):
     r"""

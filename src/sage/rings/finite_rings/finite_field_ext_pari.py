@@ -194,7 +194,6 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
-        self._kwargs = {}
         self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = n

@@ -853,9 +853,9 @@ cdef class Context:
 
     def fdot(ctx, A, B=None, bint conjugate=False):
         r"""
-        Computes the dot product of the iterables `A` and `B`,
+        Compute the dot product of the iterables `A` and `B`,
 
-        .. math ::
+        .. MATH::
 
             \sum_{k=0} A_k B_k.
 
@@ -864,7 +864,7 @@ cdef class Context:
 
         The elements are automatically converted to mpmath numbers.
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import mp, fdot
             sage: mp.dps = 15; mp.pretty = False

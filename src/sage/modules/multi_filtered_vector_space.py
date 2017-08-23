@@ -357,7 +357,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
 
         OUTPUT:
 
-        A filtered vectior space.
+        A filtered vector space.
 
         EXAMPLES::
 

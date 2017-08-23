@@ -993,7 +993,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable

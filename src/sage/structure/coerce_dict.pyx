@@ -41,7 +41,7 @@ used with weak references on the values.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport *
 from cpython.list cimport PyList_New
@@ -68,8 +68,8 @@ cdef extern from "Python.h":
     PyObject* Py_None
     int PyList_SetItem(object list, Py_ssize_t index, PyObject * item) except -1
 
-cdef extern from "pyx_visit.h":
-    void Py_VISIT3(PyObject*, visitproc, void* arg)
+cdef extern from "sage/cpython/pyx_visit.h":
+    void Py_VISIT3(PyObject*, visitproc, void*)
 
 #it's important that this is not an interned string: this object
 #must be a unique sentinel. We could reuse the "dummy" sentinel

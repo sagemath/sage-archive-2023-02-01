@@ -147,8 +147,6 @@ class FiniteField_ntl_gf2e(FiniteField):
             raise ValueError("q must be a 2-power")
         FiniteField.__init__(self, GF2, names, normalize=True)
 
-        self._kwargs = {'repr':repr}
-
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if not is_Polynomial(modulus):
             from sage.misc.superseded import deprecation

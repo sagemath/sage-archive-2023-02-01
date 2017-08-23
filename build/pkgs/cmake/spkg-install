@@ -1,4 +1,7 @@
-#!/usr/bin/env bash
+if [ "$UNAME" = Darwin ]; then
+    CC=clang
+    CXX=clang++
+fi
 
 cd src
 

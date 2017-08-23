@@ -14,10 +14,9 @@ Dancing Links internal pyx code
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
 from cpython.object cimport PyObject_RichCompare
-
 from libcpp.vector cimport vector
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "dancing_links_c.h":
     ctypedef struct dancing_links:

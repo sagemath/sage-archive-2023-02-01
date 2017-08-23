@@ -350,7 +350,7 @@ class PerfectMatching(ElementWrapper):
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
             [(4, 6), (1, 2), (5, 3)]
 
-        TEST::
+        TESTS::
 
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
@@ -933,7 +933,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         r"""
         See :meth:`__classcall__`
 
-        TEST::
+        TESTS::
 
             sage: M = PerfectMatchings(6)
             sage: TestSuite(M).run()

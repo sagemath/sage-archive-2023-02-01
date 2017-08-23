@@ -31,6 +31,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
+from sage.structure.richcmp import richcmp_method, richcmp
 
 
 _gammaH_cache = {}
@@ -143,6 +144,7 @@ def _normalize_H(H, level):
     return H
 
 
+@richcmp_method
 class GammaH_class(CongruenceSubgroup):
     r"""
     The congruence subgroup `\Gamma_H(N)` for some subgroup `H \trianglelefteq
@@ -282,7 +284,7 @@ class GammaH_class(CongruenceSubgroup):
         v = self.__H
         ans = []
         for M in self.level().divisors():
-            w = [a % M for a in v if a%M]
+            w = [a % M for a in v if a % M]
             ans.append(GammaH_constructor(M, w))
         return ans
 
@@ -302,7 +304,7 @@ class GammaH_class(CongruenceSubgroup):
         else:
             return GammaH_constructor(self.level(), self._generators_for_H() + [-1])
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self to other.
 
@@ -314,9 +316,9 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLES::
 
             sage: G = GammaH(86, [9])
-            sage: G.__cmp__(G)
-            0
-            sage: G.__cmp__(GammaH(86, [11])) is not 0
+            sage: G == G
+            True
+            sage: G != GammaH(86, [11])
             True
             sage: Gamma1(11) < Gamma0(11)
             True
@@ -325,9 +327,9 @@ class GammaH_class(CongruenceSubgroup):
             sage: Gamma0(11) == GammaH(11, [2])
             True
             sage: G = Gamma0(86)
-            sage: G.__cmp__(G)
-            0
-            sage: G.__cmp__(GammaH(86, [11])) is not 0
+            sage: G == G
+            True
+            sage: G != GammaH(86, [11])
             True
             sage: Gamma1(17) < Gamma0(17)
             True
@@ -354,12 +356,13 @@ class GammaH_class(CongruenceSubgroup):
             [1, 11, 17, 19],
             [1, 5, 7, 11, 13, 17, 19, 23]]
         """
-        if is_GammaH(other):
-            return (cmp(self.level(), other.level())
-                or -cmp(self.index(), other.index())
-                or cmp(self._list_of_elements_in_H(), other._list_of_elements_in_H()))
+        if isinstance(other, GammaH_class):
+            return richcmp((self.level(), -self.index(),
+                            self._list_of_elements_in_H()),
+                           (other.level(), -other.index(),
+                            other._list_of_elements_in_H()), op)
         else:
-            return CongruenceSubgroup.__cmp__(self, other)
+            return NotImplemented
 
     def _generators_for_H(self):
         """
@@ -1228,7 +1231,7 @@ class GammaH_class(CongruenceSubgroup):
             [0 2], [0 1]
             )
 
-        TEST::
+        TESTS::
 
             sage: for n in [2..20]:
             ....:     for g in Gamma0(n).gamma_h_subgroups():

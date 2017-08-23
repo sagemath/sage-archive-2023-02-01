@@ -786,7 +786,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -801,7 +801,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()

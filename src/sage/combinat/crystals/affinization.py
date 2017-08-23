@@ -21,7 +21,7 @@ from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.rings.infinity import Infinity

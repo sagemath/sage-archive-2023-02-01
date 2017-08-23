@@ -175,7 +175,7 @@ def is_AlgebraicScheme(x):
 
     OUTPUT:
 
-    Boolean. Whether ``x`` is an an algebraic scheme, that is, a
+    Boolean. Whether ``x`` is an algebraic scheme, that is, a
     subscheme of an ambient space over a ring defined by polynomial
     equations.
 
@@ -411,7 +411,7 @@ class AlgebraicScheme(scheme.Scheme):
 
         Note that `p=(1,1,0)` is a singular point of `X`. So the
         neighborhood of `p` is not just affine space. The
-        :meth:neighborhood` method returns a presentation of
+        :meth:`neighborhood` method returns a presentation of
         the neighborhood as a subscheme of an auxiliary 2-dimensional
         affine space::
 
@@ -2463,6 +2463,60 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
           x^2 - y*z
     """
 
+    def point(self, v, check=True):
+        """
+        Create a point on this projective subscheme.
+
+        INPUT:
+
+        - ``v`` -- anything that defines a point
+
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
+
+        OUTPUT: A point of the subscheme.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P2.subscheme([x-y,y-z])
+            sage: X.point([1,1,1])
+            (1 : 1 : 1)
+
+        ::
+
+            sage: P2.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P2.subscheme([y])
+            sage: X.point(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P.subscheme(x^2+2*y^2)
+            sage: X.point(infinity)
+            Traceback (most recent call last):
+            ...
+            TypeError: Coordinates [1, 0] do not define a point on Closed subscheme
+            of Projective Space of dimension 1 over Rational Field defined by:
+              x^2 + 2*y^2
+        """
+        from sage.rings.infinity import infinity
+        if v is infinity  or\
+          (isinstance(v, (list,tuple)) and len(v) == 1 and v[0] is infinity):
+            if self.ambient_space().dimension_relative() > 1:
+                raise ValueError("%s not well defined in dimension > 1"%v)
+            v = [1, 0]
+        # todo: update elliptic curve stuff to take point_homset as argument
+        from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+        if is_EllipticCurve(self):
+            try:
+                return self._point(self.point_homset(), v, check=check)
+            except AttributeError:  # legacy code without point_homset
+                return self._point(self, v, check=check)
+
+        return self.point_homset()(v, check=check)
+
     def _morphism(self, *args, **kwds):
         r"""
         Construct a morphism determined by action on points of ``self``.
@@ -3339,8 +3393,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         R = PolynomialRing(K, 'x', n + 1)
         Pd = sage.schemes.projective.projective_space.ProjectiveSpace(n, K, 'y')
         Rd = Pd.coordinate_ring()
-        x = R.gens()
-        y = Rd.gens()
+        x = R.variable_names()
+        y = Rd.variable_names()
         S = PolynomialRing(K, x + y + ('t',))
         if S.has_coerce_map_from(I.ring()):
             T = PolynomialRing(K, 'w', n + 1)
@@ -3789,7 +3843,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         #create new subscheme
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
-            PS = ProjectiveSpace(self.base_ring(), M, R.gens()[AS.ngens():])
+            PS = ProjectiveSpace(self.base_ring(), M, R.variable_names()[AS.ngens():])
             Y = PS.subscheme(L)
         else:
             if PP.dimension_relative() != M:
@@ -3932,7 +3986,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
                     (1 : x0 : x1 : x2 , x3 : 1))
         """
         if not isinstance(I, (list, tuple)):
-            raise TypeError('The argument I=%s must be a list or tuple of positice integers'%I)
+            raise TypeError('The argument I=%s must be a list or tuple of positive integers' % I)
         PP = self.ambient_space()
         N = PP.dimension_relative_components()
         if len(I) != len(N):

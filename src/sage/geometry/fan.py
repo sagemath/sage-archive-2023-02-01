@@ -236,6 +236,7 @@ import collections
 import warnings
 import copy
 
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.combinat.combination import Combinations
 from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.cone import (Cone,
@@ -1059,6 +1060,7 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
         return self._star_generators
 
 
+@richcmp_method
 class RationalPolyhedralFan(IntegralRayCollection,
                             collections.Callable,
                             collections.Container):
@@ -1203,7 +1205,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         else:
             return self.cones(dim, codim)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -1213,9 +1215,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         OUTPUT:
 
-        - 0 if ``right`` is also a fan, their rays are the same and stored in
-          the same order, and their generating cones are the same and stored
-          in the same order. 1 or -1 otherwise.
+        boolean
+
+        There is equality if ``right`` is also a fan, their rays are
+        the same and stored in the same order, and their generating
+        cones are the same and stored in the same order.
 
         TESTS::
 
@@ -1228,21 +1232,22 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: f3 = Fan(cones=[(1,2), (0,1)],
             ....:          rays=[(1,0), (0,1), (-1, 0)],
             ....:          check=False)
-            sage: cmp(f1, f2)
-            1
-            sage: cmp(f2, f1)
-            -1
-            sage: cmp(f2, f3)
-            0
+            sage: f1 > f2
+            True
+            sage: f2 < f1
+            True
+            sage: f2 == f3
+            True
             sage: f2 is f3
             False
         """
         if is_Fan(right):
-            return cmp(
-                [self.rays(), self.virtual_rays(), self.generating_cones()],
-                [right.rays(), right.virtual_rays(), right.generating_cones()])
+            return richcmp([self.rays(), self.virtual_rays(),
+                            self.generating_cones()],
+                           [right.rays(), right.virtual_rays(),
+                            right.generating_cones()], op)
         else:
-            return cmp(type(self), type(right))
+            return NotImplemented
 
     def __contains__(self, cone):
         r"""
@@ -2979,7 +2984,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         `D-d` dimensions of `N_\QQ` "missed" by the actual rays. (In general
         addition of virtual rays is not sufficient to span `N` over `\ZZ`.)
 
-        ..note::
+        .. NOTE::
 
             You may use a particular choice of virtual rays by passing optional
             argument ``virtual_rays`` to the :func:`Fan` constructor.

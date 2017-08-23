@@ -21,7 +21,7 @@ See also :mod:`sage.matroids.advanced`.
 
 Graphic matroids do not have a representation matrix or any of the
 functionality of regular matroids. It is possible to get an instance of the
-:mod:`RegularMatroid <sage.matroids.linear_matroid.RegularMatroid>` class
+:class:`RegularMatroid <sage.matroids.linear_matroid.RegularMatroid>` class
 by using the ``regular`` keyword when constructing the matroid.
 It is also possible to cast a GraphicMatroid as a RegularMatroid with the
 :meth:`regular_matroid <sage.matroids.graphic_matroids.GraphicMatroid.regular_matroid>`
@@ -62,17 +62,17 @@ The ``GraphicMatroid`` class inherits all methods from the
 See its documentation for an overview. In addition, the
 following methods are available:
 
-    - :func:`graph() <sage.matroids.graphic_matroid.GraphicMatroid.graph>`
-    - :func:`vertex_map() <sage.matroids.graphic_matroid.GraphicMatroid.vertex_map>`
-    - :func:`groundset_to_edges() <sage.matroids.graphic_matroid.GraphicMatroid.groundset_to_edges>`
-    - :func:`subgraph_from_set() <sage.matroids.graphic_matroid.GraphicMatroid.subgraph_from_set>`
-    - :func:`graphic_extension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extension>`
-    - :func:`graphic_extensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extensions>`
-    - :func:`graphic_coextension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextension>`
-    - :func:`graphic_coextensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextensions>`
-    - :func:`twist() <sage.matroids.graphic_matroid.GraphicMatroid.twist>`
-    - :func:`one_sum() <sage.matroids.graphic_matroid.GraphicMatroid.one_sum>`
-    - :func:`regular_matroid() <sage.matroids.graphic_matroid.GraphicMatroid.regular_matroid>`
+    - :meth:`graph() <sage.matroids.graphic_matroid.GraphicMatroid.graph>`
+    - :meth:`vertex_map() <sage.matroids.graphic_matroid.GraphicMatroid.vertex_map>`
+    - :meth:`groundset_to_edges() <sage.matroids.graphic_matroid.GraphicMatroid.groundset_to_edges>`
+    - :meth:`subgraph_from_set() <sage.matroids.graphic_matroid.GraphicMatroid.subgraph_from_set>`
+    - :meth:`graphic_extension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extension>`
+    - :meth:`graphic_extensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extensions>`
+    - :meth:`graphic_coextension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextension>`
+    - :meth:`graphic_coextensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextensions>`
+    - :meth:`twist() <sage.matroids.graphic_matroid.GraphicMatroid.twist>`
+    - :meth:`one_sum() <sage.matroids.graphic_matroid.GraphicMatroid.one_sum>`
+    - :meth:`regular_matroid() <sage.matroids.graphic_matroid.GraphicMatroid.regular_matroid>`
 
 
 AUTHORS:

@@ -42,7 +42,7 @@ class RegularSuperCrystals(Category_singleton):
     - either an attribute ``_cartan_type`` or a method ``cartan_type``
 
     - ``module_generators``: a list (or container) of distinct elements
-      which generate the crystal using `f_i`
+      that generate the crystal using `f_i` and `e_i`
 
     Furthermore, their elements ``x`` should implement the following
     methods:
@@ -133,7 +133,8 @@ class RegularSuperCrystals(Category_singleton):
                         d[x][y] = i
             G = DiGraph(d, format='dict_of_dicts')
 
-            def edge_options((u, v, l)):
+            def edge_options(data):
+                u, v, l = data
                 edge_opts = { 'edge_string': '->', 'color': 'black' }
                 if l > 0:
                     edge_opts['color'] = CartanType._colors.get(l, 'black')
@@ -431,12 +432,30 @@ class RegularSuperCrystals(Category_singleton):
 
             - ``index_set`` -- (optional) the index set of the (sub)crystal
               on which to check
+
+            EXAMPLES::
+
+                sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
+                sage: for b in B.highest_weight_vectors():
+                ....:     print("{} {}".format(b, b.is_genuine_highest_weight()))
+                [[-2, -2, -2], [-1, 2], [1]] False
+                [[-2, -2, -2], [-1, -1], [1]] True
+                [[-2, -2, 2], [-1, -1], [1]] False
+                sage: [b for b in B if b.is_genuine_highest_weight([-1,0])]
+                [[[-2, -2, -2], [-1, -1], [1]],
+                 [[-2, -2, -2], [-1, -1], [2]],
+                 [[-2, -2, -2], [-1, 2], [2]],
+                 [[-2, -2, 2], [-1, -1], [2]],
+                 [[-2, -2, 2], [-1, 2], [2]],
+                 [[-2, -2, -2], [-1, 2], [1]],
+                 [[-2, -2, 2], [-1, -1], [1]],
+                 [[-2, -2, 2], [-1, 2], [1]]]
             """
             P = self.parent()
             if index_set is None or set(index_set) == set(P.index_set()):
                 return self in P.genuine_highest_weight_vectors()
             S = P.subcrystal(generators=P, index_set=index_set, category=P.category())
-            return any(self == x.value for x in S.genuine_highest_weight_elements())
+            return any(self == x.value for x in S.genuine_highest_weight_vectors())
 
         def is_genuine_lowest_weight(self, index_set=None):
             """
@@ -446,12 +465,30 @@ class RegularSuperCrystals(Category_singleton):
 
             - ``index_set`` -- (optional) the index set of the (sub)crystal
               on which to check
+
+            EXAMPLES::
+
+                sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
+                sage: for b in B.lowest_weight_vectors():
+                ....:     print("{} {}".format(b, b.is_genuine_lowest_weight()))
+                [[-2, 1, 2], [-1, 2], [1]] False
+                [[-1, 1, 2], [1, 2], [2]] True
+                [[-2, 1, 2], [-1, 2], [2]] False
+                sage: [b for b in B if b.is_genuine_lowest_weight([-1,0])]
+                [[[-2, -1, 1], [-1, 1], [1]],
+                 [[-2, -1, 1], [-1, 1], [2]],
+                 [[-2, 1, 2], [-1, 1], [2]],
+                 [[-2, 1, 2], [-1, 1], [1]],
+                 [[-1, -1, 1], [1, 2], [2]],
+                 [[-1, -1, 1], [1, 2], [1]],
+                 [[-1, 1, 2], [1, 2], [2]],
+                 [[-1, 1, 2], [1, 2], [1]]]
             """
             P = self.parent()
             if index_set is None or set(index_set) == set(P.index_set()):
                 return self in P.genuine_lowest_weight_vectors()
             S = P.subcrystal(generators=P, index_set=index_set, category=P.category())
-            return any(self == x.value for x in S.genuine_lowest_weight_elements())
+            return any(self == x.value for x in S.genuine_lowest_weight_vectors())
 
     class TensorProducts(TensorProductsCategory):
         """

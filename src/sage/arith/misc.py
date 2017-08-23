@@ -5140,7 +5140,7 @@ def gauss_sum(m, p, f, ring=None):
 
     OUTPUT:
 
-    an element of the universal cyclotomic field
+    an element of the universal cyclotomic field (or of the given ring)
 
     The character used for the Gauss sum is the `m`-th power of the
     character `\chi` (a generator of the character group) that satisfies

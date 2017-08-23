@@ -61,7 +61,7 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
         class ElementMethods:
             def additive_order(self):
                 r"""
-                Return the additive order of this element
+                Return the additive order of this element.
 
                 EXAMPLES::
 

@@ -642,7 +642,7 @@ class Groups(CategoryWithAxiom):
         class ElementMethods:
             def multiplicative_order(self):
                 r"""
-                Return the multiplicative order of this element
+                Return the multiplicative order of this element.
 
                 EXAMPLES::
 

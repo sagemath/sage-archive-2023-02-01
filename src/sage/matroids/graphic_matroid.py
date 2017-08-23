@@ -54,6 +54,21 @@ Below are some examples of constructing a graphic matroid.
     sage: isinstance(M1, RegularMatroid)
     False
 
+Note that if there is not a complete set of unique edge labels, and there are
+no parallel edges, then vertex tuples will be used for the ground set. The user
+may wish to override this by specifying the ground set, as the vertex tuples will
+not be updated if the matroid is modified.
+
+    sage: G = graphs.DiamondGraph()
+    sage: M1 = Matroid(G)
+    sage: N1 = M1.contract((0,1))
+    sage: N1.graph().edges_incident(0)
+    [(0, 2, (0, 2)), (0, 2, (1, 2)), (0, 3, (1, 3))]
+    sage: M2 = Matroid(range(G.num_edges()), G)
+    sage: N2 = M2.contract(0)
+    sage: N1.is_isomorphic(N2)
+    True
+
 Class methods
 =============
 
@@ -242,9 +257,9 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(graphs.DiamondGraph())
             sage: sorted(M.groundset())
-            [0, 1, 2, 3, 4]
+            [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)]
             sage: G = graphs.CompleteGraph(3).disjoint_union(graphs.CompleteGraph(4))
-            sage: M = Matroid(G); sorted(M.groundset())
+            sage: M = Matroid(range(G.num_edges()), G); sorted(M.groundset())
             [0, 1, 2, 3, 4, 5, 6, 7, 8]
             sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
             sage: sorted(M.groundset())
@@ -333,14 +348,15 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: sorted(M._vertex_stars())
             [frozenset({0, 2, 3}),
              frozenset({1, 2, 4}),
              frozenset({3, 4}),
              frozenset({0, 1})]
 
-            sage: N = Matroid(graphs.BullGraph()); sorted(N._vertex_stars())
+            sage: N = Matroid(range(5), graphs.BullGraph())
+            sage: sorted(N._vertex_stars())
             [frozenset({0, 2, 3}),
              frozenset({4}),
              frozenset({1, 2, 4}),
@@ -451,8 +467,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.CycleGraph(4))
-            sage: N = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: M = Matroid(range(4), graphs.CycleGraph(4))
+            sage: N = Matroid(range(4), graphs.CompleteBipartiteGraph(2,2))
             sage: O = Matroid(graphs.PetersenGraph())
             sage: M != N
             True
@@ -475,7 +491,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.RandomGNP(5, .5))
+            sage: M = Matroid(graphs.PappusGraph())
             sage: N = copy(M)
             sage: M == N
             True
@@ -545,13 +561,12 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.CompleteGraph(5))
+            sage: M = matroids.CompleteGraphic(5)
             sage: M._minor(deletions=frozenset([0,1,2]))
             Graphic matroid of rank 4 on 7 elements
             sage: M._minor(contractions=frozenset([0,1,2]))
             Graphic matroid of rank 1 on 7 elements
-            sage: M = Matroid(graphs.PetersenGraph()); sorted(M.groundset())
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+            sage: M = Matroid(range(15), graphs.PetersenGraph())
             sage: N = M._minor(deletions = frozenset([0, 3, 5, 9]), contractions =
             ....: frozenset([1, 2, 11])); N
             Graphic matroid of rank 6 on 8 elements
@@ -584,9 +599,9 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.CompleteBipartiteGraph(3, 3))
-            sage: N = Matroid(graphs.CycleGraph(3))
-            sage: N1 = Matroid(groundset=range(3), graph=graphs.CycleGraph(3),
+            sage: M = Matroid(range(9), graphs.CompleteBipartiteGraph(3, 3))
+            sage: N = Matroid(range(3), graphs.CycleGraph(3))
+            sage: N1 = Matroid(range(3), graph=graphs.CycleGraph(3),
             ....: regular=True)
             sage: M._has_minor(N1, certificate=True)
             (True, (frozenset({0, 2, 3}), frozenset({4, 5, 8}), {0: 1, 1: 6, 2: 7}))
@@ -600,7 +615,7 @@ class GraphicMatroid(Matroid):
         ::
 
             sage: M = matroids.CompleteGraphic(6)
-            sage: N = Matroid(graphs.WheelGraph(5))
+            sage: N = Matroid(range(8), graphs.WheelGraph(5))
             sage: M.has_minor(N)
             True
             sage: M.has_minor(N, certificate=True)
@@ -708,7 +723,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.CompleteBipartiteGraph(3,3))
+            sage: M = Matroid(range(9), graphs.CompleteBipartiteGraph(3,3))
             sage: M._corank([0,1,2])
             2
             sage: M._corank([1,2,3])
@@ -736,7 +751,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: M._is_circuit([0,1,2])
             True
             sage: M._is_circuit([0,1,2,3])
@@ -761,7 +776,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: sorted(M._closure([0]))
             [0]
             sage: sorted(M._closure([0,1]))
@@ -774,7 +789,7 @@ class GraphicMatroid(Matroid):
         Make sure the closure gets loops::
 
             sage: edgelist = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 2), (1, 2)]
-            sage: M = Matroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M = Matroid(range(6), Graph(edgelist, loops=True, multiedges=True))
             sage: M.graph().edges()
             [(0, 0, 0), (0, 1, 1), (0, 2, 2), (0, 3, 3), (1, 2, 4), (1, 2, 5)]
             sage: sorted(M._closure([4]))
@@ -815,7 +830,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: sorted(M._max_independent(M.groundset()))
             [0, 1, 3]
             sage: sorted(M._max_independent(frozenset([0,1,2])))
@@ -854,7 +869,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: sorted(M._max_coindependent(M.groundset()))
             [2, 4]
             sage: sorted(M._max_coindependent([2,3,4]))
@@ -894,10 +909,10 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: sorted(M._circuit(M.groundset()))
             [0, 1, 2]
-            sage: N = Matroid(graphs.CompleteBipartiteGraph(3,3))
+            sage: N = Matroid(range(9), graphs.CompleteBipartiteGraph(3,3))
             sage: sorted(N._circuit([0, 1, 2, 6, 7, 8]))
             [0, 1, 6, 7]
             sage: N._circuit([0, 1, 2])
@@ -910,7 +925,7 @@ class GraphicMatroid(Matroid):
         With two disjoint cycles in the graph::
 
             sage: edgelist = [(5,6), (0,1), (3,4), (1,2), (4,5), (2,0), (5,3)]
-            sage: M = Matroid(Graph(edgelist))
+            sage: M = Matroid(range(7), Graph(edgelist))
             sage: M
             Graphic matroid of rank 5 on 7 elements
             sage: sorted(M._circuit(M.groundset()))
@@ -969,7 +984,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: sorted(M._coclosure([0]))
             [0, 1]
             sage: sorted(M._coclosure([0,1]))
@@ -1009,7 +1024,8 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: edgelist = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 2), (1, 2)]
-            sage: M = Matroid(Graph(edgelist, loops=True, multiedges=True))
+            sage: M = Matroid(range(len(edgelist)), Graph(edgelist, loops=True,
+            ....: multiedges=True))
             sage: M._is_closed(frozenset([0,4,5]))
             True
             sage: M._is_closed(frozenset([0,4]))
@@ -1057,8 +1073,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
-            sage: N = Matroid(graphs.DiamondGraph(), regular=True)
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
+            sage: N = Matroid(graph=graphs.DiamondGraph(), regular=True)
             sage: M._is_isomorphic(N, certificate=True)
             (True, {0: (0, 1), 1: (0, 2), 2: (1, 2), 3: (1, 3), 4: (2, 3)})
             sage: O = Matroid(graphs.WheelGraph(5))
@@ -1067,8 +1083,8 @@ class GraphicMatroid(Matroid):
 
         ::
 
-            sage: M1 = Matroid(graphs.CycleGraph(4))
-            sage: M2 = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: M1 = Matroid(range(4), graphs.CycleGraph(4))
+            sage: M2 = Matroid(range(4), graphs.CompleteBipartiteGraph(2,2))
             sage: M3 = matroids.Uniform(3,4)
             sage: M1._is_isomorphic(M2)
             True
@@ -1079,12 +1095,12 @@ class GraphicMatroid(Matroid):
 
             sage: edgelist = [(0,1,'a'),(0,2,'b'),(0,3,'c'),(1,2,'d'),(1,3,'e'),(2,3,'f')]
             sage: M = Matroid(Graph(edgelist))
-            sage: N = Matroid(graphs.WheelGraph(4))
+            sage: N = Matroid(range(6), graphs.WheelGraph(4))
             sage: M._is_isomorphic(N, certificate=True)
             (True, {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5})
             sage: N._is_isomorphic(M, certificate=True)
             (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
-            sage: O = Matroid(graphs.CycleGraph(6))
+            sage: O = Matroid(range(6), graphs.CycleGraph(6))
             sage: M._is_isomorphic(O)
             False
         """
@@ -1132,8 +1148,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M1 = Matroid(graphs.CycleGraph(4))
-            sage: M2 = Matroid(graphs.CompleteBipartiteGraph(2,2))
+            sage: M1 = Matroid(range(4), graphs.CycleGraph(4))
+            sage: M2 = Matroid(range(4), graphs.CompleteBipartiteGraph(2,2))
             sage: M1._isomorphism(matroids.named_matroids.BetsyRoss())
             sage: M1._isomorphism(M2)
             {0: 0, 1: 1, 2: 2, 3: 3}
@@ -1145,7 +1161,7 @@ class GraphicMatroid(Matroid):
 
             sage: edgelist = [(0,1,'a'),(0,2,'b'),(0,3,'c'),(1,2,'d'),(1,3,'e'),(2,3,'f')]
             sage: M = Matroid(Graph(edgelist))
-            sage: N = Matroid(graphs.WheelGraph(4))
+            sage: N = Matroid(range(6), graphs.WheelGraph(4))
             sage: M._isomorphism(N)
             {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5}
             sage: O = Matroid(Graph(edgelist), regular=True)
@@ -1215,7 +1231,7 @@ class GraphicMatroid(Matroid):
 
             sage: G = Graph([(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5),
             ....: (6, 7), (6, 8), (7, 8), (8, 8), (7, 8)], multiedges=True, loops=True)
-            sage: M = Matroid(G)
+            sage: M = Matroid(range(G.num_edges()), G)
             sage: M.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
@@ -1247,8 +1263,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); sorted(M.groundset())
-            [0, 1, 2, 3, 4]
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: M.groundset_to_edges([2,3,4])
             [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
             sage: M.groundset_to_edges([2,3,4,5])
@@ -1275,7 +1290,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: M._groundset_to_edges([2,3,4])
             [(1, 2, 2), (1, 3, 3), (2, 3, 4)]
         """
@@ -1295,8 +1310,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); sorted(M.groundset())
-            [0, 1, 2, 3, 4]
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: M.subgraph_from_set([0,1,2])
             Looped multi-graph on 3 vertices
             sage: M.subgraph_from_set([3,4,5])
@@ -1323,8 +1337,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph()); sorted(M.groundset())
-            [0, 1, 2, 3, 4]
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: M._subgraph_from_set([0,1,2])
             Looped multi-graph on 3 vertices
         """
@@ -1352,7 +1365,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.CompleteGraph(4))
+            sage: M = matroids.CompleteGraphic(4)
             sage: M1 = M.graphic_extension(0,1,'a'); M1
             Graphic matroid of rank 3 on 7 elements
             sage: M1.graph().edges()
@@ -1362,7 +1375,7 @@ class GraphicMatroid(Matroid):
 
         ::
 
-            sage: M = Matroid(graphs.PetersenGraph())
+            sage: M = Matroid(range(10), graphs.PetersenGraph())
             sage: M.graphic_extension(0, 'b', 'c').graph().vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'b']
             sage: M.graphic_extension('a', 'b', 'c').graph().vertices()
@@ -1428,7 +1441,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: I = M.graphic_extensions('a')
             sage: for N in I:
             ....:     N.graph().edges()
@@ -1502,7 +1515,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.WheelGraph(5))
+            sage: M = Matroid(range(8), graphs.WheelGraph(5))
             sage: M1 = M.graphic_coextension(0, X=[1,2], element='a')
             sage: M1.graph().edges()
             [(0, 1, 0),
@@ -1517,7 +1530,7 @@ class GraphicMatroid(Matroid):
 
         TESTS::
 
-            sage: M = Matroid(graphs.CycleGraph(3))
+            sage: M = Matroid(range(3), graphs.CycleGraph(3))
             sage: M = M.graphic_extension(0, element='a')
             sage: M.graph().edges()
             [(0, 0, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2)]
@@ -1558,7 +1571,7 @@ class GraphicMatroid(Matroid):
 
         ::
 
-            sage: M = Matroid(graphs.DiamondGraph())
+            sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: N = M.graphic_coextension(u=3, v=5, element='a')
             sage: N.graph().edges()
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (3, 5, 'a')]
@@ -1630,7 +1643,7 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(graphs.WheelGraph(5))
+            sage: M = Matroid(range(8), graphs.WheelGraph(5))
             sage: I = M.graphic_coextensions(vertices=[0], element='a')
             sage: for N in I:
             ....:     N.graph().edges_incident(0)
@@ -1645,7 +1658,7 @@ class GraphicMatroid(Matroid):
 
         ::
 
-            sage: N = Matroid(graphs.CycleGraph(4))
+            sage: N = Matroid(range(4), graphs.CycleGraph(4))
             sage: I = N.graphic_coextensions(element='a')
             sage: for N1 in I:
             ....:     N1.graph().edges()
@@ -1690,7 +1703,7 @@ class GraphicMatroid(Matroid):
         12 total::
 
             sage: edgedict = {0:[1,2,3], 1:[2,4], 2:[3], 3:[6], 4:[5,7], 5:[6,7], 6:[7]}
-            sage: M = Matroid(Graph(edgedict))
+            sage: M = Matroid(range(12), Graph(edgedict))
             sage: sorted(M.coclosure([4]))
             [4, 6]
             sage: sum(1 for N in M.graphic_coextensions())
@@ -1785,7 +1798,7 @@ class GraphicMatroid(Matroid):
         TESTS::
 
             sage: edgedict = {0: [1, 2], 1: [2, 3], 2: [3], 3: [4, 5], 4: [5]}
-            sage: M = Matroid(Graph(edgedict))
+            sage: M = Matroid(range(8), Graph(edgedict))
             sage: M.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
@@ -1886,7 +1899,7 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: edgedict = {0:[1, 2], 1:[2, 3], 2:[3], 3:[4, 5], 6:[4, 5]}
-            sage: M = Matroid(Graph(edgedict))
+            sage: M = Matroid(range(9), Graph(edgedict))
             sage: M.graph().edges()
             [(0, 1, 0),
              (0, 2, 1),
@@ -1922,7 +1935,7 @@ class GraphicMatroid(Matroid):
 
         TESTS::
 
-            sage: M = Matroid(graphs.CompleteGraph(4))
+            sage: M = matroids.CompleteGraphic(4)
             sage: M.one_sum(u=1, v=2, X=[0,1])
             Traceback (most recent call last):
             ...
@@ -1930,7 +1943,7 @@ class GraphicMatroid(Matroid):
 
         ::
 
-            sage: M = Matroid(graphs.BullGraph())
+            sage: M = Matroid(range(5), graphs.BullGraph())
             sage: M.graph().edges()
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 4, 4)]
             sage: M1 = M.one_sum(u=3, v=0, X=[3,4])
@@ -1946,7 +1959,7 @@ class GraphicMatroid(Matroid):
             sage: M2.graph().edges()
             [(0, 1, 0), (0, 2, 1), (0, 3, 3), (1, 2, 2), (3, 4, 4)]
 
-            sage: M = Matroid(graphs.BullGraph())
+            sage: M = Matroid(range(5), graphs.BullGraph())
             sage: M.one_sum(u=0, v=1, X=[3])
             Traceback (most recent call last):
             ...

@@ -347,13 +347,18 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: sorted(M.groundset())
             ['a', 'b', 'c']
 
-        If there is not a complete list of labels, or the labels are not unique,
-        integers are used instead::
+        If there are parallel edges, then integers are used for the ground set.
+        If there are no edges in parallel, and is not a complete list of labels,
+        or the labels are not unique, then vertex tuples are used::
 
             sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'b')])
             sage: M = Matroid(G)
             sage: sorted(M.groundset())
-            [0, 1, 2]
+            [(0, 1), (0, 2), (1, 2)]
+            sage: H = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'b'), (1, 2, 'c')], multiedges=True)
+            sage: N = Matroid(H)
+            sage: sorted(N.groundset())
+            [0, 1, 2, 3]
 
         The GraphicMatroid object forces its graph to be connected. If a
         disconnected graph is used as input, it will connect the components.
@@ -385,23 +390,23 @@ def Matroid(groundset=None, data=None, **kwds):
         :meth:`G.edge_iterator() <sage.graphs.generic_graph.GenericGraph.edge_iterator>`
         provides::
 
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)],multiedges=True)
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges=True)
             sage: M = Matroid('abcd', G)
             sage: M.rank(['b', 'c'])
             1
 
-        When then ``regular`` keyword is used along with a graph as input,
+        As before,
         if no edge labels are present and the graph is simple, we use the
         tuples ``(i, j)`` of endpoints. If that fails, we simply use a list
         ``[0..m-1]`` ::
 
             sage: G = Graph([(0, 1), (0, 2), (1, 2)])
-            sage: M = Matroid(G, regular = True)
+            sage: M = Matroid(G, regular=True)
             sage: sorted(M.groundset())
             [(0, 1), (0, 2), (1, 2)]
 
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges = True)
-            sage: M = Matroid(G, regular = True)
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges=True)
+            sage: M = Matroid(G, regular=True)
             sage: sorted(M.groundset())
             [0, 1, 2, 3]
 
@@ -767,6 +772,19 @@ def Matroid(groundset=None, data=None, **kwds):
             G = data
         else:
             G = Graph(data)
+        # Decide on the groundset
+        m = G.num_edges()
+        if groundset is None:
+            # 1. Attempt to use edge labels.
+            sl = G.edge_labels()
+            if len(sl) == len(set(sl)):
+                groundset = sl
+                # 2. If simple, use vertex tuples
+            elif not G.has_multiple_edges():
+                groundset = [(i, j) for i, j, k in G.edge_iterator()]
+            else:
+                # 3. Use numbers
+                groundset = list(range(m))
         if want_regular:
         # Construct the incidence matrix
         # NOTE: we are not using Sage's built-in method because
@@ -774,30 +792,15 @@ def Matroid(groundset=None, data=None, **kwds):
         # 2) Sage will sort the columns, making it impossible to keep labels!
             V = G.vertices()
             n = G.num_verts()
-            m = G.num_edges()
             A = Matrix(ZZ, n, m, 0)
             mm = 0
             for i, j, k in G.edge_iterator():
                 A[V.index(i), mm] = -1
                 A[V.index(j), mm] += 1  # So loops get 0
                 mm += 1
-            # Decide on the groundset
-            if groundset is None:
-                # 1. Attempt to use edge labels.
-                sl = G.edge_labels()
-                if len(sl) == len(set(sl)):
-                    groundset = sl
-                    # 2. If simple, use vertex tuples
-                elif not G.has_multiple_edges():
-                    groundset = [(i, j) for i, j, k in G.edge_iterator()]
-                else:
-                    # 3. Use numbers
-                    groundset = list(range(m))
             M = RegularMatroid(matrix=A, groundset=groundset)
             want_regular = False  # Save some time, since result is already regular
         else:
-            if groundset is None and len(set(G.edge_labels())) == len(G.edge_labels()):
-                groundset = G.edge_labels()
             M = GraphicMatroid(G, groundset=groundset)
 
     # Matrices:

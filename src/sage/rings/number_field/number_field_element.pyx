@@ -2104,7 +2104,7 @@ cdef class NumberFieldElement(FieldElement):
         roots = f.roots()
         if all:
             return [r[0] for r in roots]
-        elif len(roots):
+        elif roots:
             return roots[0][0]
         else:
             try:
@@ -2136,7 +2136,7 @@ cdef class NumberFieldElement(FieldElement):
         roots = f.roots()
         if all:
             return [r[0] for r in roots]
-        elif len(roots) > 0:
+        elif roots:
             return roots[0][0]
         else:
             raise ValueError("%s not a %s-th root in %s"%(self, n, self._parent))

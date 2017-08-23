@@ -332,7 +332,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         An example of a custom ordering::
 
             sage: G = Graph([[3, 4], [4, 1], [1, 2], [2, 3], [3, 5], [5, 6], [6, 3]])
-            sage: M = Matroid(graph=G, groundset=[(u, v) for u, v, _ in G.edge_iterator()])
+            sage: M = Matroid(G)
             sage: s = [(5, 6), (1, 2), (3, 5), (2, 3), (1, 4), (3, 6), (3, 4)]
             sage: sorted([sorted(c) for c in M.circuits()])
             [[(1, 2), (1, 4), (2, 3), (3, 4)],

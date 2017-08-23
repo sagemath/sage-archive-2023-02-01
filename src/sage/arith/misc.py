@@ -5138,7 +5138,7 @@ def gauss_sum(char_value, finite_field):
 
     an element of the parent ring of ``char_value``, that can be any
     field containing enough roots of unity, for example the
-    UniversalCyclotomicField, QQbar or ComplexField
+    ``UniversalCyclotomicField``, ``QQbar`` or ``ComplexField``
 
     For a finite field `F` of characteristic `p`, the Gauss sum
     associated to a multiplicative character `\chi` (with values in a
@@ -5149,7 +5149,7 @@ def gauss_sum(char_value, finite_field):
         \sum_{x \in F^{\times}} \chi(x) \zeta_p^{\operatorname{Tr} x},
 
     where `\zeta_p \in K` is a primitive root of unity of order `p` and
-    Tr is the trace map from `F` to its prime field `\GF(p)`.
+    Tr is the trace map from `F` to its prime field `\GF{p}`.
 
     For more info on Gauss sums, see :wikipedia:`Gauss_sum`.
 

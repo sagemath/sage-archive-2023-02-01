@@ -325,7 +325,7 @@ def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
                         # the appropriate kernel vector will do.
                         if verbose:
                             print("-- points were not %s-saturated, gaining index %s" % (p,p))
-                        j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
+                        j = next(i for i,x in enumerate(vecs[res[1]]) if x)
                         return (False, j, res[2])
                 else: # rank stayed same; carry on using more Qs
                     pass

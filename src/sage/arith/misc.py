@@ -5196,14 +5196,14 @@ def gauss_sum(m, p, f, ring=None):
     q = p ** f
     Fq = FiniteField(q)
     gen = Fq.multiplicative_generator()
-    zeta_p = ring.zeta(p)
+    zeta_p_powers = ring.zeta(p).powers(p)
     zeta_q = ring.zeta(q - 1) ** m
 
     resu = ring.zero()
     gen_power = Fq.one()
     zq_power = ring.one()
     for k in range(q - 1):
-        resu += zq_power * zeta_p**(gen_power.trace().lift())
+        resu += zq_power * zeta_p_powers[gen_power.trace().lift()]
         gen_power *= gen
         zq_power *= zeta_q
     return resu

@@ -4730,9 +4730,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         OUTPUT:
 
-        Whether the variety is nondegenerate, that is, the restriction
-        to every open torus orbit is smooth. This means that the only
-        singularities are the ones coming from the ambient space.
+        Whether the variety is nondegenerate, that is, the intersection
+        with every open torus orbit is smooth and transversal.
 
         EXAMPLES::
 
@@ -4741,36 +4740,39 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: P2.subscheme([x*y*z]).is_nondegenerate()
             False
-
-            sage: P1 = toric_varieties.P1()
-            sage: X = toric_varieties.P2_112().cartesian_product(P1)
-            sage: X.inject_variables()
-            Defining z0, z1, z2, z3, z4
-            sage: Y = X.subscheme([z4])    # = P2_112 x {point}
-            sage: Y.is_nondegenerate()
+            sage: X = P2.subscheme([(x-y)^2*(x+y) + x*y*z + z^3])
+            sage: X.is_smooth()
             True
-            sage: Y.is_smooth()
+            sage: X.is_nondegenerate()
             False
 
-         This example is from Hamm, arXiv:1106.1826v1. It addresses an issue raised at #15239.
+         This example is from Hamm, arXiv:1106.1826v1. It addresses an issue raised at :trac:`15239`::
             sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')
             sage: X.inject_variables()
             Defining z0, z1, z2, z3
-            sage: g0 =z1^3 + z2^6 +z3^4
+            sage: g0 = z1^3 + z2^6 +z3^4
             sage: g = g0-2*z3^2*z0^6+z2*z0^10+z0^12
             sage: Y = X.subscheme([g])
             sage: Y.is_nondegenerate()
             False
+
+        TESTS:
+        
+        Some corner cases discussed at :trac:`15239`::
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: P2.subscheme([]).is_nondegenerate()
+            False
+            sage: P2.subscheme([x]).is_nondegenerate()
+            False
+
         """
         X = self.ambient_space()
         fan = X.fan()
         SR = X.Stanley_Reisner_ideal()
-        Jac = self.Jacobian()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(X.base_ring(), fan.nrays() + SR.ngens(), 't')
         slack = R.gens()[fan.nrays():]
         SR = SR.change_ring(R)
-        Jac = Jac.change_ring(R)
 
         def restrict(cone):
             patch = dict()
@@ -4778,15 +4780,20 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             for i in cone.ambient_ray_indices():
                 patch[R.gen(i)] = R.zero()   # restrict to torus orbit
                 divide[R.gen(i)] = R.one()   # divide out highest power of R.gen(i)
-            Jac_patch = Jac.subs(patch)
+            ideal = self.defining_ideal().change_ring(R)
+            ideal = ideal.subs(patch)
+            mat = jacobian(ideal.gens(), R.gens()[:fan.nrays()])
+            minors = mat.minors(self.codimension())
+            minors = tuple([ideal.reduce(m) for m in minors])
+            Jac_patch = R.ideal(ideal.gens() + minors)
             SR_patch = R.ideal([monomial * slack[i] - R.one()
                                 for i, monomial in enumerate(SR.subs(divide).gens())])
-            return Jac_patch + SR_patch
+            return ideal, Jac_patch + SR_patch
 
         for dim in range(0, fan.dim() + 1):
             for cone in fan(dim):
-                ideal = restrict(cone)
-                if ideal.dimension() != -1:
+                ideal1, ideal2 = restrict(cone)
+                if ideal1.is_zero() or ideal2.dimension() != -1:
                     return False
         return True
 

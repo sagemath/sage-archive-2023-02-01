@@ -164,6 +164,12 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='ppl')
             sage: sage_input(P)
             Polyhedron(backend='ppl', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
+            sage: sage_input(P)                                                                    # optional - pynormaliz
+            Polyhedron(backend='normaliz', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
+            sage: sage_input(P)                                                                    # optional - polymake
+            Polyhedron(backend='polymake', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
        """
         kwds = dict()
         kwds['base_ring'] = sib(self.base_ring())

@@ -1237,10 +1237,10 @@ def TicTacToe():
 
 def Q10():
     """
-    Return the matroid `Q_{10}`, represented over `\GF(4)`.
+    Return the matroid `Q_{10}`, represented over `\GF{4}`.
 
     `Q_{10}` is a 10-element, rank-5, self-dual matroid. It is representable
-    over `\GF(3)` and `\GF(4)`, and hence is a sixth-roots-of-unity matroid.
+    over `\GF{3}` and `\GF{4}`, and hence is a sixth-roots-of-unity matroid.
     `Q_{10}` is a splitter for the class of sixth-root-of-unity matroids.
 
     EXAMPLES::
@@ -1277,7 +1277,7 @@ def Q10():
 
 def N1():
     """
-    Return the matroid `N_1`, represented over `\GF(3)`.
+    Return the matroid `N_1`, represented over `\GF{3}`.
 
     `N_1` is an excluded minor for the dyadic matroids. See [Oxl2011]_, p. 554.
 
@@ -1304,7 +1304,7 @@ def N1():
 
 def N2():
     """
-    Return the matroid `N_2`, represented over `\GF(3)`.
+    Return the matroid `N_2`, represented over `\GF{3}`.
 
     `N_2` is an excluded minor for the dyadic matroids. See [Oxl2011]_, p. 554.
 

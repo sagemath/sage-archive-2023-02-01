@@ -3035,7 +3035,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
              unit equation." International Mathematics Research Notices
-             2016.17 (2015): 5291-5354.
+             2016.17 (2016): 5291-5354.
 
         AUTHORS:
 

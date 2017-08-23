@@ -51,7 +51,7 @@ class RegularSuperCrystals(Category_singleton):
 
     - ``x.f(i)`` (returning `f_i(x)`)
 
-    - ``x.weight()`` (returning `weight(x)`)
+    - ``x.weight()`` (returning `\operatorname{wt}(x)`)
 
     EXAMPLES::
 
@@ -108,13 +108,6 @@ class RegularSuperCrystals(Category_singleton):
         def digraph(self):
             r"""
             Return the :class:`DiGraph` associated to ``self``.
-
-            INPUT:
-
-            - ``subset`` -- (optional) a subset of vertices for
-              which the digraph should be constructed
-
-            - ``index_set`` -- (optional) the index set to draw arrows
 
             EXAMPLES::
 

@@ -7684,7 +7684,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def number_of_roots_in_interval(self, a=None, b=None):
         r"""
-        Return the number of roots of this polynomial in the interval 
+        Return the number of roots of this polynomial in the interval
         [a,b], counted without multiplicity. The endpoints a, b default to
         -Infinity, Infinity (which are also valid input values).
 
@@ -7693,7 +7693,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Sturm's algorithm on exact inputs). polsturm requires a polynomial
         with real coefficients; in case PARI returns an error, we try again
         after taking the GCD of `self` with its complex conjugate.
-        
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
@@ -7718,7 +7718,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
 
         TESTS::
-        
+
             sage: R.<x> = PolynomialRing(ZZ)
             sage: pol = (x-1)^2 * (x-2)^2 * (x-3)
             sage: pol.number_of_roots_in_interval(1, 2)
@@ -7750,8 +7750,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def number_of_real_roots(self):
         r"""
         Return the number of real roots of this polynomial, counted
-        without multiplicity. 
-        
+        without multiplicity.
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
@@ -7771,9 +7771,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def all_roots_in_interval(self, a=None, b=None):
         r"""
-        Return True if the roots of this polynomial are all real and 
+        Return True if the roots of this polynomial are all real and
         contained in the given interval.
-    
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
@@ -7784,7 +7784,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: pol = chebyshev_T(5,x)
             sage: pol.all_roots_in_interval(-1,1)
-            True        
+            True
             sage: pol = chebyshev_T(5,x/2)
             sage: pol.all_roots_in_interval(-1,1)
             False
@@ -7797,7 +7797,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_real_rooted(self):
         r"""
         Return True if the roots of this polynomial are all real.
-    
+
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
@@ -7887,7 +7887,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def rational_reconstruct(self, m, n_deg=None, d_deg=None):
         r"""
-        Return a tuple of two polynomials `(n, d)` 
+        Return a tuple of two polynomials `(n, d)`
         where ``self`` `* d` is congruent to `n` modulo `m`
         and `\deg(n) \leq` ``n_deg`` and `\deg(d) \leq` ``d_deg``
 
@@ -7900,13 +7900,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         - ``d_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`
 
         ALGORITHM:
-        
+
         The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor
 
         EXAMPLES:
 
         Over `\QQ[z]`::
-    
+
             sage: z  = PolynomialRing(QQ, 'z').gen()
             sage: p = -z**16 - z**15 - z**14 + z**13 + z**12 + z**11 - z**5 - z**4 - z**3 + z**2 + z + 1
             sage: m = z**21
@@ -7915,7 +7915,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (z^4 + 2*z^3 + 3*z^2 + 2*z + 1, z^10 + z^9 + z^8 + z^7 + z^6 + z^5 + z^4 + z^3 + z^2 + z + 1)
             sage: print(((p*d - n) % m ).is_zero())
             True
-             
+
         Over `\ZZ[z]`::
 
             sage: z  = PolynomialRing(ZZ, 'z').gen();
@@ -7928,7 +7928,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         Over an integral domain ``d`` might not be monic::
-        
+
             sage: P = PolynomialRing(ZZ,'x');
             sage: x = P.gen()
             sage: p = 7*x^5 - 10*x^4 + 16*x^3 - 32*x^2 + 128*x + 256
@@ -7972,7 +7972,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t = P.gen()
             sage: z = PolynomialRing(P, 'z').gen()
             sage: # p = (1 + t^2*z + z^4) / (1 - t*z) mod z^9
-            sage: p = (1 + t^2*z + z^4) * sum((t*z)**i for i in range(9)) 
+            sage: p = (1 + t^2*z + z^4) * sum((t*z)**i for i in range(9))
             sage: m = z^9;
             sage: n, d = p.rational_reconstruct(m,);
             sage: print((n ,d))
@@ -8038,7 +8038,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: m = x^7
             sage: n, d = p.rational_reconstruct( m, 3, 3)
             sage: print((n ,d)) # absolute tolerance 1e-10
-            (-x^3 - 6.0*x^2 - 15.0*x - 15.0, x^3 - 6.0*x^2 + 15.0*x - 15.0) 
+            (-x^3 - 6.0*x^2 - 15.0*x - 15.0, x^3 - 6.0*x^2 + 15.0*x - 15.0)
 
         .. SEEALSO::
 
@@ -8095,7 +8095,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         t1 = t1 / c
         return t1, t0
 
-    
+
     def variables(self):
         """
         Returns the tuple of variables occurring in this polynomial.

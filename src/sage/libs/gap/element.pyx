@@ -2283,13 +2283,12 @@ cdef class GapElement_List(GapElement):
         """
         return libGAP_LEN_LIST(self.value)
 
-
     def __getitem__(self, i):
         r"""
         Return the ``i``-th element of the list.
 
         As usual in Python, indexing starts at `0` and not at `1` (as
-        in GAP).
+        in GAP). This can also be used with multi indices.
 
         INPUT:
 
@@ -2304,12 +2303,97 @@ cdef class GapElement_List(GapElement):
             sage: lst = libgap.eval('["first",,,"last"]')   # a sparse list
             sage: lst[0]
             "first"
-        """
-        if i<0 or i>=len(self):
-            raise IndexError('index out of range.')
-        return make_any_gap_element(self.parent(),
-                                    libGAP_ELM_LIST(self.value, i+1))
 
+            sage: l = libgap.eval('[ [0, 1], [2, 3] ]')
+            sage: l[0,0]
+            0
+            sage: l[0,1]
+            1
+            sage: l[1,0]
+            2
+            sage: l[0,2]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: l[2,0]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: l[0,0,0]
+            Traceback (most recent call last):
+            ...
+            ValueError: too many indices
+        """
+        cdef int j
+        cdef libGAP_Obj obj = self.value
+
+        if isinstance(i, tuple):
+            for j in i:
+                if not libGAP_IS_LIST(obj):
+                    raise ValueError('too many indices')
+                if j < 0 or j >= libGAP_LEN_LIST(obj):
+                    raise IndexError('index out of range')
+                obj = libGAP_ELM_LIST(obj, j+1)
+
+        else:
+            j = i
+            if j < 0 or j >= libGAP_LEN_LIST(obj):
+                raise IndexError('index out of range.')
+            obj = libGAP_ELM_LIST(obj, j+1)
+
+        return make_any_gap_element(self.parent(), obj)
+
+    def __setitem__(self, i, elt):
+        r"""
+        Set the i-th item of this list
+
+        EXAMPLES::
+
+            sage: l = libgap.eval('[0, 1]')
+            sage: l
+            [ 0, 1 ]
+            sage: l[0] = 3
+            sage: l
+            [ 3, 1 ]
+
+        Contrarily to Python lists, setting an element beyond the limit extends the list::
+
+            sage: l[12] = -2
+            sage: l
+            [ 3, 1,,,,,,,,,,, -2 ]
+
+        This function also handles multiindices::
+
+            sage: l = libgap.eval('[[[0,1],[2,3]],[[4,5], [6,7]]]')
+            sage: l[0,1,0] = -18
+            sage: l
+            [ [ [ 0, 1 ], [ 2, -18 ] ], [ [ 4, 5 ], [ 6, 7 ] ] ]
+        """
+        cdef int j
+        cdef libGAP_Obj obj = self.value
+
+        if isinstance(i, tuple):
+            for j in i[:-1]:
+                if not libGAP_IS_LIST(obj):
+                    raise ValueError('too many indices')
+                if j < 0 or j >= libGAP_LEN_LIST(obj):
+                    raise IndexError('index out of range')
+                obj = libGAP_ELM_LIST(obj, j+1)
+            if not libGAP_IS_LIST(obj):
+                raise ValueError('too many indices')
+        else:
+            j = i
+
+        if j < 0:
+            raise IndexError('index out of range.')
+
+        cdef GapElement celt
+        if isinstance(elt, GapElement):
+            celt = <GapElement> elt
+        else:
+            celt= self.parent()(elt)
+
+        libGAP_ASS_LIST(obj, j+1, celt.value)
 
     def sage(self, **kwds):
         r"""

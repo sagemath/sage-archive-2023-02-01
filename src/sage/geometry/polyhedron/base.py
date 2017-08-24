@@ -4291,7 +4291,7 @@ class Polyhedron_base(Element):
 
           * ``ambient`` (default): Lebesgue measure of ambient space (volume)
           * ``induced``: Lebesgue measure of the affine hull (relative volume)
-          * ``induced_rational``: Scaling of the Lebesgue measure for lattice polytopes
+          * ``induced_rational``: Scaling of the Lebesgue measure for rational polytopes
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
@@ -4413,6 +4413,8 @@ class Polyhedron_base(Element):
             +Infinity
             sage: P.volume(measure='ambient')
             0
+            sage: P.volume(measure='induced_rational')
+            +Infinity
         """
         if measure == 'induced_rational' and engine not in ['auto', 'latte']:
             raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
@@ -4448,6 +4450,10 @@ class Polyhedron_base(Element):
         elif measure == 'induced_rational':
             if self.dim() < self.ambient_dim() and engine != 'latte':
                 raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             return self._volume_latte(**kwds)
 
     def integrate(self, polynomial, **kwds):

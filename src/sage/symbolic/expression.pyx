@@ -1977,12 +1977,14 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (t0*t1).is_real()
             True
-            sage: t2 = SR.symbol("t1", domain='positive')
+            sage: t2 = SR.symbol("t2", domain='positive')
             sage: (t1**t2).is_real()
             True
             sage: (t0*x).is_real()
             False
             sage: (t0^t1).is_real()
+            False
+            sage: (t1^t2).is_real()
             True
             sage: gamma(pi).is_real()
             True
@@ -1994,7 +1996,7 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: (x^pi).is_real()
             False
-            sage: (cos(exp(t0) + log(t1))^t1).is_real()
+            sage: (cos(exp(t0) + log(t1))^8).is_real()
             True
             sage: cos(I).is_real()
             False

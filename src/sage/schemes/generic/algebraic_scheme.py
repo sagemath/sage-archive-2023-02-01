@@ -4745,19 +4745,33 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: X.is_nondegenerate()
             False
-            
-        sage: diamond = lattice_polytope.cross_polytope(3)
-        sage: fan = FaceFan(diamond)
-        sage: P1xP1xP1 = ToricVariety(fan)
-        sage: z0, z1, z2, z3, z4, z5 = P1xP1xP1.gens()
-        sage: t = 5;
-        sage: F = z0^2*z1^2*z2^2 + z1^2*z2^2*z3^2 + z0^2*z2^2*z4^2 + z2^2*z3^2*z4^2 +\
-        ....: t*z0*z1*z2*z3*z4*z5 + z0^2*z1^2*z5^2 + z1^2*z3^2*z5^2 + z0^2*z4^2*z5^2 + z3^2*z4^2*z5^2
-        sage: X = P1xP1xP1.subscheme([F])
-        sage: X.is_smooth()
-        True
-        sage: X.is_nondegenerate()
-        False
+        
+        A K3 surface in P1xP1xP1::
+
+            sage: diamond = lattice_polytope.cross_polytope(3)
+            sage: fan = FaceFan(diamond)
+            sage: P1xP1xP1 = ToricVariety(fan)
+            sage: z0, z1, z2, z3, z4, z5 = P1xP1xP1.gens()
+            sage: t = 5;
+            sage: F = z0^2*z1^2*z2^2 + z1^2*z2^2*z3^2 + z0^2*z2^2*z4^2 + z2^2*z3^2*z4^2 +\
+            ....: t*z0*z1*z2*z3*z4*z5 + z0^2*z1^2*z5^2 + z1^2*z3^2*z5^2 +\
+            ....: z0^2*z4^2*z5^2 + z3^2*z4^2*z5^2
+            sage: X = P1xP1xP1.subscheme([F])
+            sage: X.is_smooth()
+            True
+            sage: X.is_nondegenerate()
+            False
+        
+        Taking a random change of variables breaks the symmetry, but makes the surface nondegenerate::
+
+            sage: F1 = F.subs(z0 = 1*z0 + 1*z3, z3 = 1*z0 + 2*z3,\
+            ....: z1 = -2*z1 + -1*z4, z4 = 1*z1 + 2*z4,\
+            ....: z2 = -3*z2 + -1*z5, z5 = -3*z2 + 2*z5 )
+            sage: Y = P1xP1xP1.subscheme([F1])
+            sage: Y.is_smooth()
+            True
+            sage: Y.is_nondegenerate()
+            True
 
          This example is from Hamm, arXiv:1106.1826v1. It addresses an issue raised at :trac:`15239`::
             sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')

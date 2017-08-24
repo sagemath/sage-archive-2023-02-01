@@ -17,6 +17,8 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
+
 from cpython.object cimport PyObject_RichCompare
 
 cdef extern from "math.h":

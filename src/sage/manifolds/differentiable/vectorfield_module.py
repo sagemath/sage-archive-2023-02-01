@@ -167,7 +167,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         sage: XU.has_coerce_map_from(XM)
         True
         sage: XU.coerce_map_from(XM)
-        Conversion map:
+        Coercion map:
           From: Module X(M) of vector fields on the 2-dimensional differentiable manifold M
           To:   Free module X(U) of vector fields on the Open subset U of the 2-dimensional differentiable manifold M
 
@@ -1149,7 +1149,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: XU.has_coerce_map_from(XM)
         True
         sage: XU.coerce_map_from(XM)
-        Conversion map:
+        Coercion map:
           From: Free module X(S^1) of vector fields on the 1-dimensional differentiable manifold S^1
           To:   Free module X(U) of vector fields on the Open subset U of the 1-dimensional differentiable manifold S^1
 

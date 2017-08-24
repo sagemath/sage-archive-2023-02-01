@@ -92,20 +92,42 @@ This came up in some subtle bug once::
     sage: gp(2) + gap(3)
     5
 """
-from __future__ import print_function
 
-from types import MethodType
+#*****************************************************************************
+#       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
+#       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
+#       Copyright (C) 2008 David Roe       <roed@math.harvard.edu>
+#       Copyright (C) 2007 William Stein   <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
+from cpython.object cimport PyObject, Py_NE, Py_EQ, Py_LE, Py_GE
+from cpython.bool cimport *
+
+from types import MethodType, BuiltinMethodType
+import operator
+from copy import copy
+
 from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
+from .category_object import CategoryObject
+from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
-from sage.structure.sage_object cimport SageObject, rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
+from sage.structure.sage_object cimport SageObject
 from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
-from copy import copy
 from sage.misc.lazy_format import LazyFormat
-from cpython.object cimport Py_NE, Py_EQ
 
 
 cdef _record_exception():
@@ -117,38 +139,6 @@ cdef bint is_Integer(x):
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
     return type(x) is _Integer or type(x) is int
-
-# for override testing
-cdef extern from "descrobject.h":
-    ctypedef struct PyMethodDef:
-        void *ml_meth
-    ctypedef struct PyMethodDescrObject:
-        PyMethodDef *d_method
-    void* PyCFunction_GET_FUNCTION(object)
-    bint PyCFunction_Check(object)
-
-###############################################################################
-#       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
-#       Copyright (C) 2008 Mike Hansen     <mhansen@gmail.com>
-#       Copyright (C) 2008 David Roe       <roed@math.harvard.edu>
-#       Copyright (C) 2007 William Stein   <wstein@gmail.com>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-###############################################################################
-
-import operator
-import weakref
-
-from category_object import CategoryObject
-from coerce_exceptions import CoercionException
-
-cdef object BuiltinMethodType = type(repr)
-
-from cpython.object cimport *
-from cpython.bool cimport *
 
 
 def is_Parent(x):
@@ -209,7 +199,7 @@ cdef inline bint good_as_coerce_domain(S):
 cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
-cdef class Parent(category_object.CategoryObject):
+cdef class Parent(sage.structure.category_object.CategoryObject):
     def __init__(self, base=None, *, category=None, element_constructor=None,
                  names=None, normalize=True, facade=None, **kwds):
         """
@@ -964,7 +954,8 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of infinite algebras over (quotient fields and metric spaces)
+            Category of infinite finite dimensional algebras with basis
+             over (quotient fields and metric spaces)
             sage: MS in Rings()
             True
 
@@ -1379,7 +1370,7 @@ cdef class Parent(category_object.CategoryObject):
            sage: f(7)
            2
            sage: f
-           Ring Coercion morphism:
+           Natural morphism:
              From: Integer Ring
              To:   Finite Field of size 5
 
@@ -1389,7 +1380,7 @@ cdef class Parent(category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1559,13 +1550,14 @@ cdef class Parent(category_object.CategoryObject):
         if isinstance(mor, map.Map):
             if mor.codomain() is not self:
                 raise ValueError("Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain()))
-        elif isinstance(mor, Parent) or isinstance(mor, type):
-            mor = self._generic_convert_map(mor)
+        elif isinstance(mor, (type, Parent)):
+            mor = self._generic_coerce_map(mor)
         else:
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
         D = mor.domain()
 
         assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from {} to {} already registered or discovered".format(D, self)
+        mor._is_coercion = True
         self._coerce_from_list.append(mor)
         self._registered_domains.append(D)
         self._coerce_from_hash.set(D,mor)
@@ -1770,7 +1762,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise ValueError("embedding's domain must be self")
             self._embedding = embedding
         elif isinstance(embedding, Parent):
-            self._embedding = embedding._generic_convert_map(self)
+            self._embedding = embedding._generic_coerce_map(self)
         elif embedding is not None:
             raise TypeError("embedding must be a parent or map")
         self._embedding._make_weak_references()
@@ -1802,7 +1794,40 @@ cdef class Parent(category_object.CategoryObject):
         """
         return copy(self._embedding) # It might be overkill to make a copy here
 
-    cpdef _generic_convert_map(self, S):
+    cpdef _generic_coerce_map(self, S):
+        r"""
+        Returns a default coercion map based on the data provided to
+        :meth:`_populate_coercion_lists_`.
+        
+        This method differs from :meth:`_generic_convert_map` only in setting
+        the category for the map to the meet of the category of this parent
+        and ``S``.
+
+        EXAMPLES::
+
+            sage: QQ['x']._generic_coerce_map(ZZ)
+            Conversion map:
+                From: Integer Ring
+                To:   Univariate Polynomial Ring in x over Rational Field
+
+
+        TESTS:
+
+        We check that :trac:`23184` has been resolved::
+
+            sage: QQ['x', 'y']._generic_coerce_map(QQ).category_for()
+            Category of unique factorization domains
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
+
+        """
+        if isinstance(S, type):
+            category = None
+        else:
+            category = self.category()._meet_(S.category())
+        return self._generic_convert_map(S, category=category)
+
+    cpdef _generic_convert_map(self, S, category=None):
         r"""
         Returns the default conversion map based on the data provided to
         :meth:`_populate_coercion_lists_`.
@@ -1814,9 +1839,26 @@ cdef class Parent(category_object.CategoryObject):
         ``DefaultConvertMap`` or ``DefaultConvertMap_unique``
         depending on whether or not init_no_parent is set.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: QQ['x']._generic_convert_map(SR)
+            Conversion via _polynomial_ method map:
+              From: Symbolic Ring
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: GF(11)._generic_convert_map(GF(7))
+            Conversion map:
+              From: Finite Field of size 7
+              To:   Finite Field of size 11
+
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
+
         """
-        import coerce_maps
+        from . import coerce_maps
         if self._convert_method_name is not None:
             # handle methods like _integer_
             if isinstance(S, type):
@@ -1832,9 +1874,9 @@ cdef class Parent(category_object.CategoryObject):
                 return coerce_maps.NamedConvertMap(S, self, self._convert_method_name)
 
         if self._element_init_pass_parent:
-            return coerce_maps.DefaultConvertMap(S, self)
+            return coerce_maps.DefaultConvertMap(S, self, category=category)
         else:
-            return coerce_maps.DefaultConvertMap_unique(S, self)
+            return coerce_maps.DefaultConvertMap_unique(S, self, category=category)
 
     def _coerce_map_via(self, v, S):
         """
@@ -2046,6 +2088,7 @@ cdef class Parent(category_object.CategoryObject):
         if S is self:
             from sage.categories.homset import Hom
             mor = Hom(self, self).identity()
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             return mor
 
@@ -2053,7 +2096,8 @@ cdef class Parent(category_object.CategoryObject):
             # non-unique parents
             if debug.unique_parent_warnings:
                 print("Warning: non-unique parents %s" % (type(S)))
-            mor = self._generic_convert_map(S)
+            mor = self._generic_coerce_map(S)
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
             return mor
@@ -2081,6 +2125,7 @@ cdef class Parent(category_object.CategoryObject):
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
                 if mor is not None:
+                    mor._is_coercion = True
                     mor._make_weak_references()
             return mor
         except CoercionException as ex:
@@ -2144,9 +2189,9 @@ cdef class Parent(category_object.CategoryObject):
             sage: c.parent() is M
             True
             sage: K.coerce_map_from(QQ)
-            Conversion map:
-            From: Rational Field
-            To:   Number Field in a with defining polynomial x^2 - 2 over its base field
+            Coercion map:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 - 2 over its base field
 
         Test that :trac:`17981` is fixed::
 
@@ -2188,7 +2233,7 @@ cdef class Parent(category_object.CategoryObject):
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
-            Conversion map:
+            Coercion map:
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
         """
@@ -2206,10 +2251,10 @@ cdef class Parent(category_object.CategoryObject):
         elif user_provided_mor is not None:
 
             from sage.categories.map import Map
-            from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
+            from .coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
 
             if user_provided_mor is True:
-                mor = self._generic_convert_map(S)
+                mor = self._generic_coerce_map(S)
             elif isinstance(user_provided_mor, Map):
                 mor = <map.Map>user_provided_mor
             elif callable(user_provided_mor):
@@ -2357,7 +2402,7 @@ cdef class Parent(category_object.CategoryObject):
             if isinstance(user_provided_mor, map.Map):
                 return user_provided_mor
             elif callable(user_provided_mor):
-                from coerce_maps import CallableConvertMap
+                from .coerce_maps import CallableConvertMap
                 return CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
@@ -2422,7 +2467,7 @@ cdef class Parent(category_object.CategoryObject):
         # If needed, it will be passed to Left/RightModuleAction.
         from sage.categories.action import Action, PrecomposedAction
         from sage.categories.homset import Hom
-        from coerce_actions import LeftModuleAction, RightModuleAction
+        from .coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
         for action in self._action_list:
             if isinstance(action, Action) and action.operation() is op:
@@ -2476,7 +2521,7 @@ cdef class Parent(category_object.CategoryObject):
                 _register_pair(self, S, "action") # this is to avoid possible infinite loops
 
                 # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
-                from coerce_actions import detect_element_action
+                from .coerce_actions import detect_element_action
                 action = detect_element_action(self, S, self_on_left, self_el, S_el)
                 if action is not None:
                     return action
@@ -2502,25 +2547,6 @@ cdef class Parent(category_object.CategoryObject):
 
         This must return an action which accepts an element of self and an
         element of S (in the order specified by self_on_left).
-        """
-        return None
-
-    def construction(self):
-        """
-        Returns a pair (functor, parent) such that functor(parent) return self.
-        If this ring does not have a functorial construction, return None.
-
-        EXAMPLES::
-
-            sage: QQ.construction()
-            (FractionField, Integer Ring)
-            sage: f, R = QQ['x'].construction()
-            sage: f
-            Poly[x]
-            sage: R
-            Rational Field
-            sage: f(R)
-            Univariate Polynomial Ring in x over Rational Field
         """
         return None
 
@@ -2668,20 +2694,6 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         Category of sets
 
     """
-#     def category(self):
-#         # TODO: remove once all subclasses specify their category, or
-#         # the constructor of Parent sets it to Sets() by default
-#         """
-#         The category that this set belongs to, which is the category
-#         of all sets.
-
-#         EXAMPLES:
-#             sage: Set(QQ).category()
-#             Category of sets
-#         """
-#         from sage.categories.sets_cat import Sets
-#         return Sets()
-
     def object(self):
         """
         Return the underlying object of ``self``.
@@ -2708,7 +2720,6 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
         return not (self.is_finite() and len(self) == 0)
 
 
-import types
 cdef _type_set_cache = {}
 
 cpdef Parent Set_PythonType(theType):
@@ -2964,7 +2975,7 @@ cdef class EltPair:
             sage: K.<a> = Qq(9)
             sage: E=EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
-            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
 
         """
         return hash((id(self.x), id(self.y), id(self.tag)))

@@ -45,15 +45,18 @@ def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     entries of the quaternions.
 
     INPUT:
-        - v -- a list of quaternions in a rational quaternion algebra
-        - reverse -- whether order of the coordinates as well as the
-                     order of the list v should be reversed.
+
+    - ``v`` -- a list of quaternions in a rational quaternion algebra
+    - ``reverse`` -- whether order of the coordinates as well as the
+      order of the list ``v`` should be reversed
 
     OUTPUT:
-        - a matrix over ZZ
-        - an integer (the common denominator)
+
+    - a matrix over `\ZZ`
+    - an integer (the common denominator)
 
     EXAMPLES::
+
         sage: A.<i,j,k>=QuaternionAlgebra(-4,-5)
         sage: sage.algebras.quatalg.quaternion_algebra_cython.integral_matrix_and_denom_from_rational_quaternions([i/2,1/3+j+k])
         (
@@ -115,19 +118,22 @@ def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     return A, d
 
 def rational_matrix_from_rational_quaternions(v, reverse=False):
-    """
+    r"""
     Return matrix over the rationals whose rows have entries the
-    coefficients of the rational quaternions in v.
+    coefficients of the rational quaternions in ``v``.
 
     INPUT:
-        - v -- a list of quaternions in a rational quaternion algebra
-        - reverse -- whether order of the coordinates as well as the
-                     order of the list v should be reversed.
+
+    - ``v`` -- a list of quaternions in a rational quaternion algebra
+    - ``reverse`` -- whether order of the coordinates as well as the
+      order of the list ``v`` should be reversed
 
     OUTPUT:
-        - a matrix over QQ
+
+    - a matrix over `\QQ`
 
     EXAMPLES::
+
         sage: A.<i,j,k>=QuaternionAlgebra(-4,-5)
         sage: sage.algebras.quatalg.quaternion_algebra_cython.rational_matrix_from_rational_quaternions([i/2,1/3+j+k])
         [  0 1/2   0   0]
@@ -171,18 +177,21 @@ def rational_matrix_from_rational_quaternions(v, reverse=False):
     return A
 
 def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense H, Integer d, reverse=False):
-    """
-    Given an integral matrix and denominator, returns a list of rational quaternions.
+    r"""
+    Given an integral matrix and denominator, returns a list of
+    rational quaternions.
 
     INPUT:
-        - A -- rational quaternion algebra
-        - H -- matrix over the integers
-        - d -- integer
-        - reverse -- whether order of the coordinates as well as the
-                     order of the list v should be reversed.
+
+    - ``A`` -- rational quaternion algebra
+    - ``H`` -- matrix over the integers
+    - ``d`` -- integer
+    - ``reverse`` -- whether order of the coordinates as well as the
+      order of the list ``v`` should be reversed
 
     OUTPUT:
-        - list of H.nrows() elements of A
+
+    - list of ``H.nrows()`` elements of ``A``
 
     EXAMPLES::
 
@@ -244,5 +253,3 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
     return v
 
 
-from sage.rings.rational_field import QQ
-MS_16_4 = MatrixSpace(QQ,16,4)

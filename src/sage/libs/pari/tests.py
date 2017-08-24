@@ -33,6 +33,14 @@ Now it takes much less than a second::
     sage: pari(pol).poldisc()
     2*3 + 3^4 + 2*3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10)
 
+This used to give the wrong answer before :trac:`23259`::
+
+    sage: R.<x> = QQ[]
+    sage: f = pari(x^12 + x^7 - 1/5*x^6 - 3*x^5 + 13/5*x^4 + 11/5*x^3 + 2/5*x^2 + 2/5*x + 1/5)
+    sage: g,h = f.polredabs(1)
+    sage: f.subst(x,h)
+    Mod(0, x^12 - 2*x^11 + 2*x^10 - 11*x^9 + 13*x^8 + 15*x^7 - x^6 - 5*x^5 + 5)
+
 Getting the coefficients of a Laurent series behaves differently
 in Sage and PARI. In PARI we get all coefficients starting
 from the lowest degree term.  This includes trailing zeros::

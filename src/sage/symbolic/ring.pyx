@@ -12,6 +12,7 @@ The symbolic ring
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.libs.pynac.pynac cimport *
 
@@ -190,7 +191,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             from sage.interfaces.maxima import Maxima
 
-            from subring import GenericSymbolicSubring
+            from .subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Almost anything with a coercion into any precision of CC
@@ -765,6 +766,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: zz.is_real()
             True
 
+        The real domain is also set with the integer domain::
+
+            sage: SR.var('x', domain='integer').is_real()
+            True
+
         The ``name`` argument does not have to match the left-hand side variable::
 
             sage: t = SR.var('theta2'); t
@@ -954,11 +960,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            import inspect
-            if not hasattr(_the_element,'_fast_callable_') or not inspect.ismethod(_the_element._fast_callable_):
-                # only warn if _the_element is not dynamic
-                from sage.misc.superseded import deprecation
-                deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+            from sage.misc.superseded import deprecation
+            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             d = {}
 
             vars = _the_element.variables()
@@ -1061,7 +1064,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         if self is not SR:
             raise NotImplementedError('Cannot create subring of %s.' % (self,))
-        from subring import SymbolicSubring
+        from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
 SR = SymbolicRing()

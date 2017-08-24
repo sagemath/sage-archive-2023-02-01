@@ -84,7 +84,7 @@ from sage.rings.rational_field import is_RationalField, QQ
 from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, isomorphisms
 
 from sage.sets.set import Set
-from sage.structure.sage_object import richcmp_not_equal, richcmp
+from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.misc.cachefunc import cached_function
 
 #

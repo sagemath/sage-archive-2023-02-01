@@ -172,7 +172,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
 from sage.structure.element cimport parent
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 class ResidueFieldFactory(UniqueFactory):
@@ -930,7 +930,7 @@ cdef class ReductionMap(Map):
             sage: f(1/h)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         An example to show that the issue raised in :trac:`1951`
         has been fixed::

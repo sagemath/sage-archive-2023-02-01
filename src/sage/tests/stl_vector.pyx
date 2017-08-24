@@ -32,7 +32,7 @@ from sage.rings.integer cimport Integer
 from sage.libs.gmp.mpz cimport mpz_add_ui
 from libcpp.vector cimport vector
 from libcpp.string cimport string
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 
 cdef class stl_int_vector(SageObject):

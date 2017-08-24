@@ -21,7 +21,7 @@ cdef extern from *: # hack to get at cython macro
     int unlikely(int)
     int likely(int)
 
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.libs.singular.decl cimport ideal, ring, poly, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing
 from sage.libs.singular.decl cimport new_skStrategy, delete_skStrategy, id_RankFreeModule

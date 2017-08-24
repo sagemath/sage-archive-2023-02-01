@@ -32,6 +32,9 @@ from sage.misc.misc_c import prod
 class Lseries(SageObject):
     """
     Base class for `L`-series attached to modular abelian varieties.
+
+    This is a common base class for complex and `p`-adic `L`-series
+    of modular abelian varieties.
     """
     def __init__(self, abvar):
         """
@@ -64,6 +67,7 @@ class Lseries(SageObject):
             Abelian variety J0(11) of dimension 1
         """
         return self.__abvar
+
 
 class Lseries_complex(Lseries):
     """
@@ -140,7 +144,7 @@ class Lseries_complex(Lseries):
 
         return prod(L(s) for L in factors)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare this complex `L`-series to another one.
 
@@ -150,22 +154,43 @@ class Lseries_complex(Lseries):
 
         OUTPUT:
 
-        -1, 0, or 1
+        boolean
 
         EXAMPLES::
 
-            sage: L = J0(37)[0].lseries(); M = J0(37)[1].lseries()
-            sage: cmp(L,M)
-            -1
-            sage: cmp(L,L)
-            0
-            sage: cmp(M,L)
-            1
+            sage: L = J0(37)[0].lseries()
+            sage: M = J0(37)[1].lseries()
+            sage: L == M
+            False
+            sage: L == L
+            True
         """
         if not isinstance(other, Lseries_complex):
-            return cmp(type(self), type(other))
-        return cmp(self.abelian_variety(), other.abelian_variety())
+            return False
+        return self.abelian_variety() == other.abelian_variety()
 
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- object
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: L = J0(37)[0].lseries()
+            sage: M = J0(37)[1].lseries()
+            sage: L != M
+            True
+            sage: L != L
+            False
+        """
+        return not (self == other)
 
     def _repr_(self):
         """
@@ -181,7 +206,7 @@ class Lseries_complex(Lseries):
             sage: L._repr_()
             'Complex L-series attached to Abelian variety J0(37) of dimension 2'
         """
-        return "Complex L-series attached to %s"%self.abelian_variety()
+        return "Complex L-series attached to %s" % self.abelian_variety()
 
     def vanishes_at_1(self):
         """
@@ -270,6 +295,7 @@ class Lseries_complex(Lseries):
 
     lratio = rational_part
 
+
 class Lseries_padic(Lseries):
     """
     A `p`-adic `L`-series attached to a modular abelian variety.
@@ -289,7 +315,7 @@ class Lseries_padic(Lseries):
             raise ValueError("p (=%s) must be prime"%p)
         self.__p = p
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare this `p`-adic `L`-series to another one.
 
@@ -302,29 +328,50 @@ class Lseries_padic(Lseries):
 
         OUTPUT:
 
-        -1, 0, or 1
+        boolean
 
         EXAMPLES::
 
-            sage: L = J0(37)[0].padic_lseries(5); M = J0(37)[1].padic_lseries(5)
+            sage: L = J0(37)[0].padic_lseries(5)
+            sage: M = J0(37)[1].padic_lseries(5)
             sage: K = J0(37)[0].padic_lseries(3)
-            sage: cmp(L,K)
-            1
-            sage: cmp(K,L)
-            -1
-            sage: K < L
+            sage: L == K
+            False
+            sage: L == M
+            False
+            sage: L == L
             True
-            sage: cmp(L,M)
-            -1
-            sage: cmp(M,L)
-            1
-            sage: cmp(L,L)
-            0
         """
         if not isinstance(other, Lseries_padic):
-            return cmp(type(self), type(other))
-        return cmp((self.abelian_variety(), self.__p),
-                   (other.abelian_variety(), other.__p))
+            return False
+        return (self.abelian_variety() == other.abelian_variety() and
+                self.__p == other.__p)
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        INPUT:
+
+        other -- object
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: L = J0(37)[0].padic_lseries(5)
+            sage: M = J0(37)[1].padic_lseries(5)
+            sage: K = J0(37)[0].padic_lseries(3)
+            sage: L != K
+            True
+            sage: L != M
+            True
+            sage: L != L
+            False
+        """
+        return not (self == other)
 
     def prime(self):
         """
@@ -340,7 +387,9 @@ class Lseries_padic(Lseries):
     def power_series(self, n=2, prec=5):
         """
         Return the `n`-th approximation to this `p`-adic `L`-series as
-        a power series in `T`.  Each coefficient is a `p`-adic number
+        a power series in `T`.
+
+        Each coefficient is a `p`-adic number
         whose precision is provably correct.
 
         NOTE: This is not yet implemented.
@@ -369,5 +418,5 @@ class Lseries_padic(Lseries):
             sage: L._repr_()
             '5-adic L-series attached to Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37)'
         """
-        return "%s-adic L-series attached to %s"%(self.__p, self.abelian_variety())
-
+        return "%s-adic L-series attached to %s" % (self.__p,
+                                                    self.abelian_variety())

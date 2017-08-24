@@ -140,7 +140,7 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
     variable names of the `n`-th block (`n>0`) ending with
     ``"_%d"%n``.
 
-    TEST:
+    TESTS:
 
     Note that, since the algebras are cached, we need to choose
     a different base ring, since other doctests could have a
@@ -173,7 +173,9 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
     for i from 1<=i<blocks:
         T += T0
         names.extend([x+'_'+str(i) for x in names0])
-    return PolynomialRing(base_ring.base_ring(),len(names),names,order=T)
+    return PolynomialRing(base_ring.base_ring(), names, order=T,
+            implementation="singular")
+
 
 #####################
 # The free algebra
@@ -726,7 +728,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
           generators are equal, and the base ring of ``R`` coerces
           into the base ring of self.
 
-        TEST:
+        TESTS:
 
         Coercion from the base ring::
 
@@ -811,9 +813,9 @@ cdef class FreeAlgebra_letterplace(Algebra):
           in the to-be-created element.
         - ``check`` (optional bool, default ``True``):
           This is forwarded to the initialisation of
-          :class:`~sage.algebas.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace`.
+          :class:`~sage.algebras.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace`.
 
-        TEST:
+        TESTS:
 
         This method applied to the dictionary of any element must
         return the same element. This must hold true even if the
@@ -830,7 +832,6 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
             sage: F._from_dict_({})
             0
-
         """
         if not D:
             return self.zero()

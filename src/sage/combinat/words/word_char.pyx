@@ -10,7 +10,7 @@ Fast word datatype using an array of unsigned char
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -22,7 +22,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool_sgn
 
 from cpython.number cimport PyIndex_Check, PyNumber_Check
 from cpython.sequence cimport PySequence_Check
@@ -243,11 +243,12 @@ cdef class WordDatatype_char(WordDatatype):
             self._hash = res
         return self._hash
 
-    def __richcmp__(self, other, op):
+    def __richcmp__(self, other, int op):
         r"""
         INPUT:
 
         - ``other`` -- a word (WordDatatype_char)
+
         - ``op`` -- int, from 0 to 5
 
         TESTS::
@@ -298,42 +299,33 @@ cdef class WordDatatype_char(WordDatatype):
             (False, False, False, True)
             sage: (w>=w, z>=z, w>=z, z>=w)
             (True, True, False, True)
+
+        Check that :trac:`23317` is fixed::
+
+            sage: L = [Word([2,2], (1,2)), Word([], (1,2))]
+            sage: sorted(L)
+            [word: , word: 22]
         """
-        # 0: <
-        # 1: <=
-        # 2: ==
-        # 3: !=
-        # 4: >
-        # 5: >=
         if not isinstance(other, WordDatatype_char):
             return NotImplemented
 
-        # word of different lengths are not equal!
-        if (op == Py_EQ or op == Py_NE) and (<WordDatatype_char> self)._length != (<WordDatatype_char> other)._length:
+        cdef WordDatatype_char a = <WordDatatype_char>self
+        cdef WordDatatype_char b = <WordDatatype_char>other
+
+        # Words of different lengths are not equal!
+        if (op == Py_EQ or op == Py_NE) and a._length != b._length:
             return op == Py_NE
 
-        cdef int test = (<WordDatatype_char> self)._lexico_cmp(other)
-        return rich_to_bool(op, test)
-
-    cdef int _lexico_cmp(self, WordDatatype_char other) except -2:
-        r"""
-        Lexicographic comparison of self and other up to
-        the letter at position min(len(self),len(other))
-        """
-        cdef size_t l = min(self._length, other._length)
-
+        # Compare overlapping chars
+        cdef size_t l = min(a._length, b._length)
         sig_on()
-        cdef int test = memcmp(<void *> (<WordDatatype_char> self)._data,
-                      <void *> (<WordDatatype_char> other)._data,
-                      l * sizeof(unsigned char))
+        cdef int test = memcmp(a._data, b._data, l)
         sig_off()
 
         if test == 0:
-            return self._length - other._length
-        elif test < 0:
-            return -1
-        else:
-            return 1
+            # Equality: compare lengths
+            test = a._length - b._length
+        return rich_to_bool_sgn(op, test)
 
     def __getitem__(self, key):
         r"""
@@ -376,7 +368,7 @@ cdef class WordDatatype_char(WordDatatype):
             PySlice_GetIndicesEx(key,
                     self._length,
                     &start, &stop, &step,
-                    &slicelength) 
+                    &slicelength)
             if slicelength == 0:
                 return self._new_c(NULL, 0, None)
             if step == 1:
@@ -656,8 +648,8 @@ cdef class WordDatatype_char(WordDatatype):
             return False
         else:
             l = self._length // 2
-            return memcmp(self._data, 
-                          self._data + l, 
+            return memcmp(self._data,
+                          self._data + l,
                           l * sizeof(unsigned char)) == 0
 
     def longest_common_prefix(self, other):
@@ -709,9 +701,14 @@ cdef class WordDatatype_char(WordDatatype):
             Traceback (most recent call last):
             ...
             TypeError: unsupported input 0
+
+        ::
+
+            sage: Word([2,2], (1,2)).longest_common_prefix([])
+            word:
         """
         cdef WordDatatype_char w
-        cdef size_t i
+        cdef size_t i = <size_t>(-1)
         cdef size_t m
 
         if isinstance(other, WordDatatype_char):
@@ -734,7 +731,7 @@ cdef class WordDatatype_char(WordDatatype):
         elif PySequence_Check(other):
             # Python level
             # we avoid to call len(other) since it might be an infinite word
-            for i,a in enumerate(itertools.islice(other, self._length)):
+            for i, a in enumerate(itertools.islice(other, self._length)):
                 if self._data[i] != a:
                     break
             else:
@@ -768,9 +765,14 @@ cdef class WordDatatype_char(WordDatatype):
             Traceback (most recent call last):
             ...
             TypeError: unsupported input 0
+
+        ::
+
+            sage: Word([2,2], (1,2)).longest_common_suffix([])
+            word:
         """
         cdef WordDatatype_char w
-        cdef size_t i
+        cdef size_t i = <size_t>(-1)
         cdef size_t m
         cdef size_t lo
 
@@ -807,4 +809,3 @@ cdef class WordDatatype_char(WordDatatype):
             return self._new_c(self._data+self._length-i, i, self)
 
         raise TypeError("unsupported input {}".format(other))
-

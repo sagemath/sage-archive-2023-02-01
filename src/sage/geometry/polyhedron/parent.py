@@ -647,7 +647,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Right action by Integer Ring on Polyhedra in ZZ^2
             sage: PZZ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Polyhedra in ZZ^2
               To:   Polyhedra in QQ^2
             with precomposition on right by Identity endomorphism of Rational Field

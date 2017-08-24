@@ -49,7 +49,7 @@ from sage.combinat.root_system.reflection_group_element import RealReflectionGro
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp, richcmp_not_equal
+from sage.structure.richcmp import richcmp, richcmp_not_equal
 from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.categories.permutation_groups import PermutationGroups
 from sage.sets.family import Family

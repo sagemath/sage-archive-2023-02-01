@@ -40,7 +40,7 @@ import operator
 from sage.structure.element cimport (FieldElement, ModuleElement, RingElement,
                                      Element)
 from sage.structure.element import parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 from . import integer_ring
 from .integer_ring import ZZ
@@ -51,7 +51,7 @@ import sage.misc.latex as latex
 
 def is_FractionFieldElement(x):
     """
-    Returns whether or not ``x`` is a :class`FractionFieldElement`.
+    Return whether or not ``x`` is a :class:`FractionFieldElement`.
 
     EXAMPLES::
 

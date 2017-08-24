@@ -51,7 +51,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.abstract_method import abstract_method
 from sage.structure.factory import UniqueFactory
 from sage.structure.element import MonoidElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.monoids import Monoids
 from sage.categories.morphism import Morphism
 from sage.structure.parent import Parent

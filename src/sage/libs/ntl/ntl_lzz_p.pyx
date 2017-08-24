@@ -407,7 +407,7 @@ def make_zz_p(val, context):
     """
     For unpickling.
 
-    TEST:
+    TESTS:
         sage: f = ntl.zz_p(1, 12)
         sage: loads(dumps(f)) == f
         True

@@ -24,8 +24,8 @@ from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport have_same_parent, coercion_model, parent
 from sage.structure.element_wrapper cimport ElementWrapper
-from sage.structure.sage_object cimport richcmp
-from sage.data_structures.blas_dict cimport axpy, negate, scal
+from sage.structure.richcmp cimport richcmp
+from sage.data_structures.blas_dict cimport axpy, add, negate, scal
 
 # TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
 # TODO: Do we want a dense version?
@@ -560,6 +560,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         """
         return self.value[self._parent._indices.index(i)]
 
+
 cdef class UntwistedAffineLieAlgebraElement(Element):
     """
     An element of an untwisted affine Lie algebra.
@@ -618,7 +619,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: e1 + 2*f1 - h1 + e0 + 3*c - 2*d
-            (E[alpha[1]] - h1 + 2*E[-alpha[1]])#t^0 + (-E[-alpha[1]])#t^1
+            (E[alpha[1]] - h1 + 2*E[-alpha[1]])#t^0 + (E[-alpha[1]])#t^1
              + 3*c + -2*d
         """
         ret = ' + '.join('({})#t^{}'.format(g, t)
@@ -668,7 +669,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: latex(e1 + 2*f1 - h1 + e0 + 3*c - 2*d)
             (E_{\alpha_{1}} - E_{\alpha^\vee_{1}} + 2E_{-\alpha_{1}}) \otimes t^{0}
-             + (-E_{-\alpha_{1}}) \otimes t^{1} + 3 c + -2 d
+             + (E_{-\alpha_{1}}) \otimes t^{1} + 3 c + -2 d
         """
         from sage.misc.latex import latex
         ret = ' + '.join('({}) \otimes t^{{{}}}'.format(latex(g), t)
@@ -798,9 +799,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
         """
         return bool(self._t_dict) or bool(self._c_coeff) or bool(self._d_coeff)
 
-    __bool__ = __nonzero__
-
-    cdef _add_(self, other):
+    cpdef _add_(self, other):
         """
         Add ``self`` and ``other``.
 
@@ -812,11 +811,11 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             (E[alpha[1]])#t^0 + (-h1)#t^1 + c + 4*d
         """
         cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
-        return type(self)(self._parent, axpy(1, self._t_dict, rt._t_dict.copy()),
+        return type(self)(self._parent, add(self._t_dict, rt._t_dict),
                           self._c_coeff + rt._c_coeff,
                           self._d_coeff + rt._d_coeff)
 
-    cdef _sub_(self, other):
+    cpdef _sub_(self, other):
         """
         Subtract ``self`` and ``other``.
 
@@ -826,19 +825,21 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: e0.bracket(e1) + d - e1 + c - 3*d
             (-E[alpha[1]])#t^0 + (-h1)#t^1 + c + -2*d
-            sage: e0.bracket(f0) - 4*c
+            sage: 4*c - e0.bracket(f0)
             (h1)#t^0
-            sage: e0.bracket(f0) - 4*c - h1
+            sage: 4*c - e0.bracket(f0) - h1
             0
-            sage: e0.bracket(f0) - 4*c - h1 == L.zero()
+            sage: 4*c - e0.bracket(f0) - h1 == L.zero()
             True
+            sage: e1 - f1
+            (E[alpha[1]] - E[-alpha[1]])#t^0
         """
         cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
-        return type(self)(self._parent, axpy(-1, self._t_dict, rt._t_dict.copy()),
+        return type(self)(self._parent, axpy(-1, rt._t_dict, self._t_dict),
                           self._c_coeff - rt._c_coeff,
                           self._d_coeff - rt._d_coeff)
 
-    cdef _neg_(self):
+    cpdef _neg_(self):
         """
         Negate ``self``.
 
@@ -863,9 +864,9 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
             sage: x = e1 + f0.bracket(f1) + 3*c - 2/5 * d
             sage: x
-            (-E[alpha[1]])#t^0 + (-h1)#t^-1 + 3*c + -2/5*d
+            (E[alpha[1]])#t^0 + (h1)#t^-1 + 3*c + -2/5*d
             sage: -2 * x
-            (2*E[alpha[1]])#t^0 + (2*h1)#t^-1 + -6*c + 4/5*d
+            (-2*E[alpha[1]])#t^0 + (-2*h1)#t^-1 + -6*c + 4/5*d
         """
         return type(self)(self._parent, scal(x, self._t_dict, self_on_left),
                           x * self._c_coeff,

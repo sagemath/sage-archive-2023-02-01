@@ -198,6 +198,28 @@ class SetPartition(ClonableArray):
             return False
         return list(self) == list(y)
 
+    def __ne__(self, y):
+        """
+        Check lack of equality of ``self`` and ``y``.
+
+        The parent is not included as part of the equality check.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: A != B
+            False
+            sage: C = P([[2, 3], [1], [4]])
+            sage: A != C
+            False
+            sage: D = P([[1], [2, 4], [3]])
+            sage: A != D
+            True
+        """
+        return not (self == y)
+
     def __lt__(self, y):
         """
         Check that ``self`` is less than ``y``.
@@ -319,30 +341,6 @@ class SetPartition(ClonableArray):
             True
         """
         return self == y or self > y
-
-    def _cmp_(self, y):
-        """
-        Return the result of ``cmp``.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = P([[1], [2,3], [4]])
-            sage: B = SetPartition([[1,2,3], [4]])
-            sage: A < B
-            True
-            sage: cmp(A, B)
-            -1
-            sage: cmp(B, A)
-            1
-        """
-        if self < y:
-            return -1
-        if self > y:
-            return 1
-        return 0
-
-    __cmp__ = _cmp_
 
     def __mul__(self, other):
         r"""

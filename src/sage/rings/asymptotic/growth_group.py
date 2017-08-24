@@ -239,7 +239,7 @@ from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import (CachedRepresentation,
                                                   UniqueRepresentation)
-from .misc import richcmp_by_eq_and_lt
+from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 
 class Variable(CachedRepresentation, SageObject):
@@ -1097,7 +1097,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
 
-    _richcmp_ = richcmp_by_eq_and_lt
+    _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _eq_(self, other):
         r"""

@@ -104,7 +104,7 @@ Automatic coercions work as expected::
 
 TESTS::
 
-    sage: polygen(CBF, x)^3
+    sage: polygen(CBF, 'x')^3
     x^3
 
 ::
@@ -128,9 +128,10 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
+from __future__ import absolute_import
 
 import operator
+from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
 
@@ -272,27 +273,27 @@ class ComplexBallField(UniqueRepresentation, Field):
         construction functions)::
 
             sage: CBF.coerce_map_from(ZZ)
-            Conversion map:
-            From: Integer Ring
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Integer Ring
+              To:   Complex ball field with 53 bits precision
             sage: CBF.coerce_map_from(QQ)
-            Conversion map:
-            From: Rational Field
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Rational Field
+              To:   Complex ball field with 53 bits precision
 
         Various other coercions are available through real ball fields or CLF::
 
             sage: CBF.coerce_map_from(RLF)
             Composite map:
-            From: Real Lazy Field
-            To:   Complex ball field with 53 bits precision
-            Defn:   Conversion map:
-                    From: Real Lazy Field
-                    To:   Real ball field with 53 bits precision
+              From: Real Lazy Field
+              To:   Complex ball field with 53 bits precision
+              Defn:   Coercion map:
+                      From: Real Lazy Field
+                      To:   Real ball field with 53 bits precision
                     then
-                    Conversion map:
-                    From: Real ball field with 53 bits precision
-                    To:   Complex ball field with 53 bits precision
+                      Coercion map:
+                      From: Real ball field with 53 bits precision
+                      To:   Complex ball field with 53 bits precision
             sage: CBF.has_coerce_map_from(AA)
             True
             sage: CBF.has_coerce_map_from(QuadraticField(-1))
@@ -422,9 +423,9 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.coerce_map_from(CBF)
             Identity endomorphism of Complex ball field with 53 bits precision
             sage: CBF.coerce_map_from(ComplexBallField(100))
-            Conversion map:
-            From: Complex ball field with 100 bits precision
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Complex ball field with 100 bits precision
+              To:   Complex ball field with 53 bits precision
             sage: CBF.has_coerce_map_from(ComplexBallField(42))
             False
             sage: CBF.has_coerce_map_from(RealBallField(54))
@@ -987,6 +988,37 @@ cdef class ComplexBall(RingElement):
             return parent(self.real())
         else:
             raise ValueError("nonzero imaginary part")
+
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(CBF(1))
+            1.0
+            sage: float(CBF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex ball to float
+        """
+        if self.imag() == 0:
+            return float(self.n(prec(self)))
+        else:
+            raise TypeError("can't convert complex ball to float")
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(CBF(1))
+            (1+0j)
+            sage: complex(CBF(1,1))
+            (1+1j)
+        """
+        return complex(self.n(prec(self)))
 
     # Real and imaginary part, midpoint, radius
 

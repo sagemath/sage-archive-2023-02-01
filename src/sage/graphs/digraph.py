@@ -70,6 +70,8 @@ graphs. Here is what they can do
     :meth:`~DiGraph.strongly_connected_components_subgraphs` | Returns the strongly connected components as a list of subgraphs.
     :meth:`~DiGraph.strongly_connected_component_containing_vertex` | Returns the strongly connected component containing a given vertex
     :meth:`~DiGraph.strongly_connected_components` | Returns the list of strongly connected components.
+    :meth:`~DiGraph.immediate_dominators` | Return the immediate dominators of all vertices reachable from `root`.
+    :meth:`~DiGraph.strong_articulation_points` | Return the strong articulation points of this digraph.
 
 
 **Acyclicity:**
@@ -104,6 +106,7 @@ graphs. Here is what they can do
     :delim: |
 
     :meth:`~DiGraph.flow_polytope` | Computes the flow polytope of a digraph
+    :meth:`~DiGraph.degree_polynomial` | Returns the generating polynomial of degrees of vertices in ``self``.
 
 Methods
 -------
@@ -1387,6 +1390,41 @@ class DiGraph(GenericGraph):
         """
         return [x for x in self if self.out_degree(x)==0]
 
+    def degree_polynomial(self):
+        r"""
+        Return the generating polynomial of degrees of vertices in ``self``.
+
+        This is the sum
+
+        .. MATH::
+
+            \sum_{v \in G} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
+
+        where ``in(v)`` and ``out(v)`` are the number of incoming and
+        outgoing edges at vertex `v` in the digraph `G`.
+
+        Because this polynomial is multiplicative for Cartesian
+        product of digraphs, it is useful to help see if the digraph can
+        be isomorphic to a Cartesian product.
+
+        .. SEEALSO::
+
+            :meth:`num_verts` for the value at `(x, y) = (1, 1)`
+
+        EXAMPLES::
+
+            sage: G = posets.PentagonPoset().hasse_diagram()
+            sage: G.degree_polynomial()
+            x^2 + 3*x*y + y^2
+
+            sage: G = posets.BooleanLattice(4).hasse_diagram()
+            sage: G.degree_polynomial().factor()
+            (x + y)^4
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(ZZ, 'x,y')
+        x, y = R.gens()
+        return R.sum(x ** self.in_degree(v) * y ** self.out_degree(v) for v in self)
 
     def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""
@@ -1811,7 +1849,7 @@ class DiGraph(GenericGraph):
 
         if ((not tempG.allows_multiple_edges()) and (tempG.has_edge(v,u))):
             # If user wants to force digraph to allow parallel edges
-            if multiedges == True:
+            if multiedges:
                 tempG.allow_multiple_edges(True)
                 tempG.delete_edge(u,v,label)
                 tempG.add_edge(v,u,label)
@@ -1819,11 +1857,11 @@ class DiGraph(GenericGraph):
             # If user does not want to force digraph to allow parallel
             # edges, we delete edge u to v and overwrite v,u with the
             # label of u,v
-            elif multiedges == False:
+            elif multiedges is False:
                 tempG.delete_edge(u,v,label)
                 tempG.set_edge_label(v,u,label)
 
-            # User is supposed to specify multiedges True or None
+            # User is supposed to specify multiedges True or False
             else:
                 raise ValueError("Reversing the given edge is about to "
                                  "create two parallel edges but input digraph "
@@ -3184,6 +3222,263 @@ class DiGraph(GenericGraph):
         except AttributeError:
             return len(self.strongly_connected_components()) == 1
 
+
+    def immediate_dominators(self, r, reverse=False):
+        r"""
+        Return the immediate dominators of all vertices reachable from `r`.
+
+        A flowgraph `G = (V, A, r)` is a digraph where every vertex in `V` is
+        reachable from a distinguished root vertex `r\in V`. In such digraph, a
+        vertex `w` dominates a vertex `v` if every path from `r` to `v` includes
+        `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
+        Obviously, `r` and `v`, the trivial dominators of `v`, are in
+        `dom(v)`. For `v \neq r`, the immediate dominator of `v`, denoted by
+        `d(v)`, is the unique vertex `w \neq v` that dominates `v` and is
+        dominated by all the vertices in `dom(v)\setminus\{v\}`. The (immediate)
+        dominator tree is a directed tree (or arborescence) rooted at `r` that
+        is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{r\}\}`.  See
+        [Ge2005]_ for more details.
+
+        This method implements the algorithm proposed in [CHK2001]_ which
+        performs very well in practice, although its worst case time complexity
+        is in `O(n^2)`.
+
+        INPUT:
+
+        - ``r`` -- a vertex of the digraph, the root of the immediate dominators
+          tree
+
+        - ``reverse`` -- boolean (default: ``False``); When set to ``True``, we
+          consider the reversed digraph in which out-neighbors become the
+          in-neighbors and vice-versa. This option is available only if the
+          backend of the digraph is :mod:`~SparseGraphBackend`.
+
+        OUTPUT: The (immediate) dominator tree rooted at `r`, encoded as a
+        predecessor dictionary.
+
+        EXAMPLES:
+
+        The output encodes a tree rooted at `r`::
+
+            sage: D = digraphs.Complete(4) * 2
+            sage: D.add_edges([(0, 4), (7, 3)])
+            sage: d = D.immediate_dominators(0)
+            sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
+            sage: Graph(T).is_tree()
+            True
+            sage: all(T.in_degree(u) <= 1 for u in T)
+            True
+
+        In a strongly connected digraph, the result depends on the root::
+
+            sage: D = digraphs.Circuit(5)
+            sage: D.immediate_dominators(0)
+            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
+            sage: D.immediate_dominators(1)
+            {0: 4, 1: 1, 2: 1, 3: 2, 4: 3}
+
+        The (immediate) dominator tree contains only reachable vertices::
+
+            sage: P = digraphs.Path(5)
+            sage: P.immediate_dominators(0)
+            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
+            sage: P.immediate_dominators(3)
+            {3: 3, 4: 3}
+
+        Immediate dominators in the reverse digraph::
+
+            sage: D = digraphs.Complete(5)+digraphs.Complete(4)
+            sage: D.add_edges([(0, 5), (1, 6), (7, 2)])
+            sage: idom = D.immediate_dominators(0, reverse=True)
+            sage: idom
+            {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 7, 6: 7, 7: 2, 8: 7}
+            sage: D_reverse = D.reverse()
+            sage: D_reverse.immediate_dominators(0) == idom
+            True
+
+        .. SEEALSO::
+
+            - :wikipedia:`Dominator_(graph_theory)`
+            - :meth:`~DiGraph.strong_articulation_points`
+            - :meth:`~DiGraph.strongly_connected_components`
+
+        TESTS:
+
+        When `r` is not in the digraph::
+
+            sage: DiGraph().immediate_dominators(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given root must be in the digraph
+
+        The reverse option is available only when the backend of the digraph is
+        :mod:`~SparseGraphBackend`::
+
+            sage: H = DiGraph(D.edges(), data_structure='static_sparse')
+            sage: H.immediate_dominators(0, reverse=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the reverse option is not available for this digraph
+
+        Comparison with the NetworkX method::
+
+            sage: import networkx
+            sage: D = digraphs.RandomDirectedGNP(20,0.1)
+            sage: d = D.immediate_dominators(0)
+            sage: dx = networkx.immediate_dominators(D.networkx_graph(), 0)
+            sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
+            True
+        """
+        if r not in self:
+            raise ValueError("the given root must be in the digraph")
+
+        idom = {r: r}
+        n = self.order()
+        if reverse:
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, SparseGraphBackend):
+                pre_order = list(self._backend.depth_first_search(r, reverse=True))
+                number = {u: n-i for i, u in enumerate(pre_order)}
+                neighbor_iterator = self.neighbor_out_iterator
+            else:
+                raise ValueError("the reverse option is not available for this digraph")
+        else:
+            pre_order = list(self.depth_first_search(r))
+            number = {u: n-i for i, u in enumerate(pre_order)}
+            neighbor_iterator = self.neighbor_in_iterator
+        pre_order.pop(0)
+
+        def intersect(u, v):
+            while u != v:
+                while number[u] < number[v]:
+                    u = idom[u]
+                while number[u] > number[v]:
+                    v = idom[v]
+            return u
+
+        changed = True
+        while changed:
+            changed = False
+            for u in pre_order:
+                pred = [v for v in neighbor_iterator(u) if v in idom]
+                if not pred:
+                    continue
+                else:
+                    new_idom = pred[0]
+                    for v in pred[1:]:
+                        new_idom = intersect(new_idom, v)
+                if not u in idom or idom[u] != new_idom:
+                    idom[u] = new_idom
+                    changed = True
+
+        return idom
+
+    def strong_articulation_points(self):
+        r"""
+        Return the strong articulation points of this digraph.
+
+        A vertex is a strong articulation point if its deletion increases the
+        number of strongly connected components. This method implements the
+        algorithm described in [ILS2012]_. The time complexity is dominated by
+        the time complexity of the immediate dominators finding algorithm.
+
+        OUTPUT: The list of strong articulation points.
+
+        EXAMPLES:
+
+        Two cliques sharing a vertex::
+
+            sage: D = digraphs.Complete(4)
+            sage: D.add_clique([3, 4, 5, 6])
+            sage: D.strong_articulation_points()
+            [3]
+
+        Two cliques connected by some arcs::
+
+            sage: D = digraphs.Complete(4) * 2
+            sage: D.add_edges([(0, 4), (7, 3)])
+            sage: sorted( D.strong_articulation_points() )
+            [0, 3, 4, 7]
+            sage: D.add_edge(1, 5)
+            sage: sorted( D.strong_articulation_points() )
+            [3, 7]
+            sage: D.add_edge(6, 2)
+            sage: D.strong_articulation_points()
+            []
+
+        .. SEEALSO::
+
+            - :meth:`~DiGraph.strongly_connected_components`
+            - :meth:`~DiGraph.immediate_dominators`
+
+        TESTS:
+
+        All strong articulation points are found::
+
+            sage: def sap_naive(G):
+            ....:     nscc = len(G.strongly_connected_components())
+            ....:     S = []
+            ....:     for u in G:
+            ....:         H = copy(G)
+            ....:         H.delete_vertex(u)
+            ....:         if len(H.strongly_connected_components()) > nscc:
+            ....:             S.append(u)
+            ....:     return S
+            sage: D = digraphs.RandomDirectedGNP(20, 0.1)
+            sage: X = sap_naive(D)
+            sage: SAP = D.strong_articulation_points()
+            sage: set(X) == set(SAP)
+            True
+
+        Trivial cases::
+
+            sage: DiGraph().strong_articulation_points()
+            []
+            sage: DiGraph(1).strong_articulation_points()
+            []
+            sage: DiGraph(2).strong_articulation_points()
+            []
+        """
+        # The method is applied on each strongly connected component
+        if self.is_strongly_connected():
+            # Make a mutable copy of self
+            L = [ DiGraph( [(u, v) for u, v in self.edge_iterator(labels=0) if u != v],
+                               data_structure='sparse', immutable=False) ]
+        else:
+            # Get the list of strongly connected components of self as mutable
+            # subgraphs
+            L = [ self.subgraph(scc, immutable=False) for scc in self.strongly_connected_components() ]
+
+        SAP = []
+        for g in L:
+            n = g.order()
+            if n <= 1:
+                continue
+            if n == 2:
+                SAP.extend( g.vertices() )
+                continue
+
+            # 1. Choose arbitrarily a vertex r, and test whether r is a strong
+            # articulation point.
+            r = next(g.vertex_iterator())
+            E = g.incoming_edges(r) + g.outgoing_edges(r)
+            g.delete_vertex(r)
+            if not g.is_strongly_connected():
+                SAP.append(r)
+            g.add_edges(E)
+
+            # 2. Compute the set of non-trivial immediate dominators in g
+            Dr = set( g.immediate_dominators(r).values() )
+
+            # 3. Compute the set of non-trivial immediate dominators in the
+            # reverse digraph
+            DRr = set( g.immediate_dominators(r, reverse=True).values() )
+
+            # 4. Store D(r) + DR(r) - r
+            SAP.extend( Dr.union(DRr).difference([r]) )
+
+        return SAP
+
     def is_aperiodic(self):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.
@@ -3474,10 +3769,6 @@ class DiGraph(GenericGraph):
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)
 
-import types
-
-import sage.graphs.comparability
-DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
-
-from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
-DiGraph.strongly_connected_components = types.MethodType(tarjan_strongly_connected_components, None, DiGraph)
+    # Aliases to functions defined in other modules
+    from sage.graphs.comparability import is_transitive
+    from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components

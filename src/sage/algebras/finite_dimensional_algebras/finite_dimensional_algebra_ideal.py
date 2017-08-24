@@ -24,8 +24,8 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from functools import reduce
 
-from sage.structure.sage_object import (op_LT, op_LE, op_EQ, op_NE,
-                                        op_GT, op_GE)
+from sage.structure.richcmp import (op_LT, op_LE, op_EQ, op_NE,
+                                    op_GT, op_GE)
 
 
 class FiniteDimensionalAlgebraIdeal(Ideal_generic):

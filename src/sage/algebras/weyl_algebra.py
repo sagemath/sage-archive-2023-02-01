@@ -18,7 +18,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.structure.element import AlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy

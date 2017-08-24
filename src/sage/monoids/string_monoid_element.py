@@ -26,7 +26,7 @@ from six import integer_types
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
 from .free_monoid_element import FreeMonoidElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 
 def is_StringMonoidElement(x):

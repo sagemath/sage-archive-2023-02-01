@@ -1194,11 +1194,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             """
             if not self.cartan_type().is_finite():
-                raise ValueError("%s is not a finite Cartan type"%(self.cartan_type()))
-            from sage.combinat.combinat import MapCombinatorialClass
-            return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
-            # Todo: use this instead once RecursivelyEnumeratedSet will be a proper enumerated set
-            #return self.positive_roots().map(attrcall('__negate__'))
+                raise ValueError("%s is not a finite Cartan type" % self.cartan_type())
+            return self.positive_roots().map(attrcall('__neg__'))
 
         ##########################################################################
         # coroots
@@ -1599,7 +1596,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: pi[1](x[2])
                 -Lambda[1] + 2*Lambda[2]
 
-            TESTS:
+            TESTS::
+
                 sage: pi
                 pi
             """

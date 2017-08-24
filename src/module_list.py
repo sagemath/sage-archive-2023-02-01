@@ -140,9 +140,7 @@ library_order_list = singular_libs + [
     "zn_poly", "gap",
 ] + gd_libs + png_libs + [
     "m", "readline", "Lfunction" ,
-] + cblas_libs + [
-    "cryptominisat",
-] + zlib_libs
+] + cblas_libs + zlib_libs
 
 # Make a dict with library:order pairs, where the order are negative
 # integers sorted according to library_order_list. When sorting,
@@ -246,6 +244,14 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.cpython
+    ##
+    ################################
+
+    Extension('*', ['sage/cpython/*.pyx']),
+
+    ################################
+    ##
     ## sage.crypto
     ##
     ################################
@@ -267,6 +273,16 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/docs/*.pyx']),
+
+    ################################
+    ##
+    ## sage.dynamics
+    ##
+    ################################
+    
+
+    Extension('sage.dynamics.complex_dynamics.mandel_julia_helper',
+                sources = ['sage/dynamics/complex_dynamics/mandel_julia_helper.pyx']),
 
 
     ################################
@@ -1045,23 +1061,22 @@ ext_modules = [
 
 
     Extension("sage.numerical.mip",
-              ["sage/numerical/mip.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/mip.pyx"]),
 
     Extension("sage.numerical.linear_functions",
-              ["sage/numerical/linear_functions.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/linear_functions.pyx"]),
 
     Extension("sage.numerical.linear_tensor_element",
-              ["sage/numerical/linear_tensor_element.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/linear_tensor_element.pyx"]),
+
+    Extension("sage.numerical.gauss_legendre",
+              ["sage/numerical/gauss_legendre.pyx"]),
 
     Extension("sage.numerical.sdp",
               ["sage/numerical/sdp.pyx"]),
 
     Extension("sage.numerical.backends.generic_backend",
-              ["sage/numerical/backends/generic_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/generic_backend.pyx"]),
 
     Extension("sage.numerical.backends.generic_sdp_backend",
               ["sage/numerical/backends/generic_sdp_backend.pyx"]),
@@ -1073,8 +1088,7 @@ ext_modules = [
               ["sage/numerical/backends/glpk_exact_backend.pyx"]),
 
     Extension("sage.numerical.backends.ppl_backend",
-              ["sage/numerical/backends/ppl_backend.pyx"],
-              libraries=["stdc++"]),
+              ["sage/numerical/backends/ppl_backend.pyx"]),
 
     Extension("sage.numerical.backends.cvxopt_backend",
               ["sage/numerical/backends/cvxopt_backend.pyx"]),
@@ -1090,13 +1104,13 @@ ext_modules = [
 
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],
-              libraries = ["stdc++", "gurobi"],
+              libraries = ["gurobi"],
               condition = os.path.isfile(SAGE_INC + "/gurobi_c.h") and
                   os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")),
 
     OptionalExtension("sage.numerical.backends.cplex_backend",
               ["sage/numerical/backends/cplex_backend.pyx"],
-              libraries = ["stdc++", "cplex"],
+              libraries = ["cplex"],
               condition = os.path.isfile(SAGE_INC + "/cplex.h") and
                   os.path.isfile(SAGE_LOCAL + "/lib/libcplex.a")),
 
@@ -1393,6 +1407,9 @@ ext_modules = [
     Extension('sage.rings.padics.padic_capped_relative_element',
               sources = ['sage/rings/padics/padic_capped_relative_element.pyx']),
 
+    Extension('sage.rings.padics.padic_floating_point_element',
+              sources = ['sage/rings/padics/padic_floating_point_element.pyx']),
+
     Extension('sage.rings.padics.padic_ext_element',
               sources = ['sage/rings/padics/padic_ext_element.pyx'],
               libraries=['ntl', 'gmp', 'm'],
@@ -1452,6 +1469,10 @@ ext_modules = [
 
     Extension('sage.rings.padics.qadic_flint_FM',
               sources = ['sage/rings/padics/qadic_flint_FM.pyx']),
+
+    Extension('sage.rings.padics.qadic_flint_FP',
+              sources = ['sage/rings/padics/qadic_flint_FP.pyx'],
+              libraries = ["flint"]),
 
     ################################
     ##
@@ -1582,23 +1603,6 @@ ext_modules = [
     ## sage.sat
     ##
     ################################
-
-    OptionalExtension("sage.sat.solvers.cryptominisat.cryptominisat",
-              sources = ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
-              include_dirs = [os.path.join(SAGE_INC, "cmsat")] + zlib_include_dirs,
-              language = "c++",
-              libraries = ['cryptominisat'] + zlib_libs,
-              library_dirs = zlib_library_dirs,
-              package = 'cryptominisat'),
-
-    OptionalExtension("sage.sat.solvers.cryptominisat.solverconf",
-              sources = ["sage/sat/solvers/cryptominisat/solverconf.pyx",
-                         "sage/sat/solvers/cryptominisat/solverconf_helper.cpp"],
-              include_dirs = [os.path.join(SAGE_INC, "cmsat")] + zlib_include_dirs,
-              language = "c++",
-              libraries = ['cryptominisat'] + zlib_libs,
-              library_dirs = zlib_library_dirs,
-              package = 'cryptominisat'),
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),

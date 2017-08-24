@@ -247,16 +247,16 @@ import math # for log
 import sys
 import operator
 
-include "cysignals/signals.pxi"
 from cpython.mem cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 from libc.string cimport strlen
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 cimport sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 cimport sage.rings.real_mpfr as real_mpfr
 from .real_mpfr cimport RealField_class, RealNumber, RealField
@@ -1598,7 +1598,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         Now, consider the precisions needed to represent the endpoints
         (this is the precision that would be produced by
-        ``v.lower().str(no_sci=False, truncate=False)``). Our
+        ``v.lower().str(no_sci=False)``). Our
         result is no more precise than the less precise endpoint, and is
         sufficiently imprecise that the error can be represented with the
         given number of decimal digits. Our result is the most precise
@@ -1685,8 +1685,8 @@ cdef class RealIntervalFieldElement(RingElement):
             style = 'brackets'
 
         if style == 'brackets':
-            t1 = self.lower().str(base=base, no_sci=no_sci, e=e, truncate=False)
-            t2 = self.upper().str(base=base, no_sci=no_sci, e=e, truncate=False)
+            t1 = self.lower().str(base=base, no_sci=no_sci, e=e)
+            t2 = self.upper().str(base=base, no_sci=no_sci, e=e)
 
             return "[%s .. %s]"%(t1, t2)
 
@@ -2211,7 +2211,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField(13)
-            sage: R.pi().lower().str(truncate=False)
+            sage: R.pi().lower().str()
             '3.1411'
 
         ::
@@ -2262,7 +2262,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField(13)
-            sage: R.pi().upper().str(truncate=False)
+            sage: R.pi().upper().str()
             '3.1417'
 
         ::
@@ -3169,6 +3169,28 @@ cdef class RealIntervalFieldElement(RingElement):
             raise AssertionError("%s has unknown rounding mode"%field)
         return x
 
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(RIF(1))
+            1.0
+        """
+        return float(self.n(self.prec()))
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(RIF(1))
+            (1+0j)
+        """
+        return complex(self.n(self.prec()))
+
     def unique_sign(self):
         r"""
         Return the sign of this element if it is well defined.
@@ -3824,7 +3846,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: a = RIF(1)
-            sage: a.__cmp__(a)
+            sage: a._cmp_(a)
             doctest:...: DeprecationWarning: for RIF elements, do not use cmp
             See http://trac.sagemath.org/22907 for details.
             0

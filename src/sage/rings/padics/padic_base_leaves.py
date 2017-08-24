@@ -162,17 +162,17 @@ TESTS::
 
     sage: R = Qp(5, 15, print_mode='bars', print_sep='&')
     sage: repr(R(2777))[3:]
-    '4&2&1&0&2'
+    '0&0&0&0&0&0&0&0&0&0&4&2&1&0&2'
     sage: TestSuite(R).run()
 
     sage: R = Zp(5, 15, print_mode='bars', print_sep='&')
     sage: repr(R(2777))[3:]
-    '4&2&1&0&2'
+    '0&0&0&0&0&0&0&0&0&0&4&2&1&0&2'
     sage: TestSuite(R).run()
 
     sage: R = ZpCA(5, 15, print_mode='bars', print_sep='&')
     sage: repr(R(2777))[3:]
-    '4&2&1&0&2'
+    '0&0&0&0&0&0&0&0&0&0&4&2&1&0&2'
     sage: TestSuite(R).run()
 
 """
@@ -188,17 +188,20 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.sage_object import op_LE
+from sage.structure.richcmp import op_LE
 
 from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
                           pAdicRingBaseGeneric, \
                           pAdicCappedRelativeRingGeneric, \
                           pAdicFixedModRingGeneric, \
-                          pAdicCappedAbsoluteRingGeneric
+                          pAdicCappedAbsoluteRingGeneric, \
+                          pAdicFloatingPointRingGeneric, \
+                          pAdicFloatingPointFieldGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
 from .padic_fixed_mod_element import pAdicFixedModElement
+from .padic_floating_point_element import pAdicFloatingPointElement
 from sage.rings.integer_ring import ZZ
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
@@ -227,18 +230,19 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
             sage: R = ZpCR(2)
             sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12, skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = ZpCR(3, 1)
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
 
             sage: R = ZpCR(3, 2)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)], skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = ZpCR(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
-
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)]) # long time
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
 
@@ -277,21 +281,6 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Print representation.
-
-        EXAMPLES::
-
-            sage: K = Zp(17); K #indirect doctest
-            17-adic Ring with capped relative precision 20
-            sage: latex(K)
-            \ZZ_{17}
-        """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring with capped relative precision %s"%(self.prime(), self.precision_cap())
-
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
     r"""
     An implementation of the `p`-adic integers with capped absolute precision.
@@ -317,35 +306,21 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
 
             sage: R = ZpCA(2)
             sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12, skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = ZpCA(3, 1)
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
 
             sage: R = ZpCA(3, 2)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)], skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = ZpCA(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
-
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedAbsoluteElement)
-
-    def _repr_(self, do_latex = False):
-        r"""
-        Print representation.
-
-        EXAMPLES::
-
-            sage: K = ZpCA(17); K #indirect doctest
-            17-adic Ring with capped absolute precision 20
-            sage: latex(K)
-            \ZZ_{17}
-        """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring with capped absolute precision %s"%(self.prime(), self.precision_cap())
 
     def _coerce_map_from_(self, R):
         """
@@ -384,6 +359,80 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
+class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric):
+    r"""
+    An implementation of the `p`-adic integers with floating point
+    precision.
+    """
+    def __init__(self, p, prec, print_mode, names):
+        """
+        Initialization.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
+
+        EXAMPLES::
+
+            sage: R = ZpFP(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicRingFloatingPoint_with_category'>
+
+        TESTS::
+
+            sage: R = ZpFP(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12, skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
+
+            sage: R = ZpFP(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = ZpFP(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)], skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
+
+            sage: R = ZpFP(next_prime(10^60))
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
+        """
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFloatingPointElement)
+
+    def _coerce_map_from_(self, R):
+        """
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
+
+        EXAMPLES::
+
+            sage: K = ZpFP(17)
+            sage: K(1) + 1 #indirect doctest
+            2
+            sage: K.has_coerce_map_from(ZZ)
+            True
+            sage: K.has_coerce_map_from(int)
+            True
+            sage: K.has_coerce_map_from(QQ)
+            False
+            sage: K.has_coerce_map_from(RR)
+            False
+            sage: K.has_coerce_map_from(Qp(7))
+            False
+            sage: K.has_coerce_map_from(Zp(17,40))
+            False
+            sage: K.has_coerce_map_from(Zp(17,10))
+            False
+            sage: K.has_coerce_map_from(ZpCA(17,40))
+            False
+        """
+        if isinstance(R, pAdicRingFloatingPoint) and R.prime() == self.prime():
+            if R.precision_cap() > self.precision_cap():
+                return True
+            elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
+                return True
+
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
     An implementation of the `p`-adic integers using fixed modulus.
@@ -409,18 +458,20 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
             sage: R = ZpFM(2)
             sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12, skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = ZpFM(3, 1)
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
 
             sage: R = ZpFM(3, 2)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)], skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = ZpFM(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
-
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFixedModElement)
 
@@ -458,21 +509,6 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             elif (R.precision_cap() == self.precision_cap() and
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
-
-    def _repr_(self, do_latex=False):
-        r"""
-        Representation
-
-        EXAMPLES::
-
-            sage: K = ZpFM(7); K
-            7-adic Ring of fixed modulus 7^20
-            sage: latex(K) #indirect doctest
-            \ZZ_{7}
-        """
-        if do_latex:
-            return "\\ZZ_{%s}" % self.prime()
-        return "%s-adic Ring of fixed modulus %s^%s"%(self.prime(), self.prime(), self.precision_cap())
 
     def fraction_field(self, print_mode = None):
         r"""
@@ -527,19 +563,21 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
             sage: R = Qp(2)
             sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12, skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = Qp(3, 1)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)], skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
 
             sage: R = Qp(3, 2)
-            sage: TestSuite(R).run(elements=[R.random_element() for i in range(3^9)],
-            ....:                  skip="_test_metric") # Skip because too long
+            sage: TestSuite(R).run(elements=[R.random_element() for i in range(3^9)], skip="_test_metric") # long time
             sage: R._test_metric(elements=[R.random_element() for i in range(3^3)])
 
             sage: R = Qp(next_prime(10^60))
-            sage: TestSuite(R).run()
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
         """
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
 
@@ -581,22 +619,6 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
-    def _repr_(self, do_latex=False):
-        r"""
-        Returns a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: K = Qp(17); K #indirect doctest
-            17-adic Field with capped relative precision 20
-            sage: latex(K)
-            \QQ_{17}
-        """
-        if do_latex:
-            return "\\QQ_{%s}" % self.prime()
-        return "%s-adic Field with capped relative precision %s"%(self.prime(), self.precision_cap())
-
-
     def random_element(self, algorithm='default'):
         r"""
         Returns a random element of ``self``, optionally using the ``algorithm``
@@ -620,3 +642,80 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             return self(self.prime()**k * a, absprec = k + self.precision_cap())
         else:
             raise NotImplementedError("Don't know %s algorithm"%algorithm)
+
+class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGeneric):
+    r"""
+    An implementation of the `p`-adic rationals with floating point
+    precision.
+    """
+    def __init__(self, p, prec, print_mode, names):
+        """
+        Initialization.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
+
+        EXAMPLES::
+
+            sage: R = QpFP(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicFieldFloatingPoint_with_category'>
+
+        TESTS::
+
+            sage: R = QpFP(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12, skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
+
+            sage: R = QpFP(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = QpFP(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)], skip='_test_metric') # long time
+            sage: R._test_metric(elements = [R.random_element() for i in range(2^3)]) # long time
+
+            sage: R = QpFP(next_prime(10^60))
+            sage: TestSuite(R).run(skip='_test_log')
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^3)], max_runs = 2^5, skip='_test_log') # long time
+            sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
+        """
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFloatingPointElement)
+
+    def _coerce_map_from_(self, R):
+        """
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
+
+        EXAMPLES::
+
+            sage: K = QpFP(17)
+            sage: K(1) + 1 #indirect doctest
+            2
+            sage: K.has_coerce_map_from(ZZ)
+            True
+            sage: K.has_coerce_map_from(int)
+            True
+            sage: K.has_coerce_map_from(QQ)
+            True
+            sage: K.has_coerce_map_from(RR)
+            False
+            sage: K.has_coerce_map_from(Qp(7))
+            False
+            sage: K.has_coerce_map_from(Zp(17,40))
+            False
+            sage: K.has_coerce_map_from(Qp(17,10))
+            False
+            sage: K.has_coerce_map_from(ZpFP(17))
+            True
+            sage: K.has_coerce_map_from(ZpCA(17,40))
+            False
+        """
+        if isinstance(R, (pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
+            if R.precision_cap() > self.precision_cap():
+                return True
+            elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
+                return True

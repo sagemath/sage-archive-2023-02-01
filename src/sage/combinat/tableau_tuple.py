@@ -2584,7 +2584,9 @@ class StandardTableauTuples(TableauTuples):
     def __classcall_private__(cls, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
-        arguments.  See the documentation for:class:`StandardTableauTuples``
+        arguments.
+
+        See the documentation for :class:`StandardTableauTuples`
         for more information.
 
         EXAMPLES::
@@ -2889,9 +2891,11 @@ class StandardTableauTuples_level(StandardTableauTuples):
 
     def __init__(self, level):
         r"""
-        Initializes the class of semistandard tableaux of level ``level`` of
-        arbitrary ``size``. Input is not checked; please use
-        :class:`:class:`StandardTableauTuples`` to ensure the options are
+        Initialize the class of semistandard tableaux of level ``level`` of
+        arbitrary ``size``.
+
+        Input is not checked; please use
+        :class:`StandardTableauTuples` to ensure the options are
         properly parsed.
 
         EXAMPLES::

@@ -14,6 +14,8 @@ cdef class Integer(EuclideanDomainElement):
     cpdef __pari__(self)
 
     cpdef _shift_helper(Integer self, y, int sign)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
     cdef _and(Integer self, Integer other)
     cdef _or(Integer self, Integer other)
     cdef _xor(Integer self, Integer other)

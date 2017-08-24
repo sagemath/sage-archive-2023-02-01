@@ -7,7 +7,7 @@ AUTHORS:
   "Computing Conjugating Sets and Automorphism Groups of Rational Functions" by
   Xander Faber, Michelle Manes, and Bianca Viray [FMV]_.
 
-- Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
+- Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaptation for inclusion in Sage
 
 """
 
@@ -884,7 +884,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
         [x, 1/x]
     """
 
-    if absolute==False:
+    if not absolute:
         G = automorphism_group_FF_alg3(rational_function)
     else:
         G = automorphism_group_FF_alg2(rational_function)
@@ -901,9 +901,9 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
                 R = R.ring()
             G = [matrix(R.base_ring(),[[R(g.numerator())[1],R(g.numerator())[0]],[R(g.denominator())[1],R(g.denominator())[0]]]) for g in G]
 
-    if iso_type == False:
+    if not iso_type:
         return G
-    elif absolute == False:
+    elif not absolute:
         return G, which_group(G)
     else:
         return G, which_group(G[1])

@@ -116,17 +116,21 @@ Note that the letterplace implementation can only be used if the corresponding
     sage: FreeAlgebra(FreeAlgebra(ZZ,2,'ab'), 2, 'x', implementation='letterplace')
     Traceback (most recent call last):
     ...
-    NotImplementedError: The letterplace implementation is not available for the free algebra you requested
-
+    TypeError: The base ring Free Algebra on 2 generators (a, b) over Integer Ring is not a commutative ring
 """
+
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
-#  Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#       Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 from six.moves import range
 from six import integer_types
@@ -139,13 +143,10 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 
-import sage.structure.parent_gens
-
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.all import PolynomialRing
 from sage.rings.ring import Algebra
-from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.word import Word
@@ -266,21 +267,14 @@ class FreeAlgebraFactory(UniqueFactory):
             return tuple(degrees),base_ring
         PolRing = None
         # test if we can use libSingular/letterplace
-        if implementation is not None and implementation != 'generic':
-            try:
-                PolRing = PolynomialRing(base_ring, arg1, arg2,
-                                   sparse=sparse, order=order,
-                                   names=names, name=name,
-                                   implementation=implementation if implementation != 'letterplace' else None)
-                if not isinstance(PolRing, MPolynomialRing_libsingular):
-                    if PolRing.ngens() == 1:
-                        PolRing = PolynomialRing(base_ring, 1, PolRing.variable_names())
-                        if not isinstance(PolRing, MPolynomialRing_libsingular):
-                            raise TypeError
-                    else:
-                        raise TypeError
-            except (TypeError, NotImplementedError) as msg:
-                raise NotImplementedError("The letterplace implementation is not available for the free algebra you requested")
+        if implementation == "letterplace":
+            args = [arg for arg in (arg1, arg2) if arg is not None]
+            kwds = dict(sparse=sparse, order=order, implementation="singular")
+            if name is not None:
+                kwds["name"] = name
+            if names is not None:
+                kwds["names"] = names
+            PolRing = PolynomialRing(base_ring, *args, **kwds)
         if PolRing is not None:
             if degrees is None:
                 return (PolRing,)
@@ -410,7 +404,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
             Free Algebra on 3 generators (x, y, z) over Rational Field
 
-        TEST:
+        TESTS:
 
         Note that the following is *not* the recommended way to create
         a free algebra::

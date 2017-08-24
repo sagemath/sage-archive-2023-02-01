@@ -29,10 +29,11 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
-from sage.rings.all import Integer, IntegerRing, RationalField
+from sage.rings.all import Integer, ZZ, QQ
 from sage.groups.old import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
@@ -43,9 +44,6 @@ from sage.modules.free_module import FreeModule
 from sage.misc.misc import union
 
 import weakref
-
-ZZ = IntegerRing()
-QQ = RationalField()
 
 _cache = {}
 def EtaGroup(level):
@@ -83,7 +81,8 @@ class EtaGroup_class(AbelianGroup):
         Create the group of eta products of a given level, which must be a
         positive integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = EtaGroup(12); G # indirect doctest
             Group of eta products on X_0(12)
             sage: G is loads(dumps(G))
@@ -108,25 +107,39 @@ class EtaGroup_class(AbelianGroup):
         """
         return (EtaGroup, (self.level(),))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
-        Compare self to other. If other is not an EtaGroup, compare by
-        type; otherwise compare by level. EtaGroups of the same level
+        Check that ``self`` is equal to ``other``.
+
+        If other is not an EtaGroup, return ``False``.
+
+        Otherwise compare the levels. EtaGroups of the same level
         compare as identical.
 
         EXAMPLES::
 
-            sage: EtaGroup(12) == 12
-            False
-            sage: EtaGroup(12) < EtaGroup(13)
-            True
             sage: EtaGroup(12) == EtaGroup(12)
             True
+            sage: EtaGroup(12) == EtaGroup(13)
+            False
         """
         if not isinstance(other, EtaGroup_class):
-            return cmp(type(self), type(other))
+            return False
         else:
-            return cmp(self.level(), other.level())
+            return self.level() == other.level()
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: EtaGroup(12) != EtaGroup(12)
+            False
+            sage: EtaGroup(12) != EtaGroup(13)
+            True
+        """
+        return not (self == other)
 
     def _repr_(self):
         r"""
@@ -352,6 +365,7 @@ def EtaProduct(level, dict):
     """
     return EtaGroup(level)(dict)
 
+
 class EtaGroupElement(MultiplicativeGroupElement):
 
     def __init__(self, parent, rdict):
@@ -441,10 +455,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
             newdict[d] = self.r(d) - other.r(d)
         return EtaProduct(self.level(), newdict)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self to other. Eta products are compared according to
-        their rdicts.
+        Compare self to other.
+
+        Eta products are compared according to their rdicts.
 
         EXAMPLES::
 
@@ -459,7 +474,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
-        return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
+        return richcmp((self.level(), self._rdict),
+                       (other.level(), other._rdict), op)
 
     def _short_repr(self):
         r"""

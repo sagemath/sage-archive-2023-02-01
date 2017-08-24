@@ -153,7 +153,7 @@ import sage
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 ############################################################################
 ###                         Basic clone elements                         ###
@@ -1130,7 +1130,7 @@ cdef class ClonableList(ClonableArray):
 
     cpdef remove(self, el):
         """
-        Remove the first occurence of ``el`` from ``self``
+        Remove the first occurrence of ``el`` from ``self``
 
         INPUT: ``el`` - any object
 

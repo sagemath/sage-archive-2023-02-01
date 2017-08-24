@@ -236,7 +236,7 @@ class BackendIPythonCommandline(BackendIPython):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: dm.displayhook(Foo())
-            ({u'text/plain': u'Mot\xc3\xb6rhead'}, {})
+            ({u'text/plain': u'Mot\xf6rhead'}, {})
         """
         if isinstance(rich_output, OutputPlainText):
             return ({u'text/plain': rich_output.text.get_unicode()}, {})
@@ -477,18 +477,14 @@ class BackendIPythonNotebook(BackendIPython):
             sage: from sage.repl.rich_output.output_basic import OutputLatex
             sage: OutputLatex in supp
             True
-
-        The IPython notebook cannot display gif images, see
-        https://github.com/ipython/ipython/issues/2115 ::
-
             sage: from sage.repl.rich_output.output_graphics import OutputImageGif
             sage: OutputImageGif in supp
-            False
+            True
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputHtml,
-            OutputImagePng, OutputImageJpg,
+            OutputImagePng, OutputImageGif, OutputImageJpg,
             OutputImageSvg, OutputImagePdf,
             OutputSceneJmol, OutputSceneThreejs,
         ])
@@ -543,6 +539,10 @@ class BackendIPythonNotebook(BackendIPython):
         elif isinstance(rich_output, OutputImagePng):
             return ({u'image/png':  rich_output.png.get(),
                      u'text/plain': plain_text.text.get_unicode(),
+            }, {})
+        elif isinstance(rich_output, OutputImageGif):
+            return ({u'text/html':  rich_output.html_fragment(),
+                     u'text/plain': plain_text.text.get(),
             }, {})
         elif isinstance(rich_output, OutputImageJpg):
             return ({u'image/jpeg':  rich_output.jpg.get(),

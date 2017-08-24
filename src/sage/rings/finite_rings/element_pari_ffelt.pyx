@@ -16,10 +16,11 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 from cypari2.paridecl cimport *
 from cypari2.paripriv cimport *
 from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
@@ -27,7 +28,7 @@ from cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
 from cypari2.gen cimport Gen as pari_gen, objtogen
 
 from .element_base cimport FinitePolyExtElement
-from integer_mod import IntegerMod_abstract
+from .integer_mod import IntegerMod_abstract
 
 import sage.rings.integer
 from sage.interfaces.gap import is_GapElement

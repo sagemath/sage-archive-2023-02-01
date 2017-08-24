@@ -185,8 +185,10 @@ from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.structure.element import ModuleElement
 import re
 import os
+import io
 import pexpect
 import time
 import platform
@@ -592,7 +594,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             E.sendline(line)
         except OSError:
             raise RuntimeError("Error evaluating %s in %s"%(line, self))
-        if wait_for_prompt == False:
+        if not wait_for_prompt:
             return ('','')
         if len(line)==0:
             return ('','')
@@ -963,8 +965,10 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
+# We need to inherit from ModuleElement to support
+# sage.structure.coerce_actions.ModuleAction
 @instancedoc
-class GapElement_generic(ExtraTabCompletion, ExpectElement):
+class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 
@@ -1193,12 +1197,13 @@ class Gap(Gap_generic):
             sage: g.quit()
         """
         if self.__use_workspace_cache:
+            from sage.libs.gap.saved_workspace import timestamp
             try:
                 # Check to see if we need to auto-regenerate the gap
                 # workspace, i.e., if the gap script is more recent
                 # than the saved workspace, which signals that gap has
                 # been upgraded.
-                if os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_BINARY):
+                if os.path.getmtime(WORKSPACE) < timestamp():
                     raise OSError("GAP workspace too old")
                 # Set the modification time of the workspace to the
                 # current time.  This ensures the workspace doesn't
@@ -1325,8 +1330,9 @@ class Gap(Gap_generic):
         else:
             tmp_to_use = self._local_tmpfile()
         self.eval('SetGAPDocTextTheme("none")')
-        self.eval(r'\$SAGE.tempfile := "%s";'%tmp_to_use)
-        line = Expect.eval(self, "? %s"%s)
+        gap_encoding = str(self('GAPInfo.TermEncoding;'))
+        self.eval(r'\$SAGE.tempfile := "%s";' % tmp_to_use)
+        line = Expect.eval(self, "? %s" % s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
         if match is None:
@@ -1335,7 +1341,7 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = open(self._local_tmpfile(),"r")
+            F = io.open(self._local_tmpfile(), "r", encoding=gap_encoding)
             help = F.read()
             if pager:
                 from IPython.core.page import page

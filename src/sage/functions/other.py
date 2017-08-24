@@ -107,7 +107,8 @@ class Function_abs(GinacFunction):
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs',
-                                                mathematica='Abs'))
+                                                mathematica='Abs',
+                                                giac='abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -196,7 +197,8 @@ class Function_ceil(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
-                                                    sympy='ceiling'))
+                                                    sympy='ceiling',
+                                                    giac='ceil'))
 
     def _print_latex_(self, x):
         r"""
@@ -352,7 +354,7 @@ class Function_floor(BuiltinFunction):
             floor
         """
         BuiltinFunction.__init__(self, "floor",
-                                 conversions=dict(sympy='floor'))
+                                 conversions=dict(sympy='floor', giac='floor'))
 
     def _print_latex_(self, x):
         r"""
@@ -685,12 +687,13 @@ class Function_gamma(GinacFunction):
 
             :meth:`sage.functions.other.gamma`
         """
-        GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
-                ginac_name='tgamma',
-                conversions={'mathematica':'Gamma',
-                             'maple':'GAMMA',
-                             'sympy':'gamma',
-                             'fricas':'Gamma'})
+        GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
+                               ginac_name='tgamma',
+                               conversions={'mathematica':'Gamma',
+                                            'maple':'GAMMA',
+                                            'sympy':'gamma',
+                                            'fricas':'Gamma',
+                                            'giac':'Gamma'})
 
 gamma1 = Function_gamma()
 
@@ -853,7 +856,7 @@ class Function_gamma_inc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'uppergamma'})
+                    'maple':'GAMMA', 'sympy':'uppergamma', 'giac':'ugamma'})
 
     def _eval_(self, x, y):
         """
@@ -1003,7 +1006,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
                 conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'lowergamma'})
+                    'maple':'GAMMA', 'sympy':'lowergamma', 'giac':'igamma'})
 
     def _eval_(self, x, y):
         """
@@ -1302,7 +1305,8 @@ class Function_psi2(GinacFunction):
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                                conversions=dict(mathematica='PolyGamma',
-                                                sympy='polygamma'))
+                                                sympy='polygamma',
+                                                giac='Psi'))
 
     def _maxima_init_evaled_(self, *args):
         """
@@ -1380,6 +1384,9 @@ def psi(x, *args, **kwds):
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
+
+def _swap_psi(a, b): return psi(b, a)
+register_symbol(_swap_psi, {'giac':'Psi'})
 
 class Function_factorial(GinacFunction):
     def __init__(self):
@@ -1504,7 +1511,8 @@ class Function_factorial(GinacFunction):
                 conversions=dict(maxima='factorial',
                                  mathematica='Factorial',
                                  sympy='factorial',
-                                 fricas='factorial'))
+                                 fricas='factorial',
+                                 giac='factorial'))
 
     def _eval_(self, x):
         """
@@ -1636,7 +1644,8 @@ class Function_binomial(GinacFunction):
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial',
-                                 fricas='binomial'))
+                                 fricas='binomial',
+                                 giac='comb'))
 
     def _binomial_sym(self, n, k):
         """
@@ -1834,11 +1843,13 @@ class Function_beta(GinacFunction):
             sage: beta(-1.3,-0.4)
             -4.92909641669610
         """
-        GinacFunction.__init__(self, "beta", nargs=2,
-                conversions=dict(maxima='beta',
-                                 mathematica='Beta',
-                                 sympy='beta',
-                                 fricas='Beta'))
+        GinacFunction.__init__(self, 'beta', nargs=2,
+                               latex_name=r"\operatorname{B}",
+                               conversions=dict(maxima='beta',
+                                                mathematica='Beta',
+                                                sympy='beta',
+                                                fricas='Beta',
+                                                giac='Beta'))
 
 beta = Function_beta()
 
@@ -2056,7 +2067,8 @@ class Function_arg(BuiltinFunction):
         BuiltinFunction.__init__(self, "arg",
                 conversions=dict(maxima='carg',
                                  mathematica='Arg',
-                                 sympy='arg'))
+                                 sympy='arg',
+                                 giac='arg'))
 
     def _eval_(self, x):
         """
@@ -2183,6 +2195,23 @@ class Function_real_part(GinacFunction):
             sage: real(complex(3, 4))
             3.0
 
+        Sage can recognize some expressions as real and accordingly
+        return the identical argument::
+
+            sage: SR.var('x', domain='integer').real_part()
+            x
+            sage: SR.var('x', domain='integer').imag_part()
+            0
+            sage: real_part(sin(x)+x)
+            x + sin(x)
+            sage: real_part(x*exp(x))
+            x*e^x
+            sage: imag_part(sin(x)+x)
+            0
+            sage: real_part(real_part(x))
+            x
+            sage: forget()
+
         TESTS::
 
             sage: loads(dumps(real_part))
@@ -2207,7 +2236,8 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
-                                                sympy='re'),
+                                                sympy='re',
+                                                giac='re'),
                                alt_name="real")
 
     def __call__(self, x, **kwargs):
@@ -2266,7 +2296,8 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
-                                                sympy='im'),
+                                                sympy='im',
+                                                giac='im'),
                                alt_name="imag")
 
     def __call__(self, x, **kwargs):
@@ -2358,7 +2389,8 @@ class Function_conjugate(GinacFunction):
             conjugate
         """
         GinacFunction.__init__(self, "conjugate",
-                               conversions=dict(sympy='conjugate'))
+                               conversions=dict(sympy='conjugate',
+                                                giac='conj'))
 
 conjugate = Function_conjugate()
 
@@ -2392,9 +2424,10 @@ class Function_sum(BuiltinFunction):
 
             sage: from sage.functions.other import symbolic_sum as ssum
             sage: latex(ssum(x^2, x, 1, 10))
-            {\sum_{x=1}^{10} x^2}
+            {\sum_{x=1}^{10} x^{2}}
         """
-        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
+        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
+                                                      latex(b), latex(x))
 
 symbolic_sum = Function_sum()
 
@@ -2439,9 +2472,10 @@ class Function_prod(BuiltinFunction):
 
             sage: from sage.functions.other import symbolic_product as sprod
             sage: latex(sprod(x^2, x, 1, 10))
-            {\prod_{x=1}^{10} x^2}
+            {\prod_{x=1}^{10} x^{2}}
         """
-        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
+        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
+                                                       latex(b), latex(x))
 
 symbolic_product = Function_prod()
 

@@ -7853,20 +7853,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def rational_reconstruct(self, m, n_deg=None, d_deg=None):
         r"""
-        Return a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m` and `\deg(n) \leq` ``n_deg`` and `\deg(d) \leq` ``d_deg``.
+        Return a tuple of two polynomials `(n, d)` 
+        where ``self`` `* d` is congruent to `n` modulo `m`
+        and `\deg(n) \leq` ``n_deg`` and `\deg(d) \leq` ``d_deg``
 
-        INPUT: 
+        INPUT:
 
         - ``m`` -- a univariate polynomial
 
-        - ``n_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`.
+        - ``n_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`
 
-        - ``d_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`.
+        - ``d_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`
 
-        ALGORITHM: 
-        The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor.
+        ALGORITHM:
+        
+        The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor
 
-        EXAMPLES: 
+        EXAMPLES:
 
         Over `\QQ[z]`::
     
@@ -7911,7 +7914,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: P = PolynomialRing(QQ, 't')
             sage: t = P.gen()
-            sage: z = PolynomialRing(P.fraction_field(), 'z').gen()
+            sage: Pz = PolynomialRing(P.fraction_field(), 'z')
+            sage: z = Pz.gen()
             sage: # p = (1 + t^2*z + z^4) / (1 - t*z)
             sage: p = (1 + t^2*z + z^4)*(1 - t*z).inverse_mod(z^9)
             sage: m = z^9;
@@ -7919,6 +7923,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print((n ,d))
             ((1/-t)*z^4 - t*z + 1/-t, z + 1/-t)
             sage: print(((p*d - n) % m ).is_zero())
+            True
+            sage: w = PowerSeriesRing(P.fraction_field(), 'w').gen()
+            sage: n = -10*t^2*z^4 + (-t^2 + t - 1)*z^3 + (-t - 8)*z^2 + z + 2*t^2 - t
+            sage: d = z^4 + (2*t + 4)*z^3 + (-t + 5)*z^2 + (t^2 + 2)*z + t^2 + 2*t + 1
+            sage: prec = 9
+            sage: nc, dc = Pz((n.subs(z = w)/d.subs(z = w) + O(w^prec)).list()).rational_reconstruct(z^prec)
+            sage: print( (nc, dc) == (n, d) )
             True
 
         Over `\QQ[t][z]`::
@@ -7994,58 +8005,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: n, d = p.rational_reconstruct( m, 3, 3)
             sage: print((n ,d)) # absolute tolerance 1e-10
             (-x^3 - 6.0*x^2 - 15.0*x - 15.0, x^3 - 6.0*x^2 + 15.0*x - 15.0) 
-
-        TESTS:: 
-
-            sage: P = PolynomialRing(QQ, 't')
-            sage: t = P.gen()
-            sage: z = PolynomialRing(P.fraction_field(), 'z').gen()
-            sage: p = (2*t^2 - t)/(t^2 + 2*t + 1) +\
-            ....: ((-2*t^4 + t^3 - 3*t^2 + 4*t + 1) / \
-            ....: (t^4 + 4*t^3 + 6*t^2 + 4*t + 1))*z +\
-            ....: ((2*t^6 - 12*t^4 - 59*t^3 - 48*t^2 - 36*t - 10) / \
-            ....: (t^6 + 6*t^5 + 15*t^4 + 20*t^3 + 15*t^2 + 6*t + 1))*z^2 +\
-            ....: ((-3*t^8 - 11*t^7 - 17*t^6 + 16*t^5 + 40*t^4 + \
-            ....: 150*t^3 + 82*t^2 + 42*t + 14) / \
-            ....: (t^8 + 8*t^7 + 28*t^6 + 56*t^5 + 70*t^4 +\
-            ....: 56*t^3 + 28*t^2 + 8*t + 1))*z^3 +\
-            ....: ((-7*t^10 - 63*t^9 - 243*t^8 - 545*t^7 - 699*t^6 -\
-            ....: 492*t^5 + 209*t^4 + 300*t^3 + 318*t^2 + 153*t + 18) / \
-            ....: (t^10 + 10*t^9 + 45*t^8 + 120*t^7 + 210*t^6 + 252*t^5 +\
-            ....: 210*t^4 + 120*t^3 + 45*t^2 + 10*t + 1))*z^4 +\
-            ....: ((7*t^12 + 56*t^11 + 233*t^10 + 693*t^9 + 1591*t^8 + 2925*t^7 +\
-            ....: 3866*t^6 + 3767*t^5 + 1230*t^4 + 116*t^3 - 360*t^2 - 328*t - 67) / \
-            ....: (t^12 + 12*t^11 + 66*t^10 + 220*t^9 + 495*t^8 + 792*t^7 + 924*t^6 +\
-            ....: 792*t^5 + 495*t^4 + 220*t^3 + 66*t^2 + 12*t + 1))*z^5 +\
-            ....: ((-7*t^14 - 57*t^13 - 233*t^12 - 558*t^11 - \
-            ....: 713*t^10 - 172*t^9 + 755*t^8 - 725*t^7 - 5830*t^6 - \
-            ....: 13548*t^5 - 11518*t^4 - 7432*t^3 - 3352*t^2 - 595*t - 2) / \
-            ....: (t^14 + 14*t^13 + 91*t^12 + 364*t^11 + 1001*t^10 + 2002*t^9 +\
-            ....: 3003*t^8 + 3432*t^7 + 3003*t^6 + 2002*t^5 + 1001*t^4 + 364*t^3 +\
-            ....: 91*t^2 + 14*t + 1))*z^6 +\
-            ....: ((7*t^16 + 78*t^15 + 495*t^14 + 2141*t^13 + 6756*t^12 + \
-            ....: 15618*t^11 + 25375*t^10 + 25393*t^9 + 4449*t^8 - 27785*t^7 - \
-            ....: 46362*t^6 - 23115*t^5 - 4186*t^4 + 5160*t^3 + 6513*t^2 + 2371*t +\
-            ....: 253) / \
-            ....: (t^16 + 16*t^15 + 120*t^14 + 560*t^13 + 1820*t^12 + 4368*t^11 +\
-            ....: 8008*t^10 + 11440*t^9 + 12870*t^8 + 11440*t^7 + 8008*t^6 + \
-            ....: 4368*t^5 + 1820*t^4 + 560*t^3 + 120*t^2 + 16*t + 1))*z^7 +\
-            ....: ((-7*t^18 - 99*t^17 - 734*t^16 - 3525*t^15 - 12305*t^14 - \
-            ....: 33409*t^13 - 74592*t^12 - 141417*t^11 - 225062*t^10 - 284011*t^9 -\
-            ....: 240453*t^8 - 71660*t^7 + 143022*t^6 + 190621*t^5 + 140189*t^4 + \
-            ....: 69945*t^3 + 16824*t^2 + 508*t - 246) / \
-            ....: (t^18 + 18*t^17 + 153*t^16 + 816*t^15 + 3060*t^14 + 8568*t^13 + \
-            ....: 18564*t^12 + 31824*t^11 + 43758*t^10 + 48620*t^9 + 43758*t^8 + \
-            ....: 31824*t^7 + 18564*t^6 + 8568*t^5 + 3060*t^4 +\
-            ....: 816*t^3 + 153*t^2 + 18*t + 1))*z^8
-            sage: m = z^9;
-            sage: n, d = p.rational_reconstruct(m);
-            sage: print(n)
-            -10*t^2*z^4 + (-t^2 + t - 1)*z^3 + (-t - 8)*z^2 + z + 2*t^2 - t
-            sage: print(d)
-            z^4 + (2*t + 4)*z^3 + (-t + 5)*z^2 + (t^2 + 2)*z + t^2 + 2*t + 1
-            sage: print(((p*d - n) % m ).is_zero())
-            True
 
         .. SEEALSO::
 

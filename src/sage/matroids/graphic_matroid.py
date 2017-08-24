@@ -69,30 +69,9 @@ not be updated if the matroid is modified.
     sage: N1.is_isomorphic(N2)
     True
 
-Class methods
-=============
-
-The ``GraphicMatroid`` class inherits all methods from the
-:mod:`Matroid <sage.matroids.matroid>` class.
-See its documentation for an overview. In addition, the
-following methods are available:
-
-    - :meth:`graph() <sage.matroids.graphic_matroid.GraphicMatroid.graph>`
-    - :meth:`vertex_map() <sage.matroids.graphic_matroid.GraphicMatroid.vertex_map>`
-    - :meth:`groundset_to_edges() <sage.matroids.graphic_matroid.GraphicMatroid.groundset_to_edges>`
-    - :meth:`subgraph_from_set() <sage.matroids.graphic_matroid.GraphicMatroid.subgraph_from_set>`
-    - :meth:`graphic_extension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extension>`
-    - :meth:`graphic_extensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_extensions>`
-    - :meth:`graphic_coextension() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextension>`
-    - :meth:`graphic_coextensions() <sage.matroids.graphic_matroid.GraphicMatroid.graphic_coextensions>`
-    - :meth:`twist() <sage.matroids.graphic_matroid.GraphicMatroid.twist>`
-    - :meth:`one_sum() <sage.matroids.graphic_matroid.GraphicMatroid.one_sum>`
-    - :meth:`regular_matroid() <sage.matroids.graphic_matroid.GraphicMatroid.regular_matroid>`
-
-
 AUTHORS:
 
-- Zach Gershkoff (2017-07-07): initial version
+- Zachary Gershkoff (2017-07-07): initial version
 
 Methods
 =======

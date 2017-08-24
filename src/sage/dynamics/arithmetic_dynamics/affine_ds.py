@@ -70,9 +70,9 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
     INPUT:
 
     - ``polys_or_rat_fncts`` -- a list of ``n`` polynomials or rational
-      functions, all of which should have the same parent.
+      functions, all of which should have the same parent
 
-    - ``domain`` -- an affine scheme embedded in `\mathbb{A}^n`.
+    - ``domain`` -- an affine scheme embedded in `\mathbb{A}^n`
 
     EXAMPLES::
 
@@ -113,9 +113,7 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
         r"""
         Return a copy of this dynamical system.
 
-        OUTPUT:
-
-        - :class:`DynamicalSystem_affine`.
+        OUTPUT: :class:`DynamicalSystem_affine`
 
         EXAMPLES::
 
@@ -141,11 +139,9 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
         INPUT:
 
         - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer,
-          then the two values of the tuple are assumed to be the same.
+          then the two values of the tuple are assumed to be the same
 
-        OUTPUT:
-
-        - :class:`DynamicalSystem_projective`.
+        OUTPUT: :class:`DynamicalSystem_projective`
 
         EXAMPLES::
 
@@ -223,12 +219,10 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
         INPUT:
 
         - ``period`` -- a positive integer or a list/tuple `[m,n]`,
-          where `m` is the preperiod and `n` is the period.
+          where `m` is the preperiod and `n` is the period
 
-        OUTPUT:
-
-        - If possible, a single variable polynomial in the coordinate ring of the polynomial.
-          Otherwise a fraction field element of the coordinate ring of the polynomial.
+        OUTPUT: If possible, a single variable polynomial in the coordinate ring of the polynomial.
+        Otherwise a fraction field element of the coordinate ring of the polynomial
 
         EXAMPLES::
 
@@ -336,9 +330,9 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
 
         INPUT:
 
-        - ``n`` - a positive integer.
+        - ``n`` -- a positive integer
 
-        OUTPUT: A dynamical system of affine space.
+        OUTPUT: A dynamical system of affine space
 
         EXAMPLES::
 
@@ -400,11 +394,11 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
 
         INPUT:
 
-        - ``P`` -- a point in the map's domain.
+        - ``P`` -- a point in the map's domain
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
-        OUTPUT: a point in the map's codomain.
+        OUTPUT: a point in the map's codomain
 
         EXAMPLES::
 
@@ -458,11 +452,11 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
 
         INPUT:
 
-        - ``P`` -- a point in the map's domain.
+        - ``P`` -- a point in the map's domain
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
+        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers
 
-        OUTPUT: a list of points in the map's codomain.
+        OUTPUT: a list of points in the map's codomain
 
         EXAMPLES::
 
@@ -516,16 +510,14 @@ class DynamicalSystem_affine_ring(SchemeMorphism_polynomial_affine_space,
 
         INPUT:
 
-        - ``P`` - a point on domain of the map.
+        - ``P`` -- a point on domain of the map
 
-        - ``n`` - a positive integer, the period of ``P``.
+        - ``n`` -- a positive integer, the period of ``P``
 
-        - ``check`` -- verify that ``P`` has period ``n``, Default:True.
+        - ``check`` -- (default:True) boolean, verify that ``P`` has period ``n``
 
-        OUTPUT:
-
-        - a square matrix of size ``self.codomain().dimension_relative()`` in
-          the ``base_ring`` of the map.
+        OUTPUT: a square matrix of size ``self.codomain().dimension_relative()`` in
+        the ``base_ring`` of the map
 
         EXAMPLES::
 
@@ -606,7 +598,7 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine_ring,
         of the codomain.
 
         OUTPUT: Scheme morphism on the Weil restrictions of the domain
-                and codomain of the map.
+        and codomain of the map
 
         EXAMPLES::
 
@@ -644,11 +636,9 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
 
         INPUT:
 
-        - ``P`` -- a point in the map's domain.
+        - ``P`` -- a point in the map's domain
 
-        OUTPUT:
-
-        - a list `[m, n]` of integers.
+        OUTPUT: a list `[m, n]` of integers
 
         EXAMPLES::
 
@@ -681,7 +671,7 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
         For subschemes, only points on the subscheme whose
         image are also on the subscheme are in the digraph.
 
-        OUTPUT: A digraph.
+        OUTPUT: A digraph
 
         EXAMPLES::
 

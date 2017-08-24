@@ -35,11 +35,9 @@ def _fast_possible_periods(self, return_points=False):
 
     INPUT:
 
-    - ``return_points`` - Boolean (optional) - a value of True returns the points as well as the possible periods.
+    - ``return_points`` - (default: False) boolean - a value of True returns the points as well as the possible periods
 
-    OUTPUT:
-
-    - a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
+    OUTPUT: a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1
 
     Examples::
 

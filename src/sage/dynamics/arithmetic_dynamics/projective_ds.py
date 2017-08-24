@@ -150,9 +150,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         r"""
         Return a copy of this dynamical system.
 
-        OUTPUT:
-
-        - :class:`DynamicalSystem_projective`
+        OUTPUT: :class:`DynamicalSystem_projective`
 
         EXAMPLES::
 
@@ -178,13 +176,10 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         INPUT:
 
         - ``n`` -- a tuple of nonnegative integers.  If ``n`` is an integer, then the two values of
-          the tuple are assumed to be the same.
+          the tuple are assumed to be the same
 
-        OUTPUT:
-
-        - :class:`DynamicalSystem_affine`, given by dehomogenizing the
-          source and target of `self` with respect to the given
-          indices
+        OUTPUT: :class:`DynamicalSystem_affine`, given by dehomogenizing the
+        source and target of `self` with respect to the given indices
 
         EXAMPLES::
 
@@ -235,17 +230,15 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         INPUT:
 
         - ``period`` -- a positive integer or a list/tuple `[m,n]` where
-          `m` is the preperiod and `n` is the period.
+          `m` is the preperiod and `n` is the period
 
-        OUTPUT:
-
-        - If possible, a two variable polynomial in the coordinate ring of this map.
-          Otherwise a fraction field element of the coordinate ring of this map. Or,
-          a Symbolic Ring element.
+        OUTPUT: If possible, a two variable polynomial in the coordinate ring of this map.
+        Otherwise a fraction field element of the coordinate ring of this map. Or,
+        a Symbolic Ring element
 
         .. TODO::
 
-            - Do the division when the base ring is p-adic so that the output is a polynomial.
+            - Do the division when the base ring is p-adic so that the output is a polynomial
 
             - Convert back to a polynomial when the base ring is a function field (not over `\QQ` or `F_p`)
 
@@ -544,11 +537,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
-        - ``normalize`` -- a boolean, remove gcd's during iteration.
+        - ``normalize`` -- a boolean, remove gcd's during iteration
 
-        OUTPUT: A projective dynamical system.
+        OUTPUT: A projective dynamical system
 
         EXAMPLES::
 
@@ -641,15 +634,15 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` -- a point in this map's domain.
+        - ``P`` -- a point in this map's domain
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
         kwds:
 
-        - ``normalize`` - Boolean (optional Default: ``False``).
+        - ``normalize`` -- (default: ``False``) boolean
 
-        OUTPUT: A point in this map's codomain.
+        OUTPUT: A point in this map's codomain
 
         EXAMPLES::
 
@@ -739,9 +732,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         Return sequence of degrees of normalized iterates starting with
         the degree of this dynamcial system.
 
-        INPUT: ``iterates`` -- positive integer (optional - default: 2)
+        INPUT: ``iterates`` -- (default: 2) positive integer
 
-        OUTPUT: list of integers.
+        OUTPUT: list of integers
 
         EXAMPLES::
 
@@ -796,11 +789,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``N`` -- iterate to use for approximation (optional - default: 3).
+        - ``N`` -- (default: 3) positive integer, iterate to use for approximation
 
-        - ``prec`` -- real precision to use when computing root (optional - default: 53).
+        - ``prec`` -- (default: 53) positive integer, real precision to use when computing root
 
-        OUTPUT: real number.
+        OUTPUT: real number
 
         EXAMPLES::
 
@@ -838,20 +831,18 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` -- a point in this dynamical system's domain.
+        - ``P`` -- a point in this dynamical system's domain
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers.
+        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers
 
         kwds:
 
-        - ``check`` -- boolean (optional - default: ``True``).
+        - ``check`` --  (default: ``True``) boolean
 
-        - ``normalize`` -- boolean (optional - default: ``False``).
+        - ``normalize`` -- (default: ``False``) boolean
 
 
-        OUTPUT:
-
-        - a list of points in this dynamical system's codomain.
+        OUTPUT: a list of points in this dynamical system's codomain
 
         EXAMPLES::
 
@@ -966,9 +957,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``normalize`` -- Boolean (optional - default: ``False``).
+        - ``normalize`` -- (default: ``False``) boolean
 
-        OUTPUT: an element of the base ring of this map.
+        OUTPUT: an element of the base ring of this map
 
         EXAMPLES::
 
@@ -1057,9 +1048,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``check`` -- Boolean (optional - default: ``True``).
+        - ``check`` -- (default: ``True``) boolean
 
-        OUTPUT: a list of primes.
+        OUTPUT: a list of primes
 
         EXAMPLES::
 
@@ -1164,9 +1155,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``M`` -- a square invertible matrix.
+        - ``M`` -- a square invertible matrix
 
-        OUTPUT: a dynamical system.
+        OUTPUT: a dynamical system
 
         EXAMPLES::
 
@@ -1254,19 +1245,19 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` - a projective point.
+        - ``P`` -- a projective point
 
-        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place.
+        - ``v`` -- non-negative integer. a place, use v=0 for the archimedean place
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use, (optional - default: 10).
+        - ``N`` -- (optional - default: 10) positive integer. number of terms of the series to use
 
-        - ``prec`` - positive integer, float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100) positive integer, float point or p-adic precision
 
-        - ``error_bound`` - a positive real number (optional).
+        - ``error_bound`` -- (optional) a positive real number
 
-        OUTPUT: a real number.
+        OUTPUT: a real number
 
         EXAMPLES::
 
@@ -1442,20 +1433,20 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` -- a projective point.
+        - ``P`` -- a projective point
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction (optional).
+        - ``badprimes`` -- (optional) a list of primes of bad reduction
 
-        - ``N`` - positive integer. number of terms of the series to use in the local green functions
-          (optional - default: 10).
+        - ``N`` -- (optional - default: 10) positive integer. number of terms of the series to use
+          in the local green functions
 
-        - ``prec`` - positive integer, float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100 )positive integer, float point or p-adic precision
 
-        - ``error_bound`` - a positive real number (optional).
+        - ``error_bound`` -- (optional) a positive real number
 
-        OUTPUT: a real number.
+        OUTPUT: a real number
 
         EXAMPLES::
 
@@ -1637,9 +1628,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``prec`` - positive integer, float point, default: RealField default.
+        - ``prec`` -- (default: RealField default) positive integer, float point precision
 
-        OUTPUT: a real number.
+        OUTPUT: a real number
 
         EXAMPLES::
 
@@ -1722,16 +1713,14 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` - a point on domain of this map.
+        - ``P`` -- a point on domain of this map
 
-        - ``n`` - a positive integer, the period of ``P``.
+        - ``n`` -- a positive integer, the period of ``P``
 
-        - ``check`` -- verify that ``P`` has period ``n``, Default:True.
+        - ``check`` -- (default: True) boolean, verify that ``P`` has period ``n``
 
-        OUTPUT:
-
-        - a square matrix of size ``self.codomain().dimension_relative()``
-          in the ``base_ring`` of this dynamical system.
+        OUTPUT: a square matrix of size ``self.codomain().dimension_relative()``
+        in the ``base_ring`` of this dynamical system
 
         EXAMPLES::
 
@@ -1821,17 +1810,15 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` - a point on domain of this map.
+        - ``P`` -- a point on domain of this map
 
-        - ``n`` - a positive integer, the period of ``P``.
+        - ``n`` -- a positive integer, the period of ``P``
 
-        - ``p`` - a positive integer.
+        - ``p`` -- a positive integer
 
-        - ``k`` - a positive integer.
+        - ``k`` -- a positive integer
 
-        OUTPUT:
-
-        - a square matrix of size ``self.codomain().dimension_relative()`` in `Zmod(p^k)`.
+        OUTPUT: a square matrix of size ``self.codomain().dimension_relative()`` in `Zmod(p^k)`
 
         EXAMPLES::
 
@@ -1893,15 +1880,14 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         kwds:
 
-        - ``prime_bound`` - a list or tuple of two positive integers. Or an integer for the upper bound. (optional)
-            default: [1,20].
+        - ``prime_bound`` --  (optional - default: [1, 20]) a list or tuple of two positive integers.
+           Or an integer for the upper bound
 
-        - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
 
-        - ``ncpus`` - number of cpus to use in parallel.  (optional)
-            default: all available cpus.
+        - ``ncpus`` --   (optional - default: all cpus) number of cpus to use in parallel
 
-        OUTPUT: a list of positive integers.
+        OUTPUT: a list of positive integers
 
         EXAMPLES::
 
@@ -1992,13 +1978,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``preper`` - a list or tuple of projective points. The complete set
-          of rational periodic or preperiodic points.
+        - ``preper`` -- a list or tuple of projective points. The complete set
+          of rational periodic or preperiodic points
 
-        OUTPUT:
-
-        - a digraph representing the orbit the rational preperiodic points
-          ``preper`` in projective space.
+        OUTPUT: a digraph representing the orbit the rational preperiodic points
+        ``preper`` in projective space
 
         EXAMPLES::
 
@@ -2039,11 +2023,9 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``prime_list`` -- list of primes to check minimality, if None, check all places.
+        - ``prime_list`` -- list of primes to check minimality, if None, check all places
 
-        OUTPUT:
-
-        - Boolean - True if this map is minimal, False otherwise.
+        OUTPUT: boolean -- True if this map is minimal, False otherwise
 
         EXAMPLES::
 
@@ -2095,16 +2077,16 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         - ``return_transformation`` -- a boolean value, default value True. This
                                     signals a return of the `PGL_2` transformation
                                     to conjugate this map to the calculated minimal
-                                    model. default: False.
+                                    model. default: False
 
         - ``prime_list`` -- a list of primes, in case one only wants to determine minimality
-                   at those specific primes.
+          at those specific primes
 
         OUTPUT:
 
-        - a scheme morphism on the projective line which is a minimal model of this map.
+        - a scheme morphism on the projective line which is a minimal model of this map
 
-        - a `PGL(2,\QQ)` element which conjugates this map to a minimal model.
+        - a `PGL(2,\QQ)` element which conjugates this map to a minimal model
 
         EXAMPLES::
 
@@ -2197,20 +2179,16 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         keywords:
 
-        - ``starting_prime`` -- The first prime to use for CRT. default: 5.(optional)
+        - ``starting_prime`` -- (optional - default: 5) The first prime to use for CRT
 
-        - ``algorithm``-- Choose ``CRT``-Chinese Remainder Theorem- or ``fixed_points`` algorithm.
-            default: depends on this map. (optional)
+        - ``algorithm``-- (optional) Choose ``CRT``-Chinese Remainder Theorem- or ``fixed_points`` algorithm
 
-        - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
-            False returns elements as `PGL2` matrices. default: False. (optional)
+        - ``return_functions``-- (default: False) boolean - True returns elements as linear fractional transformations
+            False returns elements as `PGL2` matrices
 
-        - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
-            default: False (optional)
+        - ``iso_type`` -- (default: False) boolean - True returns the isomorphism type of the automorphism group.
 
-        OUTPUT:
-
-        - list - elements of automorphism group.
+        OUTPUT: a list of elements in the automorphism group
 
         AUTHORS:
 
@@ -2313,7 +2291,7 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
         r"""
         Return the critical subscheme of this dynamical system.
 
-        OUTPUT: projective subscheme.
+        OUTPUT: projective subscheme
 
         EXAMPLES::
 
@@ -2379,9 +2357,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         Must be dimension 1.
 
-        INPUT: ``R`` - a ring (optional).
+        INPUT:
 
-        OUTPUT: a list of projective space points defined over ``R``.
+        - ``R`` -- (optional) a ring
+
+        OUTPUT: a list of projective space points defined over ``R``
 
         EXAMPLES::
 
@@ -2425,11 +2405,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-            - ``err`` - positive real number (optional, Default: 0.01).
+            - ``err`` -- (optional, Default: 0.01) positive real number
 
-            - ``embedding`` - embedding of base ring into `\QQbar`.
+            - ``embedding`` -- embedding of base ring into `\QQbar`
 
-        OUTPUT: Boolean.
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -2494,11 +2474,11 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-            - check - Boolean.
+            - check -- boolean
 
-            - ``embedding`` - embedding of base ring into `\QQbar`.
+            - ``embedding`` -- embedding of base ring into `\QQbar`
 
-        OUTPUT: a digraph.
+        OUTPUT: a digraph
 
         EXAMPLES::
 
@@ -2558,18 +2538,18 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         kwds:
 
-        - ``badprimes`` - a list of primes of bad reduction. (optional)
+        - ``badprimes`` -- (optional) a list of primes of bad reduction
 
-        - ``N`` - positive integer. number of terms of the series to use in the local green functions.
-          (optional - Default: 10)
+        - ``N`` -- (optional - Default: 10) positive integer. number of terms of the series
+          to use in the local green functions
 
-        - ``prec`` - positive integer, float point or p-adic precision, Default: 100.
+        - ``prec`` -- (default: 100) positive integer, float point or p-adic precision
 
-        - ``error_bound`` - a positive real number. (optional)
+        - ``error_bound`` -- (optional) a positive real number
 
-        - ``embedding`` - the embedding of the base field to `\QQbar` (optional)
+        - ``embedding`` -- (optional) the embedding of the base field to `\QQbar`
 
-        OUTPUT: Real number.
+        OUTPUT: Real number
 
         EXAMPLES::
 
@@ -2633,23 +2613,20 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``n`` - a positive integer.
+        - ``n`` - a positive integer
 
-        - ``minimal`` - Boolean. True specifies to find only the periodic points of minimal period ``n``.
-            False specifies to find all periodic points of period ``n``. Default: True.
+        - ``minimal`` -- (default: True) boolean. True specifies to find only the periodic points
+          of minimal period ``n``. False specifies to find all periodic points of period ``n``
 
-        - ``R`` a commutative ring.
+        - ``R`` a commutative ring
 
-        - ``algorithm`` - a string. Either ``variety`` to find the rational points
-          on the appropriate variety or ``cyclegraph`` to find the cycles from the
-          cycle graph. Default: ``variety``.
+        - ``algorithm`` -- (default: ``variety``) a string. Either ``variety`` to find the rational points
+          on the appropriate variety or ``cyclegraph`` to find the cycles from the cycle graph
 
         - ``return_scheme`` - return a subscheme of the ambient space which defines the
-          ``n`` th periodic points.
+          ``n`` th periodic points
 
-        OUTPUT:
-
-        - a list of periodic points of this map or the subscheme defining the periodic points.
+        OUTPUT: a list of periodic points of this map or the subscheme defining the periodic points
 
         EXAMPLES::
 
@@ -2858,20 +2835,18 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``n`` - a positive integer, the period.
+        - ``n`` -- a positive integer, the period
 
-        - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra
-            of this map. False specifies to find the ``n`` multiplier spectra
-            of this map. Default: False.
+        - ``formal`` -- (default: False) a Boolean. True specifies to find the formal
+          ``n`` multiplier spectra of this map. False specifies to find the ``n`` multiplier
+          spectra  of this map.
 
-        - ``embedding`` - embedding of the base field into `\QQbar`.
+        - ``embedding`` -- embedding of the base field into `\QQbar`
 
-        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
-            compute one multiplier per point or one per cycle. Default : ``point``.
+        - ``type`` -- (default : ``point``) string - either ``point`` or ``cycle`` depending
+          on whether you compute one multiplier per point or one per cycle
 
-        OUTPUT:
-
-        - a list of `\QQbar` elements.
+        OUTPUT: a list of `\QQbar` elements
 
         EXAMPLES::
 
@@ -3020,20 +2995,20 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``n`` - a positive integer, the period.
+        - ``n`` -- a positive integer, the period
 
-        - ``formal`` - a Boolean. True specifies to find the values of the elementary
+        - ``formal`` -- (default: False) a boolean. True specifies to find the values of the elementary
             symmetric polynomials corresponding to the formal ``n`` multiplier spectra
             of this map. False specifies to instead find the values corresponding to
             the ``n`` multiplier spectra of this map, which includes the multipliers
-            of all periodic points of period ``n`` of this map. Default: False.
+            of all periodic points of period ``n`` of this map
 
-        - ``embedding`` - Deprecated in ticket 23333.
+        - ``embedding`` -- Deprecated in ticket 23333
 
-        - ``type`` - string - either ``point`` or ``cycle`` depending on whether you
-            compute with one multiplier per point or one per cycle. Default : ``point``.
+        - ``type`` -- (default: ``point``) string - either ``point`` or ``cycle`` depending on whether you
+            compute with one multiplier per point or one per cycle
 
-        OUTPUT: a list of elements in the base ring.
+        OUTPUT: a list of elements in the base ring
 
         EXAMPLES::
 
@@ -3256,17 +3231,17 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``prec`` -- integer, desired precision (default: 300).
+        - ``prec`` -- (default: 300) integer, desired precision
 
-        - ``return_conjuagtion`` -- A Boolean. Return an element of `SL(2, \ZZ)`. (default: True).
+        - ``return_conjuagtion`` -- (default: True) a boolean. Return an element of `SL(2, \ZZ)`
 
-        - ``error_limit`` -- sets the error tolerance (default:0.000001).
+        - ``error_limit`` -- (default:0.000001) a real number, sets the error tolerance
 
         OUTPUT:
 
-        - a projective morphism.
+        - a projective morphism
 
-        - a matrix.
+        - a matrix
 
         EXAMPLES::
 
@@ -3450,21 +3425,21 @@ class DynamicalSystem_projective_ring(SchemeMorphism_polynomial_projective_space
 
         INPUT:
 
-        - ``P`` -- a point of this dynamical system's codomain.
+        - ``P`` -- a point of this dynamical system's codomain
 
         kwds:
 
-        - ``error_bound`` -- a positive real number (optional - default: 0.1).
+        - ``error_bound`` -- (optional - default: 0.1) a positive real number
 
-        - ``return_period`` -- boolean (optional - default: ``False``).
+        - ``return_period`` -- (default: ``False``) boolean
 
 
         OUTPUT:
 
-        - boolean - ``True`` if preperiodic.
+        - boolean -- ``True`` if preperiodic
 
         - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
-            if preperiod ``m`` and period ``n``.
+            if preperiod ``m`` and period ``n``
 
         EXAMPLES::
 
@@ -3537,12 +3512,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         INPUT:
 
-        - ``points_modp`` - a list or tuple of pairs containing a point in projective space
-          over `GF(p)` and the possible period.
+        - ``points_modp`` -- a list or tuple of pairs containing a point in projective space
+          over `GF(p)` and the possible period
 
-        - ``B`` - a positive integer - the height bound for a rational preperiodic point. (optional)
+        - ``B`` -- (optional) a positive integer - the height bound for a rational preperiodic point
 
-        OUTPUT: a list of projective points.
+        OUTPUT: a list of projective points
 
         EXAMPLES::
 
@@ -3747,21 +3722,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         kwds:
 
-        - ``prime_bound`` - a pair (list or tuple) of positive integers that represent the
-            limits of primes to use in the reduction step. Or an integer that represents the upper bound. (optional)
-            default: [1,20]
+        - ``prime_bound`` -- (default: [1,20]) a pair (list or tuple) of positive integers that represent the
+            limits of primes to use in the reduction step. Or an integer that represents the upper bound.
 
-        -  ``lifting_prime`` - a prime integer. (optional) argument that specifies modulo which prime to try and perform the
-            lifting. default: 23
+        - ``lifting_prime`` -- (default: 23) a prime integer. argument that specifies modulo which prime to
+          try and perform the lifting
 
-        - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
+        - ``periods`` -- (optional) a list of positive integers which is the list of possible periods
 
-        - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
 
-        - ``ncpus`` - number of cpus to use in parallel.  (optional)
-            default: all available cpus.
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
-        OUTPUT: a list of rational points in projective space.
+        OUTPUT: a list of rational points in projective space
 
         EXAMPLES::
 
@@ -3916,11 +3889,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         INPUT:
 
-        - ``points`` - a list of rational points in the domain of this map.
+        - ``points`` -- a list of rational points in the domain of this map
 
-        OUTPUT:
-
-        - a list of rational points in the domain of this map.
+        OUTPUT: a list of rational points in the domain of this map
 
         EXAMPLES::
 
@@ -4007,23 +3978,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         kwds:
 
-        - ``prime_bound`` - a pair (list or tuple) of positive integers that represent the
-          limits of primes to use in the reduction step. Or an integer that represents the upper bound. (optional)
-          default: [1,20]
+        - ``prime_bound`` -- (default: [1,20]) a pair (list or tuple) of positive integers that represent the
+          limits of primes to use in the reduction step. Or an integer that represents the upper bound.
 
-        - ``lifting_prime`` - a prime integer. (optional) argument that specifies modulo which prime to try and perform the
-          lifting. default: 23
+        - ``lifting_prime`` -- (default: 23) a prime integer.argument that specifies modulo which prime to
+          try and perform the lifting
 
-        - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
+        - ``periods`` -- (optional) a list of positive integers which is the list of possible periods
 
-        - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
 
-        - ``ncpus`` - number of cpus to use in parallel.  (optional)
-            default: all available cpus.
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
-        OUTPUT:
-
-        - a list of rational points in projective space.
+        OUTPUT: a list of rational points in projective space
 
         EXAMPLES::
 
@@ -4159,23 +4126,19 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         kwds:
 
-        - ``prime_bound`` - a pair (list or tuple) of positive integers that represent the
-            limits of primes to use in the reduction step. Or an integer that represents the upper bound. (optional)
-            default: [1,20]
+        - ``prime_bound`` -- (default: [1,20]) a pair (list or tuple) of positive integers that represent the
+            limits of primes to use in the reduction step. Or an integer that represents the upper bound
 
-        -  ``lifting_prime`` - a prime integer. (optional) argument that specifies modulo which prime to try and perform the
-            lifting. default: 23
+        - ``lifting_prime`` -- (default: 23) a prime integer. Argument that specifies modulo which prime to
+          try and perform the lifting
 
-        - ``periods`` - a list of positive integers which is the list of possible periods. (optional)
+        - ``periods`` -- (optional) a list of positive integers which is the list of possible periods
 
-        - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
 
-        - ``ncpus`` - number of cpus to use in parallel.  (optional)
-            default: all available cpus.
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
-        OUTPUT:
-
-        - a digraph representing the orbits of the rational preperiodic points in projective space.
+        OUTPUT: a digraph representing the orbits of the rational preperiodic points in projective space
 
         EXAMPLES::
 
@@ -4221,13 +4184,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         INPUT:
 
-        - ``P`` - A rational preperiodic point of this map.
+        - ``P`` -- A rational preperiodic point of this map
 
-        - ``n`` - Maximum distance from ``P`` to branch out. A value of 0 indicates no bound. Default: 0
+        - ``n`` -- (default: 0) integer. Maximum distance from ``P`` to branch out. A value of 0 indicates no bound
 
-        OUTPUT:
-
-        - a list of points connected to ``P`` up to the specified distance.
+        OUTPUT: a list of points connected to ``P`` up to the specified distance
 
         EXAMPLES::
 
@@ -4317,9 +4278,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
         Implementing invariant set algorithim from the paper [FMV2014]_. Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that take one set to another.
 
-        INPUT: Two nonconstant rational functions of same degree.
+        INPUT:
 
-        OUTPUT: Set of conjugating `n+1` by `n+1` matrices.
+        - Two nonconstant rational functions of same degree
+
+        OUTPUT: Set of conjugating `n+1` by `n+1` matrices
 
         AUTHORS:
 
@@ -4453,9 +4416,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
         Implementing invariant set algorithim from the paper [FMV2014]_. Given that the set of `n` th preimages is
         invariant under conjugation this function finds whether two maps are conjugate.
 
-        INPUT: Two nonconstant rational functions of same degree.
+        INPUT:
 
-        OUTPUT: Boolean.
+        - Two nonconstant rational functions of the same degree
+
+        OUTPUT: boolean
 
         AUTHORS:
 
@@ -4564,7 +4529,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
         The function must be defined over an absolute number field or a
         finite field.
 
-        OUTPUT: Boolean
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -4683,16 +4648,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective_ring,
 
         INPUT:
 
-        - ``return_conjugation`` -- Boolean - True returns conjugation element of PGL.
-          along with the embedding into the new field. Default: False. (optional)
+        - ``return_conjugation`` -- (default: False) boolean - True returns conjugation
+          element of PGL. along with the embedding into the new field
 
         OUTPUT:
 
         - :class:`SchemeMorphism_polynomial`
 
-        - Element of PGL as a matrix. (optional)
+        - (optional) Element of PGL as a matrix
 
-        - Field embedding. (option)
+        - (option) Field embedding
 
         EXAMPLES::
 
@@ -4878,11 +4843,9 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
         INPUT:
 
-        - ``P`` -- a point in the domain of this map.
+        - ``P`` -- a point in the domain of this map
 
-        OUTPUT:
-
-        - a list `[m,n]` of integers.
+        OUTPUT: a list `[m,n]` of integers
 
         EXAMPLES::
 
@@ -4935,7 +4898,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         Over a finite field this is a finite graph. For subscheme domains, only points
         on the subscheme whose image are also on the subscheme are in the digraph.
 
-        OUTPUT: a digraph.
+        OUTPUT: a digraph
 
         EXAMPLES::
 
@@ -5015,11 +4978,11 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
         INPUT:
 
-        - ``return_points`` - Boolean (optional) - a value of True returns the points as well as the possible periods.
+        - ``return_points`` -- (default: False) boolean - a value of True returns the points as well
+          as the possible periods
 
-        OUTPUT:
-
-        - a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
+        OUTPUT: a list of positive integers, or a list of pairs of projective points and periods
+        if ``flag`` is 1
 
         EXAMPLES::
 
@@ -5062,16 +5025,16 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
         keywords:
 
-        - ``absolute``-- Boolean - True returns the absolute automorphism group and a field of definition. default: False (optional)
+        - ``absolute``-- (default: False) boolean - True returns the absolute automorphism group
+          and a field of definition
 
-        - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group. default: False (optional)
+        - ``iso_type`` -- (default: False) boolean - True returns the isomorphism type of the
+          automorphism group
 
-        - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
-            False returns elements as `PGL2` matrices. default: False. (optional)
+        - ``return_functions`` -- (default: False) boolean - True returns elements as linear
+          fractional transformations. False returns elements as `PGL2` matrices
 
-        OUTPUT:
-
-        - list - elements of automorphism group.
+        OUTPUT: a list of elements of the automorphism group
 
         AUTHORS:
 

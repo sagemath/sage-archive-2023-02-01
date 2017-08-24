@@ -44,7 +44,6 @@ from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
 from sage.symbolic.ring import SR
 
 from sage.categories.fields import Fields
-_Fields = Fields()
 
 def is_DynamicalSystem(f):
     r"""
@@ -244,7 +243,7 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
             raise ValueError('"domain" must be an affine scheme')
         if domain != morphism_or_polys.codomain():
             raise ValueError('domain and codomain do not agree')
-        if R not in _Fields:
+        if R not in Fields():
             return DynamicalSystem_affine_ring(polys, domain)
         if is_FiniteField(R):
             return DynamicalSystem_affine_finite_field(polys, domain)
@@ -302,7 +301,7 @@ def DynamicalSystem_affine(morphism_or_polys, domain=None):
         raise TypeError("Symbolic Ring cannot be the base ring")
     if not is_AffineSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_affine):
         raise ValueError('"domain" must be an affine scheme')
-    if R not in _Fields:
+    if R not in Fields():
         return DynamicalSystem_affine_ring(polys, domain)
     if is_FiniteField(R):
             return DynamicalSystem_affine_finite_field(polys, domain)
@@ -534,7 +533,7 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
             raise ValueError('domain and codomain do not agree')
         if not is_ProjectiveSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_projective):
             raise ValueError('"domain" must be a projective scheme')
-        if R not in _Fields:
+        if R not in Fields():
             return DynamicalSystem_projective_ring(polys, domain)
         if is_FiniteField(R):
             return DynamicalSystem_projective_finite_field(polys, domain)
@@ -603,7 +602,7 @@ def DynamicalSystem_projective(morphism_or_polys, domain=None, names=None):
 
     if not is_ProjectiveSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_projective):
         raise ValueError('"domain" must be a projective scheme')
-    if R not in _Fields:
+    if R not in Fields():
         return DynamicalSystem_projective_ring(polys, domain)
     if is_FiniteField(R):
             return DynamicalSystem_projective_finite_field(polys, domain)
@@ -620,33 +619,33 @@ def DynamicalSystem(morphism_or_polys, domain=None, names=None):
     INPUT:
 
     - ``morphism_or_polys`` -- a SchemeMorphism, a polynomial, a
-      rational function, or a list or tuple of homogeneous polynomials.
+      rational function, or a list or tuple of homogeneous polynomials
 
-    - ``domain`` -- optional scheme space or subscheme.
+    - ``domain`` -- optional scheme space or subscheme
 
     - ``names`` -- optional tuple of strings to be used as coordinate
-      names for a projective space that is constructed; defaults to ``'X','Y'``.
+      names for a projective space that is constructed; defaults to ``'X','Y'``
 
       The following combinations of ``morphism_or_polys`` and
       ``domain`` are meaningful:
 
       * ``morphism_or_polys`` is a SchemeMorphism; ``domain`` is
-        ignored in this case.
+        ignored in this case
 
       * ``morphism_or_polys`` is a list of homogeneous polynomials
-        that define a rational endomorphism of ``domain``.
+        that define a rational endomorphism of ``domain``
 
       * ``morphism_or_polys`` is a list of homogeneous polynomials and
         ``domain`` is unspecified; ``domain`` is then taken to be the
         projective space of appropriate dimension over the base ring of
-        the first element of ``morphism_or_polys``.
+        the first element of ``morphism_or_polys``
 
       * ``morphism_or_polys`` is a single polynomial or rational
         function; ``domain`` is ignored and taken to be a
         1-dimensional projective space over the base ring of
-        ``morphism_or_polys`` with coordinate names given by ``names``.
+        ``morphism_or_polys`` with coordinate names given by ``names``
 
-    OUTPUT: :class:`DynamicalSystem_projective` or :class:`DynamicalSystem_affine`.
+    OUTPUT: :class:`DynamicalSystem_projective` or :class:`DynamicalSystem_affine`
 
     EXAMPLES::
 
@@ -701,11 +700,11 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
     INPUT:
 
     - ``polys_or_rat_fncts`` -- a list of polynomials or rational functions,
-      all of which should have the same parent.
+      all of which should have the same parent
 
     - ``domain`` -- an affine or projective scheme, or product of
       projective schemes, on which ``polys`` defines an endomorphism.
-      Subschemes are also ok.
+      Subschemes are also ok
 
     EXAMPLES::
 
@@ -743,7 +742,7 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
         r"""
         Return a string representation of the type of a dynamical system.
 
-        OUTPUT: string.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -758,7 +757,7 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
         r"""
         Return a string representation of a dynamical system.
 
-        OUTPUT: string.
+        OUTPUT: string
 
         EXAMPLES::
 
@@ -778,7 +777,7 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
         """
         Return this dynamical system as :class:`SchemeMorphism_polynomial`.
 
-        OUTPUT: :class:`SchemeMorphism_polynomial`.
+        OUTPUT: :class:`SchemeMorphism_polynomial`
 
         EXAMPLES::
 
@@ -833,11 +832,9 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``R`` -- ring or morphism.
+        - ``R`` -- ring or morphism
 
-        OUTPUT:
-
-        - A new :class:`DynamicalSystem_projective` which is this map coerced to ``R``.
+        OUTPUT: A new :class:`DynamicalSystem_projective` which is this map coerced to ``R``
 
         EXAMPLES::
 
@@ -862,13 +859,13 @@ class DynamicalSystem_generic(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``D`` -- dictionary (optional).
+        - ``D`` -- (optional) dictionary
 
-        - ``phi`` -- SpecializationMorphism (optional).
+        - ``phi`` -- (optional) SpecializationMorphism
 
-        - ``homset`` -- homset of specialized map (optional).
+        - ``homset`` -- (optional) homset of specialized map
 
-        OUTPUT: :class:`DynamicalSystem`.
+        OUTPUT: :class:`DynamicalSystem`
 
         EXAMPLES::
 

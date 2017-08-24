@@ -50,15 +50,13 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
     - ``rational_function`` - Rational Function defined over `\mathbb{Z}` or `\mathbb{Q}`
 
     - ``return_functions`` - Boolean Value, True will return elements in the automorphism group
-        as linear fractional transformations. False will return elements as `PGL2` matrices.
+        as linear fractional transformations. False will return elements as `PGL2` matrices
 
     - ``iso_type`` - Boolean - True will cause the classification of the finite automorphism
         group to also be returned
 
-    OUTPUT:
-
-    - List of automorphisms that make up the Automorphism Group
-      of ``rational_function``.
+    OUTPUT: a list of automorphisms that make up the Automorphism Group
+    of ``rational_function``
 
     EXAMPLES::
 
@@ -293,11 +291,9 @@ def height_bound(polynomial):
 
     INPUT:
 
-    - ``polynomial`` -- a univariate polynomial.
+    - ``polynomial`` -- a univariate polynomial
 
-    OUTPUT:
-
-    - a positive integer.
+    OUTPUT: a positive integer
 
     EXAMPLES::
 
@@ -336,11 +332,9 @@ def PGL_repn(rational_function):
 
     INPUT:
 
-    - ``rational_function`` -- a linear fraction transformation.
+    - ``rational_function`` -- a linear fraction transformation
 
-    OUTPUT:
-
-    - a 2x2 matrix representing ``rational_function``.
+    OUTPUT: a 2x2 matrix representing ``rational_function``
 
     EXAMPLES::
 
@@ -371,11 +365,9 @@ def PGL_order(A):
 
     INPUT:
 
-    - ``A`` -- a linear fractional transformation.
+    - ``A`` -- a linear fractional transformation
 
-    OUTPUT:
-
-    - a positive integer.
+    OUTPUT: a positive integer
 
     EXAMPLES::
 
@@ -411,13 +403,11 @@ def CRT_helper(automorphisms, moduli):
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`.
+    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`
 
-    - ``moduli`` -- list of the various `p^k`.
+    - ``moduli`` -- list of the various `p^k`
 
-    OUTPUT:
-
-    - a list of automorphisms over `Zmod(M)`.
+    OUTPUT: a list of automorphisms over `Zmod(M)`
 
     EXAMPLES::
 
@@ -462,17 +452,15 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`.
+    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`
 
-    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``.
+    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``
 
-    - ``degree`` - a positive integer.
+    - ``degree`` - a positive integer
 
-    - ``moduli`` -- list of prime powers, i.e., `p^k`.
+    - ``moduli`` -- list of prime powers, i.e., `p^k`
 
-    OUTPUT:
-
-    - a list containing a list of automorphisms over `Zmod(M)` and the product of the moduli
+    OUTPUT: a list containing a list of automorphisms over `Zmod(M)` and the product of the moduli
 
     EXAMPLES::
 
@@ -508,19 +496,17 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`.
+    - ``automorphisms`` -- a list of lists of automorphisms over various `Zmod(p^k)`
 
-    - ``rational_function`` -- A one variable rational function.
+    - ``rational_function`` -- A one variable rational function
 
-    - ``ht_bound`` - a positive integer.
+    - ``ht_bound`` - a positive integer
 
-    - ``M`` -- a positive integer, a product of prime powers.
+    - ``M`` -- a positive integer, a product of prime powers
 
-    - ``return_functions`` -- Boolean. default: False (optional).
+    - ``return_functions`` -- (default: False) boolean
 
-    OUTPUT:
-
-    - a list of automorphisms over `\ZZ`.
+    OUTPUT: a list of automorphisms over `\ZZ`
 
     EXAMPLES::
 
@@ -565,17 +551,15 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
 
     INPUT:
 
-    - ``automorphisms`` -- a list of lists of automorphisms.
+    - ``automorphisms`` -- a list of lists of automorphisms
 
-    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``.
+    - ``order_elts`` -- a list of lists of the orders of the elements of ``automorphisms``
 
-    - ``moduli`` -- a list of prime powers.
+    - ``moduli`` -- a list of prime powers
 
-    - ``integral_autos`` -- list of known automorphisms.
+    - ``integral_autos`` -- list of known automorphisms
 
-    OUTPUT:
-
-    - a list of automorphisms.
+    OUTPUT: a list of automorphisms
 
     EXAMPLES::
 
@@ -634,20 +618,17 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
     INPUT:
 
-    - ``rational_function`` - a rational function of a univariate polynomial ring over `\QQ`.
+    - ``rational_function`` - a rational function of a univariate polynomial ring over `\QQ`
 
-    - ``prime_lower_bound`` -- a positive integer - a lower bound for the primes to use for
-      the Chinese Remainder Theorem step. default: 4 (optional).
+    - ``prime_lower_bound`` -- (default: 4) a positive integer - a lower bound for the primes to use for
+      the Chinese Remainder Theorem step
 
-    - ``return_functions`` -- Boolean - True returns linear fractional transformations
-      False returns elements of `PGL(2,\QQ)` default: True (optional).
+    - ``return_functions`` -- (default: True) boolean - True returns linear fractional transformations
+      False returns elements of `PGL(2,\QQ)`
 
-    - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
-        default: False (optional).
+    - ``iso_type`` -- (default: False) boolean - True returns the isomorphism type of the automorphism group
 
-    OUTPUT:
-
-    - a complete list of automorphisms of ``rational_function``.
+    OUTPUT: a complete list of automorphisms of ``rational_function``
 
     EXAMPLES::
 
@@ -841,20 +822,16 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
     INPUT:
 
     - ``rational_function`` -- a rational function defined over the fraction field
-        of a polynomial ring in one variable with finite field coefficients.
+        of a polynomial ring in one variable with finite field coefficients
 
-    - ``absolute``-- Boolean - True returns the absolute automorphism group and a field of definition.
-        default: False (optional)
+    - ``absolute``-- (default: False) boolean - True returns the absolute automorphism group and a field of definition
 
-    - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
-        default: False (optional)
+    - ``iso_type`` -- (default: False) boolean - True returns the isomorphism type of the automorphism group
 
-    - ``return_functions`` -- Boolean, True returns linear fractional transformations
-      False returns elements of `PGL(2)`. default: False (optional)
+    - ``return_functions`` -- (default: False) boolean, True returns linear fractional transformations
+      False returns elements of `PGL(2)`
 
-    OUTPUT:
-
-    - List of automorphisms of ``rational_function``.
+    OUTPUT: a list of automorphisms of ``rational_function``
 
     EXAMPLES::
 
@@ -916,13 +893,11 @@ def field_descent(sigma, y):
 
     INPUT:
 
-    - ``sigma``-- an embedding sigma: `F` -> `E` of fields.
+    - ``sigma``-- an embedding sigma: `F` -> `E` of fields
 
-    - ``y`` --an element of the field `E`.
+    - ``y`` --an element of the field `E`
 
-    OUTPUT:
-
-    - the unique element of the subfield if it exists, otherwise ``None``.
+    OUTPUT: the unique element of the subfield if it exists, otherwise ``None``
 
     EXAMPLES::
 
@@ -976,16 +951,14 @@ def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
 
     INPUT:
 
-    - ``rational_function``--a rational function with coefficients in a field `E`.
+    - ``rational_function``--a rational function with coefficients in a field `E`
 
-    - ``sigma``-- a field embedding sigma: `F` -> `E`.
+    - ``sigma``-- a field embedding sigma: `F` -> `E`
 
-    - ``poly_ring``-- a polynomial ring `R` with coefficients in `F`.
+    - ``poly_ring``-- a polynomial ring `R` with coefficients in `F`
 
-    OUTPUT:
-
-    - a rational function with coefficients in the fraction field of ``poly_ring``
-      if it exists, and otherwise ``None``.
+    OUTPUT: a rational function with coefficients in the fraction field of ``poly_ring``
+    if it exists, and otherwise ``None``
 
     EXAMPLES::
 
@@ -1032,15 +1005,13 @@ def rational_function_coerce(rational_function, sigma, S_polys):
 
     INPUT:
 
-    - ``rational_function``-- rational function with coefficients in `R`.
+    - ``rational_function``-- rational function with coefficients in `R`
 
-    - ``sigma`` -- a ring homomorphism sigma: `R` -> ``S_polys``.
+    - ``sigma`` -- a ring homomorphism sigma: `R` -> ``S_polys``
 
-    - ``S_polys`` -- a polynomial ring.
+    - ``S_polys`` -- a polynomial ring
 
-    OUTPUT:
-
-    - a rational function with coefficients in ``S_polys``.
+    OUTPUT: a rational function with coefficients in ``S_polys``
 
     EXAMPLES::
 
@@ -1072,11 +1043,9 @@ def rational_function_reduce(rational_function):
 
     INPUT:
 
-    - ``rational_function`` -- rational function `= F/G` in univariate polynomial ring.
+    - ``rational_function`` -- rational function `= F/G` in univariate polynomial ring
 
-    OUTPUT:
-
-    - rational function -- `(F/gcd(F,G) ) / (G/gcd(F,G))`.
+    OUTPUT: rational function -- `(F/gcd(F,G) ) / (G/gcd(F,G))`
 
     EXAMPLES::
 
@@ -1100,14 +1069,12 @@ def three_stable_points(rational_function, invariant_list):
     INPUT:
 
     - ``rational_function``--rational function `phi` defined over finite
-      field `E`.
+      field `E`
 
     - ``invariant_list``-- a list of at least `3` points of `\mathbb{P}^1(E)` that
-      is stable under `Aut_{phi}(E)`.
+      is stable under `Aut_{phi}(E)`
 
-    OUTPUT:
-
-    - list of automorphisms.
+    OUTPUT: list of automorphisms
 
     EXAMPLES::
 
@@ -1174,11 +1141,9 @@ def automorphism_group_FF_alg2(rational_function):
 
     INPUT:
 
-    - ``rational_function``--a rational function defined over a finite field.
+    - ``rational_function``--a rational function defined over a finite field
 
-    OUTPUT:
-
-    - absolute automorphism group of ``rational_function`` and a ring of definition.
+    OUTPUT: absolute automorphism group of ``rational_function`` and a ring of definition
 
     EXAMPLES::
 
@@ -1290,16 +1255,14 @@ def order_p_automorphisms(rational_function, pre_image):
 
     INPUT:
 
-    - ``rational_function``--rational function defined over finite field `F`.
+    - ``rational_function``--rational function defined over finite field `F`
 
     - ``pre_image``--set of triples `[x, L, f]`, where `x` is an `F`-rational
         fixed point of ``rational_function``, `L` is the list of `F`-rational
         pre-images of `x` (excluding `x`), and `f` is the polynomial defining
-        the full set of pre-images of `x` (again excluding `x` itself).
+        the full set of pre-images of `x` (again excluding `x` itself)
 
-    OUTPUT:
-
-    - set of automorphisms of order `p` defined over `F`.
+    OUTPUT: set of automorphisms of order `p` defined over `F`
 
     EXAMPLES::
 
@@ -1473,16 +1436,14 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
 
     INPUT:
 
-    - ``rational_function``-- rational function defined over finite field `E`.
+    - ``rational_function``-- rational function defined over finite field `E`
 
-    - ``pair``-- a pair of points of `\mathbb{P}^1(E)`.
+    - ``pair``-- a pair of points of `\mathbb{P}^1(E)`
 
-    - ``quad``-- Boolean: an indicator if this is a quadratic pair of points.
+    - ``quad``-- Boolean: an indicator if this is a quadratic pair of points
 
-    OUTPUT:
-
-    - set of automorphisms with order prime to characteristic defined over `E` that fix
-        the pair, excluding the identity.
+    OUTPUT: set of automorphisms with order prime to characteristic defined over `E` that fix
+    the pair, excluding the identity
 
     EXAMPLES::
 
@@ -1555,11 +1516,9 @@ def automorphism_group_FF_alg3(rational_function):
 
     INPUT:
 
-    - ``rational_function``--a rational function defined over a finite field `F`.
+    - ``rational_function``--a rational function defined over a finite field `F`
 
-    OUTPUT:
-
-    - list of `F`-rational automorphisms of ``rational_function``.
+    OUTPUT: list of `F`-rational automorphisms of ``rational_function``
 
     EXAMPLES::
 
@@ -1726,11 +1685,9 @@ def which_group(list_of_elements):
     INPUT:
 
     - ``list_of_elements``-- a finite list of elements of `PGL(2,K)`
-        that we know a priori form a group.
+        that we know a priori form a group
 
-    OUTPUT:
-
-    - String -- the isomorphism type of the group.
+    OUTPUT: a string -- the isomorphism type of the group
 
     EXAMPLES::
 

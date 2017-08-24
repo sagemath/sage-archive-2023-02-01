@@ -48,10 +48,10 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
     INPUT:
 
     - ``polys`` -- a list of ``n_1 + \cdots + n_r`` multi-homogeneous polynomials, all
-      of which should have the same parent.
+      of which should have the same parent
 
     - ``domain`` -- a projective scheme embedded in
-      ``P^{n_1-1} \times \cdots \times P^{n_r-1}``.
+      ``P^{n_1-1} \times \cdots \times P^{n_r-1}``
 
     EXAMPLES::
 
@@ -84,12 +84,12 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
 
         INPUT:
 
-        - ``P`` -- a point in the domain.
+        - ``P`` -- a point in the domain
 
         - ``check`` -- Boolean - whether or not to perform the input checks
-          on the image point (Default: ``True``).
+          on the image point (Default: ``True``)
 
-        OUTPUT: The image point in the codomain.
+        OUTPUT: The image point in the codomain
 
         EXAMPLES::
 
@@ -124,15 +124,13 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``.
+        - ``P`` -- a point in ``self.domain()``
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
-        - ``normalize`` - Boolean (optional Default: ``False``).
+        - ``normalize`` -- (default: ``False``) boolean
 
-        OUTPUT:
-
-        - A point in ``self.codomain()``.
+        OUTPUT: A point in ``self.codomain()``
 
         EXAMPLES::
 
@@ -179,20 +177,18 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``.
+        - ``P`` -- a point in ``self.domain()``
 
-        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers.
+        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers
 
         kwds:
 
-        - ``check`` -- boolean (optional - default: ``True``).
+        - ``check`` -- (default: ``True``) boolean
 
-        - ``normalize`` -- boolean (optional - default: ``False``).
+        - ``normalize`` -- (default: ``False``) boolean
 
 
-        OUTPUT:
-
-        - a list of points in ``self.codomain()``.
+        OUTPUT: a list of points in ``self.codomain()``
 
         EXAMPLES::
 
@@ -255,11 +251,9 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
 
         INPUT:
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
-        OUTPUT:
-
-        - A dynamical system of products of projective spaces.
+        OUTPUT: A dynamical system of products of projective spaces
 
         EXAMPLES::
 

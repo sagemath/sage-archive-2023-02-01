@@ -41,18 +41,16 @@ def bCheck(c, v, p, b):
 
     INPUT:
 
-    - ``c`` -- a list of polynomials in `b`. See v for their use.
+    - ``c`` -- a list of polynomials in `b`. See v for their use
 
     - ``v`` -- a list of rational numbers, where we are considering the inequalities
-           `ord_p(c[i]) > v[i]`.
+           `ord_p(c[i]) > v[i]`
 
-    - ``p`` -- a prime.
+    - ``p`` -- a prime
 
-    - ``b`` -- local variable.
+    - ``b`` -- local variable
 
-    OUTPUT:
-
-    - ``bval`` -- Integer, lower bound in Theorem 3.3.5
+    OUTPUT: ``bval`` -- Integer, lower bound in Theorem 3.3.5
 
     EXAMPLES::
 
@@ -82,19 +80,19 @@ def scale(c,v,p):
 
     INPUT:
 
-    - ``c`` -- an integer polynomial.
+    - ``c`` -- an integer polynomial
 
-    - ``v`` -- an integer - the bound on the exponent from blift.
+    - ``v`` -- an integer - the bound on the exponent from blift
 
-    - ``p`` -- a prime.
+    - ``p`` -- a prime
 
     OUTPUT:
 
-    - Boolean -- the new exponent bound is 0 or negative.
+    - boolean -- the new exponent bound is 0 or negative
 
-    - the scaled integer polynomial.
+    - the scaled integer polynomial
 
-    - an integer the new exponent bound.
+    - an integer the new exponent bound
 
     EXAMPLES::
 
@@ -123,17 +121,17 @@ def blift(LF, Li, p, S=None):
 
     INPUT:
 
-    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients).
+    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients)
 
-    - ``Li`` -- an integer, the bound on coefficients.
+    - ``Li`` -- an integer, the bound on coefficients
 
-    - ``p`` -- a prime.
+    - ``p`` -- a prime
 
     OUTPUT:
 
-    - Boolean -- whether or not the lift is successful.
+    - boolean -- whether or not the lift is successful
 
-    - integer -- the lift.
+    - integer -- the lift
 
     EXAMPLES::
 
@@ -185,24 +183,24 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
 
     INPUT:
 
-    - ``vp`` -- dyanmical system on the projective line.
+    - ``vp`` -- dyanmical system on the projective line
 
     - ``D`` -- a list of primes, in case one only wants to check minimality
-               at those specific primes.
+               at those specific primes
 
-    - ``return_transformation`` -- a boolean value, default value True. This
+    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model. default: False.
+      the calculated minimal model
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
       algorithm determines F/G is not minimal, otherwise algorithm only
-      terminates once a minimal model has been found.
+      terminates once a minimal model has been found
 
     OUTPUT:
 
-    - ``newvp`` -- dynamical system on the projective line.
+    - ``newvp`` -- dynamical system on the projective line
 
-    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``.
+    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``
 
     EXAMPLES::
 
@@ -305,19 +303,19 @@ def Min(Fun, p, ubRes, conj):
 
     INPUT:
 
-    - ``Fun`` -- a dynamical systems on projective space.
+    - ``Fun`` -- a dynamical systems on projective space
 
-    - ``p`` - a prime.
+    - ``p`` - a prime
 
-    - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_.
+    - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_
 
-    - ``conj`` -- a 2x2 matrix keeping track of the conjugation.
+    - ``conj`` -- a 2x2 matrix keeping track of the conjugation
 
     OUTPUT:
 
-    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise.
+    - boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise
 
-    - a dynamical system on projective space minimal at ``p``.
+    - a dynamical system on projective space minimal at ``p``
 
     EXAMPLES::
 

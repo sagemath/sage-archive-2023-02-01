@@ -39,6 +39,7 @@ from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.schemes.generic.homset
+from copy import copy
 
 #*******************************************************************
 # Affine varieties
@@ -164,29 +165,96 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: E = A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
             sage: E(A.base_ring()).points()
-            [(-1, 0), (0, -1), (0, 1), (1, 0)]
+            [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(CC, 2)
+            sage: E = A.subscheme([y^3-x^3-x^2, x*y])
+            sage: E(A.base_ring()).points()
+            [(-1.00000000000000, 0.000000000000000),
+            (0.000000000000000, 0.000000000000000)]
         """
         X = self.codomain()
-
         from sage.schemes.affine.affine_space import is_AffineSpace
+        from sage.rings.all import CC
         if not is_AffineSpace(X) and X.base_ring() in Fields():
+            if X.base_ring() == CC:
+                complex = True
+            else:
+                complex = False
             # Then X must be a subscheme
             dim_ideal = X.defining_ideal().dimension()
             if dim_ideal < 0: # no points
                 return []
             if dim_ideal == 0: # if X zero-dimensional
-                N = len(X.ambient_space().gens())
-                S = X.defining_polynomials()[0].parent()
-                R = PolynomialRing(S.base_ring(), 's', N, order='lex')
-                phi = S.hom(R.gens(),R)
-                J = R.ideal([phi(t) for t in X.defining_polynomials()])
-                D = J.variety()
-                points = []
-                for d in D:
-                    P = [d[t] for t in R.gens()]
-                    points.append(X(P))
-                points.sort()
-                return points
+                rat_points = []
+                PS = X.ambient_space()
+                N = PS.dimension_relative()
+                BR = X.base_ring()
+                #need a lexicographic ordering for elimination
+                R = PolynomialRing(BR, N, PS.gens(), order='lex')
+                I = R.ideal(X.defining_polynomials())
+                I0 = R.ideal(0)
+                #Determine the points through elimination
+                #This is much faster than using the I.variety() function on each affine chart.
+                G = I.groebner_basis()
+                if G != [1]:
+                    P = {}
+                    points = [P]
+                    #work backwards from solving each equation for the possible
+                    #values of the next coordinate
+                    for i in range(len(G) - 1, -1, -1):
+                        new_points = []
+                        good = 0
+                        for P in points:
+                            #substitute in our dictionary entry that has the values
+                            #of coordinates known so far. This results in a single
+                            #variable polynomial (by elimination)
+                            L = G[i].substitute(P)
+                            if L != 0:
+                                if complex:
+                                    for pol in L.univariate_polynomial().roots(multiplicities=False):
+                                        r = L.variables()[0]
+                                        varindex = R.gens().index(r)
+                                        P.update({R.gen(varindex):pol})
+                                        new_points.append(copy(P))
+                                        good = 1
+                                else:
+                                    L = L.factor()
+                                #the linear factors give the possible rational values of
+                                #this coordinate
+                                    for pol, pow in L:
+                                        if pol.degree() == 1 and len(pol.variables()) == 1:
+                                            good = 1
+                                            r = pol.variables()[0]
+                                            varindex = R.gens().index(r)
+                                            #add this coordinates information to
+                                            #each dictionary entry
+                                            P.update({R.gen(varindex):-pol.constant_coefficient() /
+                                            pol.monomial_coefficient(r)})
+                                            new_points.append(copy(P))
+                            else:
+                                new_points.append(P)
+                                good = 1
+                        if good:
+                            points = new_points
+                    #the dictionary entries now have values for all coordinates
+                    #they are the rational solutions to the equations
+                    #make them into projective points
+                    for i in range(len(points)):
+                        if complex:
+                            if len(points[i]) == N:
+                                S = X.ambient_space()([points[i][R.gen(j)] for j in range(N)])
+                                #S.normalize_coordinates()
+                                rat_points.append(S)
+                        else:
+                            if len(points[i]) == N and I.subs(points[i]) == I0:
+                                S = X([points[i][R.gen(j)] for j in range(N)])
+                                #S.normalize_coordinates()
+                                rat_points.append(S)
+                #rat_points = sorted(rat_points)
+                return rat_points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:
             if not B > 0:

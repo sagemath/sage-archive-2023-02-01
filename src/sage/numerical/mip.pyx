@@ -538,6 +538,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(v[1] + v[2], max=1)
             sage: p
             Boolean Program (no objective, 2 variables, 1 constraint)
+            sage: p.set_objective(1); p
+            Boolean Program (constant objective, 2 variables, 1 constraint)
+            sage: p.set_objective(v[1]); p
+            Boolean Program (maximization, 2 variables, 1 constraint)
         """
         cdef GenericBackend b = self._backend
 
@@ -566,9 +570,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             # We have no variables...
             kind = "Mixed Integer Program"
 
-        if (all(b.objective_coefficient(i) == 0 for i in range(nvars))
-                and b.objective_constant_term() == 0):
-            minmax = "no objective"
+        if all(b.objective_coefficient(i) == 0 for i in range(nvars)):
+            if b.objective_constant_term():
+                minmax = "constant objective"
+            else:
+                minmax = "no objective"
         elif b.is_maximization():
             minmax = "maximization"
         else:

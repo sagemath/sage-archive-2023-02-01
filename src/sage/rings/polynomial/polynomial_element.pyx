@@ -7984,7 +7984,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        Over `\\RR[z]`::
+        Over `\RR[z]`::
 
             sage: z = PowerSeriesRing(RR, 'z').gen()
             sage: P = PolynomialRing(RR,'x');

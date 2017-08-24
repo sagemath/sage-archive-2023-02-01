@@ -4746,7 +4746,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: X.is_nondegenerate()
             False
         
-        A K3 surface in P1xP1xP1::
+        A K3 surface in `\mathbf{P}^1 \times \mathbf{P}^1 \times \mathbf{P}^1`::
 
             sage: diamond = lattice_polytope.cross_polytope(3)
             sage: fan = FaceFan(diamond)
@@ -4774,6 +4774,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
 
          This example is from Hamm, arXiv:1106.1826v1. It addresses an issue raised at :trac:`15239`::
+
             sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')
             sage: X.inject_variables()
             Defining z0, z1, z2, z3

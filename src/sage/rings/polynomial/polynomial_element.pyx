@@ -7853,12 +7853,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def rational_reconstruct(self, m, n_deg=None, d_deg=None):
         r"""
-        Return a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m` and `\deg(n) \leq n_deg` and `\deg(d) \leq d_deg`.
+        Return a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m` and `\deg(n) \leq ` ``n_deg`` and `\deg(d) \leq` ``d_deg``.
 
         INPUT: 
+
         - ``m`` -- a univariate polynomial
+
         - ``n_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`.
-        - ``d_deg`` -- an integer or `None`; if `None`, then it's value is set to `\rffloor (\deg(m) - 1)/2 \rfloor`.
+
+        - ``d_deg`` -- an integer or `None`; if `None`, then it's value is set to `\lfloor (\deg(m) - 1)/2 \rfloor`.
 
         ALGORITHM: 
         The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor.

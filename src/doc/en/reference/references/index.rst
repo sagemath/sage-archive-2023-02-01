@@ -215,7 +215,7 @@ REFERENCES:
 .. [Ber1991] \C. Berger, "Une version effective du théorème de
              Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
 
-.. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm 
+.. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
@@ -549,7 +549,7 @@ REFERENCES:
              Cambridge University Press, 1997.
 
 .. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
-             unit equation." International Mathematics Research Notices 
+             unit equation." International Mathematics Research Notices
              2016.17 (2016): 5291-5354.
 
 

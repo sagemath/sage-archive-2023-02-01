@@ -49,6 +49,9 @@ AUTHORS:
 - Ralf Stephan (2015): Rewrite of convolution() and other calculus
   functions; many doctest adaptations
 
+- Eric Gourgoulhon (2017): Improve documentation and user interface of
+  Fourier series
+
 TESTS::
 
     sage: fast_callable(f, vars=[x])(0.5)

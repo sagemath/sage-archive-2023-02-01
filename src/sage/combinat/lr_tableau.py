@@ -32,7 +32,6 @@ from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
 from sage.combinat.partition import Partition, Partitions
-from sage.libs.symmetrica.all import kostka_tab
 
 class LittlewoodRichardsonTableau(SemistandardTableau):
     r"""

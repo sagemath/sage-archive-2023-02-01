@@ -7853,7 +7853,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def rational_reconstruct(self, m, n_deg=None, d_deg=None):
         r"""
-        Return a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m` and `\deg(n) \leq ` ``n_deg`` and `\deg(d) \leq` ``d_deg``.
+        Return a tuple of two polynomials `(n, d)` where ``self`` `* d` is congruent to `n` modulo `m` and `\deg(n) \leq` ``n_deg`` and `\deg(d) \leq` ``d_deg``.
 
         INPUT: 
 
@@ -7935,7 +7935,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print(((p*d - n) % m ).is_zero())
             True
 
-        Over `\Q_5`::
+        Over `\QQ_5`::
 
             sage: x = PolynomialRing(Qp(5),'x').gen()
             sage: p = 4*x^5 + 3*x^4 + 2*x^3 + 2*x^2 + 4*x + 2

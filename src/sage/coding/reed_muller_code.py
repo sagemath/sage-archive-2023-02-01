@@ -72,7 +72,7 @@ def _binomial_sum(n, k):
 def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
     r"""
     Returns `f \in \GF{q}[X_1,...,X_m]` such that `f(\mathbf a) = v[i(\mathbf a)]`
-    for all `\mathbf a \in \GF{q^m}`, where `v \in GF{q}{qm}` is a given
+    for all `\mathbf a \in \GF{q^m}`, where `v \in \GF{q}^{q^m}` is a given
     vector of evaluations, and `i(a)` is a specific ordering of `GF{q^m}` (see below for details)
 
     The ordering `i(a)` is the one used by Sage when listing the elements

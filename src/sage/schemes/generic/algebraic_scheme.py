@@ -1270,9 +1270,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [   y -2*x    w    0]
             [   z   -y   -x    w]
             [   0    z -2*y    x]
-            
+
         This example addresses ticket :trac:`20512`::
-        
+
             sage: X = P3.subscheme([])
             sage: X.Jacobian_matrix().base_ring() == P3.coordinate_ring()
             True
@@ -1320,9 +1320,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: twisted_cubic.defining_ideal()
             Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
             in w, x, y, z over Rational Field
-        
+
         This example addresses ticket :trac:`20512`::
-        
+
             sage: X = P3.subscheme([])
             sage: X.Jacobian() == P3.coordinate_ring().unit_ideal()
             True
@@ -2416,7 +2416,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P is sent to the origin
-        # and then compute the multiplicity of the local ring of the translated subscheme 
+        # and then compute the multiplicity of the local ring of the translated subscheme
         # corresponding to the point (0,...,0)
         AA = self.ambient_space()
         chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]
@@ -4745,7 +4745,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: X.is_nondegenerate()
             False
-        
+
         A K3 surface in `\mathbf{P}^1 \times \mathbf{P}^1 \times \mathbf{P}^1`::
 
             sage: diamond = lattice_polytope.cross_polytope(3)
@@ -4761,7 +4761,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: X.is_nondegenerate()
             False
-        
+
         Taking a random change of variables breaks the symmetry, but makes the surface nondegenerate::
 
             sage: F1 = F.subs(z0 = 1*z0 + 1*z3, z3 = 1*z0 + 2*z3,\
@@ -4783,10 +4783,10 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: Y = X.subscheme([g])
             sage: Y.is_nondegenerate()
             False
-            
+
 
         TESTS:
-        
+
         Some corner cases discussed at :trac:`15239`::
             sage: P2.<x,y,z> = toric_varieties.P2()
             sage: P2.subscheme([]).is_nondegenerate()
@@ -4829,7 +4829,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
     def is_schon(self):
         r"""
         Check if ``self`` is schon (nondegenerate).
-        
+
         See `is_nondegenerate` for further documentation.
 
         EXAMPLES::
@@ -4840,7 +4840,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             True
             sage: X.is_schon()
             False
-    
+
         """
         return self.is_nondegenerate()
 
@@ -5027,6 +5027,3 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
             self._smooth = self.affine_algebraic_patch().is_smooth()
 
         return self._smooth
-
-
-

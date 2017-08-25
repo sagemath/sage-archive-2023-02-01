@@ -2367,7 +2367,21 @@ cdef class GapElement_List(GapElement):
             sage: l = libgap.eval('[[[0,1],[2,3]],[[4,5], [6,7]]]')
             sage: l[0,1,0] = -18
             sage: l
-            [ [ [ 0, 1 ], [ 2, -18 ] ], [ [ 4, 5 ], [ 6, 7 ] ] ]
+            [ [ [ 0, 1 ], [ -18, 3 ] ], [ [ 4, 5 ], [ 6, 7 ] ] ]
+            sage: l[0,0,0,0]
+            Traceback (most recent call last):
+            ...
+            ValueError: too many indices
+
+        TESTS::
+
+            sage: m = libgap.eval('[[0,0],[0,0]]')
+            sage: m[0,0] = 1
+            sage: m[0,1] = 2
+            sage: m[1,0] = 3
+            sage: m[1,1] = 4
+            sage: m
+            [ [ 1, 2 ], [ 3, 4 ] ]
         """
         cdef int j
         cdef libGAP_Obj obj = self.value
@@ -2381,6 +2395,7 @@ cdef class GapElement_List(GapElement):
                 obj = libGAP_ELM_LIST(obj, j+1)
             if not libGAP_IS_LIST(obj):
                 raise ValueError('too many indices')
+            j = i[-1]
         else:
             j = i
 

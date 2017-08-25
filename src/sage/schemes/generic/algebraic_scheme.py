@@ -4784,10 +4784,19 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: Y.is_nondegenerate()
             False
 
+        It handles nonzero characteristic::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: f = x^5 + 2*x*y^4 + y^5 - 2*y^3*z^2 + x*z^4 - 2*z^5
+            sage: P2.change_ring(GF(5)).subscheme([f]).is_nondegenerate()
+            True
+            sage: P2.change_ring(GF(7)).subscheme([f]).is_nondegenerate()
+            False
 
         TESTS:
 
         Some corner cases discussed at :trac:`15239`::
+
             sage: P2.<x,y,z> = toric_varieties.P2()
             sage: P2.subscheme([]).is_nondegenerate()
             False
@@ -4824,6 +4833,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
                 ideal1, ideal2 = restrict(cone)
                 if ideal1.is_zero() or ideal2.dimension() != -1:
                     return False
+
         return True
 
     def is_schon(self):

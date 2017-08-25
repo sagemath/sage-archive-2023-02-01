@@ -7901,7 +7901,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor
+        The algorithm is based on the extended Euclidean algorithm for the polynomial greatest common divisor.
 
         EXAMPLES:
 

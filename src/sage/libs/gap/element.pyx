@@ -2288,7 +2288,7 @@ cdef class GapElement_List(GapElement):
         Return the ``i``-th element of the list.
 
         As usual in Python, indexing starts at `0` and not at `1` (as
-        in GAP). This can also be used with multi indices.
+        in GAP). This can also be used with multi-indices.
 
         INPUT:
 
@@ -2345,7 +2345,7 @@ cdef class GapElement_List(GapElement):
 
     def __setitem__(self, i, elt):
         r"""
-        Set the i-th item of this list
+        Set the ``i``-th item of this list
 
         EXAMPLES::
 
@@ -2362,7 +2362,7 @@ cdef class GapElement_List(GapElement):
             sage: l
             [ 3, 1,,,,,,,,,,, -2 ]
 
-        This function also handles multiindices::
+        This function also handles multi-indices::
 
             sage: l = libgap.eval('[[[0,1],[2,3]],[[4,5], [6,7]]]')
             sage: l[0,1,0] = -18

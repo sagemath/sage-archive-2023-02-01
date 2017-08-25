@@ -301,12 +301,12 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             sage: H = End(Z)
             sage: f = H([a^3, b^3, x^2, y^2, z^2])
             sage: type(f.as_dynamical_system())
-            <class 'sage.dynamics.arithmetic_dynamics.product_projective_ds.DynamicalSystem_product_projective_ring'>
+            <class 'sage.dynamics.arithmetic_dynamics.product_projective_ds.DynamicalSystem_product_projective'>
         """
         if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
-        from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective_ring
-        return DynamicalSystem_product_projective_ring(list(self), self.domain())
+        from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective
+        return DynamicalSystem_product_projective(list(self), self.domain())
 
     def nth_iterate(self, P, n, normalize=False):
         """

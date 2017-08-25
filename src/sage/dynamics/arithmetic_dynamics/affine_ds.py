@@ -124,7 +124,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         sage: DynamicalSystem_affine(t^2 - 1)
         Dynamical System of Affine Space of dimension 1 over Integer Ring
           Defn: Defined on coordinates by sending (t) to
-                (-1, 0, 1)
+                (t^2 - 1)
 
     ::
 
@@ -235,7 +235,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             if domain != morphism_or_polys.codomain():
                 raise ValueError('domain and codomain do not agree')
             if R not in Fields():
-                return typecall(cls, morphism_or_polys, domain)
+                return typecall(cls, polys, domain)
             if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(polys, domain)
             return DynamicalSystem_affine_field(polys, domain)
@@ -294,7 +294,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             raise ValueError('"domain" must be an affine scheme')
 
         if R not in Fields():
-            return typecall(cls, morphism_or_polys, domain)
+            return typecall(cls, polys, domain)
         if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(polys, domain)
         return DynamicalSystem_affine_field(polys, domain)

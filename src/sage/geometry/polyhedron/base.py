@@ -4365,14 +4365,14 @@ class Polyhedron_base(Element):
             1
 
             sage: Dexact = polytopes.dodecahedron()
-            sage: Dinexact = polytopes.dodecahedron(exact=False)
-            sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal')
             sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
             sage: v = Dexact.faces(2)[4].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
-            sage: RDF(v)    # abs tol 1e9
+            sage: RDF(v)    # abs tol 1e-9
             1.53406271079044
+
+            sage: Dinexact = polytopes.dodecahedron(exact=False)
             sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
             1.534062710738235
 

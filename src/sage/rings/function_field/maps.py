@@ -334,9 +334,11 @@ class FunctionFieldIsomorphism(Morphism):
         r"""
         Compare this map to ``other``.
 
-        This implementation assumes that this isomorphism is defined by its
-        domain and codomain. Isomorphisms for which this is not true must
-        override this implementation.
+        .. NOTE::
+
+            This implementation assumes that this isomorphism is defined by its
+            domain and codomain. Isomorphisms for which this is not true must
+            override this implementation.
 
         EXAMPLES::
 

@@ -54,7 +54,11 @@ cdef extern from "<gap/gap.h>":
 
 cdef extern from "<gap/objects.h>":
     ctypedef void* libGAP_Obj
+    bint libGAP_IS_MUTABLE_OBJ(libGAP_Obj obj)
+    bint libGAP_IS_COPYABLE_OBJ(libGAP_Obj obj)
     libGAP_Obj libGAP_SHALLOW_COPY_OBJ(libGAP_Obj obj)
+    libGAP_Obj libGAP_CopyObj(libGAP_Obj obj, int mut)
+
     bint libGAP_IS_INTOBJ(libGAP_Obj obj)
     libGAP_Obj libGAP_INTOBJ_INT(libGAP_Int)
     libGAP_Int libGAP_INT_INTOBJ(libGAP_Obj)

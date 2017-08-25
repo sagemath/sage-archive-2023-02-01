@@ -2681,12 +2681,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: Matrix(ZZ, 1,1,[0]).LLL_gram()
             Traceback (most recent call last):
             ...
-            ValueError: qflllgram did not return a square matrix, perhaps the matrix is not positive definite
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
 
             sage: Matrix(ZZ,2,2,[0,1,1,0]).LLL_gram()
             Traceback (most recent call last):
             ...
-            ValueError: qflllgram did not return a square matrix, perhaps the matrix is not positive definite
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
 
         or by running forever::
 

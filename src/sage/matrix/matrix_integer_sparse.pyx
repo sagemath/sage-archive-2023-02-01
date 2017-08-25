@@ -549,19 +549,28 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
 
-    def smith_form(self):
+    def smith_form(self, transformation=True, integral=None):
         r"""
-        Returns matrices S, U, and V such that S = U\*self\*V, and S is in
-        Smith normal form. Thus S is diagonal with diagonal entries the
-        ordered elementary divisors of S.
+        Return the smith normal form of this matrix, that is the diagonal
+        matrix `S` with diagonal entries the ordered elementary divisors of
+        this matrix.
+
+        INPUT:
+
+        - ``transformation`` -- a boolean (default: ``True``); whether to
+          return the transformation matrices `U` and `V` such that `S = U\cdot
+          self\cdot V`.
+
+        - ``integral`` -- a subring of the base ring or ``True`` (default:
+          ``None``); ignored for matrices with integer entries.
 
         This version is for sparse matrices and simply makes the matrix
         dense and calls the version for dense integer matrices.
 
-        .. warning::
+        .. NOTE::
 
-           The elementary_divisors function, which returns the
-           diagonal entries of S, is VASTLY faster than this function.
+           The :meth:`elementary_divisors` function, which returns the diagonal
+           entries of S, is VASTLY faster than this function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of this matrix. They are ordered in
@@ -615,4 +624,4 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
            :meth:`elementary_divisors`
         """
-        return self.dense_matrix().smith_form()
+        return self.dense_matrix().smith_form(transformation=transformation)

@@ -29,6 +29,8 @@ speed, we provide a class that wraps our struct.
 #  Copyright 2010, Tom Boothby
 from __future__ import print_function
 
+cimport cython
+
 from cpython.list cimport *
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -182,6 +184,87 @@ def permutation_iterator_transposition_list(int n):
     return T
 
 
+#####################################################################
+## iterator-type method for getting the next permutation
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+cpdef next_perm(list l):
+    """
+    Obtain the next permutation under lex order of ``l``
+    by mutating ``l``.
+
+    Algorithm based on:
+    http://marknelson.us/2002/03/01/next-permutation/
+
+    INPUT:
+
+    - ``l`` -- a list
+
+    .. WARNING::
+
+        This method mutates the list ``l``.
+
+    OUTPUT:
+
+    boolean; whether another permutation was obtained
+
+    EXAMPLES::
+
+        sage: from sage.combinat.permutation_cython import next_perm
+        sage: L = [1, 1, 2, 3]
+        sage: while next_perm(L):
+        ....:     print(L)
+        [1, 1, 3, 2]
+        [1, 2, 1, 3]
+        [1, 2, 3, 1]
+        [1, 3, 1, 2]
+        [1, 3, 2, 1]
+        [2, 1, 1, 3]
+        [2, 1, 3, 1]
+        [2, 3, 1, 1]
+        [3, 1, 1, 2]
+        [3, 1, 2, 1]
+        [3, 2, 1, 1]
+    """
+    cdef int n = len(l)
+
+    if n <= 1:
+        return False
+
+    cdef int one = n - 2
+    cdef int two = n - 1
+    cdef int j   = n - 1
+
+    # Starting from the end, find the first o such that
+    #   l[o] < l[o+1]
+    while two > 0 and l[one] >= l[two]:
+        one -= 1
+        two -= 1
+
+    if two == 0:
+        return False
+
+    #starting from the end, find the first j such that
+    #l[j] > l[one]
+    while l[j] <= l[one]:
+        j -= 1
+
+    #Swap positions one and j
+    t = l[one]
+    PyList_SET_ITEM(l, one, l[j])
+    PyList_SET_ITEM(l, j, t)
+
+    #Reverse the list between two and last
+    #mset_list = mset_list[:two] + [x for x in reversed(mset_list[two:])]
+    n -= 1 # In the loop, we only need n-1, so just do it once here
+    cdef int i
+    for i in xrange((n+1 - two) // 2 - 1, -1, -1):
+        t = l[i + two]
+        PyList_SET_ITEM(l, i + two, l[n - i])
+        PyList_SET_ITEM(l, n - i, t)
+
+    return True
 
 
 #####################################################################

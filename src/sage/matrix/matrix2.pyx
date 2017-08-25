@@ -13201,7 +13201,7 @@ cdef class Matrix(Matrix1):
         The matrices `S, U, V` or the matrix `S` depending on
         ``transformation``.
 
-        ALGORITHM: 
+        ALGORITHM:
 
         If the base ring has a method ``_matrix_smith_form``, use it; note that
         ``_matrix_smith_form`` might choose to further normalize the output,

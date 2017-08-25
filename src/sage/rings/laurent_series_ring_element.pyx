@@ -561,7 +561,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: x = t^(-1) + t^2 + O(t^5)
             sage: x.lift_to_precision(10)
             sage: x.lift_to_precision()
-            t^-1 + t^2 
+            t^-1 + t^2
         """
         if absprec is not None and absprec <= self.precision_absolute():
             return self
@@ -1173,7 +1173,7 @@ cdef class LaurentSeries(AlgebraElement):
     def precision_relative(self):
         """
         Return the relative precision of this series, that
-        is the difference between its absolute precision  
+        is the difference between its absolute precision
         and its valuation.
 
         By convention, the relative precision of `0` (or

@@ -6,16 +6,16 @@ A dynamical system of projective schemes determined by homogeneous
 polynomials functions that define what the morphism does on points
 in the ambient projective space.
 
-The main constructor functions are given by ``DynamicalSystem`` and
-``DynamicalSystem_projective``. The constructors function can take either
+The main constructor functions are given by :class:`DynamicalSystem` and
+:class:`DynamicalSystem_projective`. The constructors function can take either
 polynomials or a morphism from which to construct a dynamical system.
 If the domain is not specified, it is constructed. However, if you plan on
 working with points or subvarieties in the domain, it recommended to specify
 the domain.
 
-The initialization checks are always performed by the constructor functions. It is
-possible, but not recommended, to skip these checks by calling the class initialization
-directly.
+The initialization checks are always performed by the constructor functions.
+It is possible, but not recommended, to skip these checks by calling the
+class initialization directly.
 
 AUTHORS:
 
@@ -59,7 +59,6 @@ from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import End
-from sage.combinat.sf.sf import SymmetricFunctions
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.functions.all import sqrt
 from sage.functions.other import ceil
@@ -72,11 +71,10 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer, CIF
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
-from sage.rings.finite_rings.finite_field_constructor import GF, is_PrimeFiniteField
+from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
+                                                              is_PrimeFiniteField)
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.rings.fraction_field import FractionField
-from sage.rings.fraction_field import is_FractionField
+from sage.rings.fraction_field import (FractionField, is_FractionField)
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
@@ -86,20 +84,18 @@ from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRi
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.qqbar import QQbar
-from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.qqbar import QQbar
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
-from sage.rings.real_mpfr import RealField
-from sage.rings.real_mpfr import is_RealField
+from sage.rings.real_mpfr import (RealField, is_RealField)
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_morphism import SchemeMorphism_polynomial_projective_space
-from sage.schemes.projective.projective_morphism import SchemeMorphism_polynomial_projective_space_field
-from sage.schemes.projective.projective_morphism import SchemeMorphism_polynomial_projective_space_finite_field
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
-from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_morphism import (
+    SchemeMorphism_polynomial_projective_space,
+    SchemeMorphism_polynomial_projective_space_field,
+    SchemeMorphism_polynomial_projective_space_finite_field)
+from sage.schemes.projective.projective_space import (ProjectiveSpace,
+                                                      is_ProjectiveSpace)
 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
 from sage.symbolic.constants import e
 from copy import copy
@@ -109,9 +105,6 @@ from sage.dynamics.arithmetic_dynamics.projective_ds_helper import _fast_possibl
 from sage.sets.set import Set
 from sage.combinat.permutation import Arrangements
 from sage.combinat.subset import Subsets
-from sage.categories.number_fields import NumberFields
-_NumberFields = NumberFields()
-from sage.rings.number_field.number_field import NumberField
 from sage.symbolic.ring import SR
 
 class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
@@ -358,7 +351,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 return DynamicalSystem_projective_finite_field(polys, domain)
             return DynamicalSystem_projective_field(polys, domain)
 
-        if isinstance(morphism_or_polys,(list, tuple)):
+        if isinstance(morphism_or_polys, (list, tuple)):
             polys = list(morphism_or_polys)
             if len(polys) == 1:
                 raise ValueError("list/tuple must have at least 2 polynomials")
@@ -372,8 +365,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             # homogenize!
             f = morphism_or_polys
             aff_CR = f.parent()
-            if not is_PolynomialRing(aff_CR) and not is_FractionField(aff_CR)\
-                and not (is_MPolynomialRing(aff_CR) and aff_CR.ngens() == 1):
+            if (not is_PolynomialRing(aff_CR) and not is_FractionField(aff_CR)
+                and not (is_MPolynomialRing(aff_CR) and aff_CR.ngens() == 1)):
                 msg = '{} is not a single variable polynomial or rational function'
                 raise ValueError(msg.format(f))
             if is_FractionField(aff_CR):
@@ -385,7 +378,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 names = ('X','Y')
             elif len(names) != 2:
                 raise ValueError('specify 2 variable names')
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             proj_CR = PolynomialRing(aff_CR.base_ring(), names=names)
             X,Y = proj_CR.gens()
             polys = [proj_CR(Y**d * poly(X/Y)) for poly in polys]
@@ -463,22 +455,23 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         """
         return DynamicalSystem_projective(self._polys, self.domain())
 
-
     def dehomogenize(self, n):
         r"""
-        Return the standard dehomogenization at the ``n[0]`` coordinate for the domain
-        and the ``n[1]`` coordinate for the codomain.
+        Return the standard dehomogenization at the ``n[0]`` coordinate
+        for the domain and the ``n[1]`` coordinate for the codomain.
 
         Note that the new function is defined over the fraction field
         of the base ring of this map.
 
         INPUT:
 
-        - ``n`` -- a tuple of nonnegative integers.  If ``n`` is an integer, then the two values of
-          the tuple are assumed to be the same
+        - ``n`` -- a tuple of nonnegative integers; if ``n`` is an integer,
+          then the two values of the tuple are assumed to be the same
 
-        OUTPUT: :class:`DynamicalSystem_affine`, given by dehomogenizing the
-        source and target of `self` with respect to the given indices
+        OUTPUT:
+
+        :class:`DynamicalSystem_affine` given by dehomogenizing the
+        source and target of `self` with respect to the given indices.
 
         EXAMPLES::
 
@@ -494,14 +487,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def dynatomic_polynomial(self, period):
         r"""
-        For a dynamical system of `\mathbb{P}^1` compute the dynatomic polynomial.
+        For a dynamical system of `\mathbb{P}^1` compute the dynatomic
+        polynomial.
 
         The dynatomic polynomial is the analog of the cyclotomic
-        polynomial and its roots are the points of formal period `period`. If possible
-        the division is done in the coordinate ring of this map and a polynomial is
-        returned. In rings where that is not possible, a FractionField element will
-        be returned. In certain cases, when the conversion back to a polynomial fails,
-        a SymbolRing element will be returned.
+        polynomial and its roots are the points of formal period `period`.
+        If possible the division is done in the coordinate ring of this
+        map and a polynomial is returned. In rings where that is not
+        possible, a :class:`FractionField` element will be returned.
+        In certain cases, when the conversion back to a polynomial fails,
+        a :class:`SymbolRing` element will be returned.
 
         ALGORITHM:
 
@@ -510,7 +505,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         .. MATH::
 
-            \Phi^{\ast}_n(f)(x,y) = \sum_{d \mid n} (yF_d(x,y) - xG_d(x,y))^{\mu(n/d)}
+            \Phi^{\ast}_n(f)(x,y) = \sum_{d \mid n}
+                (yF_d(x,y) - xG_d(x,y))^{\mu(n/d)},
 
         where `\mu` is the Möbius function.
 
@@ -518,12 +514,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         .. MATH::
 
-            \Phi^{\ast}_{m,n}(f)(x,y) = \Phi^{\ast}_n(f)(F_m,G_m)/\Phi^{\ast}_n(f)(F_{m-1},G_{m-1})
+            \Phi^{\ast}_{m,n}(f)(x,y) = \Phi^{\ast}_n(f)(F_m,G_m) / 
+                \Phi^{\ast}_n(f)(F_{m-1},G_{m-1})
 
         REFERENCES:
 
         - [Hutz2015]_
-
         - [MoPa1994]_
 
         INPUT:
@@ -531,15 +527,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``period`` -- a positive integer or a list/tuple `[m,n]` where
           `m` is the preperiod and `n` is the period
 
-        OUTPUT: If possible, a two variable polynomial in the coordinate ring of this map.
-        Otherwise a fraction field element of the coordinate ring of this map. Or,
-        a Symbolic Ring element
+        OUTPUT:
+
+        If possible, a two variable polynomial in the coordinate ring
+        of this map. Otherwise a fraction field element of the coordinate
+        ring of this map. Or, a :class:`SymbolicRing` element.
 
         .. TODO::
 
-            - Do the division when the base ring is p-adic so that the output is a polynomial
+            - Do the division when the base ring is `p`-adic so that
+              the output is a polynomial.
 
-            - Convert back to a polynomial when the base ring is a function field (not over `\QQ` or `F_p`)
+            - Convert back to a polynomial when the base ring is a
+              function field (not over `\QQ` or `F_p`).
 
         EXAMPLES::
 
@@ -685,7 +685,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         TESTS:
 
-        We check that the dynatomic polynomial has the right parent (see :trac:`18409`)::
+        We check that the dynatomic polynomial has the right
+        parent (see :trac:`18409`)::
 
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: f = DynamicalSystem_projective([x^2 - 1/3*y^2, y^2])
@@ -748,7 +749,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Multivariate Polynomial Ring in x, y over Univariate Polynomial Ring in
             c over Rational Field
 
-        Some rings still return Symoblic Ring elements::
+        Some rings still return :class:`SymoblicRing` elements::
 
             sage: S.<t> = FunctionField(CC)
             sage: P.<x,y> = ProjectiveSpace(S,1)
@@ -803,7 +804,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             return PHI
         except (TypeError, NotImplementedError): # something Singular can't handle
             if m != 0:
-                PHI = PHI(fm._polys)/PHI(fm1._polys)
+                PHI = PHI(fm._polys) / PHI(fm1._polys)
         #even when the ring can be passed to singular in quo_rem,
         #it can't always do the division, so we call Maxima
         from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
@@ -831,16 +832,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         Uses a form of successive squaring to reducing computations.
 
-
         .. TODO:: This could be improved.
 
         INPUT:
 
-        - ``n`` -- a positive integer
+        - ``n`` -- positive integer
 
-        - ``normalize`` -- a boolean, remove gcd's during iteration
+        - ``normalize`` -- boolean; remove gcd's during iteration
 
-        OUTPUT: A projective dynamical system
+        OUTPUT: a projective dynamical system
 
         EXAMPLES::
 
@@ -941,7 +941,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``normalize`` -- (default: ``False``) boolean
 
-        OUTPUT: A point in this map's codomain
+        OUTPUT: a point in this map's codomain
 
         EXAMPLES::
 
@@ -1088,9 +1088,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         INPUT:
 
-        - ``N`` -- (default: 3) positive integer, iterate to use for approximation
+        - ``N`` -- (default: 3) positive integer, iterate to use
+          for approximation
 
-        - ``prec`` -- (default: 53) positive integer, real precision to use when computing root
+        - ``prec`` -- (default: 53) positive integer, real precision
+          to use when computing root
 
         OUTPUT: real number
 
@@ -1125,21 +1127,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Let `F` be this dynamical system. If ``N`` is an integer return
         `[P,F(P),\ldots,F^N(P)]`. If ``N`` is a list or tuple `N=[m,k]`
         return `[F^m(P),\ldots,F^k(P)]`.
-        Automatically normalize the points if ``normalize=True``. Perform the checks on
-        point initialization if ``check=True``.
+        Automatically normalize the points if ``normalize=True``. Perform
+        the checks on point initialization if ``check=True``.
 
         INPUT:
 
         - ``P`` -- a point in this dynamical system's domain
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers
+        - ``n`` -- a non-negative integer or list or tuple of two
+          non-negative integers
 
         kwds:
 
         - ``check`` --  (default: ``True``) boolean
 
         - ``normalize`` -- (default: ``False``) boolean
-
 
         OUTPUT: a list of points in this dynamical system's codomain
 
@@ -1249,7 +1251,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def resultant(self, normalize=False):
         r"""
-        Computes the resultant of the defining polynomials of this dynamical system.
+        Computes the resultant of the defining polynomials of
+        this dynamical system.
 
         If ``normalize`` is ``True``, then first normalize the coordinate
         functions with :meth:`normalize_coordinates`.
@@ -1315,7 +1318,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             #however the coercion from a Pari object to a sage object breaks
             #in the case of QQbar, so we just pass it into the macaulay resultant
             try:
-                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f.__pari__().polresultant(g, x))
+                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree())
+                       * f.__pari__().polresultant(g, x))
                 return(self.domain().base_ring()(res))
             except (TypeError, PariError):
                 pass
@@ -1327,11 +1331,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     @cached_method
     def primes_of_bad_reduction(self, check=True):
         r"""
-        Determines the primes of bad reduction for this dynamical system.
+        Determine the primes of bad reduction for this dynamical system.
 
         Must be defined over a number field.
 
-        If ``check`` is ``True``, each prime is verified to be of bad reduction.
+        If ``check`` is ``True``, each prime is verified to be of
+        bad reduction.
 
         ALGORITHM:
 
@@ -1377,14 +1382,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         This is an example where check = False returns extra primes::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: f = DynamicalSystem_projective([3*x*y^2 + 7*y^3 - 4*y^2*z + 5*z^3, -5*x^3 + x^2*y + y^3 + 2*x^2*z,\
-                -2*x^2*y + x*y^2 + y^3 - 4*y^2*z + x*z^2])
+            sage: f = DynamicalSystem_projective([3*x*y^2 + 7*y^3 - 4*y^2*z + 5*z^3,
+            ....:                                 -5*x^3 + x^2*y + y^3 + 2*x^2*z,
+            ....:                                 -2*x^2*y + x*y^2 + y^3 - 4*y^2*z + x*z^2])
             sage: f.primes_of_bad_reduction(False)
             [2, 5, 37, 2239, 304432717]
             sage: f.primes_of_bad_reduction()
             [5, 37, 2239, 304432717]
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if (not is_ProjectiveSpace(self.domain())) or (not is_ProjectiveSpace(self.codomain())):
             raise NotImplementedError("not implemented for subschemes")
         K = FractionField(self.codomain().base_ring())
@@ -1447,7 +1452,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def conjugate(self, M):
         r"""
-        Conjugates this dynamical system by ``M``, i.e. `M^{-1} \circ f \circ M`.
+        Conjugate this dynamical system by ``M``, i.e. `M^{-1} \circ f \circ M`.
 
         If possible the new map will be defined over the same space.
         Otherwise, will try to coerce to the base ring of ``M``.
@@ -1507,35 +1512,36 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
               Defn: Defined on coordinates by sending (x : y) to
                     ((1/3*i)*x^2 + (1/2*i)*y^2 : (-i)*y^2)
         """
-        if M.is_square() == 1 and M.determinant() != 0 and\
-            M.ncols() == self.domain().ambient_space().dimension_relative() + 1:
-            X = M * vector(self[0].parent().gens())
-            F = vector(self._polys)
-            F = F(list(X))
-            N = M.inverse()
-            F = N * F
-            R = self.codomain().ambient_space().coordinate_ring()
-            try:
-                F = [R(f) for f in F]
-                PS = self.codomain()
-            except TypeError: #no longer defined over same ring
-                R = R.change_ring(M.base_ring())
-                F = [R(f) for f in F]
-                PS = self.codomain().change_ring(M.base_ring())
-            return DynamicalSystem_projective(F, domain=PS)
-        else:
-            raise TypeError("matrix must be invertible and size dimension +1")
+        if not (M.is_square() == 1 and M.determinant() != 0
+            and M.ncols() == self.domain().ambient_space().dimension_relative() + 1):
+            raise TypeError("matrix must be invertible and size dimension + 1")
+        X = M * vector(self[0].parent().gens())
+        F = vector(self._polys)
+        F = F(list(X))
+        N = M.inverse()
+        F = N * F
+        R = self.codomain().ambient_space().coordinate_ring()
+        try:
+            F = [R(f) for f in F]
+            PS = self.codomain()
+        except TypeError: #no longer defined over same ring
+            R = R.change_ring(M.base_ring())
+            F = [R(f) for f in F]
+            PS = self.codomain().change_ring(M.base_ring())
+        return DynamicalSystem_projective(F, domain=PS)
 
     def green_function(self, P, v, **kwds):
         r"""
-        Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms
-        of the series or to within a given error bound.
+        Evaluate the local Green's function at the place ``v`` for ``P``
+        with ``N`` terms of the series or to within a given error bound.
 
-        Must be over a number field or order of a number field. Note that this is
-        the absolute local Green's function so is scaled by the degree of the base field.
+        Must be over a number field or order of a number field. Note that
+        this is the absolute local Green's function so is scaled by the
+        degree of the base field.
 
-        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
-        places are prime ideals for number fields or primes over `\QQ`.
+        Use ``v=0`` for the archimedean place over `\QQ` or field embedding.
+        Non-archimedean places are prime ideals for number fields or primes
+        over `\QQ`.
 
         ALGORITHM:
 
@@ -1545,13 +1551,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``P`` -- a projective point
 
-        - ``v`` -- non-negative integer. a place, use v=0 for the archimedean place
+        - ``v`` -- non-negative integer. a place, use ``0`` for the
+          archimedean place
 
         kwds:
 
-        - ``N`` -- (optional - default: 10) positive integer. number of terms of the series to use
+        - ``N`` -- (optional - default: 10) positive integer. number of
+          terms of the series to use
 
-        - ``prec`` -- (default: 100) positive integer, float point or p-adic precision
+        - ``prec`` -- (default: 100) positive integer, float point or
+          `p`-adic precision
 
         - ``error_bound`` -- (optional) a positive real number
 
@@ -1596,7 +1605,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.green_function(P.point([1,1], False), 0, N=30)
             0.43288629610862338612700146098
         """
-        N = kwds.get('N', 10)                     #Get number of iterates (if entered)
+        N = kwds.get('N', 10)                       #Get number of iterates (if entered)
         err = kwds.get('error_bound', None)         #Get error bound (if entered)
         prec = kwds.get('prec', 100)                #Get precision (if entered)
         R = RealField(prec)
@@ -1621,14 +1630,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise ValueError("invalid valuation (=%s) entered"%v)
 
         #Coerce all polynomials in F into polynomials with coefficients in K
-        F = self.change_ring(K, check = False)
+        F = self.change_ring(K, check=False)
         d = F.degree()
         dim = F.codomain().ambient_space().dimension_relative()
-        Q = P.change_ring(K, check = False)
+        Q = P.change_ring(K, check=False)
 
         if err is not None:
             err = R(err)
-            if not err>0:
+            if not err > 0:
                 raise ValueError("error bound (=%s) must be positive"%err)
 
             #if doing error estimates, compute needed number of iterates
@@ -1671,7 +1680,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 L = R(Res / maxh).log().abs()
             C = max([U, L])
             if C != 0:
-                N = R(C/(err*(d-1))).log(d).abs().ceil()
+                N = R(C / (err*(d-1))).log(d).abs().ceil()
             else: #we just need log||P||_v
                 N=1
 
@@ -1706,28 +1715,29 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     j = n
                     m = Qv[n]
             # add to sum for the Green's function
-            localht += ((1/R(d))**R(i)) * (R(m).log())
+            localht += (1/R(d))**R(i) * (R(m).log())
             #get the next iterate
             if i < N:
-                Q.scale_by(1/Q[j])
+                Q.scale_by(1 / Q[j])
                 Q = F(Q, False)
-        return (1/BR.absolute_degree()) * localht
+        return (1 / BR.absolute_degree()) * localht
 
     def canonical_height(self, P, **kwds):
         r"""
-        Evaluates the (absolute) canonical height of ``P`` with respect to
+        Evaluate the (absolute) canonical height of ``P`` with respect to
         this dynamical system.
 
-        Must be over number field or order of a number field. Specify either
-        the number of terms of the series to evaluate or the error bound required.
+        Must be over number field or order of a number field. Specify
+        either the number of terms of the series to evaluate or the
+        error bound required.
 
         ALGORITHM:
 
-        The sum of the Green's function at the archimedean places and the places of
-        bad reduction.
+        The sum of the Green's function at the archimedean places and
+        the places of bad reduction.
 
-        If function is defined over ``QQ`` uses Wells' Algorithm, which allows us to
-        not have to factor the resultant.
+        If function is defined over `\QQ` uses Wells' Algorithm, which
+        allows us to not have to factor the resultant.
 
         INPUT:
 
@@ -1737,10 +1747,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``badprimes`` -- (optional) a list of primes of bad reduction
 
-        - ``N`` -- (optional - default: 10) positive integer. number of terms of the series to use
-          in the local green functions
+        - ``N`` -- (default: 10) positive integer. number of
+          terms of the series to use in the local green functions
 
-        - ``prec`` -- (default: 100 )positive integer, float point or p-adic precision
+        - ``prec`` -- (default: 100) positive integer, float point or
+          `p`-adic precision
 
         - ``error_bound`` -- (optional) a positive real number
 
@@ -1816,8 +1827,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             t = 1
             for c in coeffs:
                 t = lcm(t, c.denominator())
-            A = t*self[0]
-            B = t*self[1]
+            A = t * self[0]
+            B = t * self[1]
             Res = self.resultant(normalize=True)
             H = 0
             x_i = P[0]
@@ -1829,7 +1840,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             #computes the error bound as defined in Algorithm 3.1 of [WELLS]
             if Res > 1:
                 if not err is None:
-                    err = err/2
+                    err = err / 2
                     N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
                         N = 1
@@ -1839,14 +1850,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     x = A(x_i,y_i) % Res**(N-n)
                     y = B(x_i,y_i) % Res**(N-n)
                     g = gcd([x, y, Res])
-                    H = H + R(g).abs().log()/(d**(n+1))
-                    x_i = x/g
-                    y_i = y/g
+                    H = H + R(g).abs().log() / (d**(n+1))
+                    x_i = x / g
+                    y_i = y / g
             # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
             # and what Green's Function returns for the infinite place
             return self.green_function(P, 0 , **kwds) - H + R(t).log()
 
-        if not K in _NumberFields:
+        if not K in NumberFields():
             if not K is QQbar:
                 raise NotImplementedError("must be over a number field or a number field order or QQbar")
             else:
@@ -1885,7 +1896,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if not error_bound is None:
             error_bound /= num_places
         R = RealField(prec)
-        h = R(0)
+        h = R.zero()
 
         ##update the keyword dictionary for use in green_function
         kwds.update({"badprimes": bad_primes})
@@ -1897,15 +1908,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         # the function is_RealField does not identify RDF as real, so we test for that ourselves.
         for v in emb:
             if is_RealField(v.codomain()) or v.codomain() is RDF:
-                dv = R(1)
+                dv = R.one()
             else:
                 dv = R(2)
-            h += dv*f.green_function(Q, v, **kwds)       #arch Green function
+            h += dv * f.green_function(Q, v, **kwds)     #arch Green function
 
         # Non-Archimedean local heights
         for v in bad_primes:
             if K == QQ:
-                dv = R(1)
+                dv = R.one()
             else:
                 dv = R(v.residue_class_degree() * v.absolute_ramification_index())
             h += dv * f.green_function(Q, v, **kwds)  #non-arch Green functions
@@ -1914,8 +1925,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def height_difference_bound(self, prec=None):
         r"""
         Return an upper bound on the different between the canonical
-        height of a point with respect to this dynamical system and the absolute
-        height of the point.
+        height of a point with respect to this dynamical system and the
+        absolute height of the point.
 
         This map must be a morphism.
 
@@ -1926,7 +1937,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         INPUT:
 
-        - ``prec`` -- (default: RealField default) positive integer, float point precision
+        - ``prec`` -- (default: :class:`RealField` default)
+          positive integer, float point precision
 
         OUTPUT: a real number
 
@@ -1988,19 +2000,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
-            Res = 1
-            for j in range(len(CoeffPolys)):
-                if CoeffPolys[j] != 0:
-                    for i in range(len(CoeffPolys[j].coefficients())):
-                        Res = lcm(Res, abs(CoeffPolys[j].coefficients()[i].denominator()))
+            Res = lcm([1] + [abs(coeff.denominator()) for val in CoeffPolys
+                             for coeff in val.coefficients()])
             h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])
             MCP.append([Res, h]) #since we need to clear denominators
         maxh = 0
         gcdRes = 0
-        for k in range(len(MCP)):
-            gcdRes = gcd(gcdRes, MCP[k][0])
-            maxh = max(maxh, MCP[k][1])
-        L = abs( R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
+        for val in MCP:
+            gcdRes = gcd(gcdRes, val[0])
+            maxh = max(maxh, val[1])
+        L = abs(R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
         return(C / (d - 1))
 
@@ -2015,10 +2024,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``n`` -- a positive integer, the period of ``P``
 
-        - ``check`` -- (default: True) boolean, verify that ``P`` has period ``n``
+        - ``check`` -- (default: ``True``) boolean; verify that ``P``
+          has period ``n``
 
-        OUTPUT: a square matrix of size ``self.codomain().dimension_relative()``
-        in the ``base_ring`` of this dynamical system
+        OUTPUT:
+
+        A square matrix of size ``self.codomain().dimension_relative()``
+        in the ``base_ring`` of this dynamical system.
 
         EXAMPLES::
 
@@ -2099,12 +2111,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _multipliermod(self, P, n, p, k):
         r"""
-        Return the multiplier of the point ``P`` of period ``n`` with respect to
-        this dynamical system modulo `p^k`.
+        Return the multiplier of the point ``P`` of period ``n`` with
+        respect to this dynamical system modulo `p^k`.
 
-        This map must be an endomorphism of projective space defined over `\QQ` or '\ZZ'.
-        This function should not be used at the top level as it does not perform input checks.
-        It is used primarily for the rational preperiodic and periodic point algorithms.
+        This map must be an endomorphism of projective space defined
+        over `\QQ` or `\ZZ`. This function should not be used at the top
+        level as it does not perform input checks. It is used primarily
+        for the rational preperiodic and periodic point algorithms.
 
         INPUT:
 
@@ -2116,7 +2129,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``k`` -- a positive integer
 
-        OUTPUT: a square matrix of size ``self.codomain().dimension_relative()`` in `Zmod(p^k)`
+        OUTPUT:
+
+        A square matrix of size ``self.codomain().dimension_relative()``
+        in `\ZZ/(p^k)\ZZ`.
 
         EXAMPLES::
 
@@ -2171,19 +2187,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ALGORITHM:
 
-        Calls ``self.possible_periods()`` modulo all primes of good reduction in range
-        ``prime_bound``. Return the intersection of those lists.
+        Calls ``self.possible_periods()`` modulo all primes of good reduction
+        in range ``prime_bound``. Return the intersection of those lists.
 
         INPUT:
 
         kwds:
 
-        - ``prime_bound`` --  (optional - default: [1, 20]) a list or tuple of two positive integers.
-           Or an integer for the upper bound
+        - ``prime_bound`` --  (default: ``[1, 20]``) a list or tuple of
+           two positive integers or an integer for the upper bound
 
-        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes,
+          the primes of bad reduction
 
-        - ``ncpus`` --   (optional - default: all cpus) number of cpus to use in parallel
+        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
         OUTPUT: a list of positive integers
 
@@ -2210,20 +2227,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3, 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
+            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3,
+            ....:                                 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
             sage: f.possible_periods(prime_bound=10)
             [1, 2, 6, 20, 42, 60, 140, 420]
             sage: f.possible_periods(prime_bound=20) # long time
             [1, 20]
         """
-        if self.domain().base_ring() != ZZ and self.domain().base_ring() != QQ:
+        if self.domain().base_ring() not in [ZZ, QQ]:
             raise NotImplementedError("must be ZZ or QQ")
 
         primebound = kwds.pop("prime_bound", [1, 20])
         badprimes = kwds.pop("bad_primes", None)
         num_cpus = kwds.pop("ncpus", ncpus())
 
-        if (isinstance(primebound, (list, tuple)) == False):
+        if not isinstance(primebound, (list, tuple)):
             try:
                 primebound = [1, ZZ(primebound)]
             except TypeError:
@@ -2265,22 +2283,25 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if firstgood == 0:
             raise ValueError("no primes of good reduction in that range")
         else:
-            return(sorted(periods))
+            return sorted(periods)
 
     def _preperiodic_points_to_cyclegraph(self, preper):
         r"""
         Given the complete set of periodic or preperiodic points return the
         digraph representing the orbit.
 
-        If ``preper`` is not the complete set, this function will not fill in the gaps.
+        If ``preper`` is not the complete set, this function will not fill
+        in the gaps.
 
         INPUT:
 
-        - ``preper`` -- a list or tuple of projective points. The complete set
-          of rational periodic or preperiodic points
+        - ``preper`` -- a list or tuple of projective points; the complete
+          set of rational periodic or preperiodic points
 
-        OUTPUT: a digraph representing the orbit the rational preperiodic points
-        ``preper`` in projective space
+        OUTPUT:
+
+        A digraph representing the orbit the rational preperiodic points
+        ``preper`` in projective space.
 
         EXAMPLES::
 
@@ -2295,14 +2316,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         #We store the points we encounter is a list, D. Each new point is checked to
         #see if it is in that list (which uses ==) so that equal points with different
         #representations only appear once in the graph.
-        D=[]
-        for i in range(0, len(preper)):
+        D = []
+        for val in preper:
             try:
-                V.append(D[D.index(preper[i])])
+                V.append(D[D.index(val)])
             except ValueError:
-                D.append(preper[i])
-                V.append(preper[i])
-            Q = self(preper[i])
+                D.append(val)
+                V.append(val)
+            Q = self(val)
             Q.normalize_coordinates()
             try:
                 E.append([D[D.index(Q)]])
@@ -2315,15 +2336,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def is_PGL_minimal(self, prime_list=None):
         r"""
-        Checks if this dynamical system is a minimal model in its conjugacy class.
+        Check if this dynamical system is a minimal model in
+        its conjugacy class.
 
         See [BM2012]_ and [Mol2015]_ for a description of the algorithm.
 
         INPUT:
 
-        - ``prime_list`` -- list of primes to check minimality, if None, check all places
+        - ``prime_list`` -- (optional) list of primes to check minimality
 
-        OUTPUT: boolean -- True if this map is minimal, False otherwise
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -2363,26 +2385,29 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         r"""
         Determine if this dynamical system is minimal.
 
-        This dynamical system must be defined over the projective line over the
-        rationals. In particular, determine if this map is affine minimal, which is
-        enough to decide if it is minimal or not. See Proposition 2.10 in
-        [BM2012]_.
+        This dynamical system must be defined over the projective line
+        over the rationals. In particular, determine if this map is affine
+        minimal, which is enough to decide if it is minimal or not.
+        See Proposition 2.10 in [BM2012]_.
 
-        REFERENCES: [BM2012]_, [Mol2015]_
+        REFERENCES:
+
+        - [BM2012]_
+        - [Mol2015]_
 
         INPUT:
 
-        - ``return_transformation`` -- a boolean value, default value True. This
-                                    signals a return of the `PGL_2` transformation
-                                    to conjugate this map to the calculated minimal
-                                    model. default: False
+        - ``return_transformation`` -- (default: ``False``) boolean; this
+          signals a return of the `PGL_2` transformation to conjugate
+          this map to the calculated minimal model
 
-        - ``prime_list`` -- a list of primes, in case one only wants to determine minimality
-          at those specific primes
+        - ``prime_list`` -- (optional) a list of primes, in case one
+          only wants to determine minimality at those specific primes
 
         OUTPUT:
 
-        - a scheme morphism on the projective line which is a minimal model of this map
+        - a scheme morphism on the projective line which is a minimal model
+          of this map
 
         - a `PGL(2,\QQ)` element which conjugates this map to a minimal model
 
@@ -2404,16 +2429,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: PS.<X,Y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([7365/2*X^4 + 6282*X^3*Y + 4023*X^2*Y^2 + 1146*X*Y^3 + 245/2*Y^4,\
-             -12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
+            sage: f = DynamicalSystem_projective([7365/2*X^4 + 6282*X^3*Y + 4023*X^2*Y^2 + 1146*X*Y^3 + 245/2*Y^4,
+            ....:                                 -12329/2*X^4 - 10506*X^3*Y - 6723*X^2*Y^2 - 1914*X*Y^3 - 409/2*Y^4])
             sage: f.minimal_model(return_transformation=True)
             (
             Dynamical System of Projective Space of dimension 1 over Rational
             Field
               Defn: Defined on coordinates by sending (X : Y) to
-                    (22176*X^4 + 151956*X^3*Y + 390474*X^2*Y^2 + 445956*X*Y^3 +
-            190999*Y^4 : -12329*X^4 - 84480*X^3*Y - 217080*X^2*Y^2 - 247920*X*Y^3 -
-            106180*Y^4),
+                    (22176*X^4 + 151956*X^3*Y + 390474*X^2*Y^2 + 445956*X*Y^3 + 190999*Y^4
+                     : -12329*X^4 - 84480*X^3*Y - 217080*X^2*Y^2 - 247920*X*Y^3 - 106180*Y^4),
             [2 3]
             [0 1]
             )
@@ -2470,31 +2494,39 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Calculates the subgroup of `PGL2` that is the automorphism group
         of this dynamical system.
 
-        The automorphism group is the set of `PGL(2)` elements that fix this map
-        under conjugation.
+        The automorphism group is the set of `PGL(2)` elements that fixes
+        this map under conjugation.
 
         INPUT:
 
         keywords:
 
-        - ``starting_prime`` -- (optional - default: 5) The first prime to use for CRT
+        - ``starting_prime`` -- (default: 5) the first prime to use for CRT
 
-        - ``algorithm``-- (optional) Choose ``CRT``-Chinese Remainder Theorem- or ``fixed_points`` algorithm
+        - ``algorithm``-- (optional) can be one of the following:
 
-        - ``return_functions``-- (default: False) boolean - True returns elements as linear fractional transformations
-            False returns elements as `PGL2` matrices
+          * ``'CRT'`` - Chinese Remainder Theorem
+          * ``'fixed_points'`` - fixed points algorithm
 
-        - ``iso_type`` -- (default: False) boolean - True returns the isomorphism type of the automorphism group.
+        - ``return_functions``-- (default: ``False``) boolean; ``True``
+          returns elements as linear fractional transformations and
+          ``False`` returns elements as `PGL2` matrices
+
+        - ``iso_type`` -- (default: ``False``) boolean; ``True`` returns the
+          isomorphism type of the automorphism group
 
         OUTPUT: a list of elements in the automorphism group
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
+        - Original algorithm written by Xander Faber, Michelle Manes,
+          Bianca Viray
 
         - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
 
-        REFERENCES: [FMV2014]_
+        REFERENCES:
+
+        - [FMV2014]_
 
         EXAMPLES::
 
@@ -2561,7 +2593,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [0 1], [1 0], [1 0], [0 1], [     0      1], [     1      0]
             ]
         """
-
         alg = kwds.get('algorithm', None)
         p = kwds.get('starting_prime', 5)
         return_functions = kwds.get('return_functions', False)
@@ -2638,7 +2669,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             ...
             TypeError: the function is not a morphism
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         PS = self.domain()
         if not is_ProjectiveSpace(PS):
             raise NotImplementedError("not implemented for subschemes")
@@ -2680,7 +2710,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.critical_points(QQbar)
             [(-0.7071067811865475?*I : 1), (0.7071067811865475?*I : 1)]
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         PS = self.domain()
         if PS.dimension_relative() > 1:
             raise NotImplementedError("use .wronskian_ideal() for dimension > 1")
@@ -2697,15 +2726,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         r"""
         Determine if this dynamical system is post-critically finite.
 
-        Only for endomorphisms of `\mathbb{P}^1`. It checks if each critical point
-        is preperiodic. The optional parameter ``err`` is passed into
+        Only for endomorphisms of `\mathbb{P}^1`. It checks if each critical
+        point is preperiodic. The optional parameter ``err`` is passed into
         ``is_preperiodic()`` as part of the preperiodic check.
 
         INPUT:
 
-            - ``err`` -- (optional, Default: 0.01) positive real number
+        - ``err`` -- (default: 0.01) positive real number
 
-            - ``embedding`` -- embedding of base ring into `\QQbar`
+        - ``embedding`` -- embedding of base ring into `\QQbar`
 
         OUTPUT: boolean
 
@@ -2745,7 +2774,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         #Since is_preperiodic uses heights we need to be over a numberfield
         K = FractionField(self.codomain().base_ring())
-        if not K in _NumberFields and not K is QQbar:
+        if not K in NumberFields() and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
 
         if embedding is None:
@@ -2766,15 +2795,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         If this dynamical system  is post-critically finite, return its
         critical point portrait.
 
-        This is the directed graph of iterates starting with the critical points. Must be
-        dimension 1. If ``check`` is True, then the map is first checked to see if it is
-        postcritically finite.
+        This is the directed graph of iterates starting with the critical
+        points. Must be dimension 1. If ``check`` is ``True``, then the
+        map is first checked to see if it is postcritically finite.
 
         INPUT:
 
-            - check -- boolean
+        - ``check`` -- boolean
 
-            - ``embedding`` -- embedding of base ring into `\QQbar`
+        - ``embedding`` -- embedding of base ring into `\QQbar`
 
         OUTPUT: a digraph
 
@@ -2829,8 +2858,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Compute the critical height of this dynamical system.
 
         The critical height is defined by J. Silverman as
-        the sum of the canonical heights of the critical points. This must be dimension 1 and
-        defined over a number field or number field order.
+        the sum of the canonical heights of the critical points.
+        This must be dimension 1 and defined over a number field
+        or number field order.
 
         INPUT:
 
@@ -2838,16 +2868,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``badprimes`` -- (optional) a list of primes of bad reduction
 
-        - ``N`` -- (optional - Default: 10) positive integer. number of terms of the series
-          to use in the local green functions
+        - ``N`` -- (default: 10) positive integer; number of terms of
+          the series to use in the local green functions
 
-        - ``prec`` -- (default: 100) positive integer, float point or p-adic precision
+        - ``prec`` -- (default: 100) positive integer, float point
+          or `p`-adic precision
 
         - ``error_bound`` -- (optional) a positive real number
 
         - ``embedding`` -- (optional) the embedding of the base field to `\QQbar`
 
-        OUTPUT: Real number
+        OUTPUT: real number
 
         EXAMPLES::
 
@@ -2876,7 +2907,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise NotImplementedError("only implemented in dimension 1")
 
         K = FractionField(PS.base_ring())
-        if not K in _NumberFields and not K is QQbar:
+        if not K in NumberFields() and not K is QQbar:
             raise NotImplementedError("must be over a number field or a number field order or QQbar")
         #doesn't really matter which we choose as Galois conjugates have the same height
         emb = kwds.get("embedding", K.embeddings(QQbar)[0])
@@ -2885,13 +2916,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         n = len(crit_points)
         err_bound = kwds.get("error_bound", None)
         if not err_bound is None:
-            kwds.update({"error_bound": err_bound/n})
+            kwds["error_bound"] = err_bound / n
         ch = 0
         for P in crit_points:
             ch += F.canonical_height(P, **kwds)
         return ch
 
-    def periodic_points(self, n, minimal=True, R=None, algorithm='variety', return_scheme=False):
+    def periodic_points(self, n, minimal=True, R=None, algorithm='variety',
+                        return_scheme=False):
         r"""
         Computes the periodic points of period ``n`` of this dynamical system
         defined over the ring ``R`` or the base ring of the map.
@@ -2905,26 +2937,33 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         but is slow as the defining equations of the variety get more
         complicated.
 
-        For rational map, where there are potentially infinitely many peiodic points
-        of a given period, you must use the ``return_scheme`` option. Note
-        that this scheme will include the indeterminacy locus.
+        For rational map, where there are potentially infinitely many peiodic
+        points of a given period, you must use the ``return_scheme`` option.
+        Note that this scheme will include the indeterminacy locus.
 
         INPUT:
 
         - ``n`` - a positive integer
 
-        - ``minimal`` -- (default: True) boolean. True specifies to find only the periodic points
-          of minimal period ``n``. False specifies to find all periodic points of period ``n``
+        - ``minimal`` -- (default: ``True``) boolean; ``True`` specifies to
+          find only the periodic points of minimal period ``n`` and ``False``
+          specifies to find all periodic points of period ``n``
 
         - ``R`` a commutative ring
 
-        - ``algorithm`` -- (default: ``variety``) a string. Either ``variety`` to find the rational points
-          on the appropriate variety or ``cyclegraph`` to find the cycles from the cycle graph
+        - ``algorithm`` -- (default: ``'variety'``) must be one of
+          the following:
 
-        - ``return_scheme`` - return a subscheme of the ambient space which defines the
-          ``n`` th periodic points
+          * ``'variety'`` - find the rational points on the appropriate variety
+          * ``'cyclegraph'`` - find the cycles from the cycle graph
 
-        OUTPUT: a list of periodic points of this map or the subscheme defining the periodic points
+        - ``return_scheme`` -- return a subscheme of the ambient space
+          that defines the ``n`` th periodic points
+
+        OUTPUT:
+
+        A list of periodic points of this map or the subscheme defining
+        the periodic points.
 
         EXAMPLES::
 
@@ -2932,17 +2971,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: f = DynamicalSystem_projective([x^2-x*y+y^2, x^2-y^2+x*y])
             sage: f.periodic_points(1)
-            [(-0.500000000000000? - 0.866025403784439?*I : 1), (-0.500000000000000? + 0.866025403784439?*I : 1),
-            (1 : 1)]
+            [(-0.500000000000000? - 0.866025403784439?*I : 1),
+             (-0.500000000000000? + 0.866025403784439?*I : 1),
+             (1 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'),2)
             sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2-z^2, z^2])
             sage: f.periodic_points(2)
-            [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1), (-5/4 : 1/2*t + 1/2 : 1), (-3/4 : -1 : 1),
-            (-3/4 : 0 : 1), (1/4 : -1 : 1), (1/4 : -1/2*t + 1/2 : 1), (1/4 : 0 : 1), (1/4 : 1/2*t + 1/2 : 1),
-            (7/4 : -1 : 1), (7/4 : 0 : 1)]
+            [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1),
+             (-5/4 : 1/2*t + 1/2 : 1), (-3/4 : -1 : 1), (-3/4 : 0 : 1),
+             (1/4 : -1 : 1), (1/4 : -1/2*t + 1/2 : 1), (1/4 : 0 : 1),
+             (1/4 : 1/2*t + 1/2 : 1), (7/4 : -1 : 1), (7/4 : 0 : 1)]
 
         ::
 
@@ -2952,19 +2993,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
             sage: f.periodic_points(1)
             [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
-            (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
-            (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
-            (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
-            (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1), (1 : 1 : 1),
-            (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1)]
+             (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
+             (2*s^5 - 6*s^4 + 9*s^3 - 8*s^2 + 7*s - 4 : 2*s^5 - 5*s^4 + 7*s^3 - 5*s^2 + 6*s - 2 : 1),
+             (s^5 - 2*s^4 + 2*s^3 + s : s^5 - 3*s^4 + 4*s^3 - 3*s^2 + 2*s - 1 : 1),
+             (s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 3*s - 1 : -s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 4*s + 2 : 1), (1 : 1 : 1),
+             (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
             sage: f.periodic_points(2, False)
-            [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (-3/4 : -1 : 1), (-3/4 : 2 : 1), (0 : 1 : 0), (1/4 : -1 : 1),
-            (1/4 : 2 : 1), (1 : 0 : 0), (1 : 1 : 0), (7/4 : -1 : 1), (7/4 : 2 : 1)]
+            [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (-3/4 : -1 : 1),
+             (-3/4 : 2 : 1), (0 : 1 : 0), (1/4 : -1 : 1), (1/4 : 2 : 1),
+             (1 : 0 : 0), (1 : 1 : 0), (7/4 : -1 : 1), (7/4 : 2 : 1)]
 
         ::
 
@@ -3063,23 +3105,24 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         PS = f.codomain().ambient_space()
         N = PS.dimension_relative() + 1
         if algorithm == 'cyclegraph':
-                if R in FiniteFields():
-                    g = f.cyclegraph()
-                    points = []
-                    for cycle in g.all_simple_cycles():
-                        m = len(cycle)-1
-                        if minimal:
-                            if m == n:
-                                points = points + cycle[:-1]
-                        else:
-                            if n % m == 0:
-                                points = points + cycle[:-1]
-                    return(points)
-                else:
-                    raise TypeError("ring must be finite to generate cyclegraph")
+            if R in FiniteFields():
+                g = f.cyclegraph()
+                points = []
+                for cycle in g.all_simple_cycles():
+                    m = len(cycle)-1
+                    if minimal:
+                        if m == n:
+                            points = points + cycle[:-1]
+                    else:
+                        if n % m == 0:
+                            points = points + cycle[:-1]
+                return(points)
+            else:
+                raise TypeError("ring must be finite to generate cyclegraph")
         elif algorithm == 'variety':
             F = f.nth_iterate_map(n)
-            L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N) for j in range(i+1, N)]
+            L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N)
+                 for j in range(i+1, N)]
             L = [t for t in L if t != 0]
             X = PS.subscheme(L + list(dom.defining_polynomials()))
             if return_scheme:  # this includes the indeterminacy locus points!
@@ -3104,7 +3147,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         #we want only the points with minimal period n
                         #so we go through the list and remove any that
                         #have smaller period by checking the iterates
-                        rem_indices = []
                         for i in range(len(points)-1,-1,-1):
                             # iterate points to check if minimal
                             P = points[i]
@@ -3125,24 +3167,26 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         r"""
         Computes the ``n`` multiplier spectra of this dynamical system.
 
-        This is the set of multipliers of the periodic points of formal period
-        ``n`` included with the appropriate multiplicity.
-        User can also specify to compute the ``n`` multiplier spectra instead which includes the
-        multipliers of all periodic points of period ``n``.The map must be defined over
+        This is the set of multipliers of the periodic points of formal
+        period ``n`` included with the appropriate multiplicity.
+        User can also specify to compute the ``n`` multiplier spectra
+        instead which includes the multipliers of all periodic points
+        of period ``n``. The map must be defined over
         projective space of dimension 1 over a number field.
 
         INPUT:
 
         - ``n`` -- a positive integer, the period
 
-        - ``formal`` -- (default: False) a Boolean. True specifies to find the formal
-          ``n`` multiplier spectra of this map. False specifies to find the ``n`` multiplier
-          spectra  of this map.
+        - ``formal`` -- (default: ``False``) boolean; ``True`` specifies
+          to find the formal ``n`` multiplier spectra of this map and
+          ``False`` specifies to find the ``n`` multiplier spectra
 
         - ``embedding`` -- embedding of the base field into `\QQbar`
 
-        - ``type`` -- (default : ``point``) string - either ``point`` or ``cycle`` depending
-          on whether you compute one multiplier per point or one per cycle
+        - ``type`` -- (default: ``'point'``) string; either ``'point'``
+          or ``'cycle'`` depending on whether you compute one multiplier
+          per point or one per cycle
 
         OUTPUT: a list of `\QQbar` elements
 
@@ -3200,7 +3244,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         if (n < 1):
             raise ValueError("period must be a positive integer")
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(PS):
             raise NotImplementedError("not implemented for subschemes")
         if (PS.dimension_relative() > 1):
@@ -3246,7 +3289,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             # should include one representative point per cycle, included with the right multiplicity
             newpoints = []
 
-            while(points != []):
+            while points:
                 P = points[0]
                 newpoints.append(P)
                 points.pop(0)
@@ -3259,52 +3302,59 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     Q = f(Q)
             points = newpoints
 
-        multipliers = [f.multiplier(P,n)[0,0] for P in points]
+        multipliers = [f.multiplier(pt,n)[0,0] for pt in points]
 
         return multipliers
 
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
-        Computes the values of the elementary symmetric polynomials of the ``n``
-        multilpier spectra of this dynamical system.
+        Computes the values of the elementary symmetric polynomials of
+        the ``n`` multilpier spectra of this dynamical system.
 
-        Can specify to instead compute the values corresponding to the elementary
-        symmetric polynomials of the formal ``n`` multiplier spectra. The map must
-        be defined over projective space of dimension 1. The base ring should be a
-        number field, number field order, or a finite field or a polynomial ring or
-        function field over a number field, number field order, or finite field.
+        Can specify to instead compute the values corresponding to the
+        elementary symmetric polynomials of the formal ``n`` multiplier
+        spectra. The map must be defined over projective space of dimension
+        `1`. The base ring should be a number field, number field order, or
+        a finite field or a polynomial ring or function field over a
+        number field, number field order, or finite field.
 
-        The parameter ``type`` determines if the sigma are computed from the multipliers
-        calculated at one per cycle (with multiplicity) or one per point (with
-        multiplicity). Note that in the ``cycle`` case, a map with a cycle which collapses
-        into multiple smaller cycles, this is still considered one cycle. In other words,
-        if a 4-cycle collapses into a 2-cycle with multiplicity 2, there is only one
-        multiplier used for the doubled 2-cycle when computing ``n=4``.
+        The parameter ``type`` determines if the sigma are computed from
+        the multipliers calculated at one per cycle (with multiplicity)
+        or one per point (with multiplicity). Note that in the ``cycle``
+        case, a map with a cycle which collapses into multiple smaller
+        cycles, this is still considered one cycle. In other words, if a
+        4-cycle collapses into a 2-cycle with multiplicity 2, there is only
+        one multiplier used for the doubled 2-cycle when computing ``n=4``.
 
-        ALGORITHM: We use the Poisson product of the resultant of two polynomials.
+        ALGORITHM:
+
+        We use the Poisson product of the resultant of two polynomials:
 
         .. MATH::
 
-            res(f,g) = \prod_{f(a) = 0}g(a)
+            res(f,g) = \prod_{f(a)=0} g(a).
 
-        Letting `f` be the polynomial defining the periodic or formal periodic points
-        and `g` the polynomial `w - f'` for an auxilarly variable `w`. Note that if
-        `f` is a rational function, we clear denominators for `g`.
+        Letting `f` be the polynomial defining the periodic or formal
+        periodic points and `g` the polynomial `w - f'` for an auxilarly
+        variable `w`. Note that if `f` is a rational function, we clear
+        denominators for `g`.
 
         INPUT:
 
         - ``n`` -- a positive integer, the period
 
-        - ``formal`` -- (default: False) a boolean. True specifies to find the values of the elementary
-            symmetric polynomials corresponding to the formal ``n`` multiplier spectra
-            of this map. False specifies to instead find the values corresponding to
-            the ``n`` multiplier spectra of this map, which includes the multipliers
-            of all periodic points of period ``n`` of this map
+        - ``formal`` -- (default: ``False``) boolean; ``True`` specifies
+          to find the values of the elementary symmetric polynomials
+          corresponding to the formal ``n`` multiplier spectra and ``False``
+          specifies to instead find the values corresponding to the ``n``
+          multiplier spectra, which includes the multipliers of all
+          periodic points of period ``n``
 
-        - ``embedding`` -- Deprecated in ticket 23333
+        - ``embedding`` -- deprecated in :trac:`23333`
 
-        - ``type`` -- (default: ``point``) string - either ``point`` or ``cycle`` depending on whether you
-            compute with one multiplier per point or one per cycle
+        - ``type`` -- (default: ``'point'``) string; either ``'point'``
+          or ``'cycle'`` depending on whether you compute with one
+          multiplier per point or one per cycle
 
         OUTPUT: a list of elements in the base ring
 
@@ -3399,7 +3449,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         n = ZZ(n)
         if n < 1:
             raise ValueError("period must be a positive integer")
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         dom = self.domain()
         if not is_ProjectiveSpace(dom):
             raise NotImplementedError("not implemented for subschemes")
@@ -3416,10 +3465,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         base_ring = dom.base_ring()
         if is_FractionField(base_ring):
             base_ring = base_ring.ring()
-        if is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)\
-            or base_ring in FunctionFields():
+        if (is_PolynomialRing(base_ring) or is_MPolynomialRing(base_ring)
+            or base_ring in FunctionFields()):
             base_ring = base_ring.base_ring()
-        if not (base_ring in NumberFields() or is_NumberFieldOrder(base_ring)\
+        from sage.rings.number_field.order import is_NumberFieldOrder
+        if not (base_ring in NumberFields() or is_NumberFieldOrder(base_ring)
                 or (base_ring in FiniteFields())):
             raise NotImplementedError("incompatible base field, see documentation")
 
@@ -3507,23 +3557,24 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         sig = res.coefficients(sparse=False)
         den = sig.pop(-1)
         sig.reverse()
-        sig = [sig[i]*(-1)**(i+1)/den for i in range(len(sig))]
+        sig = [sig[i] * (-1)**(i+1) / den for i in range(len(sig))]
         return sig
 
     def reduced_form(self, prec=300, return_conjugation=True, error_limit=0.000001):
         r"""
         Return reduced form of this dynamical system.
 
-        The reduced form is the `SL(2, \ZZ)` equivalent morphism obtained by applying
-        the binary form reduction algorithm from Stoll and Cremona [SC]_
-        to the homogeneous polynomial defining the periodic points (the dynatomic polynomial).
-        The smallest period `n` with enough periodic points is used.
+        The reduced form is the `SL(2, \ZZ)` equivalent morphism obtained
+        by applying the binary form reduction algorithm from Stoll and
+        Cremona [SC]_ to the homogeneous polynomial defining the periodic
+        points (the dynatomic polynomial). The smallest period `n` with
+        enough periodic points is used.
 
         This should also minimize the sum of the squares of the coefficients,
         but this is not always the case.
 
-        See :meth:`sage.rings.polynomial.multi_polynomial.reduced_form` for the information
-        on binary form reduction.
+        See :meth:`sage.rings.polynomial.multi_polynomial.reduced_form` for
+        the information on binary form reduction.
 
         Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
@@ -3531,9 +3582,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``prec`` -- (default: 300) integer, desired precision
 
-        - ``return_conjuagtion`` -- (default: True) a boolean. Return an element of `SL(2, \ZZ)`
+        - ``return_conjuagtion`` -- (default: ``True``) boolean; return
+          an element of `SL(2, \ZZ)`
 
-        - ``error_limit`` -- (default:0.000001) a real number, sets the error tolerance
+        - ``error_limit`` -- (default: 0.000001) a real number, sets
+          the error tolerance
 
         OUTPUT:
 
@@ -3688,7 +3741,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         n = 2
         # Checks to make sure there are enough distinct, roots we need 3
         # if there are not it finds the nth periodic points until there are enough
-        while F.degree()-d <= 2:
+        while F.degree() - d <= 2:
             F = self.dynatomic_polynomial(n) # finds n periodic points
             d = gcd(F, F.derivative(x)).degree() #counts multiple roots
             n += 1
@@ -3699,27 +3752,29 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def _is_preperiodic(self, P, err=0.1, return_period=False):
         r"""
-        Determine if the point is preperiodic with respect to this dynamical system.
+        Determine if the point is preperiodic with respect to this
+        dynamical system.
 
-        This is only implemented for projective space (not subschemes).
-        There are two optional keyword arguments:
-        ``error_bound`` sets the error_bound used in the canonical height computation
-        and ``return_period`` a boolean which controls if the period is returned if the
-        point is preperiodic. If ``return_period`` is ``True`` and this point is not
-        preperiodic, then `(0,0)` is returned for the period.
+        .. NOTE::
+
+            This is only implemented for projective space (not subschemes).
 
         ALGORITHM:
 
-        We know that a point is preperiodic if and only if it has canonical height zero. However,
-        we can only compute the canonical height up to numerical precision. This function first computes
-        the canonical height of the point to the given error bound. If it is larger than that error bound,
-        then it must not be preperiodic. If it is less than the error bound, then we expect preperiodic. In
-        this case we begin computing the orbit stopping if either we determine the orbit is finite, or
-        the height of the point is large enough that it must be wandering. We can determine the height
-        cutoff by computing the height difference constant, i.e., the bound between the height and
-        the canonical height of a point (which depends only on the map and not the point itself).
-        If the height of the point is larger than the difference bound, then the canonical height
-        cannot be zero so the point cannot be preperiodic.
+        We know that a point is preperiodic if and only if it has
+        canonical height zero. However, we can only compute the canonical
+        height up to numerical precision. This function first computes
+        the canonical height of the point to the given error bound. If
+        it is larger than that error bound, then it must not be preperiodic.
+        If it is less than the error bound, then we expect preperiodic. In
+        this case we begin computing the orbit stopping if either we
+        determine the orbit is finite, or the height of the point is large
+        enough that it must be wandering. We can determine the height
+        cutoff by computing the height difference constant, i.e., the bound
+        between the height and the canonical height of a point (which
+        depends only on the map and not the point itself). If the height
+        of the point is larger than the difference bound, then the canonical
+        height cannot be zero so the point cannot be preperiodic.
 
         INPUT:
 
@@ -3727,17 +3782,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         kwds:
 
-        - ``error_bound`` -- (optional - default: 0.1) a positive real number
+        - ``error_bound`` -- (default: 0.1) a positive real number;
+          sets the error_bound used in the canonical height computation
+          and ``return_period`` a boolean which 
 
-        - ``return_period`` -- (default: ``False``) boolean
-
+        - ``return_period`` -- (default: ``False``) boolean; controls if
+          the period is returned if the point is preperiodic
 
         OUTPUT:
 
         - boolean -- ``True`` if preperiodic
 
-        - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
-            if preperiod ``m`` and period ``n``
+        - if ``return_period`` is ``True``, then ``(0,0)`` if wandering,
+          and ``(m,n)`` if preperiod ``m`` and period ``n``
 
         EXAMPLES::
 
@@ -3747,7 +3804,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f._is_preperiodic(Q)
             True
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(self.codomain()):
             raise NotImplementedError("must be over projective space")
         if not self.is_morphism():
@@ -3756,8 +3812,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("point must be in domain of map")
 
         K = FractionField(self.codomain().base_ring())
-        if not K in _NumberFields and not K is QQbar:
-            raise NotImplementedError("must be over a number field or a number field order or QQbar")
+        if not K in NumberFields() and not K is QQbar:
+            raise NotImplementedError("must be over a number field or"
+                                      " a number field order or QQbar")
 
         h = self.canonical_height(P, error_bound = err)
         # we know canonical height 0 if and only if preperiodic
@@ -3795,25 +3852,29 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def lift_to_rational_periodic(self, points_modp, B=None):
         r"""
-        Given a list of points in projective space over `GF(p)`, determine if they lift to
-        `\QQ`-rational periodic points.
+        Given a list of points in projective space over `\GF{p}`,
+        determine if they lift to `\QQ`-rational periodic points.
 
-        The map must be an endomorphism of projective space defined over `\QQ`
+        The map must be an endomorphism of projective space defined
+        over `\QQ`.
 
         ALGORITHM:
-            Use Hensel lifting to find a `p`-adic approximation for that rational point.
-            The accuracy needed is determined by the height bound ``B``. Then apply
-            the LLL algorithm to determine if the lift corresponds to a rational point.
 
-            If the point is a point of high multiplicity (multiplier 1), the
-            procedure can be very slow.
+        Use Hensel lifting to find a `p`-adic approximation for that
+        rational point. The accuracy needed is determined by the height
+        bound ``B``. Then apply the LLL algorithm to determine if the
+        lift corresponds to a rational point.
+
+        If the point is a point of high multiplicity (multiplier 1), the
+        procedure can be very slow.
 
         INPUT:
 
-        - ``points_modp`` -- a list or tuple of pairs containing a point in projective space
-          over `GF(p)` and the possible period
+        - ``points_modp`` -- a list or tuple of pairs containing a point
+          in projective space over `\GF{p}` and the possible period
 
-        - ``B`` -- (optional) a positive integer - the height bound for a rational preperiodic point
+        - ``B`` -- (optional) a positive integer; the height bound for
+          a rational preperiodic point
 
         OUTPUT: a list of projective points
 
@@ -3846,189 +3907,198 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f.lift_to_rational_periodic([[P(14,19,1).change_ring(GF(23)), 9]]) # long time
             [[(-9 : -4 : 1), 9]]
         """
-        if points_modp == []:
-            return([])
-        else:
-            if B is None:
-                B = e ** self.height_difference_bound()
+        if not points_modp:
+            return []
 
-            p = points_modp[0][0].codomain().base_ring().characteristic()
-            if p == 0:
-                raise TypeError("must be positive characteristic")
-            PS = self.domain()
-            N = PS.dimension_relative()
-            R = RealField()
-            #compute the maximum p-adic precision needed to conclusively determine
-            #if the rational point exists
-            L = R((R(2 ** (N/2 + 1) * sqrt(N+1) * B**2).log()) / R(p).log() + 1).trunc()
+        if B is None:
+            B = e ** self.height_difference_bound()
 
-            points = []
-            for i in range(len(points_modp)):
-                #[point mod p, period, current p-adic precision]
-                points.append([points_modp[i][0].change_ring(QQ, check=False), points_modp[i][1], 1])
-            good_points = []
-            #shifts is used in non-Hensel lifting
-            shifts = None
-            #While there are still points to consider try to lift to next precision
-            while points != []:
-                q = points.pop()
-                qindex = N
-                #Find the last non-zero coordinate to use for normalizations
-                while q[0][qindex] % p == 0:
-                    qindex -= 1
-                T = q[0]
-                n = q[1]
-                k = q[2]
-                T.scale_by(1 / T[qindex]) #normalize
-                bad = 0
-                #stop where we reach the needed precision or the point is bad
-                while k < L and bad == 0:
-                    l = self._multipliermod(T, n, p, 2*k)
-                    l -= l.parent().one() #f^n(x) - x
-                    lp = l.change_ring(Zmod(p**k))
-                    ldet = lp.determinant()
-                    # if the matrix is invertible then we can Hensel lift
-                    if ldet % p != 0:
-                        RQ = ZZ.quo(p**(2*k))
-                        T.clear_denominators()
-                        newT = T.change_ring(RQ, check=False)
-                        fp = self.change_ring(RQ, check=False)
-                        S = fp.nth_iterate(newT, n, normalize=False).change_ring(QQ, check=False)
-                        T.scale_by(1 / T[qindex])
-                        S.scale_by(1 / S[qindex])
-                        newS = list(S)
-                        for i in range(N + 1):
-                            newS[i] = S[i] - T[i]
-                            if newS[i] % (p**k) != 0 and i != N:
-                                bad = 1
-                                break
-                        if bad == 1:
-                            break
-                        S = PS.point(newS, False)
-                        S.scale_by(-1 / p**k)
-                        vecs = [Zmod(p**k)(S._coords[iS]) for iS in range(N + 1)]
-                        vecs.pop(qindex)
-                        newvecs = list((lp.inverse()) * vector(vecs)) #l.inverse should be mod p^k!!
-                        newS = []
-                        [newS.append(QQ(newvecs[i])) for i in range(qindex)]
-                        newS.append(0)
-                        [newS.append(QQ(newvecs[i])) for i in range(qindex, N)]
-                        for i in range(N + 1):
-                            newS[i] = newS[i] % (p**k)
-                        S = PS.point(newS, False) #don't check for [0,...,0]
-                        newT = list(T)
-                        for i in range(N + 1):
-                            newT[i] += S[i] * (p**k)
-                        T = PS.point(newT, False)
-                        T.normalize_coordinates()
-                        #Hensel gives us 2k for the newprecision
-                        k = min(2*k, L)
-                    else:
-                        #we are unable to Hensel Lift so must try all possible lifts
-                        #to the next precision (k+1)
-                        first = 0
-                        newq = []
-                        RQ = Zmod(p**(k+1))
-                        fp = self.change_ring(RQ, check=False)
-                        if shifts is None:
-                            shifts = xmrange([p for i in range(N)])
-                        for shift in shifts:
-                            newT = [RQ(t) for t in T]  #T.change_ring(RQ, check = False)
-                            shiftindex = 0
-                            for i in range(N + 1):
-                                if i != qindex:
-                                    newT[i] = newT[i] + shift[shiftindex] * p**k
-                                    shiftindex += 1
-                            newT = fp.domain().point(newT, check=False)
-                            TT = fp.nth_iterate(newT, n, normalize=False)
-                            if TT == newT:
-                                if first == 0:
-                                    newq.append(newT.change_ring(QQ, check=False))
-                                    newq.append(n)
-                                    newq.append(k + 1)
-                                    first = 1
-                                else:
-                                    points.append([newT.change_ring(QQ, check=False), n, k+1])
-                        if newq == []:
-                            bad = 1
-                            break
-                        else:
-                            T = newq[0]
-                            k += 1
-                #given a p-adic lift of appropriate precision
-                #perform LLL to find the "smallest" rational approximation
-                #If this height is small enough, then it is a valid rational point
-                if bad == 0:
-                    M = matrix(N + 2, N + 1)
+        p = points_modp[0][0].codomain().base_ring().characteristic()
+        if p == 0:
+            raise TypeError("must be positive characteristic")
+        PS = self.domain()
+        N = PS.dimension_relative()
+        R = RealField()
+        #compute the maximum p-adic precision needed to conclusively determine
+        #if the rational point exists
+        L = R((R(2 ** (N/2 + 1) * sqrt(N+1) * B**2).log()) / R(p).log() + 1).trunc()
+
+        points = []
+        for i in range(len(points_modp)):
+            #[point mod p, period, current p-adic precision]
+            points.append([points_modp[i][0].change_ring(QQ, check=False), points_modp[i][1], 1])
+        good_points = []
+        #shifts is used in non-Hensel lifting
+        shifts = None
+        #While there are still points to consider try to lift to next precision
+        while points:
+            q = points.pop()
+            qindex = N
+            #Find the last non-zero coordinate to use for normalizations
+            while q[0][qindex] % p == 0:
+                qindex -= 1
+            T = q[0]
+            n = q[1]
+            k = q[2]
+            T.scale_by(1 / T[qindex]) #normalize
+            bad = 0
+            #stop where we reach the needed precision or the point is bad
+            while k < L and bad == 0:
+                l = self._multipliermod(T, n, p, 2*k)
+                l -= l.parent().one() #f^n(x) - x
+                lp = l.change_ring(Zmod(p**k))
+                ldet = lp.determinant()
+                # if the matrix is invertible then we can Hensel lift
+                if ldet % p != 0:
+                    RQ = ZZ.quo(p**(2*k))
                     T.clear_denominators()
+                    newT = T.change_ring(RQ, check=False)
+                    fp = self.change_ring(RQ, check=False)
+                    S = fp.nth_iterate(newT, n, normalize=False).change_ring(QQ, check=False)
+                    T.scale_by(1 / T[qindex])
+                    S.scale_by(1 / S[qindex])
+                    newS = list(S)
                     for i in range(N + 1):
-                        M[0, i] = T[i]
-                        M[i+1, i] = p**L
-                    M[N+1, N] = p**L
-                    M = M.LLL()
-                    Q = []
-                    [Q.append(M[1, i]) for i in range(N + 1)]
-                    g = gcd(Q)
-                    #remove gcds since this is a projective point
-                    newB = B * g
-                    for i in range(N + 1):
-                        if abs(Q[i]) > newB:
-                            #height too big, so not a valid point
+                        newS[i] = S[i] - T[i]
+                        if newS[i] % (p**k) != 0 and i != N:
                             bad = 1
                             break
-                    if bad == 0:
-                        P = PS.point(Q, False)
-                        #check that it is actually periodic
-                        newP = copy(P)
-                        k = 1
-                        done = False
-                        while not done and k <= n:
-                              newP = self(newP)
-                              if newP == P:
-                                  if not ([P, k] in good_points):
-                                      good_points.append([newP, k])
-                                  done = True
-                              k += 1
+                    if bad == 1:
+                        break
+                    S = PS.point(newS, False)
+                    S.scale_by(-1 / p**k)
+                    vecs = [Zmod(p**k)(S._coords[iS]) for iS in range(N + 1)]
+                    vecs.pop(qindex)
+                    newvecs = list((lp.inverse()) * vector(vecs)) #l.inverse should be mod p^k!!
+                    newS = []
+                    [newS.append(QQ(newvecs[i])) for i in range(qindex)]
+                    newS.append(0)
+                    [newS.append(QQ(newvecs[i])) for i in range(qindex, N)]
+                    for i in range(N + 1):
+                        newS[i] = newS[i] % (p**k)
+                    S = PS.point(newS, False) #don't check for [0,...,0]
+                    newT = list(T)
+                    for i in range(N + 1):
+                        newT[i] += S[i] * (p**k)
+                    T = PS.point(newT, False)
+                    T.normalize_coordinates()
+                    #Hensel gives us 2k for the newprecision
+                    k = min(2*k, L)
+                else:
+                    #we are unable to Hensel Lift so must try all possible lifts
+                    #to the next precision (k+1)
+                    first = 0
+                    newq = []
+                    RQ = Zmod(p**(k+1))
+                    fp = self.change_ring(RQ, check=False)
+                    if shifts is None:
+                        shifts = xmrange([p for i in range(N)])
+                    for shift in shifts:
+                        newT = [RQ(t) for t in T]  #T.change_ring(RQ, check = False)
+                        shiftindex = 0
+                        for i in range(N + 1):
+                            if i != qindex:
+                                newT[i] = newT[i] + shift[shiftindex] * p**k
+                                shiftindex += 1
+                        newT = fp.domain().point(newT, check=False)
+                        TT = fp.nth_iterate(newT, n, normalize=False)
+                        if TT == newT:
+                            if first == 0:
+                                newq.append(newT.change_ring(QQ, check=False))
+                                newq.append(n)
+                                newq.append(k + 1)
+                                first = 1
+                            else:
+                                points.append([newT.change_ring(QQ, check=False), n, k+1])
+                    if not newq:
+                        bad = 1
+                        break
+                    else:
+                        T = newq[0]
+                        k += 1
+            #given a p-adic lift of appropriate precision
+            #perform LLL to find the "smallest" rational approximation
+            #If this height is small enough, then it is a valid rational point
+            if bad == 0:
+                M = matrix(N + 2, N + 1)
+                T.clear_denominators()
+                for i in range(N + 1):
+                    M[0, i] = T[i]
+                    M[i+1, i] = p**L
+                M[N+1, N] = p**L
+                M = M.LLL()
+                Q = []
+                [Q.append(M[1, i]) for i in range(N + 1)]
+                g = gcd(Q)
+                #remove gcds since this is a projective point
+                newB = B * g
+                for i in range(N + 1):
+                    if abs(Q[i]) > newB:
+                        #height too big, so not a valid point
+                        bad = 1
+                        break
+                if bad == 0:
+                    P = PS.point(Q, False)
+                    #check that it is actually periodic
+                    newP = copy(P)
+                    k = 1
+                    done = False
+                    while not done and k <= n:
+                          newP = self(newP)
+                          if newP == P:
+                              if not ([P, k] in good_points):
+                                  good_points.append([newP, k])
+                              done = True
+                          k += 1
 
-            return(good_points)
+        return(good_points)
 
     def rational_periodic_points(self, **kwds):
         r"""
         Determine the set of rational periodic points
         for this dynamical system.
 
-        The map must be defined over `\QQ` and be an endomorphism of projective space.
-        If the map is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
-        ramified fixed point, then the base ring can be an absolute number field.
+        The map must be defined over `\QQ` and be an endomorphism of
+        projective space. If the map is a polynomial endomorphism of
+        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
+        the base ring can be an absolute number field.
         This is done by passing to the Weil restriction.
 
-        The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a particular map to finish, try first computing the possible periods, then
+        The default parameter values are typically good choices for
+        `\mathbb{P}^1`. If you are having trouble getting a particular
+        map to finish, try first computing the possible periods, then
         try various different ``lifting_prime`` values.
 
         ALGORITHM:
-            Modulo each prime of good reduction `p` determine the set of periodic points modulo `p`.
-            For each cycle modulo `p` compute the set of possible periods (`mrp^e`). Take the intersection
-            of the list of possible periods modulo several primes of good reduction to get a possible list
-            of minimal periods of rational periodic points. Take each point modulo `p` associated to each
-            of these possible periods and try to lift it to a rational point with a combination of
-            `p`-adic approximation and the LLL basis reduction algorithm.
 
-            See [Hutz2015]_.
+        Modulo each prime of good reduction `p` determine the set of
+        periodic points modulo `p`. For each cycle modulo `p` compute
+        the set of possible periods (`mrp^e`). Take the intersection
+        of the list of possible periods modulo several primes of good
+        reduction to get a possible list of minimal periods of rational
+        periodic points. Take each point modulo `p` associated to each
+        of these possible periods and try to lift it to a rational point
+        with a combination of `p`-adic approximation and the LLL basis
+        reduction algorithm.
+
+        See [Hutz2015]_.
 
         INPUT:
 
         kwds:
 
-        - ``prime_bound`` -- (default: [1,20]) a pair (list or tuple) of positive integers that represent the
-            limits of primes to use in the reduction step. Or an integer that represents the upper bound.
+        - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
+          of positive integers that represent the limits of primes to use
+          in the reduction step or an integer that represents the upper bound
 
-        - ``lifting_prime`` -- (default: 23) a prime integer. argument that specifies modulo which prime to
-          try and perform the lifting
+        - ``lifting_prime`` -- (default: 23) a prime integer; argument that
+          specifies modulo which prime to try and perform the lifting
 
-        - ``periods`` -- (optional) a list of positive integers which is the list of possible periods
+        - ``periods`` -- (optional) a list of positive integers that is
+          the list of possible periods
 
-        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
+          the primes of bad reduction
 
         - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
@@ -4044,13 +4114,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3, 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
+            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3,
+            ....:                                 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
             sage: sorted(f.rational_periodic_points(prime_bound=[1,20])) # long time
             [(-3 : -1 : 1), (-3 : 0 : 1), (-3 : 1 : 1), (-3 : 3 : 1), (-1 : -1 : 1),
-            (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1), (1
-            : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1), (3 : 0 :
-            1), (3 : 1 : 1), (3 : 3 : 1), (5 : -1 : 1), (5 : 0 : 1), (5 : 1 : 1), (5
-            : 3 : 1)]
+             (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1),
+             (1 : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1),
+             (3 : 0 : 1), (3 : 1 : 1), (3 : 3 : 1), (5 : -1 : 1), (5 : 0 : 1),
+             (5 : 1 : 1), (5 : 3 : 1)]
 
         ::
 
@@ -4081,7 +4152,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         """
         PS = self.domain()
         K = PS.base_ring()
-        if K in _NumberFields:
+        if K in NumberFields():
             if not K.is_absolute():
                 raise TypeError("base field must be an absolute field")
             d = K.absolute_degree()
@@ -4153,7 +4224,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 if periods is None:
                     periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus)
                 PS = self.domain()
-                R = PS.base_ring()
                 periodic = set()
                 while p in badprimes:
                     p = next_prime(p + 1)
@@ -4181,9 +4251,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         dynamical system, return all the rational preimages of those points.
 
         In others words, all the rational points which have some
-        iterate in the set points. This function repeatedly calls ``rational_preimages``.
-        If the degree is at least two, by Northocott, this is always a finite set.
-        The map must be defined over number fields and be an endomorphism.
+        iterate in the set points. This function repeatedly calls
+        ``rational_preimages``. If the degree is at least two,
+        by Northocott, this is always a finite set. The map must be
+        defined over number fields and be an endomorphism.
 
         INPUT:
 
@@ -4204,8 +4275,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: f = DynamicalSystem_projective([76*x^2 - 180*x*y + 45*y^2 + 14*x*z + 45*y*z - 90*z^2, 67*x^2 - 180*x*y - 157*x*z + 90*y*z, -90*z^2])
             sage: sorted(f.all_rational_preimages([P(-9,-4,1)]))
-            [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1), (1
-            : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
+            [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1),
+             (1 : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
 
         A non-periodic example ::
 
@@ -4221,9 +4292,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: f = DynamicalSystem_projective([16*x^2 - 29*y^2, 16*y^2])
             sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
-            [(w^2 + w - 25/16 : 1), (-w - 1/2 : 1), (w^2 - 29/16 : 1), (-w : 1), (w + 1/2 : 1), (w^2 - 21/16 : 1),
-            (w : 1), (-w^2 + 21/16 : 1), (-w^2 - w + 25/16 : 1), (w^2 + w - 33/16 : 1), (-w^2 + 29/16 : 1),
-            (-w^2 - w + 33/16 : 1)]
+            [(w^2 + w - 25/16 : 1), (-w - 1/2 : 1), (w^2 - 29/16 : 1), (-w : 1),
+             (w + 1/2 : 1), (w^2 - 21/16 : 1), (w : 1), (-w^2 + 21/16 : 1),
+             (-w^2 - w + 25/16 : 1), (w^2 + w - 33/16 : 1), (-w^2 + 29/16 : 1),
+             (-w^2 - w + 33/16 : 1)]
 
         ::
 
@@ -4238,8 +4310,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if not isinstance(points, (list, tuple)):
             points = [points]
 
-        PS = self.domain()
-        RPS = PS.base_ring()
         preperiodic = set()
         while points != []:
             P = points.pop()
@@ -4252,15 +4322,18 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def rational_preperiodic_points(self, **kwds):
         r"""
-        Determine the set of rational preperiodic points for this dynamical system.
+        Determine the set of rational preperiodic points for
+        this dynamical system.
 
-        The map must be defined over `\QQ` and be an endomorphism of projective space.
-        If the map is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
-        ramified fixed point, then the base ring can be an absolute number field.
+        The map must be defined over `\QQ` and be an endomorphism of
+        projective space. If the map is a polynomial endomorphism of
+        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
+        the base ring can be an absolute number field.
         This is done by passing to the Weil restriction.
 
-        The default parameter values are typically good choices for `\mathbb{P}^1`. If you are having
-        trouble getting a particular map to finish, try first computing the possible periods, then
+        The default parameter values are typically good choices for
+        `\mathbb{P}^1`. If you are having trouble getting a particular
+        map to finish, try first computing the possible periods, then
         try various different values for ``lifting_prime``.
 
         ALGORITHM:
@@ -4269,22 +4342,25 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - Determines the rational periodic points from the possible periods.
 
-        - Determines the rational preperiodic points from the rational periodic points
-          by determining rational preimages.
+        - Determines the rational preperiodic points from the rational
+          periodic points by determining rational preimages.
 
         INPUT:
 
         kwds:
 
-        - ``prime_bound`` -- (default: [1,20]) a pair (list or tuple) of positive integers that represent the
-          limits of primes to use in the reduction step. Or an integer that represents the upper bound.
+        - ``prime_bound`` -- (default: ``[1, 20]``) a pair (list or tuple)
+          of positive integers that represent the limits of primes to use
+          in the reduction step or an integer that represents the upper bound
 
-        - ``lifting_prime`` -- (default: 23) a prime integer.argument that specifies modulo which prime to
-          try and perform the lifting
+        - ``lifting_prime`` -- (default: 23) a prime integer; specifies
+          modulo which prime to try and perform the lifting
 
-        - ``periods`` -- (optional) a list of positive integers which is the list of possible periods
+        - ``periods`` -- (optional) a list of positive integers that is
+          the list of possible periods
 
-        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
+          the primes of bad reduction
 
         - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
@@ -4338,105 +4414,114 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         """
         PS = self.domain()
         K = PS.base_ring()
-        if K in _NumberFields:
-            if not K.is_absolute():
-                raise TypeError("base field must be an absolute field")
-            d = K.absolute_degree()
-            #check that we are not over QQ
-            if d > 1:
-                if PS.dimension_relative() != 1:
-                    raise NotImplementedError("rational preperiodic points for number fields only implemented in dimension 1")
-                w = K.absolute_generator()
-                #we need to dehomogenize for the Weil restriction and will check that point at infty
-                #separately. We also check here that we are working with a polynomial. If the map
-                #is not a polynomial, the Weil restriction will not be a morphism and we cannot
-                #apply this algorithm.
-                g = self.dehomogenize(1)
-                inf = PS([1,0])
-                k = 1
+        if K not in NumberFields() or not K.is_absolute():
+            raise TypeError("base field must be an absolute field")
+        d = K.absolute_degree()
+        #check that we are not over QQ
+        if d > 1:
+            if PS.dimension_relative() != 1:
+                raise NotImplementedError("rational preperiodic points for number fields only implemented in dimension 1")
+            w = K.absolute_generator()
+            #we need to dehomogenize for the Weil restriction and will check that point at infty
+            #separately. We also check here that we are working with a polynomial. If the map
+            #is not a polynomial, the Weil restriction will not be a morphism and we cannot
+            #apply this algorithm.
+            g = self.dehomogenize(1)
+            inf = PS([1,0])
+            k = 1
+            if isinstance(g[0], FractionFieldElement):
+                g = self.dehomogenize(0)
+                inf = PS([0,1])
+                k = 0
                 if isinstance(g[0], FractionFieldElement):
-                    g = self.dehomogenize(0)
-                    inf = PS([0,1])
-                    k = 0
-                    if isinstance(g[0], FractionFieldElement):
-                        raise NotImplementedError("rational preperiodic points for number fields only implemented for polynomials")
-                #determine rational preperiodic points
-                #infinity is a totally ramified fixed point for a polynomial
-                preper = set([inf])
-                #compute the weil restriction
-                G = g.weil_restriction()
-                F = G.homogenize(d)
-                #find the QQ rational preperiodic points for the weil restriction
-                Fpre = F.rational_preperiodic_points(**kwds)
-                for P in Fpre:
-                    #take the 'good' points in the weil restriction and find the
-                    #associated number field points.
-                    if P[d] == 1:
-                        pt = [sum([P[i]*w**i for i in range(d)])]
-                        pt.insert(k,1)
-                        Q = PS(pt)
-                        #for each preperiodic point get the entire connected component
-                        if not Q in preper:
-                            for t in self.connected_rational_component(Q):
-                                preper.add(t)
-                preper = list(preper)
-            else:
-                #input error checking done in possible_periods and rational_periodic_points
-                badprimes = kwds.pop("bad_primes", None)
-                periods = kwds.pop("periods", None)
-                primebound = kwds.pop("prime_bound", [1, 20])
-                num_cpus = kwds.pop("ncpus", ncpus())
-                if badprimes is None:
-                    badprimes = self.primes_of_bad_reduction()
-                if periods is None:
-                    periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes, ncpus=num_cpus) #determine the set of possible periods
-                if periods == []:
-                    return([]) #no rational preperiodic points
-                else:
-                    p = kwds.pop("lifting_prime", 23)
-                    T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p, periods=periods, bad_primes=badprimes, ncpus=num_cpus) #find the rational preperiodic points
-                    preper = self.all_rational_preimages(T) #find the preperiodic points
-                    preper = list(preper)
-            return preper
+                    raise NotImplementedError("rational preperiodic points for number fields only implemented for polynomials")
+            #determine rational preperiodic points
+            #infinity is a totally ramified fixed point for a polynomial
+            preper = set([inf])
+            #compute the weil restriction
+            G = g.weil_restriction()
+            F = G.homogenize(d)
+            #find the QQ rational preperiodic points for the weil restriction
+            Fpre = F.rational_preperiodic_points(**kwds)
+            for P in Fpre:
+                #take the 'good' points in the weil restriction and find the
+                #associated number field points.
+                if P[d] == 1:
+                    pt = [sum([P[i]*w**i for i in range(d)])]
+                    pt.insert(k,1)
+                    Q = PS(pt)
+                    #for each preperiodic point get the entire connected component
+                    if not Q in preper:
+                        for t in self.connected_rational_component(Q):
+                            preper.add(t)
+            preper = list(preper)
         else:
-            raise TypeError("base field must be an absolute number field")
+            #input error checking done in possible_periods and rational_periodic_points
+            badprimes = kwds.pop("bad_primes", None)
+            periods = kwds.pop("periods", None)
+            primebound = kwds.pop("prime_bound", [1, 20])
+            num_cpus = kwds.pop("ncpus", ncpus())
+            if badprimes is None:
+                badprimes = self.primes_of_bad_reduction()
+            if periods is None:
+                #determine the set of possible periods
+                periods = self.possible_periods(prime_bound=primebound,
+                                                bad_primes=badprimes, ncpus=num_cpus)
+            if periods == []:
+                return([]) #no rational preperiodic points
+            else:
+                p = kwds.pop("lifting_prime", 23)
+                #find the rational preperiodic points
+                T = self.rational_periodic_points(prime_bound=primebound, lifting_prime=p,
+                                                  periods=periods, bad_primes=badprimes,
+                                                  ncpus=num_cpus)
+                preper = self.all_rational_preimages(T) #find the preperiodic points
+                preper = list(preper)
+        return preper
 
     def rational_preperiodic_graph(self, **kwds):
         r"""
-        Determine the directed graph of the rational preperiodic points for this
-        dynamical system.
+        Determine the directed graph of the rational preperiodic points
+        for this dynamical system.
 
-        The map must be defined over `\QQ` and be an endomorphism of projective space.
-        If this map is a polynomial endomorphism of `\mathbb{P}^1`, i.e. has a totally
-        ramified fixed point, then the base ring can be an absolute number field.
+        The map must be defined over `\QQ` and be an endomorphism of
+        projective space. If this map is a polynomial endomorphism of
+        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
+        the base ring can be an absolute number field.
         This is done by passing to the Weil restriction.
 
         ALGORITHM:
+
         - Determines the list of possible periods.
 
         - Determines the rational periodic points from the possible periods.
 
-        - Determines the rational preperiodic points from the rational periodic points
-          by determining rational preimages.
-
+        - Determines the rational preperiodic points from the rational
+          periodic points by determining rational preimages.
 
         INPUT:
 
         kwds:
 
-        - ``prime_bound`` -- (default: [1,20]) a pair (list or tuple) of positive integers that represent the
-            limits of primes to use in the reduction step. Or an integer that represents the upper bound
+        - ``prime_bound`` -- (default: ``[1, 20]``) a pair (list or tuple)
+          of positive integers that represent the limits of primes to use
+          in the reduction step or an integer that represents the upper bound
 
-        - ``lifting_prime`` -- (default: 23) a prime integer. Argument that specifies modulo which prime to
-          try and perform the lifting
+        - ``lifting_prime`` -- (default: 23) a prime integer; specifies
+          modulo which prime to try and perform the lifting
 
-        - ``periods`` -- (optional) a list of positive integers which is the list of possible periods
+        - ``periods`` -- (optional) a list of positive integers that is
+          the list of possible periods
 
-        - ``bad_primes`` -- (optional) a list or tuple of integer primes, the primes of bad reduction
+        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
+          the primes of bad reduction
 
         - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
 
-        OUTPUT: a digraph representing the orbits of the rational preperiodic points in projective space
+        OUTPUT:
+
+        A digraph representing the orbits of the rational preperiodic
+        points in projective space.
 
         EXAMPLES::
 
@@ -4455,7 +4540,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(2,QQ)
-            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3, 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
+            sage: f = DynamicalSystem_projective([2*x^3 - 50*x*z^2 + 24*z^3,
+            ....:                                 5*y^3 - 53*y*z^2 + 24*z^3, 24*z^3])
             sage: f.rational_preperiodic_graph(prime_bound=[1,11], lifting_prime=13) # long time
             Looped digraph on 30 vertices
 
@@ -4474,19 +4560,22 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def connected_rational_component(self, P, n=0):
         r"""
-        Computes the connected component of a rational preperiodic point ``P`` by
-        this dynamical system.
+        Computes the connected component of a rational preperiodic
+        point ``P`` by this dynamical system.
 
         Will work for non-preperiodic points if ``n`` is positive.
         Otherwise this will not terminate.
 
         INPUT:
 
-        - ``P`` -- A rational preperiodic point of this map
+        - ``P`` -- a rational preperiodic point of this map
 
-        - ``n`` -- (default: 0) integer. Maximum distance from ``P`` to branch out. A value of 0 indicates no bound
+        - ``n`` -- (default: 0) integer; maximum distance from ``P`` to
+          branch out; a value of 0 indicates no bound
 
-        OUTPUT: a list of points connected to ``P`` up to the specified distance
+        OUTPUT:
+
+        A list of points connected to ``P`` up to the specified distance.
 
         EXAMPLES::
 
@@ -4563,28 +4652,40 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def conjugating_set(self, other):
         r"""
-        Return the set of elements in PGL that conjugates one dynamical system to the other.
+        Return the set of elements in PGL that conjugates one
+        dynamical system to the other.
 
-        Given two nonconstant rational functions of equal degree determine to see if there is an element of PGL that
-        conjugates one rational function to another. It does this by taking the fixed points of one map and mapping
-        them to all unique permutations of the fixed points of the other map. If there are not enough fixed points the
-        function compares the mapping between rational preimages of fixed points and the rational preimages of the preimages of
-        fixed points until there are enough points; such that there are `n+2` points with all `n+1` subsets linearly independent.
+        Given two nonconstant rational functions of equal degree
+        determine to see if there is an element of PGL that
+        conjugates one rational function to another. It does this
+        by taking the fixed points of one map and mapping
+        them to all unique permutations of the fixed points of
+        the other map. If there are not enough fixed points the
+        function compares the mapping between rational preimages of
+        fixed points and the rational preimages of the preimages of
+        fixed points until there are enough points; such that there
+        are `n+2` points with all `n+1` subsets linearly independent.
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_. Given that the set of  `n` th preimages of fixed points is
-        invariant under conjugation find all elements of PGL that take one set to another.
+        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Given that the set of  `n` th preimages of fixed points is
+        invariant under conjugation find all elements of PGL that
+        take one set to another.
 
         INPUT:
 
-        - Two nonconstant rational functions of same degree
+        - ``other`` -- a nonconstant rational function of same degree
+          as ``self``
 
-        OUTPUT: Set of conjugating `n+1` by `n+1` matrices
+        OUTPUT:
+
+        Set of conjugating `n+1` by `n+1` matrices.
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV2014]_.
+        - Original algorithm written by Xander Faber, Michelle Manes,
+          Bianca Viray [FMV2014]_.
 
         - Implimented by Rebecca Lauren Miller, as part of GSOC 2016.
 
@@ -4672,14 +4773,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r = f.domain().base_ring()
         more = True
         if d >= n+2: # need at least n+2 points
-            for i in Subsets(L, n+2):# makes sure all n+1 subsets are linearly independent
+            for i in Subsets(L, n+2):
+                # make sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
                 if not any([j == 0 for j in Ml.minors(n+1)]):
                     Tf = list(i)
                     more= False
                     break
         while more:
-            Tl = [Q for i in L for Q in f.rational_preimages(i)] #  finds preimages of fixed points
+            #  finds preimages of fixed points
+            Tl = [Q for i in L for Q in f.rational_preimages(i)]
             Tk = [Q for i in K for Q in g.rational_preimages(i)]
             if len(Tl) != len(Tk):
                 return []
@@ -4688,7 +4791,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if d == len(L): # if no new preimages then not enough points
                 raise ValueError("not enough rational preimages")
             d = len(L)
-            if d >= n+2: # makes sure all n+1 subsets are linearly independent
+            if d >= n + 2: # makes sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2):
                     Ml = matrix(r, [list(s) for s in i])
                     if not any([j == 0 for j in Ml.minors(n+1)]):
@@ -4696,7 +4799,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         Tf = list(i)
                         break
         Conj = []
-        for i in Arrangements(K,(n+2)): # try all possible conjugations between invariant sets
+        for i in Arrangements(K,(n+2)):
+            # try all possible conjugations between invariant sets
             try: # need all n+1 subsets linearly independenet
                 s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
@@ -4711,18 +4815,21 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ALGORITHM:
 
-        Implementing invariant set algorithim from the paper [FMV2014]_. Given that the set of `n` th preimages is
-        invariant under conjugation this function finds whether two maps are conjugate.
+        Implementing invariant set algorithim from the paper [FMV2014]_.
+        Given that the set of `n` th preimages is invariant under
+        conjugation this function finds whether two maps are conjugate.
 
         INPUT:
 
-        - Two nonconstant rational functions of the same degree
+        - ``other`` -- a nonconstant rational function of same degree
+          as ``self``
 
         OUTPUT: boolean
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV2014]_.
+        - Original algorithm written by Xander Faber, Michelle Manes,
+          Bianca Viray [FMV2014]_.
 
         - Implimented by Rebecca Lauren Miller as part of GSOC 2016.
 
@@ -4794,7 +4901,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     more = False
                     break
         while more:
-            Tl = [Q for i in L for Q in f.rational_preimages(i)] # finds preimages of fixed points
+            # finds preimages of fixed points
+            Tl = [Q for i in L for Q in f.rational_preimages(i)]
             Tk = [Q for i in K for Q in g.rational_preimages(i)]
             if len(Tl) != len(Tk):
                 return False
@@ -4803,15 +4911,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if d == len(L):# if no new preimages then not enough points
                 raise ValueError("not enough rational preimages")
             d = len(L)
-            if d >= n+2: # makes sure all n+1 subsets are linearly independent
+            if d >= n + 2:
+                # make sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
                     Ml = matrix(r, [list(s) for s in i])
                     if not any([j == 0 for j in Ml.minors(n+1)]):
                         more = False
                         Tf = list(i)
                         break
-        Conj = []
-        for i in Arrangements(K,n+2):# try all possible conjugations between invariant sets
+        for i in Arrangements(K, n+2):
+            # try all possible conjugations between invariant sets
             try: # need all n+1 subsets linearly independenet
                 s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
@@ -4822,7 +4931,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def is_polynomial(self):
         r"""
-        Checks to see if the dynamcial system has a totally ramified fixed point.
+        Check to see if the dynamcial system has a totally ramified
+        fixed point.
 
         The function must be defined over an absolute number field or a
         finite field.
@@ -4875,7 +4985,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
         K = self.base_ring()
-        if not K in FiniteFields() and (not K in _NumberFields or not K.is_absolute()):
+        if not K in FiniteFields() and (not K in NumberFields() or not K.is_absolute()):
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
@@ -4910,6 +5020,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if G.degree() != 0:
                 #create the next extension
                 if K == QQ:
+                    from sage.rings.number_field.number_field import NumberField
                     L = NumberField(u, 't'+str(i))
                     i += 1
                     phi = K.embeddings(L)[0]
@@ -4938,24 +5049,25 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         r"""
         Return a normal form in the moduli space of dynamical systems.
 
-        Currently implemented only for polynomials. The totally ramified fixed point is
-        moved to infinity and the map is conjugated to the form
-        `x^n + a_{n-2}x^{n-2} + \cdots + a_{0}`. Note that for finite fields
+        Currently implemented only for polynomials. The totally ramified
+        fixed point is moved to infinity and the map is conjugated to the form
+        `x^n + a_{n-2} x^{n-2} + \cdots + a_{0}`. Note that for finite fields
         we can only remove the `(n-1)`-st term when the characteristic
         does not divide `n`.
 
         INPUT:
 
-        - ``return_conjugation`` -- (default: False) boolean - True returns conjugation
-          element of PGL. along with the embedding into the new field
+        - ``return_conjugation`` -- (default: ``False``) boolean; if ``True``,
+          then return the conjugation element of PGL along with the embedding
+          into the new field
 
         OUTPUT:
 
         - :class:`SchemeMorphism_polynomial`
 
-        - (optional) Element of PGL as a matrix
+        - (optional) an element of PGL as a matrix
 
-        - (option) Field embedding
+        - (optional) the field embedding
 
         EXAMPLES::
 
@@ -5001,7 +5113,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
         K = self.base_ring()
-        if not K in FiniteFields() and (not K in _NumberFields or not K.is_absolute()):
+        if not K in FiniteFields() and (not K in NumberFields() or not K.is_absolute()):
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
@@ -5050,13 +5162,14 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if not done:
                 #extend
                 if K == QQ:
+                    from sage.rings.number_field.number_field import NumberField
                     L = NumberField(u, 't'+str(i))
                     i += 1
                     phi = K.embeddings(L)[0]
-                    psi = phi*psi
+                    psi = phi * psi
                     K = L
                 elif K in FiniteFields():
-                    deg = deg*G.degree()
+                    deg = deg * G.degree()
                     K = GF(q**(deg), prefix=var)
                 else:
                     L = K.extension(u, 't'+str(i))
@@ -5066,7 +5179,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     L = K.absolute_field('t'+str(i))
                     i += 1
                     phi = K.embeddings(L)[0]*phi1
-                    psi = phi*psi
+                    psi = phi * psi
                     K = L
                 #switch to the new field
                 if K in FiniteFields():
@@ -5116,24 +5229,23 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         gcc = gc.conjugate(mc)
         if not (M in FiniteFields() and q.divides(d)):
             #remove 2nd order term
-            mc2 = matrix(M, 2, 2, [1, M((-gcc[0].coefficient([d-1, 1]) \
-                /(d*gcc[1].coefficient([0, d]))).constant_coefficient()), 0, 1])
+            mc2 = matrix(M, 2, 2, [1, M((-gcc[0].coefficient([d-1, 1])
+                / (d*gcc[1].coefficient([0, d]))).constant_coefficient()), 0, 1])
         else:
             mc2 = mc.parent().one()
         gccc = gcc.conjugate(mc2)
         if return_conjugation:
             if M in FiniteFields():
-                return gccc, m*mc*mc2
+                return gccc, m * mc * mc2
             else:
-                return gccc, m*mc*mc2, psi
+                return gccc, m * mc * mc2, psi
         return gccc
 
 class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
                                               SchemeMorphism_polynomial_projective_space_finite_field):
-
     def orbit_structure(self, P):
         r"""
-        Return the pair `[m,n]` where `m` is the preperiod and `n`
+        Return the pair ``[m,n]``, where ``m`` is the preperiod and ``n``
         is the period of the point ``P`` by this dynamical system.
 
         Every point is preperiodic over a finite field so every point
@@ -5143,7 +5255,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
         - ``P`` -- a point in the domain of this map
 
-        OUTPUT: a list `[m,n]` of integers
+        OUTPUT: a list ``[m,n]`` of integers
 
         EXAMPLES::
 
@@ -5237,8 +5349,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         """
         V = []
         E = []
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain()) is True:
+        if is_ProjectiveSpace(self.domain()):
             for P in self.domain():
                 V.append(P)
                 try:
@@ -5276,11 +5387,13 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
         INPUT:
 
-        - ``return_points`` -- (default: False) boolean - a value of True returns the points as well
-          as the possible periods
+        - ``return_points`` -- (default: ``False``) boolean; if ``True``,
+          then return the points as well as the possible periods
 
-        OUTPUT: a list of positive integers, or a list of pairs of projective points and periods
-        if ``flag`` is 1
+        OUTPUT:
+
+        A list of positive integers, or a list of pairs of projective
+        points and periods if ``return_points`` is ``True``.
 
         EXAMPLES::
 
@@ -5299,7 +5412,8 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(2,GF(7))
-            sage: f = DynamicalSystem_projective([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
+            sage: f = DynamicalSystem_projective([-360*x^3 + 760*x*z^2,
+            ....:                                 y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
             sage: f.possible_periods()
             [1, 2, 4, 6, 12, 14, 28, 42, 84]
 
@@ -5307,36 +5421,37 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
             - do not return duplicate points
 
-            - improve hash to reduce memory of pointtable
+            - improve hash to reduce memory of point-table
         """
-        return _fast_possible_periods(self,return_points)
+        return _fast_possible_periods(self, return_points)
 
-    def automorphism_group(self, **kwds):
+    def automorphism_group(self, absolute=False, iso_type=False, return_functions=False):
         r"""
         Return the subgroup of `PGL2` that is the automorphism group of this
-        dynamicsl system.
+        dynamical system.
 
-        Only for dimension 1. The automorphism group is the set of `PGL2` elements that
-        fixed the map under conjugation. See [FMV2014]_ for the algorithm.
+        Only for dimension 1. The automorphism group is the set of `PGL2`
+        elements that fixed the map under conjugation. See [FMV2014]_
+        for the algorithm.
 
         INPUT:
 
-        keywords:
+        - ``absolute``-- (default: ``False``) boolean; if ``True``, then
+          return the absolute automorphism group and a field of definition
 
-        - ``absolute``-- (default: False) boolean - True returns the absolute automorphism group
-          and a field of definition
+        - ``iso_type`` -- (default: ``False``) boolean; if ``True``, then
+          return the isomorphism type of the automorphism group
 
-        - ``iso_type`` -- (default: False) boolean - True returns the isomorphism type of the
-          automorphism group
-
-        - ``return_functions`` -- (default: False) boolean - True returns elements as linear
-          fractional transformations. False returns elements as `PGL2` matrices
+        - ``return_functions`` -- (default: ``False``) boolean; ``True``
+          returns elements as linear fractional transformations and
+          ``False`` returns elements as `PGL2` matrices
 
         OUTPUT: a list of elements of the automorphism group
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
+        - Original algorithm written by Xander Faber, Michelle Manes,
+          Bianca Viray
 
         - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
 
@@ -5369,28 +5484,24 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             sage: f.automorphism_group(return_functions=True, iso_type=True)
             ([x, 1/x], 'Cyclic of order 2')
 
-            ::
+        ::
 
             sage: R.<x,y> = ProjectiveSpace(GF(3^4,'t'),1)
             sage: f = DynamicalSystem_projective([x^2+25*x*y+y^2, x*y+3*y^2])
             sage: f.automorphism_group(absolute=True)
             [Univariate Polynomial Ring in w over Finite Field in b of size 3^4,
              [
-            [1 0]
-            [0 1]
-            ]]
+             [1 0]
+             [0 1]
+             ]]
         """
-        absolute = kwds.get('absolute', False)
-        iso_type = kwds.get('iso_type', False)
-        return_functions=kwds.get('return_functions', False)
-
-        if self.domain().dimension_relative()!=1:
+        if self.domain().dimension_relative() != 1:
             raise NotImplementedError("must be dimension 1")
         else:
             f = self.dehomogenize(1)
             z = f[0].parent().gen()
-        if f[0].denominator()!=1:
-            F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+        if f[0].denominator() != 1:
+            F = f[0].numerator().polynomial(z) / f[0].denominator().polynomial(z)
         else:
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF

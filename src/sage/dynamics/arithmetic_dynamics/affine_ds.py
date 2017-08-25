@@ -11,9 +11,9 @@ not specified, it is constructed. However, if you plan on working with
 points or subvarieties in the domain, it recommended to specify the
 domain.
 
-The initialization checks are always performed by the constructor functions. It is
-possible, but not recommended, to skip these checks by calling the class initialization
-directly.
+The initialization checks are always performed by the constructor functions.
+It is possible, but not recommended, to skip these checks by calling the
+class initialization directly.
 
 AUTHORS:
 
@@ -80,28 +80,27 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
       rational function, or a list or tuple of polynomials or rational
       functions
 
-    - ``domain`` -- optional affine space or subscheme of such
-
-      The following combinations of ``morphism_or_polys`` and
+    - ``domain`` -- optional affine space or subscheme of such;
+      the following combinations of ``morphism_or_polys`` and
       ``domain`` are meaningful:
 
       * ``morphism_or_polys`` is a SchemeMorphism; ``domain`` is
-        ignored in this case.
+        ignored in this case
 
       * ``morphism_or_polys`` is a list of polynomials or rational
-        functions that define a rational endomorphism of ``domain``.
+        functions that define a rational endomorphism of ``domain``
 
       * ``morphism_or_polys`` is a list of polynomials or rational
         functions and ``domain`` is unspecified; ``domain`` is then
         taken to be the affine space of appropriate dimension over the
-        base ring of the first element of ``morphism_or_polys``.
+        base ring of the first element of ``morphism_or_polys``
 
       * ``morphism_or_polys`` is a single polynomial or rational
         function; ``domain`` is ignored and assumed to be the
         1-dimensional affine space over the base ring of
-        ``morphism_or_polys``.
+        ``morphism_or_polys``
 
-    OUTPUT: :class:`DynamicalSystem_affine`.
+    OUTPUT: :class:`DynamicalSystem_affine`
 
     EXAMPLES::
 
@@ -125,7 +124,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         sage: DynamicalSystem_affine(t^2 - 1)
         Dynamical System of Affine Space of dimension 1 over Integer Ring
           Defn: Defined on coordinates by sending (t) to
-                (t^2 - 1)
+                (-1, 0, 1)
 
     ::
 
@@ -416,24 +415,27 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
     def dynatomic_polynomial(self, period):
         r"""
-        For a dynamical system `f:\mathbb{A}^1 \to \mathbb{A}^1` this function computes
-        the (affine) dynatomic polynomial.
+        Compute the (affine) dynatomic polynomial of a dynamical system
+        `f: \mathbb{A}^1 \to \mathbb{A}^1`.
 
-        The dynatomic polynomial is the analog of the cyclotomic polynomial and its
-        roots are the points of formal period `n`.
+        The dynatomic polynomial is the analog of the cyclotomic polynomial
+        and its roots are the points of formal period `n`.
 
         ALGORITHM:
 
-        Homogenize to a map `f:\mathbb{P}^1 \to \mathbb{P}^1` and compute the dynatomic
-        polynomial there. Then, dehomogenize.
+        Homogenize to a map `f: \mathbb{P}^1 \to \mathbb{P}^1` and compute
+        the dynatomic polynomial there. Then, dehomogenize.
 
         INPUT:
 
         - ``period`` -- a positive integer or a list/tuple `[m,n]`,
           where `m` is the preperiod and `n` is the period
 
-        OUTPUT: If possible, a single variable polynomial in the coordinate ring of the polynomial.
-        Otherwise a fraction field element of the coordinate ring of the polynomial
+        OUTPUT:
+
+        If possible, a single variable polynomial in the coordinate ring
+        of the polynomial. Otherwise a fraction field element of the
+        coordinate ring of the polynomial.
 
         EXAMPLES::
 
@@ -529,7 +531,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
     def nth_iterate_map(self, n):
         r"""
-        Return the ``n``-th iterate of self.
+        Return the ``n``-th iterate of ``self``.
 
         ALGORITHM:
 
@@ -543,7 +545,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         - ``n`` -- a positive integer
 
-        OUTPUT: A dynamical system of affine space
+        OUTPUT: a dynamical system of affine space
 
         EXAMPLES::
 
@@ -586,7 +588,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
               Defn: Defined on coordinates by sending (x, y) to
                     (27/125*x^4, y^4/(72/25*x^8))
         """
-        N = self.codomain().ambient_space().dimension_relative()
         F = list(self._polys)
         R = F[0].parent()
         Coord_ring = self.codomain().ambient_space().coordinate_ring()
@@ -658,14 +659,15 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         Return the orbit of ``P`` by the dynamical system.
 
         Let `F` be this dynamical system. If `n` is an integer
-        return `[P,F(P),\ldots,F^n(P)]`.
-        If `n` is a list or tuple `n=[m,k]` return `[F^m(P),\ldots,F^k(P)]`.
+        return `[P, F(P), \ldots, F^n(P)]`. If `n` is a list or
+        tuple `n = [m,k]` return `[F^m(P), \ldots, F^k(P)]`.
 
         INPUT:
 
         - ``P`` -- a point in the map's domain
 
-        - ``n`` -- a non-negative integer or list or tuple of two non-negative integers
+        - ``n`` -- a non-negative integer or list or tuple of
+          two non-negative integers
 
         OUTPUT: a list of points in the map's codomain
 
@@ -725,10 +727,13 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         - ``n`` -- a positive integer, the period of ``P``
 
-        - ``check`` -- (default:True) boolean, verify that ``P`` has period ``n``
+        - ``check`` -- (default: ``True``) boolean, verify that ``P``
+          has period ``n``
 
-        OUTPUT: a square matrix of size ``self.codomain().dimension_relative()`` in
-        the ``base_ring`` of the map
+        OUTPUT:
+
+        A square matrix of size ``self.codomain().dimension_relative()`` in
+        the ``base_ring`` of the map.
 
         EXAMPLES::
 
@@ -788,7 +793,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
 class DynamicalSystem_affine_field(DynamicalSystem_affine,
                                    SchemeMorphism_polynomial_affine_space_field):
-
     @cached_method
     def weil_restriction(self):
         r"""
@@ -808,8 +812,10 @@ class DynamicalSystem_affine_field(DynamicalSystem_affine,
         morphism from the Weil restriction of the domain to the Weil restriction
         of the codomain.
 
-        OUTPUT: Scheme morphism on the Weil restrictions of the domain
-        and codomain of the map
+        OUTPUT:
+
+        Scheme morphism on the Weil restrictions of the domain
+        and codomain of the map.
 
         EXAMPLES::
 
@@ -882,7 +888,7 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
         For subschemes, only points on the subscheme whose
         image are also on the subscheme are in the digraph.
 
-        OUTPUT: A digraph
+        OUTPUT: a digraph
 
         EXAMPLES::
 
@@ -927,3 +933,4 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
         from sage.graphs.digraph import DiGraph
         g = DiGraph(dict(zip(V, E)), loops=True)
         return g
+

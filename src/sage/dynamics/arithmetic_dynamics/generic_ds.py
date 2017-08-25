@@ -3,14 +3,15 @@ Generic dynamical systems on schemes
 
 This is the generic class for dynamical systems and contains the exported
 constructor functions. The constructor functions can take either polynomials
-(or rational functions in the affine case) or morphisms from which to construct
-a dynamical system. If the domain is not specified, it is constructed. However,
-if you plan on working with points or subvarieties in the domain, it recommended
-to specify the domain. For products of projective spaces the domain must be specified.
+(or rational functions in the affine case) or morphisms from which to
+construct a dynamical system. If the domain is not specified, it is
+constructed. However, if you plan on working with points or subvarieties
+in the domain, it recommended to specify the domain. For products of
+projective spaces the domain must be specified.
 
-The initialization checks are always performed by the constructor functions. It is
-possible, but not recommended, to skip these checks by calling the class initialization
-directly.
+The initialization checks are always performed by the constructor functions.
+It is possible, but not recommended, to skip these checks by calling the
+class initialization directly.
 
 AUTHORS:
 
@@ -31,21 +32,8 @@ from sage.categories.homset import End
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
-from sage.rings.fraction_field import is_FractionField
-from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.quotient_ring import is_QuotientRing
 from sage.schemes.affine.affine_space import is_AffineSpace
-from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
-from sage.schemes.projective.projective_space import ProjectiveSpace
-from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
-from sage.symbolic.ring import SR
-
-from sage.categories.fields import Fields
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem(SchemeMorphism_polynomial):
@@ -61,8 +49,8 @@ class DynamicalSystem(SchemeMorphism_polynomial):
       projective schemes, on which ``polys`` defines an endomorphism.
       Subschemes are also ok
 
-    - ``names`` -- optional tuple of strings to be used as coordinate
-      names for a projective space that is constructed; defaults to ``'X','Y'``
+    - ``names`` -- (default: ``('X', 'Y')``) tuple of strings to be used
+      as coordinate names for a projective space that is constructed
 
       The following combinations of ``morphism_or_polys`` and
       ``domain`` are meaningful:
@@ -107,7 +95,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
           Defn: Defined on coordinates by sending (x : y) to
                 (y : x)
 
-        DynamicalSystem defaults to projective::
+    :class:`DynamicalSystem` defaults to projective::
 
         sage: R.<x,y,z> = QQ[]
         sage: DynamicalSystem([x^2, y^2, z^2])
@@ -132,43 +120,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
     @staticmethod
     def __classcall_private__(cls, morphism_or_polys, domain=None, names=None):
         r"""
-        Return a dynamical system on a scheme.
-
-        If domain is not specified either through the domain of the morphism
-        or the domain parameter, it is assumed to be projective space.
-
-        INPUT:
-
-        - ``polys_or_rat_fncts`` -- a list of polynomials or rational functions,
-          all of which should have the same parent
-
-        - ``domain`` -- an affine or projective scheme, or product of
-          projective schemes, on which ``polys`` defines an endomorphism.
-          Subschemes are also ok
-
-        - ``names`` -- optional tuple of strings to be used as coordinate
-          names for a projective space that is constructed; defaults to ``'X','Y'``
-
-          The following combinations of ``morphism_or_polys`` and
-          ``domain`` are meaningful:
-
-          * ``morphism_or_polys`` is a SchemeMorphism; ``domain`` is
-            ignored in this case
-
-          * ``morphism_or_polys`` is a list of homogeneous polynomials
-            that define a rational endomorphism of ``domain``
-
-          * ``morphism_or_polys`` is a list of homogeneous polynomials and
-            ``domain`` is unspecified; ``domain`` is then taken to be the
-            projective space of appropriate dimension over the base ring of
-            the first element of ``morphism_or_polys``
-
-          * ``morphism_or_polys`` is a single polynomial or rational
-            function; ``domain`` is ignored and taken to be a
-            1-dimensional projective space over the base ring of
-            ``morphism_or_polys`` with coordinate names given by ``names``
-
-        OUTPUT: :class:`DynamicalSystem_projective` or :class:`DynamicalSystem_affine`
+        Return the appropriate dynamical system on a scheme.
 
         EXAMPLES::
 
@@ -301,7 +253,10 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         - ``R`` -- ring or morphism
 
-        OUTPUT: A new :class:`DynamicalSystem_projective` which is this map coerced to ``R``
+        OUTPUT:
+
+        A new :class:`DynamicalSystem_projective` that is this map
+        coerced to ``R``.
 
         EXAMPLES::
 
@@ -320,9 +275,10 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         r"""
         Specialization of this dynamical system.
 
-        Given a family of maps defined over a polynomial ring. A specialization
-        is a particular member of that family. The specialization can be specified either
-        by a dictionary or a :class:`SpecializationMorphism`.
+        Given a family of maps defined over a polynomial ring. A
+        specialization is a particular member of that family. The
+        specialization can be specified either by a dictionary or
+        a :class:`SpecializationMorphism`.
 
         INPUT:
 
@@ -346,3 +302,4 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         """
         F = self.as_scheme_morphism().specialization(D, phi, homset)
         return F.as_dynamical_system()
+

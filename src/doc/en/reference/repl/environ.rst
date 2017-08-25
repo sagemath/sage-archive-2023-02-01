@@ -54,3 +54,7 @@ default.
   this is some directory inside :envvar:`DOT_SAGE`.
   See http://jupyter.readthedocs.io/en/latest/projects/jupyter-directories.html
   for more information.
+
+- :envvar:`MPLCONFIGDIR` --
+  directory where the configuation of Matplotlib is stored. By default,
+  this is some directory inside :envvar:`DOT_SAGE`.

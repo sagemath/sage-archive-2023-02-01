@@ -2221,14 +2221,33 @@ class FiniteWord_class(Word_class):
             3
             sage: w.longest_forward_extension(0, 2)
             0
-            sage: w.longest_forward_extension(-3, 2)
+
+        The method also accepts negative positions indicating the distance from
+        the end of the word (in order to be consist with how negative indices
+        work with lists). For instance, for a word of length `7`, using
+        positions `-3` and `2` is the same as using positions `4` and `2`::
+
+            sage: w.longest_forward_extension(1, -2)
+            2
+            sage: w.longest_forward_extension(4, -3)
+            3
+
+        TESTS::
+
+            sage: w = Word('0011001')
+            sage: w.longest_forward_extension(-10, 2)
             Traceback (most recent call last):
             ...
             ValueError: x and y must be valid positions in self
+
         """
         length = self.length()
-        if not (0 <= x and 0 <= y and x < length and y < length):
+        if not (-length <= x < length and -length <= y < length):
             raise ValueError("x and y must be valid positions in self")
+        if x < 0:
+            x = x + length
+        if y < 0:
+            y = y + length
         l = 0
         while x < length and y < length and self[x] == self[y]:
             l += 1
@@ -2254,14 +2273,36 @@ class FiniteWord_class(Word_class):
             1
             sage: w.longest_backward_extension(1, 3)
             0
+
+        The method also accepts negative positions indicating the distance from
+        the end of the word (in order to be consist with how negative indices
+        work with lists). For instance, for a word of length `7`, using
+        positions `6` and `-5` is the same as using positions `6` and `2`::
+
+            sage: w.longest_backward_extension(6, -5)
+            3
+            sage: w.longest_backward_extension(-6, 4)
+            1
+
+        TESTS::
+
+            sage: w = Word('0011001')
             sage: w.longest_backward_extension(4, 23)
+            Traceback (most recent call last):
+            ...
+            ValueError: x and y must be valid positions in self
+            sage: w.longest_backward_extension(-9, 4)
             Traceback (most recent call last):
             ...
             ValueError: x and y must be valid positions in self
         """
         length = self.length()
-        if not (0 <= x and 0 <= y and x < length and y < length):
+        if not (-length <= x < length and -length <= y < length):
             raise ValueError("x and y must be valid positions in self")
+        if x < 0:
+            x = x + length
+        if y < 0:
+            y = y + length
         l = 0
         while x >= 0 and y >= 0 and self[x] == self[y]:
             l += 1

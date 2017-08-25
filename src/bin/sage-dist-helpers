@@ -3,6 +3,14 @@
 # Sage-distribution helper).  Consult the below documentation for the list of
 # available helper functions:
 #
+# - sdh_die MESSAGE
+#
+#    If the last command run exited with an error, exit the build script
+#    with the error code of the last command, and print an error message.
+#    Typically used like:
+#
+#        command || sdh_die "Command failed"
+#
 # - sdh_check_vars [VARIABLE ...]
 #
 #    Check that one or more variables are defined and non-empty, and exit with
@@ -39,8 +47,20 @@
 
 set -o allexport
 
+
+sdh_die () {
+    local ret=$?
+    local msg="$@"
+    if [ $ret -ne 0 ]; then
+        echo >&2 "************************************************************"
+        echo >&2 "$msg"
+        echo >&2 "************************************************************"
+        exit $ret
+    fi
+}
+
+
 sdh_check_vars() {
-    local varname
     while [ -n "$1" ]; do
         if [ -z "$(eval "echo "\${${1}+isset}"")" ]; then
             echo >&2 "${1} undefined ... exiting"
@@ -58,46 +78,29 @@ sdh_guard() {
 
 
 sdh_configure() {
-    local ret
-    ./configure --prefix="$SAGE_LOCAL" "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error configuring $PKG_NAME"
-        exit $ret
-    fi
+    echo "Configuring $PKG_NAME"
+    ./configure --prefix="$SAGE_LOCAL" "$@" || \
+        sdh_die "Error configuring $PKG_NAME"
 }
 
 
 sdh_make() {
-    local ret
-    ${MAKE:-make} "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error building $PKG_NAME"
-        exit $ret
-    fi
+    echo "Building $PKG_NAME"
+    ${MAKE:-make} "$@" || sdh_die "Error building $PKG_NAME"
 }
 
 
 sdh_make_install() {
-    local ret
-    $SAGE_SUDO ${MAKE:-make} install "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error installing $PKG_NAME"
-        exit $ret
-    fi
+    echo "Installing $PKG_NAME"
+    $SAGE_SUDO ${MAKE:-make} install "$@" || \
+        sdh_die "Error installing $PKG_NAME"
 }
 
 
 sdh_pip_install() {
-    local ret
-    $SAGE_SUDO sage-pip-install "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error installing $PKG_NAME"
-        exit $ret
-    fi
+    echo "Installing $PKG_NAME"
+    $SAGE_SUDO sage-pip-install "$@" || \
+        sdh_die "Error installing $PKG_NAME"
 }
 
 

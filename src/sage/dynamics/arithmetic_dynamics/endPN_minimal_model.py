@@ -217,7 +217,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
         [0 1]
         )
     """
-    from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_affine
+    from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
     BR = vp.domain().base_ring()
     conj = matrix(BR,2,2,1)
     flag = True

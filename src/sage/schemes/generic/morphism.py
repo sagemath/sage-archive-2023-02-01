@@ -132,7 +132,6 @@ def is_SchemeMorphism(f):
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
-
 class SchemeMorphism(Element):
     """
     Base class for scheme morphisms

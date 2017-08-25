@@ -582,7 +582,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = End(A)
             sage: f = H([x^2, y^2, z^2])
             sage: type(f.as_dynamical_system())
-            <class 'sage.dynamics.arithmetic_dynamics.affine_ds.DynamicalSystem_affine_ring'>
+            <class 'sage.dynamics.arithmetic_dynamics.affine_ds.DynamicalSystem_affine'>
 
         ::
 
@@ -590,7 +590,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = End(A)
             sage: f = H([x^2-y^2, y^2])
             sage: type(f.as_dynamical_system())
-            <class 'sage.dynamics.arithmetic_dynamics.affine_ds.DynamicalSystem_affine_ring'>
+            <class 'sage.dynamics.arithmetic_dynamics.affine_ds.DynamicalSystem_affine'>
 
         ::
 
@@ -602,12 +602,12 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         """
         if not self.domain() == self.codomain():
             raise TypeError("must be an endomorphism")
-        from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_ring
+        from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_field
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_finite_field
         R = self.base_ring()
         if R not in _Fields:
-            return DynamicalSystem_affine_ring(list(self), self.domain())
+            return DynamicalSystem_affine.__init__(list(self), self.domain())
         if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(list(self), self.domain())
         return DynamicalSystem_affine_field(list(self), self.domain())

@@ -25,15 +25,15 @@ EXAMPLES::
 # http://www.gnu.org/licenses/
 #*****************************************************************************
 from copy import copy
-from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_generic
-from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem_projective
+from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
+from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
 from sage.rings.all import ZZ
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
 
 
-class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
-                                              ProductProjectiveSpaces_morphism_ring):
+class DynamicalSystem_product_projective(DynamicalSystem,
+                                         ProductProjectiveSpaces_morphism_ring):
     r"""
     The class of dynamical systems on products of projective spaces.
 
@@ -66,7 +66,7 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
         r"""
         The Python constructor.
 
-        See :class:`DynamicalSystem_generic` for details.
+        See :class:`DynamicalSystem` for details.
 
         EXAMPLES::
 
@@ -76,7 +76,7 @@ class DynamicalSystem_product_projective_ring(DynamicalSystem_generic,
               Defn: Defined by sending (x : y , w : u) to
                     (x^2 : y^2 , w^2 : u^2).
         """
-        DynamicalSystem_generic.__init__(self, polys, domain)
+        DynamicalSystem.__init__(self, polys, domain)
 
     def _call_with_args(self, P, check=True):
         r"""

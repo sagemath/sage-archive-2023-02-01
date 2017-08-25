@@ -64,14 +64,14 @@ and function fields as inseparable extensions::
 
 TESTS::
 
-    sage: TestSuite(K).run(max_runs=1024) # long time
-    sage: TestSuite(L).run(max_runs=64)  # long time
-    sage: TestSuite(M).run(max_runs=32)  # long time
-    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time
-    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time
+    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
+    sage: TestSuite(L).run(max_runs=64)  # long timeA (10s)
+    sage: TestSuite(M).run(max_runs=32)  # long time (30s)
+    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time (8s)
+    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
 
-    sage: TestSuite(R).run() # long time
-    sage: TestSuite(S).run() # long time
+    sage: TestSuite(R).run()
+    sage: TestSuite(S).run() # long time (3s)
 """
 from __future__ import absolute_import
 #*****************************************************************************

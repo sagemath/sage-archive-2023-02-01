@@ -2621,7 +2621,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
     ####################################################################################
     def LLL_gram(self, flag = 0):
         """
-        LLL reduction of the lattice whose gram matrix is ``self``, assuming that ``self`` is positive definite.
+        LLL reduction of the lattice whose gram matrix is ``self``,
+        assuming that ``self`` is positive definite.
 
         .. WARNING::
 
@@ -2631,18 +2632,28 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         - ``self`` -- a gram matrix of a positive definite quadratic form
 
-        - ``flag`` -- an optional flag passed to ``qflllgram``. According  to :pari:`qflllgram`'s documentation the options are:
+        - ``flag`` -- an optional flag passed to ``qflllgram``.
+                      According  to :pari:`qflllgram`'s documentation
+                      the options are:
 
-            - ``0`` -- (default), assume that ``self`` has either exact (integral or rational) or real floating point entries. The matrix is rescaled, converted to integers and the behavior is then as in ``flag = 1``.
+            - ``0`` -- (default), assume that ``self`` has either exact
+                       (integral or rational) or real floating point entries.
+                       The matrix is rescaled, converted to integers and the
+                       behavior is then as in ``flag = 1``.
 
-            - ``1`` -- assume that G is integral. Computations involving Gram-Schmidt vectors are approximate, with precision varying as needed.
+            - ``1`` -- assume that G is integral.
+                       Computations involving Gram-Schmidt vectors are
+                       approximate, with precision varying as needed.
 
 
         OUTPUT:
 
-        A dense matrix ``U`` over the integers that represents a unimodular transformation matrix such that ``U.T * M * U``  is LLL-reduced.
+        A dense matrix ``U`` over the integers that represents a unimodular
+        transformation matrix such that ``U.T * M * U``  is LLL-reduced.
 
-        ALGORITHM: Calls PARI's :pari:`qflllgram`.
+        ALGORITHM:
+        
+        Calls PARI's :pari:`qflllgram`.
 
         EXAMPLES::
 
@@ -2697,9 +2708,11 @@ cdef class Matrix_integer_dense(Matrix_dense):
         try:
             U = P.qflllgram(flag)
         except (RuntimeError, ArithmeticError) as msg:
-            raise ValueError("qflllgram failed, perhaps the matrix is not positive definite")
+            raise ValueError("qflllgram failed, "
+                             "perhaps the matrix is not positive definite")
         if U.matsize() != [n, n]:
-            raise ValueError("qflllgram did not return a square matrix, perhaps the matrix is not positive definite");
+            raise ValueError("qflllgram did not return a square matrix, "
+                             "perhaps the matrix is not positive definite");
         MS = matrix_space.MatrixSpace(ZZ,n)
         U = MS(U.sage())
         # Fix last column so that det = +1
@@ -2708,8 +2721,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 U[i,n-1] = - U[i,n-1]
         return U
 
-    def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, proof=None, **kwds):
+    def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0,
+            use_givens=False, precision=0, proof=None, **kwds):
         """
         Block Korkin-Zolotarev reduction.
 

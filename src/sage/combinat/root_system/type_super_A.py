@@ -362,8 +362,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         def associated_coroot(self):
             """
-            Return the coroot associated to ``self``, which is
-            precisely ``self``.
+            Return the coroot associated to ``self``.
 
             EXAMPLES::
 
@@ -402,12 +401,12 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         def has_descent(self, i, positive=False):
             """
-            Test if ``self`` has a descent at position `i`, that is if ``self``
-            is on the strict negative side of the `i^{th}` simple reflection
-            hyperplane.
+            Test if ``self`` has a descent at position `i`, that is
+            if ``self`` is on the strict negative side of the `i^{th}`
+            simple reflection hyperplane.
 
-            If positive if ``True``, tests if it is on the strict positive
-            side instead.
+            If ``positive`` is ``True``, tests if it is on the strict
+            positive side instead.
 
             EXAMPLES::
 

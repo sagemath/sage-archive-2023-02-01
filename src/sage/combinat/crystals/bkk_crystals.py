@@ -32,8 +32,8 @@ class CrystalOfBKKTableaux(CrystalOfWords):
     Crystal of tableaux for type `A(m|n)`.
 
     This is an implementation of the tableaux model of the
-    Benkart-Kang-Kashiwara crystal [BKK2000]_ for the super
-    Lie algebra `\mathfrak{gl}(m+1,n+1)`.
+    Benkart-Kang-Kashiwara crystal [BKK2000]_ for the Lie
+    superalgebra `\mathfrak{gl}(m+1,n+1)`.
 
     INPUT:
 

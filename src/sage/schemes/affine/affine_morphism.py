@@ -607,7 +607,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine_finite_field
         R = self.base_ring()
         if R not in _Fields:
-            return DynamicalSystem_affine.__init__(list(self), self.domain())
+            return DynamicalSystem_affine(list(self), self.domain())
         if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(list(self), self.domain())
         return DynamicalSystem_affine_field(list(self), self.domain())

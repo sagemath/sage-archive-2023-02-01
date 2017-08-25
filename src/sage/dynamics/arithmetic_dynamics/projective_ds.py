@@ -66,6 +66,7 @@ from sage.functions.other import ceil
 from sage.libs.pari.all import PariError
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.classcall_metaclass import typecall
 from sage.misc.mrange import xmrange
 from sage.modules.free_module_element import vector
 from sage.rings.all import Integer, CIF
@@ -264,38 +265,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     @staticmethod
     def __classcall_private__(cls, morphism_or_polys, domain=None, names=None):
         r"""
-        Return a dynamical system on a projective scheme.
-
-        INPUT:
-
-        - ``morphism_or_polys`` -- a SchemeMorphism, a polynomial, a
-          rational function, or a list or tuple of homogeneous polynomials.
-
-        - ``domain`` -- optional projective space or projective subscheme.
-
-        - ``names`` -- optional tuple of strings to be used as coordinate
-          names for a projective space that is constructed; defaults to ``'X','Y'``.
-
-          The following combinations of ``morphism_or_polys`` and
-          ``domain`` are meaningful:
-
-          * ``morphism_or_polys`` is a SchemeMorphism; ``domain`` is
-            ignored in this case.
-
-          * ``morphism_or_polys`` is a list of homogeneous polynomials
-            that define a rational endomorphism of ``domain``.
-
-          * ``morphism_or_polys`` is a list of homogeneous polynomials and
-            ``domain`` is unspecified; ``domain`` is then taken to be the
-            projective space of appropriate dimension over the base ring of
-            the first element of ``morphism_or_polys``.
-
-          * ``morphism_or_polys`` is a single polynomial or rational
-            function; ``domain`` is ignored and taken to be a
-            1-dimensional projective space over the base ring of
-            ``morphism_or_polys`` with coordinate names given by ``names``.
-
-        OUTPUT: :class:`DynamicalSystem_projectve`.
+        Return the appropriate dynamical system on a projective scheme.
 
         TESTS::
 
@@ -383,7 +353,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if not is_ProjectiveSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_projective):
                 raise ValueError('"domain" must be a projective scheme')
             if R not in Fields():
-                return super(DynamicalSystem_projective, cls).__classcall__(cls, polys, domain)
+                return typecall(cls, polys, domain)
             if is_FiniteField(R):
                 return DynamicalSystem_projective_finite_field(polys, domain)
             return DynamicalSystem_projective_field(polys, domain)
@@ -452,7 +422,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if not is_ProjectiveSpace(domain) and not isinstance(domain, AlgebraicScheme_subscheme_projective):
             raise ValueError('"domain" must be a projective scheme')
         if R not in Fields():
-            return super(DynamicalSystem_projective, cls).__classcall__(cls, polys, domain)
+            return typecall(cls, polys, domain)
         if is_FiniteField(R):
                 return DynamicalSystem_projective_finite_field(polys, domain)
         return DynamicalSystem_projective_field(polys, domain)

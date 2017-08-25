@@ -41,6 +41,7 @@ from sage.categories.fields import Fields
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.matrix.constructor import identity_matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.classcall_metaclass import typecall
 from sage.rings.all import Integer
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
@@ -77,9 +78,9 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
     - ``morphism_or_polys`` -- a SchemeMorphism, a polynomial, a
       rational function, or a list or tuple of polynomials or rational
-      functions.
+      functions
 
-    - ``domain`` -- optional affine space or subscheme of such.
+    - ``domain`` -- optional affine space or subscheme of such
 
       The following combinations of ``morphism_or_polys`` and
       ``domain`` are meaningful:
@@ -200,36 +201,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
     @staticmethod
     def __classcall_private__(cls, morphism_or_polys, domain=None):
         r"""
-        Return a dynamical system on an affine scheme.
-
-        INPUT:
-
-        - ``morphism_or_polys`` -- a SchemeMorphism, a polynomial, a
-          rational function, or a list or tuple of polynomials or rational
-          functions.
-
-        - ``domain`` -- optional affine space or subscheme of such.
-
-          The following combinations of ``morphism_or_polys`` and
-          ``domain`` are meaningful:
-
-          * ``morphism_or_polys`` is a SchemeMorphism; ``domain`` is
-            ignored in this case.
-
-          * ``morphism_or_polys`` is a list of polynomials or rational
-            functions that define a rational endomorphism of ``domain``.
-
-          * ``morphism_or_polys`` is a list of polynomials or rational
-            functions and ``domain`` is unspecified; ``domain`` is then
-            taken to be the affine space of appropriate dimension over the
-            base ring of the first element of ``morphism_or_polys``.
-
-          * ``morphism_or_polys`` is a single polynomial or rational
-            function; ``domain`` is ignored and assumed to be the
-            1-dimensional affine space over the base ring of
-            ``morphism_or_polys``.
-
-        OUTPUT: :class:`DynamicalSystem_affine`.
+        Return the appropriate dynamical system on an affine scheme.
 
         TESTS::
 
@@ -264,7 +236,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             if domain != morphism_or_polys.codomain():
                 raise ValueError('domain and codomain do not agree')
             if R not in Fields():
-                return super(DynamicalSystem_affine, cls).__classcall__(cls, morphism_or_polys, domain)
+                return typecall(cls, morphism_or_polys, domain)
             if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(polys, domain)
             return DynamicalSystem_affine_field(polys, domain)
@@ -323,7 +295,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             raise ValueError('"domain" must be an affine scheme')
 
         if R not in Fields():
-            return super(DynamicalSystem_affine, cls).__classcall__(cls, morphism_or_polys, domain)
+            return typecall(cls, morphism_or_polys, domain)
         if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(polys, domain)
         return DynamicalSystem_affine_field(polys, domain)

@@ -4606,8 +4606,8 @@ class ClusterSeed(SageObject):
             sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
             sage: C=ClusterSeed(B)
             sage: v=_vector_decomposition([2,-1,3,-2],4)
-            sage: C._compute_compatible_vectors(v)
-            [[[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 1, 0]]]  
+            sage: C._compute_compatible_vectors(v)            
+            [[[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 1, 0]]]
         """
         from sage.modules.free_module import VectorSpace
         from sage.rings.finite_rings.finite_field_constructor import GF
@@ -4671,7 +4671,8 @@ class ClusterSeed(SageObject):
                             break
                 if pass1:
                     clist.append(s)
-            compatibleList.append(clist)
+            if clist!=[]:        
+                compatibleList.append(clist)
         return compatibleList
 
     def _produce_upper_cluster_algebra_element(self, vd, cList):
@@ -4965,24 +4966,35 @@ def _vector_decomposition(a, length):
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _vector_decomposition
-
         sage: _vector_decomposition([2,-1,3,-2],4)
-        [[(1, 0, 1, 0), 2], [(0, 0, 1, 0), 1], [(0, 0, 0, -1), 1], [(0, -1, 0, -1), 1]]
+        [[(0, -1, 0, 0), 1], [(0, 0, 0, -1), 2], [(1, 0, 1, 0), 2], [(0, 0, 1, 0), 1]]
         sage: _vector_decomposition([3,2,3,4],4)
         [[(1, 1, 1, 1), 2], [(1, 0, 1, 1), 1], [(0, 0, 0, 1), 1]]
     """
+    
+    multiList = []
+    a_plus=[]
+    for i in range(len(a)):
+        if a[i]<0:
+            a_plus.append(0)
+            #create a vector with i-th coordinate -1
+            temp=[0]*length;temp[i]=-1
+            multiList.append([tuple(temp),-a[i]])
+        else:
+            a_plus.append(a[i])    
+    
     #Finds the difference between the largest and smallest entry in the vector to determine the how many vectors are in the decomposition
     max = 0
     min = 0
-    for i in range(len(a)):
-        if a[i] > max:
-            max = a[i]
-        if a[i] < min:
-            min = a[i]
+    for i in range(len(a_plus)):
+        if a_plus[i] > max:
+            max = a_plus[i]
+        if a_plus[i] < min:
+            min = a_plus[i]
     diff = max - min
 
     #Creates a copy of a that will be edited when decomposing the vector.  
-    ap = copy(a)
+    ap = copy(a_plus)
     if max == 0 and min == 0:
         ap = []
         for i in range(length):
@@ -4991,7 +5003,7 @@ def _vector_decomposition(a, length):
     #Resets the counter i and puts the integer partition of the ith component of a into an array. 
     i = 0
     cols = []
-    for i in range(len(a)):
+    for i in range(len(a_plus)):
         c = []
         for j in range(diff):
             if ap[i] > 0:
@@ -5015,7 +5027,6 @@ def _vector_decomposition(a, length):
     mat = mat.transpose()
     vects = mat.rows()
     #Collects identical decomposition vectors and counts their multiplicities. 
-    multiList = []
     while(len(vects) > 0):
         vect = vects[0]
         count = vects.count(vect)

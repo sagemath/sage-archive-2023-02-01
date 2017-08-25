@@ -2652,7 +2652,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         transformation matrix such that ``U.T * M * U``  is LLL-reduced.
 
         ALGORITHM:
-        
+
         Calls PARI's :pari:`qflllgram`.
 
         EXAMPLES::
@@ -2684,7 +2684,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ValueError: qflllgram did not return a square matrix,
             perhaps the matrix is not positive definite
 
-            sage: Matrix(ZZ,2,2,[0,1,1,0]).LLL_gram()
+            sage: Matrix(ZZ, 2, 2, [0,1,1,0]).LLL_gram()
             Traceback (most recent call last):
             ...
             ValueError: qflllgram did not return a square matrix,
@@ -2692,10 +2692,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         or by running forever::
 
-            sage: Matrix(ZZ, [-5, -1, -1, -5]).LLL_gram() # not tested
+            sage: Matrix(ZZ, 2, 2, [-5, -1, -1, -5]).LLL_gram() # not tested
             Traceback (most recent call last):
             ...
-            RuntimeError: infinite loop while calling qflllgram  
+            RuntimeError: infinite loop while calling qflllgram
 
 
 

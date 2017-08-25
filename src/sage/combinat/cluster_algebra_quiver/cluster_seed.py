@@ -34,6 +34,7 @@ REFERENCES:
 from __future__ import print_function
 from six.moves import range
 
+import itertools
 import time
 from operator import pos
 from sage.structure.sage_object import SageObject
@@ -4485,20 +4486,31 @@ class ClusterSeed(SageObject):
         Returns an element in the upper cluster algebra. Depending on the input it may or may not be irreducible.
 
         EXAMPLES::
-
+        
             sage: B=matrix([[0,3,-3],[-3,0,3],[3,-3,0],[1,0,0],[0,1,0],[0,0,1]])
             sage: C=ClusterSeed(B)
             sage: C.get_upper_cluster_algebra_element([1,1,0])
-            x1^-1 * x0^-1 * x2^3 * (x0^3*x3*x4 + x2^3*x3 + x1^3)
+            (x0^3*x2^3*x3*x4 + x2^6*x3 + x1^3*x2^3)/(x0*x1)
             sage: C.get_upper_cluster_algebra_element([1,1,1])
-            x2^2 * x1^2 * x0^2 * (x3*x4*x5 + 1)
-    
+            x0^2*x1^2*x2^2*x3*x4*x5 + x0^2*x1^2*x2^2
+
             sage: B=matrix([[0,3,0],[-3,0,3],[0,-3,0]])
             sage: C=ClusterSeed(B)
             sage: C.get_upper_cluster_algebra_element([1,1,0])
-            x1^-1 * x0^-1 * (x1^3*x2^3 + x0^3 + x2^3)
+            (x1^3*x2^3 + x0^3 + x2^3)/(x0*x1)
             sage: C.get_upper_cluster_algebra_element([1,1,1])
-            x2^-1 * x1^-1 * x0^-1 * (x1 + 1) * (x0 + x2) * (x1^2 - x1 + 1) * (x0^2 - x0*x2 + x2^2)
+            (x0^3*x1^3 + x1^3*x2^3 + x0^3 + x2^3)/(x0*x1*x2)
+
+            sage: B=matrix([[0,2],[-3,0],[4,-5]])
+            sage: C=ClusterSeed(B)
+            sage: C.get_upper_cluster_algebra_element([1,1])
+            (x2^9 + x1^3*x2^5 + x0^2*x2^4)/(x0*x1)
+
+            sage: B=matrix([[0,3,-5],[-3,0,4],[5,-4,0]])
+            sage: C=ClusterSeed(B)
+            sage: C.get_upper_cluster_algebra_element([1,1,1])
+            x0^4*x1^2*x2^3 + x0^2*x1^3*x2^4
+
         
         REFERENCES:
 
@@ -4534,13 +4546,13 @@ class ClusterSeed(SageObject):
             sage: C = ClusterSeed(B)
             sage: C.LLM_gen_set()
             [1,
-             x2^-1 * (x1*x5 + 1),
-             x1^-1 * (x0*x4 + x2),
-             x2^-1 * x1^-1 * (x0*x1*x4*x5 + x0*x4 + x2),
-             x0^-1 * (x1 + x3),
-             x2^-1 * x0^-1 * (x1 + x3) * (x1*x5 + 1),
-             x1^-1 * x0^-1 * (x0*x3*x4 + x1*x2 + x2*x3),
-             x2^-1 * x1^-1 * x0^-1 * (x0*x1*x3*x4*x5 + x0*x3*x4 + x1*x2 + x2*x3)]
+             (x1 + x3)/x0,
+             (x0*x4 + x2)/x1,
+             (x0*x3*x4 + x1*x2 + x2*x3)/(x0*x1),
+             (x1*x5 + 1)/x2,
+             (x1^2*x5 + x1*x3*x5 + x1 + x3)/(x0*x2),
+             (x0*x1*x4*x5 + x0*x4 + x2)/(x1*x2),
+             (x0*x1*x3*x4*x5 + x0*x3*x4 + x1*x2 + x2*x3)/(x0*x1*x2)]
         """
         from sage.modules.free_module import VectorSpace
         from sage.rings.finite_rings.finite_field_constructor import GF
@@ -4623,10 +4635,14 @@ class ClusterSeed(SageObject):
 
         # For each vector a in vd. check if a vector s in {0,1}^n is compatible.
         compatibleList = []
-        psetvect = VectorSpace(GF(2), num_cols).list()
-        for p in psetvect:
+        psetvect_temp = list(itertools.product([0,1],repeat=num_cols))
+        psetvect = []
+        for p_tuple in psetvect_temp:
+            p = list(p_tuple)
             while len(p) < len(vd[0][0]):
                 p.append(0)
+            psetvect.append(p)
+            
         for a in vd:
             negative = False
             for m in xrange(len(a)):
@@ -4671,14 +4687,15 @@ class ClusterSeed(SageObject):
             sage: v = _vector_decomposition([1,2,1,2],8)
             sage: c = C._compute_compatible_vectors(v)
             sage: C._produce_upper_cluster_algebra_element(v,c)
-            x3^-2 * x1^-2 * x2^-1 * x0^-1 * (x0*x1*x5*x7 + x2*x3 + x0*x5) * (x0*x1^2*x4*x5*x6*x7 + x0*x1*x4*x5*x6 + x0*x1*x4*x5*x7 + x1*x2*x3 + x2*x3*x4 + x0*x4*x5)
-
+            (x0^2*x1^3*x4*x5^2*x6*x7^2 + x0*x1^2*x2*x3*x4*x5*x6*x7 + 2*x0^2*x1^2*x4*x5^2*x6*x7 + x0^2*x1^2*x4*x5^2*x7^2 + x0*x1*x2*x3*x4*x5*x6 + x0^2*x1*x4*x5^2*x6 + x0*x1^2*x2*x3*x5*x7 + 2*x0*x1*x2*x3*x4*x5*x7 + 2*x0^2*x1*x4*x5^2*x7 + x1*x2^2*x3^2 + x2^2*x3^2*x4 + x0*x1*x2*x3*x5 + 2*x0*x2*x3*x4*x5 + x0^2*x4*x5^2)/(x0*x1^2*x2*x3^2)
+            
             sage: B = matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])   
             sage: C = ClusterSeed(B)
             sage: v = _vector_decomposition([2,-1,3,-2],4)
             sage: c = C._compute_compatible_vectors(v)
             sage: C._produce_upper_cluster_algebra_element(v,c)
-            x2^-3 * x0^-2 * x1 * x3^2 * (x0*x1 + 1) * (x0*x1 + x1*x2 + 1)^2
+            (x0^3*x1^4*x3^2 + 2*x0^2*x1^4*x2*x3^2 + x0*x1^4*x2^2*x3^2 + 3*x0^2*x1^3*x3^2 + 4*x0*x1^3*x2*x3^2 + x1^3*x2^2*x3^2 + 3*x0*x1^2*x3^2 + 2*x1^2*x2*x3^2 +
+            x1*x3^2)/(x0^2*x2^3)
         """
         B = self.b_matrix()
         #Creates a the fraction field of a polynomial ring in which to build the Laurent polynomials.
@@ -4702,7 +4719,7 @@ class ClusterSeed(SageObject):
                         expn = 0
                         #The exponent is determined by the vectors a,s, and the matrix B.
                         for k in range(num_cols):
-                            expn += ((vd[i][0][k]-s[k])*max(0, B[j][k])+s[k]*max(0, -B[j][k]))
+                            expn += (vd[i][0][k]-s[k])*max(0, B[j][k])+s[k]*max(0, -B[j][k])
                         term *= x ** expn
                     numerator += term
             #Gives a numerator for the negative vector, or else the product would be zero.      

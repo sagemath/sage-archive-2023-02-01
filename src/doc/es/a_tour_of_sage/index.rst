@@ -88,7 +88,7 @@ matríz y mostrarlos.
 .. image:: eigen_plot.*
 
 
-Grácias a la Biblioteca GNU de Multiprecisión (GMP), Sage puede manejar
+Gracias a la Biblioteca GNU de Multiprecisión (GMP), Sage puede manejar
 números muy grandes, hasta números con millones o billones de
 dígitos.
 

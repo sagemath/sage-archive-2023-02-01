@@ -765,7 +765,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             return out
 
         except (RuntimeError,TypeError) as message:
-            if 'EOF' in message[0] or E is None or not E.isalive():
+            if 'EOF' in message.args[0] or E is None or not E.isalive():
                 print("** %s crashed or quit executing '%s' **" % (self, line))
                 print("Restarting %s and trying again" % self)
                 self._start()

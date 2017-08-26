@@ -46,7 +46,6 @@ from sage.sets.all import Set
 from sage.graphs.digraph import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
-from sage.misc.misc import exists
 from random import randint
 from sage.misc.all import prod
 from sage.matrix.all import identity_matrix
@@ -177,8 +176,6 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',4])
             sage: TestSuite(S).run()
         """
-        from sage.matrix.matrix import Matrix
-
         #initialize a null state ClusterSeed object so all tests run and fail as appropriate.
         # numerous doctests if this null state is not first initialized.
         self._n = 0

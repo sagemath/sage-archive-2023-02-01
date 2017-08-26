@@ -257,7 +257,7 @@ Classes and functions
 from __future__ import division, print_function, absolute_import
 
 from six.moves import range
-from six import itervalues, iteritems
+from six import iteritems
 
 import copy
 from sage.misc.cachefunc import cached_method

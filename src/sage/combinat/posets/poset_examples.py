@@ -807,7 +807,7 @@ class Posets(object):
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if n not in NN:
             raise ValueError('n must be an integer')
-        from sage.combinat.set_partition import SetPartition, SetPartitions
+        from sage.combinat.set_partition import SetPartitions
         S = SetPartitions(n)
 
         def covers(x):

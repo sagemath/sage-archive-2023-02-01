@@ -144,14 +144,14 @@ def _normalize_H(H, level):
         if gcd(h, level) > 1:
             raise ArithmeticError('The generators %s must be units modulo %s' % (H, level))
     H = set(u for u in H if u > 1)
-    final_H = []
+    final_H = set()
     for h in H:
         inv_h = h.inverse_mod(level)
         if inv_h <= h:
-            final_H.append(inv_h)
+            final_H.add(inv_h)
         else:
-            final_H.append(h)
-    return sorted(set(final_H))
+            final_H.add(h)
+    return sorted(final_H)
 
 
 @richcmp_method

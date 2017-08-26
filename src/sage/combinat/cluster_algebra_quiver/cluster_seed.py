@@ -4606,8 +4606,11 @@ class ClusterSeed(SageObject):
             sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
             sage: C=ClusterSeed(B)
             sage: v=_vector_decomposition([2,-1,3,-2],4)
-            sage: C._compute_compatible_vectors(v)            
-            [[[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 1, 0]]]
+            sage: C._compute_compatible_vectors(v)
+            [[],
+             [],
+             [[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]],
+             [[0, 0, 0, 0], [0, 0, 1, 0]]]
         """
         from sage.modules.free_module import VectorSpace
         from sage.rings.finite_rings.finite_field_constructor import GF
@@ -4671,8 +4674,7 @@ class ClusterSeed(SageObject):
                             break
                 if pass1:
                     clist.append(s)
-            if clist!=[]:        
-                compatibleList.append(clist)
+            compatibleList.append(clist)
         return compatibleList
 
     def _produce_upper_cluster_algebra_element(self, vd, cList):
@@ -4690,7 +4692,7 @@ class ClusterSeed(SageObject):
             sage: C._produce_upper_cluster_algebra_element(v,c)
             (x0^2*x1^3*x4*x5^2*x6*x7^2 + x0*x1^2*x2*x3*x4*x5*x6*x7 + 2*x0^2*x1^2*x4*x5^2*x6*x7 + x0^2*x1^2*x4*x5^2*x7^2 + x0*x1*x2*x3*x4*x5*x6 + x0^2*x1*x4*x5^2*x6 + x0*x1^2*x2*x3*x5*x7 + 2*x0*x1*x2*x3*x4*x5*x7 + 2*x0^2*x1*x4*x5^2*x7 + x1*x2^2*x3^2 + x2^2*x3^2*x4 + x0*x1*x2*x3*x5 + 2*x0*x2*x3*x4*x5 + x0^2*x4*x5^2)/(x0*x1^2*x2*x3^2)
             
-            sage: B = matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])   
+            sage: B = matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
             sage: C = ClusterSeed(B)
             sage: v = _vector_decomposition([2,-1,3,-2],4)
             sage: c = C._compute_compatible_vectors(v)
@@ -4709,8 +4711,8 @@ class ClusterSeed(SageObject):
         for i in range(len(vd)):  
             final = 1
             numerator = 0
-            #If the vector in vd is negative then it did not contribute any compatible vectors. It will only contribute a Laurent monomial.
-            if len(cList) > i:
+            if cList[i] != []: 
+            #If the vector in vd is negative then it did not contribute any compatible vectors. It will only contribute a Laurent monomial. This is the case when cList[i]=[]
             #Each compatible sequence gives a term in the numerator of the Laurent polynomial.
                 for s in cList[i]:  
                     term = 1
@@ -4726,6 +4728,7 @@ class ClusterSeed(SageObject):
             #Gives a numerator for the negative vector, or else the product would be zero.      
             else:
                 numerator = 1
+                
             #Uses the vectors in vd to calculates the denominator of the Laurent.     
             denominator = 1
             for l in range(num_cols):

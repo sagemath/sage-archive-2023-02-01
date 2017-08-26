@@ -22,7 +22,7 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed
+from sage.misc.package import is_package_installed, PackageNotFoundError
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -4189,8 +4189,7 @@ class Polyhedron_base(Element):
              David Avis's lrs program.
         """
         if not is_package_installed('lrslib'):
-            raise NotImplementedError('You must install the optional lrslib package '
-                                       'for this function to work')
+            raise PackageNotFoundError('lrslib')
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -4279,7 +4278,7 @@ class Polyhedron_base(Element):
                 return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
 
         else:
-            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+            raise PackageNotFoundError('latte_int')
 
     @cached_method
     def volume(self, engine='auto', **kwds):
@@ -4444,7 +4443,7 @@ class Polyhedron_base(Element):
                 return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 
         else:
-            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+            raise PackageNotFoundError('latte_int')
 
     def contains(self, point):
         """

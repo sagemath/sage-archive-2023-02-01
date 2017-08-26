@@ -546,8 +546,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     Other hardcoded values::
 
-        sage: for n,e in [(36,1),(36,-1),(100,1),(100,-1),(196, 1)]:
-        ....:     print(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e))
+        sage: for n,e in [(36,1),(36,-1),(100,1),(100,-1),(196, 1)]:  # long time
+        ....:     print(repr(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)))
         36 x 36 dense matrix over Integer Ring
         36 x 36 dense matrix over Integer Ring
         100 x 100 dense matrix over Integer Ring
@@ -555,24 +555,24 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         196 x 196 dense matrix over Integer Ring
 
         sage: for n,e in [(324,1),(324,-1)]: # not tested - long time, tested in RSHCD_324
-        ....:     print(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)) # not tested - long time
+        ....:     print(repr(regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e)))
         324 x 324 dense matrix over Integer Ring
         324 x 324 dense matrix over Integer Ring
 
     From two close prime powers::
 
-        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1))
-        64 x 64 dense matrix over Integer Ring
+        sage: regular_symmetric_hadamard_matrix_with_constant_diagonal(64,-1)
+        64 x 64 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     From a prime power and a conference matrix::
 
-        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(676,1)) # long time
-        676 x 676 dense matrix over Integer Ring
+        sage: regular_symmetric_hadamard_matrix_with_constant_diagonal(676,1)  # long time
+        676 x 676 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     Recursive construction::
 
-        sage: print(regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1))
-        144 x 144 dense matrix over Integer Ring
+        sage: regular_symmetric_hadamard_matrix_with_constant_diagonal(144,-1)
+        144 x 144 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     REFERENCE:
 
@@ -715,10 +715,10 @@ def RSHCD_324(e):
     TESTS::
 
         sage: from sage.combinat.matrices.hadamard_matrix import RSHCD_324, is_hadamard_matrix
-        sage: for e in [1,-1]: # long time
-        ....:     M = RSHCD_324(e) # long time
-        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)]))) # long time
-        ....:     print(set(map(sum,M))) # long time
+        sage: for e in [1,-1]:  # long time
+        ....:     M = RSHCD_324(e)
+        ....:     print("{} {} {}".format(M==M.T,is_hadamard_matrix(M),all([M[i,i]==1 for i in range(324)])))
+        ....:     print(set(map(sum,M)))
         True True True
         set([18])
         True True True
@@ -1317,7 +1317,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
     Bigger examples, only provided by this construction ::
 
         sage: H = rshcd_from_prime_power_and_conference_matrix(27)  # long time
-        sage: H==H.T and is_hadamard_matrix(H)                      # long time
+        sage: H == H.T and is_hadamard_matrix(H)                    # long time
         True
         sage: H.diagonal()==[1]*676 and list(sum(H))==[26]*676      # long time
         True

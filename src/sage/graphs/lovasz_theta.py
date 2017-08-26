@@ -37,11 +37,11 @@ def lovasz_theta(graph):
 
     .. NOTE::
 
-        - Implemented for undirected graphs only. Use to_undirected to convert a
-          digraph to an undirected graph.
+        - Implemented for undirected graphs only. Use ``to_undirected``
+          to convert a digraph to an undirected graph.
 
         - This function requires the optional package ``csdp``, which you can
-          install with with ``sage -i csdp``.
+          install with ``sage -i csdp``.
 
     EXAMPLES::
 

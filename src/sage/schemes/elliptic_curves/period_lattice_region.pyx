@@ -32,7 +32,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import division, absolute_import
 
 import numpy as np
 cimport numpy as np

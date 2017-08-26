@@ -222,7 +222,7 @@ here we color in red all edges touching the vertex ``0``::
     \end{tikzpicture}
 
 
-TEST:
+TESTS:
 
 This graph will look horrible, but it illustrates (and tests) a
 great variety of the possible options available through Sage's

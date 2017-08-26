@@ -916,7 +916,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: MPComplexField()(2, -3) # indirect doctest
             2.00000000000000 - 3.00000000000000*I
         """
-        return self.str()
+        return self.str(truncate=True)
 
     def _latex_(self):
         """
@@ -928,7 +928,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             2.00000000000000 - 3.00000000000000i
         """
         import re
-        s = self.str().replace('*I', 'i')
+        s = repr(self).replace('*I', 'i')
         return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
     def __hash__(self):
@@ -1030,40 +1030,40 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpfr_set (y.value, self.value.im, (<RealField_class>y._parent).rnd)
         return y
 
-    def str(self, int base=10, int truncate=True):
+    def str(self, base=10, **kwds):
         """
         Return a string of ``self``.
 
         INPUT:
 
-        - ``base`` -- base for output
+        - ``base`` -- (default: 10) base for output
 
-        - ``truncate`` -- if ``True``, round off the last digits in printing
-          to lessen confusing base-2 roundoff issues.
+        - ``**kwds`` -- other arguments to pass to the ``str()``
+          method of the real numbers in the real and imaginary parts.
 
         EXAMPLES::
 
             sage: MPC = MPComplexField(64)
             sage: z = MPC(-4, 3)/7
             sage: z.str()
-            '-0.571428571428571429 + 0.428571428571428571*I'
+            '-0.571428571428571428564 + 0.428571428571428571436*I'
             sage: z.str(16)
             '-0.92492492492492490 + 0.6db6db6db6db6db70*I'
             sage: z.str(truncate=True)
             '-0.571428571428571429 + 0.428571428571428571*I'
-            sage: z.str(2, True)
+            sage: z.str(2)
             '-0.1001001001001001001001001001001001001001001001001001001001001001 + 0.01101101101101101101101101101101101101101101101101101101101101110*I'
         """
         s = ""
         if self.real() != 0:
-            s = self.real().str(base, truncate=truncate)
+            s = self.real().str(base, **kwds)
         if self.imag() != 0:
             if mpfr_signbit(self.value.im):
-                s += ' - ' + (-self.imag()).str(base, truncate=truncate) + '*I'
+                s += ' - ' + (-self.imag()).str(base, **kwds) + '*I'
             else:
                 if s:
                     s += ' + '
-                s += self.imag().str(base, truncate=truncate) + '*I'
+                s += self.imag().str(base, **kwds) + '*I'
         if not s:
             return "0"
         return s

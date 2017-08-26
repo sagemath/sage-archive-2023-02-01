@@ -70,6 +70,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.complex_field import ComplexField, CDF
 from sage.rings.real_mpfr import RealField
+from sage.rings.real_double import RDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.arith.srange import srange
@@ -290,7 +291,7 @@ class RiemannSurface(object):
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: S = RiemannSurface(w^2 - z^3 + 1)
             sage: TestSuite(S).run() #not tested; Unclear what pickling strategy is best.
-            
+
         """
         # Initializations.
         self._prec = prec
@@ -298,6 +299,8 @@ class RiemannSurface(object):
         self._R = f.parent()
         if len(self._R.gens()) != 2:
             raise ValueError('only bivariate polynomials supported.')
+        if f.degree() <= 1:
+            raise ValueError('equation must be of degree at least 2.')
         z, w = self._R.gen(0), self._R.gen(1)
         self._CC = ComplexField(self._prec)
         self._RR = RealField(self._prec)
@@ -374,7 +377,7 @@ class RiemannSurface(object):
 
         Find the w-values above the origin, i.e. the solutions of `w^2 + 1 = 0`::
 
-            sage: S.w_values(0)
+            sage: S.w_values(0) # abs tol 1e-14
             [-1.00000000000000*I, 1.00000000000000*I]
 
         """
@@ -384,7 +387,7 @@ class RiemannSurface(object):
     def downstairs_edges(self):
         r"""
         Compute the edgeset of the Voronoi diagram.
-        
+
         OUTPUT:
 
         A list of integer tuples corresponding to edges between vertices
@@ -707,7 +710,7 @@ class RiemannSurface(object):
                 wi-=delta
             # If we run 100 iterations without a result, terminate.
             else:
-                raise ConvergenceError("Newton interation fails to converge after %s iterations"%(j,))
+                raise ConvergenceError("Newton iteration fails to converge after %s iterations" % j)
         return neww
 
     def _newton_iteration(self, z0, oldw, epsilon):
@@ -1510,7 +1513,7 @@ class RiemannSurface(object):
         plt=point2d(P,size=1)+point2d(self.branch_locus,color="red")
         return plt
 
-    def plot_paths3d(self):
+    def plot_paths3d(self,thickness=0.01):
         r"""
         Return the homology basis as a graph in 3-space.
 
@@ -1546,7 +1549,7 @@ class RiemannSurface(object):
             T = self._L[e]
             color = "blue"
             for i in range(self.degree):
-                P += line3d([path(t[0])+(t[1][i].imag_part(),) for t in T],color=color,thickness=0.01)
+                P += line3d([path(t[0])+(t[1][i].imag_part(),) for t in T],color=color,thickness=thickness)
             for z,ws in zip(self._vertices,self._wvalues):
                 for w in ws:
                     P += point3d([z.real_part(),z.imag_part(),w.imag_part()],color="purple", size=20)
@@ -1558,7 +1561,7 @@ class RiemannSurface(object):
 
         Let `\left(I | M \right)` be the normalized period matrix (`M` is the
         `g\times g` :meth:`riemann_matrix`).
-        We consider the system of matrix equations `MA + B = (MC + D)M` where
+        We consider the system of matrix equations `MA + C = (MB + D)M` where
         `A, B, C, D` are `g\times g` integer matrices.  We determine small
         integer (near) solutions using LLL reductions.  These solutions are
         returned as `2g \times 2g` integer matrices obtained by stacking
@@ -1566,7 +1569,7 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``b`` -- integer (default: precision - 10). The equation coefficients
+        - ``b`` -- integer (default provided). The equation coefficients
           are scaled by `2^b` before rounding to integers.
 
         - ``r`` -- integer (default: ``b/4``). Solutions that have all
@@ -1591,39 +1594,239 @@ class RiemannSurface(object):
 
         """
         M = self.riemann_matrix()
-        H = max(max( abs(m.real_part()) for m in M.list()), max( abs(m.imag_part()) for m in M.list()))
-        if b is None:
-            b = self._prec - 10
-        if r is None:
-            r = b//4
-        S = 2**b
-        if H*S > 2**(self._prec-5):
-            raise ValueError("insufficient precision for b=%s"%b)
-        g = M.ncols()
-        CC = M.base_ring()
-        V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g**2)]
-        R = PolynomialRing(CC,V)
-        A = Matrix(R,g,g,V[:g**2])
-        B = Matrix(R,g,g,V[g**2:2*g**2])
-        C = Matrix(R,g,g,V[2*g**2:3*g**2])
-        D = Matrix(R,g,g,V[3*g**2:4*g**2])
-        # Given the normalized period matrix ( I | M ) we multiply on the right by
-        # the integer matrix (D, B ; C, A) to get the result (D+MC | B+MA).
-        # Bringing that matrix in normalized form gives (I | (D+MC)^(-1)(B+MA)).
-        # Equating this to (I|M) and clearing denominators gives the equations
-        # below.
-        W = ((M*A+B) - (M*C+D)*M).list()
-        vars = R.gens()
-        mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g**2)] +
-          [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
-          [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
-        # we compute an LLL-reduced basis of this lattice:
-        mtL = mt.LLL()
-        def vectomat(v,g):
-            A = Matrix(g,g,v[:g**2].list())
-            B = Matrix(g,g,v[g**2:2*g**2].list())
-            C = Matrix(g,g,v[2*g**2:3*g**2].list())
-            D = Matrix(g,g,v[3*g**2:4*g**2].list())
-            return D.augment(B).stack(C.augment(A))
-        c = 2**r
-        return [vectomat(v,g) for v in mtL if all(a.abs() <= c for a in v[4*g**2:])]
+        return integer_matrix_relations(M,M,b,r)
+
+    def homomorphism_basis(self, other, b=None, r=None):
+        r"""
+        Numerically compute a `\ZZ`-basis for module of homomorphisms to
+        a given complex torus.
+
+        Given another complex torus (given as the analytic Jacobian of a
+        Riemann surface), numerically compute a basis for the homomorphism
+        module. The answer is returned as a list of 2g x 2g integer matrices
+        T=(D, B; C, A)
+        such that if the columns of (I|M1) generate the lattice defining
+        the Jacobian of the Riemann surface and the columns of (I|M2) do this
+        for the codomain, then approximately we have
+        (I|M2)T=(D+M2C)(I|M1),
+        i.e., up to a choice of basis for `\CC^g` as a complex vector space, we
+        we realize (I|M1) as a sublattice of (I|M2).
+
+        INPUT:
+
+        - ``b`` -- integer (default provided). The equation coefficients
+          are scaled by `2^b` before rounding to integers.
+
+        - ``r`` -- integer (default: ``b/4``). Solutions that have all
+          coefficients smaller than `2^r` in absolute value are reported as
+          actual solutions.
+
+        OUTPUT:
+
+        A list of `2g \times 2g` integer matrices that, for large enough ``r``
+        and ``b-r``, generate the homomorphism module.
+
+        EXAMPLES::
+
+            sage: S1 = EllipticCurve("11a1").riemann_surface()
+            sage: S2 = EllipticCurve("11a3").riemann_surface()
+            sage: [m.det() for m in S1.homomorphism_basis(S2)]
+            [5]
+
+        """
+        M1 = self.riemann_matrix()
+        M2 = other.riemann_matrix()
+        return integer_matrix_relations(M2,M1,b,r)
+
+    def __add__(self,other):
+        r"""
+        Return the disjoint union of the Riemann surface and the other argument.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, RiemannSurfaceSum
+            sage: R.<x,y>=QQ[]
+            sage: S1 = RiemannSurface(y^2-x^3-x-1)
+            sage: S1+S1
+            Riemann surface sum with period lattice of rank 4
+
+        """
+        return RiemannSurfaceSum([self,other])
+
+def integer_matrix_relations(M1,M2,b=None,r=None):
+    r"""
+    Determine integer relations between complex matrices
+
+    Given two g x g matrices with complex entries, numerically determine
+    an (approximate) ZZ-basis for the 2g x 2g matrices with integer entries
+    of the shape (D, B; C, A) such that
+    B+M1*A=(D+M1*C)*M2
+    By considering real and imaginary parts separately we obtain `2g^2`
+    equations with real coefficients in `4g^2` variables. We scale the
+    coefficients by a constant `2^b` and round them to integers, in order
+    to obtain an integer system of equations. Standard application of LLL
+    allows us to determine near solutions.
+
+    The user can specify the parameter `b`, but by default the system will
+    choose a `b` based on the size of the coefficients and the precision
+    with which they are given.
+
+    INPUT:
+
+    - `M1` -- square complex valued matrix
+
+    - `M2` -- square complex valued matrix of same size as M1
+
+    - ``b`` -- integer (default provided). The equation coefficients
+      are scaled by `2^b` before rounding to integers.
+
+    - ``r`` -- integer (default: ``b/4``). The vectors found by LLL that satisfy
+      the scaled equations to withing `2^r` are reported as solutions.
+
+    OUTPUT:
+
+    A list of 2g x 2g integer matrices that, for large enough `r`, `b-r`,
+    generate the ZZ-module of relevant transformations.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import integer_matrix_relations
+        sage: M1=M2=matrix(CC,2,2,[sqrt(d) for d in [2,-3,-3,-6]])
+        sage: T=integer_matrix_relations(M1,M2)
+        sage: id=parent(M1)(1)
+        sage: M1t=[id.augment(M1) * t for t in T]
+        sage: [((m[:,:2]^(-1)*m)[:,2:]-M2).norm() < 1e-13 for m in M1t]
+        [True, True]
+
+    """
+    if not(M1.ncols()==M2.ncols() and M1.nrows()==M1.nrows() and M2.nrows()==M2.nrows()):
+        raise ValueError("matrices need to be square of same dimensions")
+    prec = min(M1.base_ring().precision(),M2.base_ring().precision())
+    H = max(max( abs(m.real_part()) for m in M1.list()+M2.list()), max( abs(m.imag_part()) for m in M1.list()+M2.list()))
+    if b is None:
+        b = prec-5-H.log2().floor()
+    if r is None:
+        r = b//4
+    S = 2**b
+    if H*S > 2**(prec-4):
+        raise ValueError("insufficient precision for b=%s"%b)
+    g = M1.ncols()
+    CC = M1.base_ring()
+    V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g**2)]
+    R = PolynomialRing(CC,V)
+    A = Matrix(R,g,g,V[:g**2])
+    B = Matrix(R,g,g,V[g**2:2*g**2])
+    C = Matrix(R,g,g,V[2*g**2:3*g**2])
+    D = Matrix(R,g,g,V[3*g**2:4*g**2])
+    W = ((M1*A+B) - (M1*C+D)*M2).list()
+    vars = R.gens()
+    mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g**2)] +
+      [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
+      [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
+    # we compute an LLL-reduced basis of this lattice:
+    mtL = mt.LLL()
+    def vectomat(v,g):
+        A = Matrix(g,g,v[:g**2].list())
+        B = Matrix(g,g,v[g**2:2*g**2].list())
+        C = Matrix(g,g,v[2*g**2:3*g**2].list())
+        D = Matrix(g,g,v[3*g**2:4*g**2].list())
+        return D.augment(B).stack(C.augment(A))
+    c = 2**r
+    return [vectomat(v,g) for v in mtL if all(a.abs() <= c for a in v[4*g**2:])]
+
+class RiemannSurfaceSum(RiemannSurface):
+    r"""
+    Represent the disjoint union of finitely many Riemann surfaces.
+
+    Rudimentary class to represent disjoint unions of Riemann surfaces.
+    Exists mainly (and this is the only functionality actually
+    implemented) to represents direct products of the complex tori that
+    arise as analytic Jacobians of Riemann surfaces.
+
+    INPUT:
+
+    - L -- list of RiemannSurface objects
+
+    EXAMPLES::
+
+        sage: _.<x> = QQ[]
+        sage: SC = HyperellipticCurve(x^6-2*x^4+3*x^2-7).riemann_surface(prec=60)
+        sage: S1 = HyperellipticCurve(x^3-2*x^2+3*x-7).riemann_surface(prec=60)
+        sage: S2 = HyperellipticCurve(1-2*x+3*x^2-7*x^3).riemann_surface(prec=60)
+        sage: len(SC.homomorphism_basis(S1+S2))
+        2
+
+    """
+    def __init__(self,L):
+        r"""
+        TESTS::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, RiemannSurfaceSum
+            sage: R.<x,y>=QQ[]
+            sage: S1 = RiemannSurface(y^2-x^3-x-1)
+            sage: S2 = RiemannSurface(y^2-x^3-x-5)
+            sage: S = RiemannSurfaceSum([S1,S2])
+            sage: S.riemann_matrix() == S1.riemann_matrix().block_sum(S2.riemann_matrix())
+            True
+
+        """
+        if not all(isinstance(l,RiemannSurface) for l in L):
+            raise ValueError("summands must be RiemannSurface objects")
+        prec=min(l._prec for l in L)
+        self._prec=prec
+        it=iter(L)
+        M=next(it).riemann_matrix()
+        for s in it:
+            M=M.block_sum(s.riemann_matrix())
+        self.M=M
+
+    def riemann_matrix(self):
+        r"""
+        Return the normalized period matrix of the surface
+
+        This is just the diagonal block matrix constructed from the Riemann matrices
+        of the constituents.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, RiemannSurfaceSum
+            sage: R.<x,y>=QQ[]
+            sage: S1 = RiemannSurface(y^2-x^3-x-1)
+            sage: S2 = RiemannSurface(y^2-x^3-x-5)
+            sage: S = RiemannSurfaceSum([S1,S2])
+            sage: S.riemann_matrix() == S1.riemann_matrix().block_sum(S2.riemann_matrix())
+            True
+
+        """
+        return self.M
+
+    def __repr__(self):
+        r"""
+        Return string describing Riemann surface sum.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, RiemannSurfaceSum
+            sage: R.<x,y>=QQ[]
+            sage: S1 = RiemannSurface(y^2-x^3-x-1)
+            sage: S2 = RiemannSurface(y^2-x^3-x-5)
+            sage: RiemannSurfaceSum([S1,S2])
+            Riemann surface sum with period lattice of rank 4
+
+        """
+        return "Riemann surface sum with period lattice of rank "+repr(2*self.M.ncols())
+
+    def __add__(self,other):
+        r"""
+        Return the disjoint union of the Riemann surface and the other argument.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, RiemannSurfaceSum
+            sage: R.<x,y>=QQ[]
+            sage: S1 = RiemannSurface(y^2-x^3-x-1)
+            sage: S1+S1+S1
+            Riemann surface sum with period lattice of rank 6
+
+        """
+        return RiemannSurfaceSum([self,other])

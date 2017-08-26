@@ -3223,12 +3223,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.critical_point_portrait()
             Traceback (most recent call last):
             ...
-            TypeError: map be be post-critically finite
+            TypeError: map must be post-critically finite
         """
         #input checking done in is_postcritically_finite
         if check:
             if not self.is_postcritically_finite():
-                raise TypeError("map be be post-critically finite")
+                raise TypeError("map must be post-critically finite")
         if embedding is None:
             F = self.change_ring(QQbar)
         else:

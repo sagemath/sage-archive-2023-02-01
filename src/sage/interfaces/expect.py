@@ -652,7 +652,7 @@ If this all works, you can then make calls like:
         A string that provides a temporary filename and is unique for the
         given interface.
 
-        TEST:
+        TESTS:
 
         The filename is cached::
 

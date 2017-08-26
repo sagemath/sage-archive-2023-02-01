@@ -840,7 +840,7 @@ def _split_syntactical_unit(s):
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
-    TEST:
+    TESTS:
 
     The following was fixed in :trac:`16309`::
 
@@ -1975,7 +1975,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        26
+        28
         sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 

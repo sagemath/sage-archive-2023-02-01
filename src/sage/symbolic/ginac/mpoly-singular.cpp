@@ -541,7 +541,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
                         else
                                 res_prod = mul(res_prod, term);
                 }
-                res_prod = mul(res_prod, m.op(m.nops()));
+                res_prod = mul(res_prod, m.get_overall_coeff());
                 return not all_prime;
         }
 

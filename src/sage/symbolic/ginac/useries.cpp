@@ -297,7 +297,7 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
                         if (unhandled_elements_in(epseq.op(i), symb))
                                 return true;
                 }
-                if (unhandled_elements_in(epseq.op(epseq.nops()), symb))
+                if (unhandled_elements_in(epseq.get_overall_coeff(), symb))
                         return true;
                 return false;
         }

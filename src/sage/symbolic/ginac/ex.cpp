@@ -584,7 +584,7 @@ void ex::coefficients(const ex & s, expairvec & vec) const
 
         if (is_exactly_a<add>(sub)) {
                 const add& addref = ex_to<add>(sub);
-                const ex& oc = addref.op(addref.nops()+1);
+                const numeric& oc = addref.get_overall_coeff();
                 if (not oc.is_zero())
                         vec.push_back(std::make_pair(oc, _ex0));
                 for (const auto& term : addref.seq) {

@@ -394,9 +394,8 @@ static ex unit_step_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return unit_step_evalf(arg, nullptr);
 	
-	else if (is_exactly_a<mul>(arg) &&
-	         is_exactly_a<numeric>(arg.op(arg.nops()-1))) {
-		numeric oc = ex_to<numeric>(arg.op(arg.nops()-1));
+	else if (is_exactly_a<mul>(arg)) {
+		const numeric& oc = ex_to<mul>(arg).get_overall_coeff();
 		if (oc.is_real()) {
 			if (oc > 0)
 				// step(42*x) -> step(x)
@@ -479,9 +478,8 @@ static ex heaviside_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return heaviside_evalf(arg, nullptr);
 	
-	else if (is_exactly_a<mul>(arg) &&
-	         is_exactly_a<numeric>(arg.op(arg.nops()-1))) {
-		numeric oc = ex_to<numeric>(arg.op(arg.nops()-1));
+	else if (is_exactly_a<mul>(arg)) {
+		const numeric& oc = ex_to<mul>(arg).get_overall_coeff();
 		if (oc.is_real()) {
 			if (oc > 0)
 				// step(42*x) -> step(x)
@@ -558,9 +556,8 @@ static ex csgn_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return csgn(ex_to<numeric>(arg));
 	
-	else if (is_exactly_a<mul>(arg) &&
-	         is_exactly_a<numeric>(arg.op(arg.nops()-1))) {
-		numeric oc = ex_to<numeric>(arg.op(arg.nops()-1));
+	else if (is_exactly_a<mul>(arg)) {
+		const numeric& oc = ex_to<mul>(arg).get_overall_coeff();
 		if (oc.is_real()) {
 			if (oc > 0)
 				// csgn(42*x) -> csgn(x)
@@ -746,8 +743,7 @@ static ex Order_eval(const ex & x)
 	} else if (is_exactly_a<mul>(x)) {
 		const mul &m = ex_to<mul>(x);
 		// O(c*expr) -> O(expr)
-		if (is_exactly_a<numeric>(m.op(m.nops() - 1)))
-			return Order(x / m.op(m.nops() - 1)).hold();
+		return Order(x / m.get_overall_coeff()).hold();
 	}
 	return Order(x).hold();
 }

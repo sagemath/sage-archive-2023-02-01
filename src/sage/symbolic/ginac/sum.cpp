@@ -47,9 +47,7 @@ static bool is_rational_linear(const ex& the_ex)
                             and not is_exactly_a<numeric>(m.op(i)))
                                 return false;
                 }
-                const ex& oc = m.op(m.nops());
-                return (is_exactly_a<numeric>(oc)
-                       and ex_to<numeric>(oc).is_rational());
+                return m.get_overall_coeff().is_rational();
         }
         if (is_exactly_a<add>(the_ex)) {
                 const add& a = ex_to<add>(the_ex);
@@ -57,9 +55,7 @@ static bool is_rational_linear(const ex& the_ex)
                         if (not is_rational_linear(a.op(i)))
                                 return false;
                 }
-                const ex& oc = a.op(a.nops());
-                return (is_exactly_a<numeric>(oc)
-                       and ex_to<numeric>(oc).is_rational());
+                return a.get_overall_coeff().is_rational();
         }
         return false;
 }
@@ -139,9 +135,7 @@ static bool has_suitable_form(ex the_ex)
                         if (not has_suitable_form(m.op(i)))
                                 return false;
                 }
-                const ex& oc = m.op(m.nops());
-                return (is_exactly_a<numeric>(oc)
-                       and ex_to<numeric>(oc).is_rational());
+                return m.get_overall_coeff().is_rational();
         }
         if (is_exactly_a<add>(the_ex)) {
                 const add& m = ex_to<add>(the_ex);
@@ -149,9 +143,7 @@ static bool has_suitable_form(ex the_ex)
                         if (not has_suitable_form(m.op(i)))
                                 return false;
                 }
-                const ex& oc = m.op(m.nops());
-                return (is_exactly_a<numeric>(oc)
-                       and ex_to<numeric>(oc).is_rational());
+                return m.get_overall_coeff().is_rational();
         }
         return false;
 }
@@ -255,22 +247,19 @@ static void collect_gamma_args(ex the_ex, ex_intset_map& map)
                         ex arg = f.op(0).expand();
                         if (is_exactly_a<numeric>(arg))
                                 return;
-                        ex oc;
+                        numeric oc;
                         if (is_exactly_a<add>(arg)) {
                                 const add& a = ex_to<add>(arg);
-                                oc = a.op(a.nops());
-                                if (not is_exactly_a<numeric>(oc))
-                                        return;
-                                numeric noc = ex_to<numeric>(oc);
-                                if (not noc.is_mpz() and not noc.is_long()) {
-                                        if (not noc.is_mpq())
+                                oc = a.get_overall_coeff();
+                                if (not oc.is_mpz() and not oc.is_long()) {
+                                        if (not oc.is_mpq())
                                                 return;
-                                        oc = numeric(noc.to_int());
+                                        oc = oc.to_int();
                                 }
                         }
                         else
-                                oc = _ex0;
-                        int ioc = ex_to<numeric>(oc).to_int();
+                                oc = *_num0_p;
+                        int ioc = oc.to_int();
                         auto search = map.find(arg - oc);
                         if (search != map.end()) {
                                 search->second.insert(ioc);
@@ -455,7 +444,7 @@ static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
 		const ex e = ee1.coeff(s, l);
                 ex c = e.coeff(v, e.ldegree(v));
                 if (is_exactly_a<add>(c))
-                        c = c.op(c.nops());
+                        c = ex_to<add>(c).get_overall_coeff();
                 else if (not is_exactly_a<numeric>(c))
                         c = _ex0;
 		for (int k = 0; k < h2; ++k) {
@@ -467,7 +456,7 @@ static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
 		const ex e = ee2.coeff(s, l);
                 ex c = e.coeff(v, e.ldegree(v));
                 if (is_exactly_a<add>(c))
-                        c = c.op(c.nops());
+                        c = ex_to<add>(c).get_overall_coeff();
                 else if (not is_exactly_a<numeric>(c))
                         c = _ex0;
 		for (int k = 0; k < h1; ++k) {

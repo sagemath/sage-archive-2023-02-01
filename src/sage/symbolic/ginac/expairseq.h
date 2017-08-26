@@ -84,6 +84,7 @@ public:
 	size_t nops() const override;
 	const ex op(size_t i) const override;
 	virtual ex stable_op(size_t i) const;
+	const numeric & get_overall_coeff() const { return overall_coeff; }
 	ex map(map_function & f) const override;
 	ex eval(int level=0) const override;
 	ex to_rational(exmap & repl) const override;

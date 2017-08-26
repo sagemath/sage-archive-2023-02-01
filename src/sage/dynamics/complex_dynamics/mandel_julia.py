@@ -346,7 +346,7 @@ def external_ray(theta, **kwds):
     ray_color = kwds.get("ray_color", [255]*3)
     image = kwds.get("image", None)
     if image is None:
-        image = mandelbrot_plot(**kwds)
+        image = mandelbrot_plot(x_center=x_0, **kwds)
 
     # Make a copy of the bitmap image.
     # M = copy(image)

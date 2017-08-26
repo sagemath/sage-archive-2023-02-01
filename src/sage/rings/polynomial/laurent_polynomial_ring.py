@@ -33,6 +33,7 @@ AUTHORS:
 #       Copyright (C) 2008 David Roe <roed@math.harvard.edu>,
 #                          William Stein <wstein@gmail.com>,
 #                          Mike Hansen <mhansen@gmail.com>
+#                          Vincent Delecroix <20100.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1104,6 +1105,35 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         if not R.base_ring().is_integral_domain():
             raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R, prepend_string, names)
+
+    def monomial(self, *args):
+        r"""
+        Return the monomial whose exponents are given in argument.
+
+        EXAMPLES::
+
+            sage: L = LaurentPolynomialRing(QQ, 'x', 2)
+            sage: L.monomial(-3, 5)
+            x0^-3*x1^5
+            sage: L.monomial(1, 1)
+            x0*x1
+            sage: L.monomial(0, 0)
+            1
+            sage: L.monomial(-2, -3)
+            x0^-2*x1^-3
+
+            sage: x0, x1 = L.gens()
+            sage: L.monomial(-1, 2) == x0^-1 * x1^2
+            True
+        """
+        element_class = LaurentPolynomial_mpair
+
+        if len(args) != self.ngens():
+            raise TypeError("tuple key must have same length as ngens")
+
+        from sage.rings.polynomial.polydict import ETuple
+        m = ETuple(args, int(self.ngens()))
+        return element_class(self, self.polynomial_ring().one(), m)
 
     def _element_constructor_(self, x, mon=None):
         """

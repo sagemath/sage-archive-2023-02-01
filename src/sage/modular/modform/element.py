@@ -1921,7 +1921,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         N = self.level()
         K = CyclotomicField(euler_phi(N))
         D = DirichletGroup(N, K)
-        cand_chars = [x for x in DirichletGroup(N, K) if x.order() == 2]
+        cand_chars = [x for x in DirichletGroup(N, K) if x.order() == 2 and
+                      x.is_odd() and N % (x.conductor() ** 2) == 0]
 
         failed_chars = []
 

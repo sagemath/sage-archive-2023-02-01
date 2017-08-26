@@ -7235,6 +7235,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(ring=QQ)
             [(3/2, 1), (1, 1), (-1, 1)]
 
+        An example where we compute the roots lying in a subring of the
+        base ring::
+
+            sage: Pols.<n> = QQ[]
+            sage: pol = (n - 1/2)^2*(n - 1)^2*(n-2)
+            sage: pol.roots(ZZ)
+            [(2, 1), (1, 2)]
+
         An example involving large numbers::
 
             sage: x = RR['x'].0
@@ -7585,8 +7593,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         and K is not, to the corresponding real field). Then we use either
         PARI or numpy as specified above.
 
-        For all other cases where K is different than L, we just use
-        .change_ring(L) and proceed as below.
+        For all other cases where K is different than L, we attempt to use
+        .change_ring(L). When that fails but L is a subring of K, we also
+        attempt to compute the roots over K and filter the ones belonging
+        to L.
 
         The next method, which is used if K is an integral domain, is to
         attempt to factor the polynomial. If this succeeds, then for every
@@ -7919,7 +7929,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 else:
                     return self.change_ring(L)._roots_from_factorization(F, multiplicities)
 
-            return self.change_ring(L).roots(multiplicities=multiplicities, algorithm=algorithm)
+            try:
+                self_L = self.change_ring(L)
+            except (TypeError, ValueError):
+                if L.is_exact() and L.is_subring(K):
+                    return self._roots_in_subring(L, multiplicities, algorithm)
+                else:
+                    raise
+
+            return self_L.roots(multiplicities=multiplicities, algorithm=algorithm)
 
         try:
             if K.is_integral_domain():
@@ -7996,6 +8014,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     else:
                         seq.append(rt)
         return seq
+
+    def _roots_in_subring(self, L, multiplicities, algorithm):
+        r"""
+        Helper method for :meth:`roots` that filters the roots belonging to
+        a subring of the base ring.
+
+        TESTS::
+
+            sage: Pols.<n> = QQ[]
+            sage: pol = (n - 1/2)^2*(n - 1)^2*(n-2)
+            sage: rts = pol.roots(ZZ, multiplicities=False); rts
+            [2, 1]
+            sage: rts[0].parent()
+            Integer Ring
+
+            sage: Pols_x.<x> = QQ[]
+            sage: Pols_xy.<y> = Pols_x[]
+            sage: ((y - 1)*(y - x))._roots_in_subring(QQ, True, None)
+            [(1, 1)]
+        """
+        K = self._parent.base_ring()
+        sec = K.coerce_map_from(L).section()
+        if sec is None:
+            raise NotImplementedError("embedding of {} into {} has no implemented section", L, K)
+        rts_K = self.roots(multiplicities=multiplicities, algorithm=algorithm)
+        if not multiplicities:
+            rts_K = [(rt, None) for rt in rts_K]
+        rts_L = []
+        for xK, mult in rts_K:
+            try:
+                xL = sec(xK)
+            except (TypeError, ValueError):
+                continue
+            rts_L.append((xL, mult))
+        if multiplicities:
+            return rts_L
+        else:
+            return [rt for (rt, _) in rts_L]
 
     def real_roots(self):
         """

@@ -45,7 +45,6 @@
 #include "symbol.h"
 #include "function.h"
 #include "utils.h"
-#include "fail.h"
 
 #include <giac/global.h>
 #include <giac/gausspol.h>

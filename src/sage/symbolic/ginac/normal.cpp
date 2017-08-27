@@ -33,7 +33,6 @@
 #include "add.h"
 #include "constant.h"
 #include "expairseq.h"
-#include "fail.h"
 #include "inifcns.h"
 #include "lst.h"
 #include "mul.h"

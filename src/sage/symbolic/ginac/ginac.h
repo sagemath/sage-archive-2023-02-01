@@ -34,7 +34,6 @@
 
 #include "constant.h"
 #include "infinity.h"
-#include "fail.h"
 #include "lst.h"
 #include "matrix.h"
 #include "numeric.h"

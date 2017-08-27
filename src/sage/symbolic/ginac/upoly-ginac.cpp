@@ -33,7 +33,6 @@
 #include "upoly.h"
 #include "symbol.h"
 #include "add.h"
-#include "fail.h"
 #include "mul.h"
 #include "power.h"
 #include "operators.h"
@@ -90,7 +89,7 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 			term = rcoeff / blcoeff;
 		else {
 			if (!divide(rcoeff, blcoeff, term, false))
-				return (new fail())->setflag(status_flags::dynallocated);
+                                throw std::logic_error("");
 		}
 		term *= power(x, rdeg - bdeg);
 		v.push_back(term);
@@ -143,7 +142,7 @@ ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 			term = rcoeff / blcoeff;
 		else {
 			if (!divide(rcoeff, blcoeff, term, false))
-				return (new fail())->setflag(status_flags::dynallocated);
+                                throw std::logic_error("");
 		}
 		term *= power(x, rdeg - bdeg);
 		r -= (term * b).expand();
@@ -165,11 +164,14 @@ ex decomp_rational(const ex &a, const ex &x)
 {
 	ex nd = numer_denom(a);
 	ex numer = nd.op(0), denom = nd.op(1);
-	ex q = quo(numer, denom, x);
-	if (is_exactly_a<fail>(q))
+        ex q;
+        try {
+        	q = quo(numer, denom, x);
+        }
+        catch (std::logic_error) {
 		return a;
-	else
-		return q + rem(numer, denom, x) / denom;
+        }
+	return q + rem(numer, denom, x) / denom;
 }
 
 

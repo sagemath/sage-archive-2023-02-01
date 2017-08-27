@@ -44,7 +44,6 @@
 #include "inifcns.h"
 #include "function.h"
 #include "utils.h"
-#include "fail.h"
 
 namespace GiNaC {
 

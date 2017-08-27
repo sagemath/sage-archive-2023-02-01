@@ -23,7 +23,6 @@
 #include "matrix.h"
 #include "numeric.h"
 #include "lst.h"
-#include "idx.h"
 #include "add.h"
 #include "power.h"
 #include "symbol.h"

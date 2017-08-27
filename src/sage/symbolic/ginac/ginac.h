@@ -61,8 +61,6 @@
 #include "assume.h"
 #include "sum.h"
 
-#include "idx.h"
-
 #ifdef __MAKECINT__
 #pragma link C++ nestedclass;
 #pragma link C++ nestedtypedef;

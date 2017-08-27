@@ -335,21 +335,6 @@ bool power::info(unsigned inf) const
                                  (exponent.info(info_flags::integer))) or
                                 (basis.info(info_flags::positive) and
                                  exponent.info(inf)));
-		case info_flags::has_indices: {
-			if ((flags & status_flags::has_indices) != 0u)
-				return true;
-			else if ((flags & status_flags::has_no_indices) != 0u)
-				return false;
-			else if (basis.info(info_flags::has_indices)) {
-				setflag(status_flags::has_indices);
-				clearflag(status_flags::has_no_indices);
-				return true;
-			} else {
-				clearflag(status_flags::has_indices);
-				setflag(status_flags::has_no_indices);
-				return false;
-			}
-		}
 	}
 	return inherited::info(inf);
 }

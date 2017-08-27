@@ -1125,6 +1125,11 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: x0, x1 = L.gens()
             sage: L.monomial(-1, 2) == x0^-1 * x1^2
             True
+
+            sage: L.monomial(1, 2, 3)
+            Traceback (most recent call last):
+            ...
+            TypeError: tuple key must have same length as ngens
         """
         element_class = LaurentPolynomial_mpair
 

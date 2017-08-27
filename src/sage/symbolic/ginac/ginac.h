@@ -42,7 +42,6 @@
 #include "symbol.h"
 #include "pseries.h"
 #include "wildcard.h"
-#include "symmetry.h"
 
 #include "expair.h"
 #include "expairseq.h"
@@ -53,6 +52,7 @@
 
 #include "exprseq.h"
 #include "function.h"
+#include "symmetry.h"
 #include "ncmul.h"
 
 #include "inifcns.h"
@@ -64,7 +64,6 @@
 
 #include "idx.h"
 #include "indexed.h"
-#include "tensor.h"
 
 #ifdef __MAKECINT__
 #pragma link C++ nestedclass;

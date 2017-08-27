@@ -42,14 +42,11 @@ from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.misc.all import cached_method
 from sage.rings.all import ZZ, CC, infinity
-from sage.rings.integer import Integer
 from sage.graphs.all import Graph, DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
-from warnings import warn
 
 from sage.misc.decorators import rename_keyword
 

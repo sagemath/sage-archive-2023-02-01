@@ -28,10 +28,9 @@ AUTHORS:
 #****************************************************************************
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.parent import Parent
-from sage.structure.list_clone import ClonableList
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
 from sage.combinat.partition import Partition, Partitions
+
 
 class LittlewoodRichardsonTableau(SemistandardTableau):
     r"""

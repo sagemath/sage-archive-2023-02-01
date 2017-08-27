@@ -16,13 +16,11 @@ Frédéric Chapoton (2017)
 # ****************************************************************************
 
 from sage.categories.algebras import Algebras
-from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.binary_tree import (BinaryTrees, BinaryTree,
                                        LabelledBinaryTrees,
                                        LabelledBinaryTree)
-from sage.combinat.ordered_tree import OrderedTree, LabelledOrderedTree
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings

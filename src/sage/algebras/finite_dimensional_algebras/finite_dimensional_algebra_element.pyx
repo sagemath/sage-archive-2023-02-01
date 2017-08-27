@@ -30,6 +30,24 @@ from cpython.object cimport PyObject_RichCompare as richcmp
 cdef inline is_Vector(x):
     return isinstance(x, Vector)
 
+cpdef inline FiniteDimensionalAlgebraElement unpickle_FiniteDimensionalAlgebraElement(A, vec, mat):
+    """
+    Helper for unpickling of finite dimensional algebra elements.
+
+    TESTS::
+
+        sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[1,1,0], [0,1,1], [0,1,1]]), Matrix([[0,0,1], [0,1,0], [1,0,0]])])
+        sage: x = B([1,2,3])
+        sage: loads(dumps(x)) == x      # indirect doctest
+        True
+
+    """
+    cdef FiniteDimensionalAlgebraElement x = A.element_class.__new__(A.element_class)
+    AlgebraElement.__init__(x, A)
+    x._vector  = vec
+    x.__matrix = mat
+    return x
+
 cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
     r"""
     Create an element of a :class:`FiniteDimensionalAlgebra` using a multiplication table.
@@ -132,7 +150,42 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
             False
 
         """
-        return self._parent, (self._vector,)
+        return unpickle_FiniteDimensionalAlgebraElement, (self._parent, self._vector, self.__matrix)
+
+    def __setstate__(self, state):
+        """
+        This method serves at unpickling old pickles.
+
+        TESTS::
+
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: x = A.element_class.__new__(A.element_class)
+            sage: x.__setstate__((A, {'_vector':vector([1,1,1]), '_matrix':matrix(QQ,3,[1,1,0, 0,1,0, 0,0,1])}))
+            sage: x
+            e0 + e1 + e2
+            sage: x.matrix()
+            [1 1 0]
+            [0 1 0]
+            [0 0 1]
+
+        Note that in old pickles, the vector actually is a vector. However,
+        it is converted into a single-row matrix, in the new implementation::
+
+            sage: x.vector()
+            [1 1 1]
+
+        """
+        self._parent, D = state
+        v = D.pop('_vector')
+        if is_Vector(v):
+            self._vector = matrix(self._parent.base_ring(), 1,len(v), list(v))
+        else:
+            self._vector = v
+        self.__matrix = D.pop('_matrix', None)
+        try:
+            self.__dict__ = D
+        except AttributeError:
+            pass
 
     @property
     def _matrix(self):

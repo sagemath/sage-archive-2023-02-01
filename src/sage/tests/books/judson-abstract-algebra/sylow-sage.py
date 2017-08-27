@@ -2,7 +2,7 @@
 ##          Sage Doctest File         ##
 #**************************************#
 #*    Generated from PreTeXt source   *#
-#*    on 2017-08-24T11:43:34-07:00    *#
+#*    on 2017-08-26T21:16:30-07:00    *#
 #*                                    *#
 #*   http://mathbook.pugetsound.edu   *#
 #*                                    *#
@@ -31,7 +31,7 @@ for review.
 ## See: http://www.sagemath.org/doc/developer/doctesting.html
 ##   or run  $ $SAGE_ROOT/sage --advanced  for brief help
 ##
-## Generated at 2017-08-24T11:43:34-07:00
+## Generated at 2017-08-26T21:16:30-07:00
 ## From "Abstract Algebra"
 ## At commit 26d3cac0b4047f4b8d6f737542be455606e2c4b4
 ##
@@ -264,6 +264,6 @@ r"""
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: print gap.help('SymmetricGroup', pager=False)   # not tested
+    sage: print(gap.help('SymmetricGroup', pager=False))   # not tested
 
 """

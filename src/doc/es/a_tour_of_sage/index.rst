@@ -3,7 +3,7 @@ Un Tour Por Sage
 ================
 
 Este es un tour por Sage que sigue de cerca al Tour Por Mathematica
-que está al comienzo de el Libro de Mathematica.
+que está al comienzo del Libro de Mathematica.
 
 
 Sage Como Una Calculadora
@@ -26,7 +26,7 @@ El acento circunflejo ``^`` significa "elevar a la potencia".
     sage: 57.1 ^ 100
     4.60904368661396e175
 
-Calculamos el inverso de una matríz de :math:`2 \times 2` en Sage.
+Calculamos el inverso de una matriz de :math:`2 \times 2` en Sage.
 
 ::
 
@@ -42,7 +42,7 @@ Aquí integramos una función simple.
     sage: integrate(sqrt(x)*sqrt(1+x), x)
     1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1)
 
-Esto le pide a Sage que resuelva una ecuación cuadrática. El simbolo ``==``
+Esto le pide a Sage que resuelva una ecuación cuadrática. El símbolo ``==``
 representa igualdad en Sage.
 
 ::
@@ -67,7 +67,7 @@ El resultado es una lista de igualdades.
 Potencia de Cálculo Con Sage
 ============================
 
-Primero creamos una matríz de :math:`500 \times 500` con números
+Primero creamos una matriz de :math:`500 \times 500` con números
 aleatorios.
 
 ::
@@ -75,7 +75,7 @@ aleatorios.
     sage: m = random_matrix(RDF,500)
 
 Sage tarda unos cuantos segundos en calcular los valores propios de la
-matríz y mostrarlos.
+matriz y mostrarlos.
 
 .. link
 
@@ -96,7 +96,7 @@ dígitos.
 
     sage: factorial(100)
     93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
-    sage: n = factorial(1000000)  #alrededor de 2.5 seconds
+    sage: n = factorial(1000000)  # alrededor de 2.5 segundos
 
 Esto calcula al menos 100 digitos de :math:`\pi`.
 
@@ -125,16 +125,16 @@ Esto le pide a Sage que factorice un polinomio en dos variables.
     x^99 + y^99
 
 Sage tarda menos de 5 segundos en calcular el número de maneras de
-repartir cien milliones como una suma de enteros positivos.
+repartir cien millones como una suma de enteros positivos.
 
 ::
 
-    sage: z = Partitions(10^8).cardinality() #alrededor de 4.5 seconds
+    sage: z = Partitions(10^8).cardinality() # alrededor de 4.5 segundos
     sage: str(z)[:40]
     '1760517045946249141360373894679135204009'
 
-Acceciendo a Distintos Algoritmos en Sage
+Accediendo a Distintos Algoritmos en Sage
 =========================================
 
-Cada vez que usas Sage, estas accediendo a una de las más grandes
+Cada vez que usas Sage, estás accediendo a una de las más grandes
 colecciones de algoritmos computacionales de código abierto del mundo entero.

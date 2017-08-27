@@ -25,7 +25,6 @@
 #include "archive.h"
 #include "operators.h"
 #include "utils.h"
-#include "clifford.h"
 #include "ncmul.h"
 #include "constant.h"
 #include "infinity.h"
@@ -357,28 +356,14 @@ int add::ldegree(const ex & s) const
 ex add::coeff(const ex & s, const ex & n) const
 {
 	epvector coeffseq;
-	epvector coeffseq_cliff;
-	int rl = clifford_max_label(s);
-	bool do_clifford = (rl != -1);
-	bool nonscalar = false;
-
-	// Calculate sum of coefficients in each term
         for (const auto & elem : seq) {
 		ex restcoeff = elem.rest.coeff(s, n);
  		if (!restcoeff.is_zero()) {
- 			if (do_clifford) {
- 				if (clifford_max_label(restcoeff) == -1) {
-                                        coeffseq_cliff.push_back(expair(ncmul(restcoeff, dirac_ONE(rl)), elem.coeff));
-				} else {
-                                        coeffseq_cliff.push_back(expair(restcoeff, elem.coeff));
-					nonscalar = true;
- 				}
-			}
 			coeffseq.push_back(expair(restcoeff, elem.coeff));
 		}
 	}
 
-	return (new add(nonscalar ? coeffseq_cliff : coeffseq,
+	return (new add(coeffseq,
 	                n==0 ? overall_coeff : *_num0_p))->setflag(status_flags::dynallocated);
 }
 

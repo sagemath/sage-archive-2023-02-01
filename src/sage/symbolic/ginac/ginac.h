@@ -66,7 +66,6 @@
 #include "idx.h"
 #include "indexed.h"
 #include "tensor.h"
-#include "clifford.h"
 
 #ifdef __MAKECINT__
 #pragma link C++ nestedclass;

@@ -24,7 +24,6 @@
 #include "ex.h"
 #include "add.h"
 #include "mul.h"
-#include "clifford.h"
 #include "matrix.h"
 #include "archive.h"
 #include "indexed.h"
@@ -488,10 +487,6 @@ ex ncmul::thiscontainer(std::unique_ptr<exvector> vp) const
 ex ncmul::conjugate() const
 {
 	if (return_type() != return_types::noncommutative) {
-		return exprseq::conjugate();
-	}
-
-	if (!is_clifford_tinfo(return_type_tinfo())) {
 		return exprseq::conjugate();
 	}
 

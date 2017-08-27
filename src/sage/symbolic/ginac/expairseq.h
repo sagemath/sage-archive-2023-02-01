@@ -25,7 +25,6 @@
 #define __GINAC_EXPAIRSEQ_H__
 
 #include "expair.h"
-#include "indexed.h"
 
 #include <vector>
 #include <list>
@@ -188,52 +187,16 @@ class make_flat_inserter
 {
 	public:
 		make_flat_inserter(const epvector &epv, bool b): do_renaming(b)
-		{
-			if (!do_renaming)
-				return;
-			for (const auto & elem : epv)
-				if(are_ex_trivially_equal(elem.coeff, 1))
-					combine_indices(elem.rest.get_free_indices());
-		}
-		make_flat_inserter(const exvector &v, bool b): do_renaming(b)
-		{
-			if (!do_renaming)
-				return;
-			for (const auto & elem : v)
-				combine_indices(elem.get_free_indices());
-		}
+		{}
+		make_flat_inserter(const exvector &v, bool b): do_renaming(b) {}
 		ex handle_factor(const ex &x, const ex &coeff)
 		{
 			if (is_exactly_a<numeric>(coeff) and coeff.is_zero())
 				return coeff;
-			if (!do_renaming)
-				return x;
-			exvector dummies_of_factor;
-			if (is_exactly_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(1)))
-				dummies_of_factor = get_all_dummy_indices_safely(x);
-			else if (is_exactly_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(2)))
-				dummies_of_factor = x.get_free_indices();
-			else
-				return x;
-			if (dummies_of_factor.size() == 0)
-				return x;
-			sort(dummies_of_factor.begin(), dummies_of_factor.end(), ex_is_less());
-			ex new_factor = rename_dummy_indices_uniquely(used_indices,
-				dummies_of_factor, x);
-			combine_indices(dummies_of_factor);
-			return new_factor;
+		        return x;
 		}
 	private:
-		void combine_indices(const exvector &dummies_of_factor)
-		{
-			exvector new_dummy_indices;
-			set_union(used_indices.begin(), used_indices.end(),
-				dummies_of_factor.begin(), dummies_of_factor.end(),
-				std::back_insert_iterator<exvector>(new_dummy_indices), ex_is_less());
-			used_indices.swap(new_dummy_indices);
-		}
 		bool do_renaming;
-		exvector used_indices;
 };
 
 } // namespace GiNaC

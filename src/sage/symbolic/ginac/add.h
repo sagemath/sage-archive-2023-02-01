@@ -62,8 +62,6 @@ public:
 	ex conjugate() const override;
 	ex real_part() const override;
 	ex imag_part() const override;
-	exvector get_free_indices() const override;
-	ex eval_ncmul(const exvector & v) const override;
 	const epvector & get_sorted_seq() const override;
 	ex lead_coeff() const;
 protected:

@@ -33,6 +33,7 @@
 #include "symbol.h"
 #include "symmetry.h"
 #include "utils.h"
+#include "wildcard.h"
 
 #include <vector>
 #include <stdexcept>

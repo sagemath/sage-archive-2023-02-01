@@ -23,7 +23,6 @@
 #include "mul.h"
 #include "add.h"
 #include "operators.h"
-#include "indexed.h"
 #include "lst.h"
 #include "archive.h"
 #include "utils.h"
@@ -914,18 +913,6 @@ ex mul::imag_part() const
 	return ip;
 }
 
-ex mul::eval_ncmul(const exvector & v) const
-{
-	if (seq.empty())
-		return inherited::eval_ncmul(v);
-
-	// Find first noncommutative element and call its eval_ncmul()
-        for (const auto & elem : seq)
-		if (elem.rest.return_type() == return_types::noncommutative)
-			return elem.rest.eval_ncmul(v);
-	return inherited::eval_ncmul(v);
-}
-
 bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatches, lst & repls)
 {	
 	ex origbase;
@@ -1347,13 +1334,6 @@ ex mul::expand(unsigned options) const
                 return *this;
         }
 
-	// do not rename indices if the object has no indices at all
-	if (((options & expand_options::expand_rename_idx) == 0u) && 
-			this->info(info_flags::has_indices))
-		options |= expand_options::expand_rename_idx;
-
-	const bool skip_idx_rename = (options & expand_options::expand_rename_idx) == 0u;
-
 	// First, expand the children
 	std::unique_ptr<epvector> expanded_seqp = expandchildren(options);
 	const epvector & expanded_seq = (expanded_seqp.get() != nullptr ? *expanded_seqp : seq);
@@ -1409,24 +1389,7 @@ ex mul::expand(unsigned options) const
 				// Compute the new overall coefficient and put it together:
 				ex tmp_accu = (new add(distrseq, add1.overall_coeff.mul(add2.overall_coeff)))->setflag(status_flags::dynallocated);
 
-				exvector add1_dummy_indices, add2_dummy_indices, add_indices;
 				lst dummy_subs;
-
-				if (!skip_idx_rename) {
-                                        for (const auto & elem1 : add1.seq) {
-						add_indices = get_all_dummy_indices_safely(elem1.rest);
-						add1_dummy_indices.insert(add1_dummy_indices.end(), add_indices.begin(), add_indices.end());
-					}
-                                        for (const auto & elem2 : add2.seq) {
-						add_indices = get_all_dummy_indices_safely(elem2.rest);
-						add2_dummy_indices.insert(add2_dummy_indices.end(), add_indices.begin(), add_indices.end());
-					}
-
-					sort(add1_dummy_indices.begin(), add1_dummy_indices.end(), ex_is_less());
-					sort(add2_dummy_indices.begin(), add2_dummy_indices.end(), ex_is_less());
-					dummy_subs = rename_dummy_indices_uniquely(add1_dummy_indices, add2_dummy_indices);
-				}
-
 				// Multiply explicitly all non-numeric terms of add1 and add2:
                                 for (const auto & elem2 : add2.seq) {
 					// We really have to combine terms here in order to compactify
@@ -1434,10 +1397,7 @@ ex mul::expand(unsigned options) const
 					numeric oc(*_num0_p);
 					epvector distrseq2;
 					distrseq2.reserve(add1.seq.size());
-					const ex& i2_new = (skip_idx_rename || (dummy_subs.op(0).nops() == 0) ?
-							elem2.rest :
-							elem2.rest.subs(ex_to<lst>(dummy_subs.op(0)),
-								ex_to<lst>(dummy_subs.op(1)), subs_options::no_pattern));
+					const ex& i2_new = elem2.rest;
                                         for (const auto & elem1 : add1.seq) {
 						// Don't push_back expairs which might have a rest that evaluates to a numeric,
 						// since that would violate an invariant of expairseq:
@@ -1468,17 +1428,10 @@ ex mul::expand(unsigned options) const
 		exvector distrseq;
 		distrseq.reserve(last_expanded.nops());
 		exvector va;
-		if (! skip_idx_rename) {
-			va = get_all_dummy_indices_safely(mul(non_adds));
-			sort(va.begin(), va.end(), ex_is_less());
-		}
 
 		for (const auto term_in_expanded : last_expanded) {
 			epvector factors = non_adds;
-			if (skip_idx_rename)
-				factors.push_back(split_ex_to_pair(term_in_expanded));
-			else
-				factors.push_back(split_ex_to_pair(rename_dummy_indices_uniquely(va, term_in_expanded)));
+		        factors.push_back(split_ex_to_pair(term_in_expanded));
 			ex term = (new mul(factors, overall_coeff))->setflag(status_flags::dynallocated);
 			if (can_be_further_expanded(term)) {
 				distrseq.push_back(term.expand());

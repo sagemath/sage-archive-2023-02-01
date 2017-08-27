@@ -253,11 +253,6 @@ ex relational::subs(const exmap & m, unsigned options) const
 		return subs_one_level(m, options);
 }
 
-ex relational::eval_ncmul(const exvector & v) const
-{
-	return lh.eval_ncmul(v);
-}
-
 // protected
 
 int relational::compare_same_type(const basic & other) const

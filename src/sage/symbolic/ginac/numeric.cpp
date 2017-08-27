@@ -1004,7 +1004,6 @@ bool numeric::info(unsigned inf) const {
                 case info_flags::algebraic:
                         return !is_real();
                 case info_flags::infinity:
-                case info_flags::has_indices:
                         return false;
                 case info_flags::inexact:
                         return not is_exact();

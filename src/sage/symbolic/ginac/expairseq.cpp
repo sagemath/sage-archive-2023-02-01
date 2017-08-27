@@ -30,7 +30,6 @@
 #include "archive.h"
 #include "operators.h"
 #include "utils.h"
-#include "indexed.h"
 #include "infinity.h"
 #include "compiler.h"
 
@@ -273,22 +272,6 @@ bool expairseq::info(unsigned inf) const
 	switch(inf) {
 		case info_flags::expanded:
 			return (flags & status_flags::expanded) != 0u;
-		case info_flags::has_indices: {
-			if ((flags & status_flags::has_indices) != 0u)
-				return true;
-			else if ((flags & status_flags::has_no_indices) != 0u)
-				return false;
-			for (const auto & elem : seq) {
-				if (elem.rest.info(info_flags::has_indices)) {
-					this->setflag(status_flags::has_indices);
-					this->clearflag(status_flags::has_no_indices);
-					return true;
-				}
-			}
-			this->clearflag(status_flags::has_indices);
-			this->setflag(status_flags::has_no_indices);
-			return false;
-		}
 	}
 	return inherited::info(inf);
 }
@@ -829,15 +812,8 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
                         {
                 } else {
 #endif // EXPAIRSEQ_USE_HASHTAB
-				if (is_exactly_a<mul>(lh) && lh.info(info_flags::has_indices) && 
-					rh.info(info_flags::has_indices)) {
-					ex newrh=rename_dummy_indices_uniquely(lh, rh);
-					construct_from_2_expairseq(ex_to<expairseq>(lh),
-					                           ex_to<expairseq>(newrh));
-				}
-				else
-					construct_from_2_expairseq(ex_to<expairseq>(lh),
-					                           ex_to<expairseq>(rh));
+                        construct_from_2_expairseq(ex_to<expairseq>(lh),
+                                                   ex_to<expairseq>(rh));
 #if EXPAIRSEQ_USE_HASHTAB
 			}
 #endif // EXPAIRSEQ_USE_HASHTAB
@@ -1099,9 +1075,6 @@ void expairseq::make_flat(const exvector &v, bool do_hold)
 				++nexpairseqs;
 				noperands += ex_to<expairseq>(elem).seq.size();
 			}
-			if (is_exactly_a<mul>(*this) && (!do_idx_rename) &&
-					elem.info(info_flags::has_indices))
-				do_idx_rename = true;
 		}
 	} else
 		this->hold();
@@ -1137,22 +1110,17 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 	// and their cumulative number of operands
 	int nexpairseqs = 0;
 	int noperands = 0;
-	bool really_need_rename_inds = false;
 	
         for (const auto & elem : v) {
 		if (ex_to<basic>(elem.rest).tinfo()==this->tinfo()) {
 			++nexpairseqs;
 			noperands += ex_to<expairseq>(elem.rest).seq.size();
 		}
-		if ((!really_need_rename_inds) && is_exactly_a<mul>(*this) &&
-				elem.rest.info(info_flags::has_indices))
-			really_need_rename_inds = true;
 	}
-	do_index_renaming = do_index_renaming && really_need_rename_inds;
 	
 	// reserve seq and coeffseq which will hold all operands
 	seq.reserve(v.size()+noperands-nexpairseqs);
-	make_flat_inserter mf(v, do_index_renaming);
+	make_flat_inserter mf(v, false);
 	
 	// copy elements and split off numerical part
         for (const auto & elem : v) {

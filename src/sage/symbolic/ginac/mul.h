@@ -36,7 +36,6 @@ class mul : public expairseq
 	friend class print_order;
 	friend class ex;
 	friend class add;
-	friend class ncmul;
 	friend class power;
 	
 	// other constructors
@@ -68,11 +67,9 @@ public:
 	numeric integer_content() const override;
 	ex smod(const numeric &xi) const override;
 	numeric max_coefficient() const override;
-	exvector get_free_indices() const override;
 	ex conjugate() const override;
 protected:
 	ex derivative(const symbol & s) const override;
-	ex eval_ncmul(const exvector & v) const override;
 	unsigned return_type() const override;
 	tinfo_t return_type_tinfo() const override;
 	ex thisexpairseq(const epvector & v, const numeric & oc, bool do_index_renaming = false) const override;

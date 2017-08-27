@@ -53,7 +53,6 @@
 #include "exprseq.h"
 #include "function.h"
 #include "symmetry.h"
-#include "ncmul.h"
 
 #include "inifcns.h"
 #include "fderivative.h"
@@ -63,7 +62,6 @@
 #include "sum.h"
 
 #include "idx.h"
-#include "indexed.h"
 
 #ifdef __MAKECINT__
 #pragma link C++ nestedclass;

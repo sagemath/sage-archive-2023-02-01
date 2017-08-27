@@ -26,13 +26,11 @@
 #include "expairseq.h"
 #include "add.h"
 #include "mul.h"
-#include "ncmul.h"
 #include "numeric.h"
 #include "constant.h"
 #include "infinity.h"
 #include "operators.h"
 #include "inifcns.h" // for log() in power::derivative() and exp for printing
-#include "indexed.h"
 #include "symbol.h"
 #include "lst.h"
 #include "archive.h"
@@ -865,11 +863,6 @@ ex power::subs(const exmap & m, unsigned options) const
 	return subs_one_level(m, options);
 }
 
-ex power::eval_ncmul(const exvector & v) const
-{
-	return inherited::eval_ncmul(v);
-}
-
 ex power::conjugate() const
 {
 	// conjugate(pow(x,y))==pow(conjugate(x),conjugate(y)) unless on the
@@ -1544,22 +1537,6 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 
 	if (n.is_zero()) {
 		return _ex1;
-	}
-
-	// do not bother to rename indices if there are no any.
-	if (((options & expand_options::expand_rename_idx) == 0u) 
-			&& m.info(info_flags::has_indices))
-		options |= expand_options::expand_rename_idx;
-	// Leave it to multiplication since dummy indices have to be renamed
-	if (((options & expand_options::expand_rename_idx) != 0u) &&
-		(get_all_dummy_indices(m).size() > 0) && n.is_positive()) {
-		ex result = m;
-		exvector va = get_all_dummy_indices(m);
-		sort(va.begin(), va.end(), ex_is_less());
-
-		for (int i=1; i < n.to_int(); i++)
-			result *= rename_dummy_indices_uniquely(va, m);
-		return result;
 	}
 
 	epvector distrseq;

@@ -24,7 +24,6 @@
 #include "add.h"
 #include "mul.h"
 #include "power.h"
-#include "ncmul.h"
 #include "relational.h"
 #include "print.h"
 #include "utils.h"

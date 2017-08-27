@@ -117,10 +117,6 @@ public:
 	ex eval(int level=0) const override;
 	ex evalm() const override {return *this;}
 	ex subs(const exmap & m, unsigned options = 0) const override;
-	ex eval_indexed(const basic & i) const override;
-	ex add_indexed(const ex & self, const ex & other) const override;
-	ex scalar_mul_indexed(const ex & self, const numeric & other) const override;
-	bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const override;
 	ex conjugate() const override;
 	ex real_part() const override;
 	ex imag_part() const override;

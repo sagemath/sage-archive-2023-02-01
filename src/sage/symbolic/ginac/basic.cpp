@@ -27,7 +27,6 @@
 #include "add.h"
 #include "symbol.h"
 #include "lst.h"
-#include "ncmul.h"
 #include "relational.h"
 #include "operators.h"
 #include "wildcard.h"
@@ -459,6 +458,7 @@ ex basic::evalm() const
 	return *this;
 }
 
+#if 0
 /** Perform automatic symbolic evaluations on indexed expression that
  *  contains this object as the base expression. */
 ex basic::eval_indexed(const basic & i) const
@@ -510,7 +510,9 @@ bool basic::contract_with(exvector::iterator /*unused*/, exvector::iterator /*un
 {
 	// Do nothing
 	return false;
+
 }
+#endif
 
 /** Check whether the expression matches a given pattern. For every wildcard
  *  object in the pattern, an expression of the form "wildcard == matching_expression"
@@ -657,12 +659,6 @@ ex basic::diff(const symbol & s, unsigned nth) const
 	return ndiff;
 }
 
-/** Return a vector containing the free indices of an expression. */
-exvector basic::get_free_indices() const
-{
-	return exvector(); // return an empty exvector
-}
-
 ex basic::conjugate() const
 {
 	return *this;
@@ -676,11 +672,6 @@ ex basic::real_part() const
 ex basic::imag_part() const
 {
 	return imag_part_function(*this).hold();
-}
-
-ex basic::eval_ncmul(const exvector & v) const
-{
-	return hold_ncmul(v);
 }
 
 // protected

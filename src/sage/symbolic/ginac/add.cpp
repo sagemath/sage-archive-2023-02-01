@@ -25,7 +25,6 @@
 #include "archive.h"
 #include "operators.h"
 #include "utils.h"
-#include "ncmul.h"
 #include "constant.h"
 #include "infinity.h"
 #include "compiler.h"
@@ -518,14 +517,6 @@ ex add::imag_part() const
 	return (new add(v, ex_to<numeric>(overall_coeff.imag_part())))
 		-> setflag(status_flags::dynallocated);
 }
-
-ex add::eval_ncmul(const exvector & v) const
-{
-	if (seq.empty())
-		return inherited::eval_ncmul(v);
-	else
-		return seq.begin()->rest.eval_ncmul(v);
-}    
 
 // protected
 

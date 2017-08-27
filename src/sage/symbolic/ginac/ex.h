@@ -135,7 +135,6 @@ public:
 	ex eval(int level = 0) const { return bp->eval(level); }
 	ex evalf(int level = 0, PyObject* parent=nullptr) const 
 	{ return bp->evalf(level, parent); }
-	ex eval_ncmul(const exvector & v) const { return bp->eval_ncmul(v); }
 
 	// printing
 	void print(const print_context & c, unsigned level = 0) const;
@@ -234,11 +233,6 @@ public:
 	numeric max_coefficient() const;
         bool is_linear(const symbol& x, ex& a, ex& b) const;
         bool is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const;
-
-	// indexed objects
-	exvector get_free_indices() const { return bp->get_free_indices(); }
-	ex simplify_indexed(unsigned options = 0) const;
-	ex simplify_indexed(const scalar_products & sp, unsigned options = 0) const;
 
 	// domains
 	void set_domain(unsigned d);
@@ -761,12 +755,6 @@ inline ex series(const ex & thisex, const ex & r, int order, unsigned options = 
 
 inline bool match(const ex & thisex, const ex & pattern, lst & repl_lst)
 { return thisex.match(pattern, repl_lst); }
-
-inline ex simplify_indexed(const ex & thisex, unsigned options = 0)
-{ return thisex.simplify_indexed(options); }
-
-inline ex simplify_indexed(const ex & thisex, const scalar_products & sp, unsigned options = 0)
-{ return thisex.simplify_indexed(sp, options); }
 
 inline ex symmetrize(const ex & thisex)
 { return thisex.symmetrize(); }

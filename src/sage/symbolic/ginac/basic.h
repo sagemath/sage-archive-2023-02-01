@@ -181,10 +181,7 @@ public: // only const functions please (may break reference counting)
 	virtual ex eval(int level = 0) const;
 	virtual ex evalf(int level = 0, PyObject* parent=nullptr) const;
 	virtual ex evalm() const;
-protected:
-	virtual ex eval_ncmul(const exvector & v) const;
 public:
-	virtual ex eval_indexed(const basic & i) const;
 
 	// printing
 	virtual void print(const print_context & c, unsigned level = 0) const;
@@ -254,12 +251,6 @@ public:
 	virtual numeric integer_content() const;
 	virtual ex smod(const numeric &xi) const;
 	virtual numeric max_coefficient() const;
-
-	// indexed objects
-	virtual exvector get_free_indices() const;
-	virtual ex add_indexed(const ex & self, const ex & other) const;
-	virtual ex scalar_mul_indexed(const ex & self, const numeric & other) const;
-	virtual bool contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const;
 
 	// noncommutativity
 	virtual unsigned return_type() const;

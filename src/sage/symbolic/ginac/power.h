@@ -80,7 +80,6 @@ public:
 	//int compare_symbol(const symbol& other) const;
 protected:
 	ex derivative(const symbol & s) const override;
-	ex eval_ncmul(const exvector & v) const override;
 	unsigned return_type() const override;
 	tinfo_t return_type_tinfo() const override;
 	ex expand(unsigned options = 0) const override;

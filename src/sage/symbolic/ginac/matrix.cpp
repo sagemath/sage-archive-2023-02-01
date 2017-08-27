@@ -24,7 +24,6 @@
 #include "numeric.h"
 #include "lst.h"
 #include "idx.h"
-#include "indexed.h"
 #include "add.h"
 #include "power.h"
 #include "symbol.h"
@@ -318,6 +317,7 @@ bool matrix::match_same_type(const basic & other) const
 	return row == o.rows() && col == o.cols();
 }
 
+#if 0
 /** Automatic symbolic evaluation of an indexed matrix. */
 ex matrix::eval_indexed(const basic & i) const
 {
@@ -543,7 +543,7 @@ bool matrix::contract_with(exvector::iterator self, exvector::iterator other, ex
 
 	return false;
 }
-
+#endif
 
 //////////
 // non-virtual functions in this class

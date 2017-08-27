@@ -68,7 +68,6 @@ public:
 	ex eval(int level=0) const override;
 
 protected:
-	ex eval_ncmul(const exvector & v) const override;
 	bool match_same_type(const basic & other) const override;
 	unsigned return_type() const override;
 	tinfo_t return_type_tinfo() const override;

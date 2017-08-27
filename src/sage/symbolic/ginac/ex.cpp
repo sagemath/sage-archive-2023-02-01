@@ -25,7 +25,6 @@
 #include "symbol.h"
 #include "add.h"
 #include "mul.h"
-#include "ncmul.h"
 #include "numeric.h"
 #include "power.h"
 #include "lst.h"

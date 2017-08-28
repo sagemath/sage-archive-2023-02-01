@@ -227,14 +227,14 @@ cpdef next_perm(list l):
         [3, 1, 2, 1]
         [3, 2, 1, 1]
     """
-    cdef int n = len(l)
+    cdef Py_ssize_t n = len(l)
 
     if n <= 1:
         return False
 
-    cdef int one = n - 2
-    cdef int two = n - 1
-    cdef int j   = n - 1
+    cdef Py_ssize_t one = n - 2
+    cdef Py_ssize_t two = n - 1
+    cdef Py_ssize_t j   = n - 1
 
     # Starting from the end, find the first o such that
     #   l[o] < l[o+1]
@@ -258,7 +258,7 @@ cpdef next_perm(list l):
     #Reverse the list between two and last
     #mset_list = mset_list[:two] + [x for x in reversed(mset_list[two:])]
     n -= 1 # In the loop, we only need n-1, so just do it once here
-    cdef int i
+    cdef Py_ssize_t i
     for i in xrange((n+1 - two) // 2 - 1, -1, -1):
         t = l[i + two]
         PyList_SET_ITEM(l, i + two, l[n - i])

@@ -208,18 +208,15 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         Return ``self`` as a vector.
 
-        NOTE:
-
-        By :trac:`23707`, ``self._vector`` now is a single row matrix,
-        not a vector, which results in a speed-up. For backwards compatibility,
-        this method still returns a vector.
-
         EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(5).vector()
             (5, 0, 5)
         """
+        #By :trac:`23707`, ``self._vector`` now is a single row matrix,
+        #not a vector, which results in a speed-up. For backwards compatibility,
+        #this method still returns a vector.
         return self._vector[0]
 
     def matrix(self):
@@ -326,6 +323,19 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         from sage.misc.latex import latex
         return latex(self.matrix())
+
+    def __getitem__(self, m):
+        """
+        Return the `m`-th coefficient of ``self``
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: A([2,1/4,3])[2]
+            3
+
+        """
+        return self._vector[0,m]
 
     ## (Rich) comparison
     cpdef _richcmp_(self, right, int op):

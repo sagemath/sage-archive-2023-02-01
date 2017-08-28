@@ -739,12 +739,10 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
 
 static ex cot_eval(const ex & x)
 {
-	// cot(0) -> error
 	// This should be before the tests below, since multiplying infinity
 	// with other values raises runtime_errors
-	if (x.is_zero()) {
-		throw (std::runtime_error("cotan_eval(): cot(0) encountered"));
-	}
+	if (x.is_zero())
+		return UnsignedInfinity;
 
 	if (is_multiple_of_I(x.expand()))
 		return -I*coth(x/I);

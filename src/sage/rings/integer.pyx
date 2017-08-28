@@ -1962,7 +1962,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 0^0
             1
 
-        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_.
+        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
+        `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
         The base need not be an integer (it can be a builtin Python type).
 

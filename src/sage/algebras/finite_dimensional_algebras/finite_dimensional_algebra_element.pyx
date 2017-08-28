@@ -337,6 +337,17 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         return self._vector[0,m]
 
+    def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: len(A([2,1/4,3]))
+            3
+
+        """
+        return self._vector.ncols()
+
     ## (Rich) comparison
     cpdef _richcmp_(self, right, int op):
         """

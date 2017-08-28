@@ -48,6 +48,31 @@ static bool has_pi(const ex & the_ex) {
                         return true;
         return false;
 }
+
+// helper function: returns whether the expression is a multiple of I
+static bool is_multiple_of_I(const ex & the_ex)
+{
+
+	if (is_exactly_a<numeric>(the_ex)
+	    and the_ex.real_part().is_zero())
+		return true;
+
+	if (is_exactly_a<mul>(the_ex)) {
+		for (size_t i=0; i < the_ex.nops(); ++i)
+			if (is_multiple_of_I(the_ex.op(i)))
+				return true;
+	}
+
+	if (is_exactly_a<add>(the_ex)) {
+		for (size_t i=0; i < the_ex.nops(); ++i)
+			if (!is_multiple_of_I(the_ex.op(i)))
+				return false;
+		return true;
+	}
+	return false;
+};
+
+
 //////////
 // sine (trigonometric function)
 //////////
@@ -186,6 +211,10 @@ static ex sin_eval(const ex & x)
         }
         else
                 x_red = x;
+
+	// simplify sin(I*x) --> I*sinh(x)
+	if (is_multiple_of_I(x_red.expand()))
+		return I*sinh(x_red/I);
 
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
@@ -391,6 +420,10 @@ static ex cos_eval(const ex & x)
 	}
         else
                 x_red = x;
+
+	// simplify cos(I*x) --> cosh(x)
+	if (is_multiple_of_I(x_red.expand()))
+		return cosh(x_red/I);
 
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
@@ -602,6 +635,9 @@ static ex tan_eval(const ex & x)
         else
                 x_red = x;
 
+	if (is_multiple_of_I(x_red.expand()))
+		return I*tanh(x_red/I);
+
 	if (is_exactly_a<function>(x_red)) {
 		const ex &t = x_red.op(0);
 
@@ -703,6 +739,16 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
 
 static ex cot_eval(const ex & x)
 {
+	// cot(0) -> error
+	// This should be before the tests below, since multiplying infinity
+	// with other values raises runtime_errors
+	if (x.is_zero()) {
+		throw (std::runtime_error("cotan_eval(): cot(0) encountered"));
+	}
+
+	if (is_multiple_of_I(x.expand()))
+		return -I*coth(x/I);
+
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
                    
@@ -835,6 +881,9 @@ REGISTER_FUNCTION(cot, eval_func(cot_eval).
 
 static ex sec_eval(const ex & x)
 {
+	if (is_multiple_of_I(x.expand()))
+		return sech(x/I);
+
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
@@ -947,6 +996,9 @@ REGISTER_FUNCTION(sec, eval_func(sec_eval).
 
 static ex csc_eval(const ex & x)
 {
+
+	if (is_multiple_of_I(x.expand()))
+		return -I*csch(x/I);
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);

@@ -588,8 +588,9 @@ class GraphicMatroid(Matroid):
             True
             sage: M._has_minor(N1)
             True
-            sage: M._has_minor(N, certificate=True)
-            (True, (frozenset({3, 6, 8}), frozenset({2, 4, 5}), {0: 0, 1: 1, 2: 7}))
+            sage: cert = M._has_minor(N, certificate=True)
+            sage: [len(cert[1][i]) for i in range(3)]
+            [3, 3, 3]
 
         ::
 

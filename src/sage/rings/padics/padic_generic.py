@@ -409,17 +409,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         - Initial version: David Roe
         - Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
-        if prec is None:
-            prec = self.precision_cap()
-        else:
-            prec = min(Integer(prec), self.precision_cap())
-        ans = self(x, prec)
+        ans = self(x) if prec is None else self(x, prec)
         # Since teichmuller representatives are defined at infinite precision,
         # we can lift to precision prec, as long as the absolute precision of ans is positive.
-        if ans.precision_absolute() > 0:
-            ans = ans.lift_to_precision(prec)
-        else:
+        if ans.precision_absolute() <= 0:
             raise ValueError("Not enough precision to determine Teichmuller representative")
+        if ans.valuation() > 0:
+            return self(0) if prec is None else self(0, prec)
+        ans = ans.lift_to_precision(prec)
         ans._teichmuller_set_unsafe()
         return ans
 

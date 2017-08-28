@@ -399,6 +399,11 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: b^125 == b
             True
 
+        We check that :trac:`23736` is resolved::
+
+            sage: R.teichmuller(GF(5)(2))
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5)
+
         AUTHORS:
 
         - Initial version: David Roe
@@ -409,6 +414,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         else:
             prec = min(Integer(prec), self.precision_cap())
         ans = self(x, prec)
+        # Since teichmuller representatives are defined at infinite precision,
+        # we can lift to precision prec, as long as the absolute precision of ans is positive.
+        if ans.precision_absolute() > 0:
+            ans = ans.lift_to_precision(prec)
+        else:
+            raise ValueError("Not enough precision to determine Teichmuller representative")
         ans._teichmuller_set_unsafe()
         return ans
 

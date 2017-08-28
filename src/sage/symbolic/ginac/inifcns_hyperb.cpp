@@ -29,6 +29,7 @@
 #include "infinity.h"
 #include "numeric.h"
 #include "mul.h"
+#include "add.h"
 #include "power.h"
 #include "operators.h"
 #include "relational.h"
@@ -49,6 +50,29 @@ namespace GiNaC {
    of "a" at the beginning.   This is for consistency with other
    computer algebra systems.   These print methods are registered
    below with each of the corresponding inverse trig function. */
+
+// helper function: returns whether the expression is a multiple of I
+static bool is_multiple_of_I(const ex & the_ex)
+{
+
+	if (is_exactly_a<numeric>(the_ex)
+	    and the_ex.real_part().is_zero())
+		return true;
+
+	if (is_exactly_a<mul>(the_ex)) {
+		for (size_t i=0; i < the_ex.nops(); ++i)
+			if (is_multiple_of_I(the_ex.op(i)))
+				return true;
+	}
+
+	if (is_exactly_a<add>(the_ex)) {
+		for (size_t i=0; i < the_ex.nops(); ++i)
+			if (!is_multiple_of_I(the_ex.op(i)))
+				return false;
+		return true;
+	}
+	return false;
+};
 
 
 //////////
@@ -80,11 +104,10 @@ static ex sinh_eval(const ex & x)
 			throw (std::runtime_error("sinh_eval(): sinh(unsigned_infinity) encountered"));
 		return x;
 	}
-	
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())  // sinh(I*x) -> I*sin(x)
-		return I*sin(x/I);
+
+	// sinh(I*x) --> I*sin(x/I)
+	if (is_multiple_of_I(x.expand()))
+	    return I*sin(x/I);
 	
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
@@ -177,9 +200,8 @@ static ex cosh_eval(const ex & x)
 		return Infinity;
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())  // cosh(I*x) -> cos(x)
+	// cosh(I*x) --> cos(x)
+	if (is_multiple_of_I(x.expand()))
 		return cos(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -269,9 +291,8 @@ static ex tanh_eval(const ex & x)
 		throw (std::runtime_error("tanh_eval(): tanh(unsigned_infinity) encountered"));
 	}
 		
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())  // tanh(I*x) -> I*tan(x);
+	// tanh(I*x) --> I*tan(x)
+	if (is_multiple_of_I(x.expand()))
 		return I*tan(x/I);
 	
 	if (is_exactly_a<function>(x)) {
@@ -382,21 +403,9 @@ static ex coth_eval(const ex & x)
 		throw (std::runtime_error("coth_eval(): tanh(unsigned_infinity) encountered"));
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi)) {
-		numeric nxopi = ex_to<numeric>(xoverpi);
-		if (nxopi.real().is_zero()) { // coth(I*x) -> I*cot(x);
-                        numeric xoverpiI = (nxopi*2)/I;
-			if (not xoverpiI.is_integer())
-				return -I*cot(x/I);
-			else if (xoverpiI.is_odd())
-				return _ex0;
-			else
-				return UnsignedInfinity;
-		}
-		else
-			return coth(x).hold();
-	}
+	// coth(I*x) --> -I*cot(x)
+	if (is_multiple_of_I(x.expand()))
+		return -I*cot(x/I);
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
@@ -492,10 +501,9 @@ static ex sech_eval(const ex & x)
 			return cosh(ex_to<numeric>(x)).inverse();
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())
-		return sec(x/I);
+	// sech(x*I) --> sec(x)
+	if (is_multiple_of_I(x.expand()))
+	    return sec(x/I);
 
 	// sech(oo) -> 0
 	// sech(-oo) -> 0
@@ -601,9 +609,8 @@ static ex csch_eval(const ex & x)
 			return sinh(ex_to<numeric>(x)).inverse();
 	}
 
-        ex xoverpi = x/Pi;
-	if (is_exactly_a<numeric>(xoverpi) &&
-		ex_to<numeric>(xoverpi).real().is_zero())
+	// csch(I*x) --> -I*csc(x)
+	if (is_multiple_of_I(x.expand()))
 		return -I*csc(x/I);
 
 	// csch(oo) -> 0

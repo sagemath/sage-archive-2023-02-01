@@ -41,7 +41,7 @@ class CrystalOfOddNegativeRoots(UniqueRepresentation, Parent):
 
     .. MATH::
 
-        U_q^-(\mathfrak{g}) \conj
+        U_q^-(\mathfrak{g}) \cong
         K \otimes U^-_q(\mathfrak{gl}_m \oplus \mathfrak{gl}_n).
 
     EXAMPLES::
@@ -445,7 +445,7 @@ class CrystalOfKacModule(UniqueRepresentation, Parent):
     where `\alpha` ranges over all odd positive roots. A *Kac module*
     is the `U_q(\mathfrak{g})`-module constructed from the highest
     weight `U_q(\mathfrak{gl}_m \oplus \mathfrak{gl}_n)`-module
-    `V(\lambda, \mu)` (induced to a `U_q(\mathfrak{g})-module` in
+    `V(\lambda, \mu)` (induced to a `U_q(\mathfrak{g})`-module in
     the natural way) by
 
     .. MATH::
@@ -649,7 +649,7 @@ class CrystalOfKacModule(UniqueRepresentation, Parent):
 
         def e(self, i):
             r"""
-            Return the action of the crystal operator `f_i` on ``self``.
+            Return the action of the crystal operator `e_i` on ``self``.
 
             EXAMPLES::
 

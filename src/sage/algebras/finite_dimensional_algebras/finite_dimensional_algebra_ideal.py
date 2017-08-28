@@ -141,7 +141,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
         """
         if self.ring() is not parent(elt):
             return False
-        return elt.vector()[0] in self.vector_space()
+        return elt.vector() in self.vector_space()
 
     def basis_matrix(self):
         """

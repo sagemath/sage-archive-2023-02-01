@@ -168,7 +168,7 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         it is converted into a single-row matrix, in the new implementation::
 
             sage: x.vector()
-            [1 1 1]
+            (1, 1, 1)
 
         """
         self._parent, D = state
@@ -208,13 +208,19 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         Return ``self`` as a vector.
 
+        NOTE:
+
+        By :trac:`23707`, ``self._vector`` now is a single row matrix,
+        not a vector, which results in a speed-up. For backwards compatibility,
+        this method still returns a vector.
+
         EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(5).vector()
-            [5 0 5]
+            (5, 0, 5)
         """
-        return self._vector
+        return self._vector[0]
 
     def matrix(self):
         """

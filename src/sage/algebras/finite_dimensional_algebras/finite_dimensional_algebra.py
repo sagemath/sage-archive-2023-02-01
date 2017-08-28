@@ -302,7 +302,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: list(A)
-            [0, e0, e1, 2*e0, e0 + e1, 2*e1, 2*e0 + e1, e0 + 2*e1, 2*e0 + 2*e1]
+            [0, e0, 2*e0, e1, e0 + e1, 2*e0 + e1, 2*e1, e0 + 2*e1, 2*e0 + 2*e1]
 
         This is used in the :class:`Testsuite`'s when ``self`` is
         finite.

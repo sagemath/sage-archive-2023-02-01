@@ -43,7 +43,6 @@ from sage.rings.rational_field import QQ
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
-from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef class FMElement(pAdicTemplateElement):
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1:
@@ -604,7 +603,7 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return self
 
-    def expansion(self, n = None, lift_mode = 'simple'):
+    def expansion(self, n = None, lift_mode = 'simple', start_val = None):
         r"""
         Return the coefficients of a `\pi`-adic expansion starting with the
         coefficient of `\pi^0`.
@@ -672,44 +671,110 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a.expansion(2, lift_mode='teichmuller')
             5 + 2*7 + 3*7^3 + 6*7^4 + 4*7^5 + O(7^6)
         """
-        if n in ('simple', 'smallest', 'teichmuller'):
-            deprecation(14825, "Interface to expansion has changed; first argument now n")
-            lift_mode = n
-            n = None
-        elif isinstance(n, slice):
+        if lift_mode == 'teichmuller':
+            zero = self.parent().maximal_unramified_subextension().integer_ring()(0)
+        else:
+            # _list_zero is defined in the linkage file.
+            zero = _list_zero
+        if isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
         elif n is not None and (ciszero(self.value, self.prime_pow) or n < 0 or n >= self.prime_pow.prec_cap):
-            return _list_zero
+            return zero
         if ciszero(self.value, self.prime_pow):
             return []
         if lift_mode == 'teichmuller':
-            if n is None:
-                return self.teichmuller_expansion()
-            else:
-                return self.teichmuller_expansion(n - self.valuation_c())
+            expansion = self._teichmuller_all()
         elif lift_mode == 'simple':
-            vlist = clist(self.value, self.prime_pow.prec_cap, True, self.prime_pow)
+            expansion = cexpansion(self.value, self.prime_pow.prec_cap, True, self.prime_pow)
         elif lift_mode == 'smallest':
-            vlist = clist(self.value, self.prime_pow.prec_cap, False, self.prime_pow)
+            expansion = cexpansion(self.value, self.prime_pow.prec_cap, False, self.prime_pow)
         else:
             raise ValueError("unknown lift_mode")
-        if n is None:
-            return vlist
-        else:
+        if n is not None:
             try:
-                return vlist[n]
-            except IndexError:
-                return _list_zero
+                return next(itertools.islice(expansion, n, n + 1))
+            except StopIteration:
+                return zero
+        if start_val is not None:
+            if start_val > 0:
+                if start_val > self.valuation_c():
+                    raise ValueError("starting valuation must be smaller than the element's valuation.  See slice()")
+                expansion = itertools.islice(expansion, start_val, None)
+            elif start_val < 0:
+                expansion = itertools.chain(itertools.repeat(zero, -start_val), expansion)
+        return expansion
 
-    list = deprecated_function_alias(14825, expansion)
+    def list(self, lift_mode = 'simple', start_val = None):
+        r"""
+        Returns the list of coefficients in a `\pi`-adic expansion of this element.
+
+        .. SEEALSO::
+
+            :meth:`expansion`
+
+        EXAMPLES::
+
+            sage: R = ZpFM(7,6); a = R(12837162817); a
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: L = a.list(); L
+            [3, 4, 4, 0, 4]
+        """
+        deprecation(14825, "list is deprecated. Please use expansion instead.")
+        return list(self.expansion(lift_mode=lift_mode, start_val=start_val))
+
+    def _teichmuller_all(self):
+        r"""
+        Returns a generator which iterates over the Teichmuller expansion of this element.
+
+        .. SEEALSO::
+
+            :meth:`teichmuller_expansion`
+
+        EXAMPLES::
+
+            sage: list(ZpFM(5,5)(70)._teichmuller_all())
+            [O(5^5),
+            4 + 4*5 + 4*5^2 + 4*5^3 + O(5^4),
+            3 + 3*5 + 2*5^2 + O(5^3),
+            2 + 5 + O(5^2),
+            1 + O(5)]
+        """
+        cdef FMElement coeff
+        if ciszero(self.value, self.prime_pow):
+            return
+        R = self.parent().maximal_unramified_subextension().integer_ring()
+        cdef long prec_cap = self.prime_pow.ram_prec_cap
+        cdef long curpower = prec_cap
+        cdef FMElement tmp = self._new_c()
+        ccopy(tmp.value, self.value, self.prime_pow)
+        while not ciszero(tmp.value, tmp.prime_pow) and curpower > 0:
+            coeff = self._new_c()
+            cteichmuller(coeff.value, tmp.value, prec_cap, self.prime_pow)
+            if ciszero(coeff.value, self.prime_pow):
+                cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
+            else:
+                csub(tmp.value, tmp.value, coeff.value, prec_cap, self.prime_pow)
+                cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
+                creduce(tmp.value, tmp.value, prec_cap, self.prime_pow)
+            yield R(coeff)
+            curpower -= 1
 
     def teichmuller_expansion(self, n = None):
         r"""
-        Returns a list [`a_0`, `a_1`,..., `a_n`] such that
+        Returns an iterator over coefficients `a_0, a_1, \dots, a_n` such that
 
-        - `a_i^q = a_i`
+        - `a_i^q = a_i`, where `q` is the cardinality of the residue field,
 
-        - self.unit_part() = `\sum_{i = 0}^n a_i \pi^i`
+        - this element can be expressed as
+
+        .. MATH::
+
+            \sum_{i=0}^\infty a_i \pi^i
+
+        .. NOTE::
+
+            The coefficients will lie in the ring of integers of the
+            maximal unramified subextension.
 
         INPUT:
 
@@ -718,51 +783,32 @@ cdef class FMElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpFM(5,5); R(70).expansion(lift_mode='teichmuller') #indirect doctest
-            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
+            sage: R = ZpFM(5,5); R(70).teichmuller_expansion()
+            [O(5^5),
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5),
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5),
-            1 + O(5^5),
-            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)]
-            sage: R(70).teichmuller_expansion(1)
+            1 + O(5^5)]
+            sage: R(70).teichmuller_expansion(2)
             3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + O(5^5)
         """
-        cdef FMElement list_elt
-        if n is None:
-            ans = PyList_New(0)
-            if ciszero(self.value, self.prime_pow):
-                return ans
-        elif ciszero(self.value, self.prime_pow) or n < 0 or n >= self.prime_pow.prec_cap:
-            list_elt = self._new_c()
-            csetzero(list_elt.value, self.prime_pow)
-            return list_elt
-        else:
-            # We only need one list_elt
-            list_elt = self._new_c()
-        self = self.unit_part()
-        cdef long curpower = self.prime_pow.prec_cap
-        cdef long prec_cap = self.prime_pow.prec_cap
-        cdef long goal
-        if n is not None: goal = prec_cap - n
-        cdef FMElement tmp = self._new_c()
-        ccopy(tmp.value, self.value, self.prime_pow)
-        while not ciszero(tmp.value, tmp.prime_pow) and curpower > 0:
-            if n is None: list_elt = self._new_c()
-            cteichmuller(list_elt.value, tmp.value, prec_cap, self.prime_pow)
-            if ciszero(list_elt.value, self.prime_pow):
-                cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
-            else:
-                csub(tmp.value, tmp.value, list_elt.value, prec_cap, self.prime_pow)
-                cshift_notrunc(tmp.value, tmp.value, -1, prec_cap, self.prime_pow)
-                creduce(tmp.value, tmp.value, prec_cap, self.prime_pow)
-            if n is None:
-                PyList_Append(ans, list_elt)
-            elif curpower == goal:
-                return list_elt
-            curpower -= 1
-        return ans
+        return self.expansion(n, lift_mode='teichmuller')
 
-    teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
+    def teichmuller_list(self):
+        r"""
+        Returns the list of coefficients in the Teichmuller expansion of this element.
+
+        .. SEEALSO::
+
+            :meth:`teichmuller_expansion`
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5,5); R(70).teichmuller_list()[1]
+            4 + 4*5 + 4*5^2 + 4*5^3 + O(5^4)
+        """
+        deprecation(14825, "teichmuller_list is deprecated. Please use teichmuller_expansion instead.")
+        return list(self.teichmuller_expansion())
 
     def _teichmuller_set_unsafe(self):
         """
@@ -938,7 +984,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         EXAMPLES::
 
-            sage: R = ZpCA(11, 5)
+            sage: R = ZpFM(11, 5)
             sage: hash(R(3)) == hash(3)
             True
         """

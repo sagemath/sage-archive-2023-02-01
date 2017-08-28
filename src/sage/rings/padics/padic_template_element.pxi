@@ -35,7 +35,10 @@ from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
 from sage.rings.rational import Rational
 from sage.rings.padics.precision_error import PrecisionError
+from sage.rings.padics.misc import trim_zeros
 from sage.structure.element import canonical_coercion
+from sage.misc.superseded import deprecation
+import itertools
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 cdef long minusmaxordp = -maxordp
@@ -394,7 +397,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 n = 0
             else:
                 n -= self.valuation()
-        return L[:n] + [zero] * (n - len(L))
+        return itertools.chain(itertools.islice(L, n), itertools.repeat(zero, n - len(L)))
 
     def _ext_p_list(self, pos):
         """
@@ -408,9 +411,9 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             [[1, 0, 1], [0, 1]]
         """
         if pos:
-            return self.unit_part().expansion(lift_mode='simple')
+            return trim_zeros(list(self.unit_part().expansion(lift_mode='simple')))
         else:
-            return self.unit_part().expansion(lift_mode='smallest')
+            return trim_zeros(list(self.unit_part().expansion(lift_mode='smallest')))
 
     cpdef pAdicTemplateElement unit_part(self):
         """
@@ -517,8 +520,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             parent = self.parent().residue_field()
             if self.valuation() > 0:
                 return parent.zero()
-            digits = self.padded_list(1)
-            return parent(digits[0])
+            return parent(self.expansion(0))
         else:
             raise NotImplementedError("reduction modulo p^n with n>1.")
 

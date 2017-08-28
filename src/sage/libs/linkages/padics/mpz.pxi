@@ -483,6 +483,104 @@ cdef inline long chash(mpz_t a, long ordp, long prec, PowComputer_ prime_pow) ex
             return -2
         return n
 
+cdef class ExpansionIter(object):
+    cdef mpz_t value
+    cdef mpz_t p2
+    cdef long curpower
+    cdef bint pos
+    cdef PowComputer_ prime_pow
+
+    def __cinit__(self, Integer value, long prec, bint pos, PowComputer_ prime_pow):
+        mpz_init(self.value)
+        mpz_set(self.value, value.value)
+        self.curpower = prec
+        self.pos = pos
+        self.prime_pow = prime_pow
+        if not self.pos:
+            mpz_init(self.p2)
+            mpz_fdiv_q_2exp(self.p2, prime_pow.prime.value, 1)
+
+    def __dealloc__(self):
+        mpz_clear(self.value)
+        if not self.pos:
+            mpz_clear(self.p2)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.curpower
+
+    def __next__(self):
+        if self.curpower == 0:
+            raise StopIteration
+        self.curpower -= 1
+        cdef Integer ans = PY_NEW(Integer)
+        if mpz_sgn(self.value) == 0:
+            mpz_set_ui(ans.value, 0)
+            return ans
+        mpz_mod(ans.value, self.value, self.prime_pow.prime.value)
+        if self.pos:
+            mpz_sub(self.value, self.value, ans.value)
+            mpz_divexact(self.value, self.value, self.prime_pow.prime.value)
+        else:
+            if mpz_cmp(ans.value, self.p2) > 0:
+                mpz_sub(ans.value, ans.value, self.prime_pow.prime.value)
+                neg = True
+            else:
+                neg = False
+            mpz_sub(self.value, self.value, ans.value)
+            mpz_divexact(self.value, self.value, self.prime_pow.prime.value)
+            if neg and mpz_cmp(self.value, self.prime_pow.pow_mpz_t_tmp(self.curpower)) >= 0:
+                mpz_sub(self.value, self.value, self.prime_pow.pow_mpz_t_tmp(self.curpower))
+        return ans
+
+cdef class ExpansionIterable(object):
+    cdef Integer value
+    cdef long prec
+    cdef long val_shift
+    cdef bint pos
+    cdef PowComputer_ prime_pow
+    def __cinit__(self, Integer value, long prec, long val_shift, bint pos, PowComputer_ prime_pow):
+        self.value = value
+        self.prec = prec
+        self.pos = pos
+        self.prime_pow = prime_pow
+
+    def __iter__(self):
+        expansion = ExpansionIter(self.value, self.prec, self.pos, self.prime_pow)
+        if self.val_shift == 0:
+            return expansion
+        else:
+            return itertools.chain(itertools.repeat(Integer(0), self.val_shift), expansion)
+
+    def __len__(self):
+        return self.prec
+
+    def __getitem__(self, n):
+        cdef Integer ans = PY_NEW(Integer)
+        cdef long m = n - self.val_shift
+        if n < 0:
+            raise ValueError("Negative indices not supported")
+        elif m < 0:
+            mpz_set_ui(ans.value, 0)
+        elif m >= self.prec:
+            raise PrecisionError
+        elif self.pos:
+            mpz_fdiv_q(ans.value, self.value.value, self.prime_pow.pow_mpz_t_tmp(m))
+            mpz_mod(ans.value, ans.value, self.prime_pow.prime.value)
+        else:
+            # Maybe there's a good way to do this in one step....
+            ans = next(itertools.islice(iter(self), m, m + 1))
+        return ans
+
+    def __repr__(self):
+        return "%s-adic expansion of %s%s"%(self.prime_pow.prime, self.value, "" if self.pos else " (balanced)")
+
+cdef cexpansion(mpz_t a, long prec, long val_shift, bint pos, PowComputer_ prime_pow):
+    mpz_set(holder.value, a)
+    return ExpansionIterable(holder, prec, val_shift, pos, prime_pow)
+
 cdef clist(mpz_t a, long prec, bint pos, PowComputer_ prime_pow):
     """
     Returns a list of digits in the series expansion.

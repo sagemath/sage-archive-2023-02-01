@@ -523,6 +523,96 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
     fmpz_poly_get_coeff_mpz(h.value, a, 0)
     return hash(h)
 
+cdef class ExpansionIter(object):
+    cdef fmpz_poly_t value
+    cdef long curpower
+    cdef bint pos
+    cdef PowComputer_ prime_pow
+
+    def __cinit__(self, long prec, bint pos, PowComputer_ prime_pow):
+        fmpz_poly_init(self.value)
+        self.curpower = prec
+        self.pos = pos
+        self.prime_pow = prime_pow
+
+    def __dealloc__(self):
+        fmpz_poly_clear(self.value)
+
+    cdef _set(self, celement a):
+        fmpz_poly_set(self.value, a)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.curpower
+
+    def __next__(self):
+        if self.curpower == 0:
+            raise StopIteration
+        self.curpower -= 1
+        if fmpz_poly_is_zero(self.value):
+            return []
+        ans = []
+        cdef fmpz* c
+        cdef long i
+        cdef PowComputer_ pp = self.prime_pow
+        cdef Integer digit
+        for i in range(fmpz_poly_length(self.value)):
+            c = fmpz_poly_get_coeff_ptr(self.value, i)
+            fmpz_fdiv_qr(c, pp.fmpz_clist, c, pp.fprime)
+            if not self.pos and fmpz_cmp(pp.fmpz_clist, pp.half_prime) > 0:
+                fmpz_sub(pp.fmpz_clist, pp.fmpz_clist, pp.fprime)
+                fmpz_add_ui(c, c, 1)
+            digit = PY_NEW(Integer)
+            fmpz_get_mpz(digit.value, pp.fmpz_clist)
+            ans.append(digit)
+        _fmpz_poly_normalise(self.value)
+        return ans
+
+cdef class ExpansionIterable(object):
+    cdef celement value
+    cdef long prec
+    cdef bint pos
+    cdef PowComputer_ prime_pow
+    def __cinit__(self, long prec, bint pos, PowComputer_ prime_pow):
+        fmpz_poly_init(self.value)
+        self.prec = prec
+        self.pos = pos
+        self.prime_pow = prime_pow
+
+    def __dealloc__(self):
+        fmpz_poly_clear(self.value)
+
+    cdef _set(self, celement a):
+        fmpz_poly_set(self.value, a)
+
+    def __iter__(self):
+        E = ExpansionIter(self.prec, self.pos, self.prime_pow)
+        E._set(self.value)
+        return E
+
+    def __len__(self):
+        return self.prec
+
+    def _poly_str(self):
+        L = []
+        cdef long i
+        cdef Integer list_elt
+        for i in range(fmpz_poly_length(self.value)):
+            list_elt = PY_NEW(Integer)
+            fmpz_get_mpz(list_elt.value, fmpz_poly_get_coeff_ptr(self.value, i))
+            L.append(str(list_elt))
+        return '[' + ', '.join(L) + ']'
+
+    def __repr__(self):
+        return "%s-adic expansion of %s%s"%(self.prime_pow.prime, self._poly_str(), "" if self.pos else " (balanced)")
+
+cdef cexpansion(celement a, long prec, bint pos, PowComputer_ prime_pow):
+    cdef ExpansionIterable E = ExpansionIterable(prec, pos, prime_pow)
+    E._set(a)
+    return E
+
 cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     """
     Returns a list of digits in the series expansion.

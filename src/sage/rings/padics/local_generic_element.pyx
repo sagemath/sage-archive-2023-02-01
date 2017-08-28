@@ -25,6 +25,7 @@ AUTHORS:
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 from sage.structure.element import coerce_binop
+from itertools import islice
 
 cdef class LocalGenericElement(CommutativeRingElement):
     #cpdef _add_(self, right):
@@ -338,7 +339,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         # construct the return value
         ans = self.parent().zero()
-        for c in self.expansion()[start:stop:k]:
+        for c in islice(self.expansion(), start, stop, k):
             ans += ppow * c
             ppow *= pk
 
@@ -847,12 +848,12 @@ cdef class LocalGenericElement(CommutativeRingElement):
         for mode in ['simple', 'smallest', 'teichmuller']:
             expansion = self.expansion(lift_mode=mode)
 
-            tester.assertEqual(self, shift*sum(self.parent().maximal_unramified_subextension()(c) * (self.parent().one()<<i) for i,c in enumerate(expansion)))
+            tester.assertEqual(self, shift*sum(self.parent().maximal_unramified_subextension()(c) * (self.parent().one()<<i) for i,c in enumerate(islice(expansion, 100))))
 
-            for i,c in enumerate(expansion):
+            for i,c in enumerate(islice(expansion, 100)):
                 tester.assertEqual(c, self.expansion(lift_mode=mode, n=i+v))
 
             if mode == 'teichmuller':
                 q = self.parent().residue_field().cardinality()
-                for c in expansion:
+                for c in islice(expansion, 100):
                     tester.assertEqual(c, c**q)

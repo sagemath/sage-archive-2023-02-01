@@ -582,4 +582,4 @@ def base_p_list(Integer n, bint pos, PowComputer_class prime_pow):
     """
     if mpz_sgn(n.value) < 0:
         raise ValueError("n must be nonnegative")
-    return clist(n.value, prime_pow.prec_cap, pos, prime_pow)
+    return trim_zeros(list(cexpansion(n.value, prime_pow.prec_cap, pos, prime_pow)))

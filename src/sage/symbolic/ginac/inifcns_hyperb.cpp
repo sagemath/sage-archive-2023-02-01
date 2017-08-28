@@ -57,6 +57,10 @@ namespace GiNaC {
 
 static ex sinh_eval(const ex & x)
 {
+        // sinh() is odd
+        if (x.info(info_flags::negative))
+                return -sinh(-x);
+
 	if (is_exactly_a<numeric>(x)) {
 
 		// sinh(0) -> 0
@@ -66,10 +70,6 @@ static ex sinh_eval(const ex & x)
 		// sinh(float) -> float
 		if (x.info(info_flags::inexact))
 			return sinh(ex_to<numeric>(x));
-
-		// sinh() is odd
-		if (x.info(info_flags::negative))
-			return -sinh(-x);
 	}
 
 	// sinh(oo) -> oo
@@ -88,6 +88,10 @@ static ex sinh_eval(const ex & x)
 	
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
+
+                // sinh(log(x)) -> (x^2 - 1)/(2x)
+		if (is_ex_the_function(x, log))
+                        return (power(t, _ex2) - _ex1)/(_ex2*t);
 
 		// sinh(asinh(x)) -> x
 		if (is_ex_the_function(x, asinh))
@@ -150,8 +154,11 @@ static ex cosh_evalf(const ex & x, PyObject* parent)
 
 static ex cosh_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
-
+        // cosh() is even
+        if (x.info(info_flags::negative))
+                return cosh(-x);
+	
+        if (is_exactly_a<numeric>(x)) {
 		// cosh(0) -> 1
 		if (x.is_zero())
 			return _ex1;
@@ -159,10 +166,6 @@ static ex cosh_eval(const ex & x)
 		// cosh(float) -> float
 		if (x.info(info_flags::inexact))
 			return cosh(ex_to<numeric>(x));
-
-		// cosh() is even
-		if (x.info(info_flags::negative))
-			return cosh(-x);
 	}
 	
 	// cosh(oo) -> oo
@@ -181,6 +184,10 @@ static ex cosh_eval(const ex & x)
 	
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
+
+                // cosh(log(x)) -> (x + 1/x)/2
+		if (is_ex_the_function(x, log))
+                        return (power(t, _ex2) + _ex1)/(_ex2*t);
 
 		// cosh(acosh(x)) -> x
 		if (is_ex_the_function(x, acosh))
@@ -236,8 +243,11 @@ REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
 
 static ex tanh_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        // tanh() is odd
+        if (x.info(info_flags::negative))
+                return -tanh(-x);
 
+	if (is_exactly_a<numeric>(x)) {
 		// tanh(0) -> 0
 		if (x.is_zero())
 			return _ex0;
@@ -245,10 +255,6 @@ static ex tanh_eval(const ex & x)
 		// tanh(float) -> float
 		if (x.info(info_flags::inexact))
 			return tanh(ex_to<numeric>(x));
-
-		// tanh() is odd
-		if (x.info(info_flags::negative))
-			return -tanh(-x);
 	}
 	
 	// tanh(oo) -> 1
@@ -270,6 +276,10 @@ static ex tanh_eval(const ex & x)
 	
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
+
+                // tanh(log(x)) -> (x^2 - 1)/(x^2 + 1)
+		if (is_ex_the_function(x, log))
+                        return (power(t, _ex2) - _ex1)/(power(t, _ex2) + _ex1);
 
 		// tanh(atanh(x)) -> x
 		if (is_ex_the_function(x, atanh))
@@ -346,8 +356,11 @@ REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
 
 static ex coth_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        // coth() is odd
+        if (x.info(info_flags::negative))
+                return -coth(-x);
 
+	if (is_exactly_a<numeric>(x)) {
 		// coth(0) -> zoo
 		if (x.is_zero())
 			return UnsignedInfinity;
@@ -355,10 +368,6 @@ static ex coth_eval(const ex & x)
 		// coth(float) -> float
 		if (x.info(info_flags::inexact))
 			return tanh(ex_to<numeric>(x)).inverse();
-
-		// coth() is odd
-		if (x.info(info_flags::negative))
-			return -coth(-x);
 	}
 
 	// coth(oo) -> 1
@@ -391,6 +400,10 @@ static ex coth_eval(const ex & x)
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
+
+                // coth(log(x)) -> (x^2 + 1)/(x^2 - 1)
+		if (is_ex_the_function(x, log))
+                        return (power(t, _ex2) + _ex1)/(power(t, _ex2) - _ex1);
 
 		// coth(acoth(x)) -> x
 		if (is_ex_the_function(x, acoth))
@@ -465,8 +478,11 @@ REGISTER_FUNCTION(coth, eval_func(coth_eval).
 
 static ex sech_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        // sech() is even
+        if (x.info(info_flags::negative))
+                return sech(-x);
 
+	if (is_exactly_a<numeric>(x)) {
 		// sech(0) -> 1
 		if (x.is_zero())
 			return _ex1;
@@ -474,10 +490,6 @@ static ex sech_eval(const ex & x)
 		// sech(float) -> float
 		if (x.info(info_flags::inexact))
 			return cosh(ex_to<numeric>(x)).inverse();
-
-		// sech() is even
-		if (x.info(info_flags::negative))
-			return sech(-x);
 	}
 
         ex xoverpi = x/Pi;
@@ -497,6 +509,10 @@ static ex sech_eval(const ex & x)
 
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
+
+                // sech(log(x)) -> 2/(x + 1/x)
+		if (is_ex_the_function(x, log))
+                        return (_ex2*t) / (power(t, _ex2) + _ex1);
 
 		// sech(asech(x)) -> x
 		if (is_ex_the_function(x, asech))
@@ -571,8 +587,11 @@ REGISTER_FUNCTION(sech, eval_func(sech_eval).
 
 static ex csch_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        // csch() is odd
+        if (x.info(info_flags::negative))
+                return -csch(-x);
 
+	if (is_exactly_a<numeric>(x)) {
 		// csch(0) -> zoo
 		if (x.is_zero())
 			return UnsignedInfinity;
@@ -580,10 +599,6 @@ static ex csch_eval(const ex & x)
 		// csch(float) -> float
 		if (x.info(info_flags::inexact))
 			return sinh(ex_to<numeric>(x)).inverse();
-
-		// csch() is odd
-		if (x.info(info_flags::negative))
-			return -csch(-x);
 	}
 
         ex xoverpi = x/Pi;
@@ -604,11 +619,15 @@ static ex csch_eval(const ex & x)
 	if (is_exactly_a<function>(x)) {
 		const ex &t = x.op(0);
 
-		// sech(asech(x)) -> x
+                // csch(log(x)) -> 2/(x - 1/x)
+		if (is_ex_the_function(x, log))
+                        return (_ex2*t) / (power(t, _ex2) - _ex1);
+
+		// csch(acsch(x)) -> x
 		if (is_ex_the_function(x, acsch))
 			return t;
 
-		// sech(acosh(x)) -> 1/sqrt(x^2-1)
+		// csch(acosh(x)) -> 1/sqrt(x^2-1)
 		if (is_ex_the_function(x, asinh))
 			return power(power(t,_ex2)-_ex1,_ex_1_2);
 

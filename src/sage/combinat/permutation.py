@@ -261,7 +261,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
              right_action_product, left_action_same_n, right_action_same_n,
-             next_perm)
+             map_to_list, next_perm)
 
 class Permutation(CombinatorialElement):
     r"""
@@ -5437,18 +5437,18 @@ class Permutations_mset(Permutations):
             [[]]
         """
         mset = self.mset
-        n = len(self.mset)
-        lmset = list(mset)
-        mset_list = sorted(lmset.index(x) for x in lmset)
+        n = len(mset)
+        from array import array
+        mset_list = array('I', sorted(mset.index(x) for x in mset))
 
-        yield self.element_class(self, [lmset[x] for x in mset_list])
+        yield self.element_class(self, map_to_list(mset_list, mset, n), check=False)
 
         if n <= 1:
             return
 
         while next_perm(mset_list):
             #Yield the permutation
-            yield self.element_class(self, [lmset[x] for x in mset_list])
+            yield self.element_class(self, map_to_list(mset_list, mset, n), check=False)
 
     def cardinality(self):
         """

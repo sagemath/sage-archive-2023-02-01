@@ -189,7 +189,7 @@ def permutation_iterator_transposition_list(int n):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef next_perm(list l):
+cpdef next_perm(array.array l):
     """
     Obtain the next permutation under lex order of ``l``
     by mutating ``l``.
@@ -199,11 +199,11 @@ cpdef next_perm(list l):
 
     INPUT:
 
-    - ``l`` -- a list
+    - ``l`` -- array of unsigned int (i.e., type ``'I'``)
 
     .. WARNING::
 
-        This method mutates the list ``l``.
+        This method mutates the array ``l``.
 
     OUTPUT:
 
@@ -212,20 +212,21 @@ cpdef next_perm(list l):
     EXAMPLES::
 
         sage: from sage.combinat.permutation_cython import next_perm
-        sage: L = [1, 1, 2, 3]
+        sage: from array import array
+        sage: L = array('I', [1, 1, 2, 3])
         sage: while next_perm(L):
         ....:     print(L)
-        [1, 1, 3, 2]
-        [1, 2, 1, 3]
-        [1, 2, 3, 1]
-        [1, 3, 1, 2]
-        [1, 3, 2, 1]
-        [2, 1, 1, 3]
-        [2, 1, 3, 1]
-        [2, 3, 1, 1]
-        [3, 1, 1, 2]
-        [3, 1, 2, 1]
-        [3, 2, 1, 1]
+        array('I', [1L, 1L, 3L, 2L])
+        array('I', [1L, 2L, 1L, 3L])
+        array('I', [1L, 2L, 3L, 1L])
+        array('I', [1L, 3L, 1L, 2L])
+        array('I', [1L, 3L, 2L, 1L])
+        array('I', [2L, 1L, 1L, 3L])
+        array('I', [2L, 1L, 3L, 1L])
+        array('I', [2L, 3L, 1L, 1L])
+        array('I', [3L, 1L, 1L, 2L])
+        array('I', [3L, 1L, 2L, 1L])
+        array('I', [3L, 2L, 1L, 1L])
     """
     cdef Py_ssize_t n = len(l)
 
@@ -235,10 +236,11 @@ cpdef next_perm(list l):
     cdef Py_ssize_t one = n - 2
     cdef Py_ssize_t two = n - 1
     cdef Py_ssize_t j   = n - 1
+    cdef unsigned int t
 
     # Starting from the end, find the first o such that
     #   l[o] < l[o+1]
-    while two > 0 and l[one] >= l[two]:
+    while two > 0 and l.data.as_uints[one] >= l.data.as_uints[two]:
         one -= 1
         two -= 1
 
@@ -247,24 +249,52 @@ cpdef next_perm(list l):
 
     #starting from the end, find the first j such that
     #l[j] > l[one]
-    while l[j] <= l[one]:
+    while l.data.as_uints[j] <= l.data.as_uints[one]:
         j -= 1
 
     #Swap positions one and j
-    t = l[one]
-    PyList_SET_ITEM(l, one, l[j])
-    PyList_SET_ITEM(l, j, t)
+    t = l.data.as_uints[one]
+    l.data.as_uints[one] = l.data.as_uints[j]
+    l.data.as_uints[j] = t
 
     #Reverse the list between two and last
     #mset_list = mset_list[:two] + [x for x in reversed(mset_list[two:])]
     n -= 1 # In the loop, we only need n-1, so just do it once here
     cdef Py_ssize_t i
     for i in xrange((n+1 - two) // 2 - 1, -1, -1):
-        t = l[i + two]
-        PyList_SET_ITEM(l, i + two, l[n - i])
-        PyList_SET_ITEM(l, n - i, t)
+        t = l.data.as_uints[i + two]
+        l.data.as_uints[i + two] = l.data.as_uints[n - i]
+        l.data.as_uints[n - i] = t
 
     return True
+
+cpdef list map_to_list(array.array l, tuple values, int n):
+    """
+    Build a list by mapping the array ``l`` using ``values``.
+
+    INPUT:
+
+    - ``l`` -- array of unsigned int (i.e., type ``'I'``)
+    - ``values`` -- tuple; the values of the permutation
+    - ``n`` -- int; the length of the array ``l``
+
+    OUTPUT:
+
+    A list representing the permutation.
+
+    EXAMPLES::
+
+        sage: from array import array
+        sage: from sage.combinat.permutation_cython import map_to_list
+        sage: l = array('I', [0, 1, 0, 3, 3, 0, 1])
+        sage: map_to_list(l, ('a', 'b', 'c', 'd'), 7)
+        ['a', 'b', 'a', 'd', 'd', 'a', 'b']
+    """
+    cdef int i
+    cdef list ret = []
+    for i in xrange(n):
+        ret.append(values[l.data.as_uints[i]])
+    return ret
 
 
 #####################################################################

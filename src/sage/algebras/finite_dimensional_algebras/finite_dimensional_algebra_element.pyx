@@ -18,19 +18,14 @@ from six.moves import range
 import re
 
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.matrix import is_Matrix
-from sage.matrix.matrix cimport Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
-from sage.structure.element cimport AlgebraElement, Element, Vector, parent
 
 from cpython.object cimport PyObject_RichCompare as richcmp
 
-cdef inline is_Vector(x):
-    return isinstance(x, Vector)
-
-cpdef inline FiniteDimensionalAlgebraElement unpickle_FiniteDimensionalAlgebraElement(A, vec, mat):
+cpdef FiniteDimensionalAlgebraElement unpickle_FiniteDimensionalAlgebraElement(A, vec, mat):
     """
     Helper for unpickling of finite dimensional algebra elements.
 
@@ -75,9 +70,6 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         sage: A([1,1])
         e0 + e1
     """
-    cdef public Matrix _vector
-    cdef Matrix __matrix
-    cdef FiniteDimensionalAlgebraElement __inverse
     def __init__(self, A, elt=None, check=True):
         """
         TESTS::
@@ -101,28 +93,32 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         k = A.base_ring()
         n = A.degree()
         if elt is None:
-            self._vector = matrix(k, 1, n)
-            self.__matrix = matrix(k, n)
+            self._vector = MatrixSpace(k,1,n)()
+            self.__matrix = MatrixSpace(k, n)()
         else:
             if isinstance(elt, int):
                 elt = Integer(elt)
             elif isinstance(elt, list):
-                elt = matrix(k,1,n, elt)
+                elt = MatrixSpace(k,1,n)(elt)
             if A == elt.parent():
+                mat = (<FiniteDimensionalAlgebraElement> elt).__matrix
+                if mat is None:
+                    self.__matrix = None
+                else:
+                    self.__matrix = mat.base_extend(k)
                 self._vector = elt._vector.base_extend(k)
-                self.__matrix = elt._matrix.base_extend(k)
             elif k.has_coerce_map_from(elt.parent()):
                 e = k(elt)
                 if e == 0:
-                    self._vector = matrix(k, 1, n)
-                    self.__matrix = matrix(k, n)
+                    self._vector = MatrixSpace(k, 1, n)()
+                    self.__matrix = MatrixSpace(k, n)()
                 elif A.is_unitary():
                     self._vector = A._one * e
-                    self.__matrix = matrix.identity(k, n) * e
+                    self.__matrix = MatrixSpace(k, n)(1) * e
                 else:
                     raise TypeError("algebra is not unitary")
-            elif is_Vector(elt):
-                self._vector = matrix(k,1,n, elt.list())
+            elif isinstance(elt, Vector):
+                self._vector = MatrixSpace(k,1,n)(list(elt))
             elif is_Matrix(elt):
                 if elt.ncols() != n:
                     raise ValueError("matrix does not define an element of the algebra")
@@ -177,8 +173,8 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         self._parent, D = state
         v = D.pop('_vector')
-        if is_Vector(v):
-            self._vector = matrix(self._parent.base_ring(), 1,len(v), list(v))
+        if isinstance(v, Vector):
+            self._vector = MatrixSpace(self._parent.base_ring(), 1,len(v))(list(v))
         else:
             self._vector = v
         self.__matrix = D.pop('_matrix', None)
@@ -194,14 +190,18 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[1,1,0], [0,1,1], [0,1,1]]), Matrix([[0,0,1], [0,1,0], [1,0,0]])])
             sage: x = B([1,2,3])
-            sage: x.matrix()    # indirect doctest
+            sage: x._matrix
             [3 2 3]
             [0 6 2]
             [3 2 2]
         """
+        cdef int i
+        cdef tuple table
         if self.__matrix is None:
             A = self.parent()
-            self.__matrix = matrix(A.base_ring(), sum([self._vector[0,i] * A.table()[i] for i in range(A.degree())]))
+            table = <tuple> A.table()
+            ret = sum(self._vector[0,i] * table[i] for i in xrange(A.degree()))
+            self.__matrix = MatrixSpace(A.base_ring(), A.degree())(ret)
         return self.__matrix
 
     def vector(self):
@@ -383,7 +383,7 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: C.basis()[1] * C.basis()[2]
             e1
         """
-        return self._parent.element_class(self._parent, self._vector * other._matrix)
+        return self._parent.element_class(self._parent, self._vector * <FiniteDimensionalAlgebraElement>(other)._matrix)
 
     cpdef _lmul_(self, Element other):
         """
@@ -433,8 +433,8 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
             raise TypeError("algebra is not unitary")
         if n == 0:
             return A.one()
-        cdef FiniteDimensionalAlgebraElement a = ~self
-        return A.element_class(A, a._vector * a._matrix ** (-n - 1))
+        cdef FiniteDimensionalAlgebraElement a = <FiniteDimensionalAlgebraElement>(~self)
+        return A.element_class(A, a._vector * a.__matrix ** (-n - 1))
 
     def __invert__(self):
         """

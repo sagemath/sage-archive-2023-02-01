@@ -900,3 +900,95 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
                     else:
                         pixel[col,row] = color_list[-1]
     return M
+
+cpdef general_julia(f, double x_center=0, double y_center=0, image_width=4,
+ int max_iteration=50, int pixel_count=500, int level_sep=1, int color_num=30,
+ base_color=[50,50,50]):
+    r"""
+    Plots Julia sets for General Polynomials
+    TODO: Add documentation
+    """
+
+    cdef:
+        M, pixel, color_list, R, z, S, x, y, S2, phi, t, im, re, a_n, df,
+        critical_pts, f_real, f_imag, J
+        int i, j, d, k, col, row, iteration, ii
+        double C, L, Rad, x_corner, y_corner, x_coor, y_coor, step_size, new_x, new_y
+        I = CDF.gen()
+
+    # Make sure image_width is positive
+    image_width = abs(image_width)
+
+    # Initialize an image to the color black and access the pixels
+    M = Image("RGB", (pixel_count,pixel_count), 'black')
+    pixel = M.pixels()
+
+    # Take the given base color and create a list of evenly spaced
+    # colors between the given base color and white. The number of
+    # colors in the list depends on the variable color_num.
+    if type(base_color) == Color:
+        # Convert Color to RGB list
+        base_color = [int(k*255) for k in base_color]
+    color_list = []
+    for i in range(color_num):
+        sig_check()
+        color_list.append(copy(base_color))
+        for j in range(3):
+            color_list[i][j] += i * (255 - color_list[i][j]) // color_num
+        color_list[i] = tuple(color_list[i])
+
+    z = f.variables()[0]
+    f_fast = fast_callable(f, vars=[z], domain=CDF)
+
+    # Calculate escape condition for each c value
+    d = f.degree(z)
+    cf_list = f.coefficients(sparse=False)
+    a_n = cf_list.pop(-1).abs()
+    C = 0
+    for cf in cf_list:
+        C += cf.abs()
+    L = 1.00000000000001
+    if d >= 2:
+        Rad = max(1, 2*C / a_n, (2*L / a_n**(1/(d-1))))
+    else:
+        Rad = max(1, 2*C / a_n)
+
+    # First, we determine the complex coordinates of the point in the top left
+    # corner of the image. Then, we loop through each pixel in the image and
+    # assign it complex coordinates relative to the image's top left corner.
+    x_corner = x_center - image_width/2
+    y_corner = y_center + image_width/2
+    step_size = image_width*1.0 / pixel_count
+    for col in range(pixel_count):
+        x_coor = x_corner + col*step_size
+        for row in range(pixel_count):
+            sig_check()
+            y_coor = y_corner - row*step_size
+
+            # We compute the orbit of c under the map f
+            # until we either reach the maximum number of iterations
+            # or find a point in the orbit with modulus greater than
+            # some the escape condition (Rad)
+
+            new_z = x_coor + y_coor*I
+            iteration = 0
+            while new_z.abs() <= Rad**2 and iteration < max_iteration:
+                sig_check()
+                new_z = f_fast(new_z)
+                iteration += 1
+
+            # If the point escapes to infinity, assign the point a color
+            # based on how fast it escapes. The more iterations it takes for
+            # a point to escape to infinity, the lighter its color will be.
+            # Otherwise, assume the point is in the Mandelbrot set and leave
+            # it black.
+            if iteration != max_iteration:
+                # Assign each point a level based on its number of iterations.
+                level = iteration // level_sep
+                # Assign the pixel a color based on it's level. If we run out
+                # of colors, assign it the last color in the list.
+                if level < color_num:
+                    pixel[col,row] = color_list[level]
+                else:
+                    pixel[col,row] = color_list[-1]
+    return M

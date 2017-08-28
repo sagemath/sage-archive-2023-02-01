@@ -395,6 +395,8 @@ def external_ray(theta, **kwds):
                 pixel[int(k[0]), int(k[1])] = tuple(ray_color)
     return M
 
+#TODO: Update julia_plot to work for general polynomials.
+
 def julia_plot(c=-1, **kwds):
     r"""
     Plots the Julia set of a given complex `c` value. Users can specify whether

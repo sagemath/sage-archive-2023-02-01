@@ -582,27 +582,29 @@ class GraphicMatroid(Matroid):
             sage: N = Matroid(range(3), graphs.CycleGraph(3))
             sage: N1 = Matroid(range(3), graph=graphs.CycleGraph(3),
             ....: regular=True)
-            sage: M._has_minor(N1, certificate=True)
-            (True, (frozenset({0, 2, 3}), frozenset({4, 5, 8}), {0: 1, 1: 6, 2: 7}))
+            sage: _, cert = M._has_minor(N1, certificate=True)
+            sage: Mp = M.minor(cert[0], cert[1])
+            sage: N.is_isomorphism(Mp, cert[2])
+            True
             sage: M._has_minor(N)
             True
             sage: M._has_minor(N1)
             True
-            sage: cert = M._has_minor(N, certificate=True)
-            sage: [len(cert[1][i]) for i in range(3)]
-            [3, 3, 3]
+            sage: _, cert = M._has_minor(N, certificate=True)
+            sage: Mp = M.minor(cert[0], cert[1])
+            sage: N.is_isomorphism(Mp, cert[2])
+            True
 
         ::
 
             sage: M = matroids.CompleteGraphic(6)
             sage: N = Matroid(range(8), graphs.WheelGraph(5))
-            sage: M.has_minor(N)
+            sage: M._has_minor(N)
             True
-            sage: M.has_minor(N, certificate=True)
-            (True,
-             (frozenset({8}),
-              frozenset({0, 4, 9, 11, 13, 14}),
-              {0: 3, 1: 10, 2: 7, 3: 12, 4: 1, 5: 2, 6: 5, 7: 6}))
+            sage: _, cert = M._has_minor(N, certificate=True)
+            sage: Mp = M.minor(cert[0], cert[1])
+            sage: N.is_isomorphism(Mp, cert[2])
+            True
             sage: N.has_minor(M)
             False
             sage: N.has_minor(M, certificate=True)

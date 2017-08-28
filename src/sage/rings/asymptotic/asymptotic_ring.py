@@ -3601,7 +3601,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        return self.underlying_class()(**values)
+        return self._underlying_class()(**values)
 
     @staticmethod
     def _create_empty_summands_():
@@ -4395,7 +4395,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         return (AsymptoticRingFunctor(self.growth_group,
                                       default_prec=self.default_prec,
                                       category=self.category(),
-                                      cls=self.underlying_class()),
+                                      cls=self._underlying_class()),
                 self.coefficient_ring)
 
 

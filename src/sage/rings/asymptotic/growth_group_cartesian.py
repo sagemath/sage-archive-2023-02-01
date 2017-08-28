@@ -366,7 +366,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         if all(n.parent() is f for n, f in zip(element, factors)):
             parent = self
         else:
-            parent = self.underlying_class()(tuple(n.parent() for n in element),
+            parent = self._underlying_class()(tuple(n.parent() for n in element),
                                             category=self.category())
         return parent(element)
 
@@ -699,7 +699,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             try:
                 return merge_overlapping(
                     Sfactors, Ofactors,
-                    lambda f: (f.underlying_class(), f._var_.var_repr))
+                    lambda f: (f._underlying_class(), f._var_.var_repr))
             except ValueError:
                 pass
 
@@ -721,7 +721,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             try:
                 return merge_overlapping(
                     tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
-                    lambda f: (f.underlying_class(), f._var_.var_repr))
+                    lambda f: (f._underlying_class(), f._var_.var_repr))
             except ValueError:
                 pass
 

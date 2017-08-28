@@ -256,7 +256,7 @@ cdef class CategoryObject(SageObject):
         """
         return self.category().all_super_categories()
 
-    def underlying_class(self):
+    def _underlying_class(self):
         r"""
         Return the underlying class (class without the attached
         categories) of the given object.
@@ -267,11 +267,11 @@ cdef class CategoryObject(SageObject):
 
             sage: type(QQ)
             <class 'sage.rings.rational_field.RationalField_with_category'>
-            sage: QQ.underlying_class()
+            sage: QQ._underlying_class()
             <class 'sage.rings.rational_field.RationalField'>
             sage: type(ZZ)
             <type 'sage.rings.integer_ring.IntegerRing_class'>
-            sage: ZZ.underlying_class()
+            sage: ZZ._underlying_class()
             <type 'sage.rings.integer_ring.IntegerRing_class'>
         """
         cls = type(self)

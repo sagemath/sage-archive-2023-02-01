@@ -1313,7 +1313,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
             sage: T = GenericTermMonoid(G, QQ)
-            sage: T.underlying_class()(G, QQ) is T
+            sage: T._underlying_class()(G, QQ) is T
             True
 
         ::
@@ -1729,7 +1729,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
            (coefficient is None or coefficient.parent() is self.coefficient_ring):
             parent = self
         else:
-            parent = self.underlying_class()(growth.parent(),
+            parent = self._underlying_class()(growth.parent(),
                                             coefficient.parent()
                                             if coefficient is not None
                                             else self.coefficient_ring,
@@ -3886,7 +3886,7 @@ class TermMonoidFactory(UniqueFactory):
             ValueError: Integer Ring has to be an asymptotic growth group
         """
         if isinstance(term_monoid, GenericTermMonoid):
-            term_class = term_monoid.underlying_class()
+            term_class = term_monoid._underlying_class()
         elif term_monoid == 'O':
             term_class = OTermMonoid
         elif term_monoid == 'exact':

@@ -1795,7 +1795,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         if raw_element.parent() is self.base():
             parent = self
         else:
-            parent = self.underlying_class()(raw_element.parent(), self._var_,
+            parent = self._underlying_class()(raw_element.parent(), self._var_,
                                             category=self.category())
         return parent(raw_element=raw_element)
 
@@ -2041,7 +2041,7 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
-        if isinstance(S, self.underlying_class()) and self._var_ == S._var_:
+        if isinstance(S, self._underlying_class()) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
 

@@ -1977,10 +1977,30 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (t0*t1).is_real()
             True
-            sage: t2 = SR.symbol("t1", domain='positive')
+            sage: t2 = SR.symbol("t2", domain='positive')
             sage: (t1**t2).is_real()
             True
             sage: (t0*x).is_real()
+            False
+            sage: (t0^t1).is_real()
+            False
+            sage: (t1^t2).is_real()
+            True
+            sage: gamma(pi).is_real()
+            True
+            sage: cosh(-3).is_real()
+            True
+            sage: cos(exp(-3) + log(2)).is_real()
+            True
+            sage: gamma(t1).is_real()
+            True
+            sage: (x^pi).is_real()
+            False
+            sage: (cos(exp(t0) + log(t1))^8).is_real()
+            True
+            sage: cos(I).is_real()
+            False
+            sage: sin(2 - I).is_real()
             False
             sage: (2^t0).is_real()
             True
@@ -1995,6 +2015,8 @@ cdef class Expression(CommutativeRingElement):
             sage: forget()
             sage: assume(x, 'real')
             sage: x.is_real()
+            True
+            sage: cosh(x).is_real()
             True
             sage: forget()
 
@@ -2039,11 +2061,42 @@ cdef class Expression(CommutativeRingElement):
             sage: assume(x>0)
             sage: x.is_positive()
             True
+            sage: cosh(x).is_positive()
+            True
             sage: f = function('f')(x)
             sage: assume(f>0)
             sage: f.is_positive()
             True
             sage: forget()
+
+        ::
+
+            sage: cosh(x).is_positive()
+            False
+            sage: cosh(real(x)).is_positive()
+            True
+            sage: (cosh(real(x))^2).is_positive()
+            True
+            sage: ((real(x))^2).is_positive()
+            False
+            sage: gamma(x^2).is_positive()
+            False
+            sage: gamma(x^2+1).is_positive()
+            False
+            sage: gamma(cosh(real(x))).is_positive()
+            True
+            sage: (real(x)^2).is_positive()
+            False
+            sage: (real(x)^2+1).is_positive()
+            True
+            sage: (abs(x)^2+1).is_positive()
+            True
+            sage: gamma(real(x)^2+1).is_positive()
+            True
+            sage: cos(I).is_positive()
+            False
+            sage: sin(2 - I).is_positive()
+            False
         """
         return self._gobj.info(info_positive)
 

@@ -197,10 +197,10 @@ class ArithmeticSubgroup(Group):
         EXAMPLES::
 
             sage: Gamma0(11).__hash__()
-            -545929996 # 32-bit
+            118770652 # 32-bit
             3713075136762760156 # 64-bit
             sage: Gamma1(11).__hash__()
-            -830809815 # 32-bit
+            201042552 # 32-bit
             3713075136845032056 # 64-bit
 
         TESTS:

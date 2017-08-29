@@ -195,7 +195,7 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
             [0 6 2]
             [3 2 2]
         """
-        cdef int i
+        cdef Py_ssize_t i
         cdef tuple table
         if self.__matrix is None:
             A = self.parent()
@@ -250,7 +250,7 @@ cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: elt.monomial_coefficients()
             {0: 1, 1: 1}
         """
-        cdef int i
+        cdef Py_ssize_t i
         return {i:self._vector[0,i] for i in range(self._vector.ncols())}
 
     def left_matrix(self):

@@ -778,8 +778,11 @@ cdef class SymbolicRing(CommutativeRing):
 
         Automatic indexing is available as well::
 
-            sage: x = SR.var('x', 4); x
-            (x0, x1, x2, x3)
+            sage: x = SR.var('x', 4)
+            sage: x[0], x[3]
+            (x0, x3)
+            sage: sum(x)
+            x0 + x1 + x2 + x3
 
         TESTS::
 

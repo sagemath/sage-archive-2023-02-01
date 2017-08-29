@@ -20,7 +20,7 @@ Methods index
     :meth:`~GLPKGraphBackend.set_vertex_demand`   | Sets the vertex parameters.
     :meth:`~GLPKGraphBackend.set_vertices_demand` | Sets the parameters of selected vertices.
     :meth:`~GLPKGraphBackend.get_vertex`          | Returns a specific vertex as a ``dict`` Object.
-    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictonaries associated to each vertex.
+    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictionaries associated to each vertex.
     :meth:`~GLPKGraphBackend.vertices`            | Returns a ``list`` of all vertices.
     :meth:`~GLPKGraphBackend.delete_vertex`       | Removes a vertex from the graph.
     :meth:`~GLPKGraphBackend.delete_vertices`     | Removes vertices from the graph.
@@ -496,7 +496,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef dict get_vertices(self, verts):
         """
-        Returns a dictionary of the dictonaries associated to each vertex.
+        Returns a dictionary of the dictionaries associated to each vertex.
 
         INPUT:
 

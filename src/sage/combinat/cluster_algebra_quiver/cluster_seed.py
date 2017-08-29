@@ -4559,7 +4559,7 @@ class ClusterSeed(SageObject):
         B = self.b_matrix()
         aSet = VectorSpace(GF(2), B.ncols()).list()
         genSet = []
-        for i in xrange(len(aSet)):
+        for i in range(len(aSet)):
             if i == size_limit:
                 break
             a = aSet[i]
@@ -4648,7 +4648,7 @@ class ClusterSeed(SageObject):
             
         for a in vd:
             negative = False
-            for m in xrange(len(a)):
+            for m in range(len(a)):
         # If the vector a in vd is non-positive it is not compatible
         # with any vector. 0 vector will pass this check but will be
         # handled later.
@@ -4662,7 +4662,7 @@ class ClusterSeed(SageObject):
                 pass1 = True
         #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
         #Only checks for the mutable verices since all entries in a_i i>num_cols are zero. 
-                for k in xrange(num_cols):
+                for k in range(num_cols):
                     if s[k] > a[0][k]:
                         pass1 = False
                         break

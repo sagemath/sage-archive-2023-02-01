@@ -21,13 +21,13 @@ This is a catalog of crystals that are currently implemented in Sage:
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :class:`Induced <sage.combinat.crystals.induced_structure.InducedCrystal>`
-* :class:`KacModule <sage.combinat.crystals.kac_modules import CrystalOfKacModule>`
+* :class:`KacModule <sage.combinat.crystals.kac_modules.CrystalOfKacModule>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
-* :class:`OddNegativeRoots <sage.combinat.crystals.kac_modules import CrystalOfOddNegativeRoots>`
+* :class:`OddNegativeRoots <sage.combinat.crystals.kac_modules.CrystalOfOddNegativeRoots>`
 * :class:`ProjectedLevelZeroLSPaths
   <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
 * :class:`RiggedConfigurations

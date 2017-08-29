@@ -2164,6 +2164,7 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
         return False
 SpecialHyperellipticQuotientRing_class = SpecialHyperellipticQuotientRing
 
+
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0, check=True):
@@ -2195,25 +2196,25 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f], check=False)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Compares the elements
+        Compare the elements.
 
         EXAMPLES::
 
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-36*x+1)
             sage: x,y = E.monsky_washnitzer_gens()
-            sage: x.__cmp__(x)
-            0
-            sage: x.__cmp__(y)
-            1
+            sage: x == x
+            True
+            sage: x > y
+            True
         """
-        return cmp(self._f, other._f)
+        return richcmp(self._f, other._f, op)
 
     def change_ring(self, R):
         """
-        Return the same element after changing the base ring to R
+        Return the same element after changing the base ring to R.
 
         EXAMPLES::
 

@@ -936,7 +936,7 @@ class TensorField(ModuleElement):
         for assignment.
 
         The components with respect to other frames having the same domain
-        as the provided vector frame are kept. To delete them them, use the
+        as the provided vector frame are kept. To delete them, use the
         method :meth:`set_comp` instead.
 
         INPUT:

@@ -622,6 +622,11 @@ class Function_arccoth(GinacFunction):
             \operatorname{arccoth}\left(x\right)
             sage: acoth(x)._sympy_()
             acoth(x)
+
+        Check if :trac:`23636` is fixed::
+
+            sage: arccoth(float(1.1))
+            1.5222612188617113
         """
         GinacFunction.__init__(self, "arccoth",
                 latex_name=r"\operatorname{arccoth}",

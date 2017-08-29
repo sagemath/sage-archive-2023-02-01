@@ -2315,7 +2315,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             if self._ambient is self:
                 # We need to compute face lattice on our own. To accommodate
                 # non-strictly convex cones we split rays (or rather their
-                # indicies) into those in the linear subspace and others, which
+                # indices) into those in the linear subspace and others, which
                 # we refer to as atoms.
                 S = self.linear_subspace()
                 subspace_rays = []
@@ -3720,7 +3720,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         ``self.sublattice()``. This method returns the quotient
         lattice. The lifts of the quotient generators are
         `\dim(\sigma)-\dim(\rho)` linearly independent primitive
-        lattice lattice points that, together with `N_\rho`, generate
+        lattice points that, together with `N_\rho`, generate
         `N_\sigma`.
 
         OUTPUT:

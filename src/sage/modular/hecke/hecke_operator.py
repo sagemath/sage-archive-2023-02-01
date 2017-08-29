@@ -484,7 +484,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             sage: ModularForms(Gamma0(100)).hecke_operator(4).matrix_form()._repr_()
             'Hecke operator on Modular Forms space of dimension 24 for Congruence Subgroup Gamma0(100) of weight 2 over Rational Field defined by:\n24 x 24 dense matrix over Rational Field'
         """
-        return "Hecke operator on %s defined by:\n%s"%(self.parent().module(), self.__matrix)
+        return "Hecke operator on %s defined by:\n%r" % (self.parent().module(), self.__matrix)
 
     def _latex_(self):
         r"""

@@ -1598,7 +1598,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         Now, consider the precisions needed to represent the endpoints
         (this is the precision that would be produced by
-        ``v.lower().str(no_sci=False, truncate=False)``). Our
+        ``v.lower().str(no_sci=False)``). Our
         result is no more precise than the less precise endpoint, and is
         sufficiently imprecise that the error can be represented with the
         given number of decimal digits. Our result is the most precise
@@ -1685,8 +1685,8 @@ cdef class RealIntervalFieldElement(RingElement):
             style = 'brackets'
 
         if style == 'brackets':
-            t1 = self.lower().str(base=base, no_sci=no_sci, e=e, truncate=False)
-            t2 = self.upper().str(base=base, no_sci=no_sci, e=e, truncate=False)
+            t1 = self.lower().str(base=base, no_sci=no_sci, e=e)
+            t2 = self.upper().str(base=base, no_sci=no_sci, e=e)
 
             return "[%s .. %s]"%(t1, t2)
 
@@ -2211,7 +2211,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField(13)
-            sage: R.pi().lower().str(truncate=False)
+            sage: R.pi().lower().str()
             '3.1411'
 
         ::
@@ -2262,7 +2262,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField(13)
-            sage: R.pi().upper().str(truncate=False)
+            sage: R.pi().upper().str()
             '3.1417'
 
         ::

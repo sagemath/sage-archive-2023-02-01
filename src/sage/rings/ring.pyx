@@ -65,7 +65,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method
 
@@ -929,7 +929,7 @@ cdef class Ring(ParentWithGens):
             +Infinity
         """
         if not self.is_finite():
-            from infinity import Infinity
+            from .infinity import Infinity
             return Infinity
         raise NotImplementedError
 
@@ -1553,7 +1553,7 @@ cdef class CommutativeRing(Ring):
             sage: f(1+u)
             1 + u^25
         """
-        from morphism import FrobeniusEndomorphism_generic
+        from .morphism import FrobeniusEndomorphism_generic
         return FrobeniusEndomorphism_generic(self, n)
 
 

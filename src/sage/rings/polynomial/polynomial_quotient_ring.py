@@ -343,7 +343,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __reduce__(self):
         """
-        TEST:
+        TESTS:
 
         Note the polynomial quotient rings are not unique parent structures::
 
@@ -1362,13 +1362,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
             sage: u,o = K.S_units([])[0]; u, o
-            (1/2*a + 1/2, 6)
+            (-1/2*a + 1/2, 6)
             sage: u^6
             1
             sage: u^3
             -1
             sage: u^2
-            1/2*a - 1/2
+            -1/2*a - 1/2
 
         ::
 
@@ -1377,19 +1377,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.S_units([])
-            [(1/2*a + 1/2, 6),
+            [(-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
             sage: L.S_units([K.ideal(1/2*a - 3/2)])
             [((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a, +Infinity),
-             (1/2*a + 1/2, 6),
+             (-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
             sage: L.S_units([K.ideal(2)])
             [((1/2*a - 1/2)*b^2 + (a + 1)*b + 3, +Infinity),
              ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a + 1/2, +Infinity),
              ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity),
-             (1/2*a + 1/2, 6),
+             (-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
 
@@ -1449,13 +1449,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
             sage: u = K.units()[0][0]; u
-            1/2*a + 1/2
+            -1/2*a + 1/2
             sage: u^6
             1
             sage: u^3
             -1
             sage: u^2
-            1/2*a - 1/2
+            -1/2*a - 1/2
             sage: K.<a> = QQ['x'].quotient(x^2 + 5)
             sage: K.units(())
             [(-1, 2)]
@@ -1467,7 +1467,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.units()
-            [(1/2*a + 1/2, 6),
+            [(-1/2*a + 1/2, 6),
              ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
              (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
             sage: L.<b> = K.extension(y^3 + 5)

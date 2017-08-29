@@ -466,7 +466,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             irreducible complex reflection group is real if and only
             if `2` is a degree of ``self`` with multiplicity one.
             Hence, in general we just need to compare the number of
-            occurences of `2` as degree of ``self`` and the number of
+            occurrences of `2` as degree of ``self`` and the number of
             irreducible components.
 
             EXAMPLES::

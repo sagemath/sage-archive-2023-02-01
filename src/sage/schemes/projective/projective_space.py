@@ -709,6 +709,56 @@ class ProjectiveSpace_ring(AmbientSpace):
         """
         return SchemeHomset_points_projective_ring(*args, **kwds)
 
+    def point(self, v, check=True):
+        """
+        Create a point on this projective space.
+
+        INPUT:
+
+        - ``v`` -- anything that defines a point
+
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
+
+        OUTPUT: A point of this projective space.
+
+        EXAMPLES::
+
+            sage: P2 = ProjectiveSpace(QQ, 2)
+            sage: P2.point([4,5])
+            (4 : 5 : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 1)
+            sage: P.point(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 2)
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ, 2)
+            sage: P.point([infinity])
+            Traceback (most recent call last):
+             ...
+            ValueError: [+Infinity] not well defined in dimension > 1
+        """
+        from sage.rings.infinity import infinity
+        if v is infinity  or\
+          (isinstance(v, (list,tuple)) and len(v) == 1 and v[0] is infinity):
+            if self.dimension_relative() > 1:
+                raise ValueError("%s not well defined in dimension > 1"%v)
+            v = [1, 0]
+
+        return self.point_homset()(v, check=check)
+
     def _point(self, *args, **kwds):
         """
         Construct a point.

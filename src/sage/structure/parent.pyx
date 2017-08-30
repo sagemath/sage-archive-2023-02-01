@@ -955,7 +955,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
             sage: MS.category()
             Category of infinite finite dimensional algebras with basis
-             over (quotient fields and metric spaces)
+             over (number fields and quotient fields and metric spaces)
             sage: MS in Rings()
             True
 

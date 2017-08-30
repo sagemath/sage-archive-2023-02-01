@@ -45,6 +45,7 @@ Functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off

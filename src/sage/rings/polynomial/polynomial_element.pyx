@@ -4223,13 +4223,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
-    def splitting_field(self, names, map=False, **kwds):
+    def splitting_field(self, names=None, map=False, **kwds):
         """
         Compute the absolute splitting field of a given polynomial.
 
         INPUT:
 
-        - ``names`` -- a variable name for the splitting field.
+        - ``names`` -- (default: ``None``)  a variable name for the splitting field.
 
         - ``map`` -- (default: ``False``) also return an embedding of
           ``self`` into the resulting field.
@@ -4363,7 +4363,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: t.splitting_field('b')
             Finite Field in b of size 401^52
 
+            sage: R.<x> = QQ[]
+            sage: f = x^2 - 2
+            sage: f.splitting_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: You must specify the name of the generator.
+
         """
+        if names is None:
+            raise TypeError("You must specify the name of the generator.")
         name = normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField

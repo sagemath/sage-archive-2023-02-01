@@ -66,6 +66,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subdivide_edges` | Subdivide k times edges from an iterable container.
     :meth:`~GenericGraph.delete_edge` | Delete the edge from u to v
     :meth:`~GenericGraph.delete_edges` | Delete edges from an iterable container.
+    :meth:`~GenericGraph.contract_edge` | Contract an edge from `u` to `v`.
+    :meth:`~GenericGraph.contract_edges` | Contract edges from an iterable container.
     :meth:`~GenericGraph.delete_multiedge` | Delete all edges from u and v.
     :meth:`~GenericGraph.set_edge_label` | Set the edge label of a given edge.
     :meth:`~GenericGraph.has_edge` | Return True if (u, v) is an edge, False otherwise.
@@ -10665,6 +10667,224 @@ class GenericGraph(GenericGraph_pyx):
         """
         for e in edges:
             self.delete_edge(e)
+
+    def contract_edge(self, u, v=None, label=None):
+        """
+        Contract an edge from `u` to `v`.
+
+        This method returns silently if the edge does not exist.
+
+        INPUT: The following forms are all accepted:
+
+        - G.contract_edge( 1, 2 )
+        - G.contract_edge( (1, 2) )
+        - G.contract_edge( [ (1, 2) ] )
+        - G.contract_edge( 1, 2, 'label' )
+        - G.contract_edge( (1, 2, 'label') )
+        - G.contract_edge( [ (1, 2, 'label') ] )
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.contract_edge((0,1)); G.edges()
+            [(0, 2, None), (0, 3, None), (2, 3, None)]
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edge((0,1)); G.edges()
+            [(0, 2, None), (0, 2, None), (0, 3, None), (0, 3, None), (2, 3, None)]
+            sage: G.contract_edge((0,2)); G.edges()
+            [(0, 0, None), (0, 3, None), (0, 3, None), (0, 3, None)]
+
+        ::
+
+            sage: G = graphs.CompleteGraph(4).to_directed()
+            sage: G.allow_loops(True)
+            sage: G.contract_edge(0,1); G.edges()
+            [(0, 0, None),
+             (0, 2, None),
+             (0, 3, None),
+             (2, 0, None),
+             (2, 3, None),
+             (3, 0, None),
+             (3, 2, None)]
+
+        TESTS:
+
+        Make sure loops don't get lost::
+
+            sage: edgelist = [(0,0,'a'), (0,1,'b'), (1,1,'c')]
+            sage: G = Graph(edgelist, loops=True, multiedges=True)
+            sage: G.contract_edge(0,1,'b'); G.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+            sage: D = DiGraph(edgelist, loops=True, multiedges=True)
+            sage: D.contract_edge(0,1,'b'); D.edges()
+            [(0, 0, 'a'), (0, 0, 'c')]
+
+        With labeled edges::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
+            ....:
+            sage: G.contract_edge(0,1); G.edges()
+            [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
+            sage: G.contract_edge(0,2,4); G.edges()
+            [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
+        """
+        # standard code to allow 3 arguments or a single tuple:
+        if label is None:
+            if v is None:
+                try:
+                    u, v, label = u
+                except Exception:
+                    u, v = u
+                    label = None
+        # unlike delete_edge(), we must be careful about contracting non-edges
+        if not self.has_edge(u, v, label):
+            return
+        self.delete_edge(u ,v ,label)
+        # if the edge was a loop, stop
+        # this could potentially leave isolated vertices
+        if u == v:
+            return
+
+        if (self.allows_loops() and (self.allows_multiple_edges() or
+            not self.has_edge(u, u))):
+            # add loops
+            for (x, y, l) in self.edges_incident(v):
+                if set([x, y]) == set([u, v]):
+                    self.add_edge(u, u, l)
+
+        self.merge_vertices([u,v])
+
+    def contract_edges(self, edges):
+        """
+        Contract edges from an iterable container.
+
+        If `e` is an edge that is not contracted but the vertices of `e` are
+        merged by contraction of other edges, then `e` will become a loop.
+
+        INPUT:
+
+        - ``edges`` -- a list containing 2-tuples or 3-tuples that represent
+          edges
+
+        EXAMPLES::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edges([(0,1),(1,2),(0,2)]); G.edges()
+            [(0, 3, None), (0, 3, None), (0, 3, None)]
+            sage: G.contract_edges([(1,3),(2,3)]); G.edges()
+            [(0, 3, None), (0, 3, None), (0, 3, None)]
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: G.contract_edges([(0,1),(1,2),(0,2),(1,3),(2,3)]); G.edges()
+            [(0, 0, None)]
+
+        ::
+
+            sage: D = graphs.CompleteGraph(4).to_directed()
+            sage: D.allow_loops(True); D.allow_multiple_edges(True)
+            sage: D.contract_edges([(0,1),(1,0),(0,2)]); D.edges()
+            [(0, 0, None),
+             (0, 0, None),
+             (0, 0, None),
+             (0, 3, None),
+             (0, 3, None),
+             (0, 3, None),
+             (3, 0, None),
+             (3, 0, None),
+             (3, 0, None)]
+
+        TESTS:
+
+        With non-edges in the input::
+
+            sage: G = graphs.BullGraph(); G.add_edge(3,4); G.edges()
+            [(0, 1, None),
+             (0, 2, None),
+             (1, 2, None),
+             (1, 3, None),
+             (2, 4, None),
+             (3, 4, None)]
+            sage: G.contract_edges([(1,3),(1,4)]); G.edges()
+            [(0, 1, None), (0, 2, None), (1, 2, None), (1, 4, None), (2, 4, None)]
+
+        With loops in a digraph::
+
+            sage: D = DiGraph([(0,0), (0,1), (1,1)], loops=True, multiedges=True)
+            sage: D.contract_edges([(1,0)]); D.edges()
+            [(0, 0, None), (0, 1, None), (1, 1, None)]
+            sage: D.contract_edges([(0,1)]); D.edges()
+            [(0, 0, None), (0, 0, None)]
+
+        ::
+
+            sage: edgelist = [(0,1,0), (0,1,1), (0,1,2)]
+            sage: G = Graph(edgelist, loops=True, multiedges=True)
+            sage: G.contract_edges([(0,1), (0,1,2)]); G.edges()
+            Traceback (most recent call last):
+            ...
+            ValueError: edge tuples in input should have the same length
+
+        ::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.allow_loops(True); G.allow_multiple_edges(True)
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], (e[0] + e[1]))
+            sage: H = G.copy()
+            sage: G.contract_edges([(0,1), (0,2)]); G.edges()
+            [(0, 0, 3), (0, 3, 3), (0, 3, 4), (0, 3, 5)]
+            sage: H.contract_edges([(0,1,1), (0,2,3)]); H.edges()
+            [(0, 2, 2), (0, 2, 3), (0, 3, 3), (0, 3, 4), (2, 3, 5)]
+        """
+        if len(set([len(e) for e in edges])) > 1:
+            raise ValueError("edge tuples in input should have the same length")
+        edge_list = []
+        vertices = set()
+        for e in edges:
+            # try to get the vertices and label of e as distinct variables
+            try:
+                u, v, label = e
+            except Exception:
+                u, v = e
+                label = None
+            if self.has_edge(u, v, label):
+                edge_list.append((u, v, label))
+                vertices.add(u)
+                vertices.add(v)
+        if not edge_list:
+            return
+
+        # implementation of union_find using DisjointSet
+        from sage.sets.disjoint_set import DisjointSet
+        DS = DisjointSet(self.vertices())
+
+        for (u, v, label) in edge_list:
+            DS.union(u, v)
+
+        self.delete_edges(edge_list)
+        edges_incident = []
+        vertices = [v for v in vertices if v!= DS.find(v)]
+        if self.is_directed():
+            for v in vertices:
+                out_edges = self.edge_boundary([v])
+                edges_incident.extend(out_edges)
+                edges_incident.extend(self.incoming_edges(v))
+                self.delete_vertex(v)
+        else:
+            for v in vertices:
+                edges_incident.extend(self.edges_incident(v))
+                self.delete_vertex(v)
+
+        for (u, v, label) in edges_incident:
+            root_u = DS.find(u)
+            root_v = DS.find(v)
+            if root_v != root_u or self.allows_loops():
+                self.add_edge(root_u, root_v, label)
 
     def delete_multiedge(self, u, v):
         """

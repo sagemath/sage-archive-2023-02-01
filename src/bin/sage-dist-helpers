@@ -1,0 +1,87 @@
+# Shell functions for making spkg-install scripts a little easier to write,
+# eliminating duplication.  All Sage helper functions begin with sdh_ (for
+# Sage-distribution helper).  Consult the below documentation for the list of
+# available helper functions:
+#
+# - sdh_check_vars [VARIABLE ...]
+#
+#    Check that one or more variables are defined and non-empty, and exit with
+#    an error if any are undefined or empty. Variable names should be given
+#    without the '$' to prevent unwanted expansion.
+#
+# - sdh_guard
+#
+#    Wrapper for `sdh_check_vars` that checks some common variables without
+#    which many/most packages won't build correctly (SAGE_ROOT, SAGE_LOCAL,
+#    SAGE_SHARE). This is important to prevent installation to unintended
+#    locations.
+#
+# - sdh_configure [...]
+#
+#    Runs `./configure --prefix="$SAGE_LOCAL"`.  Additional arguments to
+#    `./configure` may be given as arguments.
+#
+# - sdh_make [...]
+#
+#    Runs `$MAKE` with the default target.  Additional arguments to `make` may
+#    be given as arguments.
+#
+# - sdh_make_install [...]
+#
+#    Runs `$SAGE_SUDO $MAKE install`.  Additional arguments to `make` may be
+#    given as arguments.
+
+set -o allexport
+
+sdh_check_vars() {
+    local varname
+    while [ -n "$1" ]; do
+        if [ -z "$(eval "echo "\${${1}+isset}"")" ]; then
+            echo >&2 "${1} undefined ... exiting"
+            echo >&2 "Maybe run 'sage --sh'?"
+            exit 1
+        fi
+        shift
+    done
+}
+
+
+sdh_guard() {
+    sdh_check_vars SAGE_ROOT SAGE_LOCAL SAGE_SHARE
+}
+
+
+sdh_configure() {
+    local ret
+    ./configure --prefix="$SAGE_LOCAL" "$@"
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        echo >&2 "Error configuring $PKG_NAME"
+        exit $ret
+    fi
+}
+
+
+sdh_make() {
+    local ret
+    ${MAKE:-make} "$@"
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        echo >&2 "Error building $PKG_NAME"
+        exit $ret
+    fi
+}
+
+
+sdh_make_install() {
+    local ret
+    $SAGE_SUDO ${MAKE:-make} install "$@"
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        echo >&2 "Error installing $PKG_NAME"
+        exit $ret
+    fi
+}
+
+
+set +o allexport

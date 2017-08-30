@@ -241,7 +241,7 @@ AUTHORS:
 # stuff. Talk to me (Volker) if you want to work on that.
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from .gap_includes cimport *
 

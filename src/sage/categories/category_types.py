@@ -84,9 +84,9 @@ class Elements(Category):
             sage: Elements(ZZ).super_categories()
             [Category of objects]
 
-        TODO:
+        .. TODO::
 
-        check that this is what we want.
+            Check that this is what we want.
         """
         return [Objects()]
 

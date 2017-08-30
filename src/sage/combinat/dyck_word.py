@@ -377,9 +377,9 @@ class DyckWord(CombinatorialElement):
             sage: D.set_latex_options({"tikz_scale":2})
             sage: D.set_latex_options({"valleys":True, "color":"blue"})
 
-        TODO::
+        .. TODO::
 
-        - should probably be merged into DyckWord.options
+            This should probably be merged into DyckWord.options.
         """
         for opt in D:
             self._latex_options[opt] = D[opt]
@@ -420,9 +420,9 @@ class DyckWord(CombinatorialElement):
              'tikz_scale': 1,
              'valleys': False}
 
-        TODO::
+        .. TODO::
 
-        - should probably be merged into DyckWord.options
+            This should probably be merged into DyckWord.options.
         """
         d = self._latex_options.copy()
         if "tikz_scale" not in d:

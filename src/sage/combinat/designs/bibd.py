@@ -102,7 +102,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         * :func:`v_4_1_BIBD`
         * :func:`v_5_1_BIBD`
 
-    TODO:
+    .. TODO::
 
         * Implement other constructions from the Handbook of Combinatorial
           Designs.

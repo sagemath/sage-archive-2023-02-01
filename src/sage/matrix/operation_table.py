@@ -349,10 +349,10 @@ class OperationTable(SageObject):
         ...
         TypeError: elements () and () of Cyclic group of order 4 as a permutation group are incompatible with operation: <built-in function xor>
 
-    TODO:
+    .. TODO::
 
-    Provide color and grayscale graphical representations of tables.
-    See commented-out stubs in source code.
+        Provide color and grayscale graphical representations of tables.
+        See commented-out stubs in source code.
 
     AUTHOR:
 

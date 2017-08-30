@@ -1236,9 +1236,9 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         - Xavier Caruso (2013-03-20)
 
-        TODO:
+        .. TODO::
 
-        Precision is not optimal, and can be improved.
+            Precision is not optimal, and can be improved.
         """
         coeffs = self.list()
         a = coeffs[:deg+1]

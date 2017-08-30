@@ -220,11 +220,11 @@ def external_ray(theta, **kwds):
         sage: external_ray(5/7, x_center=0, image=M) # not tested
         500x500px 24-bit RGB image
 
-    TODO:
+    .. TODO::
 
-    The ``copy()`` function for bitmap images needs to be implemented in Sage.
+        The ``copy()`` function for bitmap images needs to be implemented
+        in Sage.
     """
-
     x_0 = kwds.get("x_center", -1)
     y_0 = kwds.get("y_center", 0)
     plot_width = kwds.get("image_width", 4)

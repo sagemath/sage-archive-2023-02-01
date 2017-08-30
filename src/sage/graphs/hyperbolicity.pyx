@@ -107,11 +107,11 @@ Hyperbolicity
       twice over all pairs of vertices, in the "inner" loop, we cut several
       pairs by exploiting properties of the underlying graph.
 
-TODO:
+.. TODO::
 
-- Add exact methods for the hyperbolicity of chordal graphs
+    - Add exact methods for the hyperbolicity of chordal graphs
 
-- Add method for partitioning the graph with clique separators
+    - Add method for partitioning the graph with clique separators
 
 **This module contains the following functions**
 

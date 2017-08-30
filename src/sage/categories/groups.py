@@ -412,12 +412,12 @@ class Groups(CategoryWithAxiom):
                 b| b c a
                 c| c a b
 
-            TODO:
+            .. TODO::
 
-            Arrange an ordering of elements into cosets of a normal
-            subgroup close to size `\sqrt{n}`.  Then the quotient
-            group structure is often apparent in the table.  See
-            comments on :trac:`7555`.
+                Arrange an ordering of elements into cosets of a normal
+                subgroup close to size `\sqrt{n}`.  Then the quotient
+                group structure is often apparent in the table.  See
+                comments on :trac:`7555`.
 
             AUTHOR:
 

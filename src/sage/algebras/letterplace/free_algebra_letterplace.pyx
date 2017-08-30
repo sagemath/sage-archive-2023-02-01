@@ -84,21 +84,21 @@ TESTS::
     sage: loads(dumps(F)) is F
     True
 
-TODO:
+.. TODO::
 
-The computation of Groebner bases only works for global term
-orderings, and all elements must be weighted homogeneous with respect
-to positive integral degree weights. It is ongoing work in Singular to
-lift these restrictions.
+    The computation of Groebner bases only works for global term
+    orderings, and all elements must be weighted homogeneous with respect
+    to positive integral degree weights. It is ongoing work in Singular to
+    lift these restrictions.
 
-We support coercion from the letterplace wrapper to the corresponding
-generic implementation of a free algebra
-(:class:`~sage.algebras.free_algebra.FreeAlgebra_generic`), but there
-is no coercion in the opposite direction, since the generic
-implementation also comprises non-homogeneous elements.
+    We support coercion from the letterplace wrapper to the corresponding
+    generic implementation of a free algebra
+    (:class:`~sage.algebras.free_algebra.FreeAlgebra_generic`), but there
+    is no coercion in the opposite direction, since the generic
+    implementation also comprises non-homogeneous elements.
 
-We also do not support coercion from a subalgebra, or between free
-algebras with different term orderings, yet.
+    We also do not support coercion from a subalgebra, or between free
+    algebras with different term orderings, yet.
 
 """
 

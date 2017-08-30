@@ -2135,7 +2135,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
 
     def _spanning_tree_verrill(self, root=0, on_right=True):
         r"""
-        Returns a spanning tree with generators `S2` and `L`.
+        Return a spanning tree with generators `S2` and `L`.
 
         The algorithm follows the one of Helena Verrill.
 
@@ -2179,9 +2179,10 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: gens
             [(2, 0, 'l'), (1, 1, 'l'), (2, 3, 's')]
 
-        TODO:
+        .. TODO::
 
-        Take care of the shape of the spanning tree as in Helena Verrill's program.
+            Take care of the shape of the spanning tree as in Helena
+            Verrill's program.
         """
         from sage.misc.prandom import randint
 
@@ -2255,7 +2256,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             else:
                 break
 
-        return tree,reps,word_reps,gens
+        return tree, reps, word_reps,gens
 
     def todd_coxeter_s2_s3(self):
         r"""

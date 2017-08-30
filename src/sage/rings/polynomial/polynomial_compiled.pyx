@@ -30,14 +30,14 @@ cdef class CompiledPolynomialFunction:
 
     .. TODO::
 
-        [ ] Recursive calling
-        [ ] Faster casting of coefficients / argument
-        [ ] Multivariate polynomials
-        [ ] Cython implementation of Pippenger's Algorithm that doesn't
-            depend heavily upon dicts.
-        [ ] Computation of parameter sequence suggested by Pippenger
-        [ ] Univariate exponentiation can use Brauer's method to improve
-            extremely sparse polynomials of very high degree
+        - Recursive calling
+        - Faster casting of coefficients / argument
+        - Multivariate polynomials
+        - Cython implementation of Pippenger's Algorithm that doesn't
+          depend heavily upon dicts.
+        - Computation of parameter sequence suggested by Pippenger
+        - Univariate exponentiation can use Brauer's method to improve
+          extremely sparse polynomials of very high degree
     """
 
     #@rename_keyword(deprecation=trac_number, method="algorithm")

@@ -71,7 +71,7 @@ class OperationTable(SageObject):
 
     EXAMPLES:
 
-    In it's most basic use, the table needs a structure and an operation::
+    In its most basic use, the table needs a structure and an operation::
 
         sage: from sage.matrix.operation_table import OperationTable
         sage: G=SymmetricGroup(3)

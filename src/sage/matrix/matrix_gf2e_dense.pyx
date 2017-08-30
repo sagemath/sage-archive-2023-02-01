@@ -56,7 +56,7 @@ TESTS::
 
 .. TODO::
 
-    - wrap ``mzd_slice_t``
+    Wrap ``mzd_slice_t``.
 
 REFERENCES:
 

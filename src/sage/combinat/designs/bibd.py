@@ -104,8 +104,8 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
 
     .. TODO::
 
-        * Implement other constructions from the Handbook of Combinatorial
-          Designs.
+        Implement other constructions from the Handbook of Combinatorial
+        Designs.
 
     EXAMPLES::
 

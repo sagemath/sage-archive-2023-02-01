@@ -1103,9 +1103,9 @@ class HypergeometricMotive(object):
             17*T^2 + 1
             sage: H.euler_factor(t,19)
             19*T^2 + 1
-            sage: H.euler_factor(t,23)  # not tested
+            sage: H.euler_factor(t,23)
             23*T^2 + 8*T + 1
-            sage: H.euler_factor(t,29)  # not tested
+            sage: H.euler_factor(t,29)
             29*T^2 + 2*T + 1
 
         REFERENCE:

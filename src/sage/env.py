@@ -71,6 +71,7 @@ def _add_variable_or_fallback(key, fallback, force=False):
     global SAGE_ENV
     import six
     try:
+        import os
         value = os.environ[key]
     except KeyError:
         value = fallback

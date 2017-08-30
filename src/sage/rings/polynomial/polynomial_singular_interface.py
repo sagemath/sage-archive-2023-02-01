@@ -317,7 +317,7 @@ class PolynomialRing_singular_repr:
                 singular.eval('setring '+R._name);
 
                 from sage.misc.stopgap import stopgap
-                stopgap("Denominators of fraction field elements are sometimes dropped without warning.", 23644)
+                stopgap("Denominators of fraction field elements are sometimes dropped without warning.", 17696)
 
                 self.__singular = singular("std(ideal(%s))"%(self.base_ring().__minpoly),type='qring')
 

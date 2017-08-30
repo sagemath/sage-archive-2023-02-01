@@ -2464,10 +2464,7 @@ class FiniteWord_class(Word_class):
         #If the length of the lps of self[:-1] is not known:
         if l is None:
             l = self.lps_lengths(f)[-1]
-            if l == 0:
-                return self[:0]
-            else:
-                return self[-l:]
+            return self[len(self)-l:]
 
         #If l == w[:-1].length(), there is no shortcut
         if self.length() == l + 1:

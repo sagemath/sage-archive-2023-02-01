@@ -2463,10 +2463,11 @@ class FiniteWord_class(Word_class):
         """
         #If the length of the lps of self[:-1] is not known:
         if l is None:
-            for i in range(self.length()+1):
-                fact = self[i:]
-                if fact.is_palindrome(f=f):
-                    return fact
+            l = self.lps_lengths(f)[-1]
+            if l == 0:
+                return self[:0]
+            else:
+                return self[-l:]
 
         #If l == w[:-1].length(), there is no shortcut
         if self.length() == l + 1:
@@ -3318,10 +3319,9 @@ class FiniteWord_class(Word_class):
         -   [2] A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-        for i in range(self.length()):
-            if self[:i].is_palindrome(f=f) and self[i:].is_palindrome(f=f):
-                return True
-        return False
+
+        square = self*self
+        return square.lps_lengths(f)[-1] >= self.length()
 
     def length_border(self):
         r"""

@@ -120,7 +120,7 @@ cdef class GLPKGraphBackend(object):
      * - ``dimacs``
 
        - Read data from a plain ASCII text file in DIMACS format.
-         A discription of the DIMACS format can be found at
+         A description of the DIMACS format can be found at
          http://dimacs.rutgers.edu/Challenges/.
 
      * - ``mincost``
@@ -1065,7 +1065,7 @@ cdef class GLPKGraphBackend(object):
         Writes the graph to a text file in DIMACS format.
 
         Writes the data to plain ASCII text file in DIMACS format.
-        A discription of the DIMACS format can be found at
+        A description of the DIMACS format can be found at
         http://dimacs.rutgers.edu/Challenges/.
 
         INPUT:

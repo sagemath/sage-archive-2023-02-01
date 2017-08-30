@@ -4271,7 +4271,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2.9999999995500000000978021372e-10
 
         For small values, this is more accurate than computing
-        ``log(1 + self)`` directly, as it avoid cancelation issues::
+        ``log(1 + self)`` directly, as it avoid cancellation issues::
 
             sage: r = 3e-10
             sage: r.log1p()

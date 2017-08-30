@@ -2365,7 +2365,7 @@ class FreeModuleTensor(ModuleElement):
 
         Instead of the explicit call to the method :meth:`contract`, the index
         notation can be used to specify the contraction, via Einstein
-        conventation (summation on repeated indices); it suffices to pass the
+        convention (summation on repeated indices); it suffices to pass the
         indices as a string inside square brackets::
 
             sage: s1 = a['_i']*b['^i'] ; s1

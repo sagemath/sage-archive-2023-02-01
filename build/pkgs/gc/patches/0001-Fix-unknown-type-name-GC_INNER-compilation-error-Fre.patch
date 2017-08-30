@@ -1,0 +1,53 @@
+From b847e36a7f26c9b8bb709a2a44943dbbddb376e9 Mon Sep 17 00:00:00 2001
+From: Ivan Maidanski <ivmai@mail.ru>
+Date: Mon, 8 Aug 2016 21:49:20 +0300
+Subject: [PATCH] Fix 'unknown type name GC_INNER' compilation error (FreeBSD)
+ (fix commit f13a9559)
+
+See issue #132.  The reason of compilation failure is GC_INNER macro
+used before its definition.  The solution is to move
+GC_FreeBSDGetDataStart prototype from gcconfig.h to gc_priv.h.
+
+* include/private/gc_priv.h [DATASTART_USES_BSDGETDATASTART]
+(GC_FreeBSDGetDataStart): Declare.
+* include/private/gc_priv.h [DATASTART_USES_BSDGETDATASTART]
+(DATASTART_IS_FUNC): Define macro.
+* include/private/gcconfig.h [DATASTART_USES_BSDGETDATASTART]
+(GC_FreeBSDGetDataStart, DATASTART_IS_FUNC): Remove.
+---
+ include/private/gc_priv.h  | 2 ++
+ include/private/gcconfig.h | 5 -----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/include/private/gc_priv.h b/include/private/gc_priv.h
+index 3d68b54a..b1efa4cf 100644
+--- a/include/private/gc_priv.h
++++ b/include/private/gc_priv.h
+@@ -2500,6 +2500,8 @@ GC_INNER ptr_t GC_store_debug_info(ptr_t p, word sz, const char *str,
+ # if !defined(PCR)
+ #   define NEED_FIND_LIMIT
+ # endif
++  GC_INNER ptr_t GC_FreeBSDGetDataStart(size_t, ptr_t);
++# define DATASTART_IS_FUNC
+ #endif /* DATASTART_USES_BSDGETDATASTART */
+ 
+ #if (defined(NETBSD) || defined(OPENBSD)) && defined(__ELF__) \
+diff --git a/include/private/gcconfig.h b/include/private/gcconfig.h
+index 59216ed8..80920e5a 100644
+--- a/include/private/gcconfig.h
++++ b/include/private/gcconfig.h
+@@ -2745,11 +2745,6 @@
+ # define SUNOS5SIGS
+ #endif
+ 
+-#ifdef DATASTART_USES_BSDGETDATASTART
+-  GC_INNER ptr_t GC_FreeBSDGetDataStart(size_t, ptr_t);
+-# define DATASTART_IS_FUNC
+-#endif
+-
+ #if !defined(GC_EXPLICIT_SIGNALS_UNBLOCK) && defined(SUNOS5SIGS) \
+     && !defined(GC_NO_PTHREAD_SIGMASK)
+ # define GC_EXPLICIT_SIGNALS_UNBLOCK
+-- 
+2.13.0
+

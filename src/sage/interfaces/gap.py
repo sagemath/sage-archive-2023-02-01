@@ -188,6 +188,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.element import ModuleElement
 import re
 import os
+import io
 import pexpect
 import time
 import platform
@@ -1329,8 +1330,9 @@ class Gap(Gap_generic):
         else:
             tmp_to_use = self._local_tmpfile()
         self.eval('SetGAPDocTextTheme("none")')
-        self.eval(r'\$SAGE.tempfile := "%s";'%tmp_to_use)
-        line = Expect.eval(self, "? %s"%s)
+        gap_encoding = str(self('GAPInfo.TermEncoding;'))
+        self.eval(r'\$SAGE.tempfile := "%s";' % tmp_to_use)
+        line = Expect.eval(self, "? %s" % s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
         if match is None:
@@ -1339,7 +1341,7 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = open(self._local_tmpfile(),"r")
+            F = io.open(self._local_tmpfile(), "r", encoding=gap_encoding)
             help = F.read()
             if pager:
                 from IPython.core.page import page

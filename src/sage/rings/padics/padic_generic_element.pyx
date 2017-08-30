@@ -1266,6 +1266,61 @@ cdef class pAdicGenericElement(LocalGenericElement):
             #won't work for general extensions...
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
+    def is_squarefree(self):
+        r"""
+        Return whether this element is squarefree, i.e., whether there exists
+        no non-unit `g` such that `g^2` divides this element.
+
+        EXAMPLES:
+
+        The zero element is never squarefree::
+
+            sage: K = Qp(2)
+            sage: K.zero().is_squarefree()
+            False
+
+        In `p`-adic rings, only elements of valuation at most 1 are
+        squarefree::
+
+            sage: R = Zp(2)
+            sage: R(1).is_squarefree()
+            True
+            sage: R(2).is_squarefree()
+            True
+            sage: R(4).is_squarefree()
+            False
+
+        This works only if the precision is known sufficiently well::
+
+            sage: R(0,1).is_squarefree()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: element not known to sufficient precision to decide squarefreeness
+            sage: R(0,2).is_squarefree()
+            False
+            sage: R(1,1).is_squarefree()
+            True
+
+        For fields we are not so strict about the precision and treat inexact
+        zeros as the zero element::
+
+            K(0,0).is_squarefree()
+            False
+
+        """
+        if self.parent().is_field():
+            if self.is_zero():
+                return False
+            return True
+        else:
+            v = self.valuation()
+            if v >= 2:
+                return False
+            elif self.is_zero():
+                raise PrecisionError("element not known to sufficient precision to decide squarefreeness")
+            else:
+                return True
+
     #def log_artin_hasse(self):
     #    raise NotImplementedError
 

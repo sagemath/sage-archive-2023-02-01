@@ -3437,7 +3437,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
            vertex labels
 
         -  ``vlabels`` - (default:None) if specified, must be a list of labels
-           for each vertex, default labels are vertex indicies
+           for each vertex, default labels are vertex indices
 
         -  ``show_pindices`` - (default:same as show_points)
            whether to show indices of other points

@@ -67,7 +67,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         [ 7/3  2/3    6    1]
         [ 4/3    1  4/3  5/3]
 
-    TEST:
+    TESTS:
 
     Check that :trac:`9345` is fixed::
 
@@ -154,7 +154,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         [  7   2   2   3]
         [  4   3   4 5/7]
 
-    TEST:
+    TESTS:
 
     Check that :trac:`9345` is fixed::
 

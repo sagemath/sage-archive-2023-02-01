@@ -73,7 +73,7 @@ see the documentation for :class:`Parent`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport (PyObject, PyTypeObject,
         PyObject_CallObject, PyObject_RichCompare, Py_TYPE)

@@ -526,7 +526,7 @@ class IntervalExchangeTransformation(SageObject):
 
         label -- a label corresponding to an interval
 
-        TEST:
+        TESTS:
 
         ::
 

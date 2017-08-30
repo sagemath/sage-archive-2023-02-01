@@ -133,6 +133,10 @@ cdef inline bint creduce(mpz_t out, mpz_t a, long prec, PowComputer_ prime_pow) 
 
     - returns True if the reduction is zero; False otherwise.
     """
+    # The following could fail if the value returned by
+    # prime_pow.pow_mpz_t_tmp(prec) is zero. We could add a sig_on()/sig_off()
+    # to keep sage from crashing. This comes at a performance penalty, however.
+    # A correct implementation of prime_pow should never return zero.
     mpz_mod(out, a, prime_pow.pow_mpz_t_tmp(prec))
     return mpz_sgn(out) == 0
 
@@ -306,7 +310,7 @@ cdef inline int cinvert(mpz_t out, mpz_t a, long prec, PowComputer_ prime_pow) e
     success = mpz_invert(out, a, prime_pow.pow_mpz_t_tmp(prec))
     if not success:
         raise ZeroDivisionError
-    
+
 cdef inline int cmul(mpz_t out, mpz_t a, mpz_t b, long prec, PowComputer_ prime_pow) except -1:
     """
     Multiplication.
@@ -380,7 +384,7 @@ cdef inline bint cisone(mpz_t out, PowComputer_ prime_pow) except -1:
     - returns True if `a = 1`, and False otherwise.
     """
     return mpz_cmp_ui(out, 1) == 0
-    
+
 cdef inline bint ciszero(mpz_t out, PowComputer_ prime_pow) except -1:
     """
     Returns whether this element is equal to 0.
@@ -395,7 +399,7 @@ cdef inline bint ciszero(mpz_t out, PowComputer_ prime_pow) except -1:
     - returns True if `a = 0`, and False otherwise.
     """
     return mpz_cmp_ui(out, 0) == 0
-    
+
 cdef inline int cpow(mpz_t out, mpz_t a, mpz_t n, long prec, PowComputer_ prime_pow) except -1:
     """
     Exponentiation.

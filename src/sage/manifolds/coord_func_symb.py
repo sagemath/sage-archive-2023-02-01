@@ -1727,6 +1727,22 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
             elt = self._chart.manifold().base_field().one()
         return self.element_class(self, elt)
 
+    def characteristic(self):
+        """
+        Return the characteristic of the function ring.
+
+        This is the characteristic of the base ring.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: FR = X.function_ring()
+            sage: FR.characteristic()
+            0
+        """
+        return self._chart.manifold().base_field().characteristic()
+    
     def from_base_ring(self, r):
         """
         Return the canonical embedding of ``r`` into ``self``.

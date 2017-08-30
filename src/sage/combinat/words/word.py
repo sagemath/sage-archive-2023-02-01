@@ -60,7 +60,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
        For iterators: Infinity if you know the iterator will not
        terminate (default); ``"unknown"`` if you do not know whether the
        iterator terminates; ``"finite"`` if you know that the iterator
-       terminates, but do know know the length.
+       terminates, but do not know the length.
 
     -  ``datatype`` -- (default: ``None``) ``None``, ``"list"``, ``"str"``,
        ``"tuple"``, ``"iter"``, ``"callable"``. If ``None``, then the function

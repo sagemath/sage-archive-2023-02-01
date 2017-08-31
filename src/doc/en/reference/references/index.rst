@@ -295,6 +295,11 @@ REFERENCES:
 .. [Bir1975] \J. Birman. *Braids, Links, and Mapping Class Groups*,
              Princeton University Press, 1975
 
+.. [Bj1980] Anders Björner,
+            *Shellable and Cohen-Macaulay partially ordered sets*,
+            Trans. Amer. Math. Soc. 260 (1980), 159-183,
+            :doi:`10.1090/S0002-9947-1980-0570784-2`
+
 .. [BJKLMPSSS2016] \C. Beierle, J. Jean, S. Kölbl, G. Leander, A. Moradi,
                    \T. Peyrin, Y. Sasaki, P. Sasdrich, and S. M. Sim,
                    *The SKINNY family of block ciphers and its low-latency
@@ -307,20 +312,12 @@ REFERENCES:
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
-<<<<<<< HEAD
 .. [BKLPPRSV2007]
             \A. Bogdanov, L. Knudsen, G. Leander, C. Paar, A. Poschmann,
             M. Robshaw, Y. Seurin, C. Vikkelsoe. *PRESENT: An Ultra-Lightweight
             Block Cipher*; in Proceedings of CHES 2007; LNCS 7427; pp. 450-466;
             Springer Verlag 2007; available at
             http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
-
-=======
-.. [Bj1980] Anders Björner,
-            *Shellable and Cohen-Macaulay partially ordered sets*,
-            Trans. Amer. Math. Soc. 260 (1980), 159-183,
-            :doi:`10.1090/S0002-9947-1980-0570784-2`
->>>>>>> develop
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -625,16 +622,12 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
-<<<<<<< HEAD
 .. [DCSW2008] \C. De Canniere, H. Sato, D. Watanabe,
               *Hash Function Luffa: Specification*; submitted to
               NIST SHA-3 Competition, 2008. Available at
               http://www.sdl.hitachi.co.jp/crypto/luffa/
 
-.. [Dec1998] W. Decker and T. de Jong. Groebner Bases and Invariant
-=======
 .. [Dec1998] \W. Decker and T. de Jong. Groebner Bases and Invariant
->>>>>>> develop
              Theory in Groebner Bases and Applications. London
              Mathematical Society Lecture Note Series No. 251. (1998)
              61--89.
@@ -923,15 +916,11 @@ REFERENCES:
              Riemann surfaces and Dessins d'enfant*, (2011)
              London Mathematical Society, Student Text 79.
 
-<<<<<<< HEAD
 .. [GGNS2013] \B. Gerard, V. Grosso, M. Naya-Plasencia, and F.-X. Standaert,
               *Block ciphers that are easier to mask: How far can we go?*; in
               CHES, (2013), pp. 383-399.
 
-.. [GGOR2003] V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
-=======
 .. [GGOR2003] \V. Ginzberg, N. Guay, E. Opdam, R. Rouquier.
->>>>>>> develop
               *On the category `\mathcal{O}` for rational Cherednik algebras*.
               Invent. Math. **154** (2003). :arxiv:`math/0212036`.
 
@@ -1970,15 +1959,11 @@ REFERENCES:
 .. [Stu1993] \B. Sturmfels, Algorithms in invariant theory, Springer-Verlag,
              1993.
 
-<<<<<<< HEAD
 .. [STW2013] \J. Schejbal, E. Tews, and J. Wälde,
              *Reverse engineering of chiasmus from gstool*; in
              30c3, (2013).
 
-.. [STW2016] C. Stump, H. Thomas, N. Williams. *Cataland II*, in
-=======
 .. [STW2016] \C. Stump, H. Thomas, N. Williams. *Cataland II*, in
->>>>>>> develop
              preparation, 2016.
 
 .. [sudoku:escargot]  "Al Escargot", due to Arto Inkala,

@@ -111,7 +111,7 @@ This module provides the following SBoxes:
 Additionally this modules offers a dictionary `sboxes` of all implemented above S-boxes
 for the purpose of easy iteration over all available S-boxes.
 
-EXAMPLE:
+EXAMPLES:
 
 We can print the S-Boxes with differential uniformity 2 with the following code::
 

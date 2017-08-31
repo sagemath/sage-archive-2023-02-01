@@ -55,7 +55,7 @@ with root discriminant `\le 10`.
     [False, True, True, True, False, False, True, True, False, False, False, False, False, True, True, False, False, True, False, False, False]
 
 Eight out of 21 such fields are Galois (with Galois group `C_4`
-or `C_2 \times C_2`); the others have have Galois closure of degree 8
+or `C_2 \times C_2`); the others have Galois closure of degree 8
 (with Galois group `D_8`).
 
 Finally, we compute the cubic extensions of `\QQ(\zeta_7)^+` with

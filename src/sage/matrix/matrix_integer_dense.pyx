@@ -65,7 +65,7 @@ from libc.string cimport strcpy, strlen
 
 from sage.ext.stdsage cimport PY_NEW
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
-from cysignals.memory cimport sig_malloc, sig_free, check_malloc
+from cysignals.memory cimport sig_malloc, sig_free, check_allocarray
 
 from sage.libs.gmp.mpz cimport *
 
@@ -140,22 +140,27 @@ fplll_fp_map = {None: None,
                 'xd': 'dpe',
                 'rr': 'mpfr'}
 
-cdef inline mpz_t * fmpz_mat_to_mpz_array(fmpz_mat_t m):
-    cdef mpz_t * entries = <mpz_t *> check_malloc(sizeof(mpz_t) * fmpz_mat_nrows(m) * fmpz_mat_ncols(m))
+
+cdef inline mpz_t * fmpz_mat_to_mpz_array(fmpz_mat_t m) except? NULL:
+    cdef mpz_t * entries = <mpz_t *>check_allocarray(fmpz_mat_nrows(m), sizeof(mpz_t) * fmpz_mat_ncols(m))
     cdef size_t i, j
     cdef size_t k = 0
+    sig_on()
     for i in range(fmpz_mat_nrows(m)):
         for j in range(fmpz_mat_ncols(m)):
             mpz_init(entries[k])
             fmpz_get_mpz(entries[k], fmpz_mat_entry(m, i, j))
             k += 1
+    sig_off()
     return entries
+
 
 cdef inline void mpz_array_clear(mpz_t * a, size_t length):
     cdef size_t i
     for i in range(length):
         mpz_clear(a[i])
     sig_free(a)
+
 
 cdef class Matrix_integer_dense(Matrix_dense):
     r"""
@@ -3271,7 +3276,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: B.rational_reconstruction(389) == A/3
             True
 
-        TEST:
+        TESTS:
 
         Check that :trac:`9345` is fixed::
 

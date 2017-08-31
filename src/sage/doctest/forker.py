@@ -35,6 +35,7 @@ AUTHORS:
 
 from __future__ import print_function
 from __future__ import absolute_import
+import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
@@ -45,7 +46,11 @@ from .sources import DictAsObject
 from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
-from sage.repl.user_globals import set_globals
+from sage.repl.user_globals import set_globals, get_globals
+
+
+# All doctests run as if the following future imports are present
+MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
 
 
 def init_sage():
@@ -128,6 +133,7 @@ def init_sage():
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
+
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
@@ -514,7 +520,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
-            got = self._fakeout.getvalue()  # the actual output
+            got = self._fakeout.getvalue()
+            try:
+                got = got.decode('utf-8')
+            except UnicodeDecodeError:
+                got = got.decode('latin1')
+            # the actual output
+
             outcome = FAILURE   # guilty until proved innocent or insane
 
             # If the example executed without raising any exceptions,
@@ -624,6 +636,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
         self.test = test
         if compileflags is None:
             compileflags = doctest._extract_future_flags(test.globs)
+        compileflags |= MANDATORY_COMPILE_FLAGS
         # We use this slightly modified version of Pdb because it
         # interacts better with the doctesting framework (like allowing
         # doctests for sys.settrace()). Since we already have output
@@ -768,7 +781,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example))
+        s = pre_hash(get_source(example)).encode('utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:
@@ -1421,7 +1434,8 @@ class DocTestDispatcher(SageObject):
         """
         for source in self.controller.sources:
             heading = self.controller.reporter.report_head(source)
-            self.controller.log(heading)
+            if not self.controller.options.only_errors:
+                self.controller.log(heading)
 
             with tempfile.TemporaryFile() as outtmpfile:
                 result = DocTestTask(source)(self.controller.options,
@@ -1642,7 +1656,8 @@ class DocTestDispatcher(SageObject):
                             # Start a new worker.
                             w = DocTestWorker(source, options=opt, funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
-                            w.messages = heading + "\n"
+                            if not self.controller.options.only_errors:
+                                w.messages = heading + "\n"
                             # Store length of heading to detect if the
                             # worker has something interesting to report.
                             w.heading_len = len(w.messages)

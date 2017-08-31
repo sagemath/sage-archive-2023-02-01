@@ -21,6 +21,10 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
     cdef _d_coeff
     cdef long _hash
 
+    cpdef _add_(self, other)
+    cpdef _sub_(self, other)
+    cpdef _neg_(self)
+
     cpdef dict t_dict(self)
     cpdef c_coefficient(self)
     cpdef d_coefficient(self)

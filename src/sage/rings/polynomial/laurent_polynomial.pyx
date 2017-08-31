@@ -20,10 +20,54 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
-cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
+cdef class LaurentPolynomial(CommutativeAlgebraElement):
     """
-    A generic Laurent polynomial.
+    Base class for Laurent polynomials.
     """
+    cpdef _add_(self, other):
+        """
+        Abstract addition method
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial._add_(x, x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    cpdef _mul_(self, other):
+        """
+        Abstract multiplication method
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial._mul_(x, x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    cpdef _floordiv_(self, other):
+        """
+        Abstract floor division method
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial._floordiv_(x, x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
 
     def _integer_(self, ZZ):
         r"""
@@ -128,10 +172,39 @@ cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
             sage: a.change_ring(GF(3))
             -x^2 + x^-1
         """
-        return self.parent().change_ring(R)(self)
+        return self._parent.change_ring(R)(self)
+
+    cpdef long number_of_terms(self) except -1:
+        """
+        Abstract method for number of terms
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial.number_of_terms(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def hamming_weight(self):
+        """
+        Return the number of non-zero coefficients of self. Also called
+        weight, hamming weight or sparsity.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: f = x^3 - 1
+            sage: f.number_of_terms()
+            2
+        """
+        return self.number_of_terms()
 
 
-cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
+cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     """
     A univariate Laurent polynomial in the form of `t^n \cdot f`
     where `f` is a polynomial in `t`.
@@ -518,7 +591,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
         return self.__u[i - self.__n]
 
-    cpdef long number_of_terms(self):
+    cpdef long number_of_terms(self) except -1:
         """
         Return the number of non-zero coefficients of self. Also called weight,
         hamming weight or sparsity.
@@ -541,8 +614,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             101
         """
         return self.__u.number_of_terms()
-
-    hamming_weight = number_of_terms
 
     def __iter__(self):
         """
@@ -1509,7 +1580,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return self[0]
 
-cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
+
+cdef class LaurentPolynomial_mpair(LaurentPolynomial):
     """
     Multivariate Laurent polynomials.
     """
@@ -1817,7 +1889,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         return self._prod.latex(self.parent().latex_variable_names(),
                                 atomic_coefficients=atomic, sortkey=key)
 
-    cpdef long number_of_terms(self):
+    cpdef long number_of_terms(self) except -1:
         """
         Return the number of non-zero coefficients of self. Also called weight,
         hamming weight or sparsity.
@@ -1840,8 +1912,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             101
         """
         return self._poly.number_of_terms()
-
-    hamming_weight = number_of_terms
 
     def __invert__(LaurentPolynomial_mpair self):
         """

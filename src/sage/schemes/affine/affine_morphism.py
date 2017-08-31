@@ -675,7 +675,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
         from sage.schemes.affine.affine_space import is_AffineSpace
-        if is_AffineSpace(self.domain())==False:
+        if not is_AffineSpace(self.domain()):
             raise NotImplementedError("not implemented for subschemes")
         if self.domain().dimension_relative()>1:
             raise TypeError("does not make sense in dimension >1")
@@ -1224,7 +1224,7 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
         V = []
         E = []
         from sage.schemes.affine.affine_space import is_AffineSpace
-        if is_AffineSpace(self.domain()) == True:
+        if is_AffineSpace(self.domain()):
             for P in self.domain():
                 V.append(str(P))
                 Q = self(P)

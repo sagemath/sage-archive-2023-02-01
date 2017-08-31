@@ -830,7 +830,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             _density = 1.0
 
         if _density == 1:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
@@ -847,7 +847,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
                         mzed_write_elem(self._entries, i, j, tmp)
                 sig_off()
         else:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):

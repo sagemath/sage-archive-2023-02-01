@@ -970,7 +970,7 @@ class QuadraticForm(SageObject):
                     return False
 
         ## Test that all entries coerce to R
-        if not ((A.base_ring() == R) or (ring_coerce_test == True)):
+        if not ((A.base_ring() == R) or ring_coerce_test):
             try:
                 for i in range(n):
                     for j in range(i, n):

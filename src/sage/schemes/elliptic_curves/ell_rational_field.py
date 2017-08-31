@@ -681,7 +681,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         the elliptic curve database.
 
         If there is no elliptic curve isomorphic to ``self`` in the
-        database, a ``RuntimeError`` is raised.
+        database, a ``LookupError`` is raised.
 
         EXAMPLES::
 
@@ -700,20 +700,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.database_attributes()
             Traceback (most recent call last):
             ...
-            RuntimeError: no database entry for Elliptic Curve defined by y^2 + 8*x*y + 21*y = x^3 + 13*x^2 + 34*x + 55 over Rational Field
-
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 + 8*x*y + 21*y = x^3 + 13*x^2 + 34*x + 55 over Rational Field
         """
         from sage.databases.cremona import CremonaDatabase
         ainvs = self.minimal_model().ainvs()
         try:
             return CremonaDatabase().data_from_coefficients(ainvs)
         except RuntimeError:
-            raise RuntimeError("no database entry for %s" % self)
+            raise LookupError("Cremona database does not contain entry for " + repr(self))
 
     def database_curve(self):
         """
         Return the curve in the elliptic curve database isomorphic to this
-        curve, if possible. Otherwise raise a ``RuntimeError`` exception.
+        curve, if possible. Otherwise raise a ``LookupError`` exception.
 
         Since :trac:`11474`, this returns exactly the same curve as
         :meth:`minimal_model`; the only difference is the additional
@@ -1598,7 +1597,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
           - ``True`` -- the computation is first run with small and then
             successively larger `\Delta` values up to max_Delta. If at any
-            point the computed bound is 0 (or 1 when when root_number is -1
+            point the computed bound is 0 (or 1 when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
           - ``False`` -- the computation is run a single time with `\Delta`
@@ -2074,7 +2073,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 self.__rank[True] = self.database_attributes()['rank']
                 return self.__rank[True]
-            except (KeyError, RuntimeError):
+            except LookupError:
                 # curve not in database, or rank not known
                 pass
         if not only_use_mwrank:
@@ -2289,7 +2288,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 data = self.database_attributes()
                 iso = E.isomorphism_to(self)
                 return [iso(E(P)) for P in data['gens']], True
-            except (KeyError, RuntimeError):
+            except LookupError:
                 # curve not in database, or generators not known
                 pass
 
@@ -3946,7 +3945,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def cremona_label(self, space=False):
         """
         Return the Cremona label associated to (the minimal model) of this
-        curve, if it is known. If not, raise a ``RuntimeError`` exception.
+        curve, if it is known. If not, raise a ``LookupError`` exception.
 
         EXAMPLES::
 
@@ -3972,15 +3971,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.cremona_label()
             Traceback (most recent call last):
             ...
-            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + y = x^3 - 79*x + 342 over Rational Field.
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 + y = x^3 - 79*x + 342 over Rational Field
         """
         try:
             label = self.__cremona_label
         except AttributeError:
-            try:
-                label = self.database_attributes()['cremona_label']
-            except RuntimeError:
-                raise RuntimeError("Cremona label not known for %s."%self)
+            label = self.database_attributes()['cremona_label']
             self.__cremona_label = label
         if not space:
             return label.replace(' ', '')

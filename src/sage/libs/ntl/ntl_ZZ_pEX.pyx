@@ -20,8 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import division
+from __future__ import division, absolute_import, print_function
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -138,7 +137,7 @@ cdef class ntl_ZZ_pEX(object):
 
     def __reduce__(self):
         """
-        TEST:
+        TESTS:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)
@@ -152,7 +151,7 @@ cdef class ntl_ZZ_pEX(object):
         """
         Returns a string representation of self.
 
-        TEST:
+        TESTS:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)
@@ -168,7 +167,7 @@ cdef class ntl_ZZ_pEX(object):
         """
         Return a copy of self.
 
-        TEST:
+        TESTS:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 7))
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)

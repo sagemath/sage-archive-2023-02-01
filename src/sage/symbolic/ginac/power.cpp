@@ -452,7 +452,7 @@ ex power::coeff(const ex & s, const ex & n) const
  *  @param level cut-off in recursive evaluation */
 ex power::eval(int level) const
 {
-	if ((level==1) && ((flags & status_flags::evaluated) != 0u))
+	if (level == 1 and is_evaluated())
 		return *this;
 	else if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));

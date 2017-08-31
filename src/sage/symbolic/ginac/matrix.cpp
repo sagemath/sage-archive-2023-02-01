@@ -206,7 +206,7 @@ ex & matrix::let_op(size_t i)
 ex matrix::eval(int level) const
 {
 	// check if we have to do anything at all
-	if ((level==1)&&((flags & status_flags::evaluated) != 0u))
+	if (level == 1 and is_evaluated())
 		return *this;
 	
 	// emergency break

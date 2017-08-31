@@ -339,7 +339,7 @@ long relational::calchash() const
 	v ^= lhash;
 
 	// store calculated hash value only if object is already evaluated
-	if ((flags & status_flags::evaluated) != 0u) {
+	if (is_evaluated()) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

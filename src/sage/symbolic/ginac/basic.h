@@ -287,6 +287,8 @@ public:
 	ex subs_one_level(const exmap & m, unsigned options) const;
 	ex diff(const symbol & s, unsigned nth = 1) const;
 	bool is_equal(const basic & other) const;
+        bool is_evaluated() const
+            { return (flags & status_flags::evaluated) != 0u; }
 	const basic & hold() const;
 
 	long gethash() const

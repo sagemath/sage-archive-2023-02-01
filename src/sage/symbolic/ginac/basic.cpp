@@ -647,7 +647,7 @@ ex basic::diff(const symbol & s, unsigned nth) const
 		return ex(*this);
 	
 	// evaluate unevaluated *this before differentiating
-	if ((flags & status_flags::evaluated) == 0u)
+	if (not is_evaluated())
 		return ex(*this).diff(s, nth);
 	
 	ex ndiff = this->derivative(s);
@@ -759,7 +759,7 @@ long basic::calchash() const
 	}
 
 	// store calculated hash value only if object is already evaluated
-	if ((flags & status_flags::evaluated) != 0u) {
+	if (is_evaluated()) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

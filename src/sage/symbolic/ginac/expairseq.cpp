@@ -326,7 +326,7 @@ ex expairseq::map(map_function &f) const
 /** Perform coefficient-wise automatic term rewriting rules in this class. */
 ex expairseq::eval(int level) const
 {
-	if ((level==1) && ((flags &status_flags::evaluated) != 0u))
+	if ((level==1) and is_evaluated())
 		return *this;
 	
 	std::unique_ptr<epvector> vp = evalchildren(level);
@@ -643,7 +643,7 @@ long expairseq::calchash() const
 	v ^= overall_coeff.gethash();
 
 	// store calculated hash value only if object is already evaluated
-	if ((flags &status_flags::evaluated) != 0u) {
+	if (is_evaluated()) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

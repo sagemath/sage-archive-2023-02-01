@@ -375,7 +375,7 @@ ex add::coeff(const ex & s, const ex & n) const
  *  @param level cut-off in recursive evaluation */
 ex add::eval(int level) const
 {
-        if ((level == 1) && (flags & status_flags::evaluated)) {
+        if ((level == 1) and is_evaluated()) {
                 GINAC_ASSERT(seq.size()>0);
                 GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_zero());
                 return *this;

@@ -660,7 +660,7 @@ ex mul::eval(int level) const
 	}
 #endif // def DO_GINAC_ASSERT
 	
-	if ((level == 1) and (flags & status_flags::evaluated) != 0u) {
+	if (level == 1 and is_evaluated()) {
 		GINAC_ASSERT(seq.size()>0);
 		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_integer_one());
 		return *this;

@@ -199,7 +199,7 @@ long symmetry::calchash() const
 		}
 	}
 
-	if ((flags & status_flags::evaluated) != 0u) {
+	if (is_evaluated()) {
 		setflag(status_flags::hash_calculated);
 		hashvalue = v;
 	}

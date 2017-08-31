@@ -693,7 +693,7 @@ void ex::share(const ex & other) const
  *  @see ex::ex(const basic &) */
 ptr<basic> ex::construct_from_basic(const basic & other)
 {
-	if ((other.flags & status_flags::evaluated) == 0u) {
+	if (not other.is_evaluated()) {
 
 		// The object is not yet evaluated, so call eval() to evaluate
 		// the top level. This will return either

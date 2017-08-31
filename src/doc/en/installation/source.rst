@@ -964,7 +964,7 @@ Here are some of the more commonly used variables affecting the build process:
 
   .. note::
 
-     As of this writing (April 2013, Sage 5.8), the test suites for the
+     As of this writing (September 2017, Sage 8.1), the test suites for the
      Python 2 and 3 spkgs fail on most platforms.
      So when this variable is empty or unset, Sage uses a default of
      ``!python2,!python3``.
@@ -1433,4 +1433,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in August 2017 (Sage 8.1).**
+**This page was last updated in September 2017 (Sage 8.1).**

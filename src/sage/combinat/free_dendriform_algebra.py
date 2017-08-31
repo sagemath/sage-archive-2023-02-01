@@ -140,10 +140,10 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
             sage: A = algebras.FreeDendriform(QQ, '@'); A
             Free Dendriform algebra on one generator ['@'] over Rational Field
-            sage: TestSuite(A).run()
+            sage: TestSuite(A).run()  # long time (3s)
 
             sage: F = algebras.FreeDendriform(QQ, 'xy')
-            sage: TestSuite(F).run() # long time
+            sage: TestSuite(F).run() # long time (3s)
         """
         if names.cardinality() == 1:
             Trees = BinaryTrees()
@@ -309,25 +309,6 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         x = o * o
         y = u + x
         return [u, o, x, y]
-
-    @cached_method
-    def one(self):
-        r"""
-        Return the element `1` of ``self``.
-
-        This is the unit for the associative dendriform product `*`.
-
-        EXAMPLES::
-
-            sage: A = algebras.FreeDendriform(QQ, '@')
-            sage: A.one()
-            B[.]
-            sage: A = algebras.FreeDendriform(QQ, 'xy')
-            sage: A.one()
-            B[.]
-        """
-        Trees = self.basis().keys()
-        return self._monomial(Trees(None))
 
     def one_basis(self):
         """

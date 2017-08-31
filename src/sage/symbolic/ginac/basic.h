@@ -288,7 +288,7 @@ public:
 	ex diff(const symbol & s, unsigned nth = 1) const;
 	bool is_equal(const basic & other) const;
         bool is_evaluated() const
-            { return (flags & status_flags::evaluated) != 0u; }
+            { return global_hold or ((flags & status_flags::evaluated) != 0u); }
 	const basic & hold() const;
 
 	long gethash() const

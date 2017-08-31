@@ -8,12 +8,16 @@
 #ifndef ASSUME_H
 #define	ASSUME_H
 
+#include <string>
+
 namespace GiNaC {
 
 void assume(ex rel);
 void assume(ex x, char* flag_desc);
 void forget(ex rel);
 void forget(ex x, char* flag_desc);
+
+void set_state(const std::string&, bool);
 
 } // namespace GiNaC
 

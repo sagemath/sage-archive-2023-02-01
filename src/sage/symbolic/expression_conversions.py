@@ -674,7 +674,7 @@ class SympyConverter(Converter):
         sage: sympy.sympify(x) # indirect doctest
         x
 
-    TESTS:
+    TESTS::
 
     Make sure we can convert I (:trac:`6424`)::
 
@@ -764,35 +764,19 @@ class SympyConverter(Converter):
         if f_sympy:
             return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
-            # MARCO MDIFS
             # create generic function with nargs equal to initial function
             return  sympy.Function(f)(*tuple(g))
             #raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 
 
-        # import sympy
-
-        # f = operator._sympy_init_()
-        # G = ex.operands()
-
-        # f_sympy = getattr(sympy, f, sympy.Function)
-        # # print(f,g,f_sympy,sympy.sympify(g, evaluate=False),*sympy.sympify(g, evaluate=False))
-        # try :
-        #     if f_sympy == sympy.Function :
-        #         # Case f generic fuction
-        #         # print (type(f_sympy(f)))
-        #         # print (type(f_sympy(f)(*sympy.sympify(g, evaluate=False))))
-        #         return f_sympy(f)(*sympy.sympify(g, evaluate=False))
-        #     else :
-        #         return f_sympy(*sympy.sympify(g, evaluate=False))
-        # except:
-        #     raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
-
-
     def derivative(self, ex, operator):
         """
-        The input to this method is a symbolic expression which
-        corresponds to a relation.
+        Convert the derivative in sympy
+        INPUT:
+
+        - ``ex`` -- a symbolic expression
+
+        - ``operator`` -- operator
 
         TESTS::
             sage: import sympy
@@ -801,8 +785,6 @@ class SympyConverter(Converter):
             (x, y)
 
             sage: f_sage = function('f_sage')(x,y)
-
-            convertion ::
             sage: f_sympy = f_sage._sympy_()
 
             sage: df_sage = f_sage.diff(x,2,y,1); df_sage
@@ -814,16 +796,10 @@ class SympyConverter(Converter):
 
 
         """
-        # print(operator,operator.__dict__,type(operator._f),type(operator))
-        # print (ex,ex.arguments())
-        # print (operator,operator.function(),type(operator.function()),operator.function()==operator._f)
-
         import sympy
-
 
         # retrive derivated function
         f = operator.function()
-
         f_sympy = self.composition(ex,f)
 
 
@@ -839,10 +815,6 @@ class SympyConverter(Converter):
             if gg > 0 :
                 sympy_arg.append(_args[aa])
                 sympy_arg.append(gg)
-
-
-        # print(f_sympy,order,_args,sympy_arg,type(ex),ex)
-
 
         return f_sympy.diff(*sympy_arg)
 

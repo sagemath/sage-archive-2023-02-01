@@ -4743,7 +4743,7 @@ class Graph(GenericGraph):
 
         TESTS:
 
-        :trac:`23683`::
+        Ticket :trac:`23658` is fixed::
 
             sage: g = graphs.PetersenGraph()
             sage: g.fractional_chromatic_index(solver='GLPK')

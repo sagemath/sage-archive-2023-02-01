@@ -758,6 +758,8 @@ class CrystalOfKacModule(UniqueRepresentation, Parent):
                 sage: mg = K.module_generator()
                 sage: mg.weight()
                 (2, 1, 0, 0, 5, 1, 0)
+                sage: mg.weight().is_dominant()
+                True
                 sage: mg.f(0).weight()
                 (2, 1, 0, -1, 6, 1, 0)
                 sage: b = mg.f_string([2,1,-3,-2,-1,1,1,0,-2,-1,2,1,1,1,0,2,-3,-2,-1])

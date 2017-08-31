@@ -140,10 +140,10 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
             sage: A = algebras.FreeDendriform(QQ, '@'); A
             Free Dendriform algebra on one generator ['@'] over Rational Field
-            sage: TestSuite(A).run(skip='_test_antipode')
+            sage: TestSuite(A).run()
 
             sage: F = algebras.FreeDendriform(QQ, 'xy')
-            sage: TestSuite(F).run(skip='_test_antipode') # long time
+            sage: TestSuite(F).run() # long time
         """
         if names.cardinality() == 1:
             Trees = BinaryTrees()
@@ -154,7 +154,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         # Here one would need LabelledBinaryTrees(names)
         # so that one can restrict the labels to some fixed set
         self._alphabet = names
-        cat = HopfAlgebras(R).WithBasis().Graded()
+        cat = HopfAlgebras(R).WithBasis().Graded().Connected()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
                                          sorting_key=key,
@@ -328,6 +328,22 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         """
         Trees = self.basis().keys()
         return self._monomial(Trees(None))
+
+    def one_basis(self):
+        """
+        Return the index of the unit.
+
+        EXAMPLES::
+
+            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A.one_basis()
+            .
+            sage: A = algebras.FreeDendriform(QQ, 'xy')
+            sage: A.one_basis()
+            .
+        """
+        Trees = self.basis().keys()
+        return Trees(None)
 
     def product_on_basis(self, x, y):
         r"""
@@ -566,10 +582,10 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: A = algebras.FreeDendriform(QQ, '@')
             sage: x = A.gen(0)
             sage: ascii_art(A.coproduct(A.one()))  # indirect doctest
-            B # B
+            1 # 1
 
             sage: ascii_art(A.coproduct(x))  # indirect doctest
-            B # B  + B  # B
+            1 # B  + B  # 1
                  o    o
 
             sage: A = algebras.FreeDendriform(QQ, 'xyz')

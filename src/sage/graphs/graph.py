@@ -4695,8 +4695,7 @@ class Graph(GenericGraph):
 
             \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
 
-        For more information, see the `Wikipedia article on fractional coloring
-        <http://en.wikipedia.org/wiki/Fractional_coloring>`_.
+        For more information, see :wikipedia:`Fractional_coloring`.
 
         ALGORITHM:
 
@@ -4729,15 +4728,6 @@ class Graph(GenericGraph):
 
         - ``verbose`` -- level of verbosity required from the LP solver
 
-        .. NOTE::
-
-            This implementation can be improved by computing matchings through a
-            LP formulation, and not using the Python implementation of Edmonds'
-            algorithm (which requires to copy the graph, etc). It may be more
-            efficient to write the matching problem as a LP, as we would then
-            just have to update the weights on the edges between each call to
-            ``solve`` (and so avoiding the generation of all the constraints).
-
         EXAMPLES:
 
         The fractional chromatic index of a `C_5` is `5/2`::
@@ -4750,11 +4740,40 @@ class Graph(GenericGraph):
 
             sage: g.fractional_chromatic_index(solver="PPL")
             5/2
+
+        TESTS:
+
+        :trac:`23683`::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.fractional_chromatic_index(solver='GLPK')
+            3.0
+            sage: g.fractional_chromatic_index(solver='PPL')
+            3
         """
         self._scream_if_not_simple()
+
+        if not self.order():
+            return 0
+        if not self.size():
+            return 1
+
         from sage.numerical.mip import MixedIntegerLinearProgram
 
-        g = copy(self)
+        #
+        # Initialize LP for maximum weigth matching
+        M = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
+
+        # One variable per edge
+        b = M.new_variable(binary=True, nonnegative=True)
+        B = lambda x,y : b[x,y] if x<y else b[y,x]
+
+        # We want to select at most one incident edge per vertex (matching)
+        for u in self.vertex_iterator():
+            M.add_constraint( M.sum( B(x,y) for x,y in self.edges_incident(u, labels=0) ) <= 1 )
+
+        #
+        # Initialize LP for fractional chromatic number
         p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
@@ -4762,36 +4781,29 @@ class Graph(GenericGraph):
         R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
-        p.set_objective( p.sum( R(u,v) for u,v in g.edges(labels = False)))
+        p.set_objective( p.sum( R(u,v) for u,v in self.edges(labels = False)))
 
         # Each edge being by itself a matching, its weight can not be more than
         # 1
-
-        for u,v in g.edges(labels = False):
+        for u,v in self.edges(labels = False):
             p.add_constraint( R(u,v), max = 1)
 
         obj = p.solve(log = verbose)
 
         while True:
 
-            # Updating the value on the edges of g
-            for u,v in g.edges(labels = False):
-                g.set_edge_label(u,v,p.get_values(R(u,v)))
-
-            # Computing a matching of maximum weight...
-
-            matching = g.matching(use_edge_labels=True)
+            # Update the weights of edges for the matching problem
+            M.set_objective( M.sum( p.get_values(R(u,v)) * B(u,v) for u,v in self.edge_iterator(labels=0) ) )
 
             # If the maximum matching has weight at most 1, we are done !
-            if sum((x[2] for x in matching)) <= 1:
+            if M.solve(log = verbose) <= 1:
                 break
 
             # Otherwise, we add a new constraint
-
+            matching = [(u,v) for u,v in self.edge_iterator(labels=0) if M.get_values(B(u,v)) == 1]
+            p.add_constraint( p.sum( R(u,v) for u,v in matching), max = 1)
             if verbose_constraints:
                 print("Adding a constraint on matching : {}".format(matching))
-
-            p.add_constraint( p.sum( R(u,v) for u,v,_ in matching), max = 1)
 
             # And solve again
             obj = p.solve(log = verbose)

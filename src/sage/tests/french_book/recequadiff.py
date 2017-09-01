@@ -375,7 +375,7 @@ Sage example in ./recequadiff.tex, line 1157::
 
 Sage example in ./recequadiff.tex, line 1197::
 
-  sage: from sympy import Function, Symbol
+  sage: from sympy import Function, Symbol, Integer
   sage: u = Function('u'); n = Symbol('n', integer=True)
 
 Sage example in ./recequadiff.tex, line 1208::
@@ -396,4 +396,3 @@ Sage example in ./recequadiff.tex, line 1265::
   2**n*C0 + 2**(n + 2)*(C0 + n/2)
 
 """
-

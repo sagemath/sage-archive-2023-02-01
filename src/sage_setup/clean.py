@@ -71,12 +71,13 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     course. We check that when the doctest is being run, that is,
     after installation, there are no stale files::
 
-        sage: from sage.env import SAGE_SRC, SAGE_LIB, SAGE_CYTHONIZED
+        sage: from sage.env import SAGE_SRC, SAGE_LIB
+        sage: cythonized_dir = os.path.join(SAGE_SRC, "build", "cythonized")
         sage: from sage_setup.find import find_python_sources, find_extra_files
         sage: python_packages, python_modules = find_python_sources(
         ....:     SAGE_SRC, ['sage', 'sage_setup'])
         sage: extra_files = find_extra_files(python_packages, SAGE_SRC,
-        ....:     SAGE_CYTHONIZED, ["ntlwrap.cpp"])
+        ....:     cythonized_dir, ["ntlwrap.cpp"])
         sage: from sage_setup.clean import _find_stale_files
 
     TODO: move ``module_list.py`` into ``sage_setup`` and also check

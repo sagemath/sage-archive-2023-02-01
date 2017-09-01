@@ -632,6 +632,15 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1.47801783444132?
             sage: _.imag().is_zero()
             True
+
+        Check that units are evaluated correctly (trac:`23775`)::
+
+            sage: CIF(1 + E(8) - E(8,3))
+            2.41421356237310?
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CC)
+            2.41421356237309
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CDF)
+            2.414213562373095
         """
         if self._obj.IsRat():
             return R(self._obj.sage())
@@ -639,7 +648,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         zeta = R.zeta(k)
-        s = sum(coeffs[i] * zeta ** i for i in range(1, k))
+        s = sum(coeffs[i] * zeta ** i for i in range(k))
         if self.is_real():
             return R(s.real())
         return s
@@ -657,6 +666,15 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1.24697960371747
             sage: 2*cos(2*pi/7).n()
             1.24697960371747
+
+        Check that units are evaluated correctly (trac:`23775`)::
+
+            sage: RIF(1 + E(8) - E(8,3))
+            2.414213562373095?
+            sage: RR(1 + E(8) - E(8,3))
+            2.41421356237309
+            sage: RDF(1 + E(8) - E(8,3))
+            2.414213562373095
         """
         if not self.is_real():
             raise TypeError("self is not real")
@@ -667,7 +685,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         t = (2 * R.pi()) / k
-        return sum(coeffs[i] * (i * t).cos() for i in range(1, k))
+        return sum(coeffs[i] * (i * t).cos() for i in range(k))
 
     _mpfr_ = _eval_real_
 

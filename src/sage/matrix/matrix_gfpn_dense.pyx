@@ -33,9 +33,6 @@ from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import os
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-    char* PyString_AsString(object string)
 
 meataxe_init()
 
@@ -55,7 +52,6 @@ from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
-from libc.stdlib cimport free
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
@@ -65,8 +61,6 @@ cimport sage.matrix.matrix0
 # auxiliary functions
 #
 ####################
-import sys
-from libc.string cimport memcpy
 
 # Fast conversion from field to int and int to field
 cdef class FieldConverter_class:
@@ -1509,7 +1503,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                     dest = self.Data.Data+FfCurrentRowSize*i
                     memcpy(dest, old+FfCurrentRowSize*j, FfCurrentRowSize)
                     self.Data.PivotTable[i] = pos
-                free(old)
+                sig_free(old)
                 self.Data.Nor = self._nrows
             # Now, the pivot columns are strictly increasing.
             # We now normalize each row, and annulate everything

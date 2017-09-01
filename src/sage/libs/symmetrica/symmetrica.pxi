@@ -323,7 +323,6 @@ cdef extern from 'symmetrica/macro.h':
     OP s_sch_s(OP a)
     OP s_sch_k(OP a)
     OP s_sch_n(OP a)
-    INT s_sch_sli(OP a)
     void* m_skn_sch(OP perm, OP koeff, OP next, OP result)
     void* b_skn_sch(OP perm, OP koeff, OP next, OP result)
 

@@ -603,7 +603,7 @@ class InterfaceInit(Converter):
             subs = ["%s = %s"%(t._maxima_init_(),a._maxima_init_()) for t,a in zip(temp_args,args)]
             outstr = "at(diff(%s, %s), [%s])"%(f._maxima_init_(),
                 ", ".join(params),
-                ", ".join(subs))            
+                ", ".join(subs))
         else:
             f = operator.function()(*args)
             params = operator.parameter_set()
@@ -611,7 +611,7 @@ class InterfaceInit(Converter):
             outstr = "diff(%s, %s)"%(f._maxima_init_(),
                                         ", ".join(params))
         return outstr
-    
+
     def arithmetic(self, ex, operator):
         """
         EXAMPLES::
@@ -764,6 +764,9 @@ class SympyConverter(Converter):
         if f_sympy:
             return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
+            from sage.symbolic.function_factory import SymbolicFunction
+            if isinstance(ex.operator(), SymbolicFunction):
+                return sympy.Function(str(f))(*g, evaluate=False)
             raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
 
 sympy = SympyConverter()
@@ -1769,7 +1772,7 @@ class RingConverter(Converter):
         if operator == add_vararg:
             operator = _operator.add
         elif operator == mul_vararg:
-            operator = _operator.mul         
+            operator = _operator.mul
         return reduce(operator, map(self, operands))
 
     def composition(self, ex, operator):
@@ -2026,4 +2029,3 @@ class HoldRemover(ExpressionTreeWalker):
             return operator(*map(self, ex.operands()), hold=True)
         else:
             return operator(*map(self, ex.operands()))
-

@@ -58,7 +58,6 @@ except ImportError:
     from urllib2 import urlopen, URLError
 
 DEFAULT_PYPI = 'https://pypi.python.org/pypi'
-PIP_VERSION = re.compile("^([^\s]+) \(([^\s]+)\)$", re.MULTILINE)
 
 def pkgname_split(name):
     r"""
@@ -144,9 +143,9 @@ def pip_installed_packages():
         sage: d['beautifulsoup']   # optional - beautifulsoup
         '...'
     """
-    proc = subprocess.Popen(["pip", "list", "--no-index"], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["pip", "list", "--no-index", "--format", "json"], stdout=subprocess.PIPE)
     stdout = str(proc.communicate()[0])
-    return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdout))
+    return {package['name'].lower():package['version'] for package in json.loads(stdout)}
 
 def list_packages(*pkg_types, **opts):
     r"""

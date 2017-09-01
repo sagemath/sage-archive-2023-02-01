@@ -1910,6 +1910,10 @@ cdef py_atanh(x):
     try:
         return x.arctanh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arctanh()
+    except TypeError:
         return CC(x).arctanh()
 
 cdef py_lgamma(x):

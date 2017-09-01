@@ -520,7 +520,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
             # So we consider f=1,2,..., until the first f with lb(f)*h_D > c*h_max.
             # (Note that lb(f) is <= 0 for f=1,2, so nothing special is needed there.)
             #
-            # TODO: Maybe we could do better using a bound for for phi_D(f).
+            # TODO: Maybe we could do better using a bound for phi_D(f).
             #
             f = Integer(1)
             chmax=hmax

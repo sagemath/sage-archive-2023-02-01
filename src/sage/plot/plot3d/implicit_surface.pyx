@@ -49,7 +49,6 @@ AUTHORS:
 #  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 #*****************************************************************************
 
-
 # There's a framework in here for computing multiple isosurfaces of a
 # single function.  Currently, it's only used for a single
 # implicit_plot3d where contour=... is given a list, but it's ready to
@@ -77,6 +76,7 @@ AUTHORS:
 # n^3 memory when it reads the JVXL file, but that might be on a different
 # computer; Tachyon would only allocate memory proportional to the
 # output size.)
+from __future__ import absolute_import
 
 cimport numpy as np
 import numpy as np

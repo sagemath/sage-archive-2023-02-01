@@ -523,7 +523,7 @@ def smallest_positions(word, subword, pos=0):
         sage: sage.combinat.subword.smallest_positions([1,3,3,5,4,5,3,5],[3,5,3],3)
         False
 
-    TEST:
+    TESTS:
 
     We check for :trac:`5534`::
 

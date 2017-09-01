@@ -36,7 +36,6 @@ from __future__ import print_function
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
-from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField
 from sage.rings.morphism import RingHomomorphism_im_gens
@@ -133,16 +132,35 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P = ProjectiveSpace(1, R.quo(t^2+1))
             sage: P([2*t, 1])
             (2*tbar : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,1)
+            sage: P.point(Infinity)
+            (1 : 0)
+            sage: P(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ,2)
+            sage: P(Infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
             from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
             d = X.codomain().ambient_space().ngens()
+
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
+
             if not isinstance(v,(list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
@@ -1522,7 +1540,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         # however precision issues can occur so we can only tell *not* preperiodic
         # if the value is larger than the error
         if h <= err:
-            # if the canonical height is less than than the
+            # if the canonical height is less than the
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height
@@ -1607,6 +1625,26 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: Q=P([2, 1])
             sage: Q[0].parent()
             Finite Field of size 7
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ,1)
+            sage: P.point(Infinity)
+            (1 : 0)
+            sage: P(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ,2)
+            sage: P(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -1614,10 +1652,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
-            if not isinstance(v,(list,tuple)):
+            if not isinstance(v, (list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
                 raise TypeError("v (=%s) must have %s components"%(v, d))

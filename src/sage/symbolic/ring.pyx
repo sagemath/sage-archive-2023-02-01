@@ -12,6 +12,7 @@ The symbolic ring
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.libs.pynac.pynac cimport *
 
@@ -190,7 +191,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             from sage.interfaces.maxima import Maxima
 
-            from subring import GenericSymbolicSubring
+            from .subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Almost anything with a coercion into any precision of CC
@@ -1063,7 +1064,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         if self is not SR:
             raise NotImplementedError('Cannot create subring of %s.' % (self,))
-        from subring import SymbolicSubring
+        from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
 SR = SymbolicRing()

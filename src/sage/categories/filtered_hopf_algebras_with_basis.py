@@ -59,37 +59,6 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
 
     class Connected(CategoryWithAxiom_over_base_ring):
         class ParentMethods:
-            def counit_on_basis(self, i):
-                r"""
-                The default counit of a filtered connected Hopf algebra.
-
-                INPUT:
-
-                - ``i`` -- an element of the index set
-
-                OUTPUT:
-
-                - an element of the base ring
-
-                .. MATH::
-
-                    c(i) := \begin{cases}
-                    1 & \hbox{if $i$ is the unique element of degree $0$}\\
-                    0 & \hbox{otherwise}.
-                    \end{cases}
-
-                EXAMPLES::
-
-                    sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
-                    sage: H.monomial(4).counit() # indirect doctest
-                    0
-                    sage: H.monomial(0).counit() # indirect doctest
-                    1
-                """
-                if i == self.one_basis():
-                    return self.base_ring().one()
-                return self.base_ring().zero()
-
             @cached_method
             def antipode_on_basis(self, index):
                 r"""
@@ -99,22 +68,25 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
 
                 - ``index`` -- an element of the index set
 
+                For a filtered connected Hopf algebra, we can define
+                an antipode recursively by
+
                 .. MATH::
 
-                    S(x) := -\sum_{x^L\neq x} S(x^L) \times x^R
+                    S(x) := -\sum_{x^L \neq x} S(x^L) \times x^R + \epsilon(x)
 
                 in general or `x` if `|x| = 0`.
 
                 TESTS::
 
                     sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
-                    sage: H.monomial(0).antipode() #indirect doctest
+                    sage: H.monomial(0).antipode() # indirect doctest
                     P0
-                    sage: H.monomial(1).antipode() #indirect doctest
+                    sage: H.monomial(1).antipode() # indirect doctest
                     -P1
-                    sage: H.monomial(2).antipode() #indirect doctest
+                    sage: H.monomial(2).antipode() # indirect doctest
                     P2
-                    sage: H.monomial(3).antipode() #indirect doctest
+                    sage: H.monomial(3).antipode() # indirect doctest
                     -P3
                 """
                 if self.monomial(index) == self.one():
@@ -124,12 +96,15 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
                 x__S_Id = tensor([self, self]).module_morphism(
                     lambda ab: S(ab[0]) * self.monomial(ab[1]),
                     codomain=self)
-                return -x__S_Id(self.monomial(index).coproduct()
-                                - tensor([self.monomial(index), self.one()])
-                               )
+                smi = self.monomial(index)
+                return -x__S_Id(smi.coproduct()
+                                - tensor([smi, self.one()])
+                               ) + smi.counit()
 
             def antipode(self, elem):
                 r"""
+                Return the antipode of ``self`` applied to ``elem``.
+
                 TESTS::
 
                     sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()

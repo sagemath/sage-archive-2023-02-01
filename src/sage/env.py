@@ -67,6 +67,13 @@ def _add_variable_or_fallback(key, fallback, force=False):
         '---foo---'
         sage: sage.env.SAGE_ENV['SAGE_BAR']
         '---foo---'
+
+    Test that :trac:`23758` has been resolved::
+
+        sage: sage.env._add_variable_or_fallback('SAGE_BA', '---hello---')
+        sage: sage.env._add_variable_or_fallback('TEMP', '$SAGE_BAR')
+        sage: sage.env.SAGE_ENV['TEMP']
+        '---foo---'
     """
     global SAGE_ENV
     import six
@@ -78,6 +85,26 @@ def _add_variable_or_fallback(key, fallback, force=False):
     if force:
         value = fallback
     if isinstance(value, six.string_types):
+        # Now do the variable replacement. First treat 'value' as if
+        # it were a path and do the substitution on each of the
+        # components. This is to avoid the sloppiness in the second
+        # round of substitutions: if VAR and VAR_NEW are both in
+        # SAGE_ENV, then when doing substitution on the string
+        # "$VAR_NEW/a/b", we want to match VAR_NEW, not VAR, if
+        # possible.
+        for sep in set([os.path.sep, '/']):
+            components = []
+            for s in value.split(sep):
+                if s.startswith('$'):
+                    components.append(SAGE_ENV.get(s[1:], s))
+                else:
+                    components.append(s)
+            value = sep.join(components)
+        # Now deal with any remaining substitutions. The following is
+        # sloppy, as mentioned above: if $VAR and $VAR_NEW are both in
+        # SAGE_ENV, the substitution for "$VAR_NEw" depends on which
+        # of the two appears first when iterating over
+        # SAGE_ENV.items().
         for k,v in SAGE_ENV.items():
             if isinstance(v, six.string_types):
                 value = value.replace('$'+k, v)

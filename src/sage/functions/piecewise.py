@@ -996,10 +996,10 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f.trapezoid(2)
                 piecewise(y|-->1/2*y on (0, 1/2), y|-->3/2*y - 1/2 on (1/2, 1), y|-->7/2*y - 5/2 on (1, 3/2), y|-->-7/2*y + 8 on (3/2, 2); y)
             """
-            x = QQ[self.default_variable()].gen()
             def func(x0, x1):
                 f0, f1 = self(x0), self(x1)
-                return [[(x0,x1),f0+(f1-f0)*(x1-x0)**(-1)*(x-x0)]]
+                return [[(x0,x1), f0 + (f1-f0) * (x1-x0)**(-1)
+                    * (self.default_variable()-x0)]]
             rsum = []
             for domain, f in parameters:
                 for interval in domain:

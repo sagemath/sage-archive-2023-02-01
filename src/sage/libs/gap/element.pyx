@@ -335,7 +335,6 @@ cdef class GapElement(RingElement):
         """
         raise TypeError('this class cannot be instantiated from Python')
 
-
     cdef _initialize(self, parent, libGAP_Obj obj):
         r"""
         Initialize the GapElement.
@@ -385,6 +384,87 @@ cdef class GapElement(RingElement):
         if self.value is NULL:
             return
         dereference_obj(self.value)
+
+    def __copy__(self):
+        r"""
+        TESTS::
+
+            sage: a = libgap(1)
+            sage: a.__copy__() is a
+            True
+
+            sage: a = libgap(1/3)
+            sage: a.__copy__() is a
+            True
+
+            sage: a = libgap([1,2])
+            sage: b = a.__copy__()
+            sage: a is b
+            False
+            sage: a[0] = 3
+            sage: a
+            [ 3, 2 ]
+            sage: b
+            [ 1, 2 ]
+
+            sage: a = libgap([[0,1],[2,3,4]])
+            sage: b = a.__copy__()
+            sage: b[0][1] = -2
+            sage: b
+            [ [ 0, -2 ], [ 2, 3, 4 ] ]
+            sage: a
+            [ [ 0, -2 ], [ 2, 3, 4 ] ]
+        """
+        if libGAP_IS_MUTABLE_OBJ(self.value):
+            return make_any_gap_element(self.parent(), libGAP_SHALLOW_COPY_OBJ(self.value))
+        else:
+            return self
+
+    cpdef GapElement deepcopy(self, bint mut):
+        r"""
+        Return a deepcopy of this Gap object
+
+        Note that this is the same thing as calling ``StructuralCopy`` but much
+        faster.
+
+        INPUT:
+
+        - ``mut`` - (boolean) wheter to return an mutable copy
+
+        EXAMPLES::
+
+            sage: a = libgap([[0,1],[2,3]])
+            sage: b = a.deepcopy(1)
+            sage: b[0,0] = 5
+            sage: a
+            [ [ 0, 1 ], [ 2, 3 ] ]
+            sage: b
+            [ [ 5, 1 ], [ 2, 3 ] ]
+
+            sage: l = libgap([0,1])
+            sage: l.deepcopy(0).IsMutable()
+            false
+            sage: l.deepcopy(1).IsMutable()
+            true
+        """
+        if libGAP_IS_MUTABLE_OBJ(self.value):
+            return make_any_gap_element(self.parent(), libGAP_CopyObj(self.value, mut))
+        else:
+            return self
+
+    def __deepcopy__(self, memo):
+        r"""
+        TESTS::
+
+            sage: a = libgap([[0,1],[2]])
+            sage: b = deepcopy(a)
+            sage: a[0,0] = -1
+            sage: a
+            [ [ -1, 1 ], [ 2 ] ]
+            sage: b
+            [ [ 0, 1 ], [ 2 ] ]
+        """
+        return self.deepcopy(0)
 
     cpdef _type_number(self):
         """
@@ -2373,6 +2453,15 @@ cdef class GapElement_List(GapElement):
             ...
             ValueError: too many indices
 
+        Assignment to immutable objects gives error::
+
+            sage: l = libgap([0,1])
+            sage: u = l.deepcopy(0)
+            sage: u[0] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: immutable Gap object does not support item assignment
+
         TESTS::
 
             sage: m = libgap.eval('[[0,0],[0,0]]')
@@ -2383,6 +2472,9 @@ cdef class GapElement_List(GapElement):
             sage: m
             [ [ 1, 2 ], [ 3, 4 ] ]
         """
+        if not libGAP_IS_MUTABLE_OBJ(self.value):
+            raise TypeError('immutable Gap object does not support item assignment')
+
         cdef int j
         cdef libGAP_Obj obj = self.value
 

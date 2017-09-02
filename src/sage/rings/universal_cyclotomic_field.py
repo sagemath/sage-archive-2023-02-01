@@ -633,7 +633,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: _.imag().is_zero()
             True
 
-        Check that units are evaluated correctly (trac:`23775`)::
+        Check that units are evaluated correctly (:trac:`23775`)::
 
             sage: CIF(1 + E(8) - E(8,3))
             2.41421356237310?
@@ -667,7 +667,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: 2*cos(2*pi/7).n()
             1.24697960371747
 
-        Check that units are evaluated correctly (trac:`23775`)::
+        Check that units are evaluated correctly (:trac:`23775`)::
 
             sage: RIF(1 + E(8) - E(8,3))
             2.414213562373095?

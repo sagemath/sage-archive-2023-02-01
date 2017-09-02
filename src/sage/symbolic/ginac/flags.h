@@ -304,8 +304,6 @@ public:
 	};
 };
 
-extern bool global_hold;
-
 } // namespace GiNaC
 
 #endif // ndef __GINAC_FLAGS_H__

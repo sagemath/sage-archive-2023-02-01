@@ -37,6 +37,7 @@
 #include "ptr.h"
 #include "assertion.h"
 #include "registrar.h"
+#include "context.h"
 
 // PyObject forward declaration 
 #ifndef PyObject_HEAD

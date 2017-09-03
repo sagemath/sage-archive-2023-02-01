@@ -757,6 +757,9 @@ ext_modules = [
               language = "c++",
               libraries=['ntl']),
 
+    Extension('sage.matrix.matrix_gap',
+              sources = ['sage/matrix/matrix_gap.pyx']),
+
     Extension('sage.matrix.matrix_dense',
               sources = ['sage/matrix/matrix_dense.pyx']),
 

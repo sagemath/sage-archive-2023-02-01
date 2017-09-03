@@ -133,6 +133,8 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
 
         sage: get_matrix_class(ZZ, 3, 3, False, 'flint')
         <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        sage: get_matrix_class(ZZ, 3, 3, False, 'gap')
+        <type 'sage.matrix.matrix_gap.Matrix_gap'>
         sage: get_matrix_class(ZZ, 3, 3, False, 'generic')
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
@@ -188,6 +190,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
     if not sparse:
         if implementation == 'generic':
             return matrix_generic_dense.Matrix_generic_dense
+
+        elif implementation == 'gap':
+            from .matrix_gap import Matrix_gap
+            return Matrix_gap
 
         if R is sage.rings.integer_ring.ZZ:
             if implementation is None or implementation == 'flint':

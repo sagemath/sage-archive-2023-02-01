@@ -375,12 +375,12 @@ Sage example in ./recequadiff.tex, line 1157::
 
 Sage example in ./recequadiff.tex, line 1197::
 
-  sage: from sympy import Function, Symbol, Integer
+  sage: from sympy import Function, Symbol
   sage: u = Function('u'); n = Symbol('n', integer=True)
 
 Sage example in ./recequadiff.tex, line 1208::
 
-  sage: f = u(n+2)-(3/2)*u(n+1)+(1/2)*u(n)
+  sage: f = u(n+2)-u(n+1)*(3/2)+u(n)*(1/2)
 
 Sage example in ./recequadiff.tex, line 1214::
 

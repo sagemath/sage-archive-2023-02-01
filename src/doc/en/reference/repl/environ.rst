@@ -56,5 +56,6 @@ default.
   for more information.
 
 - :envvar:`MPLCONFIGDIR` --
-  directory where the configuration of Matplotlib is stored. By default,
-  this is some directory inside :envvar:`DOT_SAGE`.
+  directory where the configuration of Matplotlib is stored.
+  See https://matplotlib.org/faq/environment_variables_faq.html#envvar-MPLCONFIGDIR
+  By default, this is some directory inside :envvar:`DOT_SAGE`.

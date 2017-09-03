@@ -2780,12 +2780,13 @@ class Graph(GenericGraph):
             sage: g.treewidth()
             2
 
-        :trac:`23546`::
+        The decomposition is a tree (:trac:`23546`)::
+
             sage: g = Graph({0:[1,2], 3:[4,5]})
             sage: t = g.treewidth(certificate=True)
             sage: t.is_tree()
             True
-            sage: vertices = set({})
+            sage: vertices = set()
             sage: for s in t.vertices():
             ....:     vertices = vertices.union(s)
             sage: list(vertices) == g.vertices()
@@ -2862,9 +2863,9 @@ class Graph(GenericGraph):
             else:
                 T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
                 tree = Graph([sum([t.vertices() for t in T],[]), sum([t.edges(labels=False) for t in T],[])], name="Tree decomposition")
-                v = T[0].vertices()[0]
+                v = next(T[0].vertex_iterator())
                 for t in T[1:]:
-                    tree.add_edge([t.vertices()[0],v])
+                    tree.add_edge(next(t.vertex_iterator()),v)
                 return tree 
 
         # Forcing k to be defined

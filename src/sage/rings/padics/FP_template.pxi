@@ -692,7 +692,7 @@ cdef class FPElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -717,11 +717,13 @@ cdef class FPElement(pAdicTemplateElement):
                 aprec = minusmaxordp
             else:
                 aprec = mpz_get_si((<Integer>absprec).value)
-        if aprec >= self.ordp + self.prime_pow.prec_cap:
+        if aprec >= self.ordp + self.prime_pow.ram_prec_cap:
             return self
         cdef FPElement ans = self._new_c()
         if aprec <= self.ordp:
             ans._set_exact_zero()
+            if aprec < 0:
+                return self.parent().fraction_field()(0)
         else:
             ans.ordp = self.ordp
             creduce(ans.unit, self.unit, aprec - self.ordp, ans.prime_pow)
@@ -1394,9 +1396,10 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
         """
         return self._section
 
+
 cdef class pAdicConvert_FP_ZZ(RingMap):
     """
-    The map from a floating point ring back to ZZ that returns the the smallest
+    The map from a floating point ring back to ZZ that returns the smallest
     non-negative integer approximation to its input which is accurate up to the precision.
 
     If the input is not in the closure of the image of ZZ, raises a ValueError.
@@ -1796,13 +1799,12 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
         Ring morphism:
-          From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
-          To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+          From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
+          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
 
     TESTS::
 
         sage: TestSuite(f).run()
-
     """
     def __init__(self, R, K):
         r"""
@@ -1916,8 +1918,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
-              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+              From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
             sage: g == f
             True
             sage: g is f
@@ -1944,8 +1946,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
-              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
+              From: Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Ring
+              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Field
             sage: g == f
             True
             sage: g is f
@@ -1970,8 +1972,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
-          To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+          From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
+          To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
     """
     def __init__(self, K, R):
         r"""
@@ -2070,8 +2072,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
-              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+              From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
             sage: g == f
             True
             sage: g is f
@@ -2098,8 +2100,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
-              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
+              From: Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Field
+              To:   Unramified Extension in a defined by x^2 + 2*x + 2 with floating precision 20 over 3-adic Ring
             sage: g == f
             True
             sage: g is f

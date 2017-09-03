@@ -149,8 +149,10 @@ class GenericDeclaration(SageObject):
         """
         return "%s is %s" % (self._var, self._assumption)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
+        Check whether ``self`` and ``other`` are equal.
+
         TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration as GDecl
@@ -163,11 +165,28 @@ class GenericDeclaration(SageObject):
             sage: GDecl(x, 'integer') == GDecl(y, 'integer')
             False
         """
-        if isinstance(self, GenericDeclaration) and isinstance(other, GenericDeclaration):
-            return cmp((self._var, self._assumption),
-                       (other._var, other._assumption))
-        else:
-            return cmp(type(self), type(other))
+        if not isinstance(other, GenericDeclaration):
+            return False
+        return (bool(self._var == other._var) and
+                self._assumption == other._assumption)
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` and ``other`` are not equal.
+
+        TESTS::
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration as GDecl
+            sage: var('y')
+            y
+            sage: GDecl(x, 'integer') != GDecl(x, 'integer')
+            False
+            sage: GDecl(x, 'integer') != GDecl(x, 'rational')
+            True
+            sage: GDecl(x, 'integer') != GDecl(y, 'integer')
+            True
+        """
+        return not self == other
 
     def has(self, arg):
         """

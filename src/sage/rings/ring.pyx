@@ -65,7 +65,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method
 
@@ -577,7 +577,7 @@ cdef class Ring(ParentWithGens):
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2-3)
             sage: L.ideal(a)
-            Principal ideal (1 + O(a^40)) of Eisenstein Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*a^2 + (O(3^21))*a + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^11 + 2*3^12 + 2*3^13 + 2*3^14 + 2*3^15 + 2*3^16 + 2*3^17 + 2*3^18 + 2*3^19 + 2*3^20 + O(3^21))
+            Principal ideal (1 + O(a^40)) of Eisenstein Extension in a defined by a^2 - 3 with capped relative precision 40 over 3-adic Field
 
         """
         if self._zero_ideal is None:
@@ -929,7 +929,7 @@ cdef class Ring(ParentWithGens):
             +Infinity
         """
         if not self.is_finite():
-            from infinity import Infinity
+            from .infinity import Infinity
             return Infinity
         raise NotImplementedError
 
@@ -1553,7 +1553,7 @@ cdef class CommutativeRing(Ring):
             sage: f(1+u)
             1 + u^25
         """
-        from morphism import FrobeniusEndomorphism_generic
+        from .morphism import FrobeniusEndomorphism_generic
         return FrobeniusEndomorphism_generic(self, n)
 
 

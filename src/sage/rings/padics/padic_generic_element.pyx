@@ -1266,6 +1266,61 @@ cdef class pAdicGenericElement(LocalGenericElement):
             #won't work for general extensions...
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
+    def is_squarefree(self):
+        r"""
+        Return whether this element is squarefree, i.e., whether there exists
+        no non-unit `g` such that `g^2` divides this element.
+
+        EXAMPLES:
+
+        The zero element is never squarefree::
+
+            sage: K = Qp(2)
+            sage: K.zero().is_squarefree()
+            False
+
+        In `p`-adic rings, only elements of valuation at most 1 are
+        squarefree::
+
+            sage: R = Zp(2)
+            sage: R(1).is_squarefree()
+            True
+            sage: R(2).is_squarefree()
+            True
+            sage: R(4).is_squarefree()
+            False
+
+        This works only if the precision is known sufficiently well::
+
+            sage: R(0,1).is_squarefree()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: element not known to sufficient precision to decide squarefreeness
+            sage: R(0,2).is_squarefree()
+            False
+            sage: R(1,1).is_squarefree()
+            True
+
+        For fields we are not so strict about the precision and treat inexact
+        zeros as the zero element::
+
+            K(0,0).is_squarefree()
+            False
+
+        """
+        if self.parent().is_field():
+            if self.is_zero():
+                return False
+            return True
+        else:
+            v = self.valuation()
+            if v >= 2:
+                return False
+            elif self.is_zero():
+                raise PrecisionError("element not known to sufficient precision to decide squarefreeness")
+            else:
+                return True
+
     #def log_artin_hasse(self):
     #    raise NotImplementedError
 
@@ -1495,11 +1550,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def rational_reconstruction(self):
         r"""
-        Returns a rational approximation to this p-adic number
+        Returns a rational approximation to this `p`-adic number
 
-        INPUT:
+        This will raise an ArithmeticError if there are no valid
+        approximations to the unit part with numerator and
+        denominator bounded by ``sqrt(p^absprec / 2)``.
 
-        - ``self`` -- a p-adic element
+        .. SEEALSO::
+
+            :meth:`_rational_`
 
         OUTPUT:
 
@@ -1522,6 +1581,25 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.arith.all import rational_reconstruction
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
+
+    def _rational_(self):
+        r"""
+        Return a rational approximation to this `p`-adic number.
+
+        If there is no good rational approximation to the unit part,
+        will just return the integer approximation.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: QQ(R(125)) # indirect doctest
+            125
+        """
+        try:
+            return self.rational_reconstruction()
+        except ArithmeticError:
+            p = self.parent().prime()
+            return Rational(p**self.valuation() * self.unit_part().lift())
 
     def _log_generic(self, aprec, mina=0):
         r"""
@@ -1937,7 +2015,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...
             ValueError: logarithm is not integral, use change_frac=True to obtain a result in the fraction field
             sage: w.log(p_branch=2, change_frac=True)
-            2*w^-3 + O(w^21)
+            2*w^-3 + O(w^24)
 
         TESTS:
 
@@ -2467,9 +2545,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
             sage: z.log().exp()
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
 
         Check that this also works for fixed-mod implementations::
 

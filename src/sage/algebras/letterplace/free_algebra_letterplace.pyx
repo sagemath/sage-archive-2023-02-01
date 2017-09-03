@@ -140,7 +140,7 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
     variable names of the `n`-th block (`n>0`) ending with
     ``"_%d"%n``.
 
-    TEST:
+    TESTS:
 
     Note that, since the algebras are cached, we need to choose
     a different base ring, since other doctests could have a
@@ -728,7 +728,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
           generators are equal, and the base ring of ``R`` coerces
           into the base ring of self.
 
-        TEST:
+        TESTS:
 
         Coercion from the base ring::
 
@@ -815,7 +815,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
           This is forwarded to the initialisation of
           :class:`~sage.algebras.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace`.
 
-        TEST:
+        TESTS:
 
         This method applied to the dictionary of any element must
         return the same element. This must hold true even if the

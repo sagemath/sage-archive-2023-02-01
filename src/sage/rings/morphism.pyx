@@ -354,10 +354,9 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-import ideal
-import homset
+from . import ideal
 from cpython.object cimport Py_EQ, Py_NE
 from sage.structure.richcmp cimport (richcmp, rich_to_bool,
         richcmp_not_equal)
@@ -509,7 +508,7 @@ cdef class RingMap_lift(RingMap):
         _slots['S'] = self.S
         return Morphism._extra_slots(self, _slots)
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Compare a ring lifting maps ``self`` to ``other``.
 
@@ -615,7 +614,8 @@ cdef class RingHomomorphism(RingMap):
             True
 
         """
-        if not homset.is_RingHomset(parent):
+        from .homset import RingHomset_generic
+        if not isinstance(parent, RingHomset_generic):
             raise TypeError("parent must be a ring homset")
         RingMap.__init__(self, parent)
 
@@ -729,7 +729,7 @@ cdef class RingHomomorphism(RingMap):
                       Defn: x |--> a + b
                             y |--> a - b
                     then
-                      Conversion via FractionFieldElement map:
+                      Coercion map:
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
@@ -764,7 +764,7 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Multivariate Polynomial Ring in a, b over Rational Field
                     then
-                      Conversion via FractionFieldElement map:
+                      Coercion map:
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
@@ -906,7 +906,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return "Ring Coercion"
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Compare a ring coercion morphism ``self`` to ``other``.
 
@@ -1599,7 +1599,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         return self.codomain().defining_ideal()
 
-    def __richcmp__(self, other, int op):
+    def _richcmp_(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -1796,7 +1796,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         """
         return self.phi
 
-    def __richcmp__(self, other, op):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` to ``other``.
 

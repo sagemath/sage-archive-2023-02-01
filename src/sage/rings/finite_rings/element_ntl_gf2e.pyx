@@ -436,7 +436,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             if not number:
                 n = 0
             else:
-                from sage.misc.functional import log
+                from sage.functions.log import log
                 n = int(log(number,2))/8 + 1
         elif isinstance(number, Integer):
             n = int(number.nbits())/8 + 1

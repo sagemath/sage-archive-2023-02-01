@@ -84,7 +84,7 @@ def from_sparse6(G, g6_string):
     """
     from .generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
     from math import ceil, floor
-    from sage.misc.functional import log
+    from sage.functions.log import log
     n = g6_string.find('\n')
     if n == -1:
         n = len(g6_string)

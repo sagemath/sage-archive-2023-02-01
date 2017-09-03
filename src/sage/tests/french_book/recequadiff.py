@@ -378,7 +378,8 @@ Sage example in ./recequadiff.tex, line 1197::
   sage: from sympy import Function, Symbol
   sage: u = Function('u'); n = Symbol('n', integer=True)
 
-Sage example in ./recequadiff.tex, line 1208::
+Sage example in ./recequadiff.tex, line 1208 (WARNING: the order of factors is
+inverted, see :trac:`23496` )::
 
   sage: f = u(n+2)-u(n+1)*(3/2)+u(n)*(1/2)
 

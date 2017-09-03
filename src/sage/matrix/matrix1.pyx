@@ -2224,7 +2224,7 @@ cdef class Matrix(Matrix0):
             return self
         cdef Matrix A
         A = self.new_matrix(self._nrows, self._ncols, 0, coerce=False,
-                               copy = False, sparse=False)
+                               copy=False, sparse=False)
         for i,j in self.nonzero_positions():
             A.set_unsafe(i,j,self.get_unsafe(i,j))
         A.subdivide(self.subdivisions())
@@ -2283,6 +2283,7 @@ cdef class Matrix(Matrix0):
 
         - ``nrows``, ``ncols`` - (optional) number of rows and columns in
           returned matrix space.
+
         - ``sparse`` - whether the returned matrix space uses sparse or
           dense matrices.
 
@@ -2297,19 +2298,37 @@ cdef class Matrix(Matrix0):
             Full MatrixSpace of 1 by 3 dense matrices over Integer Ring
             sage: m.matrix_space(1, 2, True)
             Full MatrixSpace of 1 by 2 sparse matrices over Integer Ring
+
+            sage: M = MatrixSpace(QQ, 3, implementation='generic')
+            sage: m = M.an_element()
+            sage: m.matrix_space()
+            Full MatrixSpace of 3 by 3 dense matrices over Rational Field (using Matrix_generic_dense)
+            sage: m.matrix_space(nrows=2, ncols=12)
+            Full MatrixSpace of 2 by 12 dense matrices over Rational Field (using Matrix_generic_dense)
+            sage: m.matrix_space(nrows=2, sparse=True)
+            Full MatrixSpace of 2 by 3 sparse matrices over Rational Field
         """
-        from sage.matrix.matrix_space import MatrixSpace
         if nrows is None:
             nrows = self._nrows
         if ncols is None:
             ncols = self._ncols
         if sparse is None:
             sparse = self.is_sparse()
+
         base_ring = self._base_ring
-        return MatrixSpace(base_ring, nrows, ncols, sparse)
+
+        if nrows == self._nrows and ncols == self._ncols and sparse == self.is_sparse():
+            return self._parent
+        else:
+            if sparse == self.is_sparse():
+                implementation = self.__class__
+            else:
+                implementation = None
+            from sage.matrix.matrix_space import MatrixSpace
+            return MatrixSpace(base_ring, nrows, ncols, sparse, implementation)
 
     def new_matrix(self, nrows=None, ncols=None, entries=None,
-                   coerce=True, copy=True, sparse=None):
+            coerce=True, copy=True, sparse=None):
         """
         Create a matrix in the parent of this matrix with the given number
         of rows, columns, etc. The default parameters are the same as for
@@ -2359,13 +2378,23 @@ cdef class Matrix(Matrix0):
             sage: A.new_matrix().parent()
             Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision
 
+        ::
+
+            sage: M = MatrixSpace(ZZ, 2, 3, implementation='generic')
+            sage: m = M.an_element()
+            sage: m.new_matrix().parent()
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring (using Matrix_generic_dense)
+            sage: m.new_matrix(3,3).parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring (using Matrix_generic_dense)
+            sage: m.new_matrix(3,3, sparse=True).parent()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
         """
         if (sparse is None or self.is_sparse() == sparse):
             if self._nrows == nrows and self._ncols == ncols:
                 return self._parent(entries=entries, coerce=coerce, copy=copy)
             elif self._nrows == ncols and self._ncols == nrows:
                 return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
-        return self.matrix_space(nrows, ncols, sparse=sparse)(entries=entries,
+        return self.matrix_space(nrows, ncols, sparse)(entries=entries,
                                              coerce=coerce, copy=copy)
     def block_sum(self, Matrix other):
         """

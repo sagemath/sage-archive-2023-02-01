@@ -139,6 +139,27 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             [2*x 3*x]
             [4*x 5*x]
 
+        TESTS:
+
+        Check that multiplication for matrices with different backends are not allowed::
+
+            sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
+            sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
+            sage: M3 = MatrixSpace(ZZ, 2, sparse=True)
+            sage: M = [M1, M2, M3]
+
+            sage: for i in range(3):
+            ....:     for j in range(3):
+            ....:         try:
+            ....:             s = M[i].an_element() * M[j].an_element()
+            ....:             print('X', end='')
+            ....:         except TypeError:
+            ....:             print(' ', end='')
+            ....:     print()
+            X X
+             X
+            X X
+
         .. NOTE::
 
             The :func:`MatrixSpace` function caches the object it creates.
@@ -151,7 +172,24 @@ cdef class MatrixMatrixAction(MatrixMulAction):
         """
         if not is_MatrixSpace(S):
             raise TypeError("Not a matrix space: %s" % S)
+
         MatrixMulAction.__init__(self, G, S, True)
+
+        # disallow multiplication on different backends (same size and rings)
+        if G.base_ring() is S.base_ring() and \
+           G.is_sparse() == S.is_sparse() and \
+           G._matrix_class != S._matrix_class:
+            raise TypeError("no matrix multiplication between different implementations")
+
+        # disallow multiplication (sparse) x (dense) when the densification is not the default
+        # implementation
+        if self.fix_sparseness:
+            if G.is_sparse():
+                if not S._has_default_implementation():
+                    raise TypeError("matrix multiplication not allowed")
+            else:
+                if not G._has_default_implementation():
+                    raise TypeError("matrix multiplication not allowed")
 
     def _create_codomain(self, base):
         """
@@ -252,6 +290,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
                 B = B.dense_matrix()
             else:
                 A = A.dense_matrix()
+        assert type(A) == type(B), (type(A), type(B))
         prod = A._matrix_times_matrix_(B)
         if A._subdivisions is not None or B._subdivisions is not None:
             Asubs = A.subdivisions()

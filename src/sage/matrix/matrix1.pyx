@@ -498,7 +498,6 @@ cdef class Matrix(Matrix0):
             entries = [[sib(v, 2) for v in row] for row in self.rows()]
             return sib.name('matrix')(self.base_ring(), entries)
 
-
     def numpy(self, dtype=None):
         """
         Return the Numpy matrix associated to this matrix.
@@ -580,7 +579,6 @@ cdef class Matrix(Matrix0):
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         """
         return self.change_ring(self.base_ring().fraction_field())
-
 
     def lift(self):
         """
@@ -719,11 +717,11 @@ cdef class Matrix(Matrix0):
             ...
             ValueError: 'copy' must be True or False, not junk
         """
-        if not copy in [True, False]:
+        if copy not in [True, False]:
             msg = "'copy' must be True or False, not {0}"
             raise ValueError(msg.format(copy))
         x = self.fetch('columns')
-        if not x is None:
+        if x is not None:
             if copy: return list(x)
             return x
         if self.is_sparse():
@@ -775,11 +773,11 @@ cdef class Matrix(Matrix0):
             ...
             ValueError: 'copy' must be True or False, not junk
         """
-        if not copy in [True, False]:
+        if copy not in [True, False]:
             msg = "'copy' must be True or False, not {0}"
             raise ValueError(msg.format(copy))
         x = self.fetch('rows')
-        if not x is None:
+        if x is not None:
             if copy: return list(x)
             return x
         if self.is_sparse():
@@ -834,7 +832,7 @@ cdef class Matrix(Matrix0):
             [False, False, False]
         """
         x = self.fetch('dense_columns')
-        if not x is None:
+        if x is not None:
             if copy: return list(x)
             return x
         cdef Py_ssize_t i
@@ -888,7 +886,7 @@ cdef class Matrix(Matrix0):
             [False, False, False]
         """
         x = self.fetch('dense_rows')
-        if not x is None:
+        if x is not None:
             if copy: return list(x)
             return x
 
@@ -906,7 +904,6 @@ cdef class Matrix(Matrix0):
             return list(R)
         else:
             return R
-
 
     def sparse_columns(self, copy=True):
         r"""
@@ -945,7 +942,7 @@ cdef class Matrix(Matrix0):
             [False, False, False]
         """
         x = self.fetch('sparse_columns')
-        if not x is None:
+        if x is not None:
             if copy: return list(x)
             return x
 
@@ -1027,7 +1024,7 @@ cdef class Matrix(Matrix0):
             [False, False, False]
         """
         x = self.fetch('sparse_rows')
-        if not x is None:
+        if x is not None:
             if copy: return list(x)
             return x
 
@@ -1124,7 +1121,7 @@ cdef class Matrix(Matrix0):
         cdef Py_ssize_t j
         V = sage.modules.free_module.FreeModule(self._base_ring,
                                      self._nrows, sparse=self.is_sparse())
-        tmp = [self.get_unsafe(j,i) for j in range(self._nrows)]
+        tmp = [self.get_unsafe(j, i) for j in range(self._nrows)]
         return V(tmp, coerce=False, copy=False, check=False)
 
     def row(self, Py_ssize_t i, from_list=False):
@@ -1443,7 +1440,7 @@ cdef class Matrix(Matrix0):
                 self = self.change_ring(R)
             if bottom_ring is not R:
                 other = other.change_ring(R)
-       
+
         if type(self) is not type(other):
             # If one of the matrices is sparse, return a sparse matrix
             if self.is_sparse_c() and not other.is_sparse_c():
@@ -1459,7 +1456,7 @@ cdef class Matrix(Matrix0):
     cdef _stack_impl(self, bottom):
         """
         Implementation of :meth:`stack`.
-       
+
         Assume that ``self`` and ``other`` are compatible in the sense
         that they have the same base ring and that both are either
         dense or sparse.
@@ -1780,7 +1777,7 @@ cdef class Matrix(Matrix0):
             diff_cols = sorted(set(dcols).difference(set(range(self._ncols))))
             if diff_cols:
                 raise IndexError("{d} contains invalid indices".format(d=diff_cols))
-        cols = [k for k in range(self._ncols) if not k in dcols]
+        cols = [k for k in range(self._ncols) if k not in dcols]
         return self.matrix_from_columns(cols)
 
     def matrix_from_rows(self, rows):
@@ -1880,7 +1877,7 @@ cdef class Matrix(Matrix0):
             diff_rows = sorted(set(drows).difference(set(range(self._nrows))))
             if diff_rows:
                 raise IndexError("{d} contains invalid indices".format(d=diff_rows))
-        rows = [k for k in range(self._nrows) if not k in drows]
+        rows = [k for k in range(self._nrows) if k not in drows]
         return self.matrix_from_rows(rows)
 
     def matrix_from_rows_and_columns(self, rows, columns):
@@ -2010,8 +2007,6 @@ cdef class Matrix(Matrix0):
         if ncols == -1:
             ncols = self._ncols - col
         return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
-
-
 
     def set_row(self, row, v):
         r"""
@@ -2328,7 +2323,7 @@ cdef class Matrix(Matrix0):
             return MatrixSpace(base_ring, nrows, ncols, sparse, implementation)
 
     def new_matrix(self, nrows=None, ncols=None, entries=None,
-            coerce=True, copy=True, sparse=None):
+                   coerce=True, copy=True, sparse=None):
         """
         Create a matrix in the parent of this matrix with the given number
         of rows, columns, etc. The default parameters are the same as for
@@ -2396,6 +2391,7 @@ cdef class Matrix(Matrix0):
                 return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
         return self.matrix_space(nrows, ncols, sparse)(entries=entries,
                                              coerce=coerce, copy=copy)
+
     def block_sum(self, Matrix other):
         """
         Return the block matrix that has self and other on the diagonal::

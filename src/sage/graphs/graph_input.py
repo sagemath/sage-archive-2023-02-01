@@ -84,7 +84,7 @@ def from_sparse6(G, g6_string):
     """
     from .generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
     from math import ceil, floor
-    from sage.functions.log import log
+    from sage.rings.real_double import RDF
     n = g6_string.find('\n')
     if n == -1:
         n = len(g6_string)
@@ -93,7 +93,7 @@ def from_sparse6(G, g6_string):
     if n == 0:
         edges = []
     else:
-        k = int(ceil(log(n,2)))
+        k = int(ceil(RDF(n).log(2)))
         ords = [ord(i) for i in s]
         if any(o > 126 or o < 63 for o in ords):
             raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in range(63,127)]))

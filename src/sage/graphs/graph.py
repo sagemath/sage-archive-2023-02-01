@@ -1380,8 +1380,8 @@ class Graph(GenericGraph):
 
             # encode bit vector
             from math import ceil
-            from sage.functions.log import log
-            k = int(ceil(log(n,2)))
+            from sage.rings.real_double import RDF
+            k = int(ceil(RDF(n).log(2)))
             v = 0
             i = 0
             m = 0

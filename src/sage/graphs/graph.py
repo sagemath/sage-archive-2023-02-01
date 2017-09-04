@@ -2789,7 +2789,7 @@ class Graph(GenericGraph):
             sage: vertices = set()
             sage: for s in t.vertices():
             ....:     vertices = vertices.union(s)
-            sage: list(vertices) == g.vertices()
+            sage: vertices == set(g.vertices())
             True
 
         Trivially true::

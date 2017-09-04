@@ -176,10 +176,22 @@ def modern_uninstall(spkg_name, sage_local, files):
     if pth.exists(postrm):
         print("Running post-uninstall script for '{0}'".format(spkg_name),
               file=sys.stderr)
-        # Any errors from this, including a non-zero return code will
-        # bubble up and exit the uninstaller
-        subprocess.check_call([postrm])
-        shutil.rmtree(spkg_scripts)
+        # If an error occurs here print a warning, but complete the
+        # uninstallation; otherwise we leave the package in a broken
+        # state--looking as though it's still 'installed', but with all its
+        # files removed
+        try:
+            subprocess.check_call([postrm])
+        except Exception as exc:
+            print("Warning: Error running the post-install script for "
+                  "'{0}'; the package will still be uninstalled, but "
+                  "may have left behind some files or settings".format(
+                  spkg_name))
+
+        try:
+            shutil.rmtree(spkg_scripts)
+        except:
+            pass
 
 
 def dir_type(path):

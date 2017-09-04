@@ -150,6 +150,14 @@ def modern_uninstall(spkg_name, sage_local, files):
 
     print("Uninstalling existing '{0}'".format(spkg_name), file=sys.stderr)
 
+    def rmdir(dirname):
+        if dirname and os.path.exists(dirname):
+            if not os.listdir(cur_dir):
+                os.rmdir(cur_dir)
+        else:
+            print("Warning: Directory '{0}' not found".format(
+                cur_dir), file=sys.stderr)
+
     for filename in files:
         filename = pth.join(sage_local, filename)
         dirname = pth.dirname(filename)
@@ -158,8 +166,7 @@ def modern_uninstall(spkg_name, sage_local, files):
             cur_dir = dirname
 
             # New directory; see if the previous directory has been emptied out
-            if cur_dir and not os.listdir(cur_dir):
-                os.rmdir(cur_dir)
+            rmdir(cur_dir)
 
         if os.path.exists(filename):
             os.remove(filename)
@@ -168,8 +175,7 @@ def modern_uninstall(spkg_name, sage_local, files):
                   file=sys.stderr)
 
     # Remove the last directory, if it was empty
-    if cur_dir and not os.listdir(cur_dir):
-        os.rmdir(cur_dir)
+    rmdir(cur_dir)
 
     # Run the package's postrm script, if it exists
     postrm = pth.join(spkg_scripts, 'spkg-postrm')

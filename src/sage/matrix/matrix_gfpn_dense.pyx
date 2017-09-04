@@ -1451,13 +1451,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: type(M)                           # optional: meataxe
             <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
-            sage: MS = M.parent()
-            sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
-            sage: MS._MatrixSpace__matrix_class = Matrix_generic_dense
-            sage: X = MS(M._list())
-            sage: type(X)
+            sage: MS = MatrixSpace(M.base_ring(), M.nrows(), M.ncols(), implementation='generic')
+            sage: X = MS(M)                         # optional: meataxe
+            sage: type(X)                           # optional: meataxe
             <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
-            sage: X.echelon_form()
+            sage: X.echelon_form()                 # optional: meataxe
             [      0       1       0       0       0       0       0       0       0 4*x + 4]
             [      0       0       1       0       0       0       0       0       0 4*x + 2]
             [      0       0       0       1       0       0       0       0       0 3*x + 4]

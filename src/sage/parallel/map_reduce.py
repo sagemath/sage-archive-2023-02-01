@@ -202,8 +202,10 @@ Fine control of the execution of a map/reduce computations is obtained by
 passing parameters to the :meth:`RESetMapReduce.run` method. One can use the
 three following parameters:
 
-- ``max_proc`` -- maximum number of process used.
-  default: number of processor on the machine
+- ``max_proc`` -- (integer, default: ``None``) if given, the
+  maximum number of worker processors to use. The actual number
+  is also bounded by the value of the environment variable
+  ``SAGE_NUM_THREADS`` (the number of cores by default).
 - ``timeout`` -- a timeout on the computation (default: ``None``)
 - ``reduce_locally`` -- whether the workers should reduce locally
   their work or sends results to the master as soon as possible.
@@ -501,7 +503,7 @@ Classes and methods
 """
 from __future__ import print_function, absolute_import
 
-from multiprocessing import Process, Value, Semaphore, Lock, cpu_count
+from multiprocessing import Process, Value, Semaphore, Lock
 from multiprocessing.queues import Pipe, SimpleQueue
 from multiprocessing.sharedctypes import RawArray
 from threading import Thread
@@ -509,6 +511,7 @@ from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _gen
 from sage.misc.lazy_attribute import lazy_attribute
 import collections
 import copy
+import os
 import sys
 import random
 import ctypes
@@ -537,13 +540,14 @@ logger.addHandler(ch)
 
 
 
-def proc_number(max_proc = None):
+def proc_number(max_proc=None):
     r"""
-    Computing the number of process used
+    Return the number of processes to use
 
     INPUT:
 
-    - ``max_proc`` -- the maximum number of process used
+    - ``max_proc`` -- an upper bound on the number of processes or
+      ``None``.
 
     EXAMPLES::
 
@@ -555,10 +559,12 @@ def proc_number(max_proc = None):
         sage: proc_number(max_proc=2) in (1, 2)
         True
     """
+    from sage.parallel.ncpus import ncpus
+    n = ncpus()
     if max_proc is None:
-        return max(cpu_count(), 1)
+        return n
     else:
-        return min(max_proc, max(cpu_count(), 2))
+        return min(max_proc, n)
 
 
 class AbortError(Exception):
@@ -1036,14 +1042,14 @@ class RESetMapReduce(object):
         """
         return copy.copy(self._reduce_init)
 
-
-    def setup_workers(self, max_proc = None, reduce_locally=True):
+    def setup_workers(self, max_proc=None, reduce_locally=True):
         r"""
         Setup the communication channels
 
         INPUT:
 
-        - ``mac_proc`` -- an integer: the maximum number of workers
+        - ``max_proc`` -- (integer) an upper bound on the number of
+          worker processes.
 
         - ``reduce_locally`` -- whether the workers should reduce locally
           their work or sends results to the master as soon as possible.
@@ -1337,8 +1343,8 @@ class RESetMapReduce(object):
         return self._workers[victim]
 
     def run(self,
-            max_proc = None,
-            reduce_locally = True,
+            max_proc=None,
+            reduce_locally=True,
             timeout=None,
             profile=None):
         r"""
@@ -1346,8 +1352,10 @@ class RESetMapReduce(object):
 
         INPUT:
 
-        - ``max_proc`` -- maximum number of process used.
-          default: number of processor on the machine
+        - ``max_proc`` -- (integer, default: ``None``) if given, the
+          maximum number of worker processors to use. The actual number
+          is also bounded by the value of the environment variable
+          ``SAGE_NUM_THREADS`` (the number of cores by default).
         - ``reduce_locally`` -- See :class:`RESetMapReduceWorker` (default: ``True``)
         - ``timeout`` -- a timeout on the computation (default: ``None``)
         - ``profile`` -- directory/filename prefix for profiling, or ``None``

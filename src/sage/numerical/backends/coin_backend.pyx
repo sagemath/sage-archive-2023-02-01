@@ -28,6 +28,9 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.numerical.mip import MIPSolverException
 from copy import copy
 
+from sage.parallel.ncpus import ncpus
+
+
 cdef class CoinBackend(GenericBackend):
 
     """
@@ -760,7 +763,7 @@ cdef class CoinBackend(GenericBackend):
 
         # multithreading
         import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
+        model.setNumberThreads(ncpus())
 
         model.branchAndBound()
 
@@ -1413,7 +1416,7 @@ cdef class CoinBackend(GenericBackend):
 
         # multithreading
         import multiprocessing
-        model.setNumberThreads(multiprocessing.cpu_count())
+        model.setNumberThreads(ncpus())
         
         if n != self.model.solver().getNumCols() or m != self.model.solver().getNumRows():
             raise ValueError("Must provide the status of every column and row variables")

@@ -887,7 +887,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
     # Generate installed file manifest
     FILE_LIST=""
     FIRST=1
-    IFS=$'\n'
+    old_IFS="$IFS"; IFS=$'\n'
     for filename in $(find "$PREFIX" -type f -o -type l | sort); do
         filename="${filename#$PREFIX}"
         if [ $FIRST -eq 1 ]; then
@@ -906,16 +906,19 @@ if [ -d "$SAGE_DESTDIR" ]; then
             exit 1
         fi
     done
+    IFS="$old_IFS"
 
     # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
     # final location.
     rm -rf "$SAGE_DESTDIR"
 fi
 
+
 # At this stage the path in $SAGE_DESTDIR no longer exists, so the variable
 # should be unset
 unset SAGE_DESTDIR
 unset SAGE_DESTDIR_LOCAL
+
 
 # Some spkg scripts, if they exist, should also be installed to
 # $SAGE_SPKG_SCRIPTS; they are not included in the package's manifest, but are

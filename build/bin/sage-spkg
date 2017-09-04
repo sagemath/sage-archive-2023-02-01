@@ -716,8 +716,8 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check postinst legacy-uninstall postrm"
-INSTALLED_SCRIPTS="postrm"
+WRAPPED_SCRIPTS="build install check postinst legacy-uninstall prerm postrm"
+INSTALLED_SCRIPTS="prerm postrm"
 
 
 for script in $WRAPPED_SCRIPTS; do

@@ -150,6 +150,14 @@ def modern_uninstall(spkg_name, sage_local, files):
 
     print("Uninstalling existing '{0}'".format(spkg_name), file=sys.stderr)
 
+    # Run the package's postrm script, if it exists
+    prerm = pth.join(spkg_scripts, 'spkg-prerm')
+    if pth.exists(prerm):
+        print("Running pre-uninstall script for '{0}'".format(spkg_name),
+              file=sys.stderr)
+        # If an error occurs here we abort the uninstallation for now
+        subprocess.check_call([prerm])
+
     def rmdir(dirname):
         if dirname and os.path.exists(dirname):
             if not os.listdir(cur_dir):

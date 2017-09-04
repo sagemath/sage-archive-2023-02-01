@@ -151,12 +151,8 @@ def modern_uninstall(spkg_name, sage_local, files):
     print("Uninstalling existing '{0}'".format(spkg_name), file=sys.stderr)
 
     # Run the package's postrm script, if it exists
-    prerm = pth.join(spkg_scripts, 'spkg-prerm')
-    if pth.exists(prerm):
-        print("Running pre-uninstall script for '{0}'".format(spkg_name),
-              file=sys.stderr)
-        # If an error occurs here we abort the uninstallation for now
-        subprocess.check_call([prerm])
+    # If an error occurs here we abort the uninstallation for now
+    run_spkg_script(spkg_name, spkg_scripts, 'prerm', 'pre-uninstall')
 
     def rmdir(dirname):
         if dirname and os.path.exists(dirname):
@@ -185,27 +181,37 @@ def modern_uninstall(spkg_name, sage_local, files):
     # Remove the last directory, if it was empty
     rmdir(cur_dir)
 
-    # Run the package's postrm script, if it exists
-    postrm = pth.join(spkg_scripts, 'spkg-postrm')
-    if pth.exists(postrm):
-        print("Running post-uninstall script for '{0}'".format(spkg_name),
-              file=sys.stderr)
-        # If an error occurs here print a warning, but complete the
-        # uninstallation; otherwise we leave the package in a broken
-        # state--looking as though it's still 'installed', but with all its
-        # files removed
-        try:
-            subprocess.check_call([postrm])
-        except Exception as exc:
-            print("Warning: Error running the post-install script for "
-                  "'{0}'; the package will still be uninstalled, but "
-                  "may have left behind some files or settings".format(
-                  spkg_name))
+    # Run the package's postrm script, if it exists.
+    # If an error occurs here print a warning, but complete the
+    # uninstallation; otherwise we leave the package in a broken
+    # state--looking as though it's still 'installed', but with all its
+    # files removed.
+    try:
+        run_spkg_script(spkg_name, spkg_scripts, 'postrm',
+                        'post-uninstall')
+    except Exception:
+        print("Warning: Error running the post-uninstall script for "
+              "'{0}'; the package will still be uninstalled, but "
+              "may have left behind some files or settings".format(
+              spkg_name), file=sys.stderr)
 
-        try:
-            shutil.rmtree(spkg_scripts)
-        except:
-            pass
+    try:
+        shutil.rmtree(spkg_scripts)
+    except Exception:
+        pass
+
+
+def run_spkg_script(spkg_name, path, script_name, script_descr):
+    """
+    Runs the specified ``spkg-<foo>`` script under the given ``path``,
+    if it exists.
+    """
+
+    script = pth.join(path, 'spkg-{0}'.format(script_name))
+    if pth.exists(script):
+        print("Running {0} script for '{1}'".format(script_descr, spkg_name),
+              file=sys.stderr)
+        subprocess.check_call([script])
 
 
 def dir_type(path):

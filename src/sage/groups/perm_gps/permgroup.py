@@ -1627,14 +1627,14 @@ class PermutationGroup_generic(group.FiniteGroup):
         # and therefore its order is n!.
 
         # Check that all generators are order 2 and have length-1 cycle tuples.
+        cycle_tuples = []
         for g in gens:
             if g.order() != 2:
                 return None
-
-        cycle_tuples = [g.cycle_tuples() for g in gens]
-        for c in cycle_tuples:
+            c = g.cycle_tuples()
             if len(c) != 1:
                 return None
+            cycle_tuples.append(c)
 
         # Find the common element.
         g0 = cycle_tuples[0][0]

@@ -976,7 +976,7 @@ def log(x, b=None):
         sage: from sage.misc.functional import log
         sage: log(e^2)
         doctest:warning...
-        DeprecationWarning: this version of log is no longer used
+        DeprecationWarning: use .log() or log() from sage.functions.log instead
         See http://trac.sagemath.org/19444 for details.
         2
         sage: log(16,2)
@@ -986,7 +986,7 @@ def log(x, b=None):
         sage: log(float(3))
         1.0986122886681098
     """
-    deprecation(19444, 'this version of log is no longer used')
+    deprecation(19444, 'use .log() or log() from sage.functions.log instead')
     if b is None:
         if hasattr(x, 'log'):
             return x.log()

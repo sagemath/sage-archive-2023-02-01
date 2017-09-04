@@ -108,7 +108,7 @@ def gauss_sum(a, p, f, prec=20, factored=False):
         6*pi^2 + 7*pi^14 + 11*pi^26 + 3*pi^62 + 6*pi^74 + 3*pi^86 + 5*pi^98 +
         pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 +
         pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
-        sage: gauss_sum(2,13,2,factored=True)
+        sage: gauss_sum(2,13,2,prec=5,factored=True)
         (2, 6 + 6*13 + 10*13^2 + O(13^5))
         
     """

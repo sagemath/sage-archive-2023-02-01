@@ -6993,9 +6993,9 @@ class Graph(GenericGraph):
 
         * The type of the current module :
 
-          * ``"Parallel"``
-          * ``"Prime"``
-          * ``"Serie"``
+          * ``"PARALLEL"``
+          * ``"PRIME"``
+          * ``"SERIES"``
 
         * The list of submodules (as list of pairs ``(type, list)``,
           recursively...) or the vertex's name if the module is a
@@ -7060,18 +7060,21 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().modular_decomposition()
             ()
         """
-        from sage.graphs.modular_decomposition import modular_decomposition
+        from sage.graphs.modular_decomposition import modular_decomposition, NodeType
 
         self._scream_if_not_simple()
 
         if self.order() == 0:
             return tuple()
 
+        if self.order() == 1:
+            return (NodeType.PRIME, self.vertices())
+
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x[1][0],list) else id_label[x[1][0]]
+        relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else id_label[x.children[0]]
 
         return relabel(D)
 
@@ -7102,14 +7105,14 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
-        from sage.graphs.modular_decomposition import PRIME
+        from sage.graphs.modular_decomposition import NodeType
 
-        if self.order() == 0:
+        if self.order() == 0 or self.order() == 1:
             return True
 
         D = self.modular_decomposition()
 
-        return D[0].node_type == PRIME and len(D[1]) == self.order()
+        return D[0] == NodeType.PRIME and len(D[1]) == self.order()
 
     @rename_keyword(deprecation=19550, method='algorithm')
     def _gomory_hu_tree(self, vertices, algorithm=None):

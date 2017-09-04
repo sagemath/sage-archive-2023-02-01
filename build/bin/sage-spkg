@@ -788,12 +788,6 @@ $CC -v
 echo "****************************************************"
 
 ##################################################################
-# Remove install markers for any other versions of this spkg.
-##################################################################
-
-rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
-
-##################################################################
 # Poison the proxy variable to forbid downloads in spkg-install
 ##################################################################
 export http_proxy=http://192.0.2.0:5187/
@@ -857,6 +851,10 @@ else
         exit 1
     fi
 fi
+
+# We are now ready to install the new package files into $SAGE_LOCAL, so first
+# uninstall the previous version of this package, if any
+sage-spkg-uninstall "$PKG_BASE"
 
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used

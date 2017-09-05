@@ -410,7 +410,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: PI=P.integral_hull()                                     # optional - pynormaliz
             sage: P.plot(color='yellow') + PI.plot(color='green') # not tested   # optional - pynormaliz
             sage: set(PI.Vrepresentation())                                # optional - pynormaliz
-            {A vertex at (-1, 0), A vertex at (0, 1), A ray in the direction (1, 0)}
+            {A ray in the direction (1, 0), A vertex at (-1, 0), A vertex at (0, 1)}
 
         Nonpointed case::
 
@@ -418,9 +418,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:              lines=[[-1, 1]], backend='normaliz')
             sage: PI=P.integral_hull()                                     # optional - pynormaliz
             sage: set(PI.Vrepresentation())                                # optional - pynormaliz
-            {A vertex at (1, 0),
+            {A line in the direction (1, -1),
              A ray in the direction (1, 0),
-             A line in the direction (1, -1)}
+             A vertex at (1, 0)}
 
         Empty polyhedron::
 

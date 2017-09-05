@@ -4723,6 +4723,139 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         self._smooth = all(self.affine_patch(i).is_smooth() for i in range(0,npatches))
         return self._smooth
 
+    def is_nondegenerate(self):
+        r"""
+        Check if ``self`` is nondegenerate.
+
+        OUTPUT:
+
+        Whether the variety is nondegenerate, that is, the intersection
+        with every open torus orbit is smooth and transversal.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: P2.subscheme([x^3 + y^3 + z^3]).is_nondegenerate()
+            True
+            sage: P2.subscheme([x*y*z]).is_nondegenerate()
+            False
+            sage: X = P2.subscheme([(x-y)^2*(x+y) + x*y*z + z^3])
+            sage: X.is_smooth()
+            True
+            sage: X.is_nondegenerate()
+            False
+
+        A K3 surface in `\mathbf{P}^1 \times \mathbf{P}^1 \times \mathbf{P}^1`::
+
+            sage: diamond = lattice_polytope.cross_polytope(3)
+            sage: fan = FaceFan(diamond)
+            sage: P1xP1xP1 = ToricVariety(fan)
+            sage: z0, z1, z2, z3, z4, z5 = P1xP1xP1.gens()
+            sage: t = 5;
+            sage: F = z0^2*z1^2*z2^2 + z1^2*z2^2*z3^2 + z0^2*z2^2*z4^2\
+            ....: + z2^2*z3^2*z4^2 + t*z0*z1*z2*z3*z4*z5 + z0^2*z1^2*z5^2\
+            ....: + z1^2*z3^2*z5^2 + z0^2*z4^2*z5^2 + z3^2*z4^2*z5^2
+            sage: X = P1xP1xP1.subscheme([F])
+            sage: X.is_smooth()
+            True
+            sage: X.is_nondegenerate()
+            False
+
+        Taking a random change of variables breaks the symmetry, but 
+        makes the surface nondegenerate::
+
+            sage: F1 = F.subs(z0 = 1*z0 + 1*z3, z3 = 1*z0 + 2*z3,\
+            ....: z1 = -2*z1 + -1*z4, z4 = 1*z1 + 2*z4,\
+            ....: z2 = -3*z2 + -1*z5, z5 = -3*z2 + 2*z5 )
+            sage: Y = P1xP1xP1.subscheme([F1])
+            sage: Y.is_smooth()
+            True
+            sage: Y.is_nondegenerate()
+            True
+
+         This example is from Hamm, arXiv:1106.1826v1. It addresses 
+         an issue raised at :trac:`15239`::
+
+            sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')
+            sage: X.inject_variables()
+            Defining z0, z1, z2, z3
+            sage: g0 = z1^3 + z2^6 +z3^4
+            sage: g = g0-2*z3^2*z0^6+z2*z0^10+z0^12
+            sage: Y = X.subscheme([g])
+            sage: Y.is_nondegenerate()
+            False
+
+        It handles nonzero characteristic::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: f = x^5 + 2*x*y^4 + y^5 - 2*y^3*z^2 + x*z^4 - 2*z^5
+            sage: P2.change_ring(GF(5)).subscheme([f]).is_nondegenerate()
+            True
+            sage: P2.change_ring(GF(7)).subscheme([f]).is_nondegenerate()
+            False
+
+        TESTS:
+
+        Some corner cases discussed at :trac:`15239`::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: P2.subscheme([]).is_nondegenerate()
+            False
+            sage: P2.subscheme([x]).is_nondegenerate()
+            False
+
+        """
+        X = self.ambient_space()
+        fan = X.fan()
+        SR = X.Stanley_Reisner_ideal()
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(X.base_ring(), fan.nrays() + SR.ngens(), 't')
+        slack = R.gens()[fan.nrays():]
+        SR = SR.change_ring(R)
+
+        def restrict(cone):
+            patch = dict()
+            divide = dict()
+            for i in cone.ambient_ray_indices():
+                patch[R.gen(i)] = R.zero()   # restrict to torus orbit
+                # divide out highest power of R.gen(i)
+                divide[R.gen(i)] = R.one()   
+            ideal = self.defining_ideal().change_ring(R)
+            ideal = ideal.subs(patch)
+            mat = jacobian(ideal.gens(), R.gens()[:fan.nrays()])
+            minors = mat.minors(self.codimension())
+            minors = tuple([ideal.reduce(m) for m in minors])
+            Jac_patch = R.ideal(ideal.gens() + minors)
+            SR_patch = R.ideal([monomial * slack[i] - R.one()
+                                for i, monomial in
+                                enumerate(SR.subs(divide).gens())])
+            return ideal, Jac_patch + SR_patch
+
+        for dim in range(0, fan.dim() + 1):
+            for cone in fan(dim):
+                ideal1, ideal2 = restrict(cone)
+                if ideal1.is_zero() or ideal2.dimension() != -1:
+                    return False
+
+        return True
+
+    def is_schon(self):
+        r"""
+        Check if ``self`` is schon (nondegenerate).
+
+        See `is_nondegenerate` for further documentation.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: X = P2.subscheme([(x-y)^2*(x+y) + x*y*z + z^3])
+            sage: X.is_smooth()
+            True
+            sage: X.is_schon()
+            False
+
+        """
+        return self.is_nondegenerate()
 
 class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
     r"""
@@ -4907,6 +5040,3 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
             self._smooth = self.affine_algebraic_patch().is_smooth()
 
         return self._smooth
-
-
-

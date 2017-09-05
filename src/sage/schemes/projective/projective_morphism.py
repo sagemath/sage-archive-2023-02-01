@@ -1935,6 +1935,53 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ...
             [(-7/4 : 1), (-5/4 : 1), (-3/4 : 1), (-1/4 : 1), (1/4 : 1), (3/4 : 1),
             (5/4 : 1), (7/4 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([76*x^2 - 180*x*y + 45*y^2 + 14*x*z + 45*y*z - 90*z^2, 67*x^2 - 180*x*y - 157*x*z + 90*y*z, -90*z^2])
+            sage: sorted(f.all_rational_preimages([P(-9,-4,1)]))
+            [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1), (1
+            : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
+
+        A non-periodic example ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, 2*x*y])
+            sage: sorted(f.all_rational_preimages([P(17,15)]))
+            [(1/3 : 1), (3/5 : 1), (5/3 : 1), (3 : 1)]
+
+        A number field example.::
+
+            sage: z = QQ['z'].0
+            sage: K.<w> = NumberField(z^3 + (z^2)/4 - (41/16)*z + 23/64);
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([16*x^2 - 29*y^2, 16*y^2])
+            sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
+            [(-w^2 + 21/16 : 1),
+             (w : 1),
+             (w + 1/2 : 1),
+             (w^2 + w - 33/16 : 1),
+             (-w^2 - w + 25/16 : 1),
+             (w^2 - 21/16 : 1),
+             (-w^2 - w + 33/16 : 1),
+             (-w : 1),
+             (-w - 1/2 : 1),
+             (-w^2 + 29/16 : 1),
+             (w^2 - 29/16 : 1),
+             (w^2 + w - 25/16 : 1)]
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: P.<u,v> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([u^2+v^2, v^2])
+            sage: f.all_rational_preimages(P(4))
+            [(-w : 1), (w : 1)]
         """
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_rational_preimages instead")
@@ -1994,12 +2041,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ...
             [(w : 1),
              (w^2 - 29/16 : 1),
-             (w^2 + w - 25/16 : 1),
              (-w^2 - w + 25/16 : 1),
+             (w^2 + w - 25/16 : 1),
              (-w : 1),
+             (-w^2 + 29/16 : 1),
              (w + 1/2 : 1),
              (-w - 1/2 : 1),
-             (-w^2 + 29/16 : 1),
              (-w^2 + 21/16 : 1),
              (w^2 - 21/16 : 1),
              (w^2 + w - 33/16 : 1),

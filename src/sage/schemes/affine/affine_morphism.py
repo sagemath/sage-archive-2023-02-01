@@ -90,10 +90,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x,y> = AffineSpace(ZZ, 2)
             sage: H = Hom(A, A)
             sage: H([3/5*x^2, y^2/(2*x^2)])
-            Traceback (most recent call last):
-            ...
-            TypeError: polys (=[3/5*x^2, y^2/(2*x^2)]) must be rational functions in
-            Multivariate Polynomial Ring in x, y over Integer Ring
+            Scheme endomorphism of Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x, y) to
+                    (3*x^2/5, y^2/(2*x^2))
 
         ::
 

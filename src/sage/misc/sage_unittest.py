@@ -450,7 +450,7 @@ class InstanceTester(unittest.TestCase):
         return "Testing utilities for %s"%self._instance
 
 
-    def some_elements(self, S=None, repeat=1):
+    def some_elements(self, S=None, repeat=None):
         """
         Returns a list (or iterable) of elements of the instance on which
         the tests should be run. This is only meaningful for container
@@ -463,7 +463,7 @@ class InstanceTester(unittest.TestCase):
           time, or the result of :meth:`.some_elements` if no elements
           were specified.
 
-        - ``repeat`` -- integer (default: 1).  If given, instead returns
+        - ``repeat`` -- integer (default: None).  If given, instead returns
           a list of tuples of length ``repeat`` from ``S``.
 
         OUTPUT:
@@ -528,14 +528,16 @@ class InstanceTester(unittest.TestCase):
 
         The ``repeat`` keyword can give pairs or triples from ``S``::
 
-            sage: list(tester.some_elements(repeat=2)
+            sage: list(tester.some_elements(repeat=2))
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
 
         You can use ``max_samples`` to sample at random, instead of in order::
 
-            sage: tester = InstanceTester(ZZ, elements = srange(8), max_samples = 3)
+            sage: tester = InstanceTester(ZZ, elements = srange(8), max_samples = 4)
             sage: list(tester.some_elements())
-            [2, 1, 4]
+            [0, 3, 7, 1]
+            sage: list(tester.some_elements(repeat=2))
+            [(1, 4), (3, 1), (4, 5), (5, 0)]
 
         Test for :trac:`15919`, :trac:`16244`::
 
@@ -555,19 +557,9 @@ class InstanceTester(unittest.TestCase):
             sage: list(tester.some_elements())
             [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 0, 2), (0, 0, 0, 3)]
         """
-        if S is None:
-            if self._elements is None:
-                S = self._instance.some_elements()
-            else:
-                S = self._elements
-        import itertools
-        if repeat != 1:
-            S = itertools.product(S, repeat=repeat)
-        if self._max_samples is None:
-            return list(itertools.islice(S, self._max_runs))
-        else:
-            return list(random.sample(S, self._max_samples))
-
+        S = S or self._elements or self._instance.some_elements()
+        from sage.misc.misc import some_tuples
+        return list(some_tuples(S, repeat, self._max_runs, self._max_samples))
 
 class PythonObjectWithTests(object):
     """

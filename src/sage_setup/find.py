@@ -13,6 +13,7 @@ Recursive Directory Contents
 
 
 import os
+import six
 
 
 def find_python_sources(src_dir, modules=('sage',)):
@@ -188,3 +189,72 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     finally:
         os.chdir(cwd)
     return module_files
+
+
+def get_extensions(type=None):
+    """
+    Returns the filename extensions for different types of Python module files.
+
+    By default returns all extensions, but can be filtered by type.  The
+    possible types are 'source' (for pure Python sources), 'bytecode' (for
+    compiled bytecode files (i.e. pyc files), or 'extension' for C extension
+    modules.
+
+    INPUT:
+
+    - ``type`` -- the module type ('source', 'bytecode', or 'extension') or
+      None
+
+    EXAMPLES::
+
+        sage: from sage_setup.find import get_extensions
+        sage: get_extensions()  # random - depends on Python version
+        ['.so', 'module.so', '.py', '.pyc']
+        sage: get_extensions('source')
+        ['.py']
+        sage: get_extensions('bytecode')
+        ['.pyc']
+        sage: get_extensions('extension')  # random - depends on Python version
+        ['.so', 'module.so']
+    """
+
+    if type:
+        type = type.lower()
+        if type not in ('source', 'bytecode', 'extension'):
+            raise ValueError(
+                "type must by one of 'source' (for Python sources), "
+                "'bytecode' (for compiled Python bytecoe), or 'extension' "
+                "(for C extension modules).")
+
+    return _get_extensions(type)
+
+
+if six.PY2:
+    import imp
+
+    def _get_extensions(type):
+        """
+        Python 2 implementation of ``get_extensions()`` using the `imp` module.
+        """
+
+        if type:
+            type = {'source': imp.PY_SOURCE, 'bytecode': imp.PY_COMPILED,
+                    'extension': imp.C_EXTENSION}[type]
+
+        return [s[2] for s in imp.get_suffixes()
+                if type is None or type == s[2]]
+else:
+    import importlib.machinery
+
+    def _get_extensions(type):
+        """
+        Python 3.3+ implementation of ``get_extensions()`` using the
+        `importlib.extensions` module.
+        """
+
+        if type:
+            return {'source': importlib.machinery.SOURCE_SUFFIXES,
+                    'bytecode': importlib.machinery.BYTECODE_SUFFIXES,
+                    'extension': importlib.machinery.EXTENSION_SUFFIXES}[type]
+
+        return importlib.machinery.all_suffixes()

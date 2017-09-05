@@ -87,8 +87,8 @@ except KeyError:
     keep_going = False
 
 # search for dependencies and add to gcc -I<path>
-# this depends on SAGE_CYTHONIZED
 include_dirs = sage_include_directories(use_sources=True)
+include_dirs.append(SAGE_CYTHONIZED)
 
 # Look for libraries in $SAGE_LOCAL/lib
 library_dirs = [os.path.join(SAGE_LOCAL, "lib")]

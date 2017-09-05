@@ -263,8 +263,6 @@ def sage_include_directories(use_sources=False):
     if use_sources :
         include_directories.extend([SAGE_SRC,
                                     opj(SAGE_SRC, 'sage', 'ext')])
-        include_directories.extend([SAGE_CYTHONIZED,
-                                    opj(SAGE_CYTHONIZED, 'sage', 'ext')])
     else:
         include_directories.extend([SAGE_LIB,
                                     opj(SAGE_LIB, 'sage', 'ext')])

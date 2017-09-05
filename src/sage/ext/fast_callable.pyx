@@ -774,7 +774,11 @@ cdef class ExpressionTreeBuilder:
 cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
-cdef op_div = operator.truediv
+cdef op_div
+try:
+    op_div = operator.div
+except AttributeError:
+    op_div = operator.truediv
 cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
@@ -1664,15 +1668,16 @@ cpdef dict get_builtin_functions():
     if builtin_functions is not None:
         return builtin_functions
     builtin_functions = {
-        operator.add: 'add',
-        operator.sub: 'sub',
-        operator.mul: 'mul',
-        operator.truediv: 'div',
-        operator.floordiv: 'floordiv',
-        operator.abs: 'abs',
-        operator.neg: 'neg',
-        operator.inv: 'inv',
-        operator.pow: 'pow',
+        op_add: 'add',
+        op_sub: 'sub',
+        op_mul: 'mul',
+        op_div: 'div',
+        op_truediv: 'div',
+        op_floordiv: 'floordiv',
+        op_abs: 'abs',
+        op_neg: 'neg',
+        op_inv: 'inv',
+        op_pow: 'pow',
         }
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all

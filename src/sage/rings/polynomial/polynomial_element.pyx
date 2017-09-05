@@ -6250,7 +6250,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: all(p_div(x1/x2).is_zero() for x1 in r1 for x2 in r2)
             True
 
-        TESTS::
+        TESTS:
+
+        In Python 2, ``operator.div`` still works::
+
+            sage: from six import PY2
+            sage: div = getattr(operator, "div" if PY2 else "truediv")
+            sage: p1.composed_op(p2, div)
+            x^6 + x^5 + x^4 + x^2 + 1
+
+        ::
 
             sage: y = polygen(ZZ)
             sage: for p1 in [2*y^3 - y + 3, -y^5 - 2, 4*y - 3]:
@@ -6269,6 +6278,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         cdef long j
         cdef long prec
+
+        try:
+            if op is operator.div:
+                op = operator.truediv
+        except AttributeError:
+            pass
 
         if op not in (operator.add, operator.sub, operator.mul, operator.truediv):
             raise ValueError("op must be operator.OP where OP=add, sub, mul or truediv")

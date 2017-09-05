@@ -24,8 +24,7 @@ from __future__ import absolute_import, division, print_function
 import math
 
 cdef add, sub, mul, truediv, pow, neg, inv
-from operator import add, sub, mul, pow, neg, inv
-from operator import truediv
+from operator import add, sub, mul, pow, neg, inv, truediv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion

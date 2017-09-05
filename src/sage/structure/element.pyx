@@ -286,8 +286,10 @@ cdef add, sub, mul, div, truediv, floordiv, mod
 cdef iadd, isub, imul, idiv, itruediv, ifloordiv
 from operator import (add, sub, mul, truediv, floordiv, mod,
                       iadd, isub, imul, itruediv, ifloordiv)
-from operator import truediv as div
-from operator import itruediv as idiv
+try:
+    from operator import div, idiv
+except ImportError:
+    div = idiv = None
 
 cdef dict _coerce_op_symbols = dict(
         add='+', sub='-', mul='*', div='/', truediv='/', floordiv='//', mod='%',

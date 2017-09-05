@@ -2367,7 +2367,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     mpq_denref((<Rational>left).value))
             return x
 
-        return coercion_model.bin_op(left, right, operator.truediv)
+        return coercion_model.bin_op(left, right, operator.div)
 
     cpdef _div_(self, right):
         """

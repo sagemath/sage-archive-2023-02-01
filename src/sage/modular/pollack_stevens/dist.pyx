@@ -768,7 +768,7 @@ cdef class Dist_vector(Dist):
     The `j`-th entry is stored modulo `p^{N-j}` where `N` is the total number of moments.
     (This is the accuracy that is maintained after acting by `\Gamma_0(p)`.)
 
-    INPUTS:
+    INPUT:
 
     - ``moments`` -- the list of moments.  If ``check == False`` it
       must be a vector in the appropriate approximation module.

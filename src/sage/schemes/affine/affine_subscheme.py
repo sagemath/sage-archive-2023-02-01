@@ -462,7 +462,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P is sent to the origin
-        # and then compute the multiplicity of the local ring of the translated subscheme 
+        # and then compute the multiplicity of the local ring of the translated subscheme
         # corresponding to the point (0,...,0)
         AA = self.ambient_space()
         chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]

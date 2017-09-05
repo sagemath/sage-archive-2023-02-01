@@ -36,6 +36,7 @@ def is_RingHomset(H):
     """
     return isinstance(H, RingHomset_generic)
 
+
 def RingHomset(R, S, category = None):
     """
     Construct a space of homomorphisms between the rings ``R`` and ``S``.

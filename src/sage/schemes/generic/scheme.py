@@ -673,11 +673,6 @@ class Scheme(Parent):
         An integer. The number of points over `\GF{q}, \ldots,
         \GF{q^n}` on a scheme over a finite field `\GF{q}`.
 
-        .. note::
-
-           This is currently only implemented for schemes over prime
-           order finite fields.
-
         EXAMPLES::
 
             sage: P.<x> = PolynomialRing(GF(3))
@@ -686,19 +681,43 @@ class Scheme(Parent):
             [6, 12, 18, 96]
             sage: C.base_extend(GF(9,'a')).count_points(2)
             [12, 96]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: X.count_points(2)
+            [5, 17]
         """
         F = self.base_ring()
         if not F.is_finite():
             raise TypeError("Point counting only defined for schemes over finite fields")
-        q = F.cardinality()
-        if not q.is_prime():
-            raise NotImplementedError("Point counting only implemented for schemes over prime fields")
-        a = []
-        for i in range(1, n+1):
-            F1 = GF(q**i, name='z')
-            S1 = self.base_extend(F1)
+        a = [len(self.rational_points())]
+        for i in range(2, n+1):
+            F1, psi = F.extension(i, map=True)
+            S1 = self.change_ring(psi)
             a.append(len(S1.rational_points()))
         return(a)
+
+    def zeta_function(self):
+        r"""
+        Compute the zeta function of a generic scheme.
+
+        Derived classes should override this method.
+
+        OUTPUT: rational function in one variable.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: X.zeta_function()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
 
     def zeta_series(self, n, t):
         """
@@ -709,16 +728,13 @@ class Scheme(Parent):
 
         INPUT:
 
-        -  ``n`` -- the number of terms of the power series to
-           compute
+        - ``n`` -- the number of terms of the power series to compute
 
-        -  ``t`` -- the variable which the series should be
-           returned
-
+        - ``t`` -- the variable which the series should be returned
 
         OUTPUT:
 
-        A power series approximating the zeta function of self
+        A power series approximating the zeta function of ``self``
 
         EXAMPLES::
 
@@ -730,27 +746,51 @@ class Scheme(Parent):
             sage: (1+2*t+3*t^2)/(1-t)/(1-3*t) + O(t^5)
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
 
-        Note that this function depends on count_points, which is only
+        If the scheme has a method ``zeta_function``, this is used to
+        provide the required approximation.
+        Otherwise this function depends on ``count_points``, which is only
         defined for prime order fields for general schemes.
         Nonetheless, since :trac:`15108` and :trac:`15148`, it supports
         hyperelliptic curves over non-prime fields::
 
             sage: C.base_extend(GF(9,'a')).zeta_series(4,t)
             1 + 12*t + 120*t^2 + 1092*t^3 + 9840*t^4 + O(t^5)
-        """
 
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(4,'t'), 2)
+            sage: X = P.subscheme([y^2*z - x^3 - z^3])
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: X.zeta_series(2,t)
+            1 + 5*t + 21*t^2 + O(t^3)
+
+        TESTS::
+
+            sage: P.<x> = PolynomialRing(ZZ)
+            sage: C = HyperellipticCurve(x^3+x+1)
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: C.zeta_series(4,t)
+            Traceback (most recent call last):
+            ...
+            TypeError: zeta functions only defined for schemes
+            over finite fields
+        """
         F = self.base_ring()
         if not F.is_finite():
             raise TypeError('zeta functions only defined for schemes over finite fields')
+        R = t.parent()
+        u = t.O(n + 1)
+        try:
+            return self.zeta_function()(u)
+        except (AttributeError, NotImplementedError):
+            pass
         try:
             a = self.count_points(n)
         except AttributeError:
             raise NotImplementedError('count_points() required but not implemented')
-        R = PowerSeriesRing(Rationals(), 'u')
-        u = R.gen()
-        temp = sum(a[i-1]*(u.O(n+1))**i/i for i in range(1,n+1))
-        temp2 = temp.exp()
-        return(temp2(t).O(n+1))
+        temp = R.sum(a[i - 1] * u**i / i for i in range(1, n + 1))
+        return temp.exp()
+
 
 def is_AffineScheme(x):
     """

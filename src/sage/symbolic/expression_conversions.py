@@ -764,9 +764,9 @@ class SympyConverter(Converter):
         if f_sympy:
             return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
-            # create generic function with nargs equal to initial function
-            return  sympy.Function(f)(*tuple(g))
-            #raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
+            from sage.symbolic.function_factory import SymbolicFunction
+            if isinstance(ex.operator(), SymbolicFunction):
+                return sympy.Function(str(f))(*g, evaluate=False)
 
 
     def derivative(self, ex, operator):

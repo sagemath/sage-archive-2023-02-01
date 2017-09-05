@@ -21,6 +21,7 @@ from sage.functions.other import floor
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.misc_c import prod
 from sage.rings.fraction_field import FractionField
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.padics.factory import Zp
 from sage.rings.padics.misc import gauss_sum as padic_gauss_sum
@@ -31,50 +32,6 @@ from sage.rings.rational_field import QQ
 from sage.schemes.generic.spec import Spec
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-
-
-def convert_to_Z(x):
-    r"""
-    Convert from a specific extension of `p`-adic numbers to `\ZZ`.
-
-    INPUT:
-
-    - ``x`` -- element of the extension used for the `p`-adic
-      Gauss sums
-
-    This is an extension of `\QQ_p` with one generator `\pi`
-    that satisfies `\pi ^ {p - 1} = -p`.
-
-    OUTPUT:
-
-    an integer in `\ZZ`
-
-    EXAMPLES::
-
-        sage: from sage.modular.hypergeometric_motive import convert_to_Z
-        sage: p = 5
-        sage: R = Zp(p)
-        sage: X = PolynomialRing(R, name='X').gen()
-        sage: pi = R.ext(X**(p - 1) + p, names='pi').gen()
-        sage: convert_to_Z(1 + pi^4 + O(pi^80))
-        -4
-        sage: convert_to_Z(1 + pi^8 + 3*pi^12 + pi^16 + O(pi^80))
-        276
-
-    TESTS::
-
-        sage: g = pi^4 + O(pi^80)
-        sage: convert_to_Z(g)
-        -5
-        sage: convert_to_Z(~~g)
-        -5
-    """
-    p = x.parent().base_ring().prime()
-    y = x.parent().integer_ring()(x)
-    L = y.list()
-    return ZZ.sum(L[(p - 1) * i] * (-p) ** i
-                  for i in range(1 + len(L) // (p - 1)))
-
 
 def characteristic_polynomial_from_traces(traces, d, q, i):
     r"""
@@ -957,17 +914,19 @@ class HypergeometricMotive(object):
         M = self.M_value()
         D = (self.weight() + 1 - m[0]) // 2
 
-        gauss_table = [padic_gauss_sum(r, p, f, prec) for r in range(q - 1)]
+        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
 
         p_ring = Zp(p, prec=prec)
         teich = p_ring.teichmuller(t * M)
         sigma = sum(q**(D + m[0] - m[r]) *
-                    prod(gauss_table[(v * r) % (q - 1)] ** gv
+                    (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
+                             for v, gv in gamma.items())//(p-1)) *
+                    prod(gauss_table[(v * r) % (q - 1)][1] ** gv
                          for v, gv in gamma.items()) *
                     teich ** r
                     for r in range(q - 1))
         resu = ZZ(-1) ** m[0] / (1 - q) * sigma
-        return convert_to_Z(resu)
+        return IntegerModRing(p**prec)(resu).lift_centered()
 
     def H_value(self, p, f, t, ring=None):
         """

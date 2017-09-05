@@ -1145,7 +1145,7 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.cube()
             sage: p.to_linear_program()
-            Mixed Integer Program  ( maximization, 3 variables, 6 constraints )
+            Linear Program (no objective, 3 variables, 6 constraints)
             sage: lp, x = p.to_linear_program(return_variable=True)
             sage: lp.set_objective(2*x[0] + 1*x[1] + 39*x[2])
             sage: lp.solve()

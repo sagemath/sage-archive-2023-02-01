@@ -204,7 +204,7 @@ class Converter(object):
             obj = ex.pyobject()
             return self.pyobject(ex, obj)
         except TypeError as err:
-            if 'self must be a numeric expression' not in err:
+            if 'self must be a numeric expression' not in err.args:
                 raise err
 
         operator = ex.operator()

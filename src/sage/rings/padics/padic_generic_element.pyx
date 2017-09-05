@@ -816,11 +816,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: The p-adic gamma function only works on elements of Zp
+
+        TESTS:
+
+        We check that :trac:`23784` is resolved::
+
+            sage: Zp(5)(0).gamma()
+            1 + O(5^20)
         """
         if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
         parent = self.parent()
+        if self.precision_absolute() is infinity:
+            # Have to deal with exact zeros separately
+            return parent(1)
         if algorithm == 'pari':
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':

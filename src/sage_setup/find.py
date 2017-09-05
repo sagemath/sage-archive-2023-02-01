@@ -15,6 +15,11 @@ Recursive Directory Contents
 import os
 import six
 
+from collections import defaultdict
+
+if not six.PY2:
+    import importlib.util
+
 
 def find_python_sources(src_dir, modules=('sage',)):
     """
@@ -52,7 +57,7 @@ def find_python_sources(src_dir, modules=('sage',)):
         sage: find_python_sources(SAGE_SRC, modules=['sage_setup'])
         (['sage_setup', ...], [...'sage_setup.find'...])
     """
-    PYMOD_EXT = os.path.extsep + 'py'
+    PYMOD_EXT = get_extensions('source')[0]
     INIT_FILE = '__init__' + PYMOD_EXT
 
     python_packages = []
@@ -136,7 +141,7 @@ def installed_files_by_module(site_packages, modules=('sage',)):
       library is being installed. If the path doesn't exist, returns
       an empty dictionary.
 
-    - ``module`` -- list/tuple/iterable of strings (default:
+    - ``modules`` -- list/tuple/iterable of strings (default:
       ``('sage',)``). The top-level directory name(s) in
       ``site_packages``.
 
@@ -166,9 +171,33 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         ....:        number=1, repeat=1)
         1 loops, best of 1: 29.6 ms per loop
     """
-    module_files = dict()
-    def add(module, filename):
-        module_files.setdefault(module, set([filename])).add(filename)
+
+    module_files = defaultdict(set)
+    module_exts = get_extensions()
+
+    def add(module, filename, dirpath):
+        # Find the longest extension that matches the filename
+        best_ext = ''
+
+        for ext in module_exts:
+            if filename.endswith(ext) and len(ext) > len(best_ext):
+                best_ext = ext
+
+        if not best_ext:
+            return
+
+        base = filename[:-len(best_ext)]
+        filename = os.path.join(dirpath, filename)
+
+        if base != '__init__':
+            module += '.' + base
+
+        module_files[module].add(filename)
+
+        if not six.PY2:
+            cache_filename = importlib.util.cache_from_source(filename)
+            if os.path.exists(cache_filename):
+                module_files[module].add(cache_filename)
 
     cwd = os.getcwd()
     try:
@@ -179,13 +208,12 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
                 module_dir = '.'.join(dirpath.split(os.path.sep))
+
+                if os.path.basename(dirpath) == '__pycache__':
+                    continue
+
                 for filename in filenames:
-                    base, ext = os.path.splitext(filename)
-                    filename = os.path.join(dirpath, filename)
-                    if base == '__init__':
-                        add(module_dir, filename)
-                    else:
-                        add(module_dir + '.' + base, filename)
+                    add(module_dir, filename, dirpath)
     finally:
         os.chdir(cwd)
     return module_files

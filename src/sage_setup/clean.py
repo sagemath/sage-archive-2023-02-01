@@ -13,6 +13,10 @@ Clean the Install Dir
 
 
 import os
+import six
+
+if not six.PY2:
+    import importlib.util
 
 from sage_setup.find import installed_files_by_module, get_extensions
 
@@ -50,12 +54,19 @@ def _remove(file_set, module_base, to_remove):
         {'a/b/d.py'}
     """
     path = os.path.join(*module_base.split('.'))
+
     for filename in to_remove:
         if filename.startswith('.'):
             filename = path + filename
         else:
             filename = os.path.join(path, filename)
-        file_set.difference_update([filename])
+
+        remove = [filename]
+
+        if not six.PY2:
+            remove.append(importlib.util.cache_from_source(filename))
+
+        file_set.difference_update(remove)
 
 
 def _find_stale_files(site_packages, python_packages, python_modules, ext_modules, data_files):

@@ -48,10 +48,10 @@ def gauss_sum(a, p, f, prec=20, factored=False):
     Rend. Sem. Mat. Univ. Padova 105 (2001), 157--170.
 
     Let `p` be a prime, `f` a positive integer, `q=p^f`, and `\pi` be
-    the unique root of `f(x) = x^{p-1}+p` congruent to `\zeta_p-1` modulo
-    `(\zeta_p-1)^2`. Let `0\leq a < q-1`. Then the Gross-Koblitz formula
-    gives us the value of the Gauss sum `g_q(a)` as a product of p-adic
-    Gamma functions as follows:
+    the unique root of `f(x) = x^{p-1}+p` congruent to `\zeta_p - 1` modulo
+     `(\zeta_p - 1)^2`. Let `0\leq a < q-1`. Then the
+    Gross-Koblitz formula gives us the value of the Gauss sum `g_q(a)`
+    as a product of `p`-adic Gamma functions as follows:
 
     .. MATH::
 
@@ -120,7 +120,7 @@ def gauss_sum(a, p, f, prec=20, factored=False):
     n = len(digits)
     digits = digits + [0] * (f - n)
     s = sum(digits)
-    out = -1
+    out = R(-1)
     for i in range(f):
         a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))
         if a_i:

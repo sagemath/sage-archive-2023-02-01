@@ -14,7 +14,7 @@ Clean the Install Dir
 
 import os
 
-from sage_setup.find import installed_files_by_module
+from sage_setup.find import installed_files_by_module, get_extensions
 
 
 
@@ -89,9 +89,9 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         ....:     if f.endswith(skip_extensions): continue
         ....:     print('Found stale file: ' + f)
     """
-    from sage.misc.sageinspect import loadable_module_extension
-    PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
-    CEXTMOD_EXTS = (loadable_module_extension(),)
+
+    PYMOD_EXTS = get_extensions('source') + get_extensions('bytecode')
+    CEXTMOD_EXTS = get_extensions('extension')
     INIT_FILES = tuple('__init__' + x for x in PYMOD_EXTS)
 
     module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])

@@ -1346,7 +1346,10 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
 
     """
     if gap:
-        from sage.all import PermutationGroup, PermutationGroupElement, shuffle
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        from sage.misc.prandom import shuffle
+
     cdef StabilizerChain *SC
     cdef StabilizerChain *SCC
     cdef StabilizerChain *SCCC

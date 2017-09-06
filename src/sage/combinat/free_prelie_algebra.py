@@ -15,18 +15,29 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.lie_algebras import LieAlgebras
+from sage.categories.magmas import Magmas
+from sage.categories.pushout import (ConstructionFunctor,
+                                     CompositeConstructionFunctor,
+                                     IdentityConstructionFunctor)
+from sage.categories.rings import Rings
+from sage.categories.functor import Functor
+
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.rooted_tree import (RootedTrees, RootedTree,
                                        LabelledRootedTrees,
                                        LabelledRootedTree)
+
+from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.categories.rings import Rings
+
 from sage.sets.family import Family
+lazy_import('sage.structure.parent', 'CoercionException')
 
 
 class FreePreLieAlgebra(CombinatorialFreeModule):
@@ -159,16 +170,20 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: F1 = algebras.FreePreLie(QQ, 'xyz')
-            sage: F2 = algebras.FreePreLie(QQ, ['x','y','z'])
-            sage: F3 = algebras.FreePreLie(QQ, Alphabet('xyz'))
-            sage: F1 is F2 and F1 is F3
+            sage: F2 = algebras.FreePreLie(QQ, 'x,y,z')
+            sage: F3 = algebras.FreePreLie(QQ, ['x','y','z'])
+            sage: F4 = algebras.FreePreLie(QQ, Alphabet('xyz'))
+            sage: F1 is F2 and F1 is F3 and F1 is F4
             True
         """
         if names is not None:
+            if ',' in names:
+                names = [u for u in names if u != ',']
             names = Alphabet(names)
 
         if R not in Rings():
             raise TypeError("argument R must be a ring")
+
         return super(FreePreLieAlgebra, cls).__classcall__(cls, R, names)
 
     def __init__(self, R, names=None):
@@ -197,7 +212,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             self._alphabet = names
         # Here one would need LabelledRootedTrees(names)
         # so that one can restrict the labels to some fixed set
-        
+
         cat = MagmaticAlgebras(R).WithBasis().Graded() & LieAlgebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
@@ -287,6 +302,23 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         Trees = self.basis().keys()
         return Family(self._alphabet, lambda a: self.monomial(Trees([], a)))
+
+    def change_ring(self, R):
+        """
+        Return the free pre-Lie algebra in the same variables over `R`.
+
+        INPUT:
+
+        - `R` -- a ring
+
+        EXAMPLES::
+
+            sage: A = algebras.FreePreLie(ZZ, 'fgh')
+            sage: A.change_ring(QQ)
+            Free PreLie algebra on 3 generators ['f', 'g', 'h'] over
+            Rational Field
+        """
+        return FreePreLieAlgebra(R, names=self.variable_names())
 
     def gens(self):
         """
@@ -503,8 +535,8 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             ...
             TypeError: not able to convert this to this algebra
         """
-        if (isinstance(x, (RootedTree, LabelledRootedTree))
-                and x in self.basis().keys()):
+        if (isinstance(x, (RootedTree, LabelledRootedTree)) and
+                x in self.basis().keys()):
             return self.monomial(x)
         try:
             P = x.parent()
@@ -589,3 +621,193 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                     return True
         return False
 
+    def construction(self):
+        """
+        Return a pair ``(F, R)``, where ``F`` is a :class:`PreLieFunctor`
+        and `R` is a ring, such that ``F(R)`` returns ``self``.
+
+        EXAMPLES::
+
+            sage: P = algebras.FreePreLie(ZZ, 'x,y')
+            sage: x,y = P.gens()
+            sage: F, R = P.construction()
+            sage: F
+            PreLie[x,y]
+            sage: R
+            Integer Ring
+            sage: F(ZZ) is P
+            True
+            sage: F(QQ)
+            Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
+        """
+        return PreLieFunctor(self.variable_names()), self.base_ring()
+
+
+class PreLieFunctor(ConstructionFunctor):
+    """
+    A constructor for pre-Lie algebras.
+
+    EXAMPLES::
+
+        sage: P = algebras.FreePreLie(ZZ, 'x,y')
+        sage: x,y = P.gens()
+        sage: F = P.construction()[0]; F
+        PreLie[x,y]
+
+        sage: A = GF(5)['a,b']
+        sage: a, b = A.gens()
+        sage: F(A)
+        Free PreLie algebra on 2 generators ['x', 'y'] over Multivariate Polynomial Ring in a, b over Finite Field of size 5
+
+        sage: f = A.hom([a+b,a-b],A)
+        sage: F(f)
+        Generic endomorphism of Free PreLie algebra on 2 generators ['x', 'y']
+        over Multivariate Polynomial Ring in a, b over Finite Field of size 5
+
+        sage: F(f)(a * F(A)(x))
+        (a+b)*B[x[]]
+    """
+    rank = 9
+
+    def __init__(self, vars):
+        """
+        EXAMPLES::
+
+            sage: F = sage.combinat.free_prelie_algebra.PreLieFunctor(['x','y'])
+            sage: F
+            PreLie[x,y]
+            sage: F(ZZ)
+            Free PreLie algebra on 2 generators ['x', 'y']  over Integer Ring
+        """
+        Functor.__init__(self, Rings(), Magmas())
+        self.vars = vars
+
+    def _apply_functor(self, R):
+        """
+        Apply the functor to an object of ``self``'s domain.
+
+        EXAMPLES::
+
+            sage: R = algebras.FreePreLie(ZZ, 'x,y,z')
+            sage: F = R.construction()[0]; F
+            PreLie[x,y,z]
+            sage: type(F)
+            <class 'sage.combinat.free_prelie_algebra.PreLieFunctor'>
+            sage: F(ZZ)          # indirect doctest
+            Free PreLie algebra on 3 generators ['x', 'y', 'z'] over Integer Ring
+        """
+        return FreePreLieAlgebra(R, self.vars)
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the ring morphism `f`.
+
+        TESTS::
+
+            sage: R = algebras.FreePreLie(ZZ, 'x').construction()[0]
+            sage: R(ZZ.hom(GF(3)))  # indirect doctest
+            Generic morphism:
+              From: Free PreLie algebra on one generator ['x'] over Integer Ring
+              To:   Free PreLie algebra on one generator ['x'] over Finite Field of size 3
+        """
+        dom = self(f.domain())
+        codom = self(f.codomain())
+
+        def action(x):
+            return codom._from_dict({a: f(b)
+                                     for a, b in iteritems(x.monomial_coefficients())})
+        return dom.module_morphism(function=action, codomain=codom)
+
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: F = algebras.FreePreLie(ZZ, 'x,y,z').construction()[0]
+            sage: G = algebras.FreePreLie(QQ, 'x,y,z').construction()[0]
+            sage: F == G
+            True
+            sage: G == loads(dumps(G))
+            True
+            sage: G = algebras.FreePreLie(QQ, 'x,y').construction()[0]
+            sage: F == G
+            False
+        """
+        if not isinstance(other, PreLieFunctor):
+            return False
+        return self.vars == other.vars
+
+    def __mul__(self, other):
+        """
+        If two PreLie functors are given in a row, form a single PreLie functor
+        with all of the variables.
+
+        EXAMPLES::
+
+            sage: F = sage.combinat.free_prelie_algebra.PreLieFunctor(['x','y'])
+            sage: G = sage.combinat.free_prelie_algebra.PreLieFunctor(['t'])
+            sage: G * F
+            PreLie[x,y,t]
+        """
+        if isinstance(other, IdentityConstructionFunctor):
+            return self
+        if isinstance(other, PreLieFunctor):
+            if set(self.vars).intersection(other.vars):
+                raise CoercionException("Overlapping variables (%s,%s)" %
+                                        (self.vars, other.vars))
+            return PreLieFunctor(other.vars + self.vars)
+        elif (isinstance(other, CompositeConstructionFunctor) and
+              isinstance(other.all[-1], PreLieFunctor)):
+            return CompositeConstructionFunctor(other.all[:-1],
+                                                self * other.all[-1])
+        else:
+            return CompositeConstructionFunctor(other, self)
+
+    def merge(self, other):
+        """
+        Merge ``self`` with another construction functor, or return None.
+
+        EXAMPLES::
+
+            sage: F = sage.combinat.free_prelie_algebra.PreLieFunctor(['x','y'])
+            sage: G = sage.combinat.free_prelie_algebra.PreLieFunctor(['t'])
+            sage: F.merge(G)
+            PreLie[x,y,t]
+            sage: F.merge(F)
+            PreLie[x,y]
+
+        Now some actual use cases::
+
+            sage: R = algebras.FreePreLie(ZZ, 'xyz')
+            sage: x,y,z = R.gens()
+            sage: 1/2 * x
+            1/2*B[x[]]
+            sage: parent(1/2 * x)
+            Free PreLie algebra on 3 generators ['x', 'y', 'z'] over Rational Field
+
+            sage: S = algebras.FreePreLie(QQ, 'zt')
+            sage: z,t = S.gens()
+            sage: x + t
+            B[t[]] + B[x[]]
+            sage: parent(x + t)
+            Free PreLie algebra on 4 generators ['z', 't', 'x', 'y'] over Rational Field
+        """
+        if isinstance(other, PreLieFunctor):
+            if self.vars == other.vars:
+                return self
+            ret = list(self.vars)
+            cur_vars = set(ret)
+            for v in other.vars:
+                if v not in cur_vars:
+                    ret.append(v)
+            return PreLieFunctor(Alphabet(ret))
+        else:
+            return None
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: algebras.FreePreLie(QQ,'x,y,z,t').construction()[0]
+            PreLie[x,y,z,t]
+        """
+        return "PreLie[%s]" % ','.join(self.vars)

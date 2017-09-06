@@ -122,7 +122,7 @@ class Test:
 
     def _level_weight_sign(self):
         """
-        Return a triple containing a random choice of level from from
+        Return a triple containing a random choice of level from
         self.levels, weights from self.weights, and sign chosen
         randomly from [1, 0, -1].
 

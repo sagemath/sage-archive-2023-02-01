@@ -22,7 +22,7 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed
+from sage.misc.package import is_package_installed, PackageNotFoundError
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -4189,8 +4189,7 @@ class Polyhedron_base(Element):
              David Avis's lrs program.
         """
         if not is_package_installed('lrslib'):
-            raise NotImplementedError('You must install the optional lrslib package '
-                                       'for this function to work')
+            raise PackageNotFoundError('lrslib')
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -4279,7 +4278,7 @@ class Polyhedron_base(Element):
                 return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
 
         else:
-            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+            raise PackageNotFoundError('latte_int')
 
     @cached_method
     def volume(self, engine='auto', **kwds):
@@ -4444,7 +4443,7 @@ class Polyhedron_base(Element):
                 return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 
         else:
-            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+            raise PackageNotFoundError('latte_int')
 
     def contains(self, point):
         """
@@ -5959,6 +5958,17 @@ class Polyhedron_base(Element):
 
         TESTS::
 
+            Check that :trac:`23355` is fixed::
+
+            sage: P = Polyhedron([[7]]); P
+            A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
+            sage: P.affine_hull()
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull(orthonormal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull(orthogonal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
@@ -5978,7 +5988,7 @@ class Polyhedron_base(Element):
             # check that translation didn't change the order of the vertices
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix(self.base_ring(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
             # switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly

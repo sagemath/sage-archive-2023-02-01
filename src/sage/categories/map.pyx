@@ -483,7 +483,7 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (type(self), self.parent(), _dict, self._extra_slots({}))
 
     def _repr_type(self):
         """
@@ -699,7 +699,7 @@ cdef class Map(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        TEST:
+        TESTS:
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
@@ -1002,7 +1002,7 @@ cdef class Map(Element):
             sage: phi_xz.category_for()
             Category of monoids
 
-        TEST:
+        TESTS:
 
         This illustrates that it is not tested whether the maps can actually
         be composed, i.e., whether codomain and domain match.

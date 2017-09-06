@@ -274,6 +274,16 @@ ext_modules = [
 
     Extension('*', ['sage/docs/*.pyx']),
 
+    ################################
+    ##
+    ## sage.dynamics
+    ##
+    ################################
+    
+
+    Extension('sage.dynamics.complex_dynamics.mandel_julia_helper',
+                sources = ['sage/dynamics/complex_dynamics/mandel_julia_helper.pyx']),
+
 
     ################################
     ##

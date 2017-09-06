@@ -3836,45 +3836,72 @@ const numeric numeric::iquo(const numeric &b, numeric& r) const {
         throw std::runtime_error("iquo2: bad input");
 }
 
-const numeric numeric::gcd(const numeric &b) const
+const numeric numeric::gcd(const numeric &B) const
 {
         if (is_zero())
-                return b;
-        if (b.is_zero())
-                return *this;
-        if (is_one() or b.is_one())
+                return B.abs();
+        if (B.is_zero())
+                return abs();
+        numeric a,b;
+        if (is_negative())
+                a = negative();
+        else
+                a = *this;
+        if (B.is_negative())
+                b = B.negative();
+        else
+                b = B;
+        if (a.is_one() or b.is_one())
                 return *_num1_p;
-        switch (t) {
+        switch (a.t) {
                 case LONG:
                         if (b.t == LONG) {
                                 // C++17 will have a function for this
-                                long a = v._long;
+                                long al = a.v._long;
                                 long bl = b.v._long;
                                 long c;
-                                while ( a != 0 ) {
-                                        c = a; a = bl % a;  bl = c;
+                                while ( al != 0 ) {
+                                        c = al; al = bl % al;  bl = c;
                                 }
                                 return bl;
                         }
-                        if (b.t == MPZ)
-                                return to_bigint().gcd(b);
+                        else if (b.t == MPZ)
+                                return a.to_bigint().gcd(b);
+                        else if (b.t == MPQ)
+                                return (a*b.denom()).gcd(b.numer()) / b.denom();
+                        else if (b.t == PYOBJECT) {
+                                PY_RETURN2(py_funcs.py_gcd, b);
+                        }
+                        stub("invalid type: type not handled");
                 case MPZ:
                         if (b.t == LONG) {
                                 mpz_t bigint;
                                 mpz_init(bigint);
                                 long l = mpz_gcd_ui(bigint,
-                                                  v._bigint,
+                                                  a.v._bigint,
                                                   std::labs(b.v._long));
                                 mpz_clear(bigint);
                                 return l;
                         }
-                        if (b.t == MPZ) {
+                        else if (b.t == MPZ) {
                                 mpz_t bigint;
                                 mpz_init(bigint);
-                                mpz_gcd(bigint, v._bigint, b.v._bigint);
+                                mpz_gcd(bigint, a.v._bigint, b.v._bigint);
                                 return bigint;
                         }
+                        else if (b.t == MPQ)
+                                return (a*b.denom()).gcd(b.numer()) / b.denom();
+                        else if (b.t == PYOBJECT) {
+                                PY_RETURN2(py_funcs.py_gcd, b);
+                        }
+                        stub("invalid type: type not handled");
                 case MPQ:
+                        if (b.t == PYOBJECT) {
+                                PY_RETURN2(py_funcs.py_gcd, b);
+                        }
+                        return (a.numer()*b.denom()).gcd(a.denom()*b.numer()) /
+                                (a.denom()*b.denom());
+                        stub("invalid type: type not handled");
                 case PYOBJECT:
                 {
                         PY_RETURN2(py_funcs.py_gcd, b);

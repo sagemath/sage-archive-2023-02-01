@@ -1379,9 +1379,7 @@ class Graph(GenericGraph):
             edges.sort(key=lambda e: (e[1],e[0])) # reverse lexicographic order
 
             # encode bit vector
-            from math import ceil
-            from sage.misc.functional import log
-            k = int(ceil(log(n,2)))
+            k = int((ZZ(n) - 1).nbits())
             v = 0
             i = 0
             m = 0

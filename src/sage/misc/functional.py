@@ -28,6 +28,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.misc.superseded import deprecation
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -954,6 +955,8 @@ def log(x, b=None):
     r"""
     Return the log of ``x`` to the base `b`. The default base is `e`.
 
+    DEPRECATED by :trac:`19444`
+
     INPUT:
 
     - ``x`` -- number
@@ -970,17 +973,24 @@ def log(x, b=None):
 
     EXAMPLES::
 
+        sage: from sage.misc.functional import log
         sage: log(e^2)
+        doctest:warning...
+        DeprecationWarning: use .log() or log() from sage.functions.log instead
+        See http://trac.sagemath.org/19444 for details.
         2
         sage: log(16,2)
         4
         sage: log(3.)
         1.09861228866811
+        sage: log(float(3))
+        1.0986122886681098
     """
+    deprecation(19444, 'use .log() or log() from sage.functions.log instead')
     if b is None:
         if hasattr(x, 'log'):
             return x.log()
-        return RDF(x)._log_base(1)
+        return RDF(x).log()
     else:
         if hasattr(x, 'log'):
             return x.log(b)

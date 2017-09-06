@@ -778,7 +778,7 @@ cdef op_div
 try:
     op_div = operator.div
 except AttributeError:
-    op_div = operator.truediv
+    op_div = object()  # Unique object not equal to anything else
 cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
@@ -1656,7 +1656,7 @@ cpdef dict get_builtin_functions():
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
         sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]

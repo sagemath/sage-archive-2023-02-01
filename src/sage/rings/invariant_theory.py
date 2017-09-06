@@ -7,7 +7,7 @@ special linear group. That is, we are dealing with polynomials of
 degree `d` in `n` variables. The special linear group `SL(n,\CC)` acts
 on the variables `(x_1,\dots, x_n)` linearly,
 
-.. math::
+.. MATH::
 
     (x_1,\dots, x_n)^t \to A (x_1,\dots, x_n)^t
     ,\qquad
@@ -24,7 +24,7 @@ For example, the binary quadratic `p(x,y) = a x^2 + b x y + c y^2`
 has as its invariant the discriminant `\mathop{disc}(p) = b^2 - 4 a
 c`. This means that for any `SL(2,\CC)` coordinate change
 
-.. math::
+.. MATH::
 
     \begin{pmatrix} x' \\ y' \end{pmatrix}
     =
@@ -110,6 +110,7 @@ from sage.rings.all import QQ
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.cachefunc import cached_method
 
 
@@ -170,6 +171,7 @@ def _guess_variables(polynomial, *args):
 
 ######################################################################
 
+@richcmp_method
 class FormsBase(SageObject):
     """
     The common base class of :class:`AlgebraicForm` and
@@ -464,7 +466,7 @@ class AlgebraicForm(FormsBase):
 
         - ``g`` -- an `SL(n,\CC)` matrix or ``None`` (default). The
           test will be to check that the covariant transforms
-          corrently under this special linear group element acting on
+          correctly under this special linear group element acting on
           the homogeneous variables. If ``None``, a random matrix will
           be picked.
 
@@ -504,8 +506,7 @@ class AlgebraicForm(FormsBase):
             cov = getattr(self, method_name)()
             assert (cov - cov_g).is_zero(), 'Not invariant.'
 
-
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` with ``other``.
 
@@ -513,18 +514,14 @@ class AlgebraicForm(FormsBase):
 
             sage: R.<x,y> = QQ[]
             sage: quartic = invariant_theory.binary_quartic(x^4+y^4)
-            sage: cmp(quartic, 'foo') == 0
+            sage: quartic == 'foo'
             False
-            sage: cmp(quartic, quartic)
-            0
-            sage: quartic.__cmp__(quartic)
-            0
+            sage: quartic == quartic
+            True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp(self.coeffs(), other.coeffs())
-
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.coeffs(), other.coeffs(), op)
 
     def _repr_(self):
         """
@@ -650,7 +647,7 @@ class AlgebraicForm(FormsBase):
             sage: from sage.rings.invariant_theory import AlgebraicForm
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: base = AlgebraicForm(3, 3, p, [x,y,z])
             sage: m = [x^3, y^3, z^3, x^2*y, x^2*z, x*y^2, y^2*z, x*z^2, y*z^2, x*y*z]
             sage: base._extract_coefficients(m)
@@ -870,7 +867,7 @@ class QuadraticForm(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = \sum_{0\leq i<n} a_i x_i^2 + \sum_{0\leq j <k<n}
             a_{jk} x_j x_k
@@ -897,7 +894,7 @@ class QuadraticForm(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = \sum_{0\leq i<n} a_i x_i^2 + \sum_{0\leq j <k<n}
             2 a_{jk} x_j x_k
@@ -931,7 +928,7 @@ class QuadraticForm(AlgebraicForm):
         This method returns a symmetric matrix `A` such that the
         quadratic `Q` equals
 
-        .. math::
+        .. MATH::
 
             Q(x,y,z,\dots) = (x,y,\dots) A (x,y,\dots)^t
 
@@ -1028,7 +1025,7 @@ class QuadraticForm(AlgebraicForm):
             sage: R.inject_variables()
             Defining a20, a11, a02, a10, a01, a00, x, y, z
             sage: p = ( a20*x^2 + a11*x*y + a02*y^2 +
-            ...         a10*x*z + a01*y*z + a00*z^2 )
+            ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: quadratic = invariant_theory.ternary_quadratic(p, x,y,z)
             sage: quadratic.dual().dual().form().factor()
             (1/4) * 
@@ -1169,7 +1166,7 @@ class BinaryQuartic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = a_0 x_1^4 + a_1 x_0 x_1^3 + a_2 x_0^2 x_1^2 +
                    a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1199,7 +1196,7 @@ class BinaryQuartic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                    4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1233,7 +1230,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The Eisenstein D-invariant of the quartic.
 
-        .. math::
+        .. MATH::
 
               f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                       4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1263,7 +1260,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The Eisenstein E-invariant of the quartic.
 
-        .. math::
+        .. MATH::
 
             f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                    4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1293,7 +1290,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The g-covariant of the quartic.
 
-        .. math::
+        .. MATH::
 
               f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                       4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1345,7 +1342,7 @@ class BinaryQuartic(AlgebraicForm):
 
         The h-covariant of the quartic.
 
-        .. math::
+        .. MATH::
 
               f(x) = a_0 x_1^4 + 4 a_1 x_0 x_1^3 + 6 a_2 x_0^2 x_1^2 +
                       4 a_3 x_0^3 x_1 + a_4 x_0^4
@@ -1509,7 +1506,7 @@ class TernaryQuadratic(QuadraticForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             p(x,y) =&\;
             a_{20} x^{2} + a_{11} x y + a_{02} y^{2} +
@@ -1522,7 +1519,7 @@ class TernaryQuadratic(QuadraticForm):
 
             sage: R.<x,y,z,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a20*x^2 + a11*x*y + a02*y^2 +
-            ...         a10*x*z + a01*y*z + a00*z^2 )
+            ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: invariant_theory.ternary_quadratic(p, x,y,z).coeffs()
             (a20, a02, a00, a11, a10, a01)
             sage: invariant_theory.ternary_quadratic(p.subs(z=1), x, y).coeffs()
@@ -1537,7 +1534,7 @@ class TernaryQuadratic(QuadraticForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             p(x,y) =&\;
             a_{20} x^{2} + a_{11} x y + a_{02} y^{2} +
@@ -1550,7 +1547,7 @@ class TernaryQuadratic(QuadraticForm):
 
             sage: R.<x,y,z,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a20*x^2 + a11*x*y + a02*y^2 +
-            ...         a10*x*z + a01*y*z + a00*z^2 )
+            ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: invariant_theory.ternary_quadratic(p, x,y,z).scaled_coeffs()
             (a20, a02, a00, 1/2*a11, 1/2*a10, 1/2*a01)
             sage: invariant_theory.ternary_quadratic(p.subs(z=1), x, y).scaled_coeffs()
@@ -1587,14 +1584,14 @@ class TernaryQuadratic(QuadraticForm):
 
             sage: R.<a,a_,b,b_,c,c_,f,f_,g,g_,h,h_,x,y,z> = QQ[]
             sage: p = ( a*x^2 + 2*h*x*y + b*y^2 +
-            ...         2*g*x*z + 2*f*y*z + c*z^2 )
+            ....:       2*g*x*z + 2*f*y*z + c*z^2 )
             sage: Q = invariant_theory.ternary_quadratic(p, [x,y,z])
             sage: Q.matrix()
             [a h g]
             [h b f]
             [g f c]
             sage: p = ( a_*x^2 + 2*h_*x*y + b_*y^2 +
-            ...         2*g_*x*z + 2*f_*y*z + c_*z^2 )
+            ....:       2*g_*x*z + 2*f_*y*z + c_*z^2 )
             sage: Q_ = invariant_theory.ternary_quadratic(p, [x,y,z])
             sage: Q_.matrix()
             [a_ h_ g_]
@@ -1638,8 +1635,8 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z> = QQ[]
             sage: p = 2837*x^3 + 1363*x^2*y + 6709*x^2*z + \
-            ...     5147*x*y^2 + 2769*x*y*z + 912*x*z^2 + 4976*y^3 + \
-            ...     2017*y^2*z + 4589*y*z^2 + 9681*z^3
+            ....:   5147*x*y^2 + 2769*x*y*z + 912*x*z^2 + 4976*y^3 + \
+            ....:   2017*y^2*z + 4589*y*z^2 + 9681*z^3
             sage: cubic = invariant_theory.ternary_cubic(p)
             sage: cubic._check_covariant('S_invariant', invariant=True)
             sage: cubic._check_covariant('T_invariant', invariant=True)
@@ -1689,7 +1686,7 @@ class TernaryCubic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             \begin{split}
               p(x,y) =&\;
@@ -1707,7 +1704,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: invariant_theory.ternary_cubic(p, x,y,z).coeffs()
             (a30, a03, a00, a21, a20, a12, a02, a10, a01, a11)
             sage: invariant_theory.ternary_cubic(p.subs(z=1), x, y).coeffs()
@@ -1725,7 +1722,7 @@ class TernaryCubic(AlgebraicForm):
 
         Given
 
-        .. math::
+        .. MATH::
 
             \begin{split}
               p(x,y) =&\;
@@ -1743,7 +1740,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: invariant_theory.ternary_cubic(p, x,y,z).scaled_coeffs()
             (a30, a03, a00, 1/3*a21, 1/3*a20, 1/3*a12, 1/3*a02, 1/3*a10, 1/3*a01, 1/6*a11)
         """
@@ -1838,7 +1835,7 @@ class TernaryCubic(AlgebraicForm):
         Given the ternary cubic `f(X,Y,Z)`, this method returns the
         symmetric matrix `A(x,y,z)` defined by
 
-        .. math::
+        .. MATH::
 
             x f_X + y f_Y + z f_Z = (X,Y,Z) \cdot A(x,y,z) \cdot (X,Y,Z)^t
 
@@ -1846,7 +1843,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,X,Y,Z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: cubic = invariant_theory.ternary_cubic(p, x,y,z)
             sage: cubic.polar_conic()
             [  3*x*a30 + y*a21 + z*a20 x*a21 + y*a12 + 1/2*z*a11 x*a20 + 1/2*y*a11 + z*a10]
@@ -1931,7 +1928,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z,a30,a21,a12,a03,a20,a11,a02,a10,a01,a00> = QQ[]
             sage: p = ( a30*x^3 + a21*x^2*y + a12*x*y^2 + a03*y^3 + a20*x^2*z +
-            ...         a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
+            ....:       a11*x*y*z + a02*y^2*z + a10*x*z^2 + a01*y*z^2 + a00*z^3 )
             sage: cubic = invariant_theory.ternary_cubic(p, x,y,z)
             sage: len(list(cubic.Theta_covariant()))
             6952
@@ -1989,7 +1986,7 @@ class TernaryCubic(AlgebraicForm):
 
             sage: R.<x,y,z> = QQ[]
             sage: monomials = (x^3, y^3, z^3, x^2*y, x^2*z, x*y^2,
-            ...                y^2*z, x*z^2, y*z^2, x*y*z)
+            ....:              y^2*z, x*z^2, y*z^2, x*y*z)
             sage: random_poly = sum([ randint(0,10000) * m for m in monomials ])
             sage: cubic = invariant_theory.ternary_cubic(random_poly)
             sage: U = cubic.form()
@@ -2061,7 +2058,7 @@ class SeveralAlgebraicForms(FormsBase):
             raise ValueError('All forms must be in the same variables.')
         self._forms = forms
         
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` with ``other``.
 
@@ -2072,17 +2069,14 @@ class SeveralAlgebraicForms(FormsBase):
             sage: q2 = invariant_theory.quadratic_form(x*y)
             sage: from sage.rings.invariant_theory import SeveralAlgebraicForms
             sage: two_inv = SeveralAlgebraicForms([q1, q2])
-            sage: cmp(two_inv, 'foo') == 0
+            sage: two_inv == 'foo'
             False
-            sage: cmp(two_inv, two_inv)
-            0
-            sage: two_inv.__cmp__(two_inv)
-            0
+            sage: two_inv == two_inv
+            True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp(self._forms, other._forms)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self._forms, other._forms, op)
 
     def _repr_(self):
         """
@@ -2205,7 +2199,7 @@ class SeveralAlgebraicForms(FormsBase):
 
         - ``g`` -- a `SL(n,\CC)` matrix or ``None`` (default). The
           test will be to check that the covariant transforms
-          corrently under this special linear group element acting on
+          correctly under this special linear group element acting on
           the homogeneous variables. If ``None``, a random matrix will
           be picked.
 
@@ -3080,7 +3074,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3142,7 +3136,7 @@ can then be queried for invariant and covariants. For example,
         :meth:`~BinaryQuartic.h_covariant`) of degree 3 and order
         6. They are related by a syzygy
 
-        .. math::
+        .. MATH::
 
             j f^3 - g f^2 i + 4 g^3 + h^2 = 0
 
@@ -3157,7 +3151,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3184,7 +3178,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3231,7 +3225,7 @@ can then be queried for invariant and covariants. For example,
         over the ring of invariants by `U`, `\Theta`, `H`, and `J`,
         with a relation
 
-        .. math::
+        .. MATH::
 
             \begin{split}
               J^2 =& 4 \Theta^3 + T U^2 \Theta^2 +

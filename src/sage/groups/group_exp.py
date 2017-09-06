@@ -289,7 +289,7 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
     def _element_constructor_(self, x):
         r"""
-        Construct the multipliciative group element, which wraps the additive
+        Construct the multiplicative group element, which wraps the additive
         group element `x`.
 
         EXAMPLES::

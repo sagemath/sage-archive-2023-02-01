@@ -76,6 +76,8 @@ import sage.interfaces.all
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.factory import UniqueFactory
+from sage.structure.richcmp import richcmp, richcmp_method
+
 
 class IntegerModFactory(UniqueFactory):
     r"""
@@ -144,7 +146,7 @@ class IntegerModFactory(UniqueFactory):
         sage: R in Fields()
         True
         sage: R.category()
-        Join of Category of finite fields
+        Join of Category of finite enumerated fields
             and Category of subquotients of monoids
             and Category of quotients of semigroups
         sage: S = IntegerModRing(5, is_field=True)
@@ -177,7 +179,7 @@ class IntegerModFactory(UniqueFactory):
         The order 33 is not prime, but this ring has been put
         into the category of fields. This may already have consequences
         in other parts of Sage. Either it was a mistake of the user,
-        or a probabilitstic primality test has failed.
+        or a probabilistic primality test has failed.
         In the latter case, please inform the developers.
 
     However, the mistaken assignment is not automatically corrected::
@@ -287,6 +289,7 @@ def _unit_gens_primepowercase(p, r):
              integer.Integer(p**(r - 1) * (p - 1)))]
 
 
+@richcmp_method
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
     The ring of integers modulo `N`.
@@ -589,7 +592,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: L = R.list_of_elements_of_multiplicative_group(); L
             [1, 5, 7, 11]
             sage: type(L[0])
-            <type 'int'>
+            <... 'int'>
         """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
@@ -715,7 +718,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R.is_field()
             True
             sage: R.category()
-            Join of Category of finite fields
+            Join of Category of finite enumerated fields
                 and Category of subquotients of monoids
                 and Category of quotients of semigroups
 
@@ -735,7 +738,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             The order 21 is not prime, but this ring has been put
             into the category of fields. This may already have consequences
             in other parts of Sage. Either it was a mistake of the user,
-            or a probabilitstic primality test has failed.
+            or a probabilistic primality test has failed.
             In the latter case, please inform the developers.
 
         """
@@ -753,7 +756,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 The order {} is not prime, but this ring has been put
 into the category of fields. This may already have consequences
 in other parts of Sage. Either it was a mistake of the user,
-or a probabilitstic primality test has failed.
+or a probabilistic primality test has failed.
 In the latter case, please inform the developers.""".format(self.order()))
         return is_prime
 
@@ -1136,10 +1139,10 @@ In the latter case, please inform the developers.""".format(self.order()))
         The following test refers to :trac:`6468`::
 
             sage: class foo_parent(Parent):
-            ...       pass
+            ....:     pass
             sage: class foo(RingElement):
-            ...       def lift(self):
-            ...           raise PariError
+            ....:     def lift(self):
+            ....:         raise PariError
             sage: P = foo_parent()
             sage: F = foo(P)
             sage: GF(2)(F)
@@ -1255,7 +1258,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -1286,12 +1289,12 @@ In the latter case, please inform the developers.""".format(self.order()))
         # But if we go to the base class, we avoid the influence
         # of the category.
         try:
-            c = cmp(other.__class__.__base__, self.__class__.__base__)
+            c = bool(other.__class__.__base__ != self.__class__.__base__)
         except AttributeError: # __base__ does not always exists
-            c = cmp(type(other), type(self))
+            c = bool(type(other) != type(self))
         if c:
-            return c
-        return cmp(self.__order, other.__order)
+            return NotImplemented
+        return richcmp(self.__order, other.__order, op)
 
     def unit_gens(self, **kwds):
         r"""
@@ -1479,7 +1482,7 @@ In the latter case, please inform the developers.""".format(self.order()))
                     gens.append(x)
                     orders.append(o)
         elif algorithm == 'pari':
-            _, orders, gens = self.order()._pari_().znstar()
+            _, orders, gens = self.order().__pari__().znstar()
             gens = map(self, gens)
             orders = map(integer.Integer, orders)
         else:
@@ -1543,7 +1546,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         Return 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Integers(12345678900)
             sage: R.degree()

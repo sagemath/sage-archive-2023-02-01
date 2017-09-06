@@ -107,7 +107,7 @@ Hecke triangle groups and elements:
   An element can be represented in several ways:
 
   - As a matrix over the base ring (default)
-  - As a product of the generatos ``S`` and ``T``
+  - As a product of the generators ``S`` and ``T``
   - As a product of basic blocks conjugated by some element
 
   EXAMPLES::
@@ -376,7 +376,7 @@ Hecke triangle groups and elements:
       sage: el.is_hecke_symmetric()
       False
       sage: (el.simple_fixed_point_set(), el.inverse().simple_fixed_point_set())
-      ({1/2*e, (-1/2*lam + 1/2)*e}, {(1/2*lam - 1/2)*e, -1/2*e})
+      ({1/2*e, (-1/2*lam + 1/2)*e}, {-1/2*e, (1/2*lam - 1/2)*e})
       sage: el = G.V(2)*G.V(3)
       sage: el.is_hecke_symmetric()
       True

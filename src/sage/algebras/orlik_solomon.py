@@ -76,12 +76,9 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     REFERENCES:
 
-    .. [CE01] Raul Cordovil and Gwihen Etienne.
-       *A note on the Orlik-Solomon algebra*.
-       Europ. J. Combinatorics. **22** (2001). pp. 165-170.
-       http://www.math.ist.utl.pt/~rcordov/Ce.pdf
-
     - :wikipedia:`Arrangement_of_hyperplanes#The_Orlik-Solomon_algebra`
+
+    - [CE2001]_
     """
     @staticmethod
     def __classcall_private__(cls, R, M, ordering=None):
@@ -255,7 +252,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         subset `S = \{ s_1 < s_2 < \cdots < s_k \}` of the ground set::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
-            sage: M = Matroid(G)
+            sage: M = Matroid(G).regular_matroid()
             sage: E = M.groundset_list()
             sage: OS = M.orlik_solomon_algebra(ZZ)
             sage: G = OS.algebra_generators()

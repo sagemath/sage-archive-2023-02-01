@@ -71,6 +71,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import zip
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.sage_eval import sage_eval
@@ -898,11 +899,11 @@ class PiecewisePolynomial:
             0
 
         """
-        if a != None and b != None:
+        if a is not None and b is not None:
             F = self.integral(x)
             return F(b) - F(a)
 
-        if a != None or b != None:
+        if a is not None or b is not None:
             raise TypeError('only one endpoint given')
 
         area = 0 # cumulative definite integral of parts to the left of the current interval
@@ -910,7 +911,7 @@ class PiecewisePolynomial:
         integrand_pieces.sort()
         new_pieces = []
 
-        if x == None:
+        if x is None:
             x = self.default_variable()
         
         # The integral is computed by iterating over the pieces in order.
@@ -1147,9 +1148,9 @@ class PiecewisePolynomial:
             sage: f = piecewise([[(-1,0), f1],[(0,1), f2]])
             sage: p = f.plot(legend_label='$f(x)$')
             sage: lines = [
-            ...     line
-            ...     for line in p._objects
-            ...     if line.options()['legend_label'] is not None ]
+            ....:   line
+            ....:   for line in p._objects
+            ....:   if line.options()['legend_label'] is not None ]
             sage: len(lines)
             1
         """
@@ -1277,13 +1278,13 @@ class PiecewisePolynomial:
         r"""
         Returns the partial sum
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
         as a string.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1303,7 +1304,7 @@ class PiecewisePolynomial:
         r"""
         Returns the Cesaro partial sum
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
@@ -1311,7 +1312,7 @@ class PiecewisePolynomial:
         as a string. This is a "smoother" partial sum - the Gibbs
         phenomenon is mollified.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1332,14 +1333,14 @@ class PiecewisePolynomial:
         Returns the Hann-filtered partial sum (named after von Hann, not
         Hamming)
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
         as a string, where `H_N(x) = (1+\cos(\pi x/N))/2`. This is
         a "smoother" partial sum - the Gibbs phenomenon is mollified.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1360,7 +1361,7 @@ class PiecewisePolynomial:
         r"""
         Returns the "filtered" partial sum
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
@@ -1368,7 +1369,7 @@ class PiecewisePolynomial:
         of length `N` consisting of real numbers. This can be used
         to plot FS solutions to the heat and wave PDEs.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
@@ -1388,13 +1389,13 @@ class PiecewisePolynomial:
         r"""
         Plots the partial sum
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \frac{a_0}{2} +  sum_{n=1}^N [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
         over xmin x xmin.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1419,7 +1420,7 @@ class PiecewisePolynomial:
         r"""
         Plots the partial sum
         
-        .. math::
+        .. MATH::
         
                      f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N (1-n/N)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
@@ -1427,7 +1428,7 @@ class PiecewisePolynomial:
         over xmin x xmin. This is a "smoother" partial sum - the Gibbs
         phenomenon is mollified.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1452,7 +1453,7 @@ class PiecewisePolynomial:
         r"""
         Plots the partial sum
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \frac{a_0}{2} + \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
@@ -1460,7 +1461,7 @@ class PiecewisePolynomial:
         over xmin x xmin, where H_N(x) = (0.5)+(0.5)\*cos(x\*pi/N) is the
         N-th Hann filter.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1485,7 +1486,7 @@ class PiecewisePolynomial:
         r"""
         Plots the partial sum
         
-        .. math::
+        .. MATH::
         
                      f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         
         
@@ -1494,7 +1495,7 @@ class PiecewisePolynomial:
         list of length `N` consisting of real numbers. This can be
         used to plot FS solutions to the heat and wave PDEs.
         
-        EXAMPLE::
+        EXAMPLES::
         
             sage: f1(x) = -2
             sage: f2(x) = 1
@@ -1521,7 +1522,7 @@ class PiecewisePolynomial:
         `x`,
         
         
-        .. math::
+        .. MATH::
         
                      f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^\infty [a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],         \ \ \ -L<x<L.         
         
@@ -1598,7 +1599,7 @@ class PiecewisePolynomial:
         `a_n = \frac{2}{L}\int_{-L}^L f(x)\cos(n\pi x/L)dx` such
         that
         
-        .. math::
+        .. MATH::
         
                      f(x) \sim \frac{a_0}{2} +                     \sum_{n=1}^\infty a_n\cos(\frac{n\pi x}{L}),\ \ 0<x<L.         
         
@@ -1657,7 +1658,7 @@ class PiecewisePolynomial:
         `b_n = \frac{2}{L}\int_{-L}^L f(x)\sin(n\pi x/L)dx` such
         that
         
-        .. math::
+        .. MATH::
         
            f(x) \sim \sum_{n=1}^\infty b_n\sin(\frac{n\pi x}{L}),\ \ 0<x<L.         
         
@@ -1759,8 +1760,8 @@ class PiecewisePolynomial:
         G = other.extend_by_zero_to(a,b)
         endpts = list(set(F.end_points()).union(set(G.end_points())))
         endpts.sort()
-        return F, G, zip(endpts, endpts[1:])
-   
+        return F, G, list(zip(endpts, endpts[1:]))
+
     def __add__(self,other):
         """
         Returns the piecewise defined function which is the sum of self and

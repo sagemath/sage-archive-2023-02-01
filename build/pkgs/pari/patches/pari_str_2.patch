@@ -1,0 +1,19 @@
+commit 2383190eaceafc234980dfff973477edfa192875
+Author: Karim Belabas <Karim.Belabas@math.u-bordeaux1.fr>
+Date:   Tue Jan 24 17:29:33 2017 +0100
+
+    typo in previous patch
+
+diff --git a/src/headers/paridecl.h b/src/headers/paridecl.h
+index 391873d..0cbcf02 100644
+--- a/src/headers/paridecl.h
++++ b/src/headers/paridecl.h
+@@ -2809,7 +2809,7 @@ char*   stack_strdup(const char *s);
+ void    str_init(pari_str *S, int use_stack);
+ void    str_printf(pari_str *S, const char *fmt, ...);
+ void    str_putc(pari_str *S, char c);
+-void    str_puts(pari_str *S, char c);
++void    str_puts(pari_str *S, const char *s);
+ void    strftime_expand(const char *s, char *buf, long max);
+ GEN     Strprintf(const char *fmt, GEN args);
+ FILE*   switchin(const char *name);

@@ -697,7 +697,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         r"""
         Return the special node of the Cartan type.
 
-        .. seealso:: :meth:`~sage.combinat.root_system.CartanType_affine.special_node`
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.CartanType_affine.special_node`
 
         It is the special node of the non-marked Cartan type..
 
@@ -710,7 +710,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
 
     def is_untwisted_affine(self):
         """
-        Implements :meth:'CartanType_affine.is_untwisted_affine`.
+        Implement :meth:`CartanType_affine.is_untwisted_affine`.
 
         A marked Cartan type is untwisted affine if the original is.
 
@@ -720,4 +720,3 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             True
         """
         return self._type.is_untwisted_affine()
-

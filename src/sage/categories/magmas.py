@@ -189,7 +189,7 @@ class Magmas(Category_singleton):
             the name of this axiom is explicit::
 
                 sage: Rings().FinitelyGeneratedAsMagma()
-                Category of finitely generated as magma rings
+                Category of finitely generated as magma enumerated rings
 
             On the other hand, it does not depend on the
             multiplicative structure: for example a group is finitely
@@ -200,10 +200,10 @@ class Magmas(Category_singleton):
                 sage: Semigroups().FinitelyGenerated()
                 Category of finitely generated semigroups
                 sage: Groups().FinitelyGenerated()
-                Category of finitely generated groups
+                Category of finitely generated enumerated groups
 
                 sage: Semigroups().FinitelyGenerated().axioms()
-                frozenset({'Associative', 'FinitelyGeneratedAsMagma'})
+                frozenset({'Associative', 'Enumerated', 'FinitelyGeneratedAsMagma'})
 
             Note that the set of generators may depend on the actual
             category; for example, in a group, one can often use less
@@ -234,7 +234,7 @@ class Magmas(Category_singleton):
                 sage: Semigroups().FinitelyGenerated()
                 Category of finitely generated semigroups
                 sage: Groups().FinitelyGenerated()
-                Category of finitely generated groups
+                Category of finitely generated enumerated groups
 
             An error is raised if this is ambiguous::
 
@@ -365,6 +365,28 @@ class Magmas(Category_singleton):
             """
             from sage.categories.magmatic_algebras import MagmaticAlgebras
             return [MagmaticAlgebras(self.base_ring())]
+
+
+        class ParentMethods:
+            def is_field(self, proof=True):
+                r"""
+                Return ``True`` if ``self`` is a field.
+
+                For a magma algebra `RS` this is always false unless
+                `S` is trivial and the base ring `R`` is a field.
+
+                EXAMPLES::
+
+                    sage: SymmetricGroup(1).algebra(QQ).is_field()
+                    True
+                    sage: SymmetricGroup(1).algebra(ZZ).is_field()
+                    False
+                    sage: SymmetricGroup(2).algebra(QQ).is_field()
+                    False
+                """
+                if not self.base_ring().is_field(proof):
+                    return False
+                return (self.basis().keys().cardinality() == 1)
 
     class Commutative(CategoryWithAxiom):
 
@@ -527,10 +549,6 @@ class Magmas(Category_singleton):
                 return False
 
         class ElementMethods:
-
-            __truediv__ = sage.categories.coercion_methods.__truediv__
-            __div__ = __truediv__ # For Python2/3 compatibility; see e.g. #18578
-
             def _div_(left, right):
                 r"""
                 Default implementation of division, multiplying (on the right) by the inverse.
@@ -568,7 +586,7 @@ class Magmas(Category_singleton):
                     sage: c1._div_.__module__
                     'sage.categories.magmas'
                 """
-                return left._mul_(~right)
+                return left * ~right
 
         class SubcategoryMethods:
 
@@ -789,7 +807,7 @@ class Magmas(Category_singleton):
                 From: (S x S)
                 To:   S
             """
-            return x._mul_(y)
+            return x * y
 
         product_from_element_class_mul = product
 
@@ -977,9 +995,6 @@ class Magmas(Category_singleton):
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
     class ElementMethods:
-
-        __mul__ = sage.categories.coercion_methods.__mul__
-
         @abstract_method(optional = True)
         def _mul_(self, right):
             """

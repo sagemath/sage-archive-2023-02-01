@@ -17,6 +17,7 @@ AUTHORS:
 ########################################################################
 from __future__ import absolute_import
 
+import glob
 import os
 import socket
 import site
@@ -66,6 +67,13 @@ def _add_variable_or_fallback(key, fallback, force=False):
         '---foo---'
         sage: sage.env.SAGE_ENV['SAGE_BAR']
         '---foo---'
+
+    Test that :trac:`23758` has been resolved::
+
+        sage: sage.env._add_variable_or_fallback('SAGE_BA', '---hello---')
+        sage: sage.env._add_variable_or_fallback('TEMP', '$SAGE_BAR')
+        sage: sage.env.SAGE_ENV['TEMP']
+        '---foo---'
     """
     global SAGE_ENV
     import six
@@ -77,6 +85,26 @@ def _add_variable_or_fallback(key, fallback, force=False):
     if force:
         value = fallback
     if isinstance(value, six.string_types):
+        # Now do the variable replacement. First treat 'value' as if
+        # it were a path and do the substitution on each of the
+        # components. This is to avoid the sloppiness in the second
+        # round of substitutions: if VAR and VAR_NEW are both in
+        # SAGE_ENV, then when doing substitution on the string
+        # "$VAR_NEW/a/b", we want to match VAR_NEW, not VAR, if
+        # possible.
+        for sep in set([os.path.sep, '/']):
+            components = []
+            for s in value.split(sep):
+                if s.startswith('$'):
+                    components.append(SAGE_ENV.get(s[1:], s))
+                else:
+                    components.append(s)
+            value = sep.join(components)
+        # Now deal with any remaining substitutions. The following is
+        # sloppy, as mentioned above: if $VAR and $VAR_NEW are both in
+        # SAGE_ENV, the substitution for "$VAR_NEw" depends on which
+        # of the two appears first when iterating over
+        # SAGE_ENV.items().
         for k,v in SAGE_ENV.items():
             if isinstance(v, six.string_types):
                 value = value.replace('$'+k, v)
@@ -90,7 +118,7 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
-_add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
+_add_variable_or_fallback('SAGE_LOCAL',      None)
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
@@ -106,7 +134,11 @@ _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythonized'))
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
+
+# Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
+_add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
+
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
@@ -128,6 +160,33 @@ _add_variable_or_fallback('SAGE_DATE',               version.date)
 _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 
+# additional packages locations
+_add_variable_or_fallback('CONWAY_POLYNOMIALS_DATA_DIR',  opj('$SAGE_SHARE','conway_polynomials'))
+_add_variable_or_fallback('GRAPHS_DATA_DIR',  opj('$SAGE_SHARE','graphs'))
+_add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
+_add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
+_add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
+_add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
+
+# locate singular shared object
+if UNAME[:6] == "CYGWIN":
+    SINGULAR_SO = ([None] + glob.glob(os.path.join(
+        SAGE_LOCAL, "bin", "cygSingular-*.dll")))[-1]
+else:
+    if UNAME == "Darwin":
+        extension = "dylib"
+    else:
+        extension = "so"
+    # library name changed from libsingular to libSingular btw 3.x and 4.x
+    SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+
+_add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
+
+if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+    raise RuntimeError(
+        "libSingular not found--a working Singular install in $SAGE_LOCAL "
+        "is required for Sage to work")
+
 # post process
 if ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
@@ -143,6 +202,19 @@ if ' ' in DOT_SAGE:
         print("is to set the environment variable HOME to a")
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
+
+
+CYGWIN_VERSION = None
+if UNAME[:6] == 'CYGWIN':
+    import re
+    _uname = os.uname()
+    if len(_uname) >= 2:
+        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
+        if m:
+            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
+
+        del m
+    del _uname, re
 
 # things that need DOT_SAGE
 _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))

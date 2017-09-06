@@ -42,11 +42,13 @@ Groups
    sage/groups/matrix_gps/finitely_generated
    sage/groups/matrix_gps/morphism
    sage/groups/matrix_gps/homset
+   sage/groups/matrix_gps/binary_dihedral
    sage/groups/matrix_gps/coxeter_group
    sage/groups/matrix_gps/linear
    sage/groups/matrix_gps/orthogonal
    sage/groups/matrix_gps/symplectic
    sage/groups/matrix_gps/unitary
+   sage/groups/matrix_gps/heisenberg
    sage/groups/affine_gps/affine_group
    sage/groups/affine_gps/euclidean_group
    sage/groups/affine_gps/group_element

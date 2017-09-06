@@ -81,11 +81,11 @@ Check that Cython source code appears in tracebacks::
     ----> 1 Integer(1)/Integer(0)
     <BLANKLINE>
     .../src/sage/rings/integer.pyx in sage.rings.integer.Integer.__div__ (.../cythonized/sage/rings/integer.c:...)()
-       ...          if type(left) is type(right):
-       ...              if mpz_sgn((<Integer>right).value) == 0:
+       ....:        if type(left) is type(right):
+       ....:            if mpz_sgn((<Integer>right).value) == 0:
     -> ...                  raise ZeroDivisionError("rational division by zero")
-       ...              x = <Rational> Rational.__new__(Rational)
-       ...              mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
+       ....:            x = <Rational> Rational.__new__(Rational)
+       ....:            mpq_div_zz(x.value, (<Integer>left).value, (<Integer>right).value)
     <BLANKLINE>
     ZeroDivisionError: rational division by zero
     sage: shell.quit()
@@ -125,7 +125,7 @@ def embedded():
     import sage.server.support
     return sage.server.support.EMBEDDED_MODE
 
-#TODO: This global variable do_preparse should be associtated with an
+#TODO: This global variable do_preparse should be associated with an
 #IPython InteractiveShell as opposed to a global variable in this
 #module.
 _do_preparse=True
@@ -477,7 +477,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
            a list of hold onto interface objects and keep them from being
            garbage collected
 
-        .. seealso:: :func:`interface_shell_embed`
+        .. SEEALSO:: :func:`interface_shell_embed`
 
         EXAMPLES::
 
@@ -587,10 +587,7 @@ def interface_shell_embed(interface):
         sage: shell = interface_shell_embed(gap)
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
-        <repr(<IPython.core.interactiveshell.ExecutionResult at 0x...>) failed: 
-        AttributeError: type object 'ExecutionResult' has no attribute '__qualname__'>
-
-    Note that the repr error is https://github.com/ipython/ipython/issues/9756
+        <ExecutionResult object at ..., execution_count=None error_before_exec=None error_in_exec=None result=[ false, true, true, false, true, false, true, false, false, false ]>
     """
     cfg = sage_ipython_config.copy()
     ipshell = InteractiveShellEmbed(config=cfg,

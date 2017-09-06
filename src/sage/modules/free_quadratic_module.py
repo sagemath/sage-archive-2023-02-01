@@ -66,8 +66,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import weakref
 
@@ -77,6 +76,7 @@ import sage.rings.ring as ring
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from . import free_module
+from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, richcmp
 
 ###############################################################################
 #
@@ -362,13 +362,20 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: P = M.span([[1,2,3], [1,1,1]])
             sage: P.discriminant()
             6
+        
+        TESTS::
+        
+            sage: M=FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: M.discriminant()
+            -1
+            sage: M=FreeQuadraticModule(QQ,3,matrix.identity(3))
+            sage: M.discriminant()
+            -1
+            
         """
         n = self.rank()
-        if n%2 == 0:
-            r = n//2
-        else:
-            r = (n-1)//2
-        return (-1)^r*self.gram_matrix().determinant()
+        r = n//2
+        return (-1)**r*self.gram_matrix().determinant()
 
     def gram_matrix(self):
         """
@@ -794,7 +801,7 @@ class FreeQuadraticModule_ambient(
             return "Ambient free quadratic module of rank %s over %s\n" % ( self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and other.
 
@@ -839,25 +846,30 @@ class FreeQuadraticModule_ambient(
             False
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
         if not isinstance(other, free_module.FreeModule_generic):
-            return cmp(type(self), type(other))
+            return NotImplemented
         if isinstance(other, free_module.FreeModule_ambient):
-            c = cmp(self.rank(), other.rank())
-            if c: return c
-            c = cmp(self.base_ring(), other.base_ring())
-            if not c:
-                return c
+            lx = self.rank()
+            rx = other.rank()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+            lx = self.base_ring()
+            rx = other.base_ring()
+            if lx == rx:
+                return rich_to_bool(op, 0)
             try:
                 if self.base_ring().is_subring(other.base_ring()):
-                    return -1
+                    return rich_to_bool(op, -1)
                 elif other.base_ring().is_subring(self.base_ring()):
-                    return 1
+                    return rich_to_bool(op, 1)
             except NotImplementedError:
                 pass
-            return c
-        else:  # now other is not ambient; it knows how to do the comparison.
-            return -other.__cmp__(self)
+            return richcmp_not_equal(lx, rx, op)
+        else:
+            # now other is not ambient or is a quotient;
+            # it knows how to do the comparison.
+            return richcmp(other, self, revop(op))
 
     def _latex_(self):
         r"""
@@ -1246,24 +1258,26 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         if self.is_sparse():
             s = "Sparse free quadratic module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
             s = "Free quadratic module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
         return s
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare self and other.
 
         Modules are ordered by their ambient spaces, then by
         dimension, then in order by their echelon matrices.
 
-        NOTE: Use the \code{is_submodule} to determine if one module
-        is a submodule of another.
+        .. NOTE::
+
+            Use the \code{is_submodule} to determine if one module
+            is a submodule of another.
 
         EXAMPLES:
 
@@ -1297,16 +1311,21 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             False
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
         if not isinstance(other, free_module.FreeModule_generic):
-            return cmp(type(self), type(other))
-        c = cmp(self.ambient_vector_space(), other.ambient_vector_space())
-        if c: return c
-        c = cmp(self.dimension(), other.dimension())
-        if c: return c
+            return NotImplemented
+        lx = self.ambient_vector_space()
+        rx = other.ambient_vector_space()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+        lx = self.dimension()
+        rx = other.dimension()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
-        return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
+        return richcmp(self.echelonized_basis_matrix(),
+                       other.echelonized_basis_matrix(), op)
 
     def _latex_(self):
         r"""
@@ -1569,13 +1588,13 @@ class FreeQuadraticModule_submodule_with_basis_field(
         if self.is_sparse():
             return "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "Basis matrix:\n%s"%self.basis_matrix() + \
-                    "Inner product matrix:\n%s" % self.inner_product_matrix()
+                    "Basis matrix:\n%r" % self.basis_matrix() + \
+                    "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
             return "Quadratic space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "Basis matrix:\n%s\n"%self.basis_matrix() + \
-                    "Inner product matrix:\n%s" % self.inner_product_matrix()
+                    "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                    "Inner product matrix:\n%r" % self.inner_product_matrix()
 
 class FreeQuadraticModule_submodule_field(
     free_module.FreeModule_submodule_field, FreeQuadraticModule_submodule_with_basis_field):
@@ -1678,13 +1697,13 @@ class FreeQuadraticModule_submodule_field(
         if self.is_sparse():
             return "Sparse quadratic space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
         else:
             return "Quadratic space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s\n" % self.basis_matrix() + \
-                "Inner product matrix:\n%s" % self.inner_product_matrix()
+                "Basis matrix:\n%r\n" % self.basis_matrix() + \
+                "Inner product matrix:\n%r" % self.inner_product_matrix()
 
 #class RealDoubleQuadraticSpace_class(free_module.RealDoubleVectorSpace_class, FreeQuadraticModule_ambient_field):
 #    def __init__(self, dimension, inner_product_matrix, sparse=False):

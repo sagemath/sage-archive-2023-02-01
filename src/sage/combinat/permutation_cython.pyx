@@ -29,8 +29,8 @@ speed, we provide a class that wraps our struct.
 #  Copyright 2010, Tom Boothby
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
 from cpython.list cimport *
+from cysignals.memory cimport sig_malloc, sig_free
 
 ##########################################################
 #

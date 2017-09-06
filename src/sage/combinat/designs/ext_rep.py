@@ -7,12 +7,7 @@ block designs. The module also provides the related I/O operations for
 reading/writing ext-rep files or data. The parsing is based on expat.
 
 This is a modified form of the module ext_rep.py (version 0.8)
-written by Peter Dobcsanyi [D2009]_ peter@designtheory.org.
-
-REFERENCES:
-
-.. [D2009] \P. Dobcsanyi et al. DesignTheory.org
-   http://designtheory.org/database/
+written by Peter Dobcsanyi [Do2009]_ peter@designtheory.org.
 
 .. TODO::
 
@@ -48,6 +43,7 @@ from sage.misc.all import tmp_filename
 import sys
 
 # import compatible with py2 and py3
+import six
 from six.moves.urllib.request import urlopen
 from six import string_types
 
@@ -477,7 +473,7 @@ def dump_to_tmpfile(s):
     """
     Utility function to dump a string to a temporary file.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile("boo")
@@ -876,7 +872,7 @@ class XTreeProcessor(object):
         elif name == 'designs':
             pass # self.outf.write(' <%s>\n' % name)
         if self.in_item:
-            for k, v in attrs.iteritems():
+            for k, v in six.iteritems(attrs):
                 attrs[k] = _encode_attribute(v)
             new_node = (name, attrs, [])
             self.node_stack.append(new_node)

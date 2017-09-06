@@ -180,14 +180,20 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import iteritems, integer_types
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 
+
+
+@richcmp_method
 class Factorization(SageObject):
     """
     A formal factorization of an object.
@@ -208,7 +214,7 @@ class Factorization(SageObject):
         sage: F = Factorization([(x,1/3)])
         Traceback (most recent call last):
         ...
-        TypeError: exponents of factors must be integers
+        TypeError: no conversion of this rational to integer
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         """
@@ -252,7 +258,7 @@ class Factorization(SageObject):
             sage: Factorization([(2,3), (5, 'x')])
             Traceback (most recent call last):
             ...
-            TypeError: exponents of factors must be integers
+            TypeError: unable to convert 'x' to an integer
 
         We create a factorization that puts newlines after each multiply sign
         when printing.  This is mainly useful when the primes are large::
@@ -289,26 +295,16 @@ class Factorization(SageObject):
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
         """
-        if not isinstance(x, list):
-            raise TypeError("x must be a list")
-        for i in xrange(len(x)):
-            t=x[i]
-            if not (isinstance(t, tuple) and len(t) == 2):
-                raise TypeError("x must be a list of pairs (p, e) with e an integer")
-            if not isinstance(t[1],(int, long, Integer)):
-                try:
-                    x[i]= (t[0], Integer(t[1]))
-                except TypeError:
-                    raise TypeError("exponents of factors must be integers")
+        x = [(p, Integer(e)) for (p, e) in x]
 
         try:
             self.__universe = Sequence(t[0] for t in x).universe()
         except TypeError:
             self.__universe = None
 
-        self.__x = [ (t[0],int(t[1])) for t in x]
+        self.__x = [(t[0], int(t[1])) for t in x]
         if unit is None:
-            if len(x) > 0:
+            if x:
                 try:
                     unit = self.__universe(1)
                 except (AttributeError, TypeError):
@@ -385,10 +381,16 @@ class Factorization(SageObject):
         """
         return len(self.__x)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare self and other.  This compares the underlying
-        lists of self and other, ignoring the unit!
+        Compare ``self`` and ``other``.
+
+        This first compares the values.
+
+        If values are equal, this compares the units.
+
+        If units are equal, this compares the underlying lists of
+        ``self`` and ``other``.
 
         EXAMPLES:
 
@@ -418,13 +420,19 @@ class Factorization(SageObject):
             True
         """
         if not isinstance(other, Factorization):
-            return cmp(type(self), type(other))
-        try:
-            return cmp(self.value(), other.value())
-        except Exception:
-            c = cmp(self.__unit, other.__unit)
-            if c: return c
-            return list.__cmp__(self, other)
+            return NotImplemented
+
+        lx = self.value()
+        rx = other.value()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.__unit
+        rx = other.__unit
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.__x, other.__x, op)
 
     def __copy__(self):
         r"""
@@ -683,10 +691,10 @@ class Factorization(SageObject):
 
         TESTS:
 
-        We sort it using the negated version of the
-        Python cmp function (using ``_cmp`` is deprecated)::
+        We sort it using a custom comparison function
+        (using ``_cmp`` is deprecated)::
 
-            sage: F.sort(_cmp=lambda x,y: -cmp(x,y))
+            sage: F.sort(_cmp=lambda x,y: (x<y)-(x>y))
             doctest:...: DeprecationWarning: Please use 'key' to sort.
             See http://trac.sagemath.org/21145 for details.
             sage: F
@@ -836,7 +844,7 @@ class Factorization(SageObject):
             mul += '\n'
         x = self.__x[0][0]
         try:
-            atomic = (isinstance(x, (int, long)) or
+            atomic = (isinstance(x, integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -883,7 +891,7 @@ class Factorization(SageObject):
         if len(self) == 0:
             return self.__unit._latex_()
         try:
-            atomic = (isinstance(self.__x[0][0], (int, long)) or
+            atomic = (isinstance(self.__x[0][0], integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -907,7 +915,7 @@ class Factorization(SageObject):
         return s
 
     @cached_method
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI factorization matrix corresponding to ``self``.
 
@@ -1094,9 +1102,9 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
-            return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
+            return Factorization(list(iteritems(s)), unit=self.unit()*other.unit())
         else:
             return Factorization(list(self) + list(other), unit=self.unit()*other.unit())
 
@@ -1203,7 +1211,7 @@ class Factorization(SageObject):
             sage: F.value()
             x^3*y^2*x
         """
-        return prod([p**e for p,e in self.__x], self.__unit)
+        return prod([p**e for p, e in self.__x], self.__unit)
 
     # Two aliases for ``value(self)``.
     expand = value
@@ -1245,9 +1253,9 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).intersection(set(d2.keys())):
+            for a in set(d1).intersection(set(d2)):
                 s[a] = min(d1[a],d2[a])
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("gcd is not implemented for non-commutative factorizations")
 
@@ -1287,9 +1295,9 @@ class Factorization(SageObject):
             d1 = dict(self)
             d2 = dict(other)
             s = {}
-            for a in set(d1.keys()).union(set(d2.keys())):
+            for a in set(d1).union(set(d2)):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("lcm is not implemented for non-commutative factorizations")
 

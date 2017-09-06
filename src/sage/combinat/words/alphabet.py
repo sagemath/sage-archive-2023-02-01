@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Alphabet
 
@@ -32,6 +32,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
+from six import integer_types
 
 from sage.categories.sets_cat import Sets
 
@@ -213,18 +215,18 @@ def build_alphabet(data=None, names=None, name=None):
     if name is not None and (data is not None or names is not None):
         raise ValueError("name cannot be specified with any other argument")
 
-    # Swap arguments if we need to to try and make sure we have "good" user input
-    if isinstance(names, (int,long,Integer)) or names == Infinity \
+    # Swap arguments if we need to try and make sure we have "good" user input
+    if isinstance(names, integer_types + (Integer,)) or names == Infinity \
             or (data is None and names is not None):
         data,names = names,data
 
     # data is an integer
-    if isinstance(data, (int,long,Integer)):
+    if isinstance(data, integer_types + (Integer,)):
         if names is None:
             from sage.sets.integer_range import IntegerRange
             return IntegerRange(Integer(data))
         if isinstance(names, str):
-            return TotallyOrderedFiniteSet([names + '%d'%i for i in xrange(data)])
+            return TotallyOrderedFiniteSet([names + '%d'%i for i in range(data)])
         if len(names) == data:
             return TotallyOrderedFiniteSet(names)
         raise ValueError("invalid value for names")
@@ -233,7 +235,7 @@ def build_alphabet(data=None, names=None, name=None):
         data = NonNegativeIntegers()
 
     # data is an iterable
-    if isinstance(data, (tuple,list,str)) or data in Sets():
+    if isinstance(data, (tuple, list, str, range)) or data in Sets():
         if names is not None:
             if not isinstance(names, str):
                 raise TypeError("names must be a string when data is a set")

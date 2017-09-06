@@ -27,7 +27,9 @@ limitations and lack of robustness w.r.t. input.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+
+from builtins import object
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
@@ -36,7 +38,7 @@ from sage.combinat.integer_lists.lists import IntegerLists
 from sage.combinat.integer_lists.base import Infinity
 
 
-class IntegerListsLex(IntegerLists):
+class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
     r"""
     Lists of nonnegative integers with constraints, in inverse
     lexicographic order.
@@ -114,7 +116,7 @@ class IntegerListsLex(IntegerLists):
 
     - ``name`` -- a string or ``None`` (default: ``None``) if set,
       this will be passed down to :meth:`Parent.rename` to specify the
-      name of ``self``. It is recommented to use rename method directly
+      name of ``self``. It is recommended to use rename method directly
       because this feature may become deprecated.
 
     - ``element_constructor`` -- a function (or callable) that creates
@@ -264,7 +266,7 @@ class IntegerListsLex(IntegerLists):
     below the diagonal::
 
         sage: def dyck_words(n):
-        ....:     return IntegerListsLex(length=n, ceiling=range(n+1), min_slope=0)
+        ....:     return IntegerListsLex(length=n, ceiling=list(range(n+1)), min_slope=0)
         sage: [dyck_words(n).cardinality() for n in range(8)]
         [1, 1, 2, 5, 14, 42, 132, 429]
         sage: dyck_words(3).list()
@@ -781,8 +783,6 @@ class IntegerListsLex(IntegerLists):
     """
     backend_class = IntegerListsBackend_invlex
 
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
         r"""
@@ -1285,7 +1285,7 @@ class IntegerListsLexIter(object):
             self._current_sum -= self._current_list[-1]
             self._current_list.pop()
 
-    def next(self):
+    def __next__(self):
         r"""
         Return the next element in the iteration.
 
@@ -1470,7 +1470,7 @@ class IntegerListsLexIter(object):
 
         lower_bound = max(0, p.floor(i))
         upper_bound = min(max_sum, p.ceiling(i))
-        if prev != None:
+        if prev is not None:
             lower_bound = max(lower_bound, prev + p.min_slope)
             upper_bound = min(upper_bound, prev + p.max_slope)
 

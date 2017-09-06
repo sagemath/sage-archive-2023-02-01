@@ -87,7 +87,7 @@ An Eisenstein extension::
     sage: S.<x> = R[]
     sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
     sage: W.<w> = R.ext(f); W
-    Eisenstein Extension of 5-adic Ring with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Ring
     sage: z = (1+w)^5; z
     1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
     sage: y = z >> 1; y
@@ -103,7 +103,7 @@ An Eisenstein extension::
     sage: (1/w)^12+w
     w^-12 + w + O(w^13)
     sage: (1/w).parent()
-    Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
 
 Unramified extensions::
 
@@ -152,7 +152,7 @@ You can get at the underlying ntl unit::
     sage: y._ntl_rep_abs()
     ([5 95367431640505 25 95367431640560 5], 0)
 
-NOTES::
+.. NOTE::
 
     If you get an error ``internal error: can't grow this
     _ntl_gbigint,`` it indicates that moduli are being mixed
@@ -183,8 +183,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.signals cimport sig_on, sig_off
 from sage.ext.stdsage cimport PY_NEW
-include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
@@ -331,7 +331,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self._set_from_mpq_both(xlift.value, aprec, rprec)
                 return
         if isinstance(x, GpElement):
-            x = x._pari_()
+            x = x.__pari__()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
@@ -501,7 +501,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         functions or methods decorated with ``@cached_function`` or
         ``@cached_method`` respectively.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the following example, ``a`` and ``b`` compare equal. They cannot
         have a meaningful hash value since then their hash value would have to
@@ -858,13 +858,13 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = F(3/847); repr(y)[3:]
             '5563A4105291255628.148272'
             sage: repr(y*847)[3:]
-            '3'
-            sage: repr(W(77/3, relprec=0))[3:]
-            ''
+            '000000000000000000000003'
+            sage: repr(W(77/3, relprec=0))
+            '0'
             sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
-            '11111.01A'
+            '011111.01A'
             sage: repr(c * 11)[3:]
-            '1'
+            '000000001'
         """
         if mpq_sgn(x) == 0:
             self._set_exact_zero()
@@ -1573,7 +1573,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = ~z; y # indirect doctest
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
             sage: z = z - 1
             sage: ~z
             w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
@@ -1811,14 +1811,14 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Let `\alpha` be in `\mathcal{O}_K`.  Let
 
-        ..math ::
+        .. MATH::
 
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
         the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^p \equiv \left{ \begin{array}{lll}
             1 + \alpha^p \pi_K^{p \lambda} & \mod \mathfrak{p}_K^{p \lambda + 1} & \mbox{if $1 \le \lambda < \frac{e_K}{p-1}$} \\
@@ -1844,7 +1844,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         we can factor out the Teichmuller part and use the above lemma
         to find the first spot where
 
-        ..math::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^{p^m}
 

@@ -139,7 +139,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
         r"""
         Return the cuspidal subspace of this space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = CuspForms(7, 4, base_ring=CyclotomicField(5)) # indirect doctest
             sage: type(C)
@@ -152,7 +152,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
         r"""
         Return this modular forms space with the base ring changed to the ring R.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: chi = DirichletGroup(109, CyclotomicField(3)).0
             sage: M9 = ModularForms(chi, 2, base_ring = CyclotomicField(9))

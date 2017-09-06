@@ -7,7 +7,7 @@ AUTHORS:
   "Computing Conjugating Sets and Automorphism Groups of Rational Functions" by
   Xander Faber, Michelle Manes, and Bianca Viray [FMV]_.
 
-- Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
+- Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaptation for inclusion in Sage
 
 """
 
@@ -19,6 +19,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from copy import copy
 from sage.combinat.subset import Subsets
@@ -540,19 +541,21 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
         # multiply lift by appropriate scalar matrices and adjust (mod M)
         # to find an element of minimal height. These will have
         # coefficients in [-M/2, M/2)
-        for scalar in [y for y in xrange(1, M) if gcd(y,M) == 1]:
-            new_lift = [scalar*x - (scalar*x/M).round()*M for x in init_lift]
-            g = gcd(new_lift)
-            new_lift = [x // g for x in new_lift]
-            if  all([abs(x) <= ht_bound for x in new_lift]):
-                a,b,c,d = new_lift
-                f = (a*z + b) / (c*z + d)
-                if rational_function(f(z)) == f(rational_function(z)):
-                    if return_functions:
-                        valid_auto.append(f)
-                    else:
-                        valid_auto.append(matrix(ZZ,2,2,new_lift))
-                    break
+        for scalar in range(1, M):
+            if gcd(scalar, M) == 1:
+                new_lift = [scalar*x - (scalar*x/M).round()*M
+                            for x in init_lift]
+                g = gcd(new_lift)
+                new_lift = [x // g for x in new_lift]
+                if  all([abs(x) <= ht_bound for x in new_lift]):
+                    a,b,c,d = new_lift
+                    f = (a*z + b) / (c*z + d)
+                    if rational_function(f(z)) == f(rational_function(z)):
+                        if return_functions:
+                            valid_auto.append(f)
+                        else:
+                            valid_auto.append(matrix(ZZ,2,2,new_lift))
+                        break
 
     return valid_auto
 
@@ -759,7 +762,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
             # check if we already found 8 or 12 automorphisms
             # and the gcd of orders over Fp and 24 is 24
-            # or if the gcd is equal to the the number of automorphisms we have
+            # or if the gcd is equal to the number of automorphisms we have
             if (len(elements) == gcd(orderaut + [24])) or \
                 (gcd(orderaut + [24]) == 24 and \
                 (len(elements) == 12 or len(elements) == 8)):
@@ -800,7 +803,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                             # found some elements of order 'order'
                             # if an element of Aut_{F_p} has been lifted to QQ
                             # remove that element from Aut_{F_p} so we don't
-                            # attempt to lift that element again unecessarily
+                            # attempt to lift that element again unnecessarily
                             automorphisms=remove_redundant_automorphisms(automorphisms,
                                 orderelts, primepowers, temp)
                             if order == 4: #have some elements of order 4
@@ -881,7 +884,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
         [x, 1/x]
     """
 
-    if absolute==False:
+    if not absolute:
         G = automorphism_group_FF_alg3(rational_function)
     else:
         G = automorphism_group_FF_alg2(rational_function)
@@ -898,9 +901,9 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
                 R = R.ring()
             G = [matrix(R.base_ring(),[[R(g.numerator())[1],R(g.numerator())[0]],[R(g.denominator())[1],R(g.denominator())[0]]]) for g in G]
 
-    if iso_type == False:
+    if not iso_type:
         return G
-    elif absolute == False:
+    elif not absolute:
         return G, which_group(G)
     else:
         return G, which_group(G[1])
@@ -924,7 +927,7 @@ def field_descent(sigma, y):
 
     - the unique element of the subfield if it exists, otherwise ``None``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R = GF(11^2,'b')
         sage: RR = GF(11)
@@ -1508,7 +1511,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
     g = phi.denominator()
     D = max(f.degree(), g.degree())
 
-    #assumes the second coordiante of the point is 1
+    #assumes the second coordinate of the point is 1
     if pair[0] == [1,0]:
         u = K(z - pair[1][0])
         u_inv = K(z + pair[1][0])

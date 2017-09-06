@@ -19,8 +19,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import iteritems, integer_types
 
 EMBEDDED_MODE = False
 
@@ -364,7 +364,7 @@ def dict_function(x):
     """
     return "".join([r"\left\{",
                     ", ".join(r"%s : %s" % (latex(key), latex(value))
-                              for key, value in x.iteritems()),
+                              for key, value in iteritems(x)),
                     r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
@@ -403,13 +403,14 @@ latex_table = {type(None): None_function,
                bool: bool_function,
                dict: dict_function,
                float: float_function,
-               int: str,
                list: list_function,
-               long: str,
                str: str_function,
                tuple: tuple_function,
                type(NotImplemented): builtin_constant_function,
                type(Ellipsis): builtin_constant_function}
+
+for t in integer_types:
+    latex_table[t] = str
 
 
 class LatexExpr(str):
@@ -690,7 +691,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: O = open(file, 'w')
-        sage: O.write(_latex_file_([ZZ['x'], RR])); O.close()
+        sage: _ = O.write(_latex_file_([ZZ['x'], RR])); O.close()
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -1760,17 +1761,17 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    s = '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
-        extra_preamble, title, size)
+    formatted_title = "\n\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
+    s = '%s\n\\begin{document}%s%s'%(extra_preamble, formatted_title, size)
 
-    #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
-    s += '\\vspace{40mm}'
+    if title:
+        s += '\\vspace{40mm}'
     if process:
         for i in range(len(objects)):
             x = objects[i]
             L = latex(x)
             if '\\begin{pgfpicture}' in L:
-                # Resize the pgf figure to the text width if larger. 
+                # Resize the pgf figure to the text width if larger.
                 s += r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
                 s += r'\begin{lrbox}{\pgffigure}' + '\n'
                 s += '%s'%L
@@ -1904,7 +1905,7 @@ class MathJax:
             sage: from sage.misc.latex import MathJax
             sage: MathJax()(3)
             <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
-            sage: str(MathJax().eval(ZZ[x], mode='display')) == str(MathJax()(ZZ[x]))
+            sage: str(MathJax().eval(ZZ['x'], mode='display')) == str(MathJax()(ZZ['x']))
             True
         """
         return self.eval(x, combine_all=combine_all)
@@ -2012,7 +2013,7 @@ class MathJax:
         return MathJaxExpr(html.format(latex_string))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
-        pdflatex=None, engine=None, viewer = None, tightpage = None,
+        pdflatex=None, engine=None, viewer=None, tightpage=True, margin=None,
         mode='inline', combine_all=False, **kwds):
     r"""nodetex
     Compute a latex representation of each object in objects, compile,
@@ -2054,8 +2055,12 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     -  ``viewer`` -- string or ``None`` (default: ``None``): specify a viewer
        to use; currently the only options are ``None`` and ``'pdf'``.
 
-    -  ``tightpage`` -- bool (default: ``False``): use the LaTeX package
+    -  ``tightpage`` -- bool (default: ``True``): use the LaTeX package
        'preview' with the 'tightpage' option.
+
+    -  ``margin`` -- float or ``None`` (default: ``None``): adds a margin
+       of ``margin`` mm; has no affect if the option ``tightpage`` is
+       ``False``.
 
     - ``mode`` -- string (default: ``'inline'``): ``'display'`` for
       displaymath or ``'inline'`` for inline math
@@ -2099,9 +2104,9 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     viewer, even in notebook mode. This also sets the latex engine to be
     ``pdflatex`` if the current engine is latex.
 
-    Setting the option ``tightpage`` to ``True`` tells LaTeX to use
-    the package 'preview' with the 'tightpage' option. Then, each
-    object is typeset in its own page, and that page is cropped to
+    Setting the option ``tightpage`` to ``True`` (this is the default setting)
+    tells LaTeX to use  the package 'preview' with the 'tightpage' option.
+    Then, each object is typeset in its own page, and that page is cropped to
     exactly the size of the object. This is typically useful for very
     large pictures (like graphs) generated with tikz. This only works
     when using a separate viewer. Note that the object are currently
@@ -2114,6 +2119,9 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
     to the LaTeX preamble, and replaces the ``\\[`` and ``\\]`` around
     each object by ``\\begin{page}$`` and ``$\\end{page}``.
+    Setting ``tightpage`` to ``False`` turns off this behavior and provides
+    the latex output as a full page. If ``tightpage`` is set to ``True``,
+    the ``Title`` is ignored.
 
     If in notebook mode with ``viewer`` equal to ``None``, this
     usually uses MathJax -- see the next paragraph for the exception --
@@ -2143,9 +2151,29 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: g = sage.misc.latex.latex_examples.graph()
         sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w'); O.write(_latex_file_(g)); O.close()
+        sage: O = open(file, 'w'); _ = O.write(_latex_file_(g)); O.close()
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
+
+        sage: view(4, margin=5, debug=True)     # not tested
+        \documentclass{article}
+        ...
+        \usepackage[tightpage,active]{preview}
+        \PreviewEnvironment{page}
+        \setlength\PreviewBorder{5.000000mm}
+        \begin{document}\begin{page}$4$\end{page}
+        \end{document}
+        ...
+
+        sage: view(4, debug=True)               # not tested
+        \documentclass{article}
+        ...
+        \usepackage[tightpage,active]{preview}
+        \PreviewEnvironment{page}
+        \begin{document}\begin{page}$4$\end{page}
+        \end{document}
+        ...
+
 
         sage: latex.extra_preamble('') # reset the preamble
 
@@ -2160,11 +2188,21 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         ValueError: Unsupported LaTeX engine.
 
     """
-    if tightpage == True:
-        latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}',
-                         'math_left':'\\begin{page}$', 'math_right':'$\\end{page}'}
+
+    if tightpage:
+        if margin is None:
+            margin_str = ""
+        else:
+            margin_str = '\n\\setlength\\PreviewBorder{%fmm}' % margin
+        latex_options = {'extra_preamble':
+                         '\\usepackage[tightpage,active]{preview}\n' +
+                         '\\PreviewEnvironment{page}%s' % margin_str,
+                         'math_left': '\\begin{page}$',
+                         'math_right': '$\\end{page}'}
+        title = None
     else:
         latex_options = {}
+
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
     if engine is None:
         engine = _Latex_prefs._option["engine"]
@@ -2301,11 +2339,11 @@ def coeff_repr(c):
         return c._latex_coeff_repr()
     except AttributeError:
         pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     s = latex(c)
     if s.find("+") != -1 or s.find("-") != -1:
-        return "(%s)"%s
+        return "(%s)" % s
     return s
 
 def repr_lincomb(symbols, coeffs):

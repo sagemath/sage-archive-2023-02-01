@@ -15,8 +15,8 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -55,7 +55,8 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["BullGraph",
+    ["AztecDiamondGraph",
+     "BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -64,6 +65,7 @@ __append_to_doc(
      "CompleteGraph",
      "CompleteMultipartiteGraph",
      "DiamondGraph",
+     "DipoleGraph",
      "EmptyGraph",
      "Grid2dGraph",
      "GridGraph",
@@ -73,6 +75,7 @@ __append_to_doc(
      "LollipopGraph",
      "PathGraph",
      "StarGraph",
+     "TadpoleGraph",
      "ToroidalGrid2dGraph",
      "Toroidal6RegularGrid2dGraph"]
     )
@@ -129,6 +132,7 @@ __append_to_doc(
      "HoffmanSingletonGraph",
      "HoltGraph",
      "HortonGraph",
+     "IoninKharaghani765Graph",
      "JankoKharaghaniGraph",
      "JankoKharaghaniTonchevGraph",
      "KittellGraph",
@@ -165,6 +169,8 @@ __append_to_doc(
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
+     "U42Graph216",
+     "U42Graph540",
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
@@ -217,6 +223,7 @@ __append_to_doc(
      "line_graph_forbidden_subgraphs",
      "MathonPseudocyclicMergingGraph",
      "MathonPseudocyclicStronglyRegularGraph",
+     "MuzychukS6Graph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
@@ -235,7 +242,8 @@ __append_to_doc(
      "trees",
      "triangulations",
      "TuranGraph",
-     "WheelGraph"])
+     "WheelGraph",
+     "WindmillGraph"])
 
 
 __doc__ += """
@@ -256,6 +264,7 @@ __append_to_doc(
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
+     "Nowhere0WordsTwoWeightCodeGraph",
      "HaemersGraph",
      "CossidentePenttilaGraph",
      "UnitaryDualPolarGraph",
@@ -293,7 +302,9 @@ __doc__ += """
 
 __append_to_doc(
     ["RandomBarabasiAlbert",
+     "RandomBicubicPlanar",
      "RandomBipartite",
+     "RandomBlockGraph",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
      "RandomGNP",
@@ -612,7 +623,7 @@ class GraphGenerators():
 
     ::
 
-        sage: for i in range(0, 7):
+        sage: for i in range(7):
         ....:     print(len(list(graphs(i))))
         1
         1
@@ -761,9 +772,9 @@ class GraphGenerators():
             g = Graph(vertices, loops=loops, implementation=implementation, sparse=sparse)
             gens = []
             for i in range(vertices-1):
-                gen = range(i)
+                gen = list(range(i))
                 gen.append(i+1); gen.append(i)
-                gen += range(i+2, vertices)
+                gen += list(range(i + 2, vertices))
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, loops=loops, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
@@ -917,7 +928,7 @@ class GraphGenerators():
         OUTPUT:
 
            A list of lists of graphs.  Each sublist will be a list of
-           cospectral graphs (lists of cadinality 1 being omitted).
+           cospectral graphs (lists of cardinality 1 being omitted).
 
 
         .. SEEALSO::
@@ -970,10 +981,10 @@ class GraphGenerators():
         Laplacian) on five vertices::
 
             sage: def DinverseA(g):
-            ...     A=g.adjacency_matrix().change_ring(QQ)
-            ...     for i in range(g.order()):
-            ...         A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
-            ...     return A
+            ....:   A=g.adjacency_matrix().change_ring(QQ)
+            ....:   for i in range(g.order()):
+            ....:       A.rescale_row(i, 1/len(A.nonzero_positions_in_row(i)))
+            ....:   return A
             sage: g=graphs.cospectral_graphs(5, matrix_function=DinverseA, graphs=lambda g: min(g.degree())>0)
             sage: sorted(sorted(g.graph6_string() for g in glist) for glist in g)
             [['Dlg', 'Ds_']]
@@ -1012,7 +1023,7 @@ class GraphGenerators():
         The first character is the number of vertices, followed by
         n11,...,n1k,null character,n21,...,n2k',null character, ...
 
-        where the n1* are all neighbors of n1 and all n2* are the 
+        where the n1* are all neighbors of n1 and all n2* are the
         neighbors of n2, ...
         Besides, these neighbors are enumerated in clockwise order.
 
@@ -1040,9 +1051,9 @@ class GraphGenerators():
 
             sage: from six import StringIO
             sage: code_input = StringIO('>>planar_code<<')
-            sage: code_input.write('>>planar_code<<')
+            sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
-            ....:     code_input.write('{:c}'.format(c))
+            ....:     _ = code_input.write('{:c}'.format(c))
             sage: code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)
@@ -1195,9 +1206,9 @@ class GraphGenerators():
         .. [buckygen] \G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
-        from sage.misc.package import is_package_installed
+        from sage.misc.package import is_package_installed, PackageNotFoundError
         if not is_package_installed("buckygen"):
-            raise TypeError("the optional buckygen package is not installed")
+            raise PackageNotFoundError("buckygen")
 
         # number of vertices should be positive
         if order < 0:
@@ -1280,9 +1291,9 @@ class GraphGenerators():
         .. [benzene] \G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
-        from sage.misc.package import is_package_installed
+        from sage.misc.package import is_package_installed, PackageNotFoundError
         if not is_package_installed("benzene"):
-            raise TypeError("the optional benzene package is not installed")
+            raise PackageNotFoundError("benzene")
 
         # number of hexagons should be positive
         if hexagon_count < 0:
@@ -1433,9 +1444,9 @@ class GraphGenerators():
         .. [plantri] \G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
            MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
-        from sage.misc.package import is_package_installed
+        from sage.misc.package import is_package_installed, PackageNotFoundError
         if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
+            raise PackageNotFoundError("plantri")
 
         # number of vertices should be positive
         if order < 0:
@@ -1632,9 +1643,9 @@ class GraphGenerators():
             sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
             [12, 12]
         """
-        from sage.misc.package import is_package_installed
+        from sage.misc.package import is_package_installed, PackageNotFoundError
         if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
+            raise PackageNotFoundError("plantri")
 
         # number of vertices should be positive
         if order < 0:
@@ -1786,9 +1797,9 @@ class GraphGenerators():
             sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
             [10, 10]
         """
-        from sage.misc.package import is_package_installed
+        from sage.misc.package import is_package_installed, PackageNotFoundError
         if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
+            raise PackageNotFoundError("plantri")
 
         # number of vertices should be positive
         if order < 0:
@@ -1865,7 +1876,6 @@ class GraphGenerators():
     HouseGraph               = staticmethod(sage.graphs.generators.basic.HouseGraph)
     HouseXGraph              = staticmethod(sage.graphs.generators.basic.HouseXGraph)
     LadderGraph              = staticmethod(sage.graphs.generators.basic.LadderGraph)
-    LollipopGraph            = staticmethod(sage.graphs.generators.basic.LollipopGraph)
     PathGraph                = staticmethod(sage.graphs.generators.basic.PathGraph)
     StarGraph                = staticmethod(sage.graphs.generators.basic.StarGraph)
     Toroidal6RegularGrid2dGraph = staticmethod(sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph)
@@ -1920,6 +1930,7 @@ class GraphGenerators():
     HoffmanSingletonGraph    = staticmethod(sage.graphs.generators.smallgraphs.HoffmanSingletonGraph)
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
     HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
+    IoninKharaghani765Graph  = staticmethod(sage.graphs.generators.smallgraphs.IoninKharaghani765Graph)
     JankoKharaghaniGraph     = staticmethod(sage.graphs.generators.smallgraphs.JankoKharaghaniGraph)
     JankoKharaghaniTonchevGraph  = staticmethod(sage.graphs.generators.smallgraphs.JankoKharaghaniTonchevGraph)
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
@@ -1956,6 +1967,8 @@ class GraphGenerators():
     TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
+    U42Graph216              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph216)
+    U42Graph540              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph540)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
@@ -1975,12 +1988,14 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    AztecDiamondGraph      = staticmethod(sage.graphs.generators.families.AztecDiamondGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
+    DipoleGraph            = staticmethod(sage.graphs.generators.families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
@@ -1995,8 +2010,10 @@ class GraphGenerators():
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    LollipopGraph          = staticmethod(sage.graphs.generators.families.LollipopGraph)
     MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
     MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
+    MuzychukS6Graph        = staticmethod(sage.graphs.generators.families.MuzychukS6Graph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
@@ -2010,9 +2027,11 @@ class GraphGenerators():
     SquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SquaredSkewHadamardMatrixGraph)
     SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
+    TadpoleGraph           = staticmethod(sage.graphs.generators.families.TadpoleGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
+    WindmillGraph          = staticmethod(sage.graphs.generators.families.WindmillGraph)
 
 ###########################################################################
 # Graphs from classical geometries over `F_q`
@@ -2030,6 +2049,7 @@ class GraphGenerators():
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
+    Nowhere0WordsTwoWeightCodeGraph = staticmethod(sage.graphs.generators.classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
     HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(sage.graphs.generators.classical_geometries.CossidentePenttilaGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
@@ -2062,6 +2082,8 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
+    RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
@@ -2172,9 +2194,9 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
 
         # union-find C(g) under Aut(g)
         for gen in aut_gens:
-            for i in xrange(len(children)):
+            for i in range(len(children)):
                 k = 0
-                for j in xrange(possibilities):
+                for j in range(possibilities):
                     if (1 << j)&i:
                         if dig and j >= n:
                             k += (1 << (gen[j-n]+n))
@@ -2256,7 +2278,7 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2268,14 +2290,14 @@ def check_aut(aut_gens, cut_vert, n):
         [[1, 0, 3, 2], [1, 2, 3, 0]]
     """
     from copy import copy
-    perm = range(n+1)
+    perm = list(range(n + 1))
     seen_perms = [perm]
     unchecked_perms = [perm]
     while len(unchecked_perms) != 0:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for i in xrange(len(perm)):
+            for i in range(len(perm)):
                 new_perm[i] = gen[perm[i]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)
@@ -2348,22 +2370,22 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
         # build a list representing C(g) - the edge to be added
         # is one of max_size choices
         if dig:
-            children = [[(j,i) for i in xrange(n)] for j in xrange(n)]
+            children = [[(j,i) for i in range(n)] for j in range(n)]
         else:
-            children = [[(j,i) for i in xrange(j)] for j in xrange(n)]
+            children = [[(j,i) for i in range(j)] for j in range(n)]
         # union-find C(g) under Aut(g)
-        orbits = range(n)
+        orbits = list(range(n))
         for gen in aut_gens:
-            for iii in xrange(n):
+            for iii in range(n):
                 if orbits[gen[iii]] != orbits[iii]:
                     temp = orbits[gen[iii]]
-                    for jjj in xrange(n):
+                    for jjj in range(n):
                         if orbits[jjj] == temp:
                             orbits[jjj] = orbits[iii]
                 if dig:
-                    jjj_range = range(iii) + range(iii+1, n)
+                    jjj_range = list(range(iii)) + list(range(iii + 1, n))
                 else:
-                    jjj_range = xrange(iii) # iii > jjj
+                    jjj_range = list(range(iii))  # iii > jjj
                 for jjj in jjj_range:
                     i, j = iii, jjj
                     if dig:
@@ -2405,15 +2427,15 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
         roots = []
         for i in range(n):
             if dig:
-                j_range = range(i) + range(i+1, n)
+                j_range = list(range(i)) + list(range(i + 1, n))
             else:
-                j_range = range(i)
+                j_range = list(range(i))
             for j in j_range:
                 if children[i][j] == (i, j):
                     roots.append((i,j))
         if loops:
             seen = []
-            for i in xrange(n):
+            for i in range(n):
                 if orbits[i] not in seen:
                     roots.append((i,i))
                     seen.append(orbits[i])
@@ -2427,7 +2449,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
                 continue
             z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certificate=True, dig=(dig or loops))
             relabel_inverse = [0]*n
-            for ii in xrange(n):
+            for ii in range(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii
             z_can = z.relabel(canonical_relabeling, inplace=False)
             cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
@@ -2460,7 +2482,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2472,14 +2494,14 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
         [[1, 0, 3, 2], [1, 2, 3, 0]]
     """
     from copy import copy
-    perm = range(n)
+    perm = list(range(n))
     seen_perms = [perm]
     unchecked_perms = [perm]
     while len(unchecked_perms) != 0:
         perm = unchecked_perms.pop(0)
         for gen in aut_gens:
             new_perm = copy(perm)
-            for ii in xrange(n):
+            for ii in range(n):
                 new_perm[ii] = gen[perm[ii]]
             if new_perm not in seen_perms:
                 seen_perms.append(new_perm)

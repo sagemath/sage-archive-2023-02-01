@@ -1,14 +1,21 @@
 r"""
 Constant functions
 """
-#*****************************************************************************
-#  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
 
+#*****************************************************************************
+#       Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.structure.richcmp cimport richcmp
 from sage.structure.sage_object cimport SageObject
+
+
 cdef class ConstantFunction(SageObject):
     """
     A class for function objects implementing constant functions.
@@ -30,7 +37,7 @@ cdef class ConstantFunction(SageObject):
         sage: g == loads(dumps(g))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
         sage: f == loads(dumps(f))
         True
 
@@ -102,7 +109,7 @@ cdef class ConstantFunction(SageObject):
         """
         return self._value
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -115,7 +122,7 @@ cdef class ConstantFunction(SageObject):
             sage: ConstantFunction(True) == ConstantFunction(1)  # argl!
             True
         """
-        cdef int c = cmp(self.__class__, other.__class__)
-        if c:
-            return c
-        return cmp(self._value, (<ConstantFunction>other)._value)
+        if not isinstance(other, ConstantFunction):
+            return NotImplemented
+        return richcmp((<ConstantFunction>self)._value,
+                       (<ConstantFunction>other)._value, op)

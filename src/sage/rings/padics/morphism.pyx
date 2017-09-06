@@ -18,6 +18,8 @@ from sage.rings.infinity import Infinity
 from sage.rings.ring import CommutativeRing
 from sage.categories.homset import Hom
 from sage.structure.element cimport Element
+from sage.structure.richcmp cimport (richcmp, rich_to_bool,
+        richcmp_not_equal)
 
 from sage.rings.morphism cimport RingHomomorphism
 from padic_generic import pAdicGeneric
@@ -28,32 +30,32 @@ from sage.categories.morphism cimport Morphism
 cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
     """
     A class implementing Frobenius endomorphisms on padic fields.
-    """    
+    """
     def __init__ (self,domain,n=1):
         """
         INPUT:
-            
+
         -  ``domain`` -- an unramified padic field
-            
+
         -  ``n`` -- an integer (default: 1)
-            
+
         .. NOTE::
-           
+
             `n` may be negative.
-            
+
         OUTPUT:
-            
+
         The `n`-th power of the absolute (arithmetic) Frobenius
         endomorphism on ``domain``
-    
+
         TESTS::
-    
+
             sage: from sage.rings.padics.morphism import FrobeniusEndomorphism_padics
             sage: K.<a> = Qq(5^3)
             sage: FrobeniusEndomorphism_padics(K)
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
             sage: FrobeniusEndomorphism_padics(K,2)
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^(5^2) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^2) on the residue field
 
             sage: FrobeniusEndomorphism_padics(K,a)
             Traceback (most recent call last):
@@ -90,15 +92,15 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
     def _repr_(self):
         """
         Return a string representation of this endomorphism.
-            
+
         EXAMPLES::
-            
+
             sage: K.<a> = Qq(5^3)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^5 on the residue field
-        
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
+
             sage: Frob._repr_()
-            'Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^5 on the residue field'
+            'Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field'
         """
         name = self.domain().variable_name()
         if self._power == 0:
@@ -117,7 +119,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
             sage: K.<a> = Qq(5^3)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
 
             sage: Frob._repr_short()
             'Frob'
@@ -135,7 +137,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
     cpdef Element _call_ (self, x):
         """
         TESTS::
-            
+
             sage: K.<a> = Qq(5^3)
             sage: Frob = K.frobenius_endomorphism();
             sage: Frob(a) == a.frobenius()
@@ -148,11 +150,11 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
 
     def order(self):
-        """  
+        """
         Return the order of this endomorphism.
-        
+
         EXAMPLES::
-           
+
             sage: K.<a> = Qq(5^12)
             sage: Frob = K.frobenius_endomorphism()
             sage: Frob.order()
@@ -169,7 +171,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
     def power(self):
         """
-        Return the smallest integer `n` such that this endormorphism
+        Return the smallest integer `n` such that this endomorphism
         is the `n`-th power of the absolute (arithmetic) Frobenius.
 
         EXAMPLES::
@@ -195,14 +197,14 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
             sage: K.<a> = Qq(5^12)
             sage: Frob = K.frobenius_endomorphism()
             sage: Frob^2
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^(5^2) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^2) on the residue field
 
         The result is simplified if possible::
 
             sage: Frob^15
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^(5^3) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^3) on the residue field
             sage: Frob^36
-            Identity endomorphism of Unramified Extension of 5-adic Field ...
+            Identity endomorphism of Unramified Extension ...
         """
         return self.__class__(self.domain(), self.power()*n)
 
@@ -215,18 +217,18 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
             sage: K.<a> = Qq(5^12)
             sage: f = K.frobenius_endomorphism(); f
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
             sage: g = K.frobenius_endomorphism(2); g
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^(5^2) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^2) on the residue field
             sage: f * g
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^(5^3) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^3) on the residue field
 
         The result is simplified if possible::
 
             sage: f = K.frobenius_endomorphism(9)
             sage: g = K.frobenius_endomorphism(10)
             sage: f * g
-            Frobenius endomorphism on Unramified Extension of 5-adic Field ... lifting a |--> a^(5^7) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^7) on the residue field
         """
         if isinstance(right,FrobeniusEndomorphism_padics):
             return self.__class__(self.domain(), self._power+right.power())
@@ -284,7 +286,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         Return a hash of this morphism.
 
         It is the hash of ``(domain, codomain, ('Frob', power)``
-        where ``power`` is the smalles integer `n` such that 
+        where ``power`` is the smalles integer `n` such that
         this morphism acts by `x \mapsto x^(p^n)` on the
         residue field
         """
@@ -292,22 +294,31 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain,codomain,('Frob',self._power)))
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare left and right
-        """ 
-        if left is right: return 0
-        domain = left.domain()
-        c = cmp(domain,right.domain())
-        if c: return c
-        c = cmp(left.codomain(),right.codomain())
-        if c: return c
+        """
+        if left is right:
+            return rich_to_bool(op, 0)
+        l_domain = left.domain()
+        r_domain = right.domain()
+        if l_domain != r_domain:
+            return richcmp_not_equal(l_domain, r_domain, op)
+
+        l_codomain = left.codomain()
+        r_codomain = right.codomain()
+        if l_codomain != r_codomain:
+            return richcmp_not_equal(l_codomain, r_codomain, op)
+
         if isinstance(right, FrobeniusEndomorphism_padics):
-            return cmp(left._power, (<FrobeniusEndomorphism_padics>right)._power)
+            return richcmp(left._power, (<FrobeniusEndomorphism_padics>right)._power, op)
+
         try:
-            gens = domain.gens()
-            for x in gens:
-                c = cmp(left(x),right(x))
-                if c: return c
+            for x in l_domain.gens():
+                lx = left(x)
+                rx = right(x)
+                if lx != rx:
+                    return richcmp_not_equal(lx, rx, op)
+            return rich_to_bool(op, 0)
         except (AttributeError, NotImplementedError):
             raise NotImplementedError

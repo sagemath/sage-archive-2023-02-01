@@ -12,6 +12,8 @@ AUTHORS:
 """
 from __future__ import print_function
 
+from six.moves import range
+
 from string import Template
 from sage.combinat.tableau import Tableaux
 
@@ -33,7 +35,7 @@ def tex_from_array(array, with_lines=True):
     ``[None]`` rather than ``[]``.
 
     The array is drawn using either the English or French convention
-    following :meth:`Tableaux.options``.
+    following :meth:`Tableaux.options`.
 
     .. SEEALSO:: :meth:`tex_from_array_tuple`
 
@@ -295,7 +297,7 @@ def tex_from_skew_array(array, with_lines=False, align='b'):
     # now we draw the array
     tex=r'\raisebox{-.6ex}{$\begin{array}[%s]{*{%s}c}'%(align,max(map(len,array)))
     tex+=end_line(0)+'\n'
-    for r in xrange(len(array)):
+    for r in range(len(array)):
         tex+='&'.join('' if c is None else r'\lr{%s}'%c for c in array[r])
         tex+=end_line(r+1)+'\n'
     return tex+r'\end{array}$}'

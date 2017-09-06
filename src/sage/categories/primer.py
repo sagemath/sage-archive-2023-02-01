@@ -189,7 +189,7 @@ Those can be viewed graphically::
 
     sage: g = Groups().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 In case ``dot2tex`` is not available, you can use instead::
 
@@ -199,7 +199,7 @@ Here is an overview of all categories in Sage::
 
     sage: g = sage.categories.category.category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
@@ -370,7 +370,7 @@ categories and their super categories::
 
     sage: g = EuclideanDomains().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 A bit of help from computer science
 ===================================
@@ -414,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
     sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 
@@ -486,7 +486,7 @@ The full hierarchy is best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Parallel hierarchy of classes for parents
 -----------------------------------------
@@ -541,7 +541,7 @@ best viewed graphically::
     sage: g = class_graph(m.__class__)
     sage: g.relabel(lambda x: x.replace("_","\_"))
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 .. NOTE::
 
@@ -806,6 +806,7 @@ element of the parent?)::
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
       running ._test_eq() . . . pass
+      running ._test_new() . . . pass
       running ._test_not_implemented_methods() . . . pass
       running ._test_pickling() . . . pass
       pass
@@ -817,6 +818,7 @@ element of the parent?)::
     running ._test_enumerated_set_iter_cardinality() . . . pass
     running ._test_enumerated_set_iter_list() . . . pass
     running ._test_eq() . . . pass
+    running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_pickling() . . . pass
     running ._test_some_elements() . . . pass
@@ -945,7 +947,8 @@ what to do, ask your parent); it's also a speed critical method::
     sage: x._mul_??                             # not tested
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
-    sage: x._mul_.im_func is Magmas.ElementMethods._mul_parent.im_func
+    sage: from six import get_method_function as gmf
+    sage: gmf(x._mul_) is gmf(Magmas.ElementMethods._mul_parent)
     True
 
 ``product`` is a mathematical method implemented by the parent::
@@ -1015,14 +1018,14 @@ permutation groups (no surprise)::
     sage: P = PermutationGroup([[(1,2,3)]]); P
     Permutation Group with generators [(1,2,3)]
     sage: P.category()
-    Category of finite permutation groups
+    Category of finite enumerated permutation groups
 
 In this case, the group is commutative, so we can specify this::
 
     sage: P = PermutationGroup([[(1,2,3)]], category=PermutationGroups().Finite().Commutative()); P
     Permutation Group with generators [(1,2,3)]
     sage: P.category()
-    Category of finite commutative permutation groups
+    Category of finite enumerated commutative permutation groups
 
 This feature can even be used, typically in experimental code, to add
 more structure to existing parents, and in particular to add methods
@@ -1289,7 +1292,7 @@ The infrastructure allows for specifying further deduction rules, in
 order to encode mathematical facts like Wedderburn's theorem::
 
     sage: DivisionRings() & Sets().Finite()
-    Category of finite fields
+    Category of finite enumerated fields
 
 .. NOTE::
 
@@ -1380,13 +1383,13 @@ for a category with two operations `+` and `*`::
     Category of fields
 
     sage: Rings().Division().Finite()
-    Category of finite fields
+    Category of finite enumerated fields
 
 or for more advanced categories::
 
     sage: g = HopfAlgebras(QQ).WithBasis().Graded().Connected().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Difference between axioms and regressive covariant functorial constructions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

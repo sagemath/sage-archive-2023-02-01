@@ -503,7 +503,7 @@ class BooleanFormula(object):
 
     def __eq__(self, other):
         r"""
-        Overload the ``==`` operator to deterine logical equivalence.
+        Overload the ``==`` operator to determine logical equivalence.
 
         INPUT:
 
@@ -989,7 +989,8 @@ class BooleanFormula(object):
 #        OUTPUT:
 #            A simplified expression.
 #
-#        EXAMPLES:
+#        EXAMPLES::
+
 #            sage: import sage.logic.propcalc as propcalc
 #            sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
 #            sage: f.truthtable()
@@ -1015,7 +1016,7 @@ class BooleanFormula(object):
 #            True   True   False  True
 #            True   True   True   True
 #
-#        .. NOTES::
+#        .. NOTE::
 #
 #            If the instance of boolean formula has not been converted to
 #            cnf form by a call to convert_cnf() or convert_cnf_recur()

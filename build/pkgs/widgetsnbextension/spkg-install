@@ -1,3 +1,7 @@
-#!/usr/bin/env bash
+set -e
 
-cd src && python setup.py install
+cd src
+
+$PIP_INSTALL .
+
+jupyter nbextension enable --sys-prefix --py widgetsnbextension

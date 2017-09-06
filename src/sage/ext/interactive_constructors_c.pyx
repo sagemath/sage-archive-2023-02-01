@@ -1,7 +1,8 @@
+# cython: old_style_globals=True
 r"""
 Constructors that automatically inject variables into the global module scope
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sage.rings.all
 import sage.misc.superseded
@@ -79,7 +80,7 @@ def inject_on(verbose=True):
     G = globals()
     if verbose:
         print("Redefining:", end=" ")
-    for X in sorted(sage.ext.interactive_constructors_c.__dict__.keys()):
+    for X in sorted(sage.ext.interactive_constructors_c.__dict__):
         if not 'inject' in X and X[0] != '_' and X[:4] != 'sage':
             if verbose:
                 print(X, end=" ")

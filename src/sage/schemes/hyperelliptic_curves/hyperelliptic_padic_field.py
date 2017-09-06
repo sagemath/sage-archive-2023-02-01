@@ -1,14 +1,13 @@
 """
 Hyperelliptic curves over a padic field.
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 
 from . import hyperelliptic_generic
 
@@ -97,7 +96,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         - Jennifer Balakrishnan (2010-02)
         """
         prec = self.base_ring().precision_cap()
-        if self.is_same_disc(P,Q) == False:
+        if not self.is_same_disc(P,Q):
             raise ValueError("%s and %s are not in the same residue disc"%(P,Q))
         disc = self.residue_disc(P)
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
@@ -235,7 +234,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         - Jennifer Balakrishnan
         """
-        if self.is_in_weierstrass_disc(Q) == False:
+        if not self.is_in_weierstrass_disc(Q):
             raise ValueError("%s is not in a Weierstrass disc"%Q)
         points = self.weierstrass_points()
         for P in points:
@@ -371,7 +370,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             except TypeError:   #if f is a constant, not callable
                 f_dt = f*dt
             if x.valuation() != -2:
-                I = sum([f_dt[n]/(n+1) for n in xrange(f_dt.degree()+1)]) # \int_0^1 f dt
+                I = sum(f_dt[n]/(n+1) for n in range(f_dt.degree() + 1)) # \int_0^1 f dt
             else:
                 If_dt = f_dt.integral().laurent_polynomial()
                 I = If_dt(Q[0]**g/Q[1]) - If_dt(P[0]**g/P[1])
@@ -1024,7 +1023,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             sage: HK = H.change_ring(K)
             sage: HL = HK.curve_over_ram_extn(2)
             sage: HL
-            Hyperelliptic Curve over Eisenstein Extension of 11-adic Field with capped relative precision 5 in a defined by (1 + O(11^5))*x^2 + (O(11^6))*x + (10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + O(11^6)) defined by (1 + O(a^10))*y^2 = (1 + O(a^10))*x^5 + (10 + 8*a^2 + 10*a^4 + 10*a^6 + 10*a^8 + O(a^10))*x^3 + (7 + a^2 + O(a^10))*x^2 + (7 + 3*a^2 + O(a^10))*x
+            Hyperelliptic Curve over Eisenstein Extension in a defined by x^2 - 11 with capped relative precision 10 over 11-adic Field defined by (1 + O(a^10))*y^2 = (1 + O(a^10))*x^5 + (10 + 8*a^2 + 10*a^4 + 10*a^6 + 10*a^8 + O(a^10))*x^3 + (7 + a^2 + O(a^10))*x^2 + (7 + 3*a^2 + O(a^10))*x
 
         AUTHOR:
 

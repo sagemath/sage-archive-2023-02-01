@@ -430,7 +430,7 @@ From the point of view of ``V`` and ``T``, here is what happens:
   victim ``V`` and its thief tread ``T``.
 
   + If ``V._todo`` is empty, then ``None`` is answered on
-    ``W._write_task``. The task is immediately signaled to end the the master
+    ``W._write_task``. The task is immediately signaled to end the master
     through :meth:`master._signal_task_done`.
   + Otherwise, a node is removed from the bottom of ``V._todo``. The node is
     sent to ``W`` on ``W._write_task``. The task will be ended by ``W``, that
@@ -452,7 +452,7 @@ When a worker finishes working on a task, it calls
 nodes: the work is done. The worker executes :meth:`master._shutdown` which
 sends ``AbortError`` on all :meth:`worker._request` and
 :meth:`worker._write_task` Queues. Each worker or thief thread receiving such
-a message raise the corresponding exception, stoping therefore its work. A
+a message raise the corresponding exception, stopping therefore its work. A
 lock called ``master._done`` ensures that shutdown is only done once.
 
 Finally, it is also possible to interrupt the computation before its ends
@@ -482,7 +482,7 @@ Yes ! Here, there are:
 Tests
 -----
 
-Generating series for sum of strictly decreassing list of integer smaller than
+Generating series for sum of strictly decreasing list of integer smaller than
 15::
 
     sage: y = polygen(ZZ, 'y')
@@ -545,7 +545,7 @@ def proc_number(max_proc = None):
 
     - ``max_proc`` -- the maximum number of process used
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.parallel.map_reduce import proc_number
         sage: proc_number() # random
@@ -558,7 +558,7 @@ def proc_number(max_proc = None):
     if max_proc is None:
         return max(cpu_count(), 1)
     else:
-        return min(max_proc, max(cpu_count(), 1))
+        return min(max_proc, max(cpu_count(), 2))
 
 
 class AbortError(Exception):
@@ -594,6 +594,7 @@ class ActiveTaskCounterDarwin(object):
             sage: from sage.parallel.map_reduce import ActiveTaskCounterDarwin as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
+            running ._test_new() . . . pass
         """
         self._active_tasks = Value(ctypes.c_int, task_number)
         self._lock = Lock()
@@ -724,6 +725,7 @@ class ActiveTaskCounterPosix(object):
             sage: from sage.parallel.map_reduce import ActiveTaskCounter as ATC
             sage: t = ATC(4)
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
+            running ._test_new() . . . pass
         """
         self._active_tasks = Semaphore(task_number)
 
@@ -852,13 +854,13 @@ class RESetMapReduce(object):
     are actually produced. Furthermore, if ``post_process(x)`` returns ``None``,
     then ``x`` won't be output at all.
 
-    Decription of the map/reduce operation:
+    Description of the map/reduce operation:
 
     - ``map_function=f`` -- (default to ``None``)
     - ``reduce_function=red`` -- (default to ``None``)
     - ``reduce_init=init`` -- (default to ``None``)
 
-    .. seealso::
+    .. SEEALSO::
 
        :mod:`the Map/Reduce module <sage.parallel.map_reduce>` for
        details and examples.
@@ -1163,7 +1165,7 @@ class RESetMapReduce(object):
 
             sage: _ = S.run() # Cleanup
 
-        .. seealso:: :meth:`print_communication_statistics`
+        .. SEEALSO:: :meth:`print_communication_statistics`
         """
         self._abort = self._abort.value
         if not self._abort:
@@ -1314,7 +1316,7 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        A worker for ``self`` chosed at random
+        A worker for ``self`` chosen at random
 
         EXAMPLES::
 
@@ -1572,11 +1574,11 @@ class RESetMapReduceWorker(Process):
 
     def steal(self):
         r"""
-        Steal some node from another worker
+        Steal some node from another worker.
 
         OUTPUT:
 
-        a node stolen from another worker choosed at random
+        a node stolen from another worker chosen at random
 
         EXAMPLES::
 
@@ -1800,14 +1802,14 @@ class RESetMPExample(RESetMapReduce):
     This compute the generating series of permutations counted by their size
     upto size ``maxl``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.parallel.map_reduce import RESetMPExample
         sage: EX = RESetMPExample()
         sage: EX.run()
         362880*x^9 + 40320*x^8 + 5040*x^7 + 720*x^6 + 120*x^5 + 24*x^4 + 6*x^3 + 2*x^2 + x + 1
 
-    .. seealso:: This is an example of :class:`RESetMapReduce`
+    .. SEEALSO:: This is an example of :class:`RESetMapReduce`
 
     """
     def __init__(self, maxl = 9):
@@ -1828,7 +1830,7 @@ class RESetMPExample(RESetMapReduce):
         r"""
         Return the empty permutation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().roots()
@@ -1848,7 +1850,7 @@ class RESetMPExample(RESetMapReduce):
 
         the lists of ``len(l)`` inserted at all possible positions into ``l``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().children([1,0])
@@ -1869,7 +1871,7 @@ class RESetMPExample(RESetMapReduce):
 
         ``x^len(l)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().map_function([1,0])
@@ -1886,7 +1888,7 @@ class RESetParallelIterator(RESetMapReduce):
     a recursively enumerated sets for which the computations are done in
     parallel.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.parallel.map_reduce import RESetParallelIterator
         sage: S = RESetParallelIterator( [[]],
@@ -1902,7 +1904,7 @@ class RESetParallelIterator(RESetMapReduce):
 
         OUTPUT: ``(z, )``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
@@ -1916,7 +1918,7 @@ class RESetParallelIterator(RESetMapReduce):
 
     def __iter__(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],

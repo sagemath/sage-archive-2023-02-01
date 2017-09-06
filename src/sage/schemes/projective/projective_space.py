@@ -79,6 +79,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
+from six import integer_types
 
 from sage.arith.misc import binomial
 
@@ -205,7 +207,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         A = ProjectiveSpace(n.ngens()-1, n.base_ring())
         A._coordinate_ring = n
         return A
-    if isinstance(R, (int, long, Integer)):
+    if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -400,9 +402,9 @@ class ProjectiveSpace_ring(AmbientSpace):
                 raise TypeError("%s is not a homogeneous polynomial" % f)
         return polynomials
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Compare equality of two projective spaces.
+        Check equality of two projective spaces.
 
         EXAMPLES::
 
@@ -412,13 +414,123 @@ class ProjectiveSpace_ring(AmbientSpace):
             False
             sage: ProjectiveSpace(ZZ, 2, 'a') == AffineSpace(ZZ, 2, 'a')
             False
-            sage: loads(AffineSpace(ZZ, 1, 'x').dumps()) == AffineSpace(ZZ, 1, 'x')
+            sage: P = ProjectiveSpace(ZZ, 1, 'x')
+            sage: loads(P.dumps()) == P
             True
         """
         if not isinstance(right, ProjectiveSpace_ring):
-            return -1
-        return cmp([self.dimension_relative(), self.coordinate_ring()],
-                   [right.dimension_relative(), right.coordinate_ring()])
+            return False
+        return (self.dimension_relative() == right.dimension_relative() and
+                self.coordinate_ring() == right.coordinate_ring())
+
+    def __ne__(self, other):
+        """
+        Check non-equality of two projective spaces.
+
+        EXAMPLES::
+
+            sage: ProjectiveSpace(QQ, 3, 'a') != ProjectiveSpace(ZZ, 3, 'a')
+            True
+            sage: ProjectiveSpace(ZZ, 1, 'a') != ProjectiveSpace(ZZ, 0, 'a')
+            True
+            sage: ProjectiveSpace(ZZ, 2, 'a') != AffineSpace(ZZ, 2, 'a')
+            True
+        """
+        return not (self == other)
+
+    def __pow__(self, m):
+        """
+        Return the Cartesian power of this space.
+
+        INPUT: ``m`` -- integer.
+
+        OUTPUT: product of projective spaces.
+
+        EXAMPLES::
+
+            sage: P = ProjectiveSpace(1, QQ, 'x')
+            sage: P3 = P^3; P3
+            Product of projective spaces P^1 x P^1 x P^1 over Rational Field
+            sage: P3.variable_names()
+            ('x0', 'x1', 'x2', 'x3', 'x4', 'x5')
+
+        As you see, custom variable names are not preserved by power operator,
+        since there is no natural way to make new ones in general.
+        """
+        mm = int(m)
+        if mm != m:
+            raise ValueError("m must be an integer")
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self.dimension_relative()] * mm, self.base_ring())
+
+    def __mul__(self, right):
+        r"""
+        Create the product of projective spaces.
+
+        INPUT:
+
+        - ``right`` - a projective space, product of projective spaces, or subscheme.
+
+        OUTPUT: a product of projective spaces or subscheme.
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ, 1, 'x')
+            sage: P2 = ProjectiveSpace(QQ, 2, 'y')
+            sage: P1*P2
+            Product of projective spaces P^1 x P^2 over Rational Field
+
+            ::
+
+            sage: S.<t,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
+            sage: T.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: T*S
+            Product of projective spaces P^1 x P^3 x P^2 over Rational Field
+
+        ::
+
+            sage: S = ProjectiveSpace(ZZ, 2, 't')
+            sage: T = ProjectiveSpace(ZZ, 3, 'x')
+            sage: T.inject_variables()
+            Defining x0, x1, x2, x3
+            sage: X = T.subscheme([x0*x2 - x1*x3])
+            sage: S*X
+            Closed subscheme of Product of projective spaces P^2 x P^3 over Integer Ring defined by:
+              x0*x2 - x1*x3
+
+        ::
+
+            sage: S = ProjectiveSpace(QQ, 3, 'x')
+            sage: T = AffineSpace(2, QQ, 'y')
+            sage: S*T
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 2 over Rational Field must be a
+            projective space, product of projective spaces, or subscheme
+        """
+        if self.base_ring() != right.base_ring():
+            raise ValueError ('Must have the same base ring')
+
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces_ring
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
+        if isinstance(right, (ProductProjectiveSpaces_ring)):
+            return ProductProjectiveSpaces([self] + right.components())
+        elif isinstance(right, ProjectiveSpace_ring):
+            if self is right:
+                return self.__pow__(2)
+            return ProductProjectiveSpaces([self, right])
+        elif isinstance(right, AlgebraicScheme_subscheme):
+            AS = self*right.ambient_space()
+            CR = AS.coordinate_ring()
+            n = self.ambient_space().coordinate_ring().ngens()
+
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+            psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+            return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+        else:
+            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme'%right)
 
     def _latex_(self):
         r"""
@@ -453,7 +565,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         OUTPUT:
 
-        A matrix of size `{m-1+n \choose n}` x `{d+n \choose n}` where n is the
+        A matrix of size `\binom{m-1+n}{n}` x `\binom{d+n}{n}` where n is the
         relative dimension of self. The base ring of the matrix is a ring that
         contains the base ring of self and the coefficients of the given point.
 
@@ -472,7 +584,8 @@ class ProjectiveSpace_ring(AmbientSpace):
             [0]
             [0]
 
-        If the multiplcity ``m`` is 0, then the a matrix with zero rows is returned::
+        If the multiplicity `m` is 0, then the a matrix with zero rows
+        is returned::
 
             sage: P = ProjectiveSpace(GF(5), 2, names='x')
             sage: pt = P([1, 1, 1])
@@ -595,6 +708,56 @@ class ProjectiveSpace_ring(AmbientSpace):
             Set of rational points of Projective Space of dimension 2 over Finite Field of size 3
         """
         return SchemeHomset_points_projective_ring(*args, **kwds)
+
+    def point(self, v, check=True):
+        """
+        Create a point on this projective space.
+
+        INPUT:
+
+        - ``v`` -- anything that defines a point
+
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
+
+        OUTPUT: A point of this projective space.
+
+        EXAMPLES::
+
+            sage: P2 = ProjectiveSpace(QQ, 2)
+            sage: P2.point([4,5])
+            (4 : 5 : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 1)
+            sage: P.point(infinity)
+            (1 : 0)
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 2)
+            sage: P.point(infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: +Infinity not well defined in dimension > 1
+
+        ::
+
+            sage: P = ProjectiveSpace(ZZ, 2)
+            sage: P.point([infinity])
+            Traceback (most recent call last):
+             ...
+            ValueError: [+Infinity] not well defined in dimension > 1
+        """
+        from sage.rings.infinity import infinity
+        if v is infinity  or\
+          (isinstance(v, (list,tuple)) and len(v) == 1 and v[0] is infinity):
+            if self.dimension_relative() > 1:
+                raise ValueError("%s not well defined in dimension > 1"%v)
+            v = [1, 0]
+
+        return self.point_homset()(v, check=check)
 
     def _point(self, *args, **kwds):
         """
@@ -822,7 +985,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         except KeyError:
             pass
         #if no ith patch exists, we may still be here with AA==None
-        if AA == None:
+        if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
             AA = AffineSpace(n, self.base_ring(), names = 'x')
         elif AA.dimension_relative() != n:
@@ -1086,7 +1249,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         while not i < 0:
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
-            if (ftype == False): # if rational field
+            if not ftype: # if rational field
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
                 iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
@@ -1098,7 +1261,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     yield self(P)
                     j = 0
                 except StopIteration:
-                    if (ftype == False): # if rational field
+                    if not ftype: # if rational field
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
                         iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
@@ -1183,7 +1346,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         vars = list(R.gens())
         #create the brackets associated to variables
         L1 = []
-        for t in UnorderedTuples(range(n+1), dim+1):
+        for t in UnorderedTuples(list(range(n + 1)), dim+1):
             if all([t[i]<t[i+1] for i in range(dim)]):
                 L1.append(t)
         #create the dual brackets

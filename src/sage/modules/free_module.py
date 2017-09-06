@@ -162,6 +162,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function, absolute_import
+from six import integer_types
 
 from . import free_module_element
 import sage.matrix.matrix_space
@@ -178,6 +179,8 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
+                                    richcmp_not_equal, revop)
 
 from sage.misc.cachefunc import cached_method
 
@@ -687,22 +690,19 @@ class FreeModule_generic(Module):
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
             sage: FreeModule(GF(7),3).category()
-            Category of finite dimensional vector spaces with basis over
-             (finite fields and subquotients of monoids and quotients of semigroups)
+            Category of enumerated finite dimensional vector spaces with basis over
+             (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
             Category of finite dimensional vector spaces with basis over
              (quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
-            Category of finite dimensional vector spaces with basis over
-             (finite fields and subquotients of monoids
-              and quotients of semigroups)
+            Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
             Category of finite dimensional modules with basis over
              (euclidean domains and infinite enumerated sets
               and metric spaces)
             sage: (QQ^0).category()
-            Category of finite dimensional vector spaces with basis
-             over (quotient fields and metric spaces)
+            Category of finite enumerated finite dimensional vector spaces with basis over (quotient fields and metric spaces)
 
         TESTS::
 
@@ -744,6 +744,11 @@ done from the right side.""")
         if category is None:
             from sage.categories.all import FreeModules
             category = FreeModules(base_ring.category()).FiniteDimensional()
+            try:
+                if base_ring.is_finite() or rank == 0:
+                    category = category.Enumerated().Finite()
+            except:
+                pass
 
         super(FreeModule_generic, self).__init__(base_ring, category=category)
         self.__coordinate_ring = coordinate_ring
@@ -910,6 +915,58 @@ done from the right side.""")
         except ValueError:
             return self(0)
 
+    def some_elements(self):
+        r"""
+        Return some elements of this free module.
+
+        See :class:`TestSuite` for a typical use case.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: F = FreeModule(ZZ, 2)
+            sage: tuple(F.some_elements())
+            ((1, 0),
+             (1, 1),
+             (0, 1),
+             (-1, 2),
+             (-2, 3),
+             ...
+             (-49, 50))
+
+            sage: F = FreeModule(QQ, 3)
+            sage: tuple(F.some_elements())
+            ((1, 0, 0),
+             (1/2, 1/2, 1/2),
+             (1/2, -1/2, 2),
+             (-2, 0, 1),
+             (-1, 42, 2/3),
+             (-2/3, 3/2, -3/2),
+             (4/5, -4/5, 5/4),
+             ...
+             (46/103823, -46/103823, 103823/46))
+
+            sage: F = FreeModule(SR, 2)
+            sage: tuple(F.some_elements())
+            ((1, 0), (some_variable, some_variable))
+        """
+        from itertools import islice
+        yield self.an_element()
+        yield self.base().an_element() * sum(self.gens())
+        some_elements_base = iter(self.base().some_elements())
+        n = self.degree()
+        while True:
+            L = list(islice(some_elements_base, n))
+            if len(L) != n:
+                return
+            try:
+                yield self(L)
+            except (TypeError, ValueError):
+                pass
+
     def _element_constructor_(self, x, coerce=True, copy=True, check=True):
         r"""
         Create an element of this free module from ``x``.
@@ -926,7 +983,7 @@ done from the right side.""")
            ``check=True``, to account for numerical instability
            issues.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ZZ^4
             sage: M([1,-1,0,1])  #indirect doctest
@@ -953,7 +1010,8 @@ done from the right side.""")
             sage: N((0,0,0,1), check=False) in N
             True
         """
-        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
+        if (isinstance(x, integer_types + (sage.rings.integer.Integer,)) and
+            x == 0):
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
             if x.parent() is self:
@@ -1114,8 +1172,17 @@ done from the right side.""")
             144
             sage: (QQ^3).cardinality()
             +Infinity
+
+        TESTS:
+
+        Check that :trac:`22987` is fixed::
+
+            sage: VectorSpace(QQ, 0).cardinality()
+            1
         """
-        return (self.base_ring().cardinality())**self.rank()
+        if not self.rank():
+            return sage.rings.integer.Integer(1)
+        return self.base_ring().cardinality() ** self.rank()
 
     __len__ = cardinality # for backward compatibility
 
@@ -1345,7 +1412,7 @@ done from the right side.""")
         Returns a list `c` such that if `B` is the basis
         for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -1487,6 +1554,31 @@ done from the right side.""")
             1
         """
         return self.rank()
+
+    def codimension(self):
+        """
+        Return the codimension of this free module, which is the
+        dimension of the ambient space minus the dimension of this
+        free module.
+
+        EXAMPLES::
+
+            sage: M = Matrix(3, 4, range(12))
+            sage: V = M.left_kernel(); V
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [ 1 -2  1]
+            sage: V.dimension()
+            1
+            sage: V.codimension()
+            2
+
+        The codimension of an ambient space is always zero::
+
+            sage: (QQ^10).codimension()
+            0
+        """
+        return self.degree() - self.rank()
 
     def discriminant(self):
         """
@@ -1788,21 +1880,6 @@ done from the right side.""")
         """
         return self.__is_sparse
 
-    def list(self):
-        """
-        Return a list of all elements of ``self``.
-
-        EXAMPLES::
-
-            sage: (GF(3)^2).list()
-            [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
-            sage: (ZZ^2).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: since it is infinite, cannot list Ambient free module of rank 2 over the principal ideal domain Integer Ring
-        """
-        return self._list_from_iterator_cached()
-
     def ngens(self):
         """
         Returns the number of basis elements of this free module.
@@ -1884,6 +1961,41 @@ done from the right side.""")
             2
         """
         return self.__rank
+
+    def __bool__(self):
+        """
+        Return ``True`` if and only if the rank of this module is
+        non-zero. In other words, this returns ``False`` for the zero
+        module and ``True`` otherwise (apart from the exceptional case
+        where the base ring is the zero ring).
+
+        EXAMPLES::
+
+            sage: bool(QQ^0)
+            False
+            sage: bool(QQ^1)
+            True
+            sage: M = Matrix(2, 3, range(6))
+            sage: bool(M.right_kernel())
+            True
+            sage: bool(M.left_kernel())
+            False
+
+        When the base ring is the zero ring, we still look at the
+        "rank" (which may not be mathematically meaningful)::
+
+            sage: M = Integers(1)^4; M
+            Ambient free module of rank 4 over Ring of integers modulo 1
+            sage: M.rank()
+            4
+            sage: bool(M)
+            True
+            sage: M.cardinality()
+            1
+        """
+        return bool(self.rank())
+
+    __nonzero__ = __bool__
 
     def uses_ambient_inner_product(self):
         r"""
@@ -3461,7 +3573,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         - ``dim`` - int, dimension of subspaces to be generated
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = VectorSpace(GF(3), 5)
             sage: len(list(V.subspaces(0)))
@@ -3879,7 +3991,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: Q(V.0 + V.1)
             (0)
 
-        We illustrate the the base rings must be the same::
+        We illustrate that the base rings must be the same::
 
             sage: (QQ^2)/(ZZ^2)
             Traceback (most recent call last):
@@ -4064,6 +4176,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 #
 ###############################################################################
 
+@richcmp_method
 class FreeModule_ambient(FreeModule_generic):
     """
     Ambient free module over a commutative ring.
@@ -4200,8 +4313,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         return self.basis_matrix()
 
-    def __cmp__(self, other):
-        """
+    def __richcmp__(self, other, op):
+        r"""
         Compare the free module self with other.
 
         Modules are ordered by their ambient spaces, then by dimension,
@@ -4260,7 +4373,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: M == V
             False
 
-        We create the module `\\ZZ^3`, and the submodule generated by
+        We create the module `\ZZ^3`, and the submodule generated by
         one vector `(1,1,0)`, and check whether certain elements are
         in the submodule::
 
@@ -4280,30 +4393,33 @@ class FreeModule_ambient(FreeModule_generic):
             False
             sage: V.coordinates(w)
             [1/2]
-
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
         if not isinstance(other, FreeModule_generic):
-            return cmp(type(self), type(other))
+            return NotImplemented
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
-        if isinstance(other, FreeModule_ambient) and not isinstance(other,FreeModule_ambient_field_quotient):
-            c = cmp(self.rank(), other.rank())
-            if c: return c
-            c = cmp(self.base_ring(), other.base_ring())
-            if not c: return c
+        if isinstance(other, FreeModule_ambient) and not isinstance(other, FreeModule_ambient_field_quotient):
+            lx = self.rank()
+            rx = other.rank()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+            lx = self.base_ring()
+            rx = other.base_ring()
+            if lx == rx:
+                return rich_to_bool(op, 0)
             try:
                 if self.base_ring().is_subring(other.base_ring()):
-                    return -1
+                    return rich_to_bool(op, -1)
                 elif other.base_ring().is_subring(self.base_ring()):
-                    return 1
+                    return rich_to_bool(op, 1)
             except NotImplementedError:
                 pass
-            return c
+            return richcmp_not_equal(lx, rx, op)
         else:
             # now other is not ambient or is a quotient;
             # it knows how to do the comparison.
-            return -other.__cmp__(self)
+            return richcmp(other, self, revop(op))
 
     def _repr_(self):
         """
@@ -4518,7 +4634,7 @@ class FreeModule_ambient(FreeModule_generic):
 
         Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -4831,7 +4947,7 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
         Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -5068,7 +5184,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         Create an element of this vector space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: VS = k.vector_space()
@@ -5089,6 +5205,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 #
 ###############################################################################
 
+@richcmp_method
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     r"""
     Construct a submodule of a free module over PID with a distinguished basis.
@@ -5231,7 +5348,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns the functorial construction of self, namely, the subspace
         of the ambient module spanned by the given basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ZZ^3
             sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
@@ -5305,7 +5422,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         self.__echelonized_basis_matrix = E
         return E.rows()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare the free module self with other.
 
@@ -5365,18 +5482,28 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
         if not isinstance(other, FreeModule_generic):
-            return cmp(type(self), type(other))
-        c = cmp(self.ambient_vector_space(), other.ambient_vector_space())
-        if c: return c
-        c = cmp(self.dimension(), other.dimension())
-        if c: return c
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
+            return NotImplemented
+        lx = self.ambient_vector_space()
+        rx = other.ambient_vector_space()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.dimension()
+        rx = other.dimension()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.base_ring()
+        rx = other.base_ring()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
-        return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
+        return richcmp(self.echelonized_basis_matrix(),
+                       other.echelonized_basis_matrix(), op)
 
     def _denominator(self, B):
         """
@@ -5442,11 +5569,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if self.is_sparse():
             s = "Sparse free module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+                "User basis matrix:\n%r" % self.basis_matrix()
         else:
             s = "Free module of degree %s and rank %s over %s\n"%(
                 self.degree(), self.rank(), self.base_ring()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+                "User basis matrix:\n%r" % self.basis_matrix()
         return s
 
     def _latex_(self):
@@ -5503,7 +5630,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns a list `c` such that if `B` is the basis
         for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -5944,7 +6071,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         Returns a vector `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6002,7 +6129,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns a list `c` such that if `B` is the echelonized basis
         for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6153,7 +6280,7 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
         Returns a list `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6329,11 +6456,11 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         if self.is_sparse():
             return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "User basis matrix:\n%s"%self.basis_matrix()
+                    "User basis matrix:\n%r" % self.basis_matrix()
         else:
             return "Vector space of degree %s and dimension %s over %s\n"%(
                     self.degree(), self.dimension(), self.base_field()) + \
-                    "User basis matrix:\n%s"%self.basis_matrix()
+                    "User basis matrix:\n%r" % self.basis_matrix()
 
     def _denominator(self, B):
         """
@@ -6527,11 +6654,11 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         if self.is_sparse():
             return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s"%self.basis_matrix()
+                "Basis matrix:\n%r" % self.basis_matrix()
         else:
             return "Vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
-                "Basis matrix:\n%s"%self.basis_matrix()
+                "Basis matrix:\n%r" % self.basis_matrix()
 
     def echelon_coordinates(self, v, check=True):
         """
@@ -6550,7 +6677,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         Returns a list `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 
@@ -6613,7 +6740,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         Returns a list `c` such that if `B` is the basis for self, then
 
-        .. math::
+        .. MATH::
 
             \\sum c_i B_i = v.
 

@@ -4,7 +4,7 @@ Eta-products on modular curves :math:`X_0(N)`
 This package provides a class for representing eta-products, which
 are meromorphic functions on modular curves of the form
 
-.. math::
+.. MATH::
 
     \prod_{d | N} \eta(q^d)^{r_d}
 
@@ -29,10 +29,11 @@ AUTHOR:
 #****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import divisors, prime_divisors, is_square, euler_phi, gcd
-from sage.rings.all import Integer, IntegerRing, RationalField
+from sage.rings.all import Integer, ZZ, QQ
 from sage.groups.old import AbelianGroup
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.formal_sum import FormalSum
@@ -43,9 +44,6 @@ from sage.modules.free_module import FreeModule
 from sage.misc.misc import union
 
 import weakref
-
-ZZ = IntegerRing()
-QQ = RationalField()
 
 _cache = {}
 def EtaGroup(level):
@@ -83,7 +81,8 @@ class EtaGroup_class(AbelianGroup):
         Create the group of eta products of a given level, which must be a
         positive integer.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: G = EtaGroup(12); G # indirect doctest
             Group of eta products on X_0(12)
             sage: G is loads(dumps(G))
@@ -101,38 +100,52 @@ class EtaGroup_class(AbelianGroup):
         r"""
         Return the data used to construct self. Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(13).__reduce__()
             (<function EtaGroup at ...>, (13,))
         """
         return (EtaGroup, (self.level(),))
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
-        Compare self to other. If other is not an EtaGroup, compare by
-        type; otherwise compare by level. EtaGroups of the same level
+        Check that ``self`` is equal to ``other``.
+
+        If other is not an EtaGroup, return ``False``.
+
+        Otherwise compare the levels. EtaGroups of the same level
         compare as identical.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: EtaGroup(12) == 12
-            False
-            sage: EtaGroup(12) < EtaGroup(13)
-            True
             sage: EtaGroup(12) == EtaGroup(12)
             True
+            sage: EtaGroup(12) == EtaGroup(13)
+            False
         """
         if not isinstance(other, EtaGroup_class):
-            return cmp(type(self), type(other))
+            return False
         else:
-            return cmp(self.level(), other.level())
+            return self.level() == other.level()
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: EtaGroup(12) != EtaGroup(12)
+            False
+            sage: EtaGroup(12) != EtaGroup(13)
+            True
+        """
+        return not (self == other)
 
     def _repr_(self):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12)._repr_()
             'Group of eta products on X_0(12)'
@@ -143,7 +156,7 @@ class EtaGroup_class(AbelianGroup):
         r"""
         Return the identity element of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12).one()
             Eta product of level 12 : 1
@@ -156,7 +169,7 @@ class EtaGroup_class(AbelianGroup):
         exponents from the given dictionary. See the docstring for the
         EtaProduct() factory function for how dict is used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(2).__call__({1:24, 2:-24})
             Eta product of level 2 : (eta_1)^24 (eta_2)^-24
@@ -185,7 +198,7 @@ class EtaGroup_class(AbelianGroup):
            whether or not to apply LLL-reduction to the calculated basis
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(5).basis()
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
@@ -217,14 +230,14 @@ class EtaGroup_class(AbelianGroup):
         pass it to the reduce_basis() function which performs
         LLL-reduction to give a more manageable basis.
         """
-
+        from six.moves import range
         N = self.level()
         divs = divisors(N)[:-1]
         s = len(divs)
         primedivs = prime_divisors(N)
 
         rows = []
-        for i in xrange(s):
+        for i in range(s):
             # generate a row of relation matrix
             row = [ Mod(divs[i], 24) - Mod(N, 24), Mod(N/divs[i], 24) - Mod(1, 24)]
             for p in primedivs:
@@ -235,7 +248,7 @@ class EtaGroup_class(AbelianGroup):
         # now we compute elementary factors of Mlift
         S,U,V = Mlift.smith_form()
         good_vects = []
-        for i in xrange(U.nrows()):
+        for i in range(U.nrows()):
             vect = U.row(i)
             nf = (i < S.ncols() and S[i,i]) or 0
             good_vects.append((vect * 24/gcd(nf, 24)).list())
@@ -244,7 +257,7 @@ class EtaGroup_class(AbelianGroup):
         dicts = []
         for v in good_vects:
             dicts.append({})
-            for i in xrange(s):
+            for i in range(s):
                 dicts[-1][divs[i]] = v[i]
             dicts[-1][N] = v[-1]
         if reduce:
@@ -285,6 +298,7 @@ class EtaGroup_class(AbelianGroup):
             [Eta product of level 4 : (eta_1)^8 (eta_4)^-8,
             Eta product of level 4 : (eta_1)^-8 (eta_2)^24 (eta_4)^-16]
         """
+        from six.moves import range
         N = self.level()
         cusps = AllCusps(N)
         r = matrix(ZZ, [[et.order_at_cusp(c) for c in cusps] for et in long_etas])
@@ -294,9 +308,9 @@ class EtaGroup_class(AbelianGroup):
         short_etas = []
         for shortvect in rred.rows():
             bv = A.coordinates(shortvect)
-            dict = {}
-            for d in divisors(N):
-                dict[d] = sum( [bv[i]*long_etas[i].r(d) for i in xrange(r.nrows())])
+            dict = {d: sum(bv[i] * long_etas[i].r(d)
+                           for i in range(r.nrows()))
+                    for d in divisors(N)}
             short_etas.append(self(dict))
         return short_etas
 
@@ -351,6 +365,7 @@ def EtaProduct(level, dict):
     """
     return EtaGroup(level)(dict)
 
+
 class EtaGroupElement(MultiplicativeGroupElement):
 
     def __init__(self, parent, rdict):
@@ -358,7 +373,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Create an eta product object. Usually called implicitly via
         EtaGroup_class.__call__ or the EtaProduct factory function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
             Eta product of level 8 : (eta_1)^24 (eta_2)^-24
@@ -440,10 +455,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
             newdict[d] = self.r(d) - other.r(d)
         return EtaProduct(self.level(), newdict)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self to other. Eta products are compared according to
-        their rdicts.
+        Compare self to other.
+
+        Eta products are compared according to their rdicts.
 
         EXAMPLES::
 
@@ -458,7 +474,8 @@ class EtaGroupElement(MultiplicativeGroupElement):
             sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
             False
         """
-        return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
+        return richcmp((self.level(), self._rdict),
+                       (other.level(), other._rdict), op)
 
     def _short_repr(self):
         r"""
@@ -695,6 +712,7 @@ def AllCusps(N):
         ...
         ValueError: N must be positive
     """
+    from six.moves import range
     N = ZZ(N)
     if N <= 0:
         raise ValueError("N must be positive")
@@ -705,8 +723,8 @@ def AllCusps(N):
         if n == 1:
             c.append(CuspFamily(N, d))
         elif n > 1:
-            for i in xrange(n):
-                c.append(CuspFamily(N, d, label=str(i+1)))
+            for i in range(n):
+                c.append(CuspFamily(N, d, label=str(i + 1)))
     return c
 
 class CuspFamily(SageObject):
@@ -723,7 +741,7 @@ class CuspFamily(SageObject):
         with `\mathrm{lcm}(r,d) = N`. The cusp doesn't store zeta,
         so we store an arbitrary label instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(8, 4)
             (c_{4})
@@ -772,7 +790,7 @@ class CuspFamily(SageObject):
         Return the corresponding element of
         `\mathbb{P}^1(\QQ)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(10, 1).sage_cusp() # not implemented
             Infinity
@@ -783,7 +801,7 @@ class CuspFamily(SageObject):
         r"""
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(16, 4, "1")._repr_()
             '(c_{4,1})'
@@ -800,7 +818,7 @@ def qexp_eta(ps_ring, prec):
     Return the q-expansion of `\eta(q) / q^{1/24}`, where
     `\eta(q)` is Dedekind's function
 
-    .. math::
+    .. MATH::
 
         \eta(q) = q^{1/24}\prod_{n=1}^\infty (1-q^n),
 
@@ -819,7 +837,7 @@ def qexp_eta(ps_ring, prec):
 
     ALGORITHM: We use the Euler identity
 
-    .. math::
+    .. MATH::
 
          \eta(q) = q^{1/24}( 1 + \sum_{n \ge 1} (-1)^n (q^{n(3n+1)/2} + q^{n(3n-1)/2})
 
@@ -954,13 +972,13 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
     Liable to return meaningless results if qexp_terms isn't at least
     `1 + d*(m_1,m_2)` where
 
-    .. math::
+    .. MATH::
 
        m_i = min(0, {\text degree of the pole of $\eta_i$ at $\infty$})
 
     as then 1 will be in the ideal.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.etaproducts import _eta_relations_helper
         sage: r,s = EtaGroup(4).basis()
@@ -969,7 +987,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
         sage: _eta_relations_helper(EtaProduct(26, {2:2,13:2,26:-2,1:-2}),EtaProduct(26, {2:4,13:2,26:-4,1:-2}),3,12,['a','b'],False) # not enough terms, will return rubbish
         [1]
     """
-
+    from six.moves import range
     indices = [(i,j) for j in range(degree) for i in range(degree)]
     inf = CuspFamily(eta1.level(), 1)
 
@@ -978,11 +996,11 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
         print("Trying all coefficients from q^%s to q^%s inclusive" % (-pole_at_infinity, -pole_at_infinity + qexp_terms - 1))
 
     rows = []
-    for j in xrange(qexp_terms):
+    for j in range(qexp_terms):
         rows.append([])
     for i in indices:
         func = (eta1**i[0]*eta2**i[1]).qexp(qexp_terms)
-        for j in xrange(qexp_terms):
+        for j in range(qexp_terms):
             rows[j].append(func[j - pole_at_infinity])
     M = matrix(rows)
     V = M.right_kernel()
@@ -995,6 +1013,6 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
         x,y = R.gens()
         relations = []
         for c in V.basis():
-            relations.append(sum( [ c[v] * x**indices[v][0] * y**indices[v][1] for v in xrange(len(indices))]))
+            relations.append(sum( [ c[v] * x**indices[v][0] * y**indices[v][1] for v in range(len(indices))]))
         id = R.ideal(relations)
         return id.groebner_basis()

@@ -1,5 +1,6 @@
+#cython: wraparound=False, boundscheck=False
 r"""
-This contains a few time-critial auxillary cython functions for
+This contains a few time-critical auxillary cython functions for
 finite complex or real reflection groups.
 """
 #*****************************************************************************
@@ -21,7 +22,7 @@ cdef class Iterator(object):
     Iterator class for reflection groups.
     """
     cdef int n
-    cdef int N # number of refections/positive roots
+    cdef int N  # number of reflections / positive roots
     cdef tuple S
     cdef str algorithm
     cdef bint tracking_words
@@ -127,15 +128,14 @@ cdef class Iterator(object):
                     successors.append((u1, word_new, i))
         return successors
 
-    cdef bint test(self, PermutationGroupElement u, PermutationGroupElement si, int i):
-        cdef int j, sij
+    cdef inline bint test(self, PermutationGroupElement u, PermutationGroupElement si, int i):
+        cdef int j
         cdef int N = self.N
         cdef int* siperm = si.perm
         cdef int* uperm = u.perm
 
         for j in range(i):
-            sij = siperm[j]
-            if uperm[sij] >= N:
+            if uperm[siperm[j]] >= N:
                 return False
         return True
 
@@ -356,7 +356,7 @@ def iterator_tracking_words(W):
         ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), [0, 0, 1, 1, 0, 0])
     """
     cdef tuple I = tuple(W.simple_reflections())
-    cdef list index_list = range(len(I))
+    cdef list index_list = list(xrange(len(I)))
 
     cdef list level_set_cur = [(W.one(), [])]
     cdef set level_set_old = set([ W.one() ])
@@ -374,7 +374,7 @@ def iterator_tracking_words(W):
                     level_set_new.append((y, word+[i]))
         level_set_cur = level_set_new
 
-cdef bint has_descent(PermutationGroupElement w, int i, int N):
+cdef inline bint has_descent(PermutationGroupElement w, int i, int N):
     return w.perm[i] >= N
 
 cdef int first_descent(PermutationGroupElement w, int n, int N):
@@ -402,9 +402,12 @@ cpdef list reduced_word_c(W,w):
     cdef int fdes = 0
     cdef list word = []
 
-    while fdes != -1:
+    while True:
         fdes = first_descent(w,n,N)
+        if fdes == -1:
+            break
         si = S[fdes]
         w = si._mul_(w)
         word.append(fdes)
-    return word[:-1]
+    return word
+

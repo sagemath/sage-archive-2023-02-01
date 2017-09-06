@@ -73,10 +73,9 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
     One can quickly define all the bases using the following shortcut::
 
         sage: A.inject_shorthands()
-        Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
-        ...
-        Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
-        ...
+        Defining F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
+        Defining In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
+        Defining Out as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Out basis
 
     Accessing the basis elements is done with :meth:`basis()` method::
 

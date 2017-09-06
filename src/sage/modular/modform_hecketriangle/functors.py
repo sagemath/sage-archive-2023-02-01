@@ -126,7 +126,7 @@ def ConstantFormsSpaceFunctor(group):
     r"""
     Construction functor for the space of constant forms.
 
-    When determening a common parent between a ring
+    When determining a common parent between a ring
     and a forms ring or space this functor is first
     applied to the ring.
 
@@ -138,8 +138,7 @@ def ConstantFormsSpaceFunctor(group):
         sage: ConstantFormsSpaceFunctor(4)
         ModularFormsFunctor(n=4, k=0, ep=1)
     """
-
-    return FormsSpaceFunctor("holo", group, QQ(0), ZZ(1))
+    return FormsSpaceFunctor("holo", group, QQ.zero(), ZZ.one())
 
 
 class FormsSubSpaceFunctor(ConstructionFunctor):
@@ -489,7 +488,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         if isinstance(other, FormsSpaceFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             analytic_type = self._analytic_type + other._analytic_type
             if (self._k == other._k) and (self._ep == other._ep):
@@ -498,7 +497,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
                 return FormsRingFunctor(analytic_type, group, True)
         elif isinstance(other, FormsRingFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             red_hom = other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
@@ -680,14 +679,14 @@ class FormsRingFunctor(ConstructionFunctor):
 
         if isinstance(other, FormsSpaceFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             red_hom = self._red_hom
             analytic_type = self._analytic_type + other._analytic_type
             return FormsRingFunctor(analytic_type, group, red_hom)
         elif isinstance(other, FormsRingFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             red_hom = self._red_hom & other._red_hom
             analytic_type = self._analytic_type + other._analytic_type

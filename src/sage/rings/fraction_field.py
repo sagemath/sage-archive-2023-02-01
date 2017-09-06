@@ -1,4 +1,5 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Fraction Field of Integral Domains
 
 AUTHORS:
@@ -7,6 +8,9 @@ AUTHORS:
   Wetherell)
 
 - Burcin Erocal
+
+- Julian Rüth (2017-06-27): embedding into the field of fractions and its
+  section
 
 EXAMPLES:
 
@@ -52,35 +56,38 @@ TESTS::
     sage: F == loads(dumps(F))
     True
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #
 #   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2017 Julian Rüth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import absolute_import
-
+from six.moves import range
 import six
+
 from . import ring
 from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
+from sage.rings.integer_ring import ZZ
+from sage.structure.element import Element
+from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
-from sage.structure.coerce_maps import CallableConvertMap
+from sage.structure.coerce import py_scalar_to_element
+from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields
+from sage.categories.morphism import Morphism
+from sage.categories.map import Section
+
 
 def FractionField(R, names=None):
     """
@@ -129,6 +136,7 @@ def FractionField(R, names=None):
         raise TypeError("R must be an integral domain.")
     return R.fraction_field()
 
+
 def is_FractionField(x):
     """
     Test whether or not ``x`` inherits from :class:`FractionField_generic`.
@@ -143,13 +151,14 @@ def is_FractionField(x):
     """
     return isinstance(x, FractionField_generic)
 
+
 class FractionField_generic(ring.Field):
     """
     The fraction field of an integral domain.
     """
     def __init__(self, R,
-            element_class=fraction_field_element.FractionFieldElement,
-            category=QuotientFields()):
+                 element_class=fraction_field_element.FractionFieldElement,
+                 category=QuotientFields()):
         """
         Create the fraction field of the integral domain ``R``.
 
@@ -288,38 +297,41 @@ class FractionField_generic(ring.Field):
         from sage.rings.polynomial.laurent_polynomial_ring import \
             LaurentPolynomialRing_generic
 
+        if S is self._R:
+            parent = self._R.Hom(self)
+            return parent.__make_element_class__(FractionFieldEmbedding)(self._R, self, category=parent.homset_category())
+
+        def wrapper(x):
+            return self._element_class(self, x.numerator(), x.denominator())
+
         # The case ``S`` being `\QQ` requires special handling since `\QQ` is
         # not implemented as a ``FractionField_generic``.
         if S is QQ and self._R.has_coerce_map_from(ZZ):
-            return CallableConvertMap(S, self, \
-                lambda x: self._element_class(self, x.numerator(),
-                x.denominator()), parent_as_first_arg=False)
+            return CallableConvertMap(S, self, wrapper, parent_as_first_arg=False)
 
         # Number fields also need to be handled separately.
         if isinstance(S, NumberField):
-            return CallableConvertMap(S, self, \
-                self._number_field_to_frac_of_ring_of_integers, \
-                parent_as_first_arg=False)
+            return CallableConvertMap(S, self,
+                                      self._number_field_to_frac_of_ring_of_integers,
+                                      parent_as_first_arg=False)
 
         # special treatment for LaurentPolynomialRings
         if isinstance(S, LaurentPolynomialRing_generic):
-            def converter(x,y=None):
+            def converter(x, y=None):
                 if y is None:
                     return self._element_class(self, *x._fraction_pair())
                 xnum, xden = x._fraction_pair()
                 ynum, yden = y._fraction_pair()
-                return self._element_class(self, xnum*yden, xden*ynum)
+                return self._element_class(self, xnum * yden, xden * ynum)
             return CallableConvertMap(S, self, converter, parent_as_first_arg=False)
 
-        if isinstance(S, FractionField_generic) and \
-            self._R.has_coerce_map_from(S.ring()):
-            return CallableConvertMap(S, self, \
-                lambda x: self._element_class(self, x.numerator(),
-                x.denominator()), parent_as_first_arg=False)
+        if (isinstance(S, FractionField_generic) and
+                self._R.has_coerce_map_from(S.ring())):
+            return CallableConvertMap(S, self, wrapper, parent_as_first_arg=False)
 
         if self._R.has_coerce_map_from(S):
             return CallableConvertMap(S, self, self._element_class,
-                parent_as_first_arg=True)
+                                      parent_as_first_arg=True)
 
         return None
 
@@ -337,7 +349,7 @@ class FractionField_generic(ring.Field):
 
         -  Element of ``self``
 
-        TEST:
+        TESTS:
 
         We demonstrate that :trac:`7958` is resolved in the case of
         number fields::
@@ -352,9 +364,9 @@ class FractionField_generic(ring.Field):
         """
         f = x.polynomial()   # Polynomial over QQ
         d = f.denominator()  # Integer
-        return self._element_class(self, numerator=d*x, denominator=d)
+        return self._element_class(self, numerator=d * x, denominator=d)
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
         Return ``True``, since the fraction field is a field.
 
@@ -371,10 +383,10 @@ class FractionField_generic(ring.Field):
 
         .. NOTE::
 
-           A fraction field is finite if and only if the associated
-           integral domain is finite.
+            A fraction field is finite if and only if the associated
+            integral domain is finite.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Frac(QQ['a','b','c']).is_finite()
             False
@@ -384,7 +396,9 @@ class FractionField_generic(ring.Field):
 
     def base_ring(self):
         """
-        Return the base ring of ``self``; this is the base ring of the ring
+        Return the base ring of ``self``.
+
+        This is the base ring of the ring
         which this fraction field is the fraction field of.
 
         EXAMPLES::
@@ -420,7 +434,7 @@ class FractionField_generic(ring.Field):
             sage: Frac(ZZ['x']) # indirect doctest
             Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         """
-        return "Fraction Field of %s"%self._R
+        return "Fraction Field of %s" % self._R
 
     def _latex_(self):
         """
@@ -431,7 +445,7 @@ class FractionField_generic(ring.Field):
             sage: latex(Frac(GF(7)['x,y,z'])) # indirect doctest
             \mathrm{Frac}(\Bold{F}_{7}[x, y, z])
         """
-        return "\\mathrm{Frac}(%s)"%latex.latex(self._R)
+        return "\\mathrm{Frac}(%s)" % latex.latex(self._R)
 
     def _magma_init_(self, magma):
         """
@@ -459,7 +473,7 @@ class FractionField_generic(ring.Field):
             sage: magma(k) is magma(k)                               # optional - magma
             True
         """
-        s = 'FieldOfFractions(%s)'%self.ring()._magma_init_(magma)
+        s = 'FieldOfFractions(%s)' % self.ring()._magma_init_(magma)
         return magma._with_names(s, self.variable_names())
 
     def ring(self):
@@ -490,7 +504,7 @@ class FractionField_generic(ring.Field):
         """
         return self.ring().is_exact()
 
-    def _element_constructor_(self, x, y=1, coerce=True):
+    def _element_constructor_(self, x, y=None, coerce=True):
         """
         Construct an element of this fraction field.
 
@@ -531,6 +545,14 @@ class FractionField_generic(ring.Field):
             sage: S(pari(x + y + 1/z))
             (x*z + y*z + 1)/z
 
+        This example failed before :trac:`23664`::
+
+            sage: P0.<x> = ZZ[]
+            sage: P1.<y> = Frac(P0)[]
+            sage: frac = (x/(x^2 + 1))*y + 1/(x^3 + 1)
+            sage: Frac(ZZ['x,y'])(frac)
+            (x^4*y + x^2 + x*y + 1)/(x^5 + x^3 + x^2 + 1)
+
         Test conversions where `y` is a string but `x` not::
 
             sage: K = ZZ['x,y'].fraction_field()
@@ -548,55 +570,58 @@ class FractionField_generic(ring.Field):
             sage: R.<x> = PolynomialRing(B,'x')
             sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
             a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
-
         """
-        Element = self._element_class
-        if isinstance(x, Element) and y == 1:
-            if x.parent() is self:
+        if y is None:
+            if isinstance(x, Element) and x.parent() is self:
                 return x
             else:
-                return Element(self, x.numerator(), x.denominator())
+                y = self.base_ring().one()
 
-        recurse = False
+        try:
+            return self._element_class(self, x, y, coerce=coerce)
+        except (TypeError, ValueError):
+            pass
+
         if isinstance(x, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
                 x = sage_eval(x, self.gens_dict_recursive())
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(x, self))
-            recurse = True
         if isinstance(y, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
                 y = sage_eval(y, self.gens_dict_recursive())
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(y, self))
-            recurse = True
 
-        try:
-            return Element(self, x, y, coerce=coerce)
-        except (TypeError, ValueError):
-            if recurse:
-                return self._element_constructor(x, y)
-            if y == 1:
-                from sage.symbolic.expression import Expression
-                if isinstance(x, Expression):
-                    return Element(self, x.numerator(), x.denominator())
-                from sage.libs.pari.all import pari_gen
-                if isinstance(x, pari_gen):
-                    t = x.type()
-                    if t == 't_RFRAC':
-                        return Element(self, x.numerator(), x.denominator())
-                    elif t == 't_POL':
-                        # This recursive approach is needed because PARI
-                        # represents multivariate polynomials as iterated
-                        # univariate polynomials (see the above examples).
-                        # Below, v is the variable with highest priority,
-                        # and the x[i] are rational functions in the
-                        # remaining variables.
-                        v = Element(self, x.variable(), 1)
-                        return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
-            raise
+        x = py_scalar_to_element(x)
+        y = py_scalar_to_element(y)
+
+        from sage.libs.pari.all import pari_gen
+        if isinstance(x, pari_gen) and x.type() == 't_POL':
+            # This recursive approach is needed because PARI
+            # represents multivariate polynomials as iterated
+            # univariate polynomials (see the above examples).
+            # Below, v is the variable with highest priority,
+            # and the x[i] are rational functions in the
+            # remaining variables.
+            v = self._element_class(self, x.variable(), 1)
+            x = sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
+
+        while True:
+            x0, y0 = x, y
+            try:
+                x = x0.numerator()*y0.denominator()
+                y = y0.numerator()*x0.denominator()
+            except AttributeError:
+                raise TypeError("cannot convert {!r}/{!r} to an element of {}",
+                                x0, y0, self)
+            try:
+                return self._element_class(self, x, y, coerce=coerce)
+            except TypeError:
+                if not x != x0:
+                    raise
 
     def construction(self):
         """
@@ -614,8 +639,10 @@ class FractionField_generic(ring.Field):
         from sage.categories.pushout import FractionField
         return FractionField(), self.ring()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
+        Check whether ``self`` is equal to ``other``.
+
         EXAMPLES::
 
             sage: Frac(ZZ['x']) == Frac(ZZ['x'])
@@ -628,8 +655,25 @@ class FractionField_generic(ring.Field):
             False
         """
         if not isinstance(other, FractionField_generic):
-            return cmp(type(self), type(other))
-        return cmp(self._R, other._R)
+            return False
+        return self._R == other._R
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: Frac(ZZ['x']) != Frac(ZZ['x'])
+            False
+            sage: Frac(ZZ['x']) != Frac(QQ['x'])
+            True
+            sage: Frac(ZZ['x']) != Frac(ZZ['y'])
+            True
+            sage: Frac(ZZ['x']) != QQ['x']
+            True
+        """
+        return not (self == other)
 
     def ngens(self):
         """
@@ -702,7 +746,7 @@ class FractionField_generic(ring.Field):
 
     def random_element(self, *args, **kwds):
         """
-        Returns a random element in this fraction field.
+        Return a random element in this fraction field.
 
         The arguments are passed to the random generator of the underlying ring.
 
@@ -721,8 +765,38 @@ class FractionField_generic(ring.Field):
             5
         """
         return self._element_class(self, self._R.random_element(*args, **kwds),
-            self._R._random_nonzero_element(*args, **kwds),
-            coerce=False, reduce=True)
+                                   self._R._random_nonzero_element(*args, **kwds),
+                                   coerce=False, reduce=True)
+
+
+    def some_elements(self):
+        r"""
+        Return some elements in this field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().some_elements()
+            [0,
+             1,
+             x,
+             2*x,
+             x/(x^2 + 2*x + 1),
+             1/x^2,
+             ...
+             (2*x^2 + 2)/(x^2 + 2*x + 1),
+             (2*x^2 + 2)/x^3,
+             (2*x^2 + 2)/(x^2 - 1),
+             2]
+
+        """
+        ret = [self.zero(), self.one()]
+        for a in self._R.some_elements():
+            for b in self._R.some_elements():
+                if a != b and self(a) and self(b):
+                    ret.append(self(a)/self(b))
+        return ret
+
 
 class FractionField_1poly_field(FractionField_generic):
     """
@@ -731,9 +805,9 @@ class FractionField_1poly_field(FractionField_generic):
     Many of the functions here are included for coherence with number fields.
     """
     def __init__(self, R,
-            element_class=fraction_field_element.FractionFieldElement_1poly_field):
+                 element_class=fraction_field_element.FractionFieldElement_1poly_field):
         """
-        Just changes the default for ``element_class``.
+        Just change the default for ``element_class``.
 
         EXAMPLES::
 
@@ -745,7 +819,7 @@ class FractionField_1poly_field(FractionField_generic):
 
     def ring_of_integers(self):
         """
-        Returns the ring of integers in this fraction field.
+        Return the ring of integers in this fraction field.
 
         EXAMPLES::
 
@@ -757,7 +831,7 @@ class FractionField_1poly_field(FractionField_generic):
 
     def maximal_order(self):
         """
-        Returns the maximal order in this fraction field.
+        Return the maximal order in this fraction field.
 
         EXAMPLES::
 
@@ -778,3 +852,229 @@ class FractionField_1poly_field(FractionField_generic):
             1
         """
         return 1
+
+
+class FractionFieldEmbedding(DefaultConvertMap_unique):
+    r"""
+    The embedding of an integral domain into its field of fractions.
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: f = R.fraction_field().coerce_map_from(R); f
+        Coercion map:
+          From: Univariate Polynomial Ring in x over Rational Field
+          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+ 
+    TESTS::
+
+        sage: from sage.rings.fraction_field import FractionFieldEmbedding
+        sage: isinstance(f, FractionFieldEmbedding)
+        True
+        sage: TestSuite(f).run()
+
+    Check that :trac:`23185` has been resolved::
+
+        sage: R.<x> = QQ[]
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.is_subring(K)
+        True
+        sage: R.is_subring(R.fraction_field())
+        True
+
+    """
+    def is_surjective(self):
+        r"""
+        Return whether this map is surjective.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).is_surjective()
+            False
+
+        """
+        return self.domain().is_field()
+
+    def is_injective(self):
+        r"""
+        Return whether this map is injective.
+
+        EXAMPLES:
+
+        The map from an integral domain to its fraction field is always
+        injective:
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).is_injective()
+            True
+
+        """
+        return True
+
+    def section(self):
+        r"""
+        Return a section of this map.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().coerce_map_from(R).section()
+            Section map:
+              From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+
+        """
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        from sage.all import Hom
+        parent = Hom(self.codomain(), self.domain(), SetsWithPartialMaps())
+        return parent.__make_element_class__(FractionFieldEmbeddingSection)(self)
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this element to ``other`` with respect to ``op``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.fraction_field().coerce_map_from(R)
+            sage: S.<y> = GF(2)[]
+            sage: g = S.fraction_field().coerce_map_from(S)
+ 
+            sage: f == g # indirect doctest
+            False
+            sage: f == f
+            True
+
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this embedding.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: hash(R.fraction_field().coerce_map_from(R)) == hash(R.fraction_field().coerce_map_from(R))
+            True
+
+        """
+        return hash((type(self), self.domain()))
+
+
+class FractionFieldEmbeddingSection(Section):
+    r"""
+    The section of the embedding of an integral domain into its field of
+    fractions.
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: f = R.fraction_field().coerce_map_from(R).section(); f
+        Section map:
+          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+          To:   Univariate Polynomial Ring in x over Rational Field
+ 
+    TESTS::
+
+        sage: from sage.rings.fraction_field import FractionFieldEmbeddingSection
+        sage: isinstance(f, FractionFieldEmbeddingSection)
+        True
+        sage: TestSuite(f).run()
+
+    """
+    def _call_(self, x, check=True):
+        r"""
+        Evaluate this map at ``x``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K = R.fraction_field()
+            sage: x = K.gen()
+            sage: f = K.coerce_map_from(R).section()
+            sage: f(x)
+            x
+            sage: f(1/x)
+            Traceback (most recent call last):
+            ...
+            TypeError: fraction must have unit denominator
+
+        TESTS:
+
+        Over inexact rings, we have to take the precision of the denominators
+        into account::
+
+            sage: R=ZpCR(2)
+            sage: S.<x> = R[]
+            sage: f = x/S(R(3,absprec=2))
+            sage: S(f)
+            (1 + 2 + O(2^2))*x
+
+        """
+        if self.codomain().is_exact() and x.denominator().is_one():
+           return x.numerator()
+        if check and not x.denominator().is_unit():
+            # This should probably be a ValueError.
+            # However, too much existing code is expecting this to throw a
+            # TypeError, so we decided to keep it for the time being.
+            raise TypeError("fraction must have unit denominator")
+        return x.numerator() * x.denominator().inverse_of_unit()
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        r"""
+        Evaluation this map at ``x``.
+
+        INPUT:
+
+        - ``check`` -- whether or not to check
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K = R.fraction_field()
+            sage: R(K.gen(), check=True)
+            x
+
+        """
+        check = kwds.pop('check', True)
+        if args or kwds:
+            raise NotImplementedError("__call__ can not be called with additional arguments other than check=True/False")
+        return self._call_(x, check=check)
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this element to ``other`` with respect to ``op``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = R.fraction_field().coerce_map_from(R).section()
+            sage: S.<y> = GF(2)[]
+            sage: g = S.fraction_field().coerce_map_from(S).section()
+ 
+            sage: f == g # indirect doctest
+            False
+            sage: f == f
+            True
+
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this section.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: hash(R.fraction_field().coerce_map_from(R).section()) == hash(R.fraction_field().coerce_map_from(R).section())
+            True
+
+        """
+        return hash((type(self), self.codomain()))

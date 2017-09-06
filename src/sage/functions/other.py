@@ -2,19 +2,20 @@
 Other functions
 """
 from __future__ import print_function
+from six.moves import range
+from six import integer_types
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.symbolic.pynac import register_symbol, symbol_table
-from sage.symbolic.pynac import py_factorial_py
+from sage.libs.pynac.pynac import (register_symbol, symbol_table,
+        py_factorial_py, I)
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 
-import sage.structure.element
-coercion_model = sage.structure.element.get_coercion_model()
+from sage.structure.element import coercion_model
 
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
@@ -24,232 +25,9 @@ from sage.functions.log import exp
 from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
+from sage.arith.all import binomial as arith_binomial
 
 one_half = ~SR(2)
-
-class Function_erf(BuiltinFunction):
-    r"""
-    The error function, defined for real values as
-
-    `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
-
-    This function is also defined for complex values, via analytic
-    continuation.
-
-
-    EXAMPLES:
-
-    We can evaluate numerically::
-
-        sage: erf(2)
-        erf(2)
-        sage: erf(2).n()
-        0.995322265018953
-        sage: erf(2).n(100)
-        0.99532226501895273416206925637
-        sage: erf(ComplexField(100)(2+3j))
-        -20.829461427614568389103088452 + 8.6873182714701631444280787545*I
-
-    Basic symbolic properties are handled by Sage and Maxima::
-
-        sage: x = var("x")
-        sage: diff(erf(x),x)
-        2*e^(-x^2)/sqrt(pi)
-        sage: integrate(erf(x),x)
-        x*erf(x) + e^(-x^2)/sqrt(pi)
-
-    ALGORITHM:
-
-    Sage implements numerical evaluation of the error function via the
-    ``erf()`` function from mpmath. Symbolics are handled by Sage and Maxima.
-
-    REFERENCES:
-
-    - http://en.wikipedia.org/wiki/Error_function
-    - http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#error-functions
-
-    TESTS:
-
-    Check limits::
-
-        sage: limit(erf(x),x=0)
-        0
-        sage: limit(erf(x),x=infinity)
-        1
-
-     Check that it's odd::
-
-         sage: erf(1.0)
-         0.842700792949715
-         sage: erf(-1.0)
-         -0.842700792949715
-
-    Check against other implementations and against the definition::
-
-        sage: erf(3).n()
-        0.999977909503001
-        sage: maxima.erf(3).n()
-        0.999977909503001
-        sage: (1-pari(3).erfc())
-        0.999977909503001
-        sage: RR(3).erf()
-        0.999977909503001
-        sage: (integrate(exp(-x**2),(x,0,3))*2/sqrt(pi)).n()
-        0.999977909503001
-
-    :trac:`9044`::
-
-        sage: N(erf(sqrt(2)),200)
-        0.95449973610364158559943472566693312505644755259664313203267
-
-    :trac:`11626`::
-
-        sage: n(erf(2),100)
-        0.99532226501895273416206925637
-        sage: erf(2).n(100)
-        0.99532226501895273416206925637
-
-    Test (indirectly) :trac:`11885`::
-
-        sage: erf(float(0.5))
-        0.5204998778130465
-        sage: erf(complex(0.5))
-        (0.5204998778130465+0j)
-
-    Ensure conversion from maxima elements works::
-
-        sage: merf = maxima(erf(x)).sage().operator()
-        sage: merf == erf
-        True
-
-    Make sure we can dump and load it::
-
-        sage: loads(dumps(erf(2)))
-        erf(2)
-
-    Special-case 0 for immediate evaluation::
-
-        sage: erf(0)
-        0
-        sage: solve(erf(x)==0,x)
-        [x == 0]
-
-    Make sure that we can hold::
-
-        sage: erf(0,hold=True)
-        erf(0)
-        sage: simplify(erf(0,hold=True))
-        0
-
-    Check that high-precision ComplexField inputs work::
-
-        sage: CC(erf(ComplexField(1000)(2+3j)))
-        -20.8294614276146 + 8.68731827147016*I
-    """
-
-    def __init__(self):
-        r"""
-        See docstring for :meth:`Function_erf`.
-
-        EXAMPLES::
-
-            sage: maxima(erf(2))
-            erf(2)
-            sage: erf(2)._sympy_()
-            erf(2)
-        """
-        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
-                                 conversions=dict(maxima='erf',
-                                                  sympy='erf'))
-
-    def _eval_(self, x):
-        """
-        EXAMPLES:
-
-        Input is not an expression but is exact::
-
-            sage: erf(0)
-            0
-            sage: erf(1)
-            erf(1)
-
-        Input is not an expression and is not exact::
-
-            sage: erf(0.0)
-            0.000000000000000
-
-        Input is an expression but not a trivial zero::
-
-            sage: erf(x)
-            erf(x)
-
-        Input is an expression which is trivially zero::
-
-            sage: erf(SR(0))
-            0
-        """
-        if isinstance(x, Expression):
-            if x.is_trivial_zero():
-                return x
-        elif not x:
-            return x
-
-    def _evalf_(self, x, parent=None, algorithm=None):
-        """
-        EXAMPLES::
-
-            sage: erf(2).n()
-            0.995322265018953
-            sage: erf(2).n(200)
-            0.99532226501895273416206925636725292861089179704006007673835
-            sage: erf(pi - 1/2*I).n(100)
-            1.0000111669099367825726058952 + 1.6332655417638522934072124547e-6*I
-
-        TESTS:
-
-        Check that PARI/GP through the GP interface gives the same answer::
-
-            sage: gp.set_real_precision(59)  # random
-            38
-            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200));
-            0.84270079294971486934122063508260925929606699796630290845994
-            0.84270079294971486934122063508260925929606699796630290845994
-
-        Check that for an imaginary input, the output is also imaginary, see
-        :trac:`13193`::
-
-            sage: erf(3.0*I)
-            1629.99462260157*I
-            sage: erf(33.0*I)
-            1.51286977510409e471*I
-        """
-        R = parent or s_parent(x)
-        import mpmath
-        return mpmath_utils.call(mpmath.erf, x, parent=R)
-
-    def _derivative_(self, x, diff_param=None):
-        """
-        Derivative of erf function
-
-        EXAMPLES::
-
-            sage: erf(x).diff(x)
-            2*e^(-x^2)/sqrt(pi)
-
-        TESTS:
-
-        Check if :trac:`8568` is fixed::
-
-            sage: var('c,x')
-            (c, x)
-            sage: derivative(erf(c*x),x)
-            2*c*e^(-c^2*x^2)/sqrt(pi)
-            sage: erf(c*x).diff(x)._maxima_init_()
-            '((%pi)^(-1/2))*(_SAGE_VAR_c)*(exp(((_SAGE_VAR_c)^(2))*((_SAGE_VAR_x)^(2))*(-1)))*(2)'
-        """
-        return 2*exp(-x**2)/sqrt(pi)
-
-erf = Function_erf()
 
 class Function_abs(GinacFunction):
     def __init__(self):
@@ -328,7 +106,9 @@ class Function_abs(GinacFunction):
             (pi + e)*abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
-                               conversions=dict(sympy='Abs'))
+                               conversions=dict(sympy='Abs',
+                                                mathematica='Abs',
+                                                giac='abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -417,7 +197,8 @@ class Function_ceil(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
-                                                    sympy='ceiling'))
+                                                    sympy='ceiling',
+                                                    giac='ceil'))
 
     def _print_latex_(self, x):
         r"""
@@ -450,7 +231,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -494,7 +275,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -564,6 +345,8 @@ class Function_floor(BuiltinFunction):
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
             array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            sage: floor(x)._sympy_()
+            floor(x)
 
         Test pickling::
 
@@ -571,7 +354,7 @@ class Function_floor(BuiltinFunction):
             floor
         """
         BuiltinFunction.__init__(self, "floor",
-                                 conversions=dict(sympy='floor'))
+                                 conversions=dict(sympy='floor', giac='floor'))
 
     def _print_latex_(self, x):
         r"""
@@ -604,7 +387,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -646,7 +429,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -674,6 +457,8 @@ class Function_Order(GinacFunction):
             Order(x)
             sage: (x^2 + x).Order()
             Order(x^2 + x)
+            sage: x.Order()._sympy_()
+            O(x)
 
         TESTS:
 
@@ -682,9 +467,81 @@ class Function_Order(GinacFunction):
             sage: x.Order().operator()
             Order
         """
-        GinacFunction.__init__(self, "Order", latex_name=r"\mathcal{O}")
+        GinacFunction.__init__(self, "Order",
+                conversions=dict(sympy='O'),
+                latex_name=r"\mathcal{O}")
 
 Function_Order()
+
+class Function_frac(BuiltinFunction):
+    def __init__(self):
+        r"""
+        The fractional part function `\{x\}`.
+
+        ``frac(x)`` is defined as `\{x\} = x - \lfloor x\rfloor`.
+
+        EXAMPLES::
+
+            sage: frac(5.4)
+            0.400000000000000
+            sage: type(frac(5.4))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+            sage: frac(456/123)
+            29/41
+            sage: var('x')
+            x
+            sage: a = frac(5.4 + x); a
+            frac(x + 5.40000000000000)
+            sage: frac(cos(8)/cos(2))
+            cos(8)/cos(2)
+            sage: latex(frac(x))
+            \operatorname{frac}\left(x\right)
+            sage: frac(x)._sympy_()
+            frac(x)
+
+        Test pickling::
+
+            sage: loads(dumps(floor))
+            floor
+        """
+        BuiltinFunction.__init__(self, "frac",
+                                 conversions=dict(sympy='frac'),
+                                 latex_name=r"\operatorname{frac}")
+
+    def _evalf_(self, x, **kwds):
+        """
+        EXAMPLES::
+
+            sage: frac(pi).n()
+            0.141592653589793
+            sage: frac(pi).n(200)
+            0.14159265358979323846264338327950288419716939937510582097494
+        """
+        return x - floor(x)
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: frac(x).subs(x==7.5)
+            0.500000000000000
+            sage: frac(x)
+            frac(x)
+        """
+        try:
+            return x - x.floor()
+        except AttributeError:
+            if isinstance(x, integer_types):
+                return Integer(0)
+            elif isinstance(x, (float, complex)):
+                return x - Integer(int(math.floor(x)))
+            elif isinstance(x, Expression):
+                ret = floor(x)
+                if not hasattr(ret, "operator") or not ret.operator() == floor:
+                    return x - ret
+        return None
+
+frac = Function_frac()
 
 
 class Function_gamma(GinacFunction):
@@ -692,7 +549,7 @@ class Function_gamma(GinacFunction):
         r"""
         The Gamma function.  This is defined by
 
-        .. math::
+        .. MATH::
 
             \Gamma(z) = \int_0^\infty t^{z-1}e^{-t} dt
 
@@ -767,6 +624,9 @@ class Function_gamma(GinacFunction):
 
         TESTS:
 
+            sage: gamma(x)._sympy_()
+            gamma(x)
+
         We verify that we can convert this function to Maxima and
         convert back to Sage::
 
@@ -816,15 +676,24 @@ class Function_gamma(GinacFunction):
             sage: float(gamma(8.5)) == gamma(8.5r) == float(gamma(mpmath.mpf(8.5)))
             True
 
+        Check that ``QQbar`` half integers work with the ``pi`` formula::
+
+            sage: gamma(QQbar(1/2))
+            sqrt(pi)
+            sage: gamma(QQbar(-9/2))
+            -32/945*sqrt(pi)
+
         .. SEEALSO::
 
             :meth:`sage.functions.other.gamma`
         """
-        GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
-                ginac_name='tgamma',
-                conversions={'mathematica':'Gamma',
-                             'maple':'GAMMA',
-                             'sympy':'gamma'})
+        GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
+                               ginac_name='tgamma',
+                               conversions={'mathematica':'Gamma',
+                                            'maple':'GAMMA',
+                                            'sympy':'gamma',
+                                            'fricas':'Gamma',
+                                            'giac':'Gamma'})
 
 gamma1 = Function_gamma()
 
@@ -903,15 +772,15 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(CC(6))
             4.78749174278205
             sage: log_gamma(CC(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.0562437164976741 - 9.42477796076938*I
             sage: log_gamma(RDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(CDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(float(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
             sage: log_gamma(complex(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
 
         ``conjugate(log_gamma(x)) == log_gamma(conjugate(x))`` unless on the
         branch cut, which runs along the negative real axis.::
@@ -932,7 +801,8 @@ class Function_log_gamma(GinacFunction):
         GinacFunction.__init__(self, "log_gamma", latex_name=r'\log\Gamma',
                                conversions=dict(mathematica='LogGamma',
                                                 maxima='log_gamma',
-                                                sympy='loggamma'))
+                                                sympy='loggamma',
+                                                fricas='logGamma'))
 
 log_gamma = Function_log_gamma()
 
@@ -943,7 +813,7 @@ class Function_gamma_inc(BuiltinFunction):
 
         It is defined by the integral
 
-        .. math::
+        .. MATH::
 
             \Gamma(a,z)=\int_z^\infty t^{a-1}e^{-t}\,\mathrm{d}t
 
@@ -967,9 +837,18 @@ class Function_gamma_inc(BuiltinFunction):
             0.0404276819945128
             sage: x,y=var('x,y')
             sage: gamma_inc(x,y).diff(x)
-            D[0](gamma)(x, y)
+            diff(gamma(x, y), x)
             sage: (gamma_inc(x,x+1).diff(x)).simplify()
             -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
+
+        TESTS:
+
+        Check that :trac:`21407` is fixed::
+
+            sage: gamma(-1,5)._sympy_()
+            expint(2, 5)/5
+            sage: gamma(-3/2,5)._sympy_()
+            -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
 
     .. SEEALSO::
 
@@ -977,7 +856,7 @@ class Function_gamma_inc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA'})
+                    'maple':'GAMMA', 'sympy':'uppergamma', 'giac':'ugamma'})
 
     def _eval_(self, x, y):
         """
@@ -1007,6 +886,7 @@ class Function_gamma_inc(BuiltinFunction):
         if x == 0:
             return -Ei(-y)
         if x == Rational(1)/2: #only for x>0
+            from sage.functions.error import erf
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
@@ -1041,7 +921,7 @@ class Function_gamma_inc(BuiltinFunction):
             (-0.8231640121031085+3.141592653589793j)
             sage: gamma_inc(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))
+            sage: gamma_inc(-1, float(-log(3))) - gamma_inc(-1, float(-log(2)))  # abs tol 1e-15
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
@@ -1049,7 +929,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: r = gamma_inc(float(0), float(1)); r
             0.21938393439552029
             sage: type(r)
-            <type 'float'>
+            <... 'float'>
         """
         R = parent or s_parent(x)
         # C is the complex version of R
@@ -1087,7 +967,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
 
         It is defined by the integral
 
-        .. math::
+        .. MATH::
 
             \Gamma(a,z)=\int_0^z t^{a-1}e^{-t}\,\mathrm{d}t
 
@@ -1126,7 +1006,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
                 conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'lowergamma'})
+                    'maple':'GAMMA', 'sympy':'lowergamma', 'giac':'igamma'})
 
     def _eval_(self, x, y):
         """
@@ -1334,7 +1214,7 @@ class Function_psi1(GinacFunction):
         The digamma function, `\psi(x)`, is the logarithmic derivative of the
         gamma function.
 
-        .. math::
+        .. MATH::
 
             \psi(x) = \frac{d}{dx} \log(\Gamma(x)) = \frac{\Gamma'(x)}{\Gamma(x)}
 
@@ -1425,7 +1305,8 @@ class Function_psi2(GinacFunction):
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                                conversions=dict(mathematica='PolyGamma',
-                                                sympy='polygamma'))
+                                                sympy='polygamma',
+                                                giac='Psi'))
 
     def _maxima_init_evaled_(self, *args):
         """
@@ -1458,7 +1339,7 @@ def psi(x, *args, **kwds):
     The digamma function, `\psi(x)`, is the logarithmic derivative of the
     gamma function.
 
-    .. math::
+    .. MATH::
 
         \psi(x) = \frac{d}{dx} \log(\Gamma(x)) = \frac{\Gamma'(x)}{\Gamma(x)}
 
@@ -1503,6 +1384,9 @@ def psi(x, *args, **kwds):
 # We have to add the wrapper function manually to the symbol_table when we have
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
+
+def _swap_psi(a, b): return psi(b, a)
+register_symbol(_swap_psi, {'giac':'Psi'})
 
 class Function_factorial(GinacFunction):
     def __init__(self):
@@ -1575,6 +1459,8 @@ class Function_factorial(GinacFunction):
             factorial(_SAGE_VAR_z)
             sage: _.sage()
             factorial(z)
+            sage: _._sympy_()
+            factorial(z)
             sage: k = var('k')
             sage: factorial(k)
             factorial(k)
@@ -1610,6 +1496,12 @@ class Function_factorial(GinacFunction):
             sage: (factorial(x) == y).solve(x)
             [factorial(x) == y]
 
+        Check that :trac:`16166` is fixed::
+
+            sage: RBF=RealBallField(53)
+            sage: factorial(RBF(4.2))
+            [32.5780960503313 +/- 6.71e-14]
+
         Test pickling::
 
             sage: loads(dumps(factorial))
@@ -1618,7 +1510,9 @@ class Function_factorial(GinacFunction):
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
                 conversions=dict(maxima='factorial',
                                  mathematica='Factorial',
-                                 sympy='factorial'))
+                                 sympy='factorial',
+                                 fricas='factorial',
+                                 giac='factorial'))
 
     def _eval_(self, x):
         """
@@ -1658,7 +1552,7 @@ class Function_binomial(GinacFunction):
         r"""
         Return the binomial coefficient
 
-        .. math::
+        .. MATH::
 
             \binom{x}{m} = x (x-1) \cdots (x-m+1) / m!
 
@@ -1667,7 +1561,7 @@ class Function_binomial(GinacFunction):
         `x`. We extend this definition to include cases when
         `x-m` is an integer but `m` is not by
 
-        .. math::
+        .. MATH::
 
             \binom{x}{m}= \binom{x}{x-m}
 
@@ -1730,6 +1624,8 @@ class Function_binomial(GinacFunction):
             binomial(_SAGE_VAR_n,_SAGE_VAR_k)
             sage: _.sage()
             binomial(n, k)
+            sage: _._sympy_()
+            binomial(n, k)
             sage: binomial._maxima_init_()
             'binomial'
 
@@ -1747,7 +1643,9 @@ class Function_binomial(GinacFunction):
         GinacFunction.__init__(self, "binomial", nargs=2, preserved_arg=1,
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
-                                 sympy='binomial'))
+                                 sympy='binomial',
+                                 fricas='binomial',
+                                 giac='comb'))
 
     def _binomial_sym(self, n, k):
         """
@@ -1788,7 +1686,7 @@ class Function_binomial(GinacFunction):
             return n
 
         from sage.misc.all import prod
-        return prod([n - i for i in xrange(k)]) / factorial(k)
+        return prod(n - i for i in range(k)) / factorial(k)
 
     def _eval_(self, n, k):
         """
@@ -1832,7 +1730,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(5.r, 3)
             10.0
             sage: type(binomial._evalf_(5.r, 3))
-            <type 'float'>
+            <... 'float'>
             sage: binomial._evalf_(1/2,1/1)
             1/2
             sage: binomial._evalf_(10^20+1/1,10^20)
@@ -1842,7 +1740,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.arith.all.binomial(n, k)
+        return arith_binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -1851,7 +1749,7 @@ class Function_beta(GinacFunction):
         r"""
         Return the beta function.  This is defined by
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) = \int_0^1 t^{p-1}(1-t)^{q-1} dt
 
@@ -1867,20 +1765,20 @@ class Function_beta(GinacFunction):
         other.  In other cases, GiNaC uses one of the following
         formulas:
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) = \frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)}
 
         or
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) = (-1)^q \operatorname{B}(1-p-q, q).
 
 
         For numerical inputs, GiNaC uses the formula
 
-        .. math::
+        .. MATH::
 
             \operatorname{B}(p,q) =  \exp[\log\Gamma(p)+\log\Gamma(q)-\log\Gamma(p+q)]
 
@@ -1932,6 +1830,9 @@ class Function_beta(GinacFunction):
             sage: beta(2., I)
             -0.500000000000000 - 0.500000000000000*I
 
+            sage: beta(x, x)._sympy_()
+            beta(x, x)
+
         Test pickling::
 
             sage: loads(dumps(beta))
@@ -1942,10 +1843,13 @@ class Function_beta(GinacFunction):
             sage: beta(-1.3,-0.4)
             -4.92909641669610
         """
-        GinacFunction.__init__(self, "beta", nargs=2,
-                conversions=dict(maxima='beta',
-                                 mathematica='Beta',
-                                 sympy='beta'))
+        GinacFunction.__init__(self, 'beta', nargs=2,
+                               latex_name=r"\operatorname{B}",
+                               conversions=dict(maxima='beta',
+                                                mathematica='Beta',
+                                                sympy='beta',
+                                                fricas='Beta',
+                                                giac='Beta'))
 
 beta = Function_beta()
 
@@ -1996,7 +1900,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             else:
                  return ComplexField(prec)(x).sqrt(all=all)
         if x == -1:
-            from sage.symbolic.pynac import I
             z = I
         else:
             z = SR(x) ** one_half
@@ -2067,7 +1970,7 @@ def sqrt(x, *args, **kwds):
             ...
             TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
 
-        This illustrates that the bug reported in #6171 has been fixed::
+        This illustrates that the bug reported in :trac:`6171` has been fixed::
 
             sage: a = 1.1
             sage: a.sqrt(prec=100)  # this is supposed to fail
@@ -2131,6 +2034,7 @@ class Function_arg(BuiltinFunction):
             0
             sage: arg(0)
             0
+
             sage: latex(arg(x))
             {\rm arg}\left(x\right)
             sage: maxima(arg(x))
@@ -2139,6 +2043,9 @@ class Function_arg(BuiltinFunction):
             atan(1/2)
             sage: maxima(arg(sqrt(2)+i))
             atan(1/sqrt(2))
+            sage: arg(x)._sympy_()
+            arg(x)
+
             sage: arg(2+i)
             arctan(1/2)
             sage: arg(sqrt(2)+i)
@@ -2160,7 +2067,8 @@ class Function_arg(BuiltinFunction):
         BuiltinFunction.__init__(self, "arg",
                 conversions=dict(maxima='carg',
                                  mathematica='Arg',
-                                 sympy='arg'))
+                                 sympy='arg',
+                                 giac='arg'))
 
     def _eval_(self, x):
         """
@@ -2287,6 +2195,23 @@ class Function_real_part(GinacFunction):
             sage: real(complex(3, 4))
             3.0
 
+        Sage can recognize some expressions as real and accordingly
+        return the identical argument::
+
+            sage: SR.var('x', domain='integer').real_part()
+            x
+            sage: SR.var('x', domain='integer').imag_part()
+            0
+            sage: real_part(sin(x)+x)
+            x + sin(x)
+            sage: real_part(x*exp(x))
+            x*e^x
+            sage: imag_part(sin(x)+x)
+            0
+            sage: real_part(real_part(x))
+            x
+            sage: forget()
+
         TESTS::
 
             sage: loads(dumps(real_part))
@@ -2302,10 +2227,17 @@ class Function_real_part(GinacFunction):
             sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
+
+        Check that some real part expansions evaluate correctly
+        (:trac:`21614`)::
+
+            sage: real(sqrt(sin(x))).subs(x==0)
+            0
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
-                                                sympy='re'),
+                                                sympy='re',
+                                                giac='re'),
                                alt_name="real")
 
     def __call__(self, x, **kwargs):
@@ -2313,7 +2245,7 @@ class Function_real_part(GinacFunction):
         TESTS::
 
             sage: type(real(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.real
@@ -2364,7 +2296,8 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
-                                                sympy='im'),
+                                                sympy='im',
+                                                giac='im'),
                                alt_name="imag")
 
     def __call__(self, x, **kwargs):
@@ -2372,7 +2305,7 @@ class Function_imag_part(GinacFunction):
         TESTS::
 
             sage: type(imag(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.imag
@@ -2406,6 +2339,8 @@ class Function_conjugate(GinacFunction):
 
             sage: x,y = var('x,y')
             sage: x.conjugate()
+            conjugate(x)
+            sage: _._sympy_()
             conjugate(x)
             sage: latex(conjugate(x))
             \overline{x}
@@ -2454,6 +2389,194 @@ class Function_conjugate(GinacFunction):
             conjugate
         """
         GinacFunction.__init__(self, "conjugate",
-                               conversions=dict(sympy='conjugate'))
+                               conversions=dict(sympy='conjugate',
+                                                giac='conj'))
 
 conjugate = Function_conjugate()
+
+
+class Function_sum(BuiltinFunction):
+    """
+    Placeholder symbolic sum function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_sum as ssum
+        sage: r = ssum(x, x, 1, 10); r
+        sum(x, x, 1, 10)
+        sage: r.unhold()
+        55
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: maxima(ssum(x, x, 1, 10))
+            55
+        """
+        BuiltinFunction.__init__(self, "sum", nargs=4,
+                               conversions=dict(maxima='sum'))
+
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: latex(ssum(x^2, x, 1, 10))
+            {\sum_{x=1}^{10} x^{2}}
+        """
+        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
+                                                      latex(b), latex(x))
+
+symbolic_sum = Function_sum()
+
+
+class Function_prod(BuiltinFunction):
+    """
+    Placeholder symbolic product function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_product as sprod
+        sage: r = sprod(x, x, 1, 10); r
+        product(x, x, 1, 10)
+        sage: r.unhold()
+        3628800
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: _ = var('m n', domain='integer')
+            sage: r = maxima(sprod(sin(m), m, 1, n)).sage(); r
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(), sage.functions.other.Function_prod)
+            True
+            sage: r = sympy(sprod(sin(m), m, 1, n)).sage(); r # known bug
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(),
+            ....:     sage.functions.other.Function_prod) # known bug
+            True
+            sage: giac(sprod(m, m, 1, n))
+            n!
+        """
+        BuiltinFunction.__init__(self, "product", nargs=4,
+                               conversions=dict(maxima='product',
+                                   sympy='Product', giac='product'))
+
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: latex(sprod(x^2, x, 1, 10))
+            {\prod_{x=1}^{10} x^{2}}
+        """
+        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
+                                                       latex(b), latex(x))
+
+symbolic_product = Function_prod()
+
+
+class Function_limit(BuiltinFunction):
+    """
+    Placeholder symbolic limit function that is only accessible internally.
+
+    This function is called to create formal wrappers of limits that
+    Maxima can't compute::
+
+        sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
+        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_limit as slimit
+        sage: slimit(1/x, x, +oo)
+        limit(1/x, x, +Infinity)
+        sage: var('minus,plus')
+        (minus, plus)
+        sage: slimit(1/x, x, +oo)
+        limit(1/x, x, +Infinity)
+        sage: slimit(1/x, x, 0, plus)
+        limit(1/x, x, 0, plus)
+        sage: slimit(1/x, x, 0, minus)
+        limit(1/x, x, 0, minus)
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: maxima(slimit(1/x, x, +oo))
+            0
+        """
+        BuiltinFunction.__init__(self, "limit", nargs=0,
+                               conversions=dict(maxima='limit'))
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: latex(slimit)
+            \lim
+        """
+        return r'\lim'
+
+    def _print_latex_(self, ex, var, to, direction=''):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: var('x,a')
+            (x, a)
+            sage: f = function('f')
+            sage: latex(slimit(f(x), x, a))
+            \lim_{x \to a}\, f\left(x\right)
+            sage: latex(limit(f(x), x=oo))
+            \lim_{x \to +\infty}\, f\left(x\right)
+
+        TESTS:
+
+        When one-sided limits are converted back from maxima, the direction
+        argument becomes a symbolic variable. We check if typesetting these works::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: var('minus,plus')
+            (minus, plus)
+            sage: latex(slimit(f(x), x, a, minus))
+            \lim_{x \to a^-}\, f\left(x\right)
+            sage: latex(slimit(f(x), x, a, plus))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='+'))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='right'))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='-'))
+            \lim_{x \to a^-}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='left'))
+            \lim_{x \to a^-}\, f\left(x\right)
+
+        Check if :trac:`13181` is fixed::
+
+            sage: t = var('t')
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
+            \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
+            \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
+            \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+        """
+        if repr(direction) == 'minus':
+            dir_str = '^-'
+        elif repr(direction) == 'plus':
+            dir_str = '^+'
+        else:
+            dir_str = ''
+        return r"\lim_{{{} \to {}{}}}\, {}".format(latex(var),
+                latex(to), dir_str, latex(ex))
+
+symbolic_limit = Function_limit()
+

@@ -7,10 +7,10 @@ AUTHORS:
 - John H. Palmieri (2009-08)
 
 This module implements the basic structure of finite
-`\Delta`-complexes.  For full mathematical details, see Hatcher [Hat]_,
+`\Delta`-complexes.  For full mathematical details, see Hatcher [Hat2002]_,
 especially Section 2.1 and the Appendix on "Simplicial CW Structures".
 As Hatcher points out, `\Delta`-complexes were first introduced by Eilenberg
-and Zilber [EZ]_, although they called them "semi-simplicial complexes".
+and Zilber [EZ1950]_, although they called them "semi-simplicial complexes".
 
 A `\Delta`-complex is a generalization of a :mod:`simplicial complex
 <sage.homology.simplicial_complex>`; a `\Delta`-complex `X` consists
@@ -21,7 +21,7 @@ functions `d_i` from `X_n` to `X_{n-1}`, with `d_i(s)` equal to the
 `i`-th face of `s` for each simplex `s \in X_n`.  These maps must
 satisfy the *simplicial identity*
 
-  .. math::
+  .. MATH::
 
     d_i d_j = d_{j-1} d_i \text{ for all } i<j.
 
@@ -47,15 +47,10 @@ vertex.
    inherits its methods.  Some of those methods are not listed here;
    see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
    page instead.
-
-REFERENCES:
-
-.. [Hat] Allen Hatcher, "Algebraic Topology", Cambridge University Press (2002).
-
-.. [EZ] \S. Eilenberg and J. Zilber, "Semi-Simplicial Complexes and Singular
-        Homology", Ann. Math. (2) 51 (1950), 499-513.
 """
 from __future__ import absolute_import
+from six.moves import range
+from six import integer_types
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
@@ -301,7 +296,7 @@ class DeltaComplex(GenericCellComplex):
                     new_data[dim] = s
                     dim += 1
             elif isinstance(data, dict):
-                if all(isinstance(a, (Integer, int, long)) for a in data):
+                if all(isinstance(a, (Integer,) + integer_types) for a in data):
                     # a dictionary indexed by integers
                     new_data = data
                     if -1 not in new_data:
@@ -1013,7 +1008,9 @@ class DeltaComplex(GenericCellComplex):
                             # Simplex, as well as the function
                             # 'lattice_paths', in
                             # simplicial_complex.py.)
-                            for path in lattice_paths(range(k+1), range(n+1), length=d+1):
+                            for path in lattice_paths(list(range(k + 1)),
+                                                      list(range(n + 1)),
+                                                      length=d+1):
                                 path = tuple(path)
                                 new[(k, k_idx, n, n_idx, path)] = len(simplices)
                                 bdry_list = []
@@ -1266,13 +1263,8 @@ class DeltaComplex(GenericCellComplex):
         of a single top-dimensional simplex without subdividing every
         simplex in the complex.
 
-        The term "elementary subdivison" is taken from p. 112 in John
-        M. Lee's book [Lee]_.
-
-        REFERENCES:
-
-        .. [Lee] John M. Lee, Introduction to Topological Manifolds,
-           Springer-Verlag, GTM volume 202.
+        The term "elementary subdivision" is taken from p. 112 in John
+        M. Lee's book [Lee2011]_.
 
         EXAMPLES::
 
@@ -1553,7 +1545,7 @@ class DeltaComplex(GenericCellComplex):
         coefficients in ``base_ring``.
 
         The term "algebraic topological model" is defined by Pilarczyk
-        and Réal [PR]_.
+        and Réal [PR2015]_.
 
         INPUT:
 

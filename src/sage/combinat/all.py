@@ -3,6 +3,8 @@ Combinatorics features that are imported by default in the interpreter namespace
 """
 from __future__ import absolute_import
 
+from sage.misc.lazy_import import lazy_import
+
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
@@ -91,6 +93,8 @@ from .composition_tableau import CompositionTableau, CompositionTableaux
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
+lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
+                                         'LittlewoodRichardsonTableaux'])
 
 #Words
 from .words.all import *
@@ -105,12 +109,14 @@ from .tuple import Tuples, UnorderedTuples
 #Alternating sign matrices
 from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
 
+#Plane Partitions
+from .plane_partition import PlanePartition, PlanePartitions
+
 # Parking Functions
 from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 from .parking_functions import ParkingFunctions, ParkingFunction
 
 # Trees and Tamari interval posets
-from sage.misc.lazy_import import lazy_import
 from .ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from .binary_tree import (BinaryTree, BinaryTrees,
@@ -196,3 +202,8 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 
 # Constellations
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
+
+# Growth diagrams
+lazy_import('sage.combinat.growth', ['GrowthDiagramRSK', 'GrowthDiagramBurge',
+                                     'GrowthDiagramBinWord', 'GrowthDiagramDomino',
+                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])

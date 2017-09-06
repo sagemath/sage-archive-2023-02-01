@@ -95,7 +95,7 @@ class OutputBuffer(SageObject):
             sage: from sage.repl.rich_output.buffer import OutputBuffer
             sage: name = sage.misc.temporary_file.tmp_filename()
             sage: with open(name, 'w') as f:
-            ....:    f.write('file content')
+            ....:    _ = f.write('file content')
             sage: buf = OutputBuffer.from_file(name);  buf
             buffer containing 12 bytes
 
@@ -124,7 +124,7 @@ class OutputBuffer(SageObject):
             sage: from sage.repl.rich_output.buffer import OutputBuffer
             sage: tmp = sage.misc.temporary_file.tmp_filename()
             sage: with open(tmp, 'w') as f:
-            ....:    f.write('file content')
+            ....:    _ = f.write('file content')
             sage: OutputBuffer._chmod_readonly(tmp)
             sage: import os, stat
             sage: stat.S_IMODE(os.stat(tmp).st_mode) & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)

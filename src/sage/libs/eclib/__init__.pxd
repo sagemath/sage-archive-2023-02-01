@@ -1,6 +1,6 @@
 # distutils: language = c++
 # distutils: extra_compile_args = -DNTL_ALL
-# distutils: libraries = ec ntl pari gmpxx gmp m
+# distutils: libraries = ec ntl pari gmp m
 
 # NOTE: eclib includes have specific dependencies and must be included
 # in a specific order. That explains the various empty
@@ -44,16 +44,19 @@ cdef extern from "eclib/isogs.h":
 
 cdef extern from "eclib/curve.h":
     cdef cppclass Curve:
+        Curve()
         Curve(bigint aa1, bigint aa2, bigint aa3, bigint aa4, bigint aa6)
         void getai(bigint a1, bigint a2, bigint a3, bigint a4, bigint a6)
 
     cdef cppclass Curvedata:
+        Curvedata()
         Curvedata(Curve C, int m)
         Curvedata(bigint a1, bigint a2, bigint a3, bigint a4, bigint a6,
                 int min_on_init)
         void getai(bigint a1, bigint a2, bigint a3, bigint a4, bigint a6)
 
     cdef cppclass CurveRed:
+        CurveRed()
         CurveRed(Curvedata CD)
 
     bigint getconductor(CurveRed CR)
@@ -94,6 +97,7 @@ cdef extern from "eclib/oldforms.h":
     pass
 
 from libcpp.vector cimport vector
+from libcpp.pair cimport pair
 
 cdef extern from "eclib/newforms.h":
     cdef cppclass newforms:
@@ -108,8 +112,11 @@ cdef extern from "eclib/newforms.h":
 
         void createfromcurve(int sign, CurveRed CR)
         void display()
-        rational plus_modular_symbol(rational r)
-        rational minus_modular_symbol(rational r)
+        # Here i is the index of the relevant newform in the space,
+        # which for us will always be 0:
+        rational plus_modular_symbol(rational r, int i, int base_at_infinity)
+        rational minus_modular_symbol(rational r, int i, int base_at_infinity)
+        pair[rational,rational] full_modular_symbol(rational r, int i, int base_at_infinity)
 
     cdef cppclass newform:
         newforms* nf

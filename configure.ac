@@ -32,6 +32,11 @@ AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([config])
 
+dnl This is the hierarchy where everything gets installed (SAGE_LOCAL).
+dnl By default, it is the subdirectory local, but the user
+dnl can override it by supplying --prefix=....
+AC_PREFIX_DEFAULT(`pwd -P`/local)
+
 dnl We don't really use automake, but configure needs aclocal and the
 dnl automake library files (like config.guess).
 AM_INIT_AUTOMAKE([1.9.6 foreign])
@@ -75,15 +80,20 @@ fi
 #
 
 ########################################################################
-# Set various environment variables
+# Set various environment variables (needed at configure time)
 ########################################################################
 
-# Assume current directory is SAGE_ROOT
+# Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
+
+SAGE_LOCAL="$prefix"
+# The following line is necessary because the code below
+# inspects stuff in the installation prefix at configure time.
+# This is nonstandard.
+if test "$SAGE_LOCAL" = NONE; then
+    SAGE_LOCAL=local
+fi
 SAGE_SRC="$SAGE_ROOT/src"
-SAGE_LOCAL="$SAGE_ROOT/local"
-SAGE_SHARE="$SAGE_LOCAL/share"
-SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 #---------------------------------------------------------
@@ -294,6 +304,15 @@ AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
     [need_to_install_git=yes; ac_cv_path_GIT=no])])
 
+# Yasm is only needed on x86(_64) systems; check also for system yasm
+need_to_install_yasm=no
+AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
+    AS_CASE("$host_cpu",
+        [i@<:@0-9@:>@86|x86_64], [
+        AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
+        [${ac_path_YASM} --version >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}],
+        [need_to_install_yasm=yes; ac_cv_path_YASM=no])],
+        [ac_cv_path_YASM="not needed for $host_cpu"]))
 
 ###############################################################################
 # Check C/C++/Fortran compilers
@@ -350,15 +369,22 @@ elif test -n "$SAGE_INSTALL_GCC"; then
 fi
 
 
-AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
-
-AC_LANG(C++)
 AC_PROG_CXX()
-
-AC_LANG(Fortran)
 AC_PROG_FC()
+
+AC_SUBST(CC)
+AC_SUBST(CXX)
+AC_SUBST(FC)
+
+# On darwin, also set the objective C/C++ compilers
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
 if test "x$CXX" = x
 then
@@ -620,7 +646,6 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
-
 ###############################################################################
 # Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
 ###############################################################################
@@ -638,8 +663,12 @@ cat >&7 <<EOF
 # Always use bash for make rules
 SHELL = `command -v bash`
 
+ifndef SAGE_SPKG_INST
+\$(error This Makefile needs to be invoked by build/make/install)
+endif
+
 # Directory to keep track of which packages are installed
-INST = `echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+INST = \$(SAGE_SPKG_INST)
 
 # Aliases for optional packages selected at configure time
 EOF
@@ -679,16 +708,16 @@ fi
 # BLAS library
 AC_MSG_CHECKING([BLAS library])
 AC_ARG_WITH([blas],
-[AS_HELP_STRING([--with-blas=atlas],
-    [use ATLAS as BLAS library (default)])]
 [AS_HELP_STRING([--with-blas=openblas],
-    [use OpenBLAS as BLAS library])],,
-    [with_blas=atlas]  # default
+    [use OpenBLAS as BLAS library (default)])]
+[AS_HELP_STRING([--with-blas=atlas],
+    [use ATLAS as BLAS library])],,
+    [with_blas=openblas]  # default
 )
 
 case "$with_blas" in
-    atlas) true;;
-    openblas) need_to_install_atlas=no;;
+    openblas) true;;
+    atlas) need_to_install_openblas=no;;
     *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
 esac
 
@@ -860,24 +889,22 @@ echo >&7
 echo >&7
 
 
-echo >&7 'SCRIPT_SOURCES = \'
-for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
-done
-echo >&7
+# We need sage-env-config to exist before running this.
+# TODO: fix this in Trac #21524
+touch "$SAGE_SRC/bin/sage-env-config"
+
 echo >&7 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
-done
-echo >&7
-echo >&7 'EXTCODE_SOURCES = \'
-for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+    # Skip files with ".in" extension
+    ext=${file##*.}
+    if test "$ext" != in; then
+        echo >&7 "    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
+    fi
 done
 echo >&7
 echo >&7 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
+    echo >&7 "    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done
 echo >&7
 
@@ -931,10 +958,12 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
         DEPS=""
     fi
 
+    # Below we have to obscure A""M_V_at, or autoconf would complain:
+    # "error: possibly undefined macro: A""M_V_at"
     if [ "$TYPE" = pip ]; then
         # Special rules using PIP
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7 "	\$(A""M_V_at)sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Add a target to remove the "installed" file for "sage -f"
@@ -944,21 +973,21 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     elif [ "$TYPE" = script ]; then
         # Just run the spkg-install script
         echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	cd '$SAGE_ROOT' && \\"
+        echo >&7 "	\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    sage-logger -p '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
         echo >&7
 
         # Just run the spkg-uninstall script if it exists
         echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	-cd '$SAGE_ROOT' && \\"
+        echo >&7 "	-\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
         echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
         echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
         echo >&7
     else
         # Normal Sage packages
         echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
+        echo >&7 "	+\$(A""M_V_at)sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
         echo >&7
 
         # Add a target with just the bare package name for "sage -i"
@@ -982,16 +1011,13 @@ exec 7>&-
 
 
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto])
+AC_CONFIG_FILES([build/make/Makefile-auto src/Makefile])
+AC_CONFIG_FILES([src/bin/sage-env-config])
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,
     [
-        SAGE_LOGS=${ac_abs_top_builddir}/logs/pkgs
-        SAGE_LOCAL=${ac_abs_top_builddir}/local
-        SAGE_SHARE=${ac_abs_top_builddir}/local/share
-        SAGE_INST=${ac_abs_top_builddir}/local/var/lib/sage/installed
         for d in "$SAGE_LOGS" "$SAGE_LOCAL" \
             "$SAGE_LOCAL/bin" "$SAGE_LOCAL/etc" \
             "$SAGE_LOCAL/include" "$SAGE_LOCAL/lib" \
@@ -1009,6 +1035,12 @@ AC_CONFIG_COMMANDS(mkdirs,
             AC_MSG_NOTICE([[creating symbolic link lib64 -> lib]])
             ln -s lib "$SAGE_LOCAL/lib64"
         fi
+    ],
+    [
+        SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
+        SAGE_LOCAL="$SAGE_LOCAL"
+        SAGE_SHARE="$SAGE_LOCAL/share"
+        SAGE_INST="$SAGE_SPKG_INST"
     ])
 
 AC_OUTPUT()

@@ -61,12 +61,12 @@ cdef class WithEqualityById:
     ::
 
         sage: class MyParent(Parent):
-        ...     def __init__(self, x):
-        ...         self.x = x
-        ...     def __cmp__(self,other):
-        ...         return cmp(self.x^2,other.x^2)
-        ...     def __hash__(self):
-        ...         return hash(self.x)
+        ....:   def __init__(self, x):
+        ....:       self.x = x
+        ....:   def __cmp__(self,other):
+        ....:       return cmp(self.x^2,other.x^2)
+        ....:   def __hash__(self):
+        ....:       return hash(self.x)
         sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
         sage: issubclass(MyUniqueParent, sage.misc.fast_methods.WithEqualityById)
         True
@@ -118,8 +118,8 @@ cdef class WithEqualityById:
     ::
 
         sage: class MyNonUniqueParent(MyUniqueParent):
-        ...     def __eq__(self, other):
-        ...         return self.x^2 == other.x^2
+        ....:   def __eq__(self, other):
+        ....:       return self.x^2 == other.x^2
         sage: a = MyNonUniqueParent(1)
         sage: d = MyNonUniqueParent(-1)
         sage: a is MyNonUniqueParent(1)
@@ -137,12 +137,12 @@ cdef class WithEqualityById:
         TESTS::
 
             sage: class MyParent(Parent):
-            ...     def __init__(self, x):
-            ...         self.x = x
-            ...     def __cmp__(self,other):
-            ...         return cmp(self.x^2,other.x^2)
-            ...     def __hash__(self):
-            ...         return hash(self.x)
+            ....:   def __init__(self, x):
+            ....:       self.x = x
+            ....:   def __cmp__(self,other):
+            ....:       return cmp(self.x^2,other.x^2)
+            ....:   def __hash__(self):
+            ....:       return hash(self.x)
             sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
             sage: issubclass(MyUniqueParent, sage.misc.fast_methods.WithEqualityById)
             True
@@ -168,12 +168,12 @@ cdef class WithEqualityById:
         TESTS::
 
             sage: class MyParent(Parent):
-            ...     def __init__(self, x):
-            ...         self.x = x
-            ...     def __cmp__(self,other):
-            ...         return cmp(self.x^2,other.x^2)
-            ...     def __hash__(self):
-            ...         return hash(self.x)
+            ....:   def __init__(self, x):
+            ....:       self.x = x
+            ....:   def __cmp__(self,other):
+            ....:       return cmp(self.x^2,other.x^2)
+            ....:   def __hash__(self):
+            ....:       return hash(self.x)
             sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
             sage: issubclass(MyUniqueParent, sage.misc.fast_methods.WithEqualityById)
             True
@@ -262,7 +262,8 @@ cdef class FastHashable_class:
         """
         return self._hash
 
-class Singleton(WithEqualityById):
+
+class Singleton(WithEqualityById, metaclass=ClasscallMetaclass):
     """
     A base class for singletons.
 
@@ -308,8 +309,6 @@ class Singleton(WithEqualityById):
         subclass of <class 'sage.misc.fast_methods.Singleton'>",),
         <class '__main__.D'>, ())
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls):
         """

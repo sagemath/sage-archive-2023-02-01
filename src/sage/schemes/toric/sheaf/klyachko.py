@@ -56,6 +56,7 @@ REFERENCES:
 from __future__ import print_function
 
 from sage.structure.all import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.rings.all import QQ, ZZ
 from sage.misc.all import uniq, cached_method
 from sage.matrix.constructor import vector, matrix, block_matrix, zero_matrix
@@ -140,7 +141,7 @@ def Bundle(toric_variety, multi_filtration, check=True):
     return KlyachkoBundle_class(toric_variety, multi_filtration, check=check)
 
 
-
+@richcmp_method
 class KlyachkoBundle_class(SageObject):
 
     def __init__(self, toric_variety, multi_filtration, check=True):
@@ -361,7 +362,7 @@ class KlyachkoBundle_class(SageObject):
         Let the cone be spanned by the rays `\sigma=\langle r_1,\dots,
         r_k\rangle`. This method returns the intersection
 
-        .. math::
+        .. MATH::
 
             \bigcap_{r\in \{r_1,\dots,r_k\}}
             E^{r}(i)
@@ -547,7 +548,7 @@ class KlyachkoBundle_class(SageObject):
 
         The restriction map
 
-        .. math::
+        .. MATH::
 
             E_\sigma(m) \to E_\tau(m)
 
@@ -644,10 +645,10 @@ class KlyachkoBundle_class(SageObject):
             codim = fan.dim() - dim
             d_C = C.differential(codim)
             d_V = []
-            for j in range(0, d_C.ncols()):
+            for j in range(d_C.ncols()):
                 tau = fan(dim)[j]
                 d_V_row = []
-                for i in range(0, d_C.nrows()):
+                for i in range(d_C.nrows()):
                     sigma = fan(dim-1)[i]
                     if sigma.is_face_of(tau):
                         pr = self.E_quotient_projection(sigma, tau, m)
@@ -700,7 +701,7 @@ class KlyachkoBundle_class(SageObject):
             Vector space of dimension 2 over Rational Field
             sage: V.cohomology(weight=(0,0), dim=True)
             (2, 0, 0)
-            sage: for i,j in cartesian_product((range(-2,3), range(-2,3))):
+            sage: for i,j in cartesian_product((list(range(-2,3)), list(range(-2,3)))):
             ....:       HH = V.cohomology(weight=(i,j), dim=True)
             ....:       if HH.is_zero(): continue
             ....:       print('H^*i(P^2, TP^2)_M({}, {}) = {}'.format(i,j,HH))
@@ -724,18 +725,18 @@ class KlyachkoBundle_class(SageObject):
         space_dim = self._variety.dimension()
         C_homology = C.homology()
         HH = dict()
-        for d in range(0, space_dim+1):
+        for d in range(space_dim+1):
             try:
                 HH[d] = C_homology[d]
             except KeyError:
                 HH[d] = FreeModule(self.base_ring(), 0)
         if dim:
-            HH = vector(ZZ, [HH[i].rank() for i in range(0, space_dim+1) ])
+            HH = vector(ZZ, [HH[i].rank() for i in range(space_dim+1) ])
         return HH
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare ``self`` and ``other``
+        Compare ``self`` and ``other``.
 
         .. warning::
 
@@ -749,30 +750,32 @@ class KlyachkoBundle_class(SageObject):
 
         OUTPUT:
 
-        `-1`, `0`, or `+1`.
+        Boolean.
 
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
             sage: V1 = X.sheaves.trivial_bundle(1)
             sage: V2 = X.sheaves.trivial_bundle(2)
-            sage: abs(cmp(V2, V1))
-            1
-            sage: cmp(V2, V1+V1)
-            0
+            sage: V2 == V1
+            False
+            sage: V2 == V1+V1
+            True
 
             sage: T_X = X.sheaves.tangent_bundle()
             sage: O_X = X.sheaves.trivial_bundle(1)
             sage: T_X + O_X == O_X + T_X
             False
         """
-        c = cmp(type(self), type(other))
-        if c!=0: return c
-        c = cmp(self.variety(), other.variety())
-        if c!=0: return c
-        c = cmp(self._filt, other._filt)
-        if c!=0: return c
-        return 0
+        if not isinstance(other, KlyachkoBundle_class):
+            return NotImplemented
+
+        lx = self.variety()
+        rx = other.variety()
+        if lx != rx:
+            return richcmp_not_equal(lr, rx, op)
+        
+        return richcmp(self._filt, other._filt, op)
 
     def is_isomorphic(self, other):
         """

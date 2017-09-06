@@ -898,7 +898,7 @@ class HypergeometricMotive(object):
 
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
             sage: t = 189/125
-            sage: H.padic_H_value(13,1,t)
+            sage: H.padic_H_value(13,1,1/t)
             0
 
         REFERENCE:
@@ -917,7 +917,7 @@ class HypergeometricMotive(object):
         gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
 
         p_ring = Zp(p, prec=prec)
-        teich = p_ring.teichmuller(t * M)
+        teich = p_ring.teichmuller(M / t)
         sigma = sum(q**(D + m[0] - m[r]) *
                     (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
                              for v, gv in gamma.items())//(p-1)) *
@@ -999,7 +999,7 @@ class HypergeometricMotive(object):
         gen = Fq.multiplicative_generator()
         zeta_q = ring.zeta(q - 1)
 
-        tM = Fq(t * M)
+        tM = Fq(M / t)
         for k in range(q - 1):
             if gen ** k == tM:
                 teich = zeta_q ** k
@@ -1043,7 +1043,7 @@ class HypergeometricMotive(object):
             sage: H.euler_factor(-1, 5)
             15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
 
-            sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(4,p)
+            sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(1/4,p)
             ....:  for p in [5,7,11,13,17,19]]
             [125*T^3 + 20*T^2 + 4*T + 1,
              343*T^3 - 42*T^2 - 6*T + 1,
@@ -1054,17 +1054,17 @@ class HypergeometricMotive(object):
 
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
             sage: t = 189/125
-            sage: H.euler_factor(t,11)
+            sage: H.euler_factor(1/t,11)
             11*T^2 + 4*T + 1
-            sage: H.euler_factor(t,13)
+            sage: H.euler_factor(1/t,13)
             13*T^2 + 1
-            sage: H.euler_factor(t,17)
+            sage: H.euler_factor(1/t,17)
             17*T^2 + 1
-            sage: H.euler_factor(t,19)
+            sage: H.euler_factor(1/t,19)
             19*T^2 + 1
-            sage: H.euler_factor(t,23)
+            sage: H.euler_factor(1/t,23)
             23*T^2 + 8*T + 1
-            sage: H.euler_factor(t,29)
+            sage: H.euler_factor(1/t,29)
             29*T^2 + 2*T + 1
 
         REFERENCE:
@@ -1109,14 +1109,14 @@ class HypergeometricMotive(object):
             Spectrum of Quotient of Multivariate Polynomial Ring
             in X0, X1, Y0, Y1 over Fraction Field of Univariate Polynomial Ring
             in t over Rational Field by the ideal
-            (X0 + X1 - 1, Y0 + Y1 - 1, -X0^2*X1^3 + 27/64*t*Y0*Y1^4)
+            (X0 + X1 - 1, Y0 + Y1 - 1, (-t)*X0^2*X1^3 + 27/64*Y0*Y1^4)
 
             sage: H = Hyp(gamma_list=[-2, 3, 4, -5])
             sage: H.canonical_scheme()
             Spectrum of Quotient of Multivariate Polynomial Ring
             in X0, X1, Y0, Y1 over Fraction Field of Univariate Polynomial Ring
             in t over Rational Field by the ideal
-            (X0 + X1 - 1, Y0 + Y1 - 1, -X0^3*X1^4 + 1728/3125*t*Y0^2*Y1^5)
+            (X0 + X1 - 1, Y0 + Y1 - 1, (-t)*X0^3*X1^4 + 1728/3125*Y0^2*Y1^5)
         """
         if t is None:
             t = FractionField(QQ['t']).gen()
@@ -1136,5 +1136,5 @@ class HypergeometricMotive(object):
         eq2_pos = ring.prod(X[i] ** gamma_pos[i] for i in range(N_pos))
         eq2_neg = ring.prod(Y[j] ** -gamma_neg[j] for j in range(N_neg))
 
-        ideal = ring.ideal([eq0, eq1, self.M_value() * t * eq2_neg - eq2_pos])
+        ideal = ring.ideal([eq0, eq1, self.M_value() * eq2_neg - t * eq2_pos])
         return Spec(ring.quotient(ideal))

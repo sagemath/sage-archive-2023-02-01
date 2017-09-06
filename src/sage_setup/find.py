@@ -254,7 +254,12 @@ def get_extensions(type=None):
                 "'bytecode' (for compiled Python bytecoe), or 'extension' "
                 "(for C extension modules).")
 
-    return _get_extensions(type)
+    # Note: There is at least one case, for extension modules, where the
+    # 'extension' does not begin with '.', but rather with 'module', for cases
+    # in Python's stdlib, for example, where an extension module can be named
+    # like "<modname>module.so".  This breaks things for us if we have a Cython
+    # module literally named "module".
+    return [ext for ext in _get_extensions(type) if ext[0] == '.']
 
 
 if six.PY2:

@@ -112,6 +112,47 @@ from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
+from sage.libs.all import pari
+
+
+# Do we need to work around the PARI ellwp() bug?
+_ellwp_factor2 = None
+
+def _ellwp_flag1(lattice, z):
+    """
+    Evaluate the Weierstrass P function attached to the lattice
+    ``lattice`` and its derivative at ``z``.
+
+    This calls the PARI function ``ellwp(..., flag=1)``, working around
+    a bug in PARI versions <= 2.9.3 where the derivative is a factor 2
+    too small.
+
+    OUTPUT: ``(P(z), P'(z))``
+
+    TESTS::
+
+        sage: from sage.schemes.elliptic_curves.period_lattice import _ellwp_flag1
+        sage: E = EllipticCurve([0, 1])
+        sage: _ellwp_flag1(E, E((0,1)).elliptic_logarithm())
+        (-7.71860259319095 E-30, 2.00000000000000)
+    """
+    global _ellwp_factor2
+    if _ellwp_factor2 is None:
+        # Check whether our PARI/GP version is buggy or not. This
+        # computation should return 1.0, but in older PARI versions it
+        # returns 0.5
+        d = float(pari("my(E=ellinit([0,1/4]));ellwp(E,ellpointtoz(E,[0,1/2]),1)[2]"))
+        if d == 1.0:
+            _ellwp_factor2 = False
+        elif d == 0.5:
+            _ellwp_factor2 = True
+        else:
+            raise AssertionError("unexpected result from ellwp() test: {}".format(d))
+    x, y = pari.ellwp(lattice, z, 1)
+    if _ellwp_factor2:
+        return (x, 2*y)
+    else:
+        return (x, y)
 
 
 class PeriodLattice(FreeModule_generic_pid):
@@ -1650,7 +1691,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: _.curve()
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
             sage: L.elliptic_exponential(z,to_curve=False)
-            (1.41666666666667, -1.00000000000000)
+            (1.41666666666667, -2.00000000000000)
             sage: z = L(P,prec=201); z
             1.17044757240089592298992188482371493504472561677451007994189
             sage: L.elliptic_exponential(z)
@@ -1696,7 +1737,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_exponential(CDF(.1,.1))
             (0.0000142854026029... - 49.9960001066650*I : 249.520141250950 + 250.019855549131*I : 1.00000000000000)
             sage: L.elliptic_exponential(CDF(.1,.1), to_curve=False)
-            (0.0000142854026029... - 49.9960001066650*I, 250.020141250950 + 250.019855549131*I)
+            (0.0000142854026029447 - 49.9960001066650*I, 500.040282501900 + 500.039711098263*I)
 
         `z=0` is treated as a special case::
 
@@ -1778,10 +1819,8 @@ class PeriodLattice_ell(PeriodLattice):
         # So we force the results back into the real/complex fields of
         # the same precision as the input.
 
-        from sage.libs.all import pari
-
-        x,y = pari(self.basis(prec=prec)).ellwp(pari(z),flag=1)
-        x,y = [C(t) for t in (x,y)]
+        x, y = _ellwp_flag1(self.basis(prec=prec), z)
+        x, y = [C(t) for t in (x,y)]
 
         if self.real_flag and z_is_real:
             x = x.real()
@@ -1790,8 +1829,8 @@ class PeriodLattice_ell(PeriodLattice):
         if to_curve:
             a1,a2,a3,a4,a6 = [self.embedding(a) for a in self.E.ainvs()]
             b2 = self.embedding(self.E.b2())
-            x = x - (b2/12)
-            y = y - (a1*x+a3)/2
+            x = x - b2 / 12
+            y = (y - (a1 * x + a3)) / 2
             K = x.parent()
             EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
             return EK.point((x,y,K(1)), check=False)

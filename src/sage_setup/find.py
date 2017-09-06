@@ -269,7 +269,7 @@ if six.PY2:
             type = {'source': imp.PY_SOURCE, 'bytecode': imp.PY_COMPILED,
                     'extension': imp.C_EXTENSION}[type]
 
-        return [s[2] for s in imp.get_suffixes()
+        return [s[0] for s in imp.get_suffixes()
                 if type is None or type == s[2]]
 else:
     import importlib.machinery

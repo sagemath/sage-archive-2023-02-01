@@ -1194,7 +1194,7 @@ def some_tuples(elements, repeat, bound, max_samples=None):
     If ``max_samples`` is not provided, an iterator over the first
     ``bound`` tuples of length ``repeat``, in the standard nested-for-loop order.
 
-    If ``max_samples is provided, a list of at most ``max_samples`` tuples,
+    If ``max_samples`` is provided, a list of at most ``max_samples`` tuples,
     sampled uniformly from the possibilities.  In this case, ``elements``
     must be finite.
 

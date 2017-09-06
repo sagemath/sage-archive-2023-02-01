@@ -1,6 +1,16 @@
 """
 Hypergeometric motives
 
+This is largely a port of the corresponding package in Magma. One
+important conventional difference: the motivic parameter `t` has been replaced
+with `1/t` to match the classical literature on hypergeometric series.
+(E.g., see Beukers-Heckman, Monodromy for the hypergeometric function nF_{n-1}.)
+
+AUTHORS:
+
+- Frédéric Chapoton
+- Kiran S. Kedlaya
+
 EXAMPLES::
 
     sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
@@ -10,7 +20,20 @@ EXAMPLES::
     [0, 1/5, 1/3, 2/5, 1/2, 3/5, 2/3, 4/5])
     sage: H.M_value() == 30**30 / (15**15 * 10**10 * 6**6)
     True
+    sage: H.euler_factor(2, 7)
+    T^8 + T^5 + T^3 + 1
 """
+#*****************************************************************************
+#       Copyright (C) 2017     Frédéric Chapoton
+#                              Kiran S. Kedlaya <kskedl@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from collections import defaultdict
 
 from sage.arith.misc import divisors, gcd, euler_phi, moebius, is_prime
@@ -857,7 +880,8 @@ class HypergeometricMotive(object):
 
     def padic_H_value(self, p, f, t, prec=20):
         """
-        Return the `p`-adic trace of the Frobenius.
+        Return the `p`-adic trace of Frobenius, computed using the
+        Gross-Koblitz formula.
 
         INPUT:
 
@@ -872,12 +896,6 @@ class HypergeometricMotive(object):
         OUTPUT:
 
         an integer
-
-        .. WARNING::
-
-            This is not yet working correctly.
-
-        This is denoted by `U_q(t)` in the reference below.
 
         EXAMPLES:
 
@@ -894,15 +912,11 @@ class HypergeometricMotive(object):
             sage: [H.padic_H_value(11,i,-1) for i in range(1,3)]
             [0, -4972]
 
-        From slides::
+        From slides (but note conventions regarding `t`)::
 
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
             sage: t = 189/125
-<<<<<<< HEAD
             sage: H.padic_H_value(13,1,1/t)
-=======
-            sage: H.padic_H_value(13,1,t)
->>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
             0
 
         REFERENCE:
@@ -921,11 +935,7 @@ class HypergeometricMotive(object):
         gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
 
         p_ring = Zp(p, prec=prec)
-<<<<<<< HEAD
         teich = p_ring.teichmuller(M / t)
-=======
-        teich = p_ring.teichmuller(t * M)
->>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
         sigma = sum(q**(D + m[0] - m[r]) *
                     (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
                              for v, gv in gamma.items())//(p-1)) *
@@ -1007,11 +1017,7 @@ class HypergeometricMotive(object):
         gen = Fq.multiplicative_generator()
         zeta_q = ring.zeta(q - 1)
 
-<<<<<<< HEAD
         tM = Fq(M / t)
-=======
-        tM = Fq(t * M)
->>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
         for k in range(q - 1):
             if gen ** k == tM:
                 teich = zeta_q ** k
@@ -1055,11 +1061,7 @@ class HypergeometricMotive(object):
             sage: H.euler_factor(-1, 5)
             15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
 
-<<<<<<< HEAD
             sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(1/4,p)
-=======
-            sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(4,p)
->>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
             ....:  for p in [5,7,11,13,17,19]]
             [125*T^3 + 20*T^2 + 4*T + 1,
              343*T^3 - 42*T^2 - 6*T + 1,
@@ -1070,18 +1072,13 @@ class HypergeometricMotive(object):
 
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
             sage: t = 189/125
-            sage: H.euler_factor(1/t,11)
-            11*T^2 + 4*T + 1
-            sage: H.euler_factor(1/t,13)
-            13*T^2 + 1
-            sage: H.euler_factor(1/t,17)
-            17*T^2 + 1
-            sage: H.euler_factor(1/t,19)
-            19*T^2 + 1
-            sage: H.euler_factor(1/t,23)
-            23*T^2 + 8*T + 1
-            sage: H.euler_factor(1/t,29)
-            29*T^2 + 2*T + 1
+            sage: [H.euler_factor(1/t,p) for p in [11,13,17,19,23,29]]
+            [11*T^2 + 4*T + 1,
+            13*T^2 + 1,
+            17*T^2 + 1,
+            19*T^2 + 1,
+            23*T^2 + 8*T + 1,
+            29*T^2 + 2*T + 1]
 
         REFERENCE:
 

@@ -1752,7 +1752,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([x^2-3/4*y^2, y^2])
             sage: sorted(f.rational_periodic_points(prime_bound=20, lifting_prime=7)) # long time
-            doctest_warning
+            doctest:warning
             ...
             [(-1/2 : 1), (1 : 0), (3/2 : 1)]
         """

@@ -25,7 +25,7 @@ class MaximaFunctionElementWrapper(MaximaFunctionElement):
             cos(x)^2 + sin(x)^2
             sage: res = t.maxima_methods().trigsimp(); res
             1
-            sage: res.parent()
+            sage: parent(res)
             Symbolic Ring
         """
         return super(MaximaFunctionElementWrapper, self).__call__(*args,

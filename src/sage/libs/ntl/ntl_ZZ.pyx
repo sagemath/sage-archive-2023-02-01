@@ -82,10 +82,11 @@ cdef class ntl_ZZ(object):
         """
         if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
+        elif isinstance(v, long):
+            # Note: This case should be first since on Python 3 long is int
+            PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, int):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
-        elif isinstance(v, long):
-            PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)
         elif v is not None:

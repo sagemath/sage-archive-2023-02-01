@@ -436,9 +436,9 @@ cdef class Cache_ntl_gf2e(SageObject):
             if not number:
                 n = 0
             else:
-                n = int(Integer(number).nbits()) / 8 + 1
+                n = int(Integer(number).nbits()) // 8 + 1
         elif isinstance(number, Integer):
-            n = int(number.nbits()) / 8 + 1
+            n = int(number.nbits()) // 8 + 1
         else:
             raise TypeError("number %s is not an integer" % number)
 

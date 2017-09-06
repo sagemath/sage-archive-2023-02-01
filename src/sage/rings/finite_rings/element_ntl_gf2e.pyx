@@ -436,17 +436,16 @@ cdef class Cache_ntl_gf2e(SageObject):
             if not number:
                 n = 0
             else:
-                from sage.rings.real_double import RDF
-                n = int(RDF(number).log(2)) / 8 + 1
+                n = int(Integer(number).nbits()) / 8 + 1
         elif isinstance(number, Integer):
-            n = int(number.nbits())/8 + 1
+            n = int(number.nbits()) / 8 + 1
         else:
             raise TypeError("number %s is not an integer" % number)
 
         cdef unsigned char* p = <unsigned char*>check_malloc(n)
         cdef long i
         for i in range(n):
-            p[i] = (number%256)
+            p[i] = (number % 256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)
         GF2E_conv_GF2X(a.x, _a)

@@ -7713,7 +7713,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^2).sqrt()
             sqrt(x^2)
 
-        Immediate simplification are applied::
+        Immediate simplifications are applied::
 
             sage: sqrt(x^2)
             sqrt(x^2)

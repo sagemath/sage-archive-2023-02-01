@@ -110,7 +110,14 @@ def gauss_sum(a, p, f, prec=20, factored=False):
         pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
         sage: gauss_sum(2,13,2,prec=5,factored=True)
         (2, 6 + 6*13 + 10*13^2 + O(13^5))
-        
+
+    .. SEEALSO::
+
+        - :func:`sage.arith.misc.gauss_sum` for general finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
     """
     from sage.rings.padics.factory import Zp
     from sage.rings.all import PolynomialRing

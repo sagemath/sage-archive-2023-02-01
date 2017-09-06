@@ -9,7 +9,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be

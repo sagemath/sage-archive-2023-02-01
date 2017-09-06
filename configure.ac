@@ -369,15 +369,22 @@ elif test -n "$SAGE_INSTALL_GCC"; then
 fi
 
 
-AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
-
-AC_LANG(C++)
 AC_PROG_CXX()
-
-AC_LANG(Fortran)
 AC_PROG_FC()
+
+AC_SUBST(CC)
+AC_SUBST(CXX)
+AC_SUBST(FC)
+
+# On darwin, also set the objective C/C++ compilers
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
 if test "x$CXX" = x
 then

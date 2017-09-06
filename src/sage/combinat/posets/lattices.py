@@ -920,6 +920,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
             sage: L.is_join_distributive(certificate=True)
             (False, 1)
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: L.is_join_distributive(certificate=True)
+            (False, 2)
         """
         if ((self.is_ranked() and len(self.meet_irreducibles()) == self.rank())
             or self.cardinality() == 0):
@@ -933,9 +937,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not result[0]:
             return (False, self.meet(result[1]))
 
+        from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
-        return (False, diamond[0])
+        return (False, self[diamond[0]])
 
     def is_meet_distributive(self, certificate=False):
         """
@@ -1003,6 +1008,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
             sage: L.is_meet_distributive(certificate=True)
             (False, 7)
+
+            sage: L = LatticePoset({1: [2], 2: [3, 4, 5], 3: [6], 4: [6], 5: [6]})
+            sage: L.is_meet_distributive(certificate=True)
+            (False, 6)
         """
         if ((self.is_ranked() and len(self.join_irreducibles()) == self.rank())
             or self.cardinality() == 0):
@@ -1016,9 +1025,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not result[0]:
             return (False, self.join(result[1]))
 
+        from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
-        return (False, diamond[4])
+        return (False, self[diamond[4]])
 
     def is_stone(self, certificate=False):
         r"""
@@ -1362,6 +1372,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_semidistributive`
+            - Weaker properties: :meth:`is_join_pseudocomplemented`
             - Stronger properties: :meth:`is_semidistributive`,
               :meth:`is_meet_distributive`,
               :meth:`is_constructible_by_doublings` (by lower pseudo-intervals)
@@ -1757,9 +1768,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``certificate`` -- (boolean; default: ``False``) -- whether to
-          return an integer (the breadth) or a certificate, i.e. a biggest
-          set whose join differs from the join of any subset.
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return the pair `(b, a)` where `b` is
+          the breadth and `a` is an antichain such that the join of `a`
+          differs from the join of any proper subset of `a`.
+          If ``certificate=False`` return just the breadth.
 
         EXAMPLES::
 
@@ -1771,7 +1788,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: B3.breadth()
             3
             sage: B3.breadth(certificate=True)
-            [1, 2, 4]
+            (3, [1, 2, 4])
 
         ALGORITHM:
 
@@ -1781,6 +1798,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         of elements between `A` and `j`.  So we start by searching
         elements that could be our `j` and then just check possible
         antichains `A`.
+
+        .. NOTE::
+
+            Prior to version 8.1 this function returned just an
+            antichain with ``certificate=True``.
 
         TESTS::
 
@@ -1798,9 +1820,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # First check if breadth is zero (empty lattice) or one (a chain).
         n = self.cardinality()
         if n == 0:
-            return [] if certificate else 0
+            return (0, []) if certificate else 0
         if self.is_chain():
-            return [self.bottom()] if certificate else 1
+            return (1, [self.bottom()]) if certificate else 1
         # Breadth is at least two.
 
         # Work directly with the Hasse diagram
@@ -1835,7 +1857,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     if join(A) == j:
                         if all(join(A[:i]+A[i+1:]) != j for i in range(B)):
                             if certificate:
-                                return [self._vertex_to_element(e) for e in A]
+                                return (B, [self._vertex_to_element(e) for e in A])
                             else:
                                 return B
         assert False, "BUG: breadth() in lattices.py have an error."
@@ -1997,7 +2019,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ``False`` otherwise.
 
         A lattice is join-pseudocomplemented if every element `e` has a
-        join-pseudocomplement `e'`, i.e. the greatest element such that
+        join-pseudocomplement `e'`, i.e. the least element such that
         the join of `e` and `e'` is the top element.
 
         INPUT:
@@ -2204,6 +2226,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`~FiniteLatticePoset.is_coatomic`
             - Stronger properties: :meth:`is_sectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
         """
         if not certificate:
             return (self.cardinality() == 0 or
@@ -2258,6 +2281,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`~FiniteLatticePoset.is_atomic`
             - Stronger properties: :meth:`is_cosectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
         """
         n = self.cardinality()
         if not certificate:
@@ -2439,7 +2463,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_upper_semimodular`,
-              :meth:`is_lower_semimodular`
+              :meth:`is_lower_semimodular`, :meth:`is_supersolvable`
             - Stronger properties: :meth:`is_distributive`
             - Other: :meth:`is_modular_element`
 
@@ -2932,6 +2956,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_subdirectly_reducible`
+            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`
             - Other: :meth:`vertical_decomposition`
 
         TESTS::

@@ -144,3 +144,18 @@ cpdef inline bint rich_to_bool_sgn(int op, Py_ssize_t c):
         This is in particular needed for ``mpz_cmp()``.
     """
     return rich_to_bool(op, (c > 0) - (c < 0))
+
+
+cpdef inline int revop(int op):
+    """
+    Return the reverse operation of ``op``.
+
+    For example, <= becomes >=, etc.
+
+    EXAMPLES::
+
+        sage: from sage.structure.richcmp import revop
+        sage: [revop(i) for i in range(6)]
+        [4, 5, 2, 3, 0, 1]
+    """
+    return (5 - op) ^ 1

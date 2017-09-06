@@ -122,7 +122,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_impl',
      '_coerce_try',
      '_default_category',
-     '_gcd_univariate_polynomial',
      '_gens',
      '_has_coerce_map_from',
      '_ideal_class_',
@@ -132,7 +131,6 @@ This base class provides a lot more methods than a general parent::
      '_pseudo_fraction_field',
      '_random_nonzero_element',
      '_unit_ideal',
-     '_xgcd_univariate_polynomial',
      '_zero_element',
      '_zero_ideal',
      'algebraic_closure',
@@ -367,7 +365,7 @@ This gives rise to the following code::
     ....:     def _repr_(self):
     ....:         return "(%s):(%s)"%(self.n,self.d)
     ....:     def _richcmp_(self, other, op):
-    ....:         from sage.structure.sage_object import richcmp
+    ....:         from sage.structure.richcmp import richcmp
     ....:         return richcmp(self.n*other.denominator(), other.numerator()*self.d, op)
     ....:     def _add_(self, other):
     ....:         C = self.__class__
@@ -466,9 +464,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    60
+    78
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    90
+    118
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -824,7 +822,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Conversion map:
+    Coercion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
@@ -1858,7 +1856,7 @@ Appendix: The complete code
         # are allowed to use the denominator() and numerator() methods
         # on the second argument.
         def _richcmp_(self, other, op):
-            from sage.structure.sage_object import richcmp
+            from sage.structure.richcmp import richcmp
             return richcmp(self.n*other.denominator(), other.numerator()*self.d, op)
 
         # Arithmetic methods, single underscore. We can assume that both

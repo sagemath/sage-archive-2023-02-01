@@ -22,7 +22,7 @@ Here is an example of a linear function tensored with a vector space::
 from cpython.object cimport *
 
 from sage.misc.fast_methods cimport hash_by_id
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, Element
 from sage.numerical.linear_functions cimport LinearFunction, is_LinearFunction
 
 
@@ -331,7 +331,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = self._f.get(key, 0) - coeff
         return self.parent()(result)
 
-    cpdef _lmul_(self, RingElement b):
+    cpdef _lmul_(self, Element b):
         r"""
         Return multiplication by scalar.
 
@@ -396,15 +396,12 @@ cdef class LinearTensor(ModuleElement):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.explain(10, lt, operator.le)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Integer Ring
-                  To:   Tensor product of Vector space of dimension 2 over Real 
-                        Double Field and Linear functions over Real Double Field
+                  To:   Tensor product of Vector space of dimension 2 over Real Double Field and Linear functions over Real Double Field
             Arithmetic performed after coercions.
-            Result lives in Tensor product of Vector space of dimension 2 over 
-            Real Double Field and Linear functions over Real Double Field
-            Tensor product of Vector space of dimension 2 over Real Double Field 
-            and Linear functions over Real Double Field
+            Result lives in Tensor product of Vector space of dimension 2 over Real Double Field and Linear functions over Real Double Field
+            Tensor product of Vector space of dimension 2 over Real Double Field and Linear functions over Real Double Field
         
             sage: operator.le(10, lt)
             (10.0, 10.0) <= (1.0, 2.0)*x_0

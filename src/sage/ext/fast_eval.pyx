@@ -86,11 +86,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.ext.fast_callable import fast_callable, Wrapper
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 cimport cython
 from cpython.ref cimport Py_INCREF

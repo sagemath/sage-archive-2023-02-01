@@ -41,6 +41,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
+from sage.rings.integer import Integer
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -172,7 +173,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     The coercion::
 
         sage: T20U.coerce_map_from(T20)
-        Conversion map:
+        Coercion map:
           From: Module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional differentiable manifold M
           To:   Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open subset U of the 2-dimensional differentiable manifold M
 
@@ -303,10 +304,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, DiffForm):
-            # coercion of a p-form to a type-(0,p) tensor:
+            # coercion of a p-form to a type-(0,p) tensor field:
             form = comp # for readability
             p = form.degree()
             if self._tensor_type != (0,p) or self._vmodule != form.base_module():
@@ -651,7 +652,7 @@ class TensorFieldFreeModule(TensorFreeModule):
         sage: T20.has_coerce_map_from(T20U)  # the reverse is not true
         False
         sage: T20U.coerce_map_from(T20)
-        Conversion map:
+        Coercion map:
           From: Free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional differentiable manifold R^3
           To:   Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open subset U of the 3-dimensional differentiable manifold R^3
 
@@ -747,7 +748,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, DiffFormParal):
             # coercion of a p-form to a type-(0,p) tensor field:

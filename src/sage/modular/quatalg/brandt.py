@@ -207,7 +207,7 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeMod
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.misc.mrange import cartesian_product_iterator
-
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.cachefunc import cached_method
 
 from copy import copy
@@ -440,6 +440,7 @@ def right_order(R, basis):
     return Z.quaternion_order(C)
 
 
+@richcmp_method
 class BrandtModule_class(AmbientHeckeModule):
     """
     A Brandt module.
@@ -547,9 +548,9 @@ class BrandtModule_class(AmbientHeckeModule):
             self.rank(), self.__N, aux, self.weight(), self.base_ring())
 
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -561,9 +562,11 @@ class BrandtModule_class(AmbientHeckeModule):
             True
         """
         if not isinstance(other, BrandtModule_class):
-            return cmp(type(self), type(other))
-        else:
-            return cmp( (self.__M, self.__N, self.weight(), self.base_ring()), (other.__M, other.__N, other.weight(), other.base_ring()))
+            return NotImplemented
+
+        return richcmp((self.__M, self.__N, self.weight(), self.base_ring()),
+                       (other.__M, other.__N, other.weight(), other.base_ring()),
+                       op)
 
     @cached_method
     def quaternion_algebra(self):
@@ -1504,7 +1507,7 @@ class BrandtModuleElement(HeckeModuleElement):
             x = x.element()
         HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -1522,12 +1525,7 @@ class BrandtModuleElement(HeckeModuleElement):
             sage: loads(dumps(B.0)) == B.0
             True
         """
-        if not isinstance(other, BrandtModuleElement):
-            other = self.parent()(other)
-        else:
-            c = cmp(self.parent(), other.parent())
-            if c: return c
-        return cmp(self.element(), other.element())
+        return richcmp(self.element(), other.element(), op)
 
     def monodromy_pairing(self, x):
         """

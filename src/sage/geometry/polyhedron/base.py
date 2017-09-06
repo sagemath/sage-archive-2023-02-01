@@ -14,19 +14,20 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
 
 import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
+from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed
+from sage.misc.package import is_package_installed, PackageNotFoundError
 
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
+from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
@@ -386,18 +387,17 @@ class Polyhedron_base(Element):
         new_parent = self.parent().base_extend(base_ring, backend)
         return new_parent(self)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``.
 
         INPUT:
 
-        - ``other`` -- anything.
+        - ``other`` -- a polyhedron
 
         OUTPUT:
 
-        `-1, 0, +1` depending on how ``self`` and ``other``
-        compare. If ``other`` is a polyhedron, then the comparison
+        If ``other`` is a polyhedron, then the comparison
         operator "less or equal than" means "is contained in", and
         "less than" means "is strictly contained in".
 
@@ -405,14 +405,14 @@ class Polyhedron_base(Element):
 
             sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
             sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
-            sage: cmp(P,Q)
-            1
-            sage: cmp(Q,P)
-            -1
-            sage: cmp(P,P)
-            0
+            sage: P >= Q
+            True
+            sage: Q <= P
+            True
+            sage: P == P
+            True
 
-       The polytope ``Q`` is contained in ``P``::
+       The polytope ``Q`` is strictly contained in ``P``::
 
             sage: P > Q
             True
@@ -421,20 +421,21 @@ class Polyhedron_base(Element):
             sage: P == Q
             False
          """
-        if not isinstance(other, Polyhedron_base):
-            return -1
         if self._Vrepresentation is None or other._Vrepresentation is None:
-            return -1   # make sure deleted polyhedra are not used in cache
-        c = cmp(self.ambient_dim(), other.ambient_dim())
-        if c != 0: return c
+            raise RuntimeError('some V representation is missing')
+            # make sure deleted polyhedra are not used in cache
+
+        if self.ambient_dim() != other.ambient_dim():
+            return op == op_NE
+
         c0 = self._is_subpolyhedron(other)
         c1 = other._is_subpolyhedron(self)
         if c0 and c1:
-            return 0
+            return rich_to_bool(op, 0)
         if c0:
-            return -1
+            return rich_to_bool(op, -1)
         else:
-            return +1
+            return rich_to_bool(op, 1)
 
     @coerce_binop
     def _is_subpolyhedron(self, other):
@@ -574,7 +575,7 @@ class Polyhedron_base(Element):
 
         - ``projection_direction`` -- coordinate list/tuple/iterable
           or ``None`` (default). The direction to use for the
-          :meth:`schlegel_projection`` of the polytope. If not
+          :meth:`schlegel_projection` of the polytope. If not
           specified, no projection is used in dimensions `< 4` and
           parallel projection is used in dimension `4`.
 
@@ -1333,7 +1334,7 @@ class Polyhedron_base(Element):
         OUTPUT:
 
         The optional argument is an index running from ``0`` to
-        `self.n_Vrepresentation()-1``. If present, the
+        ``self.n_Vrepresentation()-1``. If present, the
         V-representation object at the given index will be
         returned. Without an argument, returns the list of all
         V-representation objects.
@@ -2225,7 +2226,7 @@ class Polyhedron_base(Element):
         ALGORITHM:
 
         The function first computes the circumsphere of a full-dimensional
-        simplex with vertices of `self`. It is found by lifting the points on a
+        simplex with vertices of ``self``. It is found by lifting the points on a
         paraboloid to find the hyperplane on which the circumsphere is lifted.
         Then, it checks if all other vertices are equidistant to the
         circumcenter of that simplex.
@@ -2420,7 +2421,7 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`~sage.geometric.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
+        :meth:`Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -2430,7 +2431,7 @@ class Polyhedron_base(Element):
             sage: p.hyperplane_arrangement()
             Arrangement <-t0 + 1 | -t1 + 1 | t1 + 1 | t0 + 1>
         """
-        names = tuple('t'+str(i) for i in range(self.ambient_dim()))
+        names = tuple('t' + str(i) for i in range(self.ambient_dim()))
         from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
         field = self.base_ring().fraction_field()
         H = HyperplaneArrangements(field, names)
@@ -3216,8 +3217,8 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``cut_frac`` -- integer. how deeply to cut into the edge.
-            Default is `\frac{1}{3}`.
+        - ``cut_frac`` -- integer, how deeply to cut into the edge.
+          Default is `\frac{1}{3}`.
 
         OUTPUT:
 
@@ -3986,7 +3987,7 @@ class Polyhedron_base(Element):
             sage: square = polytopes.hypercube(2);  square
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
             sage: egyptian_pyramid = square.pyramid();  egyptian_pyramid
-            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 5 vertices
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 5 vertices
             sage: egyptian_pyramid.n_vertices()
             5
             sage: for v in egyptian_pyramid.vertex_generator(): print(v)
@@ -4188,8 +4189,7 @@ class Polyhedron_base(Element):
              David Avis's lrs program.
         """
         if not is_package_installed('lrslib'):
-            raise NotImplementedError('You must install the optional lrslib package '
-                                       'for this function to work')
+            raise PackageNotFoundError('lrslib')
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -4278,7 +4278,7 @@ class Polyhedron_base(Element):
                 return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
 
         else:
-            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+            raise PackageNotFoundError('latte_int')
 
     @cached_method
     def volume(self, engine='auto', **kwds):
@@ -4400,7 +4400,7 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             NotImplementedError: The polytope must be full-dimensional.
-            
+
         TESTS::
 
         Testing a three-dimensional integral::
@@ -4443,7 +4443,7 @@ class Polyhedron_base(Element):
                 return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 
         else:
-            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+            raise PackageNotFoundError('latte_int')
 
     def contains(self, point):
         """
@@ -5713,18 +5713,50 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self):
+    def affine_hull(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
         """
         Return the affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
         (possibly the entire ambient space). The affine hull is the
         same polyhedron but thought of as a full-dimensional
-        polyhedron in this subspace.
+        polyhedron in this subspace. We provide a projection of the ambient
+        space of the polyhedron to Euclidian space of dimension of the
+        polyhedron. Then the image of the polyhedron under this
+        projection (or, depending on the parameter ``as_affine_map``,
+        the projection itself) is returned.
+
+        INPUT:
+
+        - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
+          a polyhedron. If ``True``, return the affine transformation,
+          that sends the embedded polytope to a fulldimensional one.
+          It is given as a pair ``(A,b)``, where A is a linear transformation
+          and ``b`` is a vector, and the affine transformation sends ``v`` to
+          ``A(v)+b``.
+
+        - ``orthogonal`` (boolean, default = False) -- if ``True``,
+          provide an orthogonal transformation.
+
+        - ``orthonormal`` (boolean, default = False) -- if ``True``,
+          provide an orthonormal transformation. If the base ring does not
+          provide the neccessary square roots, the extend parameter
+          needs to be set to ``True``.
+
+        - ``extend`` (boolean, default = False) -- if ``True``,
+          allow base ring to be extended if neccessary. This becomes
+          relevant when requiering an orthonormal transformation.
 
         OUTPUT:
 
-        A full-dimensional polyhedron.
+        A full-dimensional polyhedron or a linear transformation,
+        depending on the parameter ``as_affine_map``.
+
+
+        .. TODO:
+
+         - make the parameters ``orthogonal`` and ``orthonormal`` work with unbounded polyhedra.
+         - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
 
@@ -5737,11 +5769,241 @@ class Polyhedron_base(Element):
             sage: half3d.affine_hull().Vrepresentation()
             (A ray in the direction (1), A vertex at (3))
 
+        The resulting affine hulls depend on the parameter ``orthogonal`` and ``orthonormal``::
+
+            sage: L = Polyhedron([[1,0],[0,1]]); L
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: A = L.affine_hull(); A
+            A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (1))
+            sage: A = L.affine_hull(orthogonal=True); A
+            A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (2))
+            sage: A = L.affine_hull(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base ring needs to be extented; try with "extend=True"
+            sage: A = L.affine_hull(orthonormal=True, extend=True); A
+            A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (1.414213562373095?))
+
+        More generally::
+
+            sage: S = polytopes.simplex(); S
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: A = S.affine_hull(); A
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: A.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (0, 0, 1),
+             A vertex at (0, 1, 0),
+             A vertex at (1, 0, 0))
+            sage: A = S.affine_hull(orthogonal=True); A
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: A.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (2, 0, 0),
+             A vertex at (1, 3/2, 0),
+             A vertex at (1, 1/2, 4/3))
+            sage: A = S.affine_hull(orthonormal=True, extend=True); A
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
+            sage: A.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (1.414213562373095?, 0, 0),
+             A vertex at (0.7071067811865475?, 1.224744871391589?, 0),
+             A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?))
+
+        More examples with the ``orthonormal`` parameter::
+
+            sage: P = polytopes.permutahedron(3); P
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, extend=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
+            True
+            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, extend=True).volume() for F in P.affine_hull(orthonormal=True, extend=True).faces(1)]) == {sqrt(AA(2))}
+            True
+            sage: D = polytopes.dodecahedron()
+            sage: F = D.faces(2)[0].as_polyhedron()
+            sage: F.affine_hull(orthogonal=True)
+            A 2-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^2 defined as the convex hull of 5 vertices
+            sage: F.affine_hull(orthonormal=True, extend=True)
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 5 vertices
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: P = Polyhedron([2*[K.zero()],2*[sqrt2]])
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: P = Polyhedron([2*[K.zero()],2*[sqrt2]]); P
+            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2)^2 defined as the convex hull of 2 vertices
+            sage: P.vertices()
+            (A vertex at (0, 0), A vertex at (sqrt2, sqrt2))
+            sage: A = P.affine_hull(orthonormal=True); A
+            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2)^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (2))
+            sage: K.<sqrt3> = QuadraticField(3)
+            sage: P = Polyhedron([2*[K.zero()],2*[sqrt3]]); P
+            A 1-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3)^2 defined as the convex hull of 2 vertices
+            sage: P.vertices()
+            (A vertex at (0, 0), A vertex at (sqrt3, sqrt3))
+            sage: A = P.affine_hull(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: The base ring needs to be extented; try with "extend=True"
+            sage: A = P.affine_hull(orthonormal=True, extend=True); A
+            A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (2.449489742783178?))
+            sage: sqrt(6).n()
+            2.44948974278318
+
+
+
+        The affine hull is combinatorially equivalent to the input::
+
+            sage: P.is_combinatorially_isomorphic(P.affine_hull())
+            True
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthogonal=True))
+            True
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthonormal=True, extend=True))
+            True
+
+        The ``orthonormal=True`` parameter preserves volumes;
+        it provides an isometric copy of the polyhedron::
+
+            sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
+            sage: P = Pentagon.affine_hull(orthonormal=True, extend=True)
+            sage: _, c= P.is_inscribed(certificate=True)
+            sage: c
+            (0.4721359549995794?, 0.6498393924658126?)
+            sage: circumradius = (c-vector(P.vertices()[0])).norm()
+            sage: p = polytopes.regular_polygon(5)
+            sage: p.volume()
+            2.377641290737884?
+            sage: P.volume()
+            1.53406271079097?
+            sage: p.volume()*circumradius^2
+            1.534062710790965?
+            sage: P.volume() == p.volume()*circumradius^2
+            True
+
+        One can also use ``orthogonal`` parameter to calculate volumes;
+        in this case we don't need to switch base rings. One has to divide
+        by the square root of the determinant of the linear part of the
+        affine transformation times its transpose::
+
+            sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
+            sage: Pnormal = Pentagon.affine_hull(orthonormal=True, extend=True)
+            sage: Pgonal = Pentagon.affine_hull(orthogonal=True)
+            sage: A,b = Pentagon.affine_hull(orthogonal = True, as_affine_map=True)
+            sage: Adet = (A.matrix().transpose()*A.matrix()).det()
+            sage: Pnormal.volume()
+            1.53406271079097?
+            sage: Pgonal.volume()/sqrt(Adet)
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
+            sage: Pgonal.volume()/sqrt(Adet).n(digits=20)
+            1.5340627107909646651
+            sage: AA(Pgonal.volume()^2) == (Pnormal.volume()^2)*AA(Adet)
+            True
+
+        An other example with ``as_affine_map=True``::
+
+            sage: P = polytopes.permutahedron(4)
+            sage: A,b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
+            sage: Q = P.affine_hull(orthonormal=True, extend=True)
+            sage: Q.center()
+            (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
+            sage: A(P.center()) + b == Q.center()
+            True
+
+
+        For unbounded, non full-dimensional polyhedra, the ``orthogonal=True`` and ``orthonormal=True``
+        is not implemented::
+
+            sage: P = Polyhedron(ieqs=[[0, 1, 0], [0, 0, 1], [0, 0, -1]]); P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.is_compact()
+            False
+            sage: P.is_full_dimensional()
+            False
+            sage: P.affine_hull(orthogonal=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
+            sage: P.affine_hull(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
+
+        Setting ``as_affine_map`` to ``True`` only works in combination
+        with ``orthogonal`` or ``orthonormal`` set to ``True``::
+
+            sage: S = polytopes.simplex()
+            sage: S.affine_hull(as_affine_map=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: "as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"
+
+        If the polyhedron is full-dimensional, it is returned::
+
+            sage: polytopes.cube().affine_hull()
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: polytopes.cube().affine_hull(as_affine_map=True)
+            (Vector space morphism represented by the matrix:
+             [1 0 0]
+             [0 1 0]
+             [0 0 1]
+             Domain: Vector space of dimension 3 over Rational Field
+             Codomain: Vector space of dimension 3 over Rational Field, (0, 0, 0))
+
         TESTS::
+
+            Check that :trac:`23355` is fixed::
+
+            sage: P = Polyhedron([[7]]); P
+            A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
+            sage: P.affine_hull()
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull(orthonormal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull(orthogonal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
+        # handle trivial full-dimensional case
+        if self.ambient_dim() == self.dim():
+            if as_affine_map:
+                return linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
+            return self
+
+        if orthogonal or orthonormal:
+            # see TODO
+            if not self.is_compact():
+                raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
+            # translate 0th vertex to the origin
+            Q = self.translation(-vector(self.vertices()[0]))
+            v = Q.vertices()[0]
+            # check that translation didn't change the order of the vertices
+            assert v.vector() == Q.ambient_space().zero()
+            # choose as an affine basis the neighbors of the origin vertex in Q
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            # switch base_ring to AA if neccessary,
+            # since gram_schmidt needs to be able to take square roots.
+            # Pick orthonormal basis and transform all vertices accordingly
+            # if the orthonormal transform makes it neccessary, change base ring
+            try:
+                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+            except TypeError:
+                if not extend:
+                    raise ValueError('The base ring needs to be extented; try with "extend=True"')
+                M = matrix(AA, M)
+                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+            if as_affine_map:
+                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
+            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()], base_ring=A.base_ring())
+
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()
         gens = []
@@ -5754,12 +6016,15 @@ class Polyhedron_base(Element):
 
         # Pick subset of coordinates to coordinatize the affine span
         pivots = matrix(gens).pivots()
+
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 
         vertices = [pivot(_) for _ in self.vertices()]
         rays = [pivot(_) for _ in self.rays()]
         lines = [pivot(_) for _ in self.lines()]
+        if as_affine_map:
+            raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
 
     def _polymake_init_(self):

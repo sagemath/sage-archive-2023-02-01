@@ -16,7 +16,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement, parent
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.category_types import ChainComplexes
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule

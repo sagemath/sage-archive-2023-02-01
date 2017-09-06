@@ -989,7 +989,8 @@ class BooleanFormula(object):
 #        OUTPUT:
 #            A simplified expression.
 #
-#        EXAMPLES:
+#        EXAMPLES::
+
 #            sage: import sage.logic.propcalc as propcalc
 #            sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
 #            sage: f.truthtable()

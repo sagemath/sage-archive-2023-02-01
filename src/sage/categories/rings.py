@@ -94,11 +94,7 @@ class Rings(CategoryWithAxiom):
             Unless the codomain is the zero ring::
 
                 sage: codomain = Integers(1)
-                sage: f = K.hom([codomain(1)]); f
-                Function Field morphism:
-                  From: Rational function field in x over Rational Field
-                  To:   Ring of integers modulo 1
-                  Defn: x |--> 0
+                sage: f = QQ.hom([Zmod(1)(0)], check=False)
                 sage: f.is_injective()
                 False
 
@@ -119,9 +115,16 @@ class Rings(CategoryWithAxiom):
 
                 sage: K.<x> = FunctionField(QQ)
                 sage: f = ZZ.hom(K); f
-                Ring Coercion morphism:
+                Composite map:
                   From: Integer Ring
                   To:   Rational function field in x over Rational Field
+                  Defn:   Conversion via FractionFieldElement_1poly_field map:
+                          From: Integer Ring
+                          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                        then
+                          Coercion map:
+                          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                          To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
                 True
 
@@ -156,6 +159,26 @@ class Rings(CategoryWithAxiom):
                 return False
 
             raise NotImplementedError
+
+        def _is_nonzero(self):
+            r"""
+            Return whether this is not the zero morphism.
+
+            .. NOTE::
+
+                We can not override ``is_zero()`` from the category framework
+                and we can not implement ``__nonzero__`` because it is a
+                special method. That this is why this has a cumbersome name.
+
+            EXAMPLES::
+
+                sage: ZZ.hom(ZZ)._is_nonzero()
+                True
+                sage: ZZ.hom(Zmod(1))._is_nonzero()
+                False
+
+            """
+            return bool(self.codomain().one())
 
     class SubcategoryMethods:
 
@@ -870,8 +893,24 @@ class Rings(CategoryWithAxiom):
 
                 sage: QQ[I]
                 Number Field in I with defining polynomial x^2 + 1
+                sage: QQ[I].coerce_embedding()
+                Generic morphism:
+                 From: Number Field in I with defining polynomial x^2 + 1
+                 To:   Complex Lazy Field
+                 Defn: I -> 1*I
+
+            ::
+
                 sage: QQ[sqrt(2)]
                 Number Field in sqrt2 with defining polynomial x^2 - 2
+                sage: QQ[sqrt(2)].coerce_embedding()
+                Generic morphism:
+                 From: Number Field in sqrt2 with defining polynomial x^2 - 2
+                 To:   Real Lazy Field
+                 Defn: sqrt2 -> 1.414213562373095?
+
+            ::
+
                 sage: QQ[sqrt(2),sqrt(3)]
                 Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
@@ -883,6 +922,18 @@ class Rings(CategoryWithAxiom):
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5
                 sage: ZZ[sqrt(2)+sqrt(3)]
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+
+            Embeddings are found for simple extensions (when that makes sense)::
+
+                sage: QQi.<i> = QuadraticField(-1, 'i')
+                sage: QQ[i].coerce_embedding()
+                Generic morphism:
+                  From: Number Field in i with defining polynomial x^2 + 1
+                  To:   Complex Lazy Field
+                  Defn: i -> 1*I
+                sage: QQi.<i> = QuadraticField(-1, embedding=None)
+                sage: QQ[i].coerce_embedding() is None
+                True
 
             TESTS:
 
@@ -896,14 +947,7 @@ class Rings(CategoryWithAxiom):
                 ...
                 TypeError: power series rings must have at least one variable
 
-            Some flexibility is allowed when specifying variables::
-
-                sage: QQ["x", SR.var('y'), polygen(CC, 'z')]
-                Multivariate Polynomial Ring in x, y, z over Rational Field
-                sage: QQ[["x", SR.var('y'), polygen(CC, 'z')]]
-                Multivariate Power Series Ring in x, y, z over Rational Field
-
-            but more baroque expressions do not work::
+            These kind of expressions do not work::
 
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
@@ -929,6 +973,21 @@ class Rings(CategoryWithAxiom):
                 sage: K.base_field().base_field()
                 Number Field in b with defining polynomial x^3 - 3
 
+            Embeddings::
+
+                sage: QQ[I](I.pyobject())
+                I
+                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
+                sage: QQ[expr].coerce_embedding() is None
+                False
+                sage: QQ[sqrt(5)].gen() > 0
+                True
+                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)
+                sage: QQ[expr].coerce_embedding()
+                Generic morphism:
+                  From: Number Field in a with defining polynomial x^2 - 2
+                  To:   Real Lazy Field
+                  Defn: a -> 1.414213562373095?
             """
             def normalize_arg(arg):
                 if isinstance(arg, (tuple, list)):
@@ -973,8 +1032,36 @@ class Rings(CategoryWithAxiom):
 
             if minpolys:
                 # how to pass in names?
-                # TODO: set up embeddings
                 names = tuple(_gen_names(elts))
+                if len(elts) == 1:
+                    from sage.rings.all import CIF, CLF, RIF, RLF
+                    elt = elts[0]
+                    try:
+                        iv = CIF(elt)
+                    except (TypeError, ValueError):
+                        emb = None
+                    else:
+                        # First try creating an ANRoot manually, because
+                        # extension(..., embedding=CLF(expr)) (or
+                        # ...QQbar(expr)) would normalize the expression in
+                        # QQbar, which currently is VERY slow in many cases.
+                        # This may fail when minpoly has close roots or elt is
+                        # a complicated symbolic expression.
+                        # TODO: Rewrite using #19362 and/or #17886 and/or
+                        # #15600 once those issues are solved.
+                        from sage.rings.qqbar import AlgebraicNumber, ANRoot
+                        try:
+                            elt = AlgebraicNumber(ANRoot(minpolys[0], iv))
+                        except ValueError:
+                            pass
+                        # Force a real embedding when possible, to get the
+                        # right ordered ring structure.
+                        if (iv.imag().is_zero() or iv.imag().contains_zero()
+                                                   and elt.imag().is_zero()):
+                            emb = RLF(elt)
+                        else:
+                            emb = CLF(elt)
+                        return self.extension(minpolys[0], names[0], embedding=emb)
                 try:
                     # Doing the extension all at once is best, if possible...
                     return self.extension(minpolys, names)
@@ -1014,6 +1101,60 @@ class Rings(CategoryWithAxiom):
             if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
+
+        def inverse_of_unit(self):
+            r"""
+            Return the inverse of this element if it is a unit.
+
+            OUTPUT:
+
+            An element in the same ring as this element.
+
+            EXAMPLES::
+
+                sage: R.<x> = ZZ[]
+                sage: S = R.quo(x^2 + x + 1)
+                sage: S(1).inverse_of_unit()
+                1
+
+            This method fails when the element is not a unit::
+
+                sage: 2.inverse_of_unit()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: inverse does not exist
+
+            The inverse returned is in the same ring as this element::
+
+                sage: a = -1
+                sage: a.parent()
+                Integer Ring
+                sage: a.inverse_of_unit().parent()
+                Integer Ring
+
+            Note that this is often not the case when computing inverses in other ways::
+
+                sage: (~a).parent()
+                Rational Field
+                sage: (1/a).parent()
+                Rational Field
+
+            """
+            try:
+                if not self.is_unit():
+                    raise ArithmeticError("element is not a unit")
+            except NotImplementedError:
+                # if an element does not implement is_unit, we just try to
+                # invert it anyway; if the result is in the ring again, it was
+                # a unit
+                pass
+
+            inverse = ~self
+            if inverse not in self.parent():
+                raise ArithmeticError("element is not a unit")
+
+            # return the inverse (with the correct parent)
+            return self.parent()(inverse)
 
         def _divide_if_possible(self, y):
             """

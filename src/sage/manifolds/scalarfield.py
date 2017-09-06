@@ -1206,6 +1206,66 @@ class ScalarField(CommutativeAlgebraElement):
 
     __nonzero__ = __bool__   # For Python2 compatibility
 
+    def is_trivial_zero(self):
+        r"""
+        Check if ``self`` is trivially equal to zero without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self.is_zero()`` or ``self == 0`` and is intended to be
+        used in library code where trying to obtain a mathematically
+        correct result by applying potentially expensive rewrite rules
+        is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: 0})
+            sage: f.is_trivial_zero()
+            True
+            sage: f = M.scalar_field(0)
+            sage: f.is_trivial_zero()
+            True
+            sage: M.zero_scalar_field().is_trivial_zero()
+            True
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.is_trivial_zero()
+            False
+
+        Scalar field defined by means of two charts::
+
+            sage: U1 = M.open_subset('U1'); X1.<x1,y1> = U1.chart()
+            sage: U2 = M.open_subset('U2'); X2.<x2,y2> = U2.chart()
+            sage: f = M.scalar_field({X1: 0, X2: 0})
+            sage: f.is_trivial_zero()
+            True
+            sage: f = M.scalar_field({X1: 0, X2: 1})
+            sage: f.is_trivial_zero()
+            False
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = M.scalar_field({X: cos(x)^2 + sin(x)^2 - 1})
+            sage: f.is_trivial_zero()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to zero involve some simplification algorithms and
+        return ``True``::
+
+            sage: f.is_zero()
+            True
+            sage: f == 0
+            True
+
+        """
+        if self._is_zero:
+            return True
+        return all(func.is_trivial_zero() for func in self._express.values())
+
     def __eq__(self, other):
         r"""
         Comparison (equality) operator.

@@ -203,7 +203,7 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from .misc import richcmp_by_eq_and_lt
+from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 
 class ZeroCoefficientError(ValueError):
@@ -819,7 +819,7 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
-    _richcmp_ = richcmp_by_eq_and_lt
+    _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _lt_(self, other):
         r"""
@@ -1313,8 +1313,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
             sage: T = GenericTermMonoid(G, QQ)
-            sage: from sage.rings.asymptotic.misc import underlying_class
-            sage: underlying_class(T)(G, QQ) is T
+            sage: T._underlying_class()(G, QQ) is T
             True
 
         ::
@@ -1730,8 +1729,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
            (coefficient is None or coefficient.parent() is self.coefficient_ring):
             parent = self
         else:
-            from .misc import underlying_class
-            parent = underlying_class(self)(growth.parent(),
+            parent = self._underlying_class()(growth.parent(),
                                             coefficient.parent()
                                             if coefficient is not None
                                             else self.coefficient_ring,
@@ -2903,7 +2901,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         sage: TC_ZZ == TC_QQ or TC_ZZ is TC_QQ
         False
         sage: TC_QQ.coerce_map_from(TC_ZZ)
-        Conversion map:
+        Coercion map:
           From: Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
           To:   Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
     """
@@ -3691,7 +3689,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         sage: ET_QQ = ExactTermMonoid(G_QQ, QQ); ET_QQ
         Exact Term Monoid x^QQ with coefficients in Rational Field
         sage: ET_QQ.coerce_map_from(ET_ZZ)
-        Conversion map:
+        Coercion map:
           From: Exact Term Monoid x^ZZ with coefficients in Integer Ring
           To:   Exact Term Monoid x^QQ with coefficients in Rational Field
 
@@ -3888,8 +3886,7 @@ class TermMonoidFactory(UniqueFactory):
             ValueError: Integer Ring has to be an asymptotic growth group
         """
         if isinstance(term_monoid, GenericTermMonoid):
-            from .misc import underlying_class
-            term_class = underlying_class(term_monoid)
+            term_class = term_monoid._underlying_class()
         elif term_monoid == 'O':
             term_class = OTermMonoid
         elif term_monoid == 'exact':

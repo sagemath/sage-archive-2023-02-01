@@ -339,7 +339,7 @@ cdef class Parent(parent.Parent):
         for x in ['_an_element_', 'pi', 1.2, 2, 1, 0, infinity]:
             try:
                 return self(x)
-            except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
+            except Exception:
                 pass
 
         raise NotImplementedError("please implement _an_element_c_impl or _an_element_impl for %s" % self)
@@ -380,7 +380,17 @@ cdef class Parent(parent.Parent):
         else:
             return parent.Parent._an_element_(self)
 
-    cpdef _generic_convert_map(self, S):
+    cpdef _generic_convert_map(self, S, category=None):
+        r"""
+        Return a default conversion from ``S``.
+
+        EXAMPLES::
+
+           sage: R.<x,y>=QQ[]
+           sage: R._generic_convert_map(QQ).category_for()
+           Category of sets with partial maps
+
+        """
         if self._element_constructor is None:
             if hasattr(self, '_element_constructor_'):
                 assert callable(self._element_constructor_)
@@ -391,4 +401,4 @@ cdef class Parent(parent.Parent):
                 if isinstance(S, type):
                     S = Set_PythonType(S)
                 return CallMorphism(Hom(S, self))
-        return parent.Parent._generic_convert_map(self, S)
+        return parent.Parent._generic_convert_map(self, S, category)

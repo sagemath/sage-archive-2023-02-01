@@ -4315,7 +4315,7 @@ cdef class Linear_Expression(object):
         - ``self``, ``other`` -- anything that can be used to
           construct a :class:`Linear_Expression`. One of them, not
           necessarily ``self``, is guaranteed to be a
-          :class:``Linear_Expression``, otherwise Python would not
+          :class:`Linear_Expression`, otherwise Python would not
           have called this method.
 
         OUTPUT:
@@ -4346,7 +4346,7 @@ cdef class Linear_Expression(object):
         - ``self``, ``other`` -- anything that can be used to
           construct a :class:`Linear_Expression`. One of them, not
           necessarily ``self``, is guaranteed to be a
-          :class:``Linear_Expression``, otherwise Python would not
+          :class:`Linear_Expression`, otherwise Python would not
           have called this method.
 
         OUTPUT:
@@ -4377,7 +4377,7 @@ cdef class Linear_Expression(object):
         - ``self``, ``other`` -- anything that can be used to
           construct a :class:`Linear_Expression`. One of them, not
           necessarily ``self``, is guaranteed to be a
-          :class:``Linear_Expression``, otherwise Python would not
+          :class:`Linear_Expression`, otherwise Python would not
           have called this method.
 
         OUTPUT:

@@ -57,6 +57,7 @@ Individual Categories
    sage/categories/commutative_rings
    sage/categories/complete_discrete_valuation
    sage/categories/complex_reflection_groups
+   sage/categories/complex_reflection_or_generalized_coxeter_groups
    sage/categories/coxeter_group_algebras
    sage/categories/coxeter_groups
    sage/categories/crystals
@@ -148,6 +149,7 @@ Individual Categories
    sage/categories/principal_ideal_domains
    sage/categories/quotient_fields
    sage/categories/regular_crystals
+   sage/categories/regular_supercrystals
    sage/categories/right_modules
    sage/categories/ring_ideals
    sage/categories/rings

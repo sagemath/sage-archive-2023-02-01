@@ -1328,7 +1328,19 @@ cdef py_float(n, PyObject* kwds):
         <type 'sage.rings.complex_number.ComplexNumber'>
     """
     if kwds is not NULL:
-        return (<object>kwds)['parent'](n)
+        p = (<object>kwds)['parent']
+        if p is float:
+            try:
+                return float(n)
+            except TypeError:
+                return complex(n)
+        elif p is complex:
+            return p(n)
+        else:
+            try:
+                return p(n)
+            except (TypeError,ValueError):
+                return p.complex_field()(n)
     else:
         try:
             return RR(n)
@@ -1344,6 +1356,12 @@ def py_float_for_doctests(n, kwds):
         sage: from sage.libs.pynac.pynac import py_float_for_doctests
         sage: py_float_for_doctests(pi, {'parent':RealField(80)})
         3.1415926535897932384626
+        sage: py_float_for_doctests(I, {'parent':RealField(80)})
+        1.0000000000000000000000*I
+        sage: py_float_for_doctests(I, {'parent':float})
+        1j
+        sage: py_float_for_doctests(pi, {'parent':complex})
+        (3.141592653589793+0j)
     """
     return py_float(n, <PyObject*>kwds)
 
@@ -1892,6 +1910,10 @@ cdef py_atanh(x):
     try:
         return x.arctanh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arctanh()
+    except TypeError:
         return CC(x).arctanh()
 
 cdef py_lgamma(x):

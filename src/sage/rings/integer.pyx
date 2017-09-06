@@ -4,6 +4,8 @@ Elements of the ring `\ZZ` of integers
 Sage has highly optimized and extensive functionality about arithmetic with integers
 and the ring of integers.
 
+- Vincent Delecroix (2017-05-03): faster integer-rational comparisons
+
 EXAMPLES:
 
 Add 2 integers::
@@ -123,6 +125,7 @@ AUTHORS:
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #       Copyright (C) 2007,2008 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2007 David Roe <roed314@gmail.com>
+#       Copyright (C) 2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -146,6 +149,8 @@ import operator
 import sys
 
 from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
@@ -160,7 +165,6 @@ cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent, coercion_model)
 from sage.structure.parent cimport Parent
-include "sage/ext/python_debug.pxi"
 from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
@@ -189,10 +193,6 @@ cdef extern from *:
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
-
-cdef mpz_t mpz_tmp
-mpz_init(mpz_tmp)
-
 
 cdef set_from_Integer(Integer self, Integer other):
     mpz_set(self.value, other.value)
@@ -339,7 +339,9 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject, rich_to_bool_sgn
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool_sgn
+
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
@@ -908,38 +910,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef int c
         cdef double d
-        if isinstance(left, Integer):
-            if isinstance(right, Integer):
-                c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
-            elif isinstance(right, int):
-                c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
-            elif isinstance(right, long):
-                mpz_set_pylong(mpz_tmp, right)
-                c = mpz_cmp((<Integer>left).value, mpz_tmp)
-            elif isinstance(right, float):
-                d = right
-                if isnan(d):
-                    return op == Py_NE
-                c = mpz_cmp_d((<Integer>left).value, d)
-            else:
-                return coercion_model.richcmp(left, right, op)
-        else: # right is an Integer and left is not
-            if isinstance(left, int):
-                c = -mpz_cmp_si((<Integer>right).value, PyInt_AS_LONG(left))
-            if isinstance(left, long):
-                mpz_set_pylong(mpz_tmp, left)
-                c = mpz_cmp(mpz_tmp, (<Integer>right).value)
-            if isinstance(left, float):
-                d = left
-                if isnan(d):
-                    return op == Py_NE
-                c = -mpz_cmp_d((<Integer>right).value, d)
-            else:
-                return coercion_model.richcmp(left, right, op)
+        cdef mpz_t mpz_tmp
+
+        assert isinstance(left, Integer)
+
+        if isinstance(right, Integer):
+            c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+        elif isinstance(right, Rational):
+            c = -mpq_cmp_z((<Rational>right).value, (<Integer>left).value)
+        elif isinstance(right, int):
+            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
+        elif isinstance(right, long):
+            mpz_init(mpz_tmp)
+            mpz_set_pylong(mpz_tmp, right)
+            c = mpz_cmp((<Integer>left).value, mpz_tmp)
+            mpz_clear(mpz_tmp)
+        elif isinstance(right, float):
+            d = right
+            if isnan(d):
+                return op == Py_NE
+            c = mpz_cmp_d((<Integer>left).value, d)
+        else:
+            return coercion_model.richcmp(left, right, op)
 
         return rich_to_bool_sgn(op, c)
 
     cpdef int _cmp_(left, right) except -2:
+        r"""
+        EXAMPLES::
+
+            sage: 1._cmp_(2)
+            -1
+            sage: 0._cmp_(0)
+            0
+            sage: (-3**10 + 1)._cmp_(-3**10)
+            1
+        """
         cdef int c
         c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         return (c > 0) - (c < 0)

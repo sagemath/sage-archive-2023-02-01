@@ -107,10 +107,14 @@ def FreeMonoid(index_set=None, names=None, commutative=False, **kwds):
         Free abelian monoid on 3 generators (x, y, z)
         sage: FreeMonoid(index_set=ZZ, commutative=True)
         Free abelian monoid indexed by Integer Ring
+
+    TESTS::
+
+        sage: FreeMonoid(index_set=ZZ, names='x,y,z')
+        Free monoid indexed by Integer Ring
     """
     if 'abelian' in kwds:
-        commutative = kwds['abelian']
-        del kwds['abelian']
+        commutative = kwds.pop('abelian')
 
     if commutative:
         from sage.monoids.free_abelian_monoid import FreeAbelianMonoid
@@ -127,7 +131,7 @@ def FreeMonoid(index_set=None, names=None, commutative=False, **kwds):
 
     if index_set not in ZZ:
         if names is not None:
-            names = normalize_names(len(names), names)
+            names = normalize_names(-1, names)
         from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
         return IndexedFreeMonoid(index_set, names=names, **kwds)
 

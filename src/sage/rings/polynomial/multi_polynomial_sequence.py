@@ -513,6 +513,19 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: gb = F.groebner_basis()
             sage: Ideal(gb).basis_is_groebner()
             True
+
+        TESTS:
+
+        Check that this method also works for boolean polynomials
+        (:trac:`10680`)::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: F0 = Sequence(map(lambda f: f.lm(),[a,b,c,d]))
+            sage: F0.groebner_basis()
+            [a, b, c, d]
+            sage: F1 = Sequence([a,b,c*d,d^2])
+            sage: F1.groebner_basis()
+            [a, b, d]
         """
         return self.ideal().groebner_basis(*args, **kwargs)
 
@@ -1034,7 +1047,7 @@ class PolynomialSequence_generic(Sequence_generic):
         ALGORITHM:
 
         Uses Singular's interred command or
-        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
+        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular

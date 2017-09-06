@@ -10,7 +10,7 @@ This computes asymptotics for the coefficients `F_{r \alpha}` as `r \to \infty`
 with `r \alpha \in \NN^d` for `\alpha` in a permissible subset of `d`-tuples of
 positive reals. More specifically, it computes arbitrary terms of the
 asymptotic expansion for `F_{r \alpha}` when the asymptotics are controlled by
-a strictly minimal multiple point of the alegbraic variety `H = 0`.
+a strictly minimal multiple point of the algebraic variety `H = 0`.
 
 The algorithms and formulas implemented here come from [RaWi2008a]_
 and [RaWi2012]_. For a general reference take a look in the book [PeWi2013].
@@ -100,7 +100,7 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     sage: p = s[0]
     sage: asy = F.asymptotics(p, alpha, 1, verbose=True)
     Creating auxiliary functions...
-    Computing derivatives of auxiallary functions...
+    Computing derivatives of auxiliary functions...
     Computing derivatives of more auxiliary functions...
     Computing second order differential operator actions...
     sage: asy
@@ -228,7 +228,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.rings import Rings
-from .misc import richcmp_by_eq_and_lt
+from sage.structure.richcmp import richcmp_by_eq_and_lt
 
 
 @total_ordering
@@ -577,7 +577,7 @@ class FractionWithFactoredDenominator(RingElement):
         """
         return repr((self.numerator(), self.denominator_factored()))
 
-    _richcmp_ = richcmp_by_eq_and_lt
+    _richcmp_ = richcmp_by_eq_and_lt("_eq_", "_lt_")
 
     def _eq_(self, other):
         r"""
@@ -1605,7 +1605,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: p = {y: 1/3, x: 1/2}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True)
             Creating auxiliary functions...
-            Computing derivatives of auxiallary functions...
+            Computing derivatives of auxiliary functions...
             Computing derivatives of more auxiliary functions...
             Computing second order differential operator actions...
             sage: asy
@@ -1751,7 +1751,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: p = {y: 1/2*sqrt(13) - 3/2, x: 1/3*sqrt(13) - 2/3}
             sage: F.asymptotics_smooth(p, alpha, 2, var('r'), numerical=3, verbose=True)
             Creating auxiliary functions...
-            Computing derivatives of auxiallary functions...
+            Computing derivatives of auxiliary functions...
             Computing derivatives of more auxiliary functions...
             Computing second order differential operator actions...
             (71.2^r*(0.369/sqrt(r) - 0.018.../r^(3/2)), 71.2, 0.369/sqrt(r) - 0.018.../r^(3/2))
@@ -1768,7 +1768,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: p = {x: 1, y: 1}
             sage: F.asymptotics_smooth(p, alpha, 5, var('r'), verbose=True) # not tested (140 seconds)
             Creating auxiliary functions...
-            Computing derivatives of auxiallary functions...
+            Computing derivatives of auxiliary functions...
             Computing derivatives of more auxiliary functions...
             Computing second order differential operator actions...
             (1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3))
@@ -1875,7 +1875,7 @@ class FractionWithFactoredDenominator(RingElement):
         # to diff_prod later.
         Hderivs = diff_all(H, X, 2 * N, ending=[X[d - 1]], sub_final=P)
         if verbose:
-            print("Computing derivatives of auxiallary functions...")
+            print("Computing derivatives of auxiliary functions...")
         # For convenience in checking if all the nontrivial derivatives of U
         # at p are zero a few line below, store the value of U(p) in atP
         # instead of in Uderivs.

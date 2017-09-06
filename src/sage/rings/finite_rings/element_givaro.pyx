@@ -49,10 +49,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from __future__ import absolute_import, print_function
+
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
@@ -61,7 +62,8 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
 from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
-from sage.structure.sage_object cimport SageObject, richcmp
+from sage.structure.richcmp cimport richcmp
+from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all
@@ -130,7 +132,7 @@ cdef class Cache_givaro(SageObject):
         Finite Field.
 
         These are implemented using Zech logs and the
-        cardinality must be less than `2^{16}`. By default conway polynomials
+        cardinality must be less than `2^{16}`. By default Conway polynomials
         are used as minimal polynomial.
 
         INPUT:
@@ -1142,11 +1144,11 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: k(1) / k(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
         """
         cdef int r
         if (<FiniteField_givaroElement>right).element == 0:
-            raise ZeroDivisionError('division by zero in finite field.')
+            raise ZeroDivisionError('division by zero in finite field')
         r = self._cache.objectptr.div(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
@@ -1197,7 +1199,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: ~a*a
             1
 
-        TEST:
+        TESTS:
 
         Check that trying to invert zero raises an error
         (see :trac:`12217`)::
@@ -1207,13 +1209,12 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: ~z
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in Finite Field in a of size 5^2
+            ZeroDivisionError: division by zero in finite field
 
         """
         cdef int r
-        if (<FiniteField_givaroElement>self).element == 0:
-            raise ZeroDivisionError('division by zero in %s'
-                                    % self.parent())
+        if self.element == 0:
+            raise ZeroDivisionError('division by zero in finite field')
         self._cache.objectptr.inv(r, self.element)
         return make_FiniteField_givaroElement(self._cache,r)
 
@@ -1282,7 +1283,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         elif (cache.objectptr).isZero(self.element):
             if exp < 0:
-                raise ZeroDivisionError
+                raise ZeroDivisionError('division by zero in finite field')
             return make_FiniteField_givaroElement(cache, cache.objectptr.zero)
 
         cdef int order = (cache.order_c()-1)

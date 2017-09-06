@@ -51,7 +51,7 @@ from builtins import zip
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.structure.element import ModuleElement

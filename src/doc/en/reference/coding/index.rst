@@ -107,6 +107,7 @@ Other modules
    sage/coding/guruswami_sudan/gs_decoder
    sage/coding/guruswami_sudan/interpolation
    sage/coding/guruswami_sudan/utils
+   sage/coding/information_set_decoder
    sage/coding/code_bounds
    sage/coding/delsarte_bounds
 

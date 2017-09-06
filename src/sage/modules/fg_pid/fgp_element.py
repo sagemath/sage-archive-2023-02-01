@@ -16,7 +16,7 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 # This adds extra maybe-not-necessary checks in the code, but could
 # slow things down.  It can impact what happens in more than just this

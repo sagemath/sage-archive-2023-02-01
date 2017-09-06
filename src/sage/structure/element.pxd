@@ -215,9 +215,9 @@ cdef class ModuleElement(Element):
     cpdef _neg_(self)
 
     # self._rmul_(x) is x * self
-    cpdef _lmul_(self, RingElement right)
+    cpdef _lmul_(self, Element right)
     # self._lmul_(x) is self * x
-    cpdef _rmul_(self, RingElement left)
+    cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
     pass

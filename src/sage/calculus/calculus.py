@@ -610,7 +610,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("summation limits must not depend on the summation variable")
 
-    if hold == True:
+    if hold:
         from sage.functions.other import symbolic_sum as ssum
         return ssum(expression, v, a, b)
 
@@ -825,9 +825,11 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
 
       - ``'maxima'`` - use Maxima (the default)
 
-      - ``'giac'`` - (optional) use Giac
+      - ``'giac'`` - use Giac
 
       - ``'sympy'`` - use SymPy
+
+      - ``'mathematica'`` - (optional) use Mathematica
 
     - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
@@ -861,8 +863,8 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("product limits must not depend on the multiplication variable")
 
-    if hold == True:
-        from sage.functions.other import symbolic_prod as sprod
+    if hold:
+        from sage.functions.other import symbolic_product as sprod
         return sprod(expression, v, a, b)
 
     if algorithm == 'maxima':

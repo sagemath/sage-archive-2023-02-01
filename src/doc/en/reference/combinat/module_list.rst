@@ -53,6 +53,7 @@ Comprehensive Module list
     sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
+    sage/combinat/crystals/bkk_crystals
     sage/combinat/crystals/catalog
     sage/combinat/crystals/catalog_elementary_crystals
     sage/combinat/crystals/catalog_infinity_crystals
@@ -118,6 +119,7 @@ Comprehensive Module list
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/free_module
+    sage/combinat/free_dendriform_algebra
     sage/combinat/free_prelie_algebra
     sage/combinat/fully_packed_loop
     sage/combinat/gelfand_tsetlin_patterns
@@ -235,6 +237,7 @@ Comprehensive Module list
     sage/combinat/root_system/root_lattice_realizations
     sage/combinat/root_system/root_space
     sage/combinat/root_system/root_system
+    sage/combinat/root_system/type_super_A
     sage/combinat/root_system/type_A
     sage/combinat/root_system/type_A_affine
     sage/combinat/root_system/type_A_infinity

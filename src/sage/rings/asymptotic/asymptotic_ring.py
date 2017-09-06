@@ -1075,7 +1075,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         INPUT:
 
         - ``monomial`` -- a monomial element which can be converted
-          into the the asymptotic ring of this element
+          into the asymptotic ring of this element
 
         OUTPUT:
 
@@ -3601,9 +3601,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        from .misc import underlying_class
-        return underlying_class(self)(**values)
-
+        return self._underlying_class()(**values)
 
     @staticmethod
     def _create_empty_summands_():
@@ -4394,11 +4392,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: A.construction()[0].cls
             <class '__main__.MyAsymptoticRing'>
         """
-        from .misc import underlying_class
         return (AsymptoticRingFunctor(self.growth_group,
                                       default_prec=self.default_prec,
                                       category=self.category(),
-                                      cls=underlying_class(self)),
+                                      cls=self._underlying_class()),
                 self.coefficient_ring)
 
 

@@ -119,7 +119,7 @@ from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.structure.element import parent
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.matrix.matrix import is_Matrix
 
 class ModuleMorphism(Morphism):
@@ -439,10 +439,6 @@ class TriangularModuleMorphism(ModuleMorphism):
       As a shorthand, one may use ``unitriangular="lower"``
       for ``triangular="lower", unitriangular=True``.
 
-    - ``cmp`` -- a comparison function on `J`
-      (default: the usual comparison function on `J`)
-      This is deprecated since :trac:`21043`, see below.
-
     - ``key`` -- a comparison key on `J`
       (default: the usual comparison of elements of `J`)
 
@@ -625,7 +621,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
     def __init__(self, triangular="upper", unitriangular=False,
-                 cmp=None, key=None, inverse=None, inverse_on_support=identity, invertible=None):
+                 key=None, inverse=None, inverse_on_support=identity, invertible=None):
         """
         TESTS::
 
@@ -662,18 +658,10 @@ class TriangularModuleMorphism(ModuleMorphism):
             ...
             TypeError: expected string or Unicode object, NoneType found
         """
-        if cmp is not None:
-            deprecation(21043, "the 'cmp' keyword is deprecated, use 'key' instead")
-            self._key_kwds = dict(cmp=cmp)
-        elif key is not None:
+        if key is not None:
             self._key_kwds = dict(key=key)
         else:
             self._key_kwds = dict()
-
-        if triangular is True:
-            deprecation(8678, "module_morphism(..., triangular=True) is deprecated; "
-                        "please use triangular='lower'.")
-            triangular = "lower"
 
         if triangular == "upper":
             self._dominant_item = attrcall("leading_item", **self._key_kwds)
@@ -711,16 +699,12 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
             sage: def ut(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
             sage: perm = [0, 2, 1, 3]
-            sage: our_cmp = lambda a, b: (perm[a] > perm[b]) - (perm[a] < perm[b])
-            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, cmp=our_cmp)
-            doctest:warning
-            ...
-            DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-            See http://trac.sagemath.org/21043 for details.
+            sage: our_key = lambda a: perm[a]
+            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, key=our_key)
             sage: def ut2(i): return (x[1] + 7*x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
-            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, cmp=our_cmp)
+            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, key=our_key)
             sage: def lt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])
-            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X, cmp=our_cmp)
+            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X, key=our_key)
             sage: phi == phi
             True
             sage: phi == phi2

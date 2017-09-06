@@ -20,6 +20,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.numerical.mip import MIPSolverException
 from sage.libs.glpk.error import GLPKError
@@ -28,8 +31,6 @@ from sage.libs.glpk.lp cimport *
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 cdef class GLPKBackend(GenericBackend):
 
@@ -2384,7 +2385,7 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
-    cpdef int get_row_stat(self, int i):
+    cpdef int get_row_stat(self, int i) except? -1:
         """
         Retrieve the status of a constraint.
 
@@ -2421,14 +2422,15 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_row_stat(1)
             3
             sage: lp.get_row_stat(-1)
-            Exception ValueError: ...
-            0
+            Traceback (most recent call last):
+            ...
+            ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
         """
         if i < 0 or i >= glp_get_num_rows(self.lp):
             raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
         return glp_get_row_stat(self.lp, i+1)
 
-    cpdef int get_col_stat(self, int j):
+    cpdef int get_col_stat(self, int j) except? -1:
         """
         Retrieve the status of a variable.
 
@@ -2464,9 +2466,10 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: lp.get_col_stat(1)
             2
-            sage: lp.get_col_stat(-1)
-            Exception ValueError: ...
-            0
+            sage: lp.get_col_stat(100)
+            Traceback (most recent call last):
+            ...
+            ValueError: The variable's index j must satisfy 0 <= j < number_of_variables
         """
         if j < 0 or j >= glp_get_num_cols(self.lp):
             raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")

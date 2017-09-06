@@ -13,7 +13,7 @@ from __future__ import print_function
 cimport sage.matrix.matrix as matrix
 
 from sage.structure.element cimport Element, RingElement
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 import sage.matrix.matrix_space
 import sage.structure.sequence
 

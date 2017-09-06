@@ -347,7 +347,8 @@ class AmbientSpace(Scheme):
 
 ##     def assign_names(self, names=None):
 ##         """
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: A = AffineSpace(2, QQ, 'ab'); A
 ##             Affine Space of dimension 2 over Rational Field
 ##             sage: A.coordinate_ring()

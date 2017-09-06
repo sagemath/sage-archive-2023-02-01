@@ -602,7 +602,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * (<PowerSeries_pari>right).g)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         Right multiplication by a scalar.
 
@@ -616,7 +616,7 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return construct_from_pari(self._parent, self.g * c)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         Left multiplication by a scalar.
 

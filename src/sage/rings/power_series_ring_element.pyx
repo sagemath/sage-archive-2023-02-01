@@ -118,7 +118,7 @@ from sage.misc.derivative import multi_derivative
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 
 def is_PowerSeries(x):
@@ -961,7 +961,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def valuation_zero_part(self):
         r"""
-        Factor self as as `q^n \cdot (a_0 + a_1 q + \cdots)` with
+        Factor self as `q^n \cdot (a_0 + a_1 q + \cdots)` with
         `a_0` nonzero. Then this function returns
         `a_0 + a_1 q + \cdots` .
 

@@ -19,8 +19,10 @@ from sage.sets.family import Family
 from . import ambient_space
 import sage.combinat.root_system as root_system
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
 
 
+@richcmp_method
 class CartanType(SageObject, CartanType_abstract):
     r"""
     A class for reducible Cartan types.
@@ -56,7 +58,7 @@ class CartanType(SageObject, CartanType_abstract):
     super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
 
         sage: t.__class__.mro()
-        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
+        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <... 'object'>]
 
     The index set of the reducible Cartan type is obtained by
     relabelling successively the nodes of the Dynkin diagrams of
@@ -167,8 +169,10 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return hash(repr(self._types))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
+        Rich comparison.
+
         EXAMPLES::
 
             sage: ct1 = CartanType(['A',1],['B',2])
@@ -190,10 +194,10 @@ class CartanType(SageObject, CartanType_abstract):
             False
         """
         if isinstance(other, CartanType_simple):
-            return 1
-        if other.__class__ != self.__class__:
-            return cmp(self.__class__, other.__class__)
-        return cmp(self._types, other._types)
+            return rich_to_bool(op, 1)
+        if not isinstance(other, CartanType):
+            return NotImplemented
+        return richcmp(self._types, other._types, op)
 
     def component_types(self):
         """

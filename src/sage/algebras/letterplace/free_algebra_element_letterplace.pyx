@@ -243,7 +243,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         cdef list L = []
         cdef FreeAlgebra_letterplace P = self._parent
         cdef int ngens = P.__ngens
-        from sage.all import latex
+        from sage.misc.latex import latex
         if P._base._repr_option('element_is_atomic'):
             for E,c in zip(self._poly.exponents(),self._poly.coefficients()):
                 monstr = P.exponents_to_latex(E)
@@ -555,7 +555,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         right._poly = A._current_ring(right._poly)
         return FreeAlgebraElement_letterplace(self._parent,self._poly-right._poly,check=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiplication from the right with an element of the base ring.
 
@@ -569,7 +569,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         return FreeAlgebraElement_letterplace(self._parent,self._poly._lmul_(right),check=False)
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Multiplication from the left with an element of the base ring.
 

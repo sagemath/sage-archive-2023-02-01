@@ -55,8 +55,8 @@ index 8dfd4b6..0666c9b 100755
  
  
  else
--  as_fn_error $? "libcurl >= 7.28.0 library and headers are required with support for https" "$LINENO" 5
-+  as_fn_error $? "libcurl >= 7.28.0 library and headers are required" "$LINENO" 5
+-  as_fn_error $? "libcurl >= 7.22.0 library and headers are required with support for https" "$LINENO" 5
++  as_fn_error $? "libcurl >= 7.22.0 library and headers are required" "$LINENO" 5
  fi
  
  
@@ -64,7 +64,7 @@ diff --git a/m4/R.m4 b/m4/R.m4
 index 606adfa..43114dd 100644
 --- a/m4/R.m4
 +++ b/m4/R.m4
-@@ -4203,33 +4203,14 @@ if test "x${r_cv_have_curl728}" = xno; then
+@@ -4203,33 +4203,14 @@ if test "x${r_cv_have_curl722}" = xno; then
    have_libcurl=no
  fi
  
@@ -88,15 +88,15 @@ index 606adfa..43114dd 100644
 -  have_libcurl=no
 -fi
  if test "x${have_libcurl}" = xyes; then
--  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.28.0 with support for https.])
-+  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.28.0.])
+-  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.22.0 with support for https.])
++  AC_DEFINE(HAVE_LIBCURL, 1, [Define if your system has libcurl >= 7.22.0.])
    CPPFLAGS="${r_save_CPPFLAGS}"
    LIBS="${r_save_LIBS}"
    AC_SUBST(CURL_CPPFLAGS)
    AC_SUBST(CURL_LIBS)
  else
--  AC_MSG_ERROR([libcurl >= 7.28.0 library and headers are required with support for https])
-+  AC_MSG_ERROR([libcurl >= 7.28.0 library and headers are required])
+-  AC_MSG_ERROR([libcurl >= 7.22.0 library and headers are required with support for https])
++  AC_MSG_ERROR([libcurl >= 7.22.0 library and headers are required])
  fi
  ])# R_LIBCURL
  

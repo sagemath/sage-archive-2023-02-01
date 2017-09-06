@@ -84,7 +84,7 @@ class FiniteField_ext_pari(FiniteField_generic):
     The following is a native Python set::
 
         sage: set(k)
-        {0, 1, 2, a, 2*a, a + 1, 2*a + 1, a + 2, 2*a + 2}
+        {0, 1, a, a + 1, a + 2, 2, 2*a, 2*a + 1, 2*a + 2}
 
     And the following is a Sage set::
 
@@ -194,7 +194,6 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
-        self._kwargs = {}
         self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = n

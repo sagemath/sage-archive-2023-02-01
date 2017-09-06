@@ -112,7 +112,7 @@ ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (mer
 ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
-# the following is a direct adaption of the definition of "retrieve"
+# the following is a direct adaptation of the definition of "retrieve"
 # in the Maxima file macsys.lisp. This routine is normally responsible
 # for displaying a question and returning the answer. We change it to
 # throw an error in which the text of the question is included. We do
@@ -904,6 +904,16 @@ class MaximaLib(MaximaAbstract):
     def sr_prod(self,*args):
         """
         Helper function to wrap calculus use of Maxima's product.
+
+        TESTS::
+
+            sage: from sage.calculus.calculus import symbolic_product
+            sage: _ = var('n')
+            sage: symbolic_product(x,x,1,n)
+            factorial(n)
+            sage: symbolic_product(2*x,x,1,n)
+            2^n*factorial(n)
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));

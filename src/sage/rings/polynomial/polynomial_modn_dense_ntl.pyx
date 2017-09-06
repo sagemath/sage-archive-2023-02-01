@@ -28,6 +28,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
 from sage.libs.all import pari, pari_gen
@@ -55,8 +58,6 @@ from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)
-
-include "cysignals/signals.pxi"
 
 zz_p_max = NTL_SP_BOUND
 
@@ -232,7 +233,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         try:
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError as msg: # should this really be a TypeError
@@ -760,7 +761,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         TESTS::
 
@@ -776,7 +777,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         TESTS::
 
@@ -1308,7 +1309,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         TESTS::
 
@@ -1325,7 +1326,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         TESTS::
 

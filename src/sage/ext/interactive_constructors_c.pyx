@@ -2,7 +2,7 @@
 r"""
 Constructors that automatically inject variables into the global module scope
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sage.rings.all
 import sage.misc.superseded

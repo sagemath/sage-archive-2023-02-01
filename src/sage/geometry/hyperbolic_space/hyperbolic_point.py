@@ -61,7 +61,7 @@ Some more examples::
 #***********************************************************************
 
 from sage.structure.element import Element
-from sage.structure.sage_object import richcmp, op_NE
+from sage.structure.richcmp import richcmp, op_NE
 from sage.symbolic.all import I
 from sage.misc.latex import latex
 from sage.matrix.matrix import is_Matrix

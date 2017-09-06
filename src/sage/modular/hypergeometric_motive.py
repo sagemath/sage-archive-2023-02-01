@@ -898,7 +898,11 @@ class HypergeometricMotive(object):
 
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
             sage: t = 189/125
+<<<<<<< HEAD
             sage: H.padic_H_value(13,1,1/t)
+=======
+            sage: H.padic_H_value(13,1,t)
+>>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
             0
 
         REFERENCE:
@@ -917,7 +921,11 @@ class HypergeometricMotive(object):
         gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
 
         p_ring = Zp(p, prec=prec)
+<<<<<<< HEAD
         teich = p_ring.teichmuller(M / t)
+=======
+        teich = p_ring.teichmuller(t * M)
+>>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
         sigma = sum(q**(D + m[0] - m[r]) *
                     (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
                              for v, gv in gamma.items())//(p-1)) *
@@ -999,7 +1007,11 @@ class HypergeometricMotive(object):
         gen = Fq.multiplicative_generator()
         zeta_q = ring.zeta(q - 1)
 
+<<<<<<< HEAD
         tM = Fq(M / t)
+=======
+        tM = Fq(t * M)
+>>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
         for k in range(q - 1):
             if gen ** k == tM:
                 teich = zeta_q ** k
@@ -1043,7 +1055,11 @@ class HypergeometricMotive(object):
             sage: H.euler_factor(-1, 5)
             15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
 
+<<<<<<< HEAD
             sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(1/4,p)
+=======
+            sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(4,p)
+>>>>>>> db3363b4a150d7345e6ac1a8b5b72a426ccbf297
             ....:  for p in [5,7,11,13,17,19]]
             [125*T^3 + 20*T^2 + 4*T + 1,
              343*T^3 - 42*T^2 - 6*T + 1,

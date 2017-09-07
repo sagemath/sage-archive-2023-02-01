@@ -6,16 +6,103 @@ As an examples: if a lattice is distributive, then it must be also
 modular, and if a poset is ranked, then the dual poset must also
 be ranked.
 
-.. TODO:
+.. TODO::
 
     Currently only finite lattices have test function. Add some to
     general posets too.
 """
+implications = {
+ 'doubling_convex': ['doubling_any'],
+ 'doubling_interval': ['doubling_lower'],
+ 'doubling_interval': ['doubling_upper'],
+ 'doubling_lower': ['doubling_convex', 'meet_semidistributive'],
+ 'doubling_upper': ['doubling_convex', 'join_semidistributive'],
+ 'cosectionally_complemented': ['complemented', 'coatomic', 'regular'],
+ 'distributive': ['modular', 'semidistributive', 'join_distributive', 'meet_distributive', 'subdirectly_reducible', 'doubling_interval'],
+ 'geometric': ['upper_semimodular', 'relatively_complemented'],
+ 'isoform': ['uniform'],
+ 'join_distributive': ['meet_semidistributive', 'upper_semimodular'],
+ 'join_semidistributive': ['join_pseudocomplemented'],
+ 'lower_semimodular': ['graded'],
+ 'meet_distributive': ['join_semidistributive', 'lower_semimodular'],
+ 'meet_semidistributive': ['pseudocomplemented'],
+ 'modular': ['upper_semimodular', 'lower_semimodular', 'supersolvable'],
+ 'orthocomplemented': ['selfdual', 'complemented'],
+ 'planar': ['dismantlable'],
+ 'relatively_complemented': ['sectionally_complemented', 'cosectionally_complemented', 'isoform'],
+ 'sectionally_complemented': ['complemented', 'atomic', 'regular'],
+ 'semidistributive': ['join_semidistributive', 'meet_semidistributive'],
+ 'simple': ['isoform'],
+ 'supersolvable': ['graded'],
+ 'uniform': ['regular'],
+ 'uniq_orthocomplemented': ['orthocomplemented'],
+ 'upper_semimodular': ['graded'],
+ 'vertically_decomposable': ['subdirectly_reducible'],
+}
+
+dual_properties = [
+ ['atomic', 'coatomic'],
+ ['upper_semimodular', 'lower_semimodular'],
+ ['sectionally_complemented', 'cosectionally_complemented'],
+ ['join_distributive', 'meet_distributive'],
+ ['join_semidistributive', 'meet_semidistributive'],
+ ['pseudocomplemented', 'join_pseudocomplemented'],
+ ['doubling_lower', 'doubling_upper'],
+]
+
+selfdual_properties = ['distributive', 'modular', 'semidistributive', 'complemented',
+ 'relatively_complemented', 'orthocomplemented', 'uniq_orthocomplemented', 'supersolvable', 'planar',
+ 'dismantlable', 'vertically_decomposable', 'simple', 'isoform', 'uniform', 'regular',
+  'subdirectly_reducible', 'doubling_any', 'doubling_convex', 'doubling_interval']
+
+dual_elements = [
+ ['atoms', 'coatoms'],
+ ['meet_irreducibles', 'join_irreducibles'],
+ ['meet_primes', 'join_primes']
+]
+
+two_to_one = [ ['distributive', 'dismantlable', 'planar'],
+               ['upper_semimodular', 'lower_semimodular', 'modular'],
+               ['meet_distributive', 'join_distributive', 'distributive'],
+               ['meet_semidistributive', 'join_semidistributive', 'semidistributive'],
+               ['lower_semimodular', 'meet_semidistributive', 'distributive'],
+               ['upper_semimodular', 'join_semidistributive', 'distributive'],
+             ]
+
+mutually_exclusive = [
+ ['doubling_any', 'simple'],
+]
+
+set_inclusions = [
+ ['atoms', 'join_irreducibles'],
+ ['coatoms', 'meet_irreducibles'],
+ ['double_irreducibles', 'join_irreducibles'],
+ ['double_irreducibles', 'meet_irreducibles'],
+ ['meet_primes', 'meet_irreducibles'],
+ ['join_primes', 'join_irreducibles'],
+]
+
+sublattice_closed = ['distributive', 'modular', 'semidistributive', 'join_semidistributive', 'meet_semidistributive']
+
 def test_finite_lattice(L):
     """
     Test several functions on a given finite lattice.
 
-    This needs few lines before the test, see example below.
+    The function contains tests of different kinds:
+    - Implications of boolean properties. Examples: a distributive lattice is modular,
+      a dismantlable and distributive lattice is planar, a simple lattice can not be
+      constructible by Day's doublings.
+    - Dual and self-dual properties. Examples: Dual of a modular lattice is modular,
+      dual of an atomic lattice is co-atomic.
+    - Certificate tests. Example: certificate for a non-complemented lattice must be
+      an element without a complement.
+    - Verification of some property by known property or by a random test.
+      Examples: A lattice is distributive iff join-primes are exactly
+      join-irreducibles and an interval of a relatively complemented
+      lattice is complemented.
+    - Set inclusions. Example: Every co-atom must be meet-irreducible.
+    - And several other tests. Example: The skeleton of a pseudocomplemented
+      lattice must be boolean.
 
     EXAMPLES::
 
@@ -51,79 +138,6 @@ def test_finite_lattice(L):
     if L.cardinality() < 4:
         # Special cases should be tested in specific TESTS-sections.
         return None
-
-    implications = {
-     'doubling_convex': ['doubling_any'],
-     'doubling_interval': ['doubling_lower'],
-     'doubling_interval': ['doubling_upper'],
-     'doubling_lower': ['doubling_convex', 'meet_semidistributive'],
-     'doubling_upper': ['doubling_convex', 'join_semidistributive'],
-     'cosectionally_complemented': ['complemented', 'coatomic', 'regular'],
-     'distributive': ['modular', 'semidistributive', 'join_distributive', 'meet_distributive', 'subdirectly_reducible', 'doubling_interval'],
-     'geometric': ['upper_semimodular', 'relatively_complemented'],
-     'isoform': ['uniform'],
-     'join_distributive': ['meet_semidistributive', 'upper_semimodular'],
-     'join_semidistributive': ['join_pseudocomplemented'],
-     'lower_semimodular': ['graded'],
-     'meet_distributive': ['join_semidistributive', 'lower_semimodular'],
-     'meet_semidistributive': ['pseudocomplemented'],
-     'modular': ['upper_semimodular', 'lower_semimodular', 'supersolvable'],
-     'orthocomplemented': ['selfdual', 'complemented'],
-     'planar': ['dismantlable'],
-     'relatively_complemented': ['sectionally_complemented', 'cosectionally_complemented', 'isoform'],
-     'sectionally_complemented': ['complemented', 'atomic', 'regular'],
-     'semidistributive': ['join_semidistributive', 'meet_semidistributive'],
-     'simple': ['isoform'],
-     'supersolvable': ['graded'],
-     'uniform': ['regular'],
-     'uniq_orthocomplemented': ['orthocomplemented'],
-     'upper_semimodular': ['graded'],
-     'vertically_decomposable': ['subdirectly_reducible'],
-    }
-
-    dual_properties = [
-     ['atomic', 'coatomic'],
-     ['upper_semimodular', 'lower_semimodular'],
-     ['sectionally_complemented', 'cosectionally_complemented'],
-     ['join_distributive', 'meet_distributive'],
-     ['join_semidistributive', 'meet_semidistributive'],
-     ['pseudocomplemented', 'join_pseudocomplemented'],
-     ['doubling_lower', 'doubling_upper'],
-    ]
-
-    selfdual_properties = ['distributive', 'modular', 'semidistributive', 'complemented',
-     'relatively_complemented', 'orthocomplemented', 'uniq_orthocomplemented', 'supersolvable', 'planar',
-     'dismantlable', 'vertically_decomposable', 'simple', 'isoform', 'uniform', 'regular',
-     'subdirectly_reducible', 'doubling_any', 'doubling_convex', 'doubling_interval']
-
-    dual_elements = [
-     ['atoms', 'coatoms'],
-     ['meet_irreducibles', 'join_irreducibles'],
-     ['meet_primes', 'join_primes']
-    ]
-
-    two_to_one = [ ['distributive', 'dismantlable', 'planar'],
-                   ['upper_semimodular', 'lower_semimodular', 'modular'],
-                   ['meet_distributive', 'join_distributive', 'distributive'],
-                   ['meet_semidistributive', 'join_semidistributive', 'semidistributive'],
-                   ['lower_semimodular', 'meet_semidistributive', 'distributive'],
-                   ['upper_semimodular', 'join_semidistributive', 'distributive'],
-                 ]
-
-    mutually_exclusive = [
-     ['doubling_any', 'simple'],
-    ]
-
-    set_inclusions = [
-     ['atoms', 'join_irreducibles'],
-     ['coatoms', 'meet_irreducibles'],
-     ['double_irreducibles', 'join_irreducibles'],
-     ['double_irreducibles', 'meet_irreducibles'],
-     ['meet_primes', 'meet_irreducibles'],
-     ['join_primes', 'join_irreducibles'],
-    ]
-
-    sublattice_closed = ['distributive', 'modular', 'semidistributive', 'join_semidistributive', 'meet_semidistributive']
 
     all_props = set(implications.keys() + flatten(implications.values()))
     P = {x: test_attrcall('is_'+x, L) for x in all_props}

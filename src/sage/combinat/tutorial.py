@@ -509,7 +509,7 @@ It is trivial to verify this equation on the closed form::
     sage: bool(equadiff.substitute_function(Cf, s0))
     True
 
-.. On veut non seulement remplacer les occurences de C(z), mais
+.. On veut non seulement remplacer les occurrences de C(z), mais
 .. aussi de C tout court (par exemple dans D[0](C)). Y-a-t'il mieux
 .. pour retrouver C à partir de C(z)?
 .. Cf. also:

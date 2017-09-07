@@ -19,7 +19,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import sys
@@ -60,6 +60,9 @@ find_prompt = re.compile(r"^(\s*)(>>>|sage:)(.*)")
 # For testing that enough doctests are created
 sagestart = re.compile(r"^\s*(>>> |sage: )\s*[^#\s]")
 untested = re.compile("(not implemented|not tested)")
+
+# For parsing a PEP 0263 encoding declaration
+pep_0263 = re.compile(r'coding[:=]\s*([-\w.]+)')
 
 # Source line number in warning output
 doctest_line_number = re.compile(r"^\s*doctest:[0-9]")
@@ -226,7 +229,7 @@ class DocTestSource(object):
 
     def _create_doctests(self, namespace, tab_okay=None):
         """
-        Creates a list doctests defined in this source.
+        Creates a list of doctests defined in this source.
 
         This function collects functionality common to file and string
         sources, and is called by
@@ -511,10 +514,13 @@ class FileDocTestSource(DocTestSource):
         base, ext = os.path.splitext(path)
         if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx'):
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
+            self.encoding = "utf-8"
         elif ext == '.tex':
             self.__class__ = dynamic_class('TexFileSource',(FileDocTestSource,TexSource))
+            self.encoding = "utf-8"
         elif ext == '.rst':
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
+            self.encoding = "utf-8"
         else:
             raise ValueError("unknown file extension %r"%ext)
 
@@ -536,10 +542,38 @@ class FileDocTestSource(DocTestSource):
             1     sage: 2 + 2
             2     4
             3 '''
+
+        The encoding is "utf-8" by default::
+
+            sage: FDS.encoding
+            'utf-8'
+
+        We create a file with a Latin-1 encoding without declaring it::
+
+            sage: s = "'''\nRegardons le polyn\xF4me...\n'''\n"
+            sage: open(filename, 'w').write(s)
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
+            sage: L = list(FDS)
+            Traceback (most recent call last):
+            ...
+            UnicodeDecodeError: 'utf8' codec can't decode byte 0xf4 in position 18: invalid continuation byte
+
+        This works if we add a PEP 0263 encoding declaration::
+
+            sage: s = "#!/usr/bin/env python\n# -*- coding: latin-1 -*-\n" + s
+            sage: open(filename, 'w').write(s)
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
+            sage: L = list(FDS)
+            sage: FDS.encoding
+            'latin-1'
         """
         with open(self.path) as source:
             for lineno, line in enumerate(source):
-                yield lineno, line
+                if lineno < 2:
+                    match = pep_0263.search(line)
+                    if match:
+                        self.encoding = match.group(1)
+                yield lineno, unicode(line, self.encoding)
 
     @lazy_attribute
     def printpath(self):

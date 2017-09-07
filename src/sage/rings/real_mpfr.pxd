@@ -21,6 +21,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef inline RealNumber _new(self):
         """Return a new real number with same parent as ``self``."""
         return <RealNumber>(RealNumber.__new__(RealNumber, self._parent))
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _mod_(self, right)
     cdef _set(self, x, int base)
     cdef _set_from_GEN_REAL(self, GEN g)
     cdef RealNumber abs(RealNumber self)

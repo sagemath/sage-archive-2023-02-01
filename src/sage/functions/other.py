@@ -772,15 +772,15 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(CC(6))
             4.78749174278205
             sage: log_gamma(CC(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.0562437164976741 - 9.42477796076938*I
             sage: log_gamma(RDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(CDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(float(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
             sage: log_gamma(complex(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
 
         ``conjugate(log_gamma(x)) == log_gamma(conjugate(x))`` unless on the
         branch cut, which runs along the negative real axis.::

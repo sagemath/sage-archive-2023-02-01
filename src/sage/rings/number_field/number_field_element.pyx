@@ -44,6 +44,8 @@ from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
 from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN
 from sage.libs.ntl.error import NTLError
+from sage.libs.gmp.pylong cimport mpz_pythonhash
+
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.richcmp cimport rich_to_bool
 
@@ -176,7 +178,6 @@ def _inverse_mod_generic(elt, I):
             y += v[j] * sum([b[j,i+n] * B[i] for i in xrange(n)])
     return I.small_residue(y)
 
-__pynac_pow = False
 
 cdef class NumberFieldElement(FieldElement):
     """
@@ -2105,12 +2106,13 @@ cdef class NumberFieldElement(FieldElement):
         roots = f.roots()
         if all:
             return [r[0] for r in roots]
-        elif len(roots) > 0:
+        elif roots:
             return roots[0][0]
         else:
             try:
                 # This is what integers, rationals do...
-                from sage.all import SR, sqrt
+                from sage.functions.other import sqrt
+                from sage.symbolic.ring import SR
                 return sqrt(SR(self))
             except TypeError:
                 raise ValueError("%s not a square in %s"%(self, self._parent))
@@ -2136,7 +2138,7 @@ cdef class NumberFieldElement(FieldElement):
         roots = f.roots()
         if all:
             return [r[0] for r in roots]
-        elif len(roots) > 0:
+        elif roots:
             return roots[0][0]
         else:
             raise ValueError("%s not a %s-th root in %s"%(self, n, self._parent))
@@ -2495,9 +2497,6 @@ cdef class NumberFieldElement(FieldElement):
             sage: f = x^9 + (zeta22^9 - zeta22^6 + zeta22^4 + 1)*x^8 + (2*zeta22^8 + 4*zeta22^7 - 6*zeta22^5 - 205*zeta22^4 - 6*zeta22^3 + 4*zeta22 + 2)*x^7 + (181*zeta22^9 - 354*zeta22^8 + 145*zeta22^7 - 253*zeta22^6 + 145*zeta22^5 - 354*zeta22^4 + 181*zeta22^3 + 189*zeta22 - 189)*x^6 + (902*zeta22^9 + 13116*zeta22^8 + 902*zeta22^7 - 500*zeta22^5 - 322*zeta22^4 - 176*zeta22^3 + 176*zeta22^2 + 322*zeta22 + 500)*x^5 + (13196*zeta22^9 + 548*zeta22^8 + 9176*zeta22^7 - 17964*zeta22^6 + 8512*zeta22^5 - 8512*zeta22^4 + 17964*zeta22^3 - 9176*zeta22^2 - 548*zeta22 - 13196)*x^4 + (17104*zeta22^9 + 23456*zeta22^8 + 8496*zeta22^7 - 8496*zeta22^6 - 23456*zeta22^5 - 17104*zeta22^4 + 39680*zeta22^2 + 283184*zeta22 + 39680)*x^3 + (118736*zeta22^9 - 118736*zeta22^8 - 93520*zeta22^6 + 225600*zeta22^5 + 66496*zeta22^4 + 373744*zeta22^3 + 66496*zeta22^2 + 225600*zeta22 - 93520)*x^2 + (342176*zeta22^9 + 388928*zeta22^8 + 4800*zeta22^7 - 234464*zeta22^6 - 1601152*zeta22^5 - 234464*zeta22^4 + 4800*zeta22^3 + 388928*zeta22^2 + 342176*zeta22)*x + 431552*zeta22^9 - 1830400*zeta22^8 - 1196800*zeta22^7 - 1830400*zeta22^6 + 431552*zeta22^5 + 1196096*zeta22^3 - 12672*zeta22^2 + 12672*zeta22 - 1196096
             sage: L.<a> = K.extension(f)
             sage: alpha = (a^8 + (zeta22^9 - zeta22^6 + 2*zeta22^4 + 33)*a^7)/(10**2555) #long time
-            sage: beta = ~alpha # long time (about 1:45min on a 2014 MacBook Pro, this used to cause a crash in Sage 7.2)
-            sage: alpha*beta # long time
-            1
         """
         if IsZero_ZZX(self.__numerator):
             raise ZeroDivisionError("number field element division by zero")
@@ -2858,16 +2857,56 @@ cdef class NumberFieldElement(FieldElement):
 
     def __hash__(self):
         """
-        Return hash of this number field element, which is just the
-        hash of the underlying polynomial.
+        Return hash of this number field element.
+
+        It respects the hash values of rational numbers.
 
         EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
-            sage: hash(b^2 + 1) == hash((b^2 + 1).polynomial()) # indirect doctest
+            sage: hash(b^2 + 1)   # random
+            175247765440
+            sage: hash(K(13)) == hash(13)
+            True
+            sage: hash(K(-2/3)) == hash(-2/3)
+            True
+
+        No collisions (even on low bits)::
+
+            sage: from itertools import product
+            sage: elts = []
+            sage: for (i,j,k) in product((-1,0,1,2,3), repeat=3):
+            ....:     x = i + j*b + k*b^2
+            ....:     elts.append(x)
+            ....:     if gcd([2,i,j,k]) == 1:
+            ....:         elts.append(x / 2)
+            ....:     if gcd([3,i,j,k]) == 1:
+            ....:         elts.append(x / 3)
+            sage: len(set(map(hash, elts))) == len(elts)
+            True
+            sage: len(set(hash(x)%(2^18) for x in elts)) == len(elts)
             True
         """
-        return hash(self.polynomial())
+        cdef Py_hash_t h
+        cdef int i
+        cdef mpz_t z
+
+        mpz_init(z)
+        ZZX_getitem_as_mpz(z, &self.__numerator, 0)
+        h = mpz_pythonhash(z)
+
+        for i from 1 <= i <= ZZX_deg(self.__numerator):
+            ZZX_getitem_as_mpz(z, &self.__numerator, i)
+            # magic number below is floor(2^63 / (2+sqrt(2)))
+            h ^= mpz_pythonhash(z) + (<Py_hash_t> 2701463124188384701) + (h << 16) + (h >> 2)
+
+        ZZ_to_mpz(z, &self.__denominator)
+        # magic number below is floor((1+sqrt(5)) * 2^63)
+        h += (mpz_pythonhash(z) - 1) * (<Py_hash_t> 7461864723258187525)
+
+        mpz_clear(z)
+
+        return h
 
     cpdef list _coefficients(self):
         """

@@ -561,8 +561,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         :class:`~sage.combinat.free_module.CombinatorialFreeModule`, since
         both classes deal with modules with a *distinguished basis* (see
         details :ref:`above <diff-FreeModule>`).
-        Moreover, following the recommendation exposed in trac ticket
-        `#16427 <http://trac.sagemath.org/ticket/16427>`_
+        Moreover, following the recommendation exposed in :trac:`16427`
         the class :class:`FiniteRankFreeModule` inherits directly from
         :class:`~sage.structure.parent.Parent` (with the category set to
         :class:`~sage.categories.modules.Modules`) and not from the Cython
@@ -823,7 +822,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Element of the Rank-3 free module M over the Integer Ring
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp:

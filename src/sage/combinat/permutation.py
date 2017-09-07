@@ -7775,7 +7775,7 @@ def to_standard(p, cmp=None, key=None):
 
     Deprecation of ``cmp`` in favor of ``key``::
 
-        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: (x<y)-(x>y))
         doctest:warning...:
         DeprecationWarning: do not use 'cmp' but rather 'key' for comparison
         See http://trac.sagemath.org/21435 for details.

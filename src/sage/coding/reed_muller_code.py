@@ -120,7 +120,7 @@ def _multivariate_polynomial_interpolation(evaluation, order, polynomial_ring):
             polyVector = uni_poly_ring.lagrange_polynomial(
                 points).coefficients(sparse=False)
             if len(polyVector) < d:
-                # adding zeros to represet a (d-1) degree polynomial
+                # adding zeros to represent a (d-1) degree polynomial
                 polyVector += [base_field_zero] * (d - len(polyVector))
             multipoint_evaluation_list.append(polyVector)
         poly = polynomial_ring.zero()

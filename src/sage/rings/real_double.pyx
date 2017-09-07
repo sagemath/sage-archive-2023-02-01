@@ -40,7 +40,7 @@ Test NumPy conversions::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 cimport libc.math
 from libc.string cimport memcpy
@@ -339,12 +339,12 @@ cdef class RealDoubleField_class(Field):
         if S is int or S is float:
             return ToRDF(S)
 
-        from rational_field import QQ
-        from real_lazy import RLF
+        from .rational_field import QQ
+        from .real_lazy import RLF
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
-        from real_mpfr import RR, RealField_class
+        from .real_mpfr import RR, RealField_class
         if isinstance(S, RealField_class):
             if S.prec() >= 53:
                 return ToRDF(S)
@@ -424,7 +424,7 @@ cdef class RealDoubleField_class(Field):
         if prec == 53:
             return self
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return RealField(prec)
 
 

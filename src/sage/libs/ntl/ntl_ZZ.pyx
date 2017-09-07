@@ -19,14 +19,12 @@ from cysignals.signals cimport sig_on, sig_off
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.int cimport PyInt_AS_LONG
 
-ZZ_sage = IntegerRing()
 
 cdef make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
@@ -444,9 +442,9 @@ def ntl_setSeed(x=None):
     cdef ntl_ZZ seed = ntl_ZZ(1)
     if x is None:
         from random import randint
-        seed = ntl_ZZ(str(randint(0,int(2)**64)))
+        seed = ntl_ZZ(randint(0,int(2)**64))
     else:
-        seed = ntl_ZZ(str(x))
+        seed = ntl_ZZ(x)
     sig_on()
     ZZ_SetSeed(seed.x)
     sig_off()
@@ -456,7 +454,8 @@ ntl_setSeed()
 
 def randomBnd(q):
     r"""
-    Returns random number in the range [0,n) .
+    Return a random number in the range [0,n).
+
     According to the NTL documentation, these numbers are
     "cryptographically strong"; of course, that depends in part on
     how they are seeded.
@@ -467,14 +466,15 @@ def randomBnd(q):
         [30675, 84282, 80559, 6939, 44798]
 
     AUTHOR:
-        -- Didier Deshommes <dfdeshom@gmail.com>
+
+    - Didier Deshommes <dfdeshom@gmail.com>
     """
     current_randstate().set_seed_ntl(False)
 
     cdef ntl_ZZ w
 
     if not isinstance(q, ntl_ZZ):
-        q = ntl_ZZ(str(q))
+        q = ntl_ZZ(q)
     w = q
     cdef ntl_ZZ ans
     ans = ntl_ZZ.__new__(ntl_ZZ)

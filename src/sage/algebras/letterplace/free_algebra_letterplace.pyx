@@ -102,7 +102,8 @@ algebras with different term orderings, yet.
 
 """
 
-from sage.all import PolynomialRing, prod
+from sage.misc.misc_c import prod
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.libs.singular.function import lib, singular_function
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
@@ -140,7 +141,7 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
     variable names of the `n`-th block (`n>0`) ending with
     ``"_%d"%n``.
 
-    TEST:
+    TESTS:
 
     Note that, since the algebras are cached, we need to choose
     a different base ring, since other doctests could have a
@@ -478,7 +479,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             \Bold{Q}\langle \mathit{bla}, \alpha, z\rangle
 
         """
-        from sage.all import latex
+        from sage.misc.latex import latex
         return "%s\\langle %s\\rangle"%(latex(self.base_ring()),', '.join(self.latex_variable_names()))
 
     def degbound(self):
@@ -728,7 +729,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
           generators are equal, and the base ring of ``R`` coerces
           into the base ring of self.
 
-        TEST:
+        TESTS:
 
         Coercion from the base ring::
 
@@ -815,7 +816,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
           This is forwarded to the initialisation of
           :class:`~sage.algebras.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace`.
 
-        TEST:
+        TESTS:
 
         This method applied to the dictionary of any element must
         return the same element. This must hold true even if the
@@ -889,7 +890,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         """
         if isinstance(x, basestring):
-            from sage.all import sage_eval
+            from sage.misc.sage_eval import sage_eval
             return sage_eval(x,locals=self.gens_dict())
         try:
             P = x.parent()

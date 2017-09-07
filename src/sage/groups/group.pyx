@@ -16,6 +16,7 @@ Base class for groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import random
 

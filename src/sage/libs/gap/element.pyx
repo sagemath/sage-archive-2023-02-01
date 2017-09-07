@@ -335,7 +335,6 @@ cdef class GapElement(RingElement):
         """
         raise TypeError('this class cannot be instantiated from Python')
 
-
     cdef _initialize(self, parent, libGAP_Obj obj):
         r"""
         Initialize the GapElement.
@@ -385,6 +384,87 @@ cdef class GapElement(RingElement):
         if self.value is NULL:
             return
         dereference_obj(self.value)
+
+    def __copy__(self):
+        r"""
+        TESTS::
+
+            sage: a = libgap(1)
+            sage: a.__copy__() is a
+            True
+
+            sage: a = libgap(1/3)
+            sage: a.__copy__() is a
+            True
+
+            sage: a = libgap([1,2])
+            sage: b = a.__copy__()
+            sage: a is b
+            False
+            sage: a[0] = 3
+            sage: a
+            [ 3, 2 ]
+            sage: b
+            [ 1, 2 ]
+
+            sage: a = libgap([[0,1],[2,3,4]])
+            sage: b = a.__copy__()
+            sage: b[0][1] = -2
+            sage: b
+            [ [ 0, -2 ], [ 2, 3, 4 ] ]
+            sage: a
+            [ [ 0, -2 ], [ 2, 3, 4 ] ]
+        """
+        if libGAP_IS_MUTABLE_OBJ(self.value):
+            return make_any_gap_element(self.parent(), libGAP_SHALLOW_COPY_OBJ(self.value))
+        else:
+            return self
+
+    cpdef GapElement deepcopy(self, bint mut):
+        r"""
+        Return a deepcopy of this Gap object
+
+        Note that this is the same thing as calling ``StructuralCopy`` but much
+        faster.
+
+        INPUT:
+
+        - ``mut`` - (boolean) wheter to return an mutable copy
+
+        EXAMPLES::
+
+            sage: a = libgap([[0,1],[2,3]])
+            sage: b = a.deepcopy(1)
+            sage: b[0,0] = 5
+            sage: a
+            [ [ 0, 1 ], [ 2, 3 ] ]
+            sage: b
+            [ [ 5, 1 ], [ 2, 3 ] ]
+
+            sage: l = libgap([0,1])
+            sage: l.deepcopy(0).IsMutable()
+            false
+            sage: l.deepcopy(1).IsMutable()
+            true
+        """
+        if libGAP_IS_MUTABLE_OBJ(self.value):
+            return make_any_gap_element(self.parent(), libGAP_CopyObj(self.value, mut))
+        else:
+            return self
+
+    def __deepcopy__(self, memo):
+        r"""
+        TESTS::
+
+            sage: a = libgap([[0,1],[2]])
+            sage: b = deepcopy(a)
+            sage: a[0,0] = -1
+            sage: a
+            [ [ -1, 1 ], [ 2 ] ]
+            sage: b
+            [ [ 0, 1 ], [ 2 ] ]
+        """
+        return self.deepcopy(0)
 
     cpdef _type_number(self):
         """
@@ -2283,13 +2363,12 @@ cdef class GapElement_List(GapElement):
         """
         return libGAP_LEN_LIST(self.value)
 
-
     def __getitem__(self, i):
         r"""
         Return the ``i``-th element of the list.
 
         As usual in Python, indexing starts at `0` and not at `1` (as
-        in GAP).
+        in GAP). This can also be used with multi-indices.
 
         INPUT:
 
@@ -2304,12 +2383,124 @@ cdef class GapElement_List(GapElement):
             sage: lst = libgap.eval('["first",,,"last"]')   # a sparse list
             sage: lst[0]
             "first"
-        """
-        if i<0 or i>=len(self):
-            raise IndexError('index out of range.')
-        return make_any_gap_element(self.parent(),
-                                    libGAP_ELM_LIST(self.value, i+1))
 
+            sage: l = libgap.eval('[ [0, 1], [2, 3] ]')
+            sage: l[0,0]
+            0
+            sage: l[0,1]
+            1
+            sage: l[1,0]
+            2
+            sage: l[0,2]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: l[2,0]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: l[0,0,0]
+            Traceback (most recent call last):
+            ...
+            ValueError: too many indices
+        """
+        cdef int j
+        cdef libGAP_Obj obj = self.value
+
+        if isinstance(i, tuple):
+            for j in i:
+                if not libGAP_IS_LIST(obj):
+                    raise ValueError('too many indices')
+                if j < 0 or j >= libGAP_LEN_LIST(obj):
+                    raise IndexError('index out of range')
+                obj = libGAP_ELM_LIST(obj, j+1)
+
+        else:
+            j = i
+            if j < 0 or j >= libGAP_LEN_LIST(obj):
+                raise IndexError('index out of range.')
+            obj = libGAP_ELM_LIST(obj, j+1)
+
+        return make_any_gap_element(self.parent(), obj)
+
+    def __setitem__(self, i, elt):
+        r"""
+        Set the ``i``-th item of this list
+
+        EXAMPLES::
+
+            sage: l = libgap.eval('[0, 1]')
+            sage: l
+            [ 0, 1 ]
+            sage: l[0] = 3
+            sage: l
+            [ 3, 1 ]
+
+        Contrarily to Python lists, setting an element beyond the limit extends the list::
+
+            sage: l[12] = -2
+            sage: l
+            [ 3, 1,,,,,,,,,,, -2 ]
+
+        This function also handles multi-indices::
+
+            sage: l = libgap.eval('[[[0,1],[2,3]],[[4,5], [6,7]]]')
+            sage: l[0,1,0] = -18
+            sage: l
+            [ [ [ 0, 1 ], [ -18, 3 ] ], [ [ 4, 5 ], [ 6, 7 ] ] ]
+            sage: l[0,0,0,0]
+            Traceback (most recent call last):
+            ...
+            ValueError: too many indices
+
+        Assignment to immutable objects gives error::
+
+            sage: l = libgap([0,1])
+            sage: u = l.deepcopy(0)
+            sage: u[0] = 5
+            Traceback (most recent call last):
+            ...
+            TypeError: immutable Gap object does not support item assignment
+
+        TESTS::
+
+            sage: m = libgap.eval('[[0,0],[0,0]]')
+            sage: m[0,0] = 1
+            sage: m[0,1] = 2
+            sage: m[1,0] = 3
+            sage: m[1,1] = 4
+            sage: m
+            [ [ 1, 2 ], [ 3, 4 ] ]
+        """
+        if not libGAP_IS_MUTABLE_OBJ(self.value):
+            raise TypeError('immutable Gap object does not support item assignment')
+
+        cdef int j
+        cdef libGAP_Obj obj = self.value
+
+        if isinstance(i, tuple):
+            for j in i[:-1]:
+                if not libGAP_IS_LIST(obj):
+                    raise ValueError('too many indices')
+                if j < 0 or j >= libGAP_LEN_LIST(obj):
+                    raise IndexError('index out of range')
+                obj = libGAP_ELM_LIST(obj, j+1)
+            if not libGAP_IS_LIST(obj):
+                raise ValueError('too many indices')
+            j = i[-1]
+        else:
+            j = i
+
+        if j < 0:
+            raise IndexError('index out of range.')
+
+        cdef GapElement celt
+        if isinstance(elt, GapElement):
+            celt = <GapElement> elt
+        else:
+            celt= self.parent()(elt)
+
+        libGAP_ASS_LIST(obj, j+1, celt.value)
 
     def sage(self, **kwds):
         r"""

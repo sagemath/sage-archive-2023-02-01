@@ -423,7 +423,7 @@ AC_LANG(C)
 if test -z "$CC"; then
     SAGE_MUST_INSTALL_GCC([a C compiler is missing])
 else
-    # saving compiler before cheking for C99 support
+    # Save compiler before checking for C99 support
     save_CC=$CC
     # Check that we can compile C99 code
     AC_PROG_CC_C99()

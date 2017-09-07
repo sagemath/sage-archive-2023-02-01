@@ -674,7 +674,7 @@ class SympyConverter(Converter):
         sage: sympy.sympify(x) # indirect doctest
         x
 
-    TESTS::
+    TESTS:
 
     Make sure we can convert I (:trac:`6424`)::
 
@@ -771,7 +771,8 @@ class SympyConverter(Converter):
 
     def derivative(self, ex, operator):
         """
-        Convert the derivative in sympy
+        Convert the derivative of ``self`` in sympy.
+
         INPUT:
 
         - ``ex`` -- a symbolic expression
@@ -779,30 +780,25 @@ class SympyConverter(Converter):
         - ``operator`` -- operator
 
         TESTS::
-            sage: import sympy
 
             sage: var('x','y')
             (x, y)
 
-            sage: f_sage = function('f_sage')(x,y)
+            sage: f_sage = function('f_sage')(x, y)
             sage: f_sympy = f_sage._sympy_()
 
-            sage: df_sage = f_sage.diff(x,2,y,1); df_sage
+            sage: df_sage = f_sage.diff(x, 2, y, 1); df_sage
             diff(f_sage(x, y), x, x, y)
             sage: df_sympy = df_sage._sympy_(); df_sympy
             Derivative(f_sage(x, y), x, x, y)
-            sage: df_sympy == f_sympy.diff(x,2,y,1)
+            sage: df_sympy == f_sympy.diff(x, 2, y, 1)
             True
-
-
         """
         import sympy
 
         # retrive derivated function
         f = operator.function()
-        f_sympy = self.composition(ex,f)
-
-
+        f_sympy = self.composition(ex, f)
 
         # retrive order
         order = operator._parameter_set
@@ -810,14 +806,13 @@ class SympyConverter(Converter):
         _args = ex.arguments()
 
         sympy_arg = []
-        for aa in range(len(_args)):
-            gg = order.count(aa)
-            if gg > 0 :
-                sympy_arg.append(_args[aa])
+        for i, a in enumerate(_args):
+            gg = order.count(i)
+            if gg > 0:
+                sympy_arg.append(a)
                 sympy_arg.append(gg)
 
         return f_sympy.diff(*sympy_arg)
-
 
 
 sympy = SympyConverter()

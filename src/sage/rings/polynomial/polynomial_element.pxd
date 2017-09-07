@@ -21,6 +21,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef bint is_zero(self)
     cpdef bint is_one(self)
 
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _floordiv_(self, right)
     cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
     cpdef Polynomial _power_trunc(self, unsigned long n, long prec)
 

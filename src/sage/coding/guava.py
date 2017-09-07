@@ -16,7 +16,7 @@ AUTHORS:
 - David Joyner (2008-03): removed QR, XQR, cyclic and ReedSolomon codes
 
 - David Joyner (2009-05): added "optional package" comments, fixed some
-  docstrings to to be sphinx compatible
+  docstrings to be sphinx compatible
 
 
 REFERENCES:

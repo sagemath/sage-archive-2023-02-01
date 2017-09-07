@@ -108,7 +108,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             print_mode = {}
         elif isinstance(print_mode, str):
             print_mode = {'mode': print_mode}
-        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec']:
             if option not in print_mode:
                 print_mode[option] = self._printer.dict()[option]
         return print_mode
@@ -172,14 +172,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         rx = other.prime()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
-
-        try:
-            lx = self.halting_parameter()
-            rx = other.halting_parameter()
-            if lx != rx:
-                return richcmp_not_equal(lx, rx, op)
-        except AttributeError:
-            pass
 
         lx = self.precision_cap()
         rx = other.precision_cap()
@@ -473,7 +465,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 #         """
 #         raise NotImplementedError
 
-    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, implementation='FLINT', **kwds):
+    def extension(self, modulus, prec = None, names = None, print_mode = None, implementation='FLINT', **kwds):
         """
         Create an extension of this p-adic ring.
 
@@ -482,12 +474,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k = Qp(5)
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
-            Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + (O(5^21))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21))
+            Eisenstein Extension in w defined by x^2 - 5 with capped relative precision 40 over 5-adic Field
 
             sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
             sage: L = Qp(19).extension(F, names='a')
             sage: L
-            Unramified Extension of 19-adic Field with capped relative precision 20 in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + (1 + O(19^20))
+            Unramified Extension in a defined by x^2 + 8751674996211859573806383*x + 1 with capped relative precision 20 over 19-adic Field
         """
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
@@ -512,7 +504,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                         print_mode[option] = kwds[option]
                     else:
                         print_mode[option] = self._printer.dict()[option]
-        return ExtensionFactory(base=self, premodulus=modulus, prec=prec, halt=halt, names=names, check = True, implementation=implementation, **print_mode)
+        return ExtensionFactory(base=self, modulus=modulus, prec=prec, names=names, check = True, implementation=implementation, **print_mode)
 
     def _test_add(self, **options):
         """
@@ -856,45 +848,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return self(self.prime()).unit_part().log()
 
-    @cached_method
-    def _exp_p(self):
-        """
-        Compute the exponential of `p`.
-
-        This is a helper method for
-        :meth:`sage.rings.padics.padic_generic_element.pAdicGenericElement.exp`.
-
-        TESTS::
-
-            sage: R = Qp(3, 5)
-            sage: R._exp_p()
-            1 + 3 + 3^2 + 2*3^3 + 2*3^4 + O(3^5)
-
-            sage: S.<x> = ZZ[]
-            sage: W.<pi> = R.extension(x^3-3)
-            sage: W._exp_p()
-            1 + pi^3 + pi^6 + 2*pi^9 + 2*pi^12 + O(pi^15)
-            sage: R._exp_p() == W._exp_p()
-            True
-
-            sage: W.<pi> = R.extension(x^3-3*x-3)
-            sage: W._exp_p()
-            1 + pi^3 + 2*pi^4 + pi^5 + pi^7 + pi^9 + pi^10 + 2*pi^11 + pi^12 + pi^13 + 2*pi^14 + O(pi^15)
-            sage: R._exp_p() == W._exp_p()
-            True
-
-        """
-        p = self.prime()
-        if p == 2:
-            # the exponential of 2 does not exist, so we compute the
-            # exponential of 4 instead.
-            p = 4
-        return self(p)._exp(self.precision_cap())
-
     def frobenius_endomorphism(self, n=1):
         """
         INPUT:
-                     
+
         -  ``n`` -- an integer (default: 1)
 
         OUTPUT:
@@ -906,21 +863,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: K.<a> = Qq(3^5)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: Frob(a) == a.frobenius()
             True
 
-        We can specify a power:: 
+        We can specify a power::
 
             sage: K.frobenius_endomorphism(2)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^(3^2) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(3^2) on the residue field
 
         The result is simplified if possible::
 
             sage: K.frobenius_endomorphism(6)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: K.frobenius_endomorphism(5)
-            Identity endomorphism of Unramified Extension of 3-adic Field ...
+            Identity endomorphism of Unramified Extension ...
 
         Comparisons work::
 
@@ -963,9 +920,9 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         ....:     print(R(45))
         5 * 9 + O(5^21)
 
-    NOTES::
+    .. NOTE::
 
-        For more documentation see localvars in parent_gens.pyx
+        For more documentation see ``localvars`` in parent_gens.pyx
     """
     if isinstance(print_options, str):
         print_options = {'mode': print_options}

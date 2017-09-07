@@ -700,7 +700,7 @@ def K33dual():
     """
     E = 'abcdefghi'
     G = graphs.CompleteBipartiteGraph(3, 3)
-    M = Matroid(groundset=E, graph=G)
+    M = Matroid(groundset=E, graph=G, regular=True)
     M = M.dual()
     M.rename('M*(K3, 3): ' + repr(M))
     return M
@@ -750,16 +750,14 @@ def CompleteGraphic(n):
 
     OUTPUT:
 
-    The regular matroid associated with the `n`-vertex complete graph.
+    The graphic matroid associated with the `n`-vertex complete graph.
     This matroid has rank `n - 1`.
-
-    The maximum-sized regular matroid of rank `n` is `M(K_n)`.
 
     EXAMPLES::
 
         sage: from sage.matroids.advanced import setprint
         sage: M = matroids.CompleteGraphic(5); M
-        M(K5): Regular matroid of rank 4 on 10 elements with 125 bases
+        M(K5): Graphic matroid of rank 4 on 10 elements
         sage: M.has_minor(matroids.Uniform(2, 4))
         False
         sage: simplify(M.contract(randrange(0,
@@ -812,16 +810,16 @@ def Wheel(n, field=None, ring=None):
         Wheel(3): Ternary matroid of rank 3 on 6 elements, type 0+
     """
     base_ring = ZZ
-    if field != None and ring != None :
+    if field is not None and ring is not None:
         raise ValueError("only one of ring and field can be specified.")
-    if field != None :
+    if field is not None:
         base_ring = field
         try:
             if not base_ring.is_field():
                 raise TypeError("specified ``field`` is not a field.")
         except AttributeError:
             raise TypeError("specified ``field`` is not a field.")
-    if ring  != None :
+    if ring is not None:
         base_ring = ring
     A = Matrix(base_ring, n, 2 * n, sparse=True)
     for i in range(n):

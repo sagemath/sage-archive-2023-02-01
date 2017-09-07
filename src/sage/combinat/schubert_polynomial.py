@@ -109,7 +109,39 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         return p
 
     def divided_difference(self, i):
-        """
+        r"""
+        Return the ``i``-th divided difference operator, applied to
+        ``self``.
+        Here, ``i`` can be either a permutation or a positive integer.
+
+        If `i` is a positive integer, then the `i`-th divided
+        difference operator `\delta_i` is the linear operator sending
+        each polynomial `f = f(x_1, x_2, \ldots, x_n)` (in
+        `n \geq i+1` variables) to the polynomial
+
+        .. MATH::
+
+            \frac{f - f_i}{x_i - x_{i+1}}, \qquad \text{ where }
+            f_i = f(x_1, x_2, ..., x_{i-1}, x_{i+1}, x_i,
+            x_{i+1}, ..., x_n) .
+
+        If `\sigma` is a permutation in the `n`-th symmetric group,
+        then the `\sigma`-th divided difference operator `\delta_\sigma`
+        is the composition
+        `\delta_{i_1} \delta_{i_2} \cdots \delta_{i_k}`, where
+        `\sigma = s_{i_1} \circ s_{i_2} \circ \cdots \circ s_{i_k}` is
+        any reduced expression for `\sigma` (the precise choice of
+        reduced expression is immaterial).
+
+        .. NOTE::
+
+            The :meth:`expand` method results in a polynomial
+            in `n` variables named ``x0, x1, ..., x(n-1)`` rather than
+            `x_1, x_2, \ldots, x_n`.
+            The variable named ``xi`` corresponds to `x_{i+1}`.
+            Thus, ``self.divided_difference(i)`` involves the variables
+            ``x(i-1)`` and ``xi`` getting switched (in the numerator).
+
         EXAMPLES::
 
             sage: X = SchubertPolynomialRing(ZZ)
@@ -118,7 +150,54 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             X[2, 3, 1]
             sage: a.divided_difference([3,2,1])
             X[1]
+
+        If the divided difference operator is not defined for the
+        current number of variables, an error is raised::
+
+            sage: a.divided_difference(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot apply \delta_{5} to a (= X[3, 2, 1])
+
+        For convenience, we define the divided difference of `0`
+        to be `0`::
+
+            sage: X.zero().divided_difference(2)
+            0
+
+        This is compatible when a permutation is given as input::
+
+            sage: a = X([3,2,4,1])
+            sage: a.divided_difference([2,3,1])
+            0
+            sage: a.divided_difference(1).divided_difference(2)
+            0
+
+        ::
+
+            sage: a = X([4,3,2,1])
+            sage: a.divided_difference([2,3,1])
+            X[3, 2, 4, 1]
+            sage: a.divided_difference(1).divided_difference(2)
+            X[3, 2, 4, 1]
+
+        TESTS:
+
+        Check that :trac:`23403` is fixed::
+
+            sage: X = SchubertPolynomialRing(ZZ)
+            sage: a = X([3,2,4,1])
+            sage: a.divided_difference(2)
+            0
+            sage: a.divided_difference([3,2,1])
+            0
+            sage: a.divided_difference(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot apply \delta_{0} to a (= X[3, 2, 4, 1])
         """
+        if not self: # if self is 0
+            return self
         if isinstance(i, Integer):
             return symmetrica.divdiff_schubert(i, self)
         elif i in permutation.Permutations():

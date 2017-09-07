@@ -133,7 +133,8 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenera
         """
         return [self.monomial(0), self.monomial(2), self.monomial(-2), self.an_element()]
 
-    Element = LieAlgebraElement
+    class Element(LieAlgebraElement):
+        pass
 
 class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -252,7 +253,8 @@ class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
                 self.monomial((-2) % self._p),
                 self.an_element()]
 
-    Element = LieAlgebraElement
+    class Element(LieAlgebraElement):
+        pass
 
 def _basis_key(x):
     """
@@ -440,8 +442,9 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         if i == 'c' or j == 'c':
             return self.zero()
         ret = self._from_dict({i + j: j-i})
+        R = self.base_ring()
         if i == -j:
-            ret += (j ** 3 - j) / 12 * self.c()
+            ret += R(j ** 3 - j) / R(12) * self.c()
         return ret
 
     def _an_element_(self):
@@ -470,5 +473,6 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         d = self.monomial
         return [d(0), d(2), d(-2), d('c'), self.an_element()]
 
-    Element = LieAlgebraElement
+    class Element(LieAlgebraElement):
+        pass
 

@@ -13,7 +13,7 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+    sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
     sage: H = Hyp(cyclotomic=([30], [1,2,3,5]))
     sage: H.alpha_beta()
     ([1/30, 7/30, 11/30, 13/30, 17/30, 19/30, 23/30, 29/30],
@@ -207,7 +207,7 @@ def possible_hypergeometric_data(d, weight=None):
     def formule(u):
         return [possible[j][0] for j in range(N) for _ in range(u[j])]
 
-    data = [HypergeometricMotive(cyclotomic=(formule(a), formule(b)))
+    data = [HypergeometricData(cyclotomic=(formule(a), formule(b)))
             for a, b in iterator()]
     if weight is None:
         return data
@@ -386,7 +386,7 @@ def gamma_list_to_cyclotomic(galist):
             sorted(d for d in resu for k in range(-resu[d])))
 
 
-class HypergeometricMotive(object):
+class HypergeometricData(object):
     def __init__(self, cyclotomic=None, alpha_beta=None, gamma_list=None):
         """
         Creation of hypergeometric motives.
@@ -409,7 +409,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(cyclotomic=([2],[1]))
             Hypergeometric motive for [1/2] and [0]
 
@@ -463,7 +463,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0]))
             Hypergeometric motive for [1/2] and [0]
         """
@@ -481,7 +481,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2],[0]))
             sage: H.twist()
             Hypergeometric motive for [0] and [1/2]
@@ -491,7 +491,7 @@ class HypergeometricMotive(object):
         """
         alpha = [x + QQ((1, 2)) for x in self._alpha]
         beta = [x + QQ((1, 2)) for x in self._beta]
-        return HypergeometricMotive(alpha_beta=(alpha, beta))
+        return HypergeometricData(alpha_beta=(alpha, beta))
 
     def swap_alpha_beta(self):
         """
@@ -499,13 +499,13 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2],[0]))
             sage: H.swap_alpha_beta()
             Hypergeometric motive for [0] and [1/2]
         """
         alpha, beta = self.alpha_beta()
-        return HypergeometricMotive(alpha_beta=(beta, alpha))
+        return HypergeometricData(alpha_beta=(beta, alpha))
 
     def primitive_data(self):
         """
@@ -517,7 +517,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([3],[4]))
             sage: H2 = Hyp(gamma_list=[-2, 4, 6, -8])
             sage: H2.primitive_data() == H
@@ -525,7 +525,33 @@ class HypergeometricMotive(object):
         """
         g = self.gamma_list()
         d = gcd(g)
-        return HypergeometricMotive(gamma_list=[x / d for x in g])
+        return HypergeometricData(gamma_list=[x / d for x in g])
+
+    def zigzag(self, x):
+        """
+        Count ``alpha``'s up to ``x`` minus ``beta``'s up to ``x``.
+
+        This function is used to compute the weight and the Hodge numbers.
+
+        .. SEEALSO::
+
+            :meth:`weight`, :meth:`hodge_numbers`
+
+        EXAMPLES::
+
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
+            sage: H = Hyp(alpha_beta=([1/6,1/3,2/3,5/6],[1/8,3/8,5/8,7/8]))
+            sage: [H.zigzag(x) for x in [0, 1/3, 1/2]]
+            [0, 1, 0]
+            sage: H = Hyp(cyclotomic=([5],[1,1,1,1]))
+            sage: [H.zigzag(x) for x in [0,1/6,1/4,1/2,3/4,5/6]]
+            [-4, -4, -3, -2, -1, 0]
+
+        """
+        alpha = self._alpha
+        beta = self._beta
+        return(sum(1 for a in alpha if a <= x) -
+             sum(1 for b in beta if b <= x))
 
     def weight(self):
         """
@@ -535,7 +561,7 @@ class HypergeometricMotive(object):
 
         With rational inputs::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0])).weight()
             0
             sage: Hyp(alpha_beta=([1/4,3/4],[0,0])).weight()
@@ -570,9 +596,7 @@ class HypergeometricMotive(object):
         """
         alpha = self._alpha
         beta = self._beta
-        D = [sum(1 for a in alpha if a <= x) -
-             sum(1 for b in beta if b <= x)
-             for x in alpha + beta]
+        D = [self.zigzag(x) for x in alpha + beta]
         return ZZ(max(D) - min(D) - 1)
 
     def degree(self):
@@ -587,7 +611,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0])).degree()
             1
             sage: Hyp(gamma_list=([2,2,4],[8])).degree()
@@ -607,7 +631,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/4,3/4],[0,0])).defining_polynomials()
             (x^2 + 1, x^2 - 2*x + 1)
         """
@@ -621,7 +645,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0])).cyclotomic_data()
             ([2], [1])
         """
@@ -633,7 +657,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0])).alpha_beta()
             ([1/2], [0])
         """
@@ -651,7 +675,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/6,1/3,2/3,5/6],[1/8,3/8,5/8,7/8]))
             sage: H.M_value()
             729/4096
@@ -674,7 +698,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0])).gamma_array()
             {1: -2, 2: 1}
             sage: Hyp(cyclotomic=([6,2],[1,1,1])).gamma_array()
@@ -690,7 +714,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0])).gamma_list()
             [-1, -1, 2]
 
@@ -712,7 +736,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H1 = Hyp(alpha_beta=([1/2],[0]))
             sage: H2 = Hyp(cyclotomic=([6,2],[1,1,1]))
             sage: H1 == H1
@@ -729,7 +753,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H1 = Hyp(alpha_beta=([1/2],[0]))
             sage: H2 = Hyp(cyclotomic=([6,2],[1,1,1]))
             sage: H1 != H1
@@ -745,11 +769,11 @@ class HypergeometricMotive(object):
 
         .. SEEALSO::
 
-            :meth:`primitive_index`, :meth:`primitive_data`,
+            :meth:`primitive_index`, :meth:`primitive_data`
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(cyclotomic=([3],[4])).is_primitive()
             True
             sage: Hyp(gamma_list=[-2, 4, 6, -8]).is_primitive()
@@ -765,11 +789,11 @@ class HypergeometricMotive(object):
 
         .. SEEALSO::
 
-            :meth:`is_primitive`, :meth:`primitive_data`,
+            :meth:`is_primitive`, :meth:`primitive_data`
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(cyclotomic=([3],[4])).primitive_index()
             1
             sage: Hyp(gamma_list=[-2, 4, 6, -8]).primitive_index()
@@ -788,7 +812,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=[[1/2]*16,[0]*16]).has_symmetry_at_one()
             True
 
@@ -809,7 +833,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([3],[6]))
             sage: H.hodge_numbers()
             [1, 1]
@@ -856,7 +880,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([6,10],[3,12]))
             sage: H.hodge_polynomial()
             (T^3 + 2*T^2 + 2*T + 1)/T^2
@@ -901,7 +925,7 @@ class HypergeometricMotive(object):
 
         From Benasque report, page 8::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2]*4,[0]*4))
             sage: [H.padic_H_value(3,i,-1) for i in range(1,3)]
             [0, -12]
@@ -978,7 +1002,7 @@ class HypergeometricMotive(object):
 
         With values in the UniversalCyclotomicField (slow)::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2]*4,[0]*4))
             sage: [H.H_value(3,i,-1) for i in range(1,3)]
             [0, -12]
@@ -1056,7 +1080,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2]*4,[0]*4))
             sage: H.euler_factor(-1, 5)
             15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
@@ -1114,7 +1138,7 @@ class HypergeometricMotive(object):
 
         EXAMPLES::
 
-            sage: from sage.modular.hypergeometric_motive import HypergeometricMotive as Hyp
+            sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(cyclotomic=([3],[4]))
             sage: H.gamma_list()
             [-1, 2, 3, -4]

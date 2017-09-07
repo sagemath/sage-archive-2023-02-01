@@ -401,37 +401,6 @@ def substitute_raise_exception(element, e):
                 (element, element.parent())), e)
 
 
-def underlying_class(P):
-    r"""
-    Return the underlying class (class without the attached
-    categories) of the given instance.
-
-    OUTPUT:
-
-    A class.
-
-    EXAMPLES::
-
-        sage: from sage.rings.asymptotic.misc import underlying_class
-        sage: type(QQ)
-        <class 'sage.rings.rational_field.RationalField_with_category'>
-        sage: underlying_class(QQ)
-        <class 'sage.rings.rational_field.RationalField'>
-    """
-    cls = type(P)
-    if not hasattr(P, '_is_category_initialized') or not P._is_category_initialized():
-        return cls
-    from sage.structure.misc import is_extension_type
-    if is_extension_type(cls):
-        return cls
-
-    from sage.categories.sets_cat import Sets
-    Sets_parent_class = Sets().parent_class
-    while issubclass(cls, Sets_parent_class):
-        cls = cls.__base__
-    return cls
-
-
 def merge_overlapping(A, B, key=None):
     r"""
     Merge the two overlapping tuples/lists.

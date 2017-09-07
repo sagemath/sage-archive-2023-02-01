@@ -215,7 +215,7 @@ def build_alphabet(data=None, names=None, name=None):
     if name is not None and (data is not None or names is not None):
         raise ValueError("name cannot be specified with any other argument")
 
-    # Swap arguments if we need to to try and make sure we have "good" user input
+    # Swap arguments if we need to try and make sure we have "good" user input
     if isinstance(names, integer_types + (Integer,)) or names == Infinity \
             or (data is None and names is not None):
         data,names = names,data

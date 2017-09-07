@@ -116,6 +116,7 @@ from types import MethodType, BuiltinMethodType
 import operator
 from copy import copy
 
+from sage.cpython.type cimport can_assign_class
 from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
@@ -352,11 +353,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             category = self._category # CategoryObject may have done some argument processing
             # Some parent class may readily have their category classes attached
             # TODO: assert that the category is consistent
-            if not issubclass(self.__class__, Sets_parent_class) and not is_extension_type(self.__class__):
+            if can_assign_class(self) and not issubclass(self.__class__, Sets_parent_class):
                 #documentation transfer is handled by dynamic_class
                 self.__class__ = dynamic_class(
                     '{0}_with_category'.format(self.__class__.__name__),
-                    (self.__class__, category.parent_class, ),
+                    (self.__class__, category.parent_class),
                     doccls=self.__class__)
 
     def _refine_category_(self, category):
@@ -437,15 +438,16 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         # This substitutes the class of this parent to a subclass
         # which also subclasses the parent_class of the category.
         # However, we only do so if we don't have an extension class.
-        if not is_extension_type(self.__class__):
+        if can_assign_class(self):
             # We tested in the very beginning that this parent
             # had its category initialised. Hence, the class
             # is already a dynamic class.
             base = self.__class__.__base__
             #documentation transfer is handled by dynamic_class
-            self.__class__     = dynamic_class("%s_with_category"%base.__name__,
-                                               (base, category.parent_class, ),
-                                               doccls=base)
+            self.__class__ = dynamic_class(
+                    "%s_with_category" % base.__name__,
+                    (base, category.parent_class),
+                    doccls=base)
         # If the element class has already been assigned, it
         # needs to be erased now.
         try:
@@ -514,7 +516,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         """
         self._category = None
-        if not is_extension_type(self.__class__):
+        if can_assign_class(self):
             while issubclass(self.__class__, Sets_parent_class):
                 self.__class__ = self.__class__.__base__
 
@@ -653,7 +655,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         category = self.category()
         tester.assert_(category.is_subcategory(Sets()))
         # Tests that self inherits methods from the categories
-        if not is_extension_type(self.__class__):
+        if can_assign_class(self):
             # For usual Python classes, that should be done with
             # standard inheritance
             tester.assertTrue(isinstance(self, category.parent_class),
@@ -1370,7 +1372,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: f(7)
            2
            sage: f
-           Ring Coercion morphism:
+           Natural morphism:
              From: Integer Ring
              To:   Finite Field of size 5
 
@@ -1380,7 +1382,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: Natural coercion morphism from Rational Field to Integer Ring not defined.
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1813,7 +1815,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         TESTS:
 
-        We check that `trac`:23184 has been resolved::
+        We check that :trac:`23184` has been resolved::
 
             sage: QQ['x', 'y']._generic_coerce_map(QQ).category_for()
             Category of unique factorization domains
@@ -1849,6 +1851,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Conversion map:
               From: Finite Field of size 7
               To:   Finite Field of size 11
+
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
 
         """
         from . import coerce_maps
@@ -2968,7 +2977,7 @@ cdef class EltPair:
             sage: K.<a> = Qq(9)
             sage: E=EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
-            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
 
         """
         return hash((id(self.x), id(self.y), id(self.tag)))

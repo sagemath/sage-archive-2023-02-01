@@ -57,11 +57,12 @@ This example illustrates generators for a free module over `\ZZ`.
 
 from __future__ import absolute_import, division, print_function
 
-from sage.structure.misc import dir_with_other_class
-from sage.structure.misc cimport getattr_from_other_class
+from sage.cpython.getattr import dir_with_other_class
+from sage.cpython.getattr cimport getattr_from_other_class
 from sage.categories.category import Category
 from sage.structure.debug_options cimport debug
 from sage.misc.cachefunc import cached_method
+from sage.structure.dynamic_class import DynamicMetaclass
 
 
 def guess_category(obj):
@@ -254,6 +255,30 @@ cdef class CategoryObject(SageObject):
              Category of objects]
         """
         return self.category().all_super_categories()
+
+    def _underlying_class(self):
+        r"""
+        Return the underlying class (class without the attached
+        categories) of the given object.
+
+        OUTPUT: A class
+
+        EXAMPLES::
+
+            sage: type(QQ)
+            <class 'sage.rings.rational_field.RationalField_with_category'>
+            sage: QQ._underlying_class()
+            <class 'sage.rings.rational_field.RationalField'>
+            sage: type(ZZ)
+            <type 'sage.rings.integer_ring.IntegerRing_class'>
+            sage: ZZ._underlying_class()
+            <type 'sage.rings.integer_ring.IntegerRing_class'>
+        """
+        cls = type(self)
+        if isinstance(cls, DynamicMetaclass):
+            return cls.__bases__[0]
+        else:
+            return cls
 
     ##############################################################################
     # Generators
@@ -483,7 +508,7 @@ cdef class CategoryObject(SageObject):
         """
         This is used by the variable names context manager.
 
-        TEST:
+        TESTS:
 
         In an old version, it was impossible to temporarily change
         the names if no names were previously assigned. But if one

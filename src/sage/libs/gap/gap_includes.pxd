@@ -54,7 +54,11 @@ cdef extern from "<gap/gap.h>":
 
 cdef extern from "<gap/objects.h>":
     ctypedef void* libGAP_Obj
+    bint libGAP_IS_MUTABLE_OBJ(libGAP_Obj obj)
+    bint libGAP_IS_COPYABLE_OBJ(libGAP_Obj obj)
     libGAP_Obj libGAP_SHALLOW_COPY_OBJ(libGAP_Obj obj)
+    libGAP_Obj libGAP_CopyObj(libGAP_Obj obj, int mut)
+
     bint libGAP_IS_INTOBJ(libGAP_Obj obj)
     libGAP_Obj libGAP_INTOBJ_INT(libGAP_Int)
     libGAP_Int libGAP_INT_INTOBJ(libGAP_Obj)
@@ -288,10 +292,11 @@ cdef extern from "<gap/plist.h>":
     libGAP_Obj libGAP_ELM_PLIST(libGAP_Obj lst, int pos)
 
 cdef extern from "<gap/lists.h>":
-    void libGAP_UNB_LIST(libGAP_Obj list, int pos)
+    void libGAP_UNB_LIST(libGAP_Obj lst, int pos)
     bint libGAP_IS_LIST(libGAP_Obj lst)
     int libGAP_LEN_LIST(libGAP_Obj lst)
     libGAP_Obj libGAP_ELM_LIST(libGAP_Obj lst, int pos)
+    void libGAP_ASS_LIST(libGAP_Obj lst, int pos, libGAP_Obj elt)
 
 cdef extern from "<gap/listfunc.h>":
     void libGAP_AddList(libGAP_Obj list, libGAP_Obj obj)

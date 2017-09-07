@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 ###########################################
 ## Python
 ###########################################
@@ -54,8 +53,12 @@ fi
 
 build()
 {
+    # Note: --without-ensurepip ensures that setuptools+pip are *not* installed
+    # automatically when installing python3. They will be installed instead by
+    # the separate setuptools and pip packages; see
+    # https://trac.sagemath.org/ticket/23398
     ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-        --enable-shared $PYTHON_CONFIGURE
+        --enable-shared --without-ensurepip $PYTHON_CONFIGURE
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring Python."
@@ -91,7 +94,7 @@ build()
 
     echo "Installing valgrind suppression file..."
     mkdir -p "$SAGE_EXTCODE/valgrind"
-    cp Misc/valgrind-python.supp "$SAGE_EXTCODE/valgrind/python.supp"
+    cp Misc/valgrind-python.supp "$SAGE_EXTCODE/valgrind/python3.supp"
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing valgrind suppression file."
         exit 1

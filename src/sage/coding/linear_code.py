@@ -306,6 +306,47 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     C = LinearCode(G)
     return C._minimum_weight_codeword(algorithm)
 
+def _explain_constructor(cl):
+    r"""
+    Internal function for use error messages when constructing encoders and decoders.
+
+    EXAMPLES:
+    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
+    sage: cl = LinearCodeSyndromeDecoder
+    sage: _explain_constructor(cl)
+    "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+
+    sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+    sage: cl = LinearCodeInformationSetDecoder
+    sage: _explain_constructor(cl)
+    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
+    """
+    import inspect
+    if inspect.isclass(cl):
+        argspec = inspect.getargspec(cl.__init__)
+        skip = 2 # skip the self and code arguments
+    else:
+        # Not a class, assume it's a factory function posing as a class
+        argspec = inspect.getargspec(cl)
+        skip = 1 # skip code argument
+    if argspec.defaults:
+        args = argspec.args[skip:-len(argspec.defaults)]
+        kwargs = argspec.args[-len(argspec.defaults):]
+        opts = "It takes the optional arguments {}.".format(kwargs)
+    else:
+        args = argspec.args[skip:]
+        opts = "It takes no optional arguments."
+    if args:
+        reqs = "The constructor requires the arguments {}.".format(args)
+    else:
+        reqs = "The constructor requires no arguments."
+    if argspec.varargs or argspec.keywords:
+        var = "It accepts unspecified arguments as well.\n"
+    else:
+        var = ""
+    return("{}\n{}\n{}See the documentation of {}.{} for more details."\
+            .format(reqs, opts, var, cl.__module__, cl.__name__))
+
 
 class AbstractLinearCode(Module):
     """
@@ -498,6 +539,8 @@ class AbstractLinearCode(Module):
         self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+        from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+        self._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
@@ -657,14 +700,14 @@ class AbstractLinearCode(Module):
         We can add our new decoder to the list of available decoders of C::
 
             sage: C.add_decoder("MyDecoder", MyDecoder)
-            sage: C.decoders_available()
-            ['MyDecoder', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'MyDecoder', 'NearestNeighbor', 'Syndrome']
 
         We can verify that any new code will not know MyDecoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
-            sage: C2.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            sage: sorted(C2.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
         TESTS:
 
@@ -719,14 +762,14 @@ class AbstractLinearCode(Module):
         We can add our new encoder to the list of available encoders of C::
 
             sage: C.add_encoder("MyEncoder", MyEncoder)
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['MyEncoder', 'ParityCheck', 'Systematic']
 
         We can verify that any new code will not know MyEncoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
-            sage: C2.encoders_available()
-            ['Systematic', 'ParityCheck']
+            sage: sorted(C2.encoders_available())
+            ['ParityCheck', 'Systematic']
 
         TESTS:
 
@@ -1314,33 +1357,7 @@ class AbstractLinearCode(Module):
         except TypeError:
             raise RuntimeError("the covering radius of this code cannot be computed by Guava")
 
-    def decode(self, right, algorithm="syndrome"):
-        r"""
-        Corrects the errors in ``right`` and returns a codeword.
-
-        INPUT:
-
-        - ``right`` -- a vector of the same length as ``self`` over
-          the base field of ``self``
-
-        - ``algorithm`` -- (default: ``'syndrome'``) Name of the decoding algorithm which
-          will be used to decode ``right``. Can be ``'syndrome'`` or ``'nearest_neighbor'``.
-
-        .. NOTE::
-
-            This is a deprecated method which will soon be removed from Sage. Please use
-            :func:`decode_to_code` instead.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(18813, "decode is deprecated and will be removed from sage soon. Please call decode_to_code instead")
-        if algorithm == "syndrome":
-            return self.decode_to_code(right, decoder_name="Syndrome")
-        elif algorithm == "nearest neighbor":
-            return self.decode_to_code(right, decoder_name="NearestNeighbor")
-        else:
-            return self.decode_to_code(right, decoder_name=algorithm)
-
-    def decode_to_code(self, word, decoder_name=None, **kwargs):
+    def decode_to_code(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Corrects the errors in ``word`` and returns a codeword.
 
@@ -1353,7 +1370,7 @@ class AbstractLinearCode(Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1370,15 +1387,15 @@ class AbstractLinearCode(Module):
 
         It is possible to manually choose the decoder amongst the list of the available ones::
 
-            sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
-        D = self.decoder(decoder_name, **kwargs)
+        D = self.decoder(decoder_name, *args, **kwargs)
         return D.decode_to_code(word)
 
-    def decode_to_message(self, word, decoder_name=None, **kwargs):
+    def decode_to_message(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Correct the errors in word and decodes it to the message space.
 
@@ -1391,7 +1408,7 @@ class AbstractLinearCode(Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1407,15 +1424,15 @@ class AbstractLinearCode(Module):
 
         It is possible to manually choose the decoder amongst the list of the available ones::
 
-            sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
             sage: C.decode_to_message(word, 'NearestNeighbor')
             (0, 1, 1, 0)
         """
-        return self.unencode(self.decode_to_code(word, decoder_name, **kwargs), **kwargs)
+        return self.unencode(self.decode_to_code(word, decoder_name, *args, **kwargs), **kwargs)
 
     @cached_method
-    def decoder(self, decoder_name=None, **kwargs):
+    def decoder(self, decoder_name=None, *args, **kwargs):
         r"""
         Return a decoder of ``self``.
 
@@ -1425,7 +1442,7 @@ class AbstractLinearCode(Module):
           returned. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
+        - ``args``, ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
           that will be returned by this method
 
         OUTPUT:
@@ -1447,19 +1464,35 @@ class AbstractLinearCode(Module):
         If the name of a decoder which is not known by ``self`` is passed,
         an exception will be raised::
 
-            sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
-            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['Syndrome', 'NearestNeighbor']
+            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'Syndrome', 'NearestNeighbor']
+
+        Some decoders take extra arguments. If the user forgets to supply these,
+        the error message attempts to be helpful::
+
+            sage: C.decoder('InformationSet')
+            Traceback (most recent call last):
+            ...
+            ValueError: Constructing the InformationSet decoder failed, possibly due to missing or incorrect parameters.
+            The constructor requires the arguments ['number_errors'].
+            It takes the optional arguments ['algorithm'].
+            It accepts unspecified arguments as well.
+            See the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details.
+
         """
         if decoder_name is None:
             decoder_name = self._default_decoder_name
         if decoder_name in self._registered_decoders:
             decClass = self._registered_decoders[decoder_name]
-            D = decClass(self, **kwargs)
-            return D
+            try:
+                return decClass(self, *args, **kwargs)
+            except TypeError:
+                raise ValueError("Constructing the {0} decoder failed, possibly due to missing or incorrect parameters.\n{1}"\
+                                     .format(decoder_name, _explain_constructor(decClass)))
         else:
             raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
 
@@ -1469,21 +1502,26 @@ class AbstractLinearCode(Module):
 
         INPUT:
 
-        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
-          returns the decoders' classes associated with the decoders' names.
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``,
+          return instead a ``dict`` mapping available decoder name to the
+          associated decoder class.
+
+        OUTPUT: a list of strings, or a `dict` mapping strings to classes.
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
-            sage: C.decoders_available(True)
-            {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
-             'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
+            sage: dictionary = C.decoders_available(True)
+            sage: sorted(dictionary.keys())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
+            sage: dictionary['NearestNeighbor']
+            <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>
         """
-        if classes == True:
+        if classes:
             return copy(self._registered_decoders)
         return self._registered_decoders.keys()
 
@@ -1699,7 +1737,7 @@ class AbstractLinearCode(Module):
         """
         return not self == other
 
-    def encode(self, word, encoder_name=None, **kwargs):
+    def encode(self, word, encoder_name=None, *args, **kwargs):
         r"""
         Transforms an element of a message space into a codeword.
 
@@ -1711,7 +1749,7 @@ class AbstractLinearCode(Module):
           to encode ``word``. The default encoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the construction of the
           encoder that is used.
 
         .. NOTE::
@@ -1739,16 +1777,16 @@ class AbstractLinearCode(Module):
 
         It is possible to manually choose the encoder amongst the list of the available ones::
 
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['GeneratorMatrix', 'Systematic']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
         """
-        E = self.encoder(encoder_name, **kwargs)
+        E = self.encoder(encoder_name, *args, **kwargs)
         return E.encode(word)
 
-    def __call__(self, m, **kwargs):
+    def __call__(self, m):
         r"""
         Returns either ``m`` if it is a codeword or ``self.encode(m)``
         if it is an element of the message space of the encoder used by
@@ -1795,7 +1833,7 @@ class AbstractLinearCode(Module):
             return self.encode(m)
 
     @cached_method
-    def encoder(self, encoder_name=None, **kwargs):
+    def encoder(self, encoder_name=None, *args, **kwargs):
         r"""
         Returns an encoder of ``self``.
 
@@ -1811,7 +1849,7 @@ class AbstractLinearCode(Module):
           returned. The default encoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
           this method will return.
 
         OUTPUT:
@@ -1838,19 +1876,33 @@ class AbstractLinearCode(Module):
         If the name of an encoder which is not known by ``self`` is passed,
         an exception will be raised::
 
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['GeneratorMatrix', 'Systematic']
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
             ...
             ValueError: There is no Encoder named 'NonExistingEncoder'. The known Encoders are: ['GeneratorMatrix', 'Systematic']
+
+        Some encoders take extra arguments. If the user incorrectly supplies
+        these, the error message attempts to be helpful::
+
+            sage: C.encoder('Systematic', strange_parameter=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Constructing the Systematic encoder failed, possibly due to missing or incorrect parameters.
+            The constructor requires no arguments.
+            It takes the optional arguments ['systematic_positions'].
+            See the documentation of sage.coding.linear_code.LinearCodeSystematicEncoder for more details.
         """
         if encoder_name is None:
             encoder_name = self._default_encoder_name
         if encoder_name in self._registered_encoders:
             encClass = self._registered_encoders[encoder_name]
-            E = encClass(self, **kwargs)
-            return E
+            try:
+                return encClass(self, *args, **kwargs)
+            except TypeError:
+                raise ValueError("Constructing the {0} encoder failed, possibly due to missing or incorrect parameters.\n{1}"\
+                                     .format(encoder_name, _explain_constructor(encClass)))
         else:
             raise ValueError("There is no Encoder named '%s'. The known Encoders are: %s" % (encoder_name, self.encoders_available()))
 
@@ -1860,20 +1912,24 @@ class AbstractLinearCode(Module):
 
         INPUT:
 
-        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
-          returns the encoders' classes associated with the encoders' names.
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``,
+          return instead a ``dict`` mapping available encoder name to the
+          associated encoder class.
+
+        OUTPUT: a list of strings, or a `dict` mapping strings to classes.
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['GeneratorMatrix', 'Systematic']
-            sage: C.encoders_available(True)
-            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
-             'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
+            sage: dictionary = C.encoders_available(True)
+            sage: sorted(dictionary.items())
+            [('GeneratorMatrix', <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>),
+             ('Systematic', <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>)]
         """
-        if classes == True:
+        if classes:
             return copy(self._registered_encoders)
         return self._registered_encoders.keys()
 
@@ -2298,7 +2354,7 @@ class AbstractLinearCode(Module):
         B1 = NonlinearBinaryCodeStruct(CW1)
         B2 = NonlinearBinaryCodeStruct(CW2)
         ans = B1.is_isomorphic(B2)
-        if ans!=False:
+        if ans is not False:
             if algorithm=="verbose":
                 Sn = SymmetricGroup(n)
                 return True, Sn([i+1 for i in ans])**(-1)
@@ -3498,11 +3554,16 @@ class AbstractLinearCode(Module):
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
             sage: C.weight_enumerator(names="var1, var2")
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator(names=(var1, var2))
+            sage: C.weight_enumerator(names=('var1', 'var2'))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: C.weight_enumerator(bivariate=False)
             x^7 + 7*x^4 + 7*x^3 + 1
+
+        An example of a code with a non-symmetrical weight enumerator::
+
+            sage: C = codes.GolayCode(GF(3), extended=False)
+            sage: C.weight_enumerator()
+            24*x^11 + 110*x^9*y^2 + 330*x^8*y^3 + 132*x^6*y^5 + 132*x^5*y^6 + y^11
         """
         if names is None:
             if bivariate:
@@ -3519,11 +3580,11 @@ class AbstractLinearCode(Module):
         if bivariate:
             R = PolynomialRing(ZZ,2,names)
             x,y = R.gens()
-            return sum(spec[i]*x**(n-i)*y**i for i in range(n+1))
+            return sum(spec[i]*x**i*y**(n-i) for i in range(n+1))
         else:
             R = PolynomialRing(ZZ,names)
             x, = R.gens()
-            return sum(spec[i]*x**(n-i) for i in range(n+1))
+            return sum(spec[i]*x**i for i in range(n+1))
 
     @cached_method
     def zero(self):
@@ -3594,8 +3655,10 @@ class AbstractLinearCode(Module):
         x,y,T = R.gens()
         we = self.weight_enumerator()
         A = R(we)
-        B = A(x+y,y,T)-(x+y)**n
+        #B = A(x+y,y,T)-(x+y)**n
+        B = A(x,x+y,T)-(x+y)**n
         Bs = B.coefficients()
+        Bs.reverse()
         b = [Bs[i]/binomial(n,i+d) for i in range(len(Bs))]
         r = n-d-dperp+2
         P_coeffs = []
@@ -4561,7 +4624,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 1)
         sage: D.decoder_type()
-        {'always-succeed', 'bounded_distance', 'hard-decision', 'unique'}
+        {'always-succeed', 'bounded_distance', 'hard-decision'}
         sage: D.decoding_radius()
         1
 
@@ -4574,7 +4637,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 3)
         sage: D.decoder_type()
-        {'bounded_distance', 'hard-decision', 'might-error', 'unique'}
+        {'bounded_distance', 'hard-decision', 'might-error'}
         sage: D.decoding_radius()
         3
 
@@ -4588,7 +4651,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5)
         sage: D.decoder_type()
-        {'complete', 'hard-decision', 'might-error', 'unique'}
+        {'complete', 'hard-decision', 'might-error'}
         sage: D.decoding_radius()
         4
 
@@ -4630,10 +4693,10 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D.maximum_error_weight()
             1
             sage: D.decoder_type()
-            {'always-succeed', 'complete', 'hard-decision', 'minimum-distance', 'unique'}
+            {'always-succeed', 'complete', 'hard-decision', 'minimum-distance'}
         """
         n_minus_k = code.length() - code.dimension()
-        if maximum_error_weight == None:
+        if maximum_error_weight is None:
             self._maximum_error_weight = n_minus_k
         elif not isinstance(maximum_error_weight, (Integer, int)):
             raise ValueError("maximum_error_weight has to be a Sage integer or a Python int")
@@ -4995,9 +5058,14 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         return (self.code().minimum_distance()-1) // 2
 
+
+
+
+
+
 ####################### registration ###############################
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
-LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
-LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "dynamic"}
+LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "always-succeed", "complete"}

@@ -182,7 +182,7 @@ class AffineConnection(SageObject):
         sage: Df[:]
         [2*x, -2*y, 0]
 
-    The action of an affine connection connection on a scalar field must
+    The action of an affine connection on a scalar field must
     coincide with the differential::
 
         sage: Df == f.differential()
@@ -1244,7 +1244,7 @@ class AffineConnection(SageObject):
           instance of
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
 
-        OUPUT:
+        OUTPUT:
 
         - common frame; if no common frame is found, None is returned.
 

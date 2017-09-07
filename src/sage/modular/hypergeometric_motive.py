@@ -8,7 +8,7 @@ with `1/t` to match the classical literature on hypergeometric series.
 
 AUTHORS:
 
-- Frédéric Chapoton
+- Frederic Chapoton
 - Kiran S. Kedlaya
 
 EXAMPLES::
@@ -24,7 +24,7 @@ EXAMPLES::
     T^8 + T^5 + T^3 + 1
 """
 #*****************************************************************************
-#       Copyright (C) 2017     Frédéric Chapoton
+#       Copyright (C) 2017     Frederic Chapoton
 #                              Kiran S. Kedlaya <kskedl@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -37,7 +37,7 @@ EXAMPLES::
 from collections import defaultdict
 
 from sage.arith.misc import divisors, gcd, euler_phi, moebius, is_prime
-from sage.arith.misc import gauss_sum
+from sage.arith.misc import gauss_sum, kronecker_symbol
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.functions.generalized import sgn
 from sage.functions.other import floor
@@ -56,7 +56,7 @@ from sage.schemes.generic.spec import Spec
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
-def characteristic_polynomial_from_traces(traces, d, q, i):
+def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     r"""
     Given a sequence of traces `t_1, \dots, t_k`, return the
     corresponding characteristic polynomial with Weil numbers as roots.
@@ -70,14 +70,7 @@ def characteristic_polynomial_from_traces(traces, d, q, i):
     and should have the property that reciprocals of all roots have
     absolute value `q^{i/2}`.
 
-    There can be two possible signs for the leading coefficient.  If
-    the degree ``d`` is even, one need at least ``floor(d/2)`` traces
-    and at least one more for odd ``d``. In case the correct sign for
-    the leading coefficient cannot be guessed from the given traces,
-    the output is a pair (f, dictionary). The number `f` is such that the
-    trace for `p^f` allows to fix the ambiguity. The dictionary maps
-    the two possible traces for `p^f` to the corresponding Euler
-    factors.
+    The sign specified here is the local root number times `(-1)^d`.
 
     INPUT:
 
@@ -89,88 +82,62 @@ def characteristic_polynomial_from_traces(traces, d, q, i):
 
     - ``i`` -- integer, the weight in the motivic sense
 
+    - ``sign`` -- integer, the sign
+
     OUTPUT:
 
-    a polynomial or a pair (integer, dictionary)
+    a polynomial
 
     EXAMPLES::
 
         sage: from sage.modular.hypergeometric_motive import characteristic_polynomial_from_traces
-        sage: characteristic_polynomial_from_traces([1, 1], 1, 3, 0)
+        sage: characteristic_polynomial_from_traces([1, 1], 1, 3, 0, -1)
         -T + 1
-        sage: characteristic_polynomial_from_traces([1], 1, 3, 0)
-        -T + 1
-
-        sage: characteristic_polynomial_from_traces([25,625], 1, 5, 4)
-        -25*T + 1
-        sage: characteristic_polynomial_from_traces([25], 1, 5, 4)
+        sage: characteristic_polynomial_from_traces([25], 1, 5, 4, -1)
         -25*T + 1
 
-        sage: characteristic_polynomial_from_traces([3,-1,-18,-49], 2, 5, 1)
+        sage: characteristic_polynomial_from_traces([3], 2, 5, 1, 1)
         5*T^2 - 3*T + 1
-        sage: characteristic_polynomial_from_traces([3], 2, 5, 1)
-        5*T^2 - 3*T + 1
-
-        sage: characteristic_polynomial_from_traces([-4,276], 4, 5, 3)
-        15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
-        sage: characteristic_polynomial_from_traces([4,-276], 4, 5, 3)
-        15625*T^4 - 500*T^3 + 146*T^2 - 4*T + 1
-
-        sage: characteristic_polynomial_from_traces([1,-13,-20,71], 2, 7, 1)
-        7*T^2 - T + 1
-        sage: characteristic_polynomial_from_traces([1], 2, 7, 1)
+        sage: characteristic_polynomial_from_traces([1], 2, 7, 1, 1)
         7*T^2 - T + 1
 
-        sage: characteristic_polynomial_from_traces([36,7620], 4, 17, 3)
+        sage: characteristic_polynomial_from_traces([20], 3, 29, 2, 1)
+        24389*T^3 - 580*T^2 - 20*T + 1
+        sage: characteristic_polynomial_from_traces([12], 3, 13, 2, -1)
+        -2197*T^3 + 156*T^2 - 12*T + 1
+
+        sage: characteristic_polynomial_from_traces([36,7620], 4, 17, 3, 1)
         24137569*T^4 - 176868*T^3 - 3162*T^2 - 36*T + 1
+        sage: characteristic_polynomial_from_traces([-4,276], 4, 5, 3, 1)
+        15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
+        sage: characteristic_polynomial_from_traces([4,-276], 4, 5, 3, 1)
+        15625*T^4 - 500*T^3 + 146*T^2 - 4*T + 1
+        sage: characteristic_polynomial_from_traces([22, 484], 4, 31, 2, -1)
+        -923521*T^4 + 21142*T^3 - 22*T + 1
 
     TESTS::
 
-        sage: characteristic_polynomial_from_traces([0],2,17,1)
-        (2, {-34: 17*T^2 + 1, 34: -17*T^2 + 1})
-
-        sage: characteristic_polynomial_from_traces([-36], 4, 17, 3)
+        sage: characteristic_polynomial_from_traces([-36], 4, 17, 3, 1)
         Traceback (most recent call last):
         ...
         ValueError: not enough traces were given
     """
-    if len(traces) < d // 2 + d % 2:
+    if len(traces) < d // 2:
         raise ValueError('not enough traces were given')
     t = PowerSeriesRing(QQ, 't').gen()
     ring = PolynomialRing(ZZ, 'T')
 
     series = sum(- api * t**(i + 1) / (i + 1) for i, api in enumerate(traces))
-    N = min(len(traces), d)  # never need more than d traces
-    series = series.O(N + 1).exp()
+    series = series.O(d//2 + 1).exp()
     coeffs = list(series)
+    coeffs += [0,] * max(0,d//2+1-len(coeffs))
 
-    rev_coeffs = {d - k: coeffs[k] * q**(-k * i + d * i // 2)
-                  for k in range(len(coeffs)) if k <= d}
-    intersection = [k for k in range(len(coeffs))
-                    if k in rev_coeffs and coeffs[k]]
-
-    def poly(sign):
-        data = [0 for _ in range(d + 1)]
-        for k in range(len(coeffs)):
-            data[k] = coeffs[k]
-        for k in rev_coeffs:
-            data[k] = sign * rev_coeffs[k]
-        return ring(data)
-
-    if intersection:
-        idx = intersection[0]
-        sign = 1 if coeffs[idx] == rev_coeffs[idx] else -1
-        return poly(sign)
-    else:
-        p1 = poly(1)
-        p2 = poly(-1)
-        s1 = (p1(t).O(t ** (d + 1))).log()
-        s2 = (p2(t).O(t ** (d + 1))).log()
-        index = (s1 - s2).valuation()
-        return (index, {-s1[index] * index: p1, -s2[index] * index: p2})
-        # IDEA: also return the first index of trace
-        # that would allow sign recognition
-        # this means finding the first coefficient that differs in s1 and s2
+    data = [0 for _ in range(d + 1)]
+    for k in range(d//2+1):
+        data[k] = coeffs[k]
+    for k in range(d//2+1, d+1):
+        data[k] = sign*coeffs[d-k]*q**(i*(k-d/2))
+    return ring(data)
 
 
 def possible_hypergeometric_data(d, weight=None):
@@ -454,6 +421,17 @@ class HypergeometricData(object):
         self._alpha = alpha
         self._beta = beta
         self._deg = deg
+        if self.weight()%2 == 1:
+            self._sign_param = 1
+        else:
+            gamma = self.gamma_array()
+            
+            if deg%2 == 1:
+                self._sign_param = prod(cyclotomic_polynomial(v).disc()
+                                        for v in cyclo_down)
+            else:
+                self._sign_param = prod(cyclotomic_polynomial(v).disc()
+                                        for v in cyclo_up)
 
     def __repr__(self):
         """
@@ -1025,6 +1003,7 @@ class HypergeometricData(object):
         - https://arxiv.org/pdf/1505.02900.pdf, Theorem 1.3
 
         - http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
+
         """
         if ring is None:
             ring = UniversalCyclotomicField()
@@ -1078,6 +1057,9 @@ class HypergeometricData(object):
         See http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
         for explicit examples of Euler factors.
 
+        For odd weight, the sign of the functional equation is +1. For even
+        weight, the sign is computed by a recipe found in 11.1 of Watkins.
+
         EXAMPLES::
 
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
@@ -1085,16 +1067,9 @@ class HypergeometricData(object):
             sage: H.euler_factor(-1, 5)
             15625*T^4 + 500*T^3 - 130*T^2 + 4*T + 1
 
-            sage: [Hyp(cyclotomic=([6,2],[1,1,1])).euler_factor(1/4,p)
-            ....:  for p in [5,7,11,13,17,19]]
-            [125*T^3 + 20*T^2 + 4*T + 1,
-             343*T^3 - 42*T^2 - 6*T + 1,
-             -1331*T^3 - 22*T^2 + 2*T + 1,
-             -2197*T^3 - 156*T^2 + 12*T + 1,
-             4913*T^3 + 323*T^2 + 19*T + 1,
-             6859*T^3 - 57*T^2 - 3*T + 1]
-
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
+            sage: H.weight(), H.degree()
+            (1, 2)
             sage: t = 189/125
             sage: [H.euler_factor(1/t,p) for p in [11,13,17,19,23,29]]
             [11*T^2 + 4*T + 1,
@@ -1104,9 +1079,35 @@ class HypergeometricData(object):
             23*T^2 + 8*T + 1,
             29*T^2 + 2*T + 1]
 
+            sage: H = Hyp(cyclotomic=([6,2],[1,1,1]))
+            sage: H.weight(), H.degree()
+            (2, 3)
+            sage: [H.euler_factor(1/4,p) for p in [5,7,11,13,17,19]]
+            [125*T^3 + 20*T^2 + 4*T + 1,
+             343*T^3 - 42*T^2 - 6*T + 1,
+             -1331*T^3 - 22*T^2 + 2*T + 1,
+             -2197*T^3 - 156*T^2 + 12*T + 1,
+             4913*T^3 + 323*T^2 + 19*T + 1,
+             6859*T^3 - 57*T^2 - 3*T + 1]
+
+            sage: H = Hyp(alpha_beta=([1/12,5/12,7/12,11/12],[0,1/2,1/2,1/2]))
+            sage: H.weight(), H.degree()
+            (2, 4)
+            sage: t = -5
+            sage: [H.euler_factor(1/t,p) for p in [11,13,17,19,23,29]]
+            [-14641*T^4 - 1210*T^3 + 10*T + 1,
+             -28561*T^4 - 2704*T^3 + 16*T + 1,
+             -83521*T^4 - 4046*T^3 + 14*T + 1,
+             130321*T^4 + 14440*T^3 + 969*T^2 + 40*T + 1,
+             279841*T^4 - 25392*T^3 + 1242*T^2 - 48*T + 1,
+             707281*T^4 - 7569*T^3 + 696*T^2 - 9*T + 1]
+
+
         REFERENCE:
 
         - https://icerm.brown.edu/materials/Slides/sp-f15-offweeks/Hypergeomteric_Motives,_I_]_David_Roberts,_University_of_Minnesota_-_Morris.pdf
+        - http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
+
         """
         if t not in QQ or t in [0, 1]:
             raise ValueError('wrong t')
@@ -1124,13 +1125,14 @@ class HypergeometricData(object):
 
         w = self.weight()
 
-        # One has to handle the cases of sign ambiguity
-        resu = characteristic_polynomial_from_traces(traces, d, p, w)
-        if isinstance(resu, tuple):
-            f, dico = resu
-            return dico[self.padic_H_value(p, f, t)]
+        if w%2 == 1: # sign is always +1 for odd weight
+            sign = 1
+        elif d%2 == 1:
+            sign = -kronecker_symbol((1-t)*self._sign_param, p)
         else:
-            return resu
+            sign = kronecker_symbol(t*(t-1)*self._sign_param, p)
+
+        return characteristic_polynomial_from_traces(traces, d, p, w, sign)
 
     def canonical_scheme(self, t=None):
         """

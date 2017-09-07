@@ -383,7 +383,7 @@ def _multi_variate(base_ring, names, n, sparse, order):
                 break
         else:
             break
-    R = _multi_variate_poly(base_ring, names, n, sparse, order, None)
+    R = _multi_variate_poly(base_ring, names, sparse, order)
     P = LaurentPolynomialRing_mpair(R, prepend_string, names)
     _save_in_cache(key, P)
     return P

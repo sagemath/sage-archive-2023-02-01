@@ -35,13 +35,14 @@ import operator
 from cpython.int cimport *
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.stdsage cimport PY_NEW
 
 include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z, mpfi_init2, mpfi_get_prec, mpfi_set_prec
-from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
+from sage.libs.mpfr cimport mpfr_equal_p, mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p, mpfr_floor, mpfr_get_z, MPFR_RNDN
 from sage.libs.ntl.error import NTLError
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
 from sage.structure.richcmp cimport rich_to_bool
@@ -1063,6 +1064,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: b.floor()
             4
 
+            sage: K(125/7).floor()
+            17
+
         This function always succeeds even if a tremendous precision is needed::
 
             sage: c = b - 4772404052447/1154303505127 + 2
@@ -1085,23 +1089,69 @@ cdef class NumberFieldElement(FieldElement):
             ...
             TypeError: floor not uniquely defined since no real embedding is specified
         """
+        cdef Integer ans
+        cdef mpz_t num, den
+        cdef mpfi_t a
+        cdef size_t i
+        cdef RealIntervalFieldElement v
+
+
         if ZZX_deg(self.__numerator) <= 0:
-            return self._rational_().floor()
+            mpz_init(num)
+            mpz_init(den)
+
+            ZZX_getitem_as_mpz(num, &self.__numerator, 0)
+            ZZ_to_mpz(den, &self.__denominator)
+
+            ans = PY_NEW(Integer)
+            mpz_fdiv_q(ans.value, num, den)
+
+            mpz_clear(num)
+            mpz_clear(den)
+
+            return ans
 
         if not (<number_field_base.NumberField> self._parent)._embedded_real:
             raise TypeError("floor not uniquely defined since no real embedding is specified")
 
-        from sage.rings.real_mpfi import RealIntervalField
+
+        cdef number_field_base.NumberField P
+        try:
+            P = <number_field_base.NumberField?> self._parent
+        except TypeError:
+            P = self._parent.number_field()
+
+        v = <RealIntervalFieldElement> P._get_embedding_approx(0)
+
+        mpz_init(den)
+        mpfi_init2(a, mpfi_get_prec(v.value))
+
+        ZZ_to_mpz(den, &self.__denominator)
+
+        ZZX_evaluation_mpfi(a, self.__numerator, v.value)
+        mpfi_div_z(a, a, den)
+
+        mpfr_floor(&a.left, &a.left)
+        mpfr_floor(&a.right, &a.right)
+
         i = 0
-        a = RealIntervalField(53)(self)
-        low = a.lower().floor()
-        upp = a.upper().floor()
-        while low != upp:
+        while not mpfr_equal_p(&a.left, &a.right):
             i += 1
-            a = RealIntervalField(53<<i)(self)
-            low = a.lower().floor()
-            upp = a.upper().floor()
-        return low
+            v = <RealIntervalFieldElement> P._get_embedding_approx(i)
+
+            mpfi_set_prec(a, mpfi_get_prec(v.value))
+            ZZX_evaluation_mpfi(a, self.__numerator, v.value)
+            mpfi_div_z(a, a, den)
+            mpfr_floor(&a.left ,&a.left)
+            mpfr_floor(&a.right, &a.right)
+
+        ans = PY_NEW(Integer)
+        mpfr_get_z(ans.value, &a.left, MPFR_RNDN)
+
+        mpfi_clear(a)
+        mpz_clear(den)
+
+        return ans
 
     def ceil(self):
         r"""

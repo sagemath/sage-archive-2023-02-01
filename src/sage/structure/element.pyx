@@ -293,7 +293,7 @@ cdef dict _coerce_op_symbols = dict(
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
-from sage.structure.misc import is_extension_type
+from sage.cpython.type cimport can_assign_class
 from sage.cpython.getattr cimport getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
@@ -681,7 +681,7 @@ cdef class Element(SageObject):
         SageObject._test_category(self, tester = tester)
         category = self.category()
         # Tests that self inherits methods from the categories
-        if not is_extension_type(self.__class__):
+        if can_assign_class(self):
             # For usual Python classes, that should be done with
             # standard inheritance
             tester.assert_(isinstance(self, self.parent().category().element_class))

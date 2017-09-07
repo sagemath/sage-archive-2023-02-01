@@ -3819,7 +3819,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: AA(1/sqrt(5)).radical_expression()
-            1/5*sqrt(5)
+            sqrt(1/5)
             sage: AA(sqrt(5 + sqrt(5))).radical_expression()
             sqrt(sqrt(5) + 5)
             sage: QQbar.zeta(5).radical_expression()

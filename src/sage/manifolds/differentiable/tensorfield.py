@@ -1778,8 +1778,6 @@ class TensorField(ModuleElement):
             True
 
         """
-        if other == 0:
-            return +self
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
@@ -1843,8 +1841,6 @@ class TensorField(ModuleElement):
             True
 
         """
-        if other == 0:
-            return +self
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
@@ -2240,13 +2236,13 @@ class TensorField(ModuleElement):
                 self_rr = self_r._restrictions[dom]
                 args_rr = [args_r[i]._restrictions[dom] for i in range(p)]
                 resu_rr = self_rr(*args_rr)
-                if resu_rr == 0:
+                if resu_rr.is_trivial_zero():
                     for chart in resu_rr._domain._atlas:
                         resu._express[chart] = chart._zero_function
                 else:
                     for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr
-            if resu == 0:
+            if resu.is_trivial_zero():
                 return dom_resu._zero_scalar_field
             # Name of the output:
             res_name = None

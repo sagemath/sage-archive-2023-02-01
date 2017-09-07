@@ -4250,6 +4250,17 @@ class ClusterSeed(SageObject):
             (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
             sage: S.greedy(1, 2, 'by_combinatorics')
             (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
+
+        TESTS:
+
+        We check that :trac:`23688` has been resolved::
+
+            sage: S = ClusterSeed(Matrix([[0,1],[-4,0]])); S
+            A seed for a cluster algebra of rank 2
+            sage: S.greedy(1,2)
+            (x1^4 + x0^2 + 2*x0 + 1)/(x0*x1^2)
+            sage: S.greedy(1,2,'by_combinatorics')
+            (x1^4 + x0^2 + 2*x0 + 1)/(x0*x1^2)
         """
         if self.b_matrix().dimensions() == (2, 2):
             b = abs(self.b_matrix()[0, 1])
@@ -4279,7 +4290,7 @@ class ClusterSeed(SageObject):
                             evenT = set(T).symmetric_difference(oddT)
                             ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
                     elif a1 < a2:
-                        if is_LeeLiZel_allowable(T, a2, a1, b, c):
+                        if is_LeeLiZel_allowable(T, a2, a1, c, b):
                             oddT = set(T).intersection(PathSubset(a2, 0))
                             evenT = set(T).symmetric_difference(oddT)
                             ans = ans + S.x(0)**(b*len(oddT)) * S.x(1)**(c*len(evenT))

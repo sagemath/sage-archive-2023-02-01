@@ -253,12 +253,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [(-1, [(1, 0, -1, 1, 0, -1), (0, 1, -1, 0, 1, -1)], 2), (1, [(1, 0, -1, -1, 0, 1), (0, 1, 1, 0, -1, -1)], 2), (-2, [(1, -1, 1, -1, 1, -1)], 1), (2, [(1, 1, 1, 1, 1, 1)], 1)]
         """
         from sage.modules.free_module_element import vector
-        from sage.all import ZZ
+        from sage.rings.integer_ring import ZZ
 
-        [evals,mults],evecs=self.transpose()._maxima_(maxima).eigenvectors()._sage_()
-        result=[]
-        for e,evec,m in zip(evals,evecs,mults):
-            result.append((e,[vector(v) for v in evec], ZZ(m)))
+        [evals, mults], evecs = self.transpose()._maxima_(maxima).eigenvectors()._sage_()
+        result = []
+        for e, evec, m in zip(evals, evecs, mults):
+            result.append((e, [vector(v) for v in evec], ZZ(m)))
 
         return result
 

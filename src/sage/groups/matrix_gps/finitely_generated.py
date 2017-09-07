@@ -1270,10 +1270,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = K[]
             sage: G.invariants_of_degree(2, R=R, chi=chi)
-            [x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 + (2*izeta3^3 +
-            3*izeta3^2 + 8*izeta3 + 3)*z^2,
-             x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z + (-2*izeta3^3 -
-            3*izeta3^2 - 8*izeta3 - 4)*y*z]
+            [x*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*x*z +
+             (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y*z,
+             x^2 + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 4)*y^2 +
+             (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 3)*z^2]
 
         ::
 

@@ -97,9 +97,8 @@ if __name__ == "__main__":
     # to 3300 MiB. We must set this limit before starting Sage. Note
     # that this is a per-process limit, so we do not need to worry about
     # running multiple doctest processes in parallel. It is in
-    # particular doctests in src/sage/game_theory/matching_game.py
-    # and src/sage/schemes/elliptic_curves/heegner.py which need this
-    # much memory.
+    # particular doctests in src/sage/schemes/elliptic_curves/heegner.py
+    # which need this much memory.
     memlimit = 3300 << 20
     # Python's resource module only supports limits up to sys.maxsize,
     # even if the OS does support higher limits.

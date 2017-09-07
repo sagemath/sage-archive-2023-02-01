@@ -6,8 +6,10 @@ As an examples: if a lattice is distributive, then it must be also
 modular, and if a poset is ranked, then the dual poset must also
 be ranked.
 
-TODO: Currently only finite lattices have test function. Add some to
-general posets too.
+.. TODO:
+
+    Currently only finite lattices have test function. Add some to
+    general posets too.
 """
 def test_finite_lattice(L):
     """
@@ -16,14 +18,6 @@ def test_finite_lattice(L):
     This needs few lines before the test, see example below.
 
     EXAMPLES::
-
-        sage: T = type(LatticePoset())
-        sage: T.is_doubling_any = lambda L: L.is_constructible_by_doublings('any')
-        sage: T.is_doubling_lower = lambda L: L.is_constructible_by_doublings('upper')
-        sage: T.is_doubling_upper = lambda L: L.is_constructible_by_doublings('lower')
-        sage: T.is_doubling_convex = lambda L: L.is_constructible_by_doublings('convex')
-        sage: T.is_doubling_interval = lambda L: L.is_constructible_by_doublings('interval')
-        sage: T.is_uniq_orthocomplemented = lambda L: L.is_orthocomplemented(unique=True)
 
         sage: from sage.tests.finite_poset import test_finite_lattice
         sage: L = Posets.RandomLattice(10, 0.98)
@@ -38,6 +32,21 @@ def test_finite_lattice(L):
     from sage.misc.prandom import randint
     from sage.misc.flatten import flatten
     from sage.misc.misc import attrcall
+
+    def test_attrcall(name, L):
+        if name == 'is_doubling_any':
+            return L.is_constructible_by_doublings('any')
+        if name == 'is_doubling_lower':
+            return L.is_constructible_by_doublings('upper')
+        if name == 'is_doubling_upper':
+            return L.is_constructible_by_doublings('lower')
+        if name == 'is_doubling_convex':
+            return L.is_constructible_by_doublings('convex')
+        if name == 'is_doubling_interval':
+            return L.is_constructible_by_doublings('interval')
+        if name == 'is_uniq_orthocomplemented':
+            return L.is_orthocomplemented(unique=True)
+        return attrcall(name)(L)
 
     if L.cardinality() < 4:
         # Special cases should be tested in specific TESTS-sections.
@@ -117,7 +126,7 @@ def test_finite_lattice(L):
     sublattice_closed = ['distributive', 'modular', 'semidistributive', 'join_semidistributive', 'meet_semidistributive']
 
     all_props = set(implications.keys() + flatten(implications.values()))
-    P = {x: attrcall('is_'+x)(L) for x in all_props}
+    P = {x: test_attrcall('is_'+x)(L) for x in all_props}
 
     ### Relations between boolean-valued properties ###
 
@@ -141,11 +150,11 @@ def test_finite_lattice(L):
     Ldual = L.dual()
     # Selfdual properties
     for p in selfdual_properties:
-        if P[p] != attrcall('is_'+p)(Ldual):
+        if P[p] != test_attrcall('is_'+p)(Ldual):
             raise ValueError("selfdual property %s error" % p)
     # Dual properties and elements
     for p1, p2 in dual_properties:
-        if P[p1] != attrcall('is_'+p2)(Ldual):
+        if P[p1] != test_attrcall('is_'+p2)(Ldual):
             raise ValueError("dual properties error %s" % p1)
     for e1, e2 in dual_elements:
         if set(attrcall(e1)(L)) != set(attrcall(e2)(Ldual)):
@@ -332,7 +341,7 @@ def test_finite_lattice(L):
     # Sublattice-closed properties
     L_ = L.sublattice(Subsets(L).random_element())
     for p in sublattice_closed:
-        if P[p] and not attrcall('is_'+p)(L_):
+        if P[p] and not test_attrcall('is_'+p)(L_):
             raise ValueError("property %s should apply to sublattices" % p)
 
     # Some sublattices

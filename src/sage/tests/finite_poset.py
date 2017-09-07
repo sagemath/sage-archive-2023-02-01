@@ -126,7 +126,7 @@ def test_finite_lattice(L):
     sublattice_closed = ['distributive', 'modular', 'semidistributive', 'join_semidistributive', 'meet_semidistributive']
 
     all_props = set(implications.keys() + flatten(implications.values()))
-    P = {x: test_attrcall('is_'+x)(L) for x in all_props}
+    P = {x: test_attrcall('is_'+x, L) for x in all_props}
 
     ### Relations between boolean-valued properties ###
 
@@ -150,11 +150,11 @@ def test_finite_lattice(L):
     Ldual = L.dual()
     # Selfdual properties
     for p in selfdual_properties:
-        if P[p] != test_attrcall('is_'+p)(Ldual):
+        if P[p] != test_attrcall('is_'+p, Ldual):
             raise ValueError("selfdual property %s error" % p)
     # Dual properties and elements
     for p1, p2 in dual_properties:
-        if P[p1] != test_attrcall('is_'+p2)(Ldual):
+        if P[p1] != test_attrcall('is_'+p2, Ldual):
             raise ValueError("dual properties error %s" % p1)
     for e1, e2 in dual_elements:
         if set(attrcall(e1)(L)) != set(attrcall(e2)(Ldual)):
@@ -341,7 +341,7 @@ def test_finite_lattice(L):
     # Sublattice-closed properties
     L_ = L.sublattice(Subsets(L).random_element())
     for p in sublattice_closed:
-        if P[p] and not test_attrcall('is_'+p)(L_):
+        if P[p] and not test_attrcall('is_'+p, L_):
             raise ValueError("property %s should apply to sublattices" % p)
 
     # Some sublattices

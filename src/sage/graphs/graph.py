@@ -4746,7 +4746,7 @@ class Graph(GenericGraph):
         Ticket :trac:`23658` is fixed::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.fractional_chromatic_index(solver='GLPK')
+            sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
             3.0
             sage: g.fractional_chromatic_index(solver='PPL')
             3

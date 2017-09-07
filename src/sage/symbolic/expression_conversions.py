@@ -764,10 +764,7 @@ class SympyConverter(Converter):
         if f_sympy:
             return f_sympy(*sympy.sympify(g, evaluate=False))
         else:
-            from sage.symbolic.function_factory import SymbolicFunction
-            if isinstance(ex.operator(), SymbolicFunction):
-                return sympy.Function(str(f))(*g, evaluate=False)
-
+            return sympy.Function(str(f))(*g, evaluate=False)
 
     def derivative(self, ex, operator):
         """

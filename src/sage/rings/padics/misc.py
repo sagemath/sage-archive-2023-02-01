@@ -49,7 +49,7 @@ def gauss_sum(a, p, f, prec=20, factored=False):
 
     Let `p` be a prime, `f` a positive integer, `q=p^f`, and `\pi` be
     the unique root of `f(x) = x^{p-1}+p` congruent to `\zeta_p - 1` modulo
-     `(\zeta_p - 1)^2`. Let `0\leq a < q-1`. Then the
+    `(\zeta_p - 1)^2`. Let `0\leq a < q-1`. Then the
     Gross-Koblitz formula gives us the value of the Gauss sum `g_q(a)`
     as a product of `p`-adic Gamma functions as follows:
 
@@ -75,11 +75,10 @@ def gauss_sum(a, p, f, prec=20, factored=False):
 
     OUTPUT:
 
-    If `factored` is False, returns a `p`-adic number in an Eisenstein extension of `\QQ_p`.
+    If ``factored`` is ``False``, returns a `p`-adic number in an Eisenstein extension of `\QQ_p`.
     This number has the form `pi^e * z` where `pi` is as above, `e` is some nonnegative
-    integer, and `z` is an element of `\ZZ_p`; if `factored` is True, the pair `(e,z)`
+    integer, and `z` is an element of `\ZZ_p`; if ``factored`` is ``True``, the pair `(e,z)`
     is returned instead, and the Eisenstein extension is not formed.
-    
 
     .. NOTE::
 

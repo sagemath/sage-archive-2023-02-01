@@ -1295,7 +1295,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
             sage: H = End(P2)
-            sage: f = H([Z^2, X*Y, Y^2]) 
+            sage: f = H([Z^2, X*Y, Y^2])
             sage: f.degree_sequence(15)
             [2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
 
@@ -1304,7 +1304,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: F.<t> = PolynomialRing(QQ)
             sage: P2.<X,Y,Z> = ProjectiveSpace(F, 2)
             sage: H = End(P2)
-            sage: f = H([Y*Z, X*Y, Y^2 + t*X*Z]) 
+            sage: f = H([Y*Z, X*Y, Y^2 + t*X*Z])
             sage: f.degree_sequence(5)
             [2, 3, 5, 8, 13]
 
@@ -1312,7 +1312,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
             sage: H = End(P2)
-            sage: f = H([X^2, Y^2, Z^2]) 
+            sage: f = H([X^2, Y^2, Z^2])
             sage: f.degree_sequence(10)
             [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
@@ -1320,7 +1320,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P2.<X,Y,Z> = ProjectiveSpace(ZZ, 2)
             sage: H = End(P2)
-            sage: f = H([X*Y, Y*Z+Z^2, Z^2]) 
+            sage: f = H([X*Y, Y*Z+Z^2, Z^2])
             sage: f.degree_sequence(10)
             [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
@@ -5201,7 +5201,11 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if not (is_ProjectiveSpace(self.domain()) and is_ProjectiveSpace(self.domain())):
             raise NotImplementedError("not implemented for subschemes")
 
-        K,C,phi = number_field_elements_from_algebraics([c for f in self for c in f.coefficients()])
+        K_pre,C,phi = number_field_elements_from_algebraics([c for f in self for c in f.coefficients()])
+        # The field K_pre returned above does not have its embedding set, so we redefine it:
+        K = NumberField(K_pre.polynomial(), embedding=phi(K_pre.gen()), name='b')
+        psi = K_pre.hom([K.gen()], K)
+        C = [ psi(c) for c in C ]
         from sage.schemes.projective.projective_space import ProjectiveSpace
         N = self.domain().dimension_relative()
         PS = ProjectiveSpace(K,N,'z')

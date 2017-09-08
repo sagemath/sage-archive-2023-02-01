@@ -210,7 +210,7 @@ class BinaryQF(SageObject):
         # Either a "right" action by
         # ...or Gaussian composition
         if isinstance(right, BinaryQF):
-            return BinaryQF(self._pari_().qfbcompraw(right))
+            return BinaryQF(self.__pari__().qfbcompraw(right))
         # ...or a 2x2 matrix...
         if (isinstance(right.parent(), MatrixSpace)
             and right.nrows() == right.ncols() == 2):
@@ -751,7 +751,7 @@ class BinaryQF(SageObject):
         elif implementation == 'pari':
             if matrix:
                 raise NotImplementedError('matrix=True is not supported using PARI')
-            return BinaryQF(self._pari_().qfbred())
+            return BinaryQF(self.__pari__().qfbred())
         else:
             raise ValueError('unknown implementation for binary quadratic form reduction: %s' % implementation)
 

@@ -1122,8 +1122,8 @@ class HypergeometricData(object):
              sage: H2.euler_factor(-1, 3)
              27*T^3 + 3*T^2 + T + 1
              sage: H = Hyp(alpha_beta=([0,0,0,1/3,2/3],[1/2,1/5,2/5,3/5,4/5]))
-             sage: H.euler_factor(-1,7)
-             -16807*T^5 + 1372*T^4 + 511*T^3 - 73*T^2 - 4*T + 1
+             sage: H.euler_factor(5,7)
+             16807*T^5 - 686*T^4 - 105*T^3 - 15*T^2 - 2*T + 1
 
         REFERENCE:
 

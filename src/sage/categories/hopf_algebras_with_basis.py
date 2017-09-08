@@ -101,7 +101,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.__class__
         <class 'sage.categories.examples.hopf_algebras_with_basis.MyGroupAlgebra_with_category'>
         sage: A.element_class
-        <class 'sage.combinat.free_module.MyGroupAlgebra_with_category.element_class'>
+        <class 'sage.categories.examples.hopf_algebras_with_basis.MyGroupAlgebra_with_category.element_class'>
 
     Let us look at the code for implementing A::
 

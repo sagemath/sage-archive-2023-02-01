@@ -6,7 +6,7 @@ with values on a differentiable manifold `M` via a differentiable map
 `\Phi:\ U \rightarrow M` (possibly `U = M` and `\Phi = \mathrm{Id}_M`)
 is a module over the algebra `C^k(U)` of differentiable scalar fields on `U`.
 It is a free module if and only if `M` is parallelizable. Accordingly,
-two classesimplement `\Lambda^p(U, \Phi)`:
+two classes implement `\Lambda^p(U, \Phi)`:
 
 - :class:`DiffFormModule` for differential forms with values on a generic
   (in practice, not parallelizable) differentiable manifold `M`
@@ -38,7 +38,8 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
+from sage.rings.integer import Integer
+from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -318,7 +319,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
@@ -535,7 +536,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
 #******************************************************************************
 
-class DiffFormFreeModule(ExtPowerFreeModule):
+class DiffFormFreeModule(ExtPowerDualFreeModule):
     r"""
     Free module of differential forms of a given degree `p` (`p`-forms) along
     a differentiable manifold `U` with values on a parallelizable manifold `M`.
@@ -741,8 +742,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         else:
             name += "," + dest_map._name + ")"
             latex_name += "," + dest_map._latex_name + r"\right)"
-        ExtPowerFreeModule.__init__(self, vector_field_module, degree,
-                                    name=name, latex_name=latex_name)
+        ExtPowerDualFreeModule.__init__(self, vector_field_module, degree,
+                                        name=name, latex_name=latex_name)
         self._domain = domain
         self._dest_map = dest_map
         self._ambient_domain = vector_field_module._ambient_domain
@@ -767,7 +768,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, (DiffForm, DiffFormParal)):
             # coercion by domain restriction
@@ -797,7 +798,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             resu.set_comp(frame)[:] = comp
         return resu
 
-    # Rem: _an_element_ is declared in the superclass ExtPowerFreeModule
+    # Rem: _an_element_ is declared in the superclass ExtPowerDualFreeModule
 
     def _coerce_map_from_(self, other):
         r"""

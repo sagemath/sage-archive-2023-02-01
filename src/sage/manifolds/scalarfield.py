@@ -628,7 +628,7 @@ class ScalarField(CommutativeAlgebraElement):
         self._domain = domain
         self._manifold = domain.manifold()
         self._is_zero = False # a priori, may be changed below or via
-                              # method __nonzero__()
+                              # method __bool__()
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -659,11 +659,11 @@ class ScalarField(CommutativeAlgebraElement):
 
     ####### Required methods for an algebra element (beside arithmetic) #######
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
-        This method is called by :meth:`is_zero()`.
+        This method is called by :meth:`~sage.structure.element.Element.is_zero()`.
 
         EXAMPLES:
 
@@ -682,18 +682,80 @@ class ScalarField(CommutativeAlgebraElement):
             True
             sage: M.zero_scalar_field().is_zero()
             True
-
         """
         if self._is_zero:
             return False
         if not self._express:
             # undefined scalar field
             return True
-        iszero = True
         for funct in itervalues(self._express):
-            iszero = iszero and funct.is_zero()
-        self._is_zero = iszero
-        return not iszero
+            if not funct.is_zero():
+                self._is_zero = False
+                return True
+        self._is_zero = True
+        return False
+
+    __nonzero__ = __bool__   # For Python2 compatibility
+
+    def is_trivial_zero(self):
+        r"""
+        Check if ``self`` is trivially equal to zero without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self.is_zero()`` or ``self == 0`` and is intended to be
+        used in library code where trying to obtain a mathematically
+        correct result by applying potentially expensive rewrite rules
+        is not desirable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: 0})
+            sage: f.is_trivial_zero()
+            True
+            sage: f = M.scalar_field(0)
+            sage: f.is_trivial_zero()
+            True
+            sage: M.zero_scalar_field().is_trivial_zero()
+            True
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.is_trivial_zero()
+            False
+
+        Scalar field defined by means of two charts::
+
+            sage: U1 = M.open_subset('U1'); X1.<x1,y1> = U1.chart()
+            sage: U2 = M.open_subset('U2'); X2.<x2,y2> = U2.chart()
+            sage: f = M.scalar_field({X1: 0, X2: 0})
+            sage: f.is_trivial_zero()
+            True
+            sage: f = M.scalar_field({X1: 0, X2: 1})
+            sage: f.is_trivial_zero()
+            False
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = M.scalar_field({X: cos(x)^2 + sin(x)^2 - 1})
+            sage: f.is_trivial_zero()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to zero involve some simplification algorithms and
+        return ``True``::
+
+            sage: f.is_zero()
+            True
+            sage: f == 0
+            True
+
+        """
+        if self._is_zero:
+            return True
+        return all(func.is_trivial_zero() for func in self._express.values())
 
     def __eq__(self, other):
         r"""
@@ -745,10 +807,10 @@ class ScalarField(CommutativeAlgebraElement):
         com_charts = self.common_charts(other)
         if com_charts is None:
             raise ValueError("no common chart for the comparison")
-        resu = True
         for chart in com_charts:
-            resu = resu and (self._express[chart] == other._express[chart])
-        return resu
+            if not (self._express[chart] == other._express[chart]):
+                return False
+        return True
 
     def __ne__(self, other):
         r"""
@@ -784,7 +846,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -799,7 +861,7 @@ class ScalarField(CommutativeAlgebraElement):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -944,7 +1006,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: f = M.scalar_field(x*y^2)
             sage: g = f.copy()
             sage: type(g)
-            <class 'sage.manifolds.scalarfield.ScalarFieldAlgebra_with_category.element_class'>
+            <class 'sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra_with_category.element_class'>
             sage: g.expr()
             x*y^2
             sage: g == f
@@ -1076,7 +1138,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         Use :meth:`coord_function` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
@@ -1802,8 +1864,6 @@ class ScalarField(CommutativeAlgebraElement):
         for chart in com_charts:
             # CoordFunction addition:
             result._express[chart] = self._express[chart] + other._express[chart]
-        if result.is_zero():
-            return self._domain.zero_scalar_field()
         if self._name is not None and other._name is not None:
             result._name = self._name + '+' + other._name
         if self._latex_name is not None and other._latex_name is not None:
@@ -1853,8 +1913,6 @@ class ScalarField(CommutativeAlgebraElement):
         for chart in com_charts:
             # CoordFunction subtraction:
             result._express[chart] = self._express[chart] - other._express[chart]
-        if result.is_zero():
-            return self._domain.zero_scalar_field()
         if self._name is not None and other._name is not None:
             result._name = self._name + '-' + other._name
         if self._latex_name is not None and other._latex_name is not None:

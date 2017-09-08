@@ -5,7 +5,7 @@ The class :class:`Hom` is the base class used to represent sets of morphisms
 between objects of a given category.
 :class:`Hom` objects are usually "weakly" cached upon creation so that they
 don't have to be generated over and over but can be garbage collected together
-with the corresponding objects when these are are not stongly ref'ed anymore.
+with the corresponding objects when these are not strongly ref'ed anymore.
 
 EXAMPLES:
 
@@ -22,9 +22,8 @@ Nonetheless, garbage collection occurs when the original references are
 overwritten::
 
     sage: for p in prime_range(200):
-    ...     K = GF(p)
-    ...     H = Hom(ZZ, K)
-    ...
+    ....:     K = GF(p)
+    ....:     H = Hom(ZZ, K)
     sage: import gc
     sage: _ = gc.collect()
     sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
@@ -127,8 +126,8 @@ def Hom(X, Y, category=None, check=True):
     using a weak cache::
 
         sage: for p in prime_range(10^3):
-        ...    K = GF(p)
-        ...    a = K(0)
+        ....:  K = GF(p)
+        ....:  a = K(0)
         sage: import gc
         sage: gc.collect()       # random
         624
@@ -547,11 +546,10 @@ class Homset(Set_generic):
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(Homset):
-            ...       def my_function(self, x):
-            ...           return Y(x[0])
-            ...       def _an_element_(self):
-            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
-            ...
+            ....:     def my_function(self, x):
+            ....:         return Y(x[0])
+            ....:     def _an_element_(self):
+            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
             sage: H
@@ -709,13 +707,15 @@ class Homset(Set_generic):
 
     __nonzero__ = __bool__
 
-    def _generic_convert_map(self, S):
+    def _generic_convert_map(self, S, category=None):
         """
         Return a generic map from a given homset to ``self``.
 
         INPUT:
 
         - ``S`` -- a homset
+
+        - ``category`` -- a category
 
         OUTPUT:
 
@@ -773,7 +773,7 @@ class Homset(Set_generic):
             from sage.categories.homset import Hom
             return CallMorphism(Hom(S, self))
         else:
-            return Parent._generic_convert_map(self, S)
+            return Parent._generic_convert_map(self, S, category)
 
     def homset_category(self):
         """
@@ -928,8 +928,8 @@ class Homset(Set_generic):
             algebraic properties of domain and codomain, it should be
             implemented in ``C.MorphismMethods``.
 
-            At this point, the homset element classes takes precedence over
-            the morphism classes. But this may be subject to change.
+            At this point, the homset element classes take precedence over the
+            morphism classes. But this may be subject to change.
 
 
         .. TODO::
@@ -1009,34 +1009,45 @@ class Homset(Set_generic):
         """
         return self.__make_element_class__(morphism.SetMorphism)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         For two homsets, it is tested whether the domain, the codomain and
         the category coincide.
 
-        TESTS::
+        EXAMPLES::
+
+            sage: H1 = Hom(ZZ,QQ, CommutativeAdditiveGroups())
+            sage: H2 = Hom(ZZ,QQ)
+            sage: H1 == H2
+            False
+            sage: H1 == loads(dumps(H1))
+            True
+        """
+        if not isinstance(other, Homset):
+            return False
+        return (self._domain == other._domain
+                and self._codomain == other._codomain
+                and self.__category == other.__category)
+
+    def __ne__(self, other):
+        """
+        Check for not-equality of ``self`` and ``other``.
+
+        EXAMPLES::
 
             sage: H1 = Hom(ZZ,QQ, CommutativeAdditiveGroups())
             sage: H2 = Hom(ZZ,QQ)
             sage: H3 = Hom(ZZ['t'],QQ, CommutativeAdditiveGroups())
             sage: H4 = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
-            sage: H1 == H2
-            False
-            sage: H1 == loads(dumps(H1))
+            sage: H1 != H2
             True
+            sage: H1 != loads(dumps(H1))
+            False
             sage: H1 != H3 != H4 != H1
             True
         """
-        if not isinstance(other, Homset):
-            return cmp(type(self), type(other))
-        if self._domain == other._domain:
-            if self._codomain == other._codomain:
-                if self.__category == other.__category:
-                    return 0
-                else: return cmp(self.__category, other.__category)
-            else: return cmp(self._codomain, other._codomain)
-        else: return cmp(self._domain, other._domain)
-
+        return not (self == other)
+    
     def __contains__(self, x):
         """
         Test whether the parent of the argument is ``self``.
@@ -1075,7 +1086,7 @@ class Homset(Set_generic):
             sage: H.natural_map()
             Traceback (most recent call last):
             ...
-            TypeError: Natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined.
+            TypeError: natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined
         """
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
@@ -1098,7 +1109,7 @@ class Homset(Set_generic):
             ...
             TypeError: Identity map only defined for endomorphisms. Try natural_map() instead.
             sage: H.natural_map()
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """
@@ -1194,11 +1205,10 @@ class HomsetWithBase(Homset):
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(HomsetWithBase):
-            ...       def my_function(self, x):
-            ...           return Y(x[0])
-            ...       def _an_element_(self):
-            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
-            ...
+            ....:     def my_function(self, x):
+            ....:         return Y(x[0])
+            ....:     def _an_element_(self):
+            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids())
             sage: H

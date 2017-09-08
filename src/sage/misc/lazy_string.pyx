@@ -61,7 +61,7 @@ Note that the function is recomputed each time::
 #THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
@@ -529,18 +529,18 @@ cdef class _LazyString(object):
         EXAMPLES::
 
             sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda op,A,B:"unsupported operand parent(s) for '%s': '%s' and '%s'"%(op,A,B)
+            sage: f = lambda op,A,B:"unsupported operand parent(s) for %s: '%s' and '%s'"%(op,A,B)
             sage: R = GF(5)
             sage: S = GF(3)
             sage: D = lazy_string(f, '+', R, S)
             sage: D
-            l"unsupported operand parent(s) for '+': 'Finite Field of size 5' and 'Finite Field of size 3'"
+            l"unsupported operand parent(s) for +: 'Finite Field of size 5' and 'Finite Field of size 3'"
             sage: D.update_lazy_string(('+', S, R), {})
 
         Apparently, the lazy string got changed in-place::
 
             sage: D
-            l"unsupported operand parent(s) for '+': 'Finite Field of size 3' and 'Finite Field of size 5'"
+            l"unsupported operand parent(s) for +: 'Finite Field of size 3' and 'Finite Field of size 5'"
 
         TESTS::
 

@@ -67,10 +67,10 @@ def sidon_sets(N, g = 1):
         sage: n = 1
         sage: L = []
         sage: for i in range(1,19):
-        ...       nb = max([S.cardinality() for S in sidon_sets(i)])
-        ...       if nb > n:
-        ...           L.append(i-1)
-        ...           n = nb
+        ....:     nb = max([S.cardinality() for S in sidon_sets(i)])
+        ....:     if nb > n:
+        ....:         L.append(i-1)
+        ....:         n = nb
         sage: L
         [1, 3, 6, 11, 17]
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ "$SAGE_LOCAL" = "" ]; then
    echo >&2 "SAGE_LOCAL undefined ... exiting"
    echo >&2 "Maybe run 'sage -sh'?"
@@ -20,22 +18,6 @@ if [ "x$SAGE64" = xyes ] ; then
    export CFLAGS
    export LDFLAGS
 fi
-
-
-#######################################################################
-# Apply all patches
-#######################################################################
-cd src
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
-# Back to top level
-cd ..
 
 
 #######################################################################
@@ -190,8 +172,6 @@ done
 SCRIPT="$SAGE_LOCAL/bin/sympow"
 
 cat >"$SCRIPT" <<'EOF'
-#!/usr/bin/env bash
-
 cd "$SAGE_LOCAL/lib/sympow"
 exec ./sympow "$@"
 EOF

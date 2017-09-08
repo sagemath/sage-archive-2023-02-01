@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
@@ -7,20 +5,6 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 cd src/
-
-###############################################################################
-# Apply patches (if any):
-###############################################################################
-
-echo "Applying patches to upstream sources..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 ###############################################################################
 # Previous GMP installations are only removed after a *successful* (re)build,
@@ -137,11 +121,6 @@ case "$UNAME" in
             rm -f foo foo.c
         fi
         ;; # Linux
-    CYGWIN)
-        # For the moment, Cygwin is only 32-bits
-        # and configure gets lost if the hardware is 64 bits
-        ABI=32
-        ;;
     *) # e.g. AIX or HP-UX
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \
             "by this GMP spkg, i.e., by Sage's part of it."

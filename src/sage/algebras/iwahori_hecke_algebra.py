@@ -33,7 +33,7 @@ from sage.rings.polynomial.polydict import ETuple
 from sage.arith.all import is_square
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.family import Family
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 
 def normalized_laurent_polynomial(R, p):
     r"""
@@ -77,7 +77,7 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k: R._base(c) for k, c in p.dict().iteritems()})
+        return R({k: R._base(c) for k, c in six.iteritems(p.dict())})
     except (AttributeError, TypeError):
         return R(p)
 
@@ -108,6 +108,8 @@ def index_cmp(x, y):
     if x > y:
         return 1
     return 0
+
+sorting_key = cmp_to_key(index_cmp)
 
 
 class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
@@ -205,8 +207,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: T(C[1])
         (u^-1*v^-1)*T[1] + (-u*v^-1)
         sage: Cp(C[1])
-        doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-        See http://trac.sagemath.org/21043 for details.
         Cp[1] + (-u*v^-1-u^-1*v)
         sage: elt = Cp[2]*Cp[3]+C[1]; elt
         Cp[2,3] + Cp[1] + (-u*v^-1-u^-1*v)
@@ -514,6 +514,26 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         return "Iwahori-Hecke algebra of type {} in {},{} over {}".format(
             self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<q1,q2> = QQ[]
+            sage: H = IwahoriHeckeAlgebra("A2", q1**2, q2**2, base_ring=Frac(R))
+            sage: latex(H)
+            \mathcal{H}_{q_{1}^{2},q_{2}^{2}}\left(A_{2},
+             \mathrm{Frac}(\Bold{Q}[q_{1}, q_{2}])\right)
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = IwahoriHeckeAlgebra("A2", q)
+            sage: latex(H)
+            \mathcal{H}_{q,-1}\left(A_{2}, \Bold{Z}[q^{\pm 1}]\right)
+        """
+        from sage.misc.latex import latex
+        return "\\mathcal{{H}}_{{{},{}}}\\left({}, {}\\right)".format(latex(self._q1),
+                latex(self._q2), latex(self._cartan_type), latex(self.base_ring()))
 
     def _bar_on_coefficients(self, c):
         r"""
@@ -1072,8 +1092,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: elt.goldman_involution().goldman_involution() == elt
                     True
                     sage: H.A()(elt).goldman_involution()==elt.goldman_involution()
-                    doctest:...: DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
-                    See http://trac.sagemath.org/21043 for details.
                     True
 
                 With different parameters::
@@ -1161,8 +1179,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 q2 = new_hecke._q2
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()
 
-                # is there an easier way that this to covert the coefficients to
-                # the correct base ring for new_hecke?
+                # is there an easier way than this to convert the
+                # coefficients to the correct base ring for new_hecke?
                 if num_vars == 2:
                     args = (q1, q2)
                 elif num_vars == 1:
@@ -1202,7 +1220,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                                              algebra.base_ring(),
                                              algebra._W,
                                              category=algebra._BasesCategory(),
-                                             sorting_key=cmp_to_key(index_cmp),
+                                             sorting_key=sorting_key,
                                              prefix=self._prefix)
 
         # This **must** match the name of the class in order for
@@ -1637,7 +1655,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             H = self.realization_of()
             return (-H._q_prod)**w.length() * self.monomial(w.inverse()).inverse()
 
-        class Element(CombinatorialFreeModuleElement):
+        class Element(CombinatorialFreeModule.Element):
             r"""
             A class for elements of an Iwahori-Hecke algebra in the `T` basis.
 
@@ -2083,7 +2101,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             # Define and register coercions from the A basis to the T basis and back again
             from_A_to_T = self.module_morphism(self.to_T_basis, codomain=IHAlgebra.T(),
-                                               triangular="lower", cmp=index_cmp,
+                                               triangular="lower", key=sorting_key,
                                                category=self.category())
             from_A_to_T.register_as_coercion()
             from_T_to_A = ~from_A_to_T
@@ -2215,7 +2233,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             # Define and register coercions from the B basis to the T basis and back again
             from_B_to_T = self.module_morphism(self.to_T_basis, codomain=IHAlgebra.T(),
-                                               triangular="lower", cmp=index_cmp,
+                                               triangular="lower", key=sorting_key,
                                                category=self.category())
             from_B_to_T.register_as_coercion()
             from_T_to_B = ~from_B_to_T
@@ -2239,10 +2257,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: B(T[1,2])
                 B[1,2] - (1/2-1/2*v^2)*B[1] - (1/2-1/2*v^2)*B[2] + (1/2-v^2+1/2*v^4)
             """
-            T=self.realization_of().T()
-            Bw=T(self.realization_of().A()[w])
-            odd=[v for v in Bw.support() if v<>w and (v.length()-w.length())%2==0]
-            return Bw-T.sum(Bw.coefficient(v)*self.to_T_basis(v) for v in odd)
+            T = self.realization_of().T()
+            Bw = T(self.realization_of().A()[w])
+            odd = [v for v in Bw.support()
+                   if v != w and not (v.length() - w.length()) % 2]
+            return Bw - T.sum(Bw.coefficient(v) * self.to_T_basis(v)
+                              for v in odd)
 
         def goldman_involution_on_basis(self, w):
             r"""
@@ -2449,8 +2469,8 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 hecke = self.parent().realization_of()
                 q1 = new_hecke._q1
                 root = new_hecke._root
-                # is there an easier way that this to covert the coefficients to
-                # the correct base ring for new_hecke?
+                # is there an easier way than this to convert the
+                # coefficients to the correct base ring for new_hecke?
                 new_coeff = lambda c: new_hecke._base(normalized_laurent_polynomial(hecke._base, c)(q1,root))
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()
                 return new_basis._from_dict(dict( (w, new_coeff(c)) for (w,c) in self ))
@@ -2493,7 +2513,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             inp = self.monomial(w)
             result = Cp.zero()
             while inp != T0:
-                (x,c) = inp.trailing_item(index_cmp)
+                (x,c) = inp.trailing_item(key=sorting_key)
                 inp = inp - c * A._root**x.length() * Cp.to_T_basis(x)
                 result = result + c * A._root**x.length() * Cp.monomial(x)
 
@@ -2594,9 +2614,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             cpw_s = self.to_T_basis(ws) * A.v_inv *(Ts[s] - A._q2*T.one())
 
             i = 1
-            cmp_func = lambda x,y: index_cmp(x.leading_support(), y.leading_support())
+            key_func = lambda x: sorting_key(x.leading_support())
             while i < len(cpw_s):
-                (x,c) = sorted(cpw_s.terms(), cmp=cmp_func)[i].leading_item()
+                (x,c) = sorted(cpw_s.terms(), key=key_func)[i].leading_item()
                 mu=normalized_laurent_polynomial(A._base,c)[0,-x.length()]    # the coefficient of v^-len(x)
                 if mu!=0:
                     cpw_s-=mu*self.to_T_basis(x)
@@ -2647,5 +2667,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
 from sage.structure.sage_object import register_unpickle_override
+
+import six
+
+
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

@@ -156,6 +156,8 @@ from __future__ import absolute_import
 import os
 from .expect import Expect, ExpectElement
 from sage.misc.misc import verbose
+from sage.docs.instancedoc import instancedoc
+
 
 class Octave(Expect):
     r"""
@@ -611,6 +613,8 @@ def to_complex(octave_string, R):
     real, imag = octave_string.strip('() ').split(',')
     return R(float(real), float(imag))
 
+
+@instancedoc
 class OctaveElement(ExpectElement):
     def _get_sage_ring(self):
         r"""
@@ -635,7 +639,7 @@ class OctaveElement(ExpectElement):
         else:
             raise TypeError("no Sage ring associated to this element.")
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Test whether this element is nonzero.
 
@@ -658,6 +662,8 @@ class OctaveElement(ExpectElement):
             True
         """
         return str(self) != ' [](0x0)' and any(x != '0' for x in str(self).split())
+
+    __nonzero__ = __bool__
 
     def _matrix_(self, R=None):
         r"""

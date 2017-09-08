@@ -182,27 +182,42 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         hecke.AmbientHeckeModule.__init__(self, base_ring, rank, group.level(), weight, category=category)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Standard comparison function.
+        Check that ``self`` is equal to ``other``.
 
         EXAMPLES::
 
-            sage: ModularSymbols(11,2) == ModularSymbols(11,2) # indirect doctest
+            sage: ModularSymbols(11,2) == ModularSymbols(11,2)
             True
-            sage: ModularSymbols(11,2) == ModularSymbols(11,4) # indirect doctest
+            sage: ModularSymbols(11,2) == ModularSymbols(11,4)
             False
-
         """
         if not isinstance(other, ModularSymbolsSpace):
-            return cmp(type(self), type(other))
+            return False
+
         if isinstance(other, ModularSymbolsAmbient):
-            return misc.cmp_props(self, other, ['group', 'weight', 'sign', 'base_ring', 'character'])
-        c = cmp(self, other.ambient_hecke_module())
-        if c: return c
-        if self.free_module() == other.free_module():
-            return 0
-        return -1
+            return (self.group() == other.group() and
+                    self.weight() == other.weight() and
+                    self.sign() == other.sign() and
+                    self.base_ring() == other.base_ring() and
+                    self.character() == other.character())
+
+        return (self == other.ambient_hecke_module() and
+                self.free_module() == other.free_module())
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2) != ModularSymbols(11,2)
+            False
+            sage: ModularSymbols(11,2) != ModularSymbols(11,4)
+            True
+        """
+        return not (self == other)
 
     def new_submodule(self, p=None):
         r"""
@@ -388,7 +403,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         -  2-elements list - Given a list ``[alpha, beta]``,
            where `\alpha` and `\beta` are (coercible to)
            cusps, return the modular symbol `\{\alpha, \beta\}`. When
-           the the weight `k > 2` return
+           the weight `k > 2` return
            `Y^{k-2} \{\alpha, \beta\}`.
 
         -  3-element list - Given a list ``[i, alpha, beta]``,
@@ -412,7 +427,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M(0)
             0
             sage: type(M(0))
-            <class 'sage.modular.modsym.element.ModularSymbolsAmbient_wt2_g0_with_category.element_class'>
+            <class 'sage.modular.modsym.ambient.ModularSymbolsAmbient_wt2_g0_with_category.element_class'>
 
         From a vector of the correct dimension we construct the
         corresponding linear combination of the basis elements::
@@ -1015,8 +1030,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                 entries = syms.apply(i,h)
                 for k, x in entries:
                     f, s = mod2term[k]
-                    if s != 0:
-                        W[j,f] = W[j,f] + s*K(x)
+                    if s:
+                        # W[j,f] = W[j,f] + s*K(x)
+                        W.add_to_entry(j, f, s * K(x))
             j += 1
         tm = misc.verbose("start matrix multiply",tm)
         if hasattr(W, '_matrix_times_matrix_dense'):
@@ -1405,7 +1421,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         INPUT:
 
         - ``M`` (int) -- a space of modular symbols whose level is an integer
-          multiple of the the level of self
+          multiple of the level of self
 
         - ``t`` (int) -- a positive integer dividing the quotient of the two
           levels.
@@ -1661,7 +1677,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2)
         """
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: M = ModularSymbols(Gamma0(22), 2); M
 ##             Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
 ##             sage: M.factorization():
@@ -1671,7 +1688,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 ##             1 11 2
 ##             1 22 1
 
-##         An example with sign 1:
+##         An example with sign 1::
+
 ##             sage: M = ModularSymbols(Gamma0(22), 2, sign=1); M
 ##             Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
 ##             sage: for b, e in M.factorization():
@@ -1680,7 +1698,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 ##             1 11 2
 ##             1 22 1
 
-##         An example for Gamma1:
+##         An example for Gamma1::
+
 ##             sage: M = ModularSymbols(Gamma1(26), 2, sign=1); M
 ##             Modular Symbols space of dimension 33 for Gamma_1(26) of weight 2 with sign 1 and over Rational Field
 ##             sage: for b, e in M.factorization():
@@ -1699,7 +1718,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 ##             2 26 1
 ##             2 26 1
 
-##         An example with level divisible by a square:
+##         An example with level divisible by a square::
+
 ##             sage: M = ModularSymbols(Gamma0(2*9),2); M
 ##             ???
 ##             sage: for b, e in M.factorization():
@@ -1852,6 +1872,57 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         s = self.manin_symbols()
         return [s.manin_symbol(i) for i in self.manin_basis()]
 
+    def modular_symbols_of_level(self, G):
+        """
+        Return a space of modular symbols with the same parameters as
+        this space, except the congruence subgroup is changed to `G`.
+
+        INPUT:
+
+        - ``G`` -- either a congruence subgroup or an integer to use
+          as the level of such a group.  The given group must either
+          contain or be contained in the group defining ``self``.
+
+        TESTS::
+
+            sage: M = ModularSymbols(11)
+            sage: M.modular_symbols_of_level(22)
+            Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
+            sage: M.modular_symbols_of_level(Gamma1(22))
+            Modular Symbols space of dimension 31 for Gamma_1(22) of weight 2 with sign 0 and over Rational Field
+
+            sage: M = ModularSymbols(Gamma1(6))
+            sage: M.modular_symbols_of_level(12)
+            Modular Symbols space of dimension 9 for Gamma_1(12) of weight 2 with sign 0 and over Rational Field
+            sage: M.modular_symbols_of_level(Gamma0(3))
+            Modular Symbols space of dimension 1 for Gamma_0(3) of weight 2 with sign 0 over Rational Field
+            sage: M.modular_symbols_of_level(Gamma0(12))
+            Traceback (most recent call last):
+            ...
+            ValueError: one subgroup must contain the other
+
+            sage: M = ModularSymbols(Gamma1(30),4); M
+            Modular Symbols space of dimension 144 for Gamma_1(30) of weight 4 with sign 0 and over Rational Field
+            sage: M.modular_symbols_of_level(22)
+            Traceback (most recent call last):
+            ...
+            ValueError: one level must divide the other
+
+            sage: M = ModularSymbols(GammaH(15,[7]),6)
+            sage: M.modular_symbols_of_level(5)
+            Modular Symbols space of dimension 4 for Gamma_0(5) of weight 6 with sign 0 over Rational Field
+            sage: M.modular_symbols_of_level(30)
+            Modular Symbols space of dimension 60 for Congruence Subgroup Gamma_H(30) with H generated by [7] of weight 6 with sign 0 and over Rational Field
+            sage: M.modular_symbols_of_level(73)
+            Traceback (most recent call last):
+            ...
+            ValueError: one level must divide the other
+        """
+        if G in ZZ:
+            G = self.group()._new_group_from_level(G)
+        elif not (self.group().is_subgroup(G) or G.is_subgroup(self.group())):
+            raise ValueError('one subgroup must contain the other')
+        return modsym.ModularSymbols(G, self.weight(), self.sign(), self.base_ring())
 
     def modular_symbols_of_sign(self, sign):
         r"""
@@ -2006,7 +2077,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: [e(d) for d in [0..6]]
             [0, 1, 0, 1, 0, -1, 0]
 
-        We test that the sign issue at #8620 is fixed::
+        We test that the sign issue at :trac:`8620` is fixed::
 
             sage: M = Newforms(Gamma1(13),names = 'a')[0].modular_symbols(sign=0)
             sage: M.diamond_bracket_operator(4).matrix()
@@ -2601,39 +2672,6 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
                 level=self.level(), weight=self.weight())
         return self.__manin_symbols
 
-    def modular_symbols_of_level(self, N):
-        r"""
-        Returns a space of modular symbols with the same parameters as
-        this space except with level `N`.
-
-        INPUT:
-
-        - ``N`` (int) -- a positive integer.
-
-        OUTPUT:
-
-        (Modular Symbol space) A space of modular symbols with the
-        same defining properties (weight, sign, etc.) as this space
-        except with level `N`.
-
-        For example, if self is the space of modular symbols of weight `2`
-        for `\Gamma_0(22)`, and level is `11`, then this function returns
-        the modular symbol space of weight `2` for `\Gamma_0(11)`.
-
-        EXAMPLES::
-
-            sage: M = ModularSymbols(11)
-            sage: M.modular_symbols_of_level(22)
-            Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
-            sage: M = ModularSymbols(Gamma1(6))
-            sage: M.modular_symbols_of_level(12)
-            Modular Symbols space of dimension 9 for Gamma_1(12) of weight 2 with sign 0 and over Rational Field
-        """
-        return modsym.ModularSymbols(arithgroup.Gamma0(Integer(N)),
-                                     self.weight(), sign=self.sign(),
-                                     base_ring=self.base_ring())
-
-
     def _hecke_images(self, i, v):
         """
         Return matrix whose rows are the images of the `i`-th
@@ -2866,7 +2904,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             Tp = W * R
             tm = misc.verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making hecke operator dense",tm)
+            misc.verbose("done making Hecke operator dense", tm)
         if rows is None:
             self._hecke_matrices[(p,rows)] = Tp
         return Tp
@@ -3210,34 +3248,6 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         return self.__manin_symbols
 
 
-    def modular_symbols_of_level(self, N):
-        r"""
-        Returns a space of modular symbols with the same parameters as
-        this space except with level `N`.
-
-        INPUT:
-
-        - ``N`` (int) -- a positive integer.
-
-        OUTPUT:
-
-        (Modular Symbol space) A space of modular symbols with the
-        same defining properties (weight, sign, etc.) as this space
-        except with level `N`.
-
-        For example, if self is the space of modular symbols of weight `2`
-        for `\Gamma_0(22)`, and level is `11`, then this function returns
-        the modular symbol space of weight `2` for `\Gamma_0(11)`.
-
-        EXAMPLES::
-
-            sage: M = ModularSymbols(Gamma1(30),4); M
-            Modular Symbols space of dimension 144 for Gamma_1(30) of weight 4 with sign 0 and over Rational Field
-            sage: M.modular_symbols_of_level(22)
-            Modular Symbols space of dimension 90 for Gamma_1(22) of weight 4 with sign 0 and over Rational Field
-        """
-        return modsym.ModularSymbols(arithgroup.Gamma1(N), self.weight(),self.sign(), self.base_ring())
-
 class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
     def __init__(self, group, weight, sign, F, custom_init=None, category=None):
         r"""
@@ -3388,36 +3398,6 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
             self.__manin_symbols = ManinSymbolList_gamma_h(
                 group=self.group(), weight=self.weight())
         return self.__manin_symbols
-
-    def modular_symbols_of_level(self, N):
-        r"""
-        Returns a space of modular symbols with the same parameters as
-        this space except with level `N`, which should be either a divisor or a
-        multiple of the level of self.
-
-        TESTS::
-
-            sage: M = ModularSymbols(GammaH(15,[7]),6)
-            sage: M.modular_symbols_of_level(5)
-            Modular Symbols space of dimension 4 for Gamma_0(5) of weight 6 with sign 0 over Rational Field
-            sage: M.modular_symbols_of_level(30)
-            Traceback (most recent call last):
-            ...
-            ValueError: N (=30) should be a factor of the level of this space (=15)
-            sage: M.modular_symbols_of_level(73)
-            Traceback (most recent call last):
-            ...
-            ValueError: N (=73) should be a factor of the level of this space (=15)
-        """
-        if self.level() % N == 0:
-            return modsym.ModularSymbols(self.group().restrict(N), self.weight(), self.sign(), self.base_ring())
-            # We deliberately don't allow N to be a multiple of the level here,
-            # because there are many possibilities for what H could be at the
-            # higher level (and we don't implement the degeneracy raising maps
-            # anyway)
-        else:
-            raise ValueError("N (=%s) should be a factor of the level\
-                of this space (=%s)" % (N, self.level()))
 
 
 class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):

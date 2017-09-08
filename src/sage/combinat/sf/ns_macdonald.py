@@ -624,7 +624,7 @@ class NonattackingFillings_shape(CombinatorialClass):
 
     def flip(self):
         """
-        Returns the nonattacking fillings of the the flipped shape.
+        Return the nonattacking fillings of the flipped shape.
 
         EXAMPLES::
 

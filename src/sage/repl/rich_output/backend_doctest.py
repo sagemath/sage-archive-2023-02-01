@@ -74,7 +74,7 @@ class BackendDoctest(BackendBase):
 
     def install(self, **kwds):
         """
-        Switch to the the doctest backend
+        Switch to the doctest backend.
 
         This method is being called from within
         :meth:`~sage.repl.rich_output.display_manager.DisplayManager.switch_backend`. You
@@ -285,7 +285,7 @@ class BackendDoctest(BackendBase):
             assert rich_output.obj.get().startswith('mtllib ')
             assert rich_output.mtl.get().startswith('newmtl ')
         elif isinstance(rich_output, OutputSceneCanvas3d):
-            assert rich_output.canvas3d.get().startswith('[{vertices:')
+            assert rich_output.canvas3d.get().startswith('[{"vertices":')
         elif isinstance(rich_output, OutputVideoOgg):
             assert rich_output.video.get().startswith('OggS')
         elif isinstance(rich_output, OutputVideoWebM):

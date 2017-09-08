@@ -58,7 +58,6 @@ except ImportError:
     from urllib2 import urlopen, URLError
 
 DEFAULT_PYPI = 'https://pypi.python.org/pypi'
-PIP_VERSION = re.compile("^([^\s]+) \(([^\s]+)\)$", re.MULTILINE)
 
 def pkgname_split(name):
     r"""
@@ -144,9 +143,9 @@ def pip_installed_packages():
         sage: d['beautifulsoup']   # optional - beautifulsoup
         '...'
     """
-    proc = subprocess.Popen(["pip", "list", "--no-index"], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["pip", "list", "--no-index", "--format", "json"], stdout=subprocess.PIPE)
     stdout = str(proc.communicate()[0])
-    return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdout))
+    return {package['name'].lower():package['version'] for package in json.loads(stdout)}
 
 def list_packages(*pkg_types, **opts):
     r"""
@@ -262,31 +261,6 @@ def list_packages(*pkg_types, **opts):
 
     return pkgs
 
-def install_package(package=None, force=None):
-    """
-    This function is obsolete. Run ``sage -i PKGNAME`` from a shell
-    to install a package. Use the function :func:`installed_packages`
-    to list all installed packages.
-
-    TESTS::
-
-        sage: install_package()
-        doctest:...: DeprecationWarning: use installed_packages() to list all installed packages
-        See http://trac.sagemath.org/16759 for details.
-        [...'arb...'python...]
-        sage: install_package("autotools")
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: installing Sage packages using 'install_package()' is obsolete.
-        Run 'sage -i autotools' from a shell prompt instead
-    """
-    if package is not None:
-        # deprecation(16759, ...)
-        raise NotImplementedError("installing Sage packages using 'install_package()' is obsolete.\nRun 'sage -i {}' from a shell prompt instead".format(package))
-
-    from sage.misc.superseded import deprecation
-    deprecation(16759, "use installed_packages() to list all installed packages")
-    return sorted(installed_packages())
 
 def installed_packages(exclude_pip=True):
     """
@@ -394,7 +368,7 @@ def standard_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()
@@ -422,7 +396,7 @@ def optional_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()
@@ -459,7 +433,7 @@ def experimental_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.package import experimental_packages
         sage: installed, not_installed = experimental_packages()
@@ -468,20 +442,6 @@ def experimental_packages():
     return (sorted(pkg['name'] for pkg in pkgs if pkg['installed']),
             sorted(pkg['name'] for pkg in pkgs if not pkg['installed']))
 
-def upgrade():
-    """
-    Obsolete function, run ``sage --upgrade`` from a shell prompt instead.
-
-    TESTS::
-
-        sage: upgrade()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: upgrading Sage using 'upgrade()' is obsolete.
-        Run 'sage --upgrade' from a shell prompt instead
-    """
-    # deprecation(16759, ..)
-    raise NotImplementedError("upgrading Sage using 'upgrade()' is obsolete.\nRun 'sage --upgrade' from a shell prompt instead")
 
 class PackageNotFoundError(RuntimeError):
     """

@@ -16,10 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 from cpython.list cimport *
 
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_pythonhash
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
@@ -133,6 +133,10 @@ cdef inline bint creduce(mpz_t out, mpz_t a, long prec, PowComputer_ prime_pow) 
 
     - returns True if the reduction is zero; False otherwise.
     """
+    # The following could fail if the value returned by
+    # prime_pow.pow_mpz_t_tmp(prec) is zero. We could add a sig_on()/sig_off()
+    # to keep sage from crashing. This comes at a performance penalty, however.
+    # A correct implementation of prime_pow should never return zero.
     mpz_mod(out, a, prime_pow.pow_mpz_t_tmp(prec))
     return mpz_sgn(out) == 0
 
@@ -306,7 +310,7 @@ cdef inline int cinvert(mpz_t out, mpz_t a, long prec, PowComputer_ prime_pow) e
     success = mpz_invert(out, a, prime_pow.pow_mpz_t_tmp(prec))
     if not success:
         raise ZeroDivisionError
-    
+
 cdef inline int cmul(mpz_t out, mpz_t a, mpz_t b, long prec, PowComputer_ prime_pow) except -1:
     """
     Multiplication.
@@ -327,7 +331,7 @@ cdef inline int cdivunit(mpz_t out, mpz_t a, mpz_t b, long prec, PowComputer_ pr
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:
@@ -380,7 +384,7 @@ cdef inline bint cisone(mpz_t out, PowComputer_ prime_pow) except -1:
     - returns True if `a = 1`, and False otherwise.
     """
     return mpz_cmp_ui(out, 1) == 0
-    
+
 cdef inline bint ciszero(mpz_t out, PowComputer_ prime_pow) except -1:
     """
     Returns whether this element is equal to 0.
@@ -395,7 +399,7 @@ cdef inline bint ciszero(mpz_t out, PowComputer_ prime_pow) except -1:
     - returns True if `a = 0`, and False otherwise.
     """
     return mpz_cmp_ui(out, 0) == 0
-    
+
 cdef inline int cpow(mpz_t out, mpz_t a, mpz_t n, long prec, PowComputer_ prime_pow) except -1:
     """
     Exponentiation.
@@ -441,12 +445,12 @@ cdef inline cpickle(mpz_t a, PowComputer_ prime_pow):
 
 cdef inline int cunpickle(mpz_t out, x, PowComputer_ prime_pow) except -1:
     """
-    Reconstruction from the output of meth:`cpickle`.
+    Reconstruction from the output of :meth:`cpickle`.
 
     INPUT:
 
     - ``out`` -- the ``mpz_t`` in which to store the result.
-    - ``x`` -- the result of `meth`:cpickle.
+    - ``x`` -- the result of :meth:`cpickle`.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     mpz_set(out, (<Integer?>x).value)

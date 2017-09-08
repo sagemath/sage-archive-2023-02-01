@@ -163,7 +163,7 @@ TESTS::
     Full MatrixSpace of 3 by 3 dense matrices over Real ball field
     with 53 bits precision
 
-    sage: polygen(RBF, x)^3
+    sage: polygen(RBF, 'x')^3
     x^3
 
 ::
@@ -178,16 +178,19 @@ TESTS::
 Classes and Methods
 ===================
 """
-#*****************************************************************************
-# Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
-#*****************************************************************************
 
-include "cysignals/signals.pxi"
+#*****************************************************************************
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from __future__ import absolute_import
+
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
@@ -372,7 +375,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     ::
 
-        sage: (1/2*RBF(1)) + AA(sqrt(2)) - 1 + polygen(QQ, x)
+        sage: (1/2*RBF(1)) + AA(sqrt(2)) - 1 + polygen(QQ, 'x')
         x + [0.914213562373095 +/- 4.10e-16]
 
     TESTS::
@@ -407,7 +410,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         TESTS::
 
-            sage: RealBallField(53) is RealBallField()
+            sage: RealBallField(53) is RealBallField() is RBF
             True
         """
         return super(RealBallField, cls).__classcall__(cls, precision, category)
@@ -448,9 +451,10 @@ class RealBallField(UniqueRepresentation, Field):
                 base_ring=self,
                 category=category or sage.categories.fields.Fields().Infinite())
         self._prec = precision
-        from sage.rings.qqbar import AA
+        # The coercion from QQbar is handled in _coerce_map_from_ to prevent
+        # import loops leading to silent UniqueRepresentation failures.
         from sage.rings.real_lazy import RLF
-        self._populate_coercion_lists_([ZZ, QQ, AA, RLF])
+        self._populate_coercion_lists_([ZZ, QQ, RLF])
 
     def _repr_(self):
         r"""
@@ -499,6 +503,9 @@ class RealBallField(UniqueRepresentation, Field):
             emb = other.coerce_embedding()
             if emb is not None:
                 return self.has_coerce_map_from(emb.codomain())
+        from sage.rings.qqbar import AA
+        if other is AA:
+            return True
 
     def _element_constructor_(self, mid=None, rad=None):
         """
@@ -573,7 +580,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def gens(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RBF.gens()
             (1.000000000000000,)
@@ -1545,6 +1552,28 @@ cdef class RealBall(RingElement):
                 else:
                     return field(0)
         raise ValueError("unknown rounding mode")
+
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(RBF(1))
+            1.0
+        """
+        return float(self.n(prec(self)))
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(RBF(1))
+            (1+0j)
+        """
+        return complex(self.n(prec(self)))
 
     # Center and radius, absolute value, endpoints
 
@@ -2574,6 +2603,23 @@ cdef class RealBall(RingElement):
         """
         return not self.is_finite()
 
+    def is_NaN(self):
+        """
+        Return ``True`` if this ball is not-a-number.
+
+        EXAMPLES::
+
+            sage: RBF(NaN).is_NaN()
+            True
+            sage: RBF(-5).gamma().is_NaN()
+            True
+            sage: RBF(infinity).is_NaN()
+            False
+            sage: RBF(42, rad=1.r).is_NaN()
+            False
+        """
+        return arf_is_nan(arb_midref(self.value))
+
     # Arithmetic
 
     def __neg__(self):
@@ -2953,6 +2999,8 @@ cdef class RealBall(RingElement):
             [1.098612288668110 +/- 6.63e-16]
             sage: RBF(3).log(2)
             [1.584962500721156 +/- 7.53e-16]
+            sage: log(RBF(5), 2)
+            [2.32192809488736 +/- 3.04e-15]
 
             sage: RBF(-1/3).log()
             nan

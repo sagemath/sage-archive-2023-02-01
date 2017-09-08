@@ -1519,7 +1519,7 @@ class TopologicalManifold(ManifoldSubset):
         In the present case (manifold or open subset of it), always
         return ``True``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: M.is_open()

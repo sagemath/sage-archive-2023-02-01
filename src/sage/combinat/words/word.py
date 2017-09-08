@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word classes
 
@@ -60,7 +60,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
        For iterators: Infinity if you know the iterator will not
        terminate (default); ``"unknown"`` if you do not know whether the
        iterator terminates; ``"finite"`` if you know that the iterator
-       terminates, but do know know the length.
+       terminates, but do not know the length.
 
     -  ``datatype`` -- (default: ``None``) ``None``, ``"list"``, ``"str"``,
        ``"tuple"``, ``"iter"``, ``"callable"``. If ``None``, then the function
@@ -511,7 +511,7 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 
@@ -549,7 +549,7 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 
@@ -648,7 +648,7 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 
@@ -684,7 +684,7 @@ class Word_iter(WordDatatype_iter, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 

@@ -10,6 +10,7 @@ Factory for symbolic functions
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 from __future__ import print_function
+from six import string_types
 
 from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
@@ -198,7 +199,7 @@ def function(s, *args, **kwds):
         sage: 2*f
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
+        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
 
     You now need to evaluate the function in order to do the arithmetic::
 
@@ -311,7 +312,7 @@ def function(s, *args, **kwds):
         sage: E
         E
     """
-    if not isinstance(s, (str, unicode)):
+    if not isinstance(s, string_types):
         raise TypeError("expect string as first argument")
 
     # create the function

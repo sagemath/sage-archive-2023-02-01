@@ -51,6 +51,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from functools import total_ordering
 
 from sage.libs.pari.all import pari_gen
 from sage.rings.all import ZZ, is_fundamental_discriminant
@@ -60,6 +61,8 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 
+
+@total_ordering
 class BinaryQF(SageObject):
     r"""
     A binary quadratic form over `\ZZ`.
@@ -164,13 +167,13 @@ class BinaryQF(SageObject):
             sage: pari(f)
             Qfb(2, 3, 4)
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'cypari2.gen.Gen'>
             sage: gp(f)
             Qfb(2, 3, 4)
             sage: type(gp(f))
             <class 'sage.interfaces.gp.GpElement'>
         """
-        return 'Qfb(%s,%s,%s)'%(self._a,self._b,self._c)
+        return 'Qfb(%s,%s,%s)' % (self._a, self._b, self._c)
 
     def __mul__(self, right):
         """
@@ -290,10 +293,11 @@ class BinaryQF(SageObject):
         """
         return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Return ``True`` if ``self`` and ``right`` have the same
-        coefficients.
+        Return ``True`` if ``self`` and ``right`` are identical.
+
+        This means that they have the same coefficients.
 
         EXAMPLES::
 
@@ -317,8 +321,47 @@ class BinaryQF(SageObject):
             False
         """
         if not isinstance(right, BinaryQF):
-            return cmp(type(self), type(right))
-        return cmp((self._a,self._b,self._c), (right._a,right._b,right._c))
+            return False
+        return (self._a, self._b, self._c) == (right._a, right._b, right._c)
+
+    def __ne__(self, right):
+        """
+        Return ``True`` if ``self`` and ``right`` are not identical.
+
+        This means that they have different coefficients.
+
+        EXAMPLES::
+
+            sage: P = BinaryQF([2,2,3])
+            sage: Q = BinaryQF([2,2,3])
+            sage: R = BinaryQF([1,2,3])
+            sage: P != Q # indirect doctest
+            False
+            sage: P != R # indirect doctest
+            True
+        """
+        return not (self == right)
+
+    def __lt__(self, right):
+        """
+        Compare the coefficients of ``self`` and ``right``.
+
+        This is done lexicographically.
+
+        EXAMPLES::
+
+            sage: P = BinaryQF([2,2,3])
+            sage: Q = BinaryQF([1,2,3])
+            sage: P < Q
+            False
+            sage: Q < P
+            True
+            sage: Q <= P
+            True
+        """
+        if not isinstance(right, BinaryQF):
+            return False
+        return (self._a, self._b, self._c) < (right._a, right._b, right._c)
 
     def __add__(self, Q):
         """
@@ -1066,7 +1109,7 @@ class BinaryQF(SageObject):
 
         A prime number represented by the form.
 
-        .. note::
+        .. NOTE::
 
             This is a very elementary implementation which just substitutes
             values until a prime is found.
@@ -1135,6 +1178,7 @@ class BinaryQF(SageObject):
                     x = (z-b*y)//a2
                     return (x,y)
         return None
+
 
 def BinaryQF_reduced_representatives(D, primitive_only=True):
     r"""

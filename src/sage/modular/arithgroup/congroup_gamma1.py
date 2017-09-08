@@ -207,7 +207,7 @@ class Gamma1_class(GammaH_class):
         based on Todd-Coxeter enumeration will be used. This tends to return
         far larger sets of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(3).generators()
             [
@@ -262,7 +262,7 @@ class Gamma1_class(GammaH_class):
         Calculate the number of orbits of elliptic points of order 2 for this
         subgroup `\Gamma_1(N)`. This is known to be 0 if N > 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(2).nu2()
             1
@@ -280,7 +280,7 @@ class Gamma1_class(GammaH_class):
         Calculate the number of orbits of elliptic points of order 3 for this
         subgroup `\Gamma_1(N)`. This is known to be 0 if N > 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(2).nu3()
             0
@@ -319,7 +319,7 @@ class Gamma1_class(GammaH_class):
 
             N^2 \prod_{\substack{p \mid N \\ \text{$p$ prime}}} \left( 1 - \frac{1}{p^2}\right).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(180).index()
             20736

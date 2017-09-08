@@ -372,7 +372,8 @@ class PieriFactors_affine_type(PieriFactors):
         s = ct.translation_factors()[1]
         R = RootSystem(ct).weight_space()
         Lambda = R.fundamental_weights()
-        orbit = [ R.reduced_word_of_translation(x) for x in (s*(Lambda[1]-Lambda[1].level()*Lambda[0])).orbit() ]
+        orbit = [R.reduced_word_of_translation(x)
+                 for x in (s*(Lambda[1]-Lambda[1].level()*Lambda[0]))._orbit_iter()]
         return [self.W.from_reduced_word(x) for x in orbit]
 
 

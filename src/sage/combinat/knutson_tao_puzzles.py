@@ -1269,15 +1269,15 @@ class PuzzleFilling(object):
 
             sage: ps = KnutsonTaoPuzzleSolver(H_grassmannian_pieces())
             sage: solns = ps('0101', '0101')
-            sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+            sage: view(solns[0], viewer='pdf')  # not tested
 
             sage: ps = KnutsonTaoPuzzleSolver(HT_two_step_pieces())
             sage: solns = ps(list('10212'), list('12012'))
-            sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+            sage: view(solns[0], viewer='pdf')  # not tested
 
             sage: ps = KnutsonTaoPuzzleSolver(K_grassmannian_pieces())
             sage: solns = ps('0101', '0101')
-            sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+            sage: view(solns[0], viewer='pdf')  # not tested
 
         """
         from collections import defaultdict
@@ -1456,7 +1456,7 @@ class KnutsonTaoPuzzleSolver(UniqueRepresentation):
         sage: latex.extra_preamble(r'''\usepackage{tikz}''')
         sage: ps = KnutsonTaoPuzzleSolver('H')
         sage: solns = ps('0101', '0101')
-        sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+        sage: view(solns[0], viewer='pdf')  # not tested
 
 
     Below are examples of using each of the currently supported puzzles.

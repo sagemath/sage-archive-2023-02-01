@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ "$SAGE_LOCAL" = "" ]; then
     echo "SAGE_LOCAL undefined ... exiting";
     echo "Maybe run 'sage -sh'?"
@@ -8,20 +6,14 @@ fi
 
 cd src || exit
 
-echo "Applying patches to upstream sources..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
-        exit 1
-    fi
-done
-
 INCLUDES="-I$SAGE_LOCAL/include/"
 
+if [ "$UNAME" = "CYGWIN" ]; then
+    CXXFLAGS="$CXXFLAGS -std=gnu++11"
+fi
 CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
 CPPFLAGS="$INCLUDES"
+CONFIGUREFLAGS="--prefix=$SAGE_LOCAL --libdir=$SAGE_LOCAL/lib"
 
 # Allow the user to specify a compiler flag for 64-bit builds.
 # This will be -m64 with both Sun Studio and gcc, but other compilers
@@ -42,14 +34,14 @@ if [ "$UNAME" = "CYGWIN" ]; then
     echo "Disable parallel building on Cygwin"
     MAKE="$MAKE -j1"
     export MAKE
+    CONFIGUREFLAGS="$CONFIGUREFLAGS --disable-recursive-enum"
 fi
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
    CXXFLAGS="$CXXFLAGS -O0"
-   ENABLE_DEBUG="--enable-debug"
+   CONFIGUREFLAGS="$CONFIGUREFLAGS --enable-debug"
 else
    CXXFLAGS="$CXXFLAGS -O3"
-   ENABLE_DEBUG=""
 fi
 
 export CXXFLAGS="$CXXFLAGS"
@@ -57,14 +49,14 @@ export CPPFLAGS="$CPPFLAGS"
 export CXX="$CXX"
 
 echo "Now configuring fplll..."
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG
+./configure $CONFIGUREFLAGS
 if [ $? -ne 0 ]; then
     echo "Error configuring fplll"
     exit 1
 fi
 
 echo "Now building fplll..."
-$MAKE V=1
+$MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fplll"
     exit 1

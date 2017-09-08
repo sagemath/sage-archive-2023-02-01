@@ -303,7 +303,7 @@ class Function_Bessel_J(BuiltinFunction):
         1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
+        (hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3)/24
 
     Visualization (set plot_points to a higher value to get more detail)::
 
@@ -341,11 +341,12 @@ class Function_Bessel_J(BuiltinFunction):
             sage: bessel_J(x, x)._sympy_()
             besselj(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_J", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_J', nargs=2,
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
                                                   sympy='besselj',
-                                                  fricas='besselJ'))
+                                                  fricas='besselJ',
+                                                  giac='BesselJ'))
 
     def _eval_(self, n, x):
         """
@@ -557,11 +558,12 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: bessel_Y(x, x)._sympy_()
             bessely(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_Y', nargs=2,
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely',
-                                                  fricas='besselY'))
+                                                  fricas='besselY',
+                                                  giac='BesselY'))
 
     def _eval_(self, n, x):
         """
@@ -575,6 +577,11 @@ class Function_Bessel_Y(BuiltinFunction):
             -sqrt(2)*sqrt(1/(pi*x))*cos(x)
             sage: bessel_Y(-1/2, x)
             sqrt(2)*sqrt(1/(pi*x))*sin(x)
+
+        TESTS::
+
+            sage: bessel_Y(0, 0)
+            -Infinity
         """
         from sage.rings.infinity import infinity, unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
@@ -681,7 +688,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: a = bessel_I(pi, bessel_I(1, I))
         sage: N(a, digits=20)
-        0.00026073272117205890528 - 0.0011528954889080572266*I
+        0.00026073272117205890524 - 0.0011528954889080572268*I
 
         sage: f = bessel_I(2, x)
         sage: f.diff(x)
@@ -757,7 +764,7 @@ class Function_Bessel_I(BuiltinFunction):
             sage: bessel_I(x, x)._sympy_()
             besseli(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_I", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_I', nargs=2,
                                  conversions=dict(mathematica='BesselI',
                                                   maxima='bessel_i',
                                                   sympy='besseli',
@@ -871,7 +878,7 @@ class Function_Bessel_K(BuiltinFunction):
         sage: a = bessel_K(pi, bessel_K(1, I)); a
         bessel_K(pi, bessel_K(1, I))
         sage: N(a, digits=20)
-        3.8507583115005220157 + 0.068528298579883425792*I
+        3.8507583115005220156 + 0.068528298579883425456*I
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)
@@ -957,7 +964,7 @@ class Function_Bessel_K(BuiltinFunction):
             sage: bessel_K(x, x)._sympy_()
             besselk(x, x)
         """
-        BuiltinFunction.__init__(self, "bessel_K", nargs=2,
+        BuiltinFunction.__init__(self, 'bessel_K', nargs=2,
                                  conversions=dict(mathematica='BesselK',
                                                   maxima='bessel_k',
                                                   sympy='besselk',
@@ -974,8 +981,13 @@ class Function_Bessel_K(BuiltinFunction):
             sqrt(1/2)*sqrt(pi)*e^(-x)/sqrt(x)
             sage: bessel_K(n, 0)
             bessel_K(n, 0)
+
+        TESTS::
+
+            sage: bessel_K(0, 0)
+            +Infinity
         """
-        from sage.rings.infinity import unsigned_infinity
+        from sage.rings.infinity import infinity, unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
             if n == 0:
                 return infinity
@@ -1110,7 +1122,7 @@ def Bessel(*args, **kwds):
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
         sage: f.derivative('_SAGE_VAR_x')
-        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
+        (%pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
         sage: f.derivative('_SAGE_VAR_y')
         -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 

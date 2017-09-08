@@ -12,6 +12,8 @@ General matrix Constructor
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 import types
 from .matrix_space import MatrixSpace
 from sage.rings.ring import is_Ring
@@ -575,11 +577,12 @@ class MatrixFactory(object):
     Some calls using an iterator (note that xrange is no longer available
     in Python 3)::
 
-        sage: matrix(QQ, 3, 6, xrange(18), sparse=true)
+        sage: from six.moves import range
+        sage: matrix(QQ, 3, 6, range(18), sparse=true)
         [ 0  1  2  3  4  5]
         [ 6  7  8  9 10 11]
         [12 13 14 15 16 17]
-        sage: matrix(4, 4, xrange(16))
+        sage: matrix(4, 4, range(16))
         [ 0  1  2  3]
         [ 4  5  6  7]
         [ 8  9 10 11]

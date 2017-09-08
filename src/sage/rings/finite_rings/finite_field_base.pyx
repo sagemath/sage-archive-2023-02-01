@@ -29,9 +29,11 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
@@ -67,7 +69,7 @@ cdef class FiniteFieldIterator:
         r"""
         Return the next element in the iterator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
             sage: next(k) # indirect doctest
@@ -852,7 +854,7 @@ cdef class FiniteField(Field):
             pass
 
         from sage.rings.all import PolynomialRing
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         R = PolynomialRing(GF(self.characteristic()), 'x')
         self._modulus = R((-1,1))  # Polynomial x - 1
         return self._modulus
@@ -1055,7 +1057,7 @@ cdef class FiniteField(Field):
         if is_FiniteField(R):
             if R is self:
                 return True
-            from residue_field import ResidueField_generic
+            from .residue_field import ResidueField_generic
             if isinstance(R, ResidueField_generic):
                 return False
             if R.characteristic() == self.characteristic():
@@ -1162,7 +1164,7 @@ cdef class FiniteField(Field):
             sage: F.extension(int(3), 'aa')
             Finite Field in aa of size 2^12
         """
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
@@ -1245,7 +1247,7 @@ cdef class FiniteField(Field):
                   Defn: z21 |--> z21)]
         """
         from sage.rings.integer import Integer
-        from finite_field_constructor import GF
+        from .finite_field_constructor import GF
         p = self.characteristic()
         n = self.degree()
         if degree != 0:
@@ -1312,7 +1314,7 @@ cdef class FiniteField(Field):
         coercion and pickling cannot work as one might expect.  See
         below for an example.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(5).algebraic_closure()
             sage: F
@@ -1346,7 +1348,7 @@ cdef class FiniteField(Field):
         .. [CP] Wikipedia entry on Conway polynomials,
            :wikipedia:`Conway_polynomial_(finite_fields)`
 
-        TEST::
+        TESTS::
 
             sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
             True
@@ -1369,7 +1371,7 @@ cdef class FiniteField(Field):
             sage: GF(next_prime(2^16, 2), 'a').is_conway()
             False
         """
-        from conway_polynomials import conway_polynomial, exists_conway_polynomial
+        from .conway_polynomials import conway_polynomial, exists_conway_polynomial
         p = self.characteristic()
         n = self.degree()
         return (exists_conway_polynomial(p, n)
@@ -1559,6 +1561,9 @@ def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     but kept around for backward compatibility.
     """
     return _type(order, variable_name, **kwargs)
+
+register_unpickle_override(
+    'sage.rings.ring', 'unpickle_FiniteField_prm', unpickle_FiniteField_prm)
 
 
 def is_FiniteField(x):

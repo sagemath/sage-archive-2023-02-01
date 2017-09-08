@@ -69,7 +69,7 @@ An eisenstein extension::
     sage: S.<x> = ZZ[]
     sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
     sage: W.<w> = R.ext(f); W
-    Eisenstein Extension of 5-adic Ring with capped absolute precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^5))*x^4 + (3*5^2 + O(5^5))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))*x^2 + (5^3 + O(5^5))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5))
+    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped absolute precision 25 over 5-adic Ring
     sage: z = (1+w)^5; z
     1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
     sage: y = z >> 1; y
@@ -85,7 +85,7 @@ An eisenstein extension::
     sage: (1/w)^12+w
     w^-12 + w + O(w^12)
     sage: (1/w).parent()
-    Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
 
 An unramified extension::
 
@@ -159,8 +159,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_on, sig_off
 from sage.ext.stdsage cimport PY_NEW
-include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
@@ -310,7 +310,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 raise TypeError("Cannot coerce between p-adic parents with different primes.")
         if isinstance(x, pari_gen) or isinstance(x, GpElement):
             if isinstance(x, GpElement):
-                x = x._pari_()
+                x = x.__pari__()
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
                     raise TypeError("Cannot coerce a pari p-adic with the wrong prime.")
@@ -927,7 +927,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: y = ~z; y # indirect doctest
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
             sage: z = z - 1
             sage: ~z
             w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
@@ -949,7 +949,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: y = z.to_fraction_field(); y #indirect doctest
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 with capped relative precision 25 over 5-adic Field
         """
         cdef pAdicZZpXCRElement ans = pAdicZZpXCRElement.__new__(pAdicZZpXCRElement)
         ans._parent = self._parent.fraction_field()
@@ -1149,14 +1149,14 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         Lemma 2.1 (Constructing Class Fields over Local Fields,
         Sebastian Pauli): Let `\alpha` be in `\mathcal{O}_K`.  Let
 
-        ..math ::
+        .. MATH::
 
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
         the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^p \equiv \left{ \begin{array}{lll}
             1 + \alpha^p \pi_K^{p \lambda} & \mod \mathfrak{p}_K^{p \lambda + 1} & \mbox{if $1 \le \lambda < \frac{e_K}{p-1}$} \\
@@ -1181,7 +1181,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         Teichmuller part and use the above lemma to find the first
         spot where
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^{p^m}
 
@@ -2018,11 +2018,20 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             (10*a^2 + 2*a + 1) + (4*a^2 + 7)*11 + (5*a^2 + a + 3)*11^2 + (a^2 + 9*a + 6)*11^3 + (7*a^2 + 2*a + 3)*11^4 + O(11^5)
             sage: b^1331 == b
             True
+
+        TESTS:
+
+        Check that :trac:`22083` has been resolved::
+
+            sage: R.<a> = ZpCA(2).extension(x^2 - 2)
+            sage: R.teichmuller(a)
+            O(a^40)
+
         """
         if self.absprec == 0:
             raise ValueError("not enough precision known")
         elif self.valuation_c() > 0:
-            return self._new_c(self.prime_pow.ram_prec_cap)
+            self._set_inexact_zero(self.prime_pow.ram_prec_cap)
         else:
             self.prime_pow.teichmuller_set_c(&self.value, &self.value, self.absprec)
 

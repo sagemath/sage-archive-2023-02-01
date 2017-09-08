@@ -1013,7 +1013,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
 
         EXAMPLES:
 
-        We construct explicitly an algbera morphism::
+        We construct explicitly an algebra morphism::
 
             sage: from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
@@ -1081,6 +1081,46 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
         self._anti = anti
         self._on_generators = on_generators
         ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, position = position, category = category)
+
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+            sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
+            sage: f = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: g = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: f == g
+            True
+            sage: f is g
+            False
+        """
+        return (self.__class__ is other.__class__ and self.parent() == other.parent()
+                and self._zero == other._zero
+                and self._on_generators == other._on_generators
+                and self._position == other._position
+                and self._is_module_with_basis_over_same_base_ring
+                    == other._is_module_with_basis_over_same_base_ring)
+
+    def __ne__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+            sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
+            sage: f = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: g = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: f != g
+            False
+            sage: h = Phi.algebra_morphism(Psi.antipode_on_generators, codomain=Psi)
+            sage: f != h
+            True
+        """
+        return not (self == other)
 
     def _on_basis(self, c):
         r"""

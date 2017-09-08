@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 
@@ -14,12 +15,14 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #*****************************************************************************
 
 from .decl cimport *
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 initConstants()
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 
 cdef class String:
     def __cinit__(self, s=""):
@@ -96,17 +99,17 @@ cdef class String:
         s = repr(self)
         o = repr(other)
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s == o
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s != o
-        elif op == 0: # <
+        elif op == Py_LT:
             return s < o
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s <= o
-        elif op == 4: # >
+        elif op == Py_GT:
             return s > o
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s >= o
 
     def __len__(self):
@@ -219,17 +222,17 @@ cdef class Type:
         s = repr(self)
         o = repr(other)
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s == o
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s != o
-        elif op == 0: # <
+        elif op == Py_LT:
             return s < o
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s <= o
-        elif op == 4: # >
+        elif op == Py_GT:
             return s > o
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s >= o
 
     def __reduce__(self):
@@ -368,17 +371,17 @@ cdef class CoxGroup(SageObject):
         s_r = self.rank()
         o_r = other.rank()
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s_t == o_t and s_r == o_r
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s_t != o_t or s_r != o_r
-        elif op == 0: # <
+        elif op == Py_LT:
             return s_t < o_t or (s_t == o_t and s_r < o_r)
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s_t < o_t or (s_t == o_t and s_r <= o_r)
-        elif op == 4: # >
+        elif op == Py_GT:
             return s_t > o_t or (s_t == o_t and s_r > o_r)
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s_t > o_t or (s_t == o_t and s_r >= o_r)
 
     def __reduce__(self):
@@ -516,7 +519,7 @@ cdef class CoxGroup(SageObject):
         if self.is_finite():
             return Integer(self.x.order())
         else:
-            from sage.all import infinity
+            from sage.rings.infinity import infinity
             return infinity
 
     def is_finite(self):
@@ -620,7 +623,7 @@ cdef class CoxGroup(SageObject):
             [2 2 2 3 1]
 
         """
-        from sage.all import matrix, ZZ
+        from sage.matrix.constructor import matrix
         rank = self.rank()
         m = matrix(ZZ, rank, rank)
         for i, ii in enumerate(self.cartan_type.index_set()):
@@ -651,7 +654,7 @@ cdef class CoxGroup(SageObject):
             sage: sorted(W.coxeter_graph().edges())                              # optional - coxeter3
             [(1, 2, None), (2, 3, None), (3, 4, None), (4, 5, None)]
         """
-        from sage.all import Graph
+        from sage.graphs.graph import Graph
         g = Graph()
         m = self.coxeter_matrix()
         rank = self.rank()
@@ -865,19 +868,18 @@ cdef class CoxGroupElement:
         s_l = list(self)
         o_l = list(other)
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s_p == o_p and s_l == o_l
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s_p != o_p or s_l != o_l
-        elif op == 0: # <
+        elif op == Py_LT:
             return s_p < o_p or (s_p == o_p and s_l < o_l)
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s_p < o_p or (s_p == o_p and s_l <= o_l)
-        elif op == 4: # >
+        elif op == Py_GT:
             return s_p > o_p or (s_p == o_p and s_l > o_l)
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s_p > o_p or (s_p == o_p and s_l >= o_l)
-
 
     def __iter__(self):
         """
@@ -1059,7 +1061,7 @@ cdef class CoxGroupElement:
 
     def poincare_polynomial(self):
         """
-        Return the Poincare polynomial associated with the Bruhat
+        Return the Poincaré polynomial associated with the Bruhat
         interval between the identity element and this one.
 
         EXAMPLES::
@@ -1100,7 +1102,6 @@ cdef class CoxGroupElement:
             sage: W([1,2,1]).kazhdan_lusztig_polynomial([])                                          # optional - coxeter3
             0
         """
-        from sage.all import ZZ
         cdef CoxGroupElement vv
         if not isinstance(v, CoxGroupElement):
             vv = CoxGroupElement(self._parent_group, v)
@@ -1139,7 +1140,6 @@ cdef class CoxGroupElement:
             sage: v.mu_coefficient(w)                               # optional - coxeter3
             1
         """
-        from sage.all import ZZ
         cdef CoxGroupElement vv = CoxGroupElement(self._parent_group, v)
         cdef CoxNbr x = self.group.extendContext(self.word)
         cdef CoxNbr y = self.group.extendContext(vv.word)
@@ -1235,7 +1235,7 @@ def get_CoxGroup(cartan_type):
         sage: from sage.libs.coxeter3.coxeter import get_CoxGroup as CoxGroup, CoxGroupIterator  # optional - coxeter3
         sage: W = CoxGroup(['A', 2])                                                             # optional - coxeter3
     """
-    from sage.all import CartanType
+    from sage.combinat.root_system.cartan_type import CartanType
     cartan_type = CartanType(cartan_type)
     if cartan_type not in CoxGroup_cache:
         CoxGroup_cache[cartan_type] = CoxGroup(cartan_type)

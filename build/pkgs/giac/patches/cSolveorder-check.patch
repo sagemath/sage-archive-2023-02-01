@@ -4,7 +4,7 @@
  "Done",
  [-sqrt(13)-1,sqrt(13)-1,4],
  y^2+6*sqrt(13)+18,y^2-6*sqrt(13)+18,y^2,
---sqrt(6)*sqrt(sqrt(13)-3),sqrt(6)*sqrt(sqrt(13)-3),-sqrt(6)*I*sqrt(sqrt(13)+3),sqrt(6)*I*sqrt(sqrt(13)+3),0,
+--sqrt(6)*I*sqrt(sqrt(13)+3),sqrt(6)*I*sqrt(sqrt(13)+3),-sqrt(6)*sqrt(sqrt(13)-3),sqrt(6)*sqrt(sqrt(13)-3),0,
 +sqrt(6)*I*sqrt(sqrt(13)+3),-sqrt(6)*I*sqrt(sqrt(13)+3),-sqrt(6)*sqrt(sqrt(13)-3),sqrt(6)*sqrt(sqrt(13)-3),0,
  "No such variable u",
  x^2+1/4*y^2+1/9*z^2-1,

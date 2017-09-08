@@ -146,6 +146,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     if radius is None:
         L = Line(points, thickness=thickness, arrow_head=arrow_head, **kwds)
         L._set_extra_kwds(kwds)
+        L._extra_kwds['thickness'] = thickness  # remove this line if json_repr is defined
         return L
     else:
         v = []
@@ -285,6 +286,34 @@ def polygon3d(points, **options):
     """
     from sage.plot.plot3d.index_face_set import IndexFaceSet
     return IndexFaceSet([range(len(points))], points, **options)
+
+
+@options(opacity=1, color=(0,0,1))
+def polygons3d(faces, points, **options):
+    """
+    Draw the union of several polygons in 3d.
+
+    Useful to plot a polyhedron as just one ``IndexFaceSet``.
+
+    INPUT:
+
+    - ``faces`` -- list of faces, every face given by the list
+      of indices of its vertices
+
+    - ``points`` -- coordinates of the vertices in the union
+
+    EXAMPLES:
+
+    Two adjacent triangles::
+
+        sage: f = [[0,1,2],[1,2,3]]
+        sage: v = [(-1,0,0),(0,1,1),(0,-1,1),(1,0,0)]
+        sage: polygons3d(f, v, color='red')
+        Graphics3d Object
+    """
+    from sage.plot.plot3d.index_face_set import IndexFaceSet
+    return IndexFaceSet(faces, points, **options)
+
 
 def frame3d(lower_left, upper_right, **kwds):
     """
@@ -695,7 +724,7 @@ class Point(PrimitiveObject):
 
     -  ``size`` -- (default: 1)
 
-    EXAMPLE:
+    EXAMPLES:
 
     We normally access this via the ``point3d`` function.  Note that extra
     keywords are correctly used::

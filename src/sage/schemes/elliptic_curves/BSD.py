@@ -18,7 +18,7 @@ class BSD_data:
     """
     Helper class used to keep track of information in proving BSD.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.BSD import BSD_data
         sage: D = BSD_data()
@@ -50,7 +50,7 @@ class BSD_data:
         """
         Updates some properties from ``curve``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.BSD import BSD_data
             sage: D = BSD_data()
@@ -206,7 +206,7 @@ def heegner_index_work(E):
 
         - the discriminant used
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.BSD import heegner_index_work
         sage: heegner_index_work(EllipticCurve('14a'))
@@ -382,7 +382,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: S = E.sha(); S
         Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: def foo(use_database):
-        ...    return 4
+        ....:  return 4
         sage: S.an = foo
         sage: E.prove_BSD()
         Traceback (most recent call last):

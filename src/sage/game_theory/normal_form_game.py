@@ -603,7 +603,7 @@ from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
-from sage.misc.package import is_package_installed
+from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.misc.temporary_file import tmp_filename
 
 try:
@@ -1274,13 +1274,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: enumeration_eqs = g.obtain_nash(algorithm='enumeration')
             sage: [[type(s) for s in eq] for eq in enumeration_eqs]
-            [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
+            [[<... 'tuple'>, <... 'tuple'>], [<... 'tuple'>, <... 'tuple'>], [<... 'tuple'>, <... 'tuple'>]]
             sage: lrs_eqs = g.obtain_nash(algorithm='lrs')  # optional - lrslib
             sage: [[type(s) for s in eq] for eq in lrs_eqs]  # optional - lrslib
-            [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
+            [[<... 'tuple'>, <... 'tuple'>], [<... 'tuple'>, <... 'tuple'>], [<... 'tuple'>, <... 'tuple'>]]
             sage: LCP_eqs = g.obtain_nash(algorithm='LCP')  # optional - gambit
             sage: [[type(s) for s in eq] for eq in LCP_eqs]  # optional - gambit
-            [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
+            [[<... 'tuple'>, <... 'tuple'>], [<... 'tuple'>, <... 'tuple'>], [<... 'tuple'>, <... 'tuple'>]]
             sage: enumeration_eqs == sorted(enumeration_eqs)
             True
             sage: lrs_eqs == sorted(lrs_eqs)  # optional - lrslib
@@ -1313,13 +1313,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
         if algorithm == "lrs":
             if not is_package_installed('lrslib'):
-                raise NotImplementedError("lrslib is not installed")
+                raise PackageNotFoundError("lrslib")
 
             return self._solve_lrs(maximization)
 
         if algorithm == "LCP":
             if Game is None:
-                raise NotImplementedError("gambit is not installed")
+                raise PackageNotFoundError("gambit")
             for strategy_profile in self.utilities:
                 payoffs = self.utilities[strategy_profile]
                 if payoffs != [int(payoffs[0]), int(payoffs[1])]:

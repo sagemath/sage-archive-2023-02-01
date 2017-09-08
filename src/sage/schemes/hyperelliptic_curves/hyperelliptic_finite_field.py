@@ -15,6 +15,8 @@ AUTHORS:
 
 - Kiran Kedlaya (2016)
 
+- Dean Bisogno (2017): Fixed Hasse-Witt computation
+
 EXAMPLES::
 
     sage: K.<a> = GF(9, 'a')
@@ -406,7 +408,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         q = K.cardinality()
         g = self.genus()
         N = self._frobenius_coefficient_bound_charpoly()
-        # compute chapoly over ZZ and then reduce back
+        # compute charpoly over ZZ and then reduce back
         # (because charpoly of p-adic matrices sometimes loses precision)
         M = self.frobenius_matrix(N=N, algorithm=algorithm).change_ring(ZZ)
 
@@ -1322,6 +1324,13 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             1408
             sage: H.cardinality(3)
             50116
+            
+        The following example shows that :trac:`20391` has been resolved::
+            sage: F=GF(23)
+            sage: x=polygen(F)
+            sage: C=HyperellipticCurve(x^8+1)
+            sage: C.cardinality()
+            24
         """
         K = self.base_ring()
         q = K.cardinality()
@@ -1332,7 +1341,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         # We may:
         # - check for actual field of definition of the curve (up to isomorphism)
-        if e == 1 and h == 0:
+        if e == 1 and h == 0  and f.degree() % 2 == 1:
             N1 = self._frobenius_coefficient_bound_traces(n)
             N2 = self._frobenius_coefficient_bound_charpoly()
             if n < g and q > (2*g+1)*(2*N1-1):
@@ -1608,23 +1617,29 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
         return M
 
-    #This where Hasse_Witt is actually computed. This is either called by E.Hasse_Witt or p_rank
     @cached_method
     def _Hasse_Witt_cached(self):
         r"""
+        This is where Hasse_Witt is actually computed.
+
+        This is either called by E.Hasse_Witt or E.p_rank.
+
         INPUT:
 
-        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E`` -- hyperelliptic Curve of the form `y^2 = f(x)` over
+          a finite field, `\mathbb{F}_q`
 
         OUTPUT:
 
-        - ``N`` : The matrix `N = M M^p \dots M^{p^{g-1}}` where `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
-        - ``E`` : The initial curve to check some caching conditions.
+        - ``N`` -- the matrix `N = M M^p \dots M^{p^{g-1}}` where
+          `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
+
+        - ``E`` -- the initial curve to check some caching conditions
 
         EXAMPLES::
 
-            sage: K.<x>=GF(9,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: K.<x> = GF(9,'x')[]
+            sage: C = HyperellipticCurve(x^7-1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0 0]
@@ -1632,16 +1647,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [0 0 0], Hyperelliptic Curve over Finite Field in x of size 3^2 defined by y^2 = x^7 + 2
             )
 
-            sage: K.<x>=GF(49,'x')[]
-            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: K.<x> = GF(49,'x')[]
+            sage: C = HyperellipticCurve(x^5+1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0]
             [0 0], Hyperelliptic Curve over Finite Field in x of size 7^2 defined by y^2 = x^5 + 1
             )
 
-            sage: P.<x>=GF(9,'a')[]
-            sage: C=HyperellipticCurve(x^29+1,0)
+            sage: P.<x> = GF(9,'a')[]
+            sage: C = HyperellipticCurve(x^29+1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -1659,6 +1674,17 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0], Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 = x^29 + 1
             )
+
+        TESTS:
+
+        This shows that the bug at :trac:`23181` is fixed::
+
+            sage: K.<z> = PolynomialRing(GF(5))
+            sage: L.<a> = GF(5).extension(z^3+3*z+3,'a')
+            sage: H.<x> = L[]
+            sage: E = HyperellipticCurve(x^5+x^4+a^92*x^3+a^18*x^2+a^56*x,0)
+            sage: E.p_rank()
+            0
         """
         # If Cartier Matrix is already cached for this curve, use that or evaluate it to get M,
         #Coeffs, genus, Fq=base field of self, p=char(Fq). This is so we have one less matrix to
@@ -1682,15 +1708,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         def frob_mat(Coeffs, k):
             a = p ** k
             mat = []
-            Coeffs_pow = [c ** a for c in Coeffs]  # not used ??
+            Coeffs_pow = [c ** a for c in Coeffs]
             for i in range(1, g + 1):
-                H = [(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
+                H = [(Coeffs_pow[j]) for j in range((p*i-1), (p*i - g-1), -1)]
                 mat.append(H)
             return matrix(Fq, mat)
 
         #Computes all the different possible action of frobenius on matrix M and stores in list Mall
         Mall = [M] + [frob_mat(Coeffs, k) for k in range(1, g)]
-
+        Mall = reversed(Mall)
         #initial N=I, so we can go through Mall and multiply all matrices with I and
         #get the Hasse-Witt matrix.
         N = identity_matrix(Fq, g)

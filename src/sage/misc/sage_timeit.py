@@ -218,7 +218,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     # to the shell namespace?
 
     src = timeit_.template % {'stmt': timeit_.reindent(stmt, 8),
-                             'setup': "pass"}
+                             'setup': "pass", 'init' : ''}
     code = compile(src, "<magic-timeit>", "exec")
     ns = {}
     if not globals_dict:

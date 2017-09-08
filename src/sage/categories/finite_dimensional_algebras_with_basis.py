@@ -111,7 +111,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A in Algebras(GF(2)).Semisimple()
                 False
                 sage: A.radical_basis()
-                (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
+                (() + (1,2)(3,4), (3,4) + (1,2)(3,4), (1,2) + (1,2)(3,4))
 
             We now implement the algebra `A = K[x] / (x^p-1)`, where `K`
             is a finite field of characteristic `p`, and check its
@@ -142,7 +142,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: A = KleinFourGroup().algebra(GF(2))
                 sage: A.radical_basis()
-                (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
+                (() + (1,2)(3,4), (3,4) + (1,2)(3,4), (1,2) + (1,2)(3,4))
 
                 sage: A = KleinFourGroup().algebra(QQ, category=Monoids())
                 sage: A.radical_basis.__module__
@@ -482,10 +482,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A = Z12.algebra(QQ)
                 sage: idempotents = A.orthogonal_idempotents_central_mod_radical()
                 sage: sorted(idempotents, key=str)
-                [-1/2*B[3] + 1/2*B[9],
-                 -1/2*B[8] + 1/2*B[4],
-                 -B[0] + 1/2*B[3] + 1/2*B[9],
-                 -B[0] + 1/2*B[4] + 1/2*B[8],
+                [-1/2*B[8] + 1/2*B[4],
+                 -B[0] + 1/2*B[8] + 1/2*B[4],
+                 -B[0] + 1/2*B[9] + 1/2*B[3],
+                 1/2*B[9] - 1/2*B[3],
                  1/4*B[1] + 1/2*B[3] + 1/4*B[5] - 1/4*B[7] - 1/2*B[9] - 1/4*B[11],
                  1/4*B[1] + 1/4*B[11] - 1/4*B[5] - 1/4*B[7],
                  1/4*B[1] - 1/2*B[4] - 1/4*B[5] + 1/4*B[7] + 1/2*B[8] - 1/4*B[11],
@@ -641,7 +641,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES:
 
             For a semisimple algebra, in particular for group algebras
-            in chararacteristic zero, the Cartan invariants matrix is
+            in characteristic zero, the Cartan invariants matrix is
             the identity::
 
                 sage: A3 = SymmetricGroup(3).algebra(QQ)

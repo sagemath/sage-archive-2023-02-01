@@ -1,0 +1,25 @@
+commit 6942fab48aeb5aa5f4ea283b04951240a3139728
+Author: Karim Belabas <Karim.Belabas@math.u-bordeaux1.fr>
+Date:   Mon Jan 16 16:00:37 2017 +0100
+
+    remove useless definitions when ! HAS_MMAP
+    
+    pari_mainstack_mreset + pari_mainstack_mextend
+
+diff --git a/src/language/init.c b/src/language/init.c
+index c7a90f0..64783be 100644
+--- a/src/language/init.c
++++ b/src/language/init.c
+@@ -658,12 +658,6 @@ pari_mainstack_malloc(size_t s)
+ static void
+ pari_mainstack_mfree(void *s, size_t size) { (void) size; free(s); }
+ 
+-static void
+-pari_mainstack_mreset(pari_sp from, pari_sp to) { (void) from; (void) to; }
+-
+-static int
+-pari_mainstack_mextend(pari_sp from, pari_sp to) { (void) from; (void) to; return 0; }
+-
+ static int
+ pari_mainstack_setsize(struct pari_mainstack *st, size_t size)
+ {

@@ -189,7 +189,7 @@ Those can be viewed graphically::
 
     sage: g = Groups().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 In case ``dot2tex`` is not available, you can use instead::
 
@@ -199,7 +199,7 @@ Here is an overview of all categories in Sage::
 
     sage: g = sage.categories.category.category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
@@ -370,7 +370,7 @@ categories and their super categories::
 
     sage: g = EuclideanDomains().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 A bit of help from computer science
 ===================================
@@ -414,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
     sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 
@@ -486,7 +486,7 @@ The full hierarchy is best viewed graphically::
 
     sage: g = class_graph(m.__class__)
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Parallel hierarchy of classes for parents
 -----------------------------------------
@@ -541,7 +541,7 @@ best viewed graphically::
     sage: g = class_graph(m.__class__)
     sage: g.relabel(lambda x: x.replace("_","\_"))
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 .. NOTE::
 
@@ -1389,7 +1389,7 @@ or for more advanced categories::
 
     sage: g = HopfAlgebras(QQ).WithBasis().Graded().Connected().category_graph()
     sage: g.set_latex_options(format="dot2tex")
-    sage: view(g, tightpage=True)                 # not tested
+    sage: view(g)                 # not tested
 
 Difference between axioms and regressive covariant functorial constructions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

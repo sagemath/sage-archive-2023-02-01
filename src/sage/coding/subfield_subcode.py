@@ -250,7 +250,9 @@ class SubfieldSubcode(AbstractLinearCode):
         for i in range(H.nrows()):
             if H.row(i) == 0:
                 delete.append(i)
-        return H.delete_rows(delete)
+        M = H.delete_rows(delete)
+        M.set_immutable()
+        return M
 
 
 

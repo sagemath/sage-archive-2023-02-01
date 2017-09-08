@@ -190,6 +190,33 @@ cdef class CRElement(pAdicTemplateElement):
         cconstruct(ans.unit, ans.prime_pow)
         return ans
 
+    cdef pAdicTemplateElement _new_with_value(self, celement value, long absprec):
+        """
+        Creates a new element with a given value and absolute precision.
+
+        Used by code that doesn't know the precision type.
+        """
+        cdef CRElement ans = self._new_c()
+        ans.relprec = absprec
+        ans.ordp = 0
+        ccopy(ans.unit, value, ans.prime_pow)
+        ans._normalize()
+        return ans
+
+    cdef int _get_value(self, celement value) except -1:
+        """
+        Sets ``value`` to the value held by this p-adic element.
+
+        The behavior varies based on whether the parent is a field.
+
+        - if the parent is a field, sets ``value`` to the unit part,
+          or zero for inexact zeros
+        - otherwise, sets ``value`` to the value itself.
+        """
+        ccopy(value, self.unit, self.prime_pow)
+        #if not (self.prime_pow.in_field or self.ordp == 0 or ciszero(value, self.prime_pow)):
+        #    cshift(value, value, self.ordp, 0, self.prime_pow, False)
+
     cdef int check_preccap(self) except -1:
         """
         Checks that this element doesn't have precision higher than
@@ -1183,274 +1210,7 @@ cdef class CRElement(pAdicTemplateElement):
             :meth:`sage.misc.cachefunc._cache_key`
         """
         tuple_recursive = lambda l: tuple(tuple_recursive(x) for x in l) if isinstance(l, list) else l
-        return (self.parent(), tuple_recursive(self.expansion()), self.valuation(), self.precision_relative())
-
-    def expansion(self, n = None, lift_mode = 'simple', start_val = None):
-        r"""
-        Returns a list of coefficients in a power series expansion of
-        self in terms of the uniformizer `\pi`.  If this is a field element, they start at
-        `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
-
-        For each lift mode, this function returns a list of `a_i` so
-        that this element can be expressed as
-
-        .. MATH::
-
-            \pi^v \cdot \sum_{i=0}^\infty a_i \pi^i
-
-        where `v` is the valuation of this element when the parent is
-        a field, and `v = 0` otherwise.
-
-        Different lift modes affect the choice of `a_i`.  When
-        ``lift_mode`` is ``'simple'``, the resulting `a_i` will be
-        non-negative: if the residue field is `\mathbb{F}_p` then they
-        will be integers with `0 \le a_i < p`; otherwise they will be
-        a list of integers in the same range giving the coefficients
-        of a polynomial in the indeterminant representing the maximal
-        unramified subextension.
-
-        Choosing ``lift_mode`` as ``'smallest'`` is similar to
-        ``'simple'``, but uses a balanced representation `-p/2 < a_i
-        \le p/2`.
-
-        Finally, setting ``lift_mode = 'teichmuller'`` will yield
-        Teichmuller representatives for the `a_i`: `a_i^q = a_i`.  In
-        this case the `a_i` will also be `p`-adic elements.
-
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
-        - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
-          ``'teichmuller'`` (default: ``'simple'``)
-
-        - ``start_val`` -- start at this valuation rather than the
-          default (`0` or the valuation of this element).  If
-          ``start_val`` is larger than the valuation of this element
-          a ``ValueError`` is raised.
-
-        OUTPUT:
-
-        - If ``n`` is ``None``, the `\pi`-adic expansion of this
-          element.  For base elements these will be integers if
-          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
-          elements of ``self.parent()`` if ``lift_mode`` is
-          ``'teichmuller'``.
-
-        - If ``n`` is an integer, the coefficient of `\pi^n` in the
-          `\pi`-adic expansion of this element.
-
-        .. NOTE::
-
-            Use slice operators to get a particular range.
-
-        EXAMPLES::
-
-            sage: R = Zp(7,6); a = R(12837162817); a
-            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
-            sage: L = a.expansion(); L
-            [3, 4, 4, 0, 4]
-            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
-            True
-            sage: L = a.expansion(lift_mode='smallest'); L
-            [3, -3, -2, 1, -3, 1]
-            sage: sum([L[i] * 7^i for i in range(len(L))]) == a
-            True
-            sage: L = a.expansion(lift_mode='teichmuller'); L
-            [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
-            0,
-            5 + 2*7 + 3*7^3 + O(7^4),
-            1 + O(7^3),
-            3 + 4*7 + O(7^2),
-            5 + O(7)]
-            sage: sum([L[i] * 7^i for i in range(len(L))])
-            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
-
-            sage: R(0, 7).expansion()
-            []
-
-            sage: R = Qp(7,4); a = R(6*7+7**2); a.expansion()
-            [6, 1]
-            sage: a.expansion(lift_mode='smallest')
-            [-1, 2]
-            sage: a.expansion(lift_mode='teichmuller')
-            [6 + 6*7 + 6*7^2 + 6*7^3 + O(7^4),
-            2 + 4*7 + 6*7^2 + O(7^3),
-            3 + 4*7 + O(7^2),
-            3 + O(7)]
-
-        You can ask for a specific entry in the expansion::
-
-            sage: a.expansion(1)
-            6
-            sage: a.expansion(1, lift_mode='smallest')
-            -1
-            sage: a.expansion(2, lift_mode='teichmuller')
-            2 + 4*7 + 6*7^2 + O(7^3)
-
-        TESTS:
-
-        Check to see that :trac:`10292` is resolved::
-
-            sage: E = EllipticCurve('37a')
-            sage: R = E.padic_regulator(7)
-            sage: len(R.expansion())
-            19
-        """
-        if lift_mode == 'teichmuller':
-            zero = self.parent().maximal_unramified_subextension().integer_ring()(0)
-        else:
-            # needs to be defined in the linkage file.
-            zero = _list_zero
-        if isinstance(n, slice):
-            return self.slice(n.start, n.stop, n.step)
-        if start_val is not None and start_val > self.ordp:
-            raise ValueError("starting valuation must be smaller than the element's valuation.  See slice()")
-        v = 0 if self.prime_pow.in_field else self.ordp
-        if start_val is not None:
-            v = self.ordp - start_val
-        elif self.prime_pow.in_field:
-            v = 0
-        else:
-            v = self.ordp
-        if lift_mode == 'teichmuller':
-            expansion = self._teichmuller_all()
-        elif lift_mode == 'simple':
-            expansion = cexpansion(self.unit, self.relprec, True, self.prime_pow)
-        elif lift_mode == 'smallest':
-            expansion = cexpansion(self.unit, self.relprec, False, self.prime_pow)
-        else:
-            raise ValueError("unknown lift_mode")
-        if n is not None:
-            return expansion[n]
-            try:
-                return next(itertools.islice(expansion, n - self.ordp, n - self.ordp + 1))
-            except StopIteration:
-                return zero
-        if (self.prime_pow.in_field == 0 and self.ordp > 0) or start_val is not None:
-            if start_val is None:
-                v = self.ordp
-            else:
-                v = self.ordp - start_val
-            return itertools.chain(itertools.repeat(zero, v), expansion)
-        else:
-            return expansion
-
-    def list(self, lift_mode = 'simple', start_val = None):
-        r"""
-        Returns the list of coefficients in a `\pi`-adic expansion of this element.
-
-        .. SEEALSO::
-
-            :meth:`expansion`
-
-        EXAMPLES::
-
-            sage: R = Zp(7,6); a = R(12837162817); a
-            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
-            sage: L = a.list(); L
-            [3, 4, 4, 0, 4]
-        """
-        deprecation(14825, "list is deprecated. Please use expansion instead.")
-        return list(self.expansion(lift_mode=lift_mode, start_val=start_val))
-
-    def _teichmuller_all(self):
-        r"""
-        Returns a generator which iterates over the Teichmuller expansion of this element.
-
-        .. SEEALSO::
-
-            :meth:`teichmuller_expansion`
-
-        EXAMPLES::
-
-            sage: list(Qp(5,5)(70)._teichmuller_all())
-            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
-            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
-            2 + 5 + 2*5^2 + O(5^3),
-            1 + O(5^2),
-            4 + O(5)]
-        """
-        cdef CRElement coeff
-        if self.relprec == 0:
-            return
-        R = self.parent().maximal_unramified_subextension().integer_ring()
-        cdef long curpower = self.relprec
-        cdef CRElement tmp = self._new_c()
-        ccopy(tmp.unit, self.unit, self.prime_pow)
-        while not ciszero(tmp.unit, tmp.prime_pow) and curpower > 0:
-            coeff = self._new_c()
-            cteichmuller(coeff.unit, tmp.unit, curpower, self.prime_pow)
-            if ciszero(coeff.unit, self.prime_pow):
-                coeff._set_exact_zero()
-                cshift_notrunc(tmp.unit, tmp.unit, -1, curpower-1, self.prime_pow)
-            else:
-                coeff.ordp = 0
-                coeff.relprec = curpower
-                csub(tmp.unit, tmp.unit, coeff.unit, curpower, self.prime_pow)
-                cshift_notrunc(tmp.unit, tmp.unit, -1, curpower-1, self.prime_pow)
-                creduce(tmp.unit, tmp.unit, curpower-1, self.prime_pow)
-            yield R(coeff)
-            curpower -= 1
-
-    def teichmuller_expansion(self, n = None):
-        r"""
-        Returns an iterator over coefficients `a_0, a_1, \dots, a_n` such that
-
-        - `a_i^q = a_i`, where `q` is the cardinality of the residue field,
-
-        - this element can be expressed as
-
-        .. MATH::
-
-            \pi^v \cdot \sum_{i=0}^\infty a_i \pi^i
-
-        where `v` is the valuation of this element when the parent is
-        a field, and `v = 0` otherwise.
-
-        - if `a_i \ne 0`, the precision of `a_i` is `i` less
-          than the precision of this element (relative in the case that
-          the parent is a field, absolute otherwise)
-
-        .. NOTE::
-
-            The coefficients will lie in the ring of integers of the
-            maximal unramified subextension.
-
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the
-          coefficient of `\pi^n` in the expansion.
-
-        EXAMPLES::
-
-            sage: R = Qp(5,5); list(R(70).teichmuller_expansion())
-            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
-            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
-            2 + 5 + 2*5^2 + O(5^3),
-            1 + O(5^2),
-            4 + O(5)]
-            sage: R(70).teichmuller_expansion(1)
-            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
-        """
-        return self.expansion(n, lift_mode='teichmuller')
-
-    def teichmuller_list(self):
-        r"""
-        Returns the list of coefficients in the Teichmuller expansion of this element.
-
-        .. SEEALSO::
-
-            :meth:`teichmuller_expansion`
-
-        EXAMPLES::
-
-            sage: R = Qp(5,5); R(70).teichmuller_list()[1]
-            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
-        """
-        deprecation(14825, "teichmuller_list is deprecated. Please use teichmuller_expansion instead.")
-        return list(self.teichmuller_expansion())
+        return (self.parent(), tuple_recursive(trim_zeros(list(self.expansion()))), self.valuation(), self.precision_relative())
 
     def _teichmuller_set_unsafe(self):
         """
@@ -1469,8 +1229,10 @@ cdef class CRElement(pAdicTemplateElement):
             11 + O(17^5)
             sage: a._teichmuller_set_unsafe(); a
             11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
-            sage: a.expansion(lift_mode='teichmuller')
-            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)]
+            sage: E = a.expansion(lift_mode='teichmuller'); E
+            17-adic expansion of 11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5) (teichmuller)
+            sage: list(E)
+            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5), 0, 0, 0, 0]
 
         Note that if you set an element which is congruent to 0 you
         get an exact 0.

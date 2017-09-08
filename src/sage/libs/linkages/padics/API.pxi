@@ -50,7 +50,7 @@ file gives the function signatures.
   convenience
 - :meth:`cconv_mpz_t_out` -- conversion into an mpz_t
 - :meth:`cconv_mpq_t_out` -- conversion into an mpq_t
-- _list_zero -- the entry that should be used for zero in clist
+- _expansion_zero -- the entry that should be used for zero in p-adic expansions
 
 The gluing file should ctypedef celement as appropriate.
 
@@ -485,7 +485,7 @@ cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow):
 
 # The element is filled in for zero in the output of clist if necessary.
 # It could be [] for some other linkages.
-_list_zero = Integer(0)
+_expansion_zero = Integer(0)
 
 cdef list ccoefficients(celement x, long valshift, PowComputer_class prime_pow):
     """

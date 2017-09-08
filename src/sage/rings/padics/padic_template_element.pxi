@@ -168,6 +168,26 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         raise NotImplementedError
 
+    cdef pAdicTemplateElement _new_with_value(self, celement value, long absprec):
+        """
+        Creates a new element with a given value and absolute precision.
+
+        Used by code that doesn't know the precision type.
+        """
+        raise NotImplementedError
+
+    cdef int _get_value(self, celement value) except -1:
+        """
+        Sets ``value`` to the value held by this p-adic element.
+
+        The behavior varies based on whether the parent is a field.
+
+        - if the parent is a field, sets ``value`` to the unit part,
+          or zero for inexact zeros
+        - otherwise, sets ``value`` to the value itself.
+        """
+        raise NotImplementedError
+
     def __lshift__(pAdicTemplateElement self, shift):
         """
         Multiplies ``self`` by ``pi^shift``.
@@ -352,6 +372,270 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         raise NotImplementedError
 
+    def expansion(self, n = None, lift_mode = 'simple', start_val = None):
+        r"""
+        Return the coefficients in a `\pi`-adic expansion.
+        If this is a field element, start at
+        `\pi^{\mbox{valuation}}`, if a ring element at `\pi^0`.
+
+        For each lift mode, this function returns a list of `a_i` so
+        that this element can be expressed as
+
+        .. MATH::
+
+            \pi^v \cdot \sum_{i=0}^\infty a_i \pi^i
+
+        where `v` is the valuation of this element when the parent is
+        a field, and `v = 0` otherwise.
+
+        Different lift modes affect the choice of `a_i`.  When
+        ``lift_mode`` is ``'simple'``, the resulting `a_i` will be
+        non-negative: if the residue field is `\mathbb{F}_p` then they
+        will be integers with `0 \le a_i < p`; otherwise they will be
+        a list of integers in the same range giving the coefficients
+        of a polynomial in the indeterminant representing the maximal
+        unramified subextension.
+
+        Choosing ``lift_mode`` as ``'smallest'`` is similar to
+        ``'simple'``, but uses a balanced representation `-p/2 < a_i
+        \le p/2`.
+
+        Finally, setting ``lift_mode = 'teichmuller'`` will yield
+        Teichmuller representatives for the `a_i`: `a_i^q = a_i`.  In
+        this case the `a_i` will lie in the ring of integers of the
+        maximal unramified subextension of the parent of this element.
+
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.  Can also accept a slice (see :meth:`slice`)
+
+        - ``lift_mode`` -- ``'simple'``, ``'smallest'`` or
+          ``'teichmuller'`` (default: ``'simple'``)
+
+        - ``start_val`` -- start at this valuation rather than the
+          default (`0` or the valuation of this element).
+
+        OUTPUT:
+
+        - If ``n`` is ``None``, an iterable giving a `\pi`-adic expansion of this
+          element.  For base elements the contents will be integers if
+          ``lift_mode`` is ``'simple'`` or ``'smallest'``, and
+          elements of ``self.parent()`` if ``lift_mode`` is
+          ``'teichmuller'``.
+
+        - If ``n`` is an integer, the coefficient of `\pi^n` in the
+          `\pi`-adic expansion of this element.
+
+        .. NOTE::
+
+            Use slice operators to get a particular range.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,6); a = R(12837162817); a
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: E = a.expansion(); E
+            7-adic expansion of 3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: list(E)
+            [3, 4, 4, 0, 4, 0]
+            sage: sum([c * 7^i for i, c in enumerate(E)]) == a
+            True
+            sage: E = a.expansion(lift_mode='smallest'); E
+            7-adic expansion of 3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6) (balanced)
+            sage: list(E)
+            [3, -3, -2, 1, -3, 1]
+            sage: sum([c * 7^i for i, c in enumerate(E)]) == a
+            True
+            sage: E = a.expansion(lift_mode='teichmuller'); E
+            7-adic expansion of 3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6) (teichmuller)
+            sage: list(E)
+            [3 + 4*7 + 6*7^2 + 3*7^3 + 2*7^5 + O(7^6),
+            0,
+            5 + 2*7 + 3*7^3 + O(7^4),
+            1 + O(7^3),
+            3 + 4*7 + O(7^2),
+            5 + O(7)]
+            sage: sum(c * 7^i for i, c in enumerate(E))
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+
+        If the element has positive valuation then the list will start
+        with some zeros::
+
+            sage: a = R(7^3 * 17)
+            sage: E = a.expansion(); E
+            7-adic expansion of 3*7^3 + 2*7^4 + O(7^9)
+            sage: list(E)
+            [0, 0, 0, 3, 2, 0, 0, 0, 0]
+
+        The expansion of 0 is truncated::
+
+            sage: E = R(0, 7).expansion(); E
+            7-adic expansion of O(7^7)
+            sage: len(E)
+            0
+            sage: list(E)
+            []
+
+        In fields, on the other hand, the expansion starts at the valuation::
+
+            sage: R = Qp(7,4); a = R(6*7+7**2); E = a.expansion(); E
+            7-adic expansion of 6*7 + 7^2 + O(7^5)
+            sage: list(E)
+            [6, 1, 0, 0]
+            sage: list(a.expansion(lift_mode='smallest'))
+            [-1, 2, 0, 0]
+            sage: list(a.expansion(lift_mode='teichmuller'))
+            [6 + 6*7 + 6*7^2 + 6*7^3 + O(7^4),
+            2 + 4*7 + 6*7^2 + O(7^3),
+            3 + 4*7 + O(7^2),
+            3 + O(7)]
+
+        You can ask for a specific entry in the expansion::
+
+            sage: a.expansion(1)
+            6
+            sage: a.expansion(1, lift_mode='smallest')
+            -1
+            sage: a.expansion(2, lift_mode='teichmuller')
+            2 + 4*7 + 6*7^2 + O(7^3)
+
+        TESTS:
+
+        Check to see that :trac:`10292` is resolved::
+
+            sage: E = EllipticCurve('37a')
+            sage: R = E.padic_regulator(7)
+            sage: len(R.expansion())
+            19
+        """
+        if isinstance(n, slice):
+            return self.slice(n.start, n.stop, n.step, lift_mode=lift_mode)
+
+        cdef long shift, prec, val
+        cdef expansion_mode mode
+        prec = self.precision_relative()
+        val = self.valuation_c()
+        if prec == 0:
+            shift = 0
+        elif start_val is not None:
+            if n is not None:
+                raise ValueError("n and start_val are incompatible options")
+            shift = val - start_val
+        elif self.prime_pow.in_field:
+            shift = 0
+        else:
+            shift = val
+
+        if lift_mode == 'simple':
+            mode = simple_mode
+        elif lift_mode == 'smallest':
+            mode = smallest_mode
+        elif lift_mode == 'teichmuller':
+            mode = teichmuller_mode
+        else:
+            raise ValueError("unknown lift_mode")
+
+        cdef ExpansionIterable expansion = ExpansionIterable(self, prec, shift, mode)
+        if n is None:
+            return expansion
+        else:
+            if n < val:
+                return _zero(mode, expansion.teich_ring)
+            elif self.prime_pow.in_field:
+                return expansion[n - val]
+            else:
+                return expansion[n]
+
+    def list(self, lift_mode = 'simple', start_val = None):
+        r"""
+        Returns the list of coefficients in a `\pi`-adic expansion of this element.
+
+        .. SEEALSO::
+
+            :meth:`expansion`
+
+        EXAMPLES::
+
+            sage: R = Zp(7,6); a = R(12837162817); a
+            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
+            sage: L = a.list(); L
+            doctest:warning
+            ...
+            DeprecationWarning: list is deprecated. Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
+            [3, 4, 4, 0, 4, 0]
+        """
+        deprecation(14825, "list is deprecated. Please use expansion instead.")
+        return list(self.expansion(lift_mode=lift_mode, start_val=start_val))
+
+    def teichmuller_expansion(self, n = None):
+        r"""
+        Returns an iterator over coefficients `a_0, a_1, \dots, a_n` such that
+
+        - `a_i^q = a_i`, where `q` is the cardinality of the residue field,
+
+        - this element can be expressed as
+
+        .. MATH::
+
+            \pi^v \cdot \sum_{i=0}^\infty a_i \pi^i
+
+        where `v` is the valuation of this element when the parent is
+        a field, and `v = 0` otherwise.
+
+        - if `a_i \ne 0`, the precision of `a_i` is `i` less
+          than the precision of this element (relative in the case that
+          the parent is a field, absolute otherwise)
+
+        .. NOTE::
+
+            The coefficients will lie in the ring of integers of the
+            maximal unramified subextension.
+
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the
+          coefficient of `\pi^n` in the expansion.
+
+        EXAMPLES:
+
+        For fields, the expansion starts at the valuation::
+
+            sage: R = Qp(5,5); list(R(70).teichmuller_expansion())
+            [4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5),
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4),
+            2 + 5 + 2*5^2 + O(5^3),
+            1 + O(5^2),
+            4 + O(5)]
+
+        But if you specify ``n``, you get the coefficient of `\pi^n`::
+
+            sage: R(70).teichmuller_expansion(2)
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
+        """
+        return self.expansion(n, lift_mode='teichmuller')
+
+    def teichmuller_list(self):
+        r"""
+        Returns the list of coefficients in the Teichmuller expansion of this element.
+
+        .. SEEALSO::
+
+            :meth:`teichmuller_expansion`
+
+        EXAMPLES::
+
+            sage: R = Qp(5,5); R(70).teichmuller_list()[1]
+            doctest:warning
+            ...
+            DeprecationWarning: teichmuller_list is deprecated. Please use teichmuller_expansion instead.
+            See http://trac.sagemath.org/14825 for details.
+            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
+        """
+        deprecation(14825, "teichmuller_list is deprecated. Please use teichmuller_expansion instead.")
+        return list(self.teichmuller_expansion())
+
     def padded_list(self, n, lift_mode = 'simple'):
         """
         Returns a list of coefficients of the uniformizer `\pi`
@@ -384,20 +668,18 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: a.padded_list(3)
             [2, 1]
         """
+        L = list(self.expansion(lift_mode=lift_mode))
         if lift_mode == 'simple' or lift_mode == 'smallest':
-            # needs to be defined in the linkage file.
-            zero = _list_zero
-        elif lift_mode == 'teichmuller':
-            zero = self.parent()(0,0)
+            # defined in the linkage file.
+            zero = _expansion_zero
         else:
-            raise ValueError("%s not a recognized lift mode"%lift_mode)
-        L = self.expansion(lift_mode=lift_mode)
+            zero = self.parent()(0,0)
         if self.prime_pow.in_field == 1:
             if self._is_exact_zero():
                 n = 0
             else:
                 n -= self.valuation()
-        return itertools.chain(itertools.islice(L, n), itertools.repeat(zero, n - len(L)))
+        return list(itertools.chain(itertools.islice(L, n), itertools.repeat(zero, n - len(L))))
 
     def _ext_p_list(self, pos):
         """
@@ -643,3 +925,125 @@ cdef long padic_pow_helper(celement result, celement base, long base_val, long b
         cdestruct(oneunit, prime_pow)
         cdestruct(teichdiff, prime_pow)
     return bloga_aprec
+
+cdef _zero(expansion_mode mode, teich_ring):
+    if mode == teichmuller_mode:
+        return teich_ring(0)
+    else:
+        return _expansion_zero
+
+cdef class ExpansionIter(object):
+    cdef pAdicTemplateElement elt
+    cdef celement tmp
+    cdef celement curvalue
+    cdef long curpower
+    cdef bint tracks_prec
+    cdef expansion_mode mode
+    cdef object teich_ring
+
+    def __cinit__(self, pAdicTemplateElement elt, long prec, expansion_mode mode):
+        self.elt = elt
+        self.curpower = prec
+        self.mode = mode
+        if mode == teichmuller_mode:
+            R = elt.parent()
+            self.tracks_prec = R.is_capped_relative() or R.is_capped_absolute()
+            self.teich_ring = R.maximal_unramified_subextension().integer_ring()
+        cconstruct(self.tmp, elt.prime_pow)
+        cconstruct(self.curvalue, elt.prime_pow)
+        elt._get_value(self.curvalue)
+
+    def __dealloc__(self):
+        cdestruct(self.tmp, self.elt.prime_pow)
+        cdestruct(self.curvalue, self.elt.prime_pow)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.curpower
+
+    def __next__(self):
+        if self.curpower == 0:
+            raise StopIteration
+        self.curpower -= 1
+        cdef pAdicTemplateElement ans
+        cdef PowComputer_ pp = self.elt.prime_pow
+        cdef long prec
+        if ciszero(self.curvalue, pp):
+            return _zero(self.mode, self.teich_ring)
+        if self.mode == teichmuller_mode:
+            prec = self.curpower+1 if self.tracks_prec else pp.ram_prec_cap
+            cteichmuller(self.tmp, self.curvalue, prec, pp)
+            if ciszero(self.tmp, pp):
+                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp)
+                return _zero(teichmuller_mode, self.teich_ring)
+            else:
+                csub(self.curvalue, self.curvalue, self.tmp, prec, pp)
+                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp)
+                creduce(self.curvalue, self.curvalue, prec-1, pp)
+                return self.teich_ring(self.elt._new_with_value(self.tmp, prec))
+        else:
+            return cexpansion_next(self.curvalue, self.mode, self.curpower, pp)
+
+cdef class ExpansionIterable(object):
+    cdef pAdicTemplateElement elt
+    cdef celement tmp
+    cdef long prec
+    cdef long val_shift
+    cdef expansion_mode mode
+    cdef object teich_ring
+
+    def __cinit__(self, pAdicTemplateElement elt, long prec, long val_shift, expansion_mode mode):
+        self.elt = elt
+        cconstruct(self.tmp, elt.prime_pow)
+        self.prec = prec
+        self.val_shift = val_shift
+        self.mode = mode
+        if mode == teichmuller_mode:
+            self.teich_ring = elt.parent().maximal_unramified_subextension().integer_ring()
+
+    def __dealloc__(self):
+        cdestruct(self.tmp, self.elt.prime_pow)
+
+    def __iter__(self):
+        cdef ExpansionIter expansion = ExpansionIter(self.elt, self.prec, self.mode)
+        if self.val_shift == 0:
+            return expansion
+        elif self.val_shift < 0:
+            return itertools.islice(expansion, -self.val_shift, None)
+        else:
+            return itertools.chain(itertools.repeat(_zero(self.mode, self.teich_ring), self.val_shift), expansion)
+
+    def __len__(self):
+        return self.prec + self.val_shift
+
+    def __getitem__(self, n):
+        if isinstance(n, slice):
+            return itertools.islice(iter(self), n.start, n.stop, n.step)
+        cdef long m = n - self.val_shift
+        cdef celement value
+        if n < 0:
+            raise ValueError("Negative indices not supported")
+        elif m < 0:
+            return _zero(self.mode, self.teich_ring)
+        elif m >= self.prec:
+            raise PrecisionError
+        elif self.mode == simple_mode:
+            self.elt._get_value(self.tmp)
+            return cexpansion_getitem(self.tmp, m, self.elt.prime_pow)
+        else:
+            expansion = ExpansionIter(self.elt, self.prec, self.mode)
+            # We do this in a naive way, though it should be feasible
+            # to implement something better for smallest_mode
+            return next(itertools.islice(expansion, m, m+1))
+
+    def __repr__(self):
+        if self.mode == simple_mode:
+            modestr = ""
+        elif self.mode == smallest_mode:
+            modestr = " (balanced)"
+        else:
+            modestr = " (teichmuller)"
+        p = self.elt.prime_pow.prime
+        return "%s-adic expansion of %s%s"%(p, self.elt, modestr)

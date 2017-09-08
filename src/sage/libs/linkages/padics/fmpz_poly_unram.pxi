@@ -523,95 +523,42 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
     fmpz_poly_get_coeff_mpz(h.value, a, 0)
     return hash(h)
 
-cdef class ExpansionIter(object):
-    cdef fmpz_poly_t value
-    cdef long curpower
-    cdef bint pos
-    cdef PowComputer_ prime_pow
+# the expansion_mode enum is defined in padic_template_element_header.pxi
+cdef inline cexpansion_next(fmpz_poly_t value, expansion_mode mode, long curpower, PowComputer_ prime_pow):
+    if mode == teichmuller_mode: raise NotImplementedError
+    ans = []
+    cdef fmpz* c
+    cdef long i
+    cdef Integer digit
+    for i in range(fmpz_poly_length(value)):
+        c = fmpz_poly_get_coeff_ptr(value, i)
+        fmpz_fdiv_qr(c, prime_pow.fmpz_clist, c, prime_pow.fprime)
+        if mode == smallest_mode and fmpz_cmp(prime_pow.fmpz_clist, prime_pow.half_prime) > 0:
+            fmpz_sub(prime_pow.fmpz_clist, prime_pow.fmpz_clist, prime_pow.fprime)
+            fmpz_add_ui(c, c, 1)
+        digit = PY_NEW(Integer)
+        fmpz_get_mpz(digit.value, prime_pow.fmpz_clist)
+        ans.append(digit)
+    _fmpz_poly_normalise(value)
+    return trim_zeros(ans) # defined in sage.rings.padics.misc and imported in padic_template_element
 
-    def __cinit__(self, long prec, bint pos, PowComputer_ prime_pow):
-        fmpz_poly_init(self.value)
-        self.curpower = prec
-        self.pos = pos
-        self.prime_pow = prime_pow
-
-    def __dealloc__(self):
-        fmpz_poly_clear(self.value)
-
-    cdef _set(self, celement a):
-        fmpz_poly_set(self.value, a)
-
-    def __iter__(self):
-        return self
-
-    def __len__(self):
-        return self.curpower
-
-    def __next__(self):
-        if self.curpower == 0:
-            raise StopIteration
-        self.curpower -= 1
-        if fmpz_poly_is_zero(self.value):
-            return []
-        ans = []
-        cdef fmpz* c
-        cdef long i
-        cdef PowComputer_ pp = self.prime_pow
-        cdef Integer digit
-        for i in range(fmpz_poly_length(self.value)):
-            c = fmpz_poly_get_coeff_ptr(self.value, i)
-            fmpz_fdiv_qr(c, pp.fmpz_clist, c, pp.fprime)
-            if not self.pos and fmpz_cmp(pp.fmpz_clist, pp.half_prime) > 0:
-                fmpz_sub(pp.fmpz_clist, pp.fmpz_clist, pp.fprime)
-                fmpz_add_ui(c, c, 1)
-            digit = PY_NEW(Integer)
-            fmpz_get_mpz(digit.value, pp.fmpz_clist)
-            ans.append(digit)
-        _fmpz_poly_normalise(self.value)
-        return ans
-
-cdef class ExpansionIterable(object):
-    cdef celement value
-    cdef long prec
-    cdef bint pos
-    cdef PowComputer_ prime_pow
-    def __cinit__(self, long prec, bint pos, PowComputer_ prime_pow):
-        fmpz_poly_init(self.value)
-        self.prec = prec
-        self.pos = pos
-        self.prime_pow = prime_pow
-
-    def __dealloc__(self):
-        fmpz_poly_clear(self.value)
-
-    cdef _set(self, celement a):
-        fmpz_poly_set(self.value, a)
-
-    def __iter__(self):
-        E = ExpansionIter(self.prec, self.pos, self.prime_pow)
-        E._set(self.value)
-        return E
-
-    def __len__(self):
-        return self.prec
-
-    def _poly_str(self):
-        L = []
-        cdef long i
-        cdef Integer list_elt
-        for i in range(fmpz_poly_length(self.value)):
-            list_elt = PY_NEW(Integer)
-            fmpz_get_mpz(list_elt.value, fmpz_poly_get_coeff_ptr(self.value, i))
-            L.append(str(list_elt))
-        return '[' + ', '.join(L) + ']'
-
-    def __repr__(self):
-        return "%s-adic expansion of %s%s"%(self.prime_pow.prime, self._poly_str(), "" if self.pos else " (balanced)")
-
-cdef cexpansion(celement a, long prec, bint pos, PowComputer_ prime_pow):
-    cdef ExpansionIterable E = ExpansionIterable(prec, pos, prime_pow)
-    E._set(a)
-    return E
+cdef inline cexpansion_getitem(fmpz_poly_t value, long m, PowComputer_ prime_pow):
+    ans = []
+    cdef fmpz* c
+    cdef long i
+    cdef Integer digit
+    for i in range(fmpz_poly_length(value)):
+        c = fmpz_poly_get_coeff_ptr(value, i)
+        if m > 0:
+            fmpz_fdiv_q(prime_pow.fmpz_clist, c, prime_pow.pow_fmpz_t_tmp(m)[0])
+            fmpz_mod(prime_pow.fmpz_clist, prime_pow.fmpz_clist, prime_pow.fprime)
+        else:
+            fmpz_mod(prime_pow.fmpz_clist, c, prime_pow.fprime)
+        digit = PY_NEW(Integer)
+        fmpz_get_mpz(digit.value, prime_pow.fmpz_clist)
+        ans.append(digit)
+    _fmpz_poly_normalise(value)
+    return trim_zeros(ans) # defined in sage.rings.padics.misc and imported in padic_template_element
 
 cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     """
@@ -658,7 +605,7 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     return ret
 
 # The element is filled in for zero in the output of clist if necessary.
-_list_zero = []
+_expansion_zero = []
 
 cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime_pow):
     """

@@ -21,7 +21,6 @@ import glob
 import os
 import socket
 import site
-import pkgconfig
 from . import version
 
 opj = os.path.join
@@ -300,6 +299,7 @@ def cython_aliases():
          'SINGULAR_LIBDIR',
          'SINGULAR_LIBRARIES']
     """
+    import pkgconfig
 
     # FFLAS-FFPACK
     fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')

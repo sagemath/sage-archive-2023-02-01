@@ -84,12 +84,45 @@ set_inclusions = [
 
 sublattice_closed = ['distributive', 'modular', 'semidistributive', 'join_semidistributive', 'meet_semidistributive']
 
+def test_attrcall(name, L):
+    """
+    Return a function by name.
+
+    This is a helper function for test_finite_lattice(). This
+    will unify all Boolean-valued functions to a function without
+    parameters.
+
+    EXAMPLES::
+
+        sage: from sage.tests.finite_poset import test_attrcall
+        sage: N5 = Posets.PentagonPoset()
+        sage: N5.is_modular() == test_attrcall('is_modular', N5)
+        True
+        sage: N5.is_constructible_by_doublings('convex') == test_attrcall('is_doubling_convex', N5)
+        True
+    """
+    from sage.misc.misc import attrcall
+    if name == 'is_doubling_any':
+        return L.is_constructible_by_doublings('any')
+    if name == 'is_doubling_lower':
+        return L.is_constructible_by_doublings('upper')
+    if name == 'is_doubling_upper':
+        return L.is_constructible_by_doublings('lower')
+    if name == 'is_doubling_convex':
+        return L.is_constructible_by_doublings('convex')
+    if name == 'is_doubling_interval':
+        return L.is_constructible_by_doublings('interval')
+    if name == 'is_uniq_orthocomplemented':
+        return L.is_orthocomplemented(unique=True)
+    return attrcall(name)(L)
+
 def test_finite_lattice(L):
     """
     Test several functions on a given finite lattice.
 
     The function contains tests of different kinds:
-    - Implications of boolean properties. Examples: a distributive lattice is modular,
+
+    - Implications of Boolean properties. Examples: a distributive lattice is modular,
       a dismantlable and distributive lattice is planar, a simple lattice can not be
       constructible by Day's doublings.
     - Dual and self-dual properties. Examples: Dual of a modular lattice is modular,
@@ -102,7 +135,7 @@ def test_finite_lattice(L):
       lattice is complemented.
     - Set inclusions. Example: Every co-atom must be meet-irreducible.
     - And several other tests. Example: The skeleton of a pseudocomplemented
-      lattice must be boolean.
+      lattice must be Boolean.
 
     EXAMPLES::
 
@@ -119,21 +152,6 @@ def test_finite_lattice(L):
     from sage.misc.prandom import randint
     from sage.misc.flatten import flatten
     from sage.misc.misc import attrcall
-
-    def test_attrcall(name, L):
-        if name == 'is_doubling_any':
-            return L.is_constructible_by_doublings('any')
-        if name == 'is_doubling_lower':
-            return L.is_constructible_by_doublings('upper')
-        if name == 'is_doubling_upper':
-            return L.is_constructible_by_doublings('lower')
-        if name == 'is_doubling_convex':
-            return L.is_constructible_by_doublings('convex')
-        if name == 'is_doubling_interval':
-            return L.is_constructible_by_doublings('interval')
-        if name == 'is_uniq_orthocomplemented':
-            return L.is_orthocomplemented(unique=True)
-        return attrcall(name)(L)
 
     if L.cardinality() < 4:
         # Special cases should be tested in specific TESTS-sections.

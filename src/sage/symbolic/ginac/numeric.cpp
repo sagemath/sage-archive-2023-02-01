@@ -3474,7 +3474,12 @@ const numeric numeric::psi(const numeric& y) const {
 }
 
 const numeric numeric::factorial() const {
-        if (t == MPZ) {
+        static long fac[] = {1, 1, 2, 6, 24, 120, 720,
+                5040, 40320, 362880, 3628800, 39916800,
+                479001600};
+        if (is_integer()) {
+                if (is_positive() and *this < 13)
+                        return fac[to_long()];
                 mpz_t bigint;
                 mpz_init(bigint);
                 mpz_fac_ui(bigint, to_long());
@@ -3488,10 +3493,28 @@ const numeric numeric::doublefactorial() const {
 }
 
 const numeric numeric::binomial(const numeric &k) const {
-        if (t == MPZ and k.info(info_flags::integer)) {
+        if ((t == LONG or t == MPZ)
+            and k.is_integer()) {
+                if (is_positive() and k.is_positive()
+                    and *this < 13) {
+                        static long fac[] = {1, 1, 2, 6, 24, 120, 720,
+                                5040, 40320, 362880, 362880, 39916800,
+                                479001600};
+                        long a = to_long();
+                        long b = k.to_long();
+                        if (b<=0 or b>12)
+                                return *_num0_p;
+                        return fac[a]/fac[b]/fac[a-b];
+                }
                 mpz_t bigint;
                 mpz_init(bigint);
-                mpz_bin_ui(bigint, v._bigint, k.to_long());
+                if (t == MPZ) {
+                        mpz_bin_ui(bigint, v._bigint, k.to_long());
+                }
+                else {
+                        mpz_set_ui(bigint, v._long);
+                        mpz_bin_ui(bigint, bigint, k.to_long());
+                }
                 return bigint;
         }
         numeric res;

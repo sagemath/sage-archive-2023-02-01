@@ -45,6 +45,7 @@ from sage.arith.all import gcd
 
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.ring import CommutativeRing
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
@@ -455,22 +456,23 @@ class SchemeHomset_points(SchemeHomset_generic):
 
     def _coerce_map_from_(self, other):
         r"""
+        Return true if ``other`` canonically coerces to self.
 
         EXAMPELS::
 
             sage: R.<t> = QQ[]
             sage: P = ProjectiveSpace(QQ, 1, 'x')
-            sage: P2 = ProjectiveSpace(R, 1, 'y')
+            sage: P2 = ProjectiveSpace(R, 1, 'x')
             sage: P2(R)._coerce_map_from_(P(QQ))
             True
+            sage: P(QQ)._coerce_map_from_(P2(R))
+            False
 
         ::
 
             sage: P = ProjectiveSpace(QQ, 1, 'x')
             sage: P2 = ProjectiveSpace(CC, 1, 'y')
             sage: P2(CC)._coerce_map_from_(P(QQ))
-            True
-            sage: P(QQ)._coerce_map_from_(P2(CC))
             False
 
         ::
@@ -518,6 +520,18 @@ class SchemeHomset_points(SchemeHomset_generic):
             sage: PS2(Zp(7)).has_coerce_map_from(PS(ZZ))
             True
 
+        ::
+
+            sage: PP1 = ProductProjectiveSpaces(ZZ, [2,1], 'x')
+            sage: PP1(QQ)._coerce_map_from_(PP1(ZZ))
+            True
+            sage: PP2 = ProductProjectiveSpaces(QQ, [1,2], 'x')
+            sage: PP2(QQ)._coerce_map_from_(PP1(ZZ))
+            False
+            sage: PP3 = ProductProjectiveSpaces(QQ, [2,1], 'y')
+            sage: PP3(QQ)._coerce_map_from_(PP1(ZZ))
+            False
+
         TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
@@ -528,7 +542,7 @@ class SchemeHomset_points(SchemeHomset_generic):
         ::
 
             sage: A = AffineSpace(QQ, 1, 'x')
-            sage: AC = AffineSpace(CC, 1, 'y')
+            sage: AC = AffineSpace(CC, 1, 'x')
             sage: A(3/2) == AC(3/2)
             True
 
@@ -538,15 +552,10 @@ class SchemeHomset_points(SchemeHomset_generic):
             sage: A(0) == 0
             True
         """
-        from sage.rings.ring import CommutativeRing
         target = self.codomain()
-        #we can convert tuples or lists to scheme points
-        #check of input values occurs in the _init_
-        if other in [tuple, list]:
-            return True
         #ring elements can be coerced to a space if we're affine dimension 1
         #and the base rings are coercible
-        elif isinstance(other, CommutativeRing):
+        if isinstance(other, CommutativeRing):
             try:
                 from sage.schemes.affine.affine_space import is_AffineSpace
                 if is_AffineSpace(target.ambient_space())\
@@ -569,8 +578,8 @@ class SchemeHomset_points(SchemeHomset_generic):
                         return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
             else:
                 #if the target is an ambient space, we can coerce if the base rings coerce
-                #and they are the same type: affine, projective, etc
-                from sage.schemes.toric.variety import is_ToricVariety
+                #and they are the same type: affine, projective, etc and have the same
+                #variable names
                 from sage.schemes.projective.projective_space import is_ProjectiveSpace
                 from sage.schemes.affine.affine_space import is_AffineSpace
                 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
@@ -579,12 +588,22 @@ class SchemeHomset_points(SchemeHomset_generic):
                     sa = source.ambient_space()
                 except AttributeError: #no .ambient_space
                     return False
-                if ((is_ProjectiveSpace(ta) and is_ProjectiveSpace(sa)) or \
-                  (is_AffineSpace(ta) and is_AffineSpace(sa)) or \
-                  (is_ToricVariety(ta) and is_ToricVariety(sa)) or \
-                  (is_ProductProjectiveSpaces(ta) and is_ProductProjectiveSpaces(sa))) and \
-                  (ta.dimension_relative() == sa.dimension_relative()):
-                    return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
+                #for projective and affine varieties, we check dimension
+                #and matching variable names
+                if (is_ProjectiveSpace(ta) and is_ProjectiveSpace(sa))\
+                  or (is_AffineSpace(ta) and is_AffineSpace(sa)):
+                    if (ta.variable_names() == sa.variable_names()):
+                        return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
+                    else:
+                        return False
+                #for products of projective spaces, we check dimension of
+                #components and matching variable names
+                elif (is_ProductProjectiveSpaces(ta) and is_ProductProjectiveSpaces(sa)):
+                    if (ta.dimension_relative_components() == sa.dimension_relative_components()) \
+                      and (ta.variable_names() == sa.variable_names()):
+                        return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
+                    else:
+                        return False
 
     def _element_constructor_(self, *v, **kwds):
         """

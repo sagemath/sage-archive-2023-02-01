@@ -191,7 +191,7 @@ def cyclotomic_to_alpha(cyclo):
 
     The output is the list of arguments of the roots of the
     given product of cyclotomic polynomials.
-
+    
     This is the inverse of :func:`alpha_to_cyclotomic`.
 
     EXAMPLES::
@@ -505,11 +505,12 @@ class HypergeometricData(object):
         d = gcd(g)
         return HypergeometricData(gamma_list=[x / d for x in g])
 
-    def zigzag(self, x):
+    def zigzag(self, x, flip_beta=False):
         """
         Count ``alpha``'s up to ``x`` minus ``beta``'s up to ``x``.
 
         This function is used to compute the weight and the Hodge numbers.
+        With `flip_beta` set to True, replace each `b` in `\beta` with `1-b`.
 
         .. SEEALSO::
 
@@ -528,8 +529,12 @@ class HypergeometricData(object):
         """
         alpha = self._alpha
         beta = self._beta
-        return(sum(1 for a in alpha if a <= x) -
-             sum(1 for b in beta if b <= x))
+        if flip_beta:
+            return(sum(1 for a in alpha if a <= x) -
+                 sum(1 for b in beta if 1-b <= x))
+        else:
+            return(sum(1 for a in alpha if a <= x) -
+                 sum(1 for b in beta if b <= x))
 
     def weight(self):
         """
@@ -869,15 +874,11 @@ class HypergeometricData(object):
         alpha = self._alpha
         beta = self._beta
 
-        def D(x):
-            return (sum(1 for a in alpha if a <= x) -
-                    sum(1 for b in beta if 1 - b <= x))
-
         def z(x):
             return alpha.count(x)
 
         T = polygen(ZZ, 'T')
-        return sum(T ** (D(a) - z(a)) * (T**z(a) - 1) // (T - 1)
+        return sum(T ** (self.zigzag(a,flip_beta=True) - z(a)) * (T**z(a) - 1) // (T - 1)
                    for a in set(alpha))
 
     def padic_H_value(self, p, f, t, prec=20):
@@ -925,14 +926,19 @@ class HypergeometricData(object):
 
         - http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
         """
+        alpha = self._alpha
         beta = self._beta
+        if 0 in alpha:
+            H = self.swap_alpha_beta()
+            return(H.padic_H_value(p,f,1/t,prec))
         t = QQ(t)
         gamma = self.gamma_array()
         q = p ** f
 
         m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
         M = self.M_value()
-        D = (self.weight() + 1 - m[0]) // 2
+        D = -min(self.zigzag(x,flip_beta=True) for x in alpha+beta)
+#        D = (self.weight() + 1 - m[0]) // 2
 
         gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
 
@@ -1005,15 +1011,20 @@ class HypergeometricData(object):
         - http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
         """
+        alpha = self._alpha
+        beta = self._beta
+        if 0 in alpha:
+            H = self.swap_alpha_beta()
+            return(H.H_value(p,f,1/t,ring))
         if ring is None:
             ring = UniversalCyclotomicField()
-        beta = self._beta
         t = QQ(t)
         gamma = self.gamma_array()
         q = p ** f
 
         m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
-        D = (self.weight() + 1 - m[0]) // 2
+        D = -min(self.zigzag(x,flip_beta=True) for x in alpha+beta)
+#        D = (self.weight() + 1 - m[0]) // 2
         M = self.M_value()
 
         Fq = GF(q)
@@ -1102,6 +1113,17 @@ class HypergeometricData(object):
              279841*T^4 - 25392*T^3 + 1242*T^2 - 48*T + 1,
              707281*T^4 - 7569*T^3 + 696*T^2 - 9*T + 1]
 
+        TESTS::
+
+             sage: H1 = Hyp(alpha_beta=([1,1,1],[1/2,1/2,1/2]))
+             sage: H2 = H1.swap_alpha_beta()
+             sage: H1.euler_factor(-1, 3)
+             27*T^3 + 3*T^2 + T + 1
+             sage: H2.euler_factor(-1, 3)
+             27*T^3 + 3*T^2 + T + 1
+             sage: H = Hyp(alpha_beta=([0,0,0,1/3,2/3],[1/2,1/5,2/5,3/5,4/5]))
+             sage: H.euler_factor(-1,7)
+             -16807*T^5 + 1372*T^4 + 511*T^3 - 73*T^2 - 4*T + 1
 
         REFERENCE:
 
@@ -1109,6 +1131,12 @@ class HypergeometricData(object):
         - http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
 
         """
+        alpha = self._alpha
+        beta = self._beta
+        if 0 in alpha:
+            H = self.swap_alpha_beta()
+            return(H.euler_factor(1/t,p,degree))
+
         if t not in QQ or t in [0, 1]:
             raise ValueError('wrong t')
         if not is_prime(p):
@@ -1120,7 +1148,7 @@ class HypergeometricData(object):
         # now p is good
         if degree == 0:
             d = self.degree()
-        bound = d // 2 + d % 2
+        bound = d // 2
         traces = [self.padic_H_value(p, i + 1, t) for i in range(bound)]
 
         w = self.weight()

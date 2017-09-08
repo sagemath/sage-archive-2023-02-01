@@ -422,6 +422,18 @@ class SpecializationMorphism(Morphism):
             Traceback (most recent call last):
             ...
             TypeError: no conversion of this rational to integer
+
+        The following was fixed in :trac:`23808`::
+
+            sage: R.<c>=RR[]
+            sage: P.<z>=AffineSpace(R,1)
+            sage: H=End(P)
+            sage: f=H([z^2+c])
+            sage: f.specialization({c:1})
+            Scheme endomorphism of Affine Space of dimension 1 over Real Field with 53 bits of precision
+              Defn: Defined on coordinates by sending (z) to
+                    (z^2 + 1.00000000000000)
+
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise TypeError("domain should be a polynomial ring")
@@ -467,7 +479,7 @@ class SpecializationMorphism(Morphism):
             else:
                 R = PolynomialRing(R, var_names)
             # Map variables in "new" to R
-            psi.update(zip(new, R.gens()))
+            psi.update(zip([ phi(w) for w in new], R.gens()))
 
         # Compose D with psi
         vals = []

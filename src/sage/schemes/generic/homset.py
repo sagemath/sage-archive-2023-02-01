@@ -453,6 +453,139 @@ class SchemeHomset_points(SchemeHomset_generic):
         return SchemeHomset, (self.domain(), self.codomain(), self.homset_category(),
                               self.base_ring(), False, True)
 
+    def _coerce_map_from_(self, other):
+        r"""
+
+        EXAMPELS::
+
+            sage: R.<t> = QQ[]
+            sage: P = ProjectiveSpace(QQ, 1, 'x')
+            sage: P2 = ProjectiveSpace(R, 1, 'y')
+            sage: P2(R)._coerce_map_from_(P(QQ))
+            True
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 1, 'x')
+            sage: P2 = ProjectiveSpace(CC, 1, 'y')
+            sage: P2(CC)._coerce_map_from_(P(QQ))
+            True
+            sage: P(QQ)._coerce_map_from_(P2(CC))
+            False
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: H = A.subscheme(z)
+            sage: L = A.subscheme([z, y+z])
+            sage: A(QQ)._coerce_map_from_(H(QQ))
+            True
+            sage: H(QQ)._coerce_map_from_(L(QQ))
+            True
+            sage: L(QQ).has_coerce_map_from(H(QQ))
+            False
+            sage: A(CC)._coerce_map_from_(H(QQ))
+            True
+            sage: H(CC)._coerce_map_from_(L(RR))
+            True
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: A2.<u,v> = AffineSpace(QQ, 2)
+            sage: A(QQ).has_coerce_map_from(A2(QQ))
+            False
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: P.<u,v,w> = ProjectiveSpace(QQ, 2)
+            sage: A(QQ).has_coerce_map_from(P(QQ))
+            False
+
+        ::
+
+            sage: A = AffineSpace(QQ, 1)
+            sage: A(QQ)._coerce_map_from_(ZZ)
+            True
+
+        ::
+
+            sage: PS = ProjectiveSpace(ZZ, 1, 'x')
+            sage: PS2 = ProjectiveSpace(Zp(7), 1, 'x')
+            sage: PS(ZZ).has_coerce_map_from(PS2(Zp(7)))
+            False
+            sage: PS2(Zp(7)).has_coerce_map_from(PS(ZZ))
+            True
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: X = P. subscheme ([x-y])
+            sage: P(1,1) == X(1,1)
+            True
+
+        ::
+
+            sage: A = AffineSpace(QQ, 1, 'x')
+            sage: AC = AffineSpace(CC, 1, 'y')
+            sage: A(3/2) == AC(3/2)
+            True
+
+        ::
+
+            sage: A = AffineSpace(QQ, 1)
+            sage: A(0) == 0
+            True
+        """
+        from sage.rings.ring import CommutativeRing
+        target = self.codomain()
+        #we can convert tuples or lists to scheme points
+        #check of input values occurs in the _init_
+        if other in [tuple, list]:
+            return True
+        #ring elements can be coerced to a space if we're affine dimension 1
+        #and the base rings are coercible
+        elif isinstance(other, CommutativeRing):
+            try:
+                from sage.schemes.affine.affine_space import is_AffineSpace
+                if is_AffineSpace(target.ambient_space())\
+                  and target.ambient_space().dimension_relative() == 1:
+                    return target.base_ring().has_coerce_map_from(other)
+                else:
+                    return False
+            except AttributeError: #no .ambient_space
+                return False
+        elif isinstance(other, SchemeHomset_points):
+        #we are converting between scheme points
+            from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+            source = other.codomain()
+            if isinstance(target, AlgebraicScheme_subscheme):
+                #subscheme coerce when there is containment
+                if not isinstance(source, AlgebraicScheme_subscheme):
+                    return False
+                if target.ambient_space() == source.ambient_space():
+                    if all([g in source.defining_ideal() for g in target.defining_polynomials()]):
+                        return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
+            else:
+                #if the target is an ambient space, we can coerce if the base rings coerce
+                #and they are the same type: affine, projective, etc
+                from sage.schemes.toric.variety import is_ToricVariety
+                from sage.schemes.projective.projective_space import is_ProjectiveSpace
+                from sage.schemes.affine.affine_space import is_AffineSpace
+                from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+                try:
+                    ta = target.ambient_space()
+                    sa = source.ambient_space()
+                except AttributeError: #no .ambient_space
+                    return False
+                if ((is_ProjectiveSpace(ta) and is_ProjectiveSpace(sa)) or \
+                  (is_AffineSpace(ta) and is_AffineSpace(sa)) or \
+                  (is_ToricVariety(ta) and is_ToricVariety(sa)) or \
+                  (is_ProductProjectiveSpaces(ta) and is_ProductProjectiveSpaces(sa))) and \
+                  (ta.dimension_relative() == sa.dimension_relative()):
+                    return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
+
     def _element_constructor_(self, *v, **kwds):
         """
         The element constructor.

@@ -756,23 +756,65 @@ class SympyConverter(Converter):
             sage: s.composition(f, f.operator())
             asin(2)
         """
-        import sympy
-
         f = operator._sympy_init_()
         g = ex.operands()
+        import sympy
 
-        f_sympy = getattr(sympy, f, sympy.Function)
-        # print(f,g,f_sympy,sympy.sympify(g, evaluate=False),*sympy.sympify(g, evaluate=False))
-        try :
-            if f_sympy == sympy.Function :
-                # Case f generic fuction
-                # print (type(f_sympy(f)))
-                # print (type(f_sympy(f)(*sympy.sympify(g, evaluate=False))))
-                return f_sympy(f)(*sympy.sympify(g, evaluate=False))
-            else :
-                return f_sympy(*sympy.sympify(g, evaluate=False))
-        except:
-            raise NotImplementedError("SymPy function '%s' doesn't exist" % f)
+        f_sympy = getattr(sympy, f, None)
+        if f_sympy:
+            return f_sympy(*sympy.sympify(g, evaluate=False))
+        else:
+            return sympy.Function(str(f))(*g, evaluate=False)
+
+    def derivative(self, ex, operator):
+        """
+        Convert the derivative of ``self`` in sympy.
+
+        INPUT:
+
+        - ``ex`` -- a symbolic expression
+
+        - ``operator`` -- operator
+
+        TESTS::
+            sage: import sympy
+
+            sage: var('x','y')
+            (x, y)
+
+            sage: f_sage = function('f_sage')(x, y)
+            sage: f_sympy = f_sage._sympy_()
+
+            sage: df_sage = f_sage.diff(x, 2, y, 1); df_sage
+            diff(f_sage(x, y), x, x, y)
+            sage: df_sympy = df_sage._sympy_(); df_sympy
+            Derivative(f_sage(x, y), x, x, y)
+            sage: df_sympy == f_sympy.diff(x, 2, y, 1)
+            True
+
+
+        """
+        import sympy
+
+        # retrive derivated function
+        f = operator.function()
+        f_sympy = self.composition(ex, f)
+
+        # retrive order
+        order = operator._parameter_set
+        # arguments
+        _args = ex.arguments()
+
+        sympy_arg = []
+        for i, a in enumerate(_args):
+            gg = order.count(i)
+            if gg > 0:
+                sympy_arg.append(a)
+                sympy_arg.append(gg)
+
+        return f_sympy.diff(*sympy_arg)
+
+
 
 sympy = SympyConverter()
 

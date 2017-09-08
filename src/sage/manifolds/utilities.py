@@ -518,7 +518,7 @@ def simplify_chain_real_sympy(expr):
         sage: from sage.manifolds.utilities import simplify_chain_real_sympy
         sage: s = (sqrt(y^2))._sympy_()
         sage: simplify_chain_real_sympy(s)
-        abs(y)
+        Abs(y)
 
     Furthermore, we have::
 

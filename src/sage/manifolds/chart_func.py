@@ -442,37 +442,73 @@ class ChartFunction(AlgebraElement):
             True
 
         """
-        return not self.expr(self._calc_method._current).is_zero()
+        curr = self._calc_method._current
+
+
+        if curr == 'SR' :
+            val = self.expr(curr).is_zero()
+        elif curr == 'sympy' :
+            val = self.expr(curr).is_zero
+        return not val
 
     __nonzero__ = __bool__   # For Python2 compatibility
 
-    def is_zero(self):
+
+    def is_trivial_zero(self):
         r"""
-        Return ``True`` if the function is zero and ``False`` otherwise.
+        Check if ``self`` is trivially equal to zero without any
+        simplification.
 
-        EXAMPLES:
+        This method is supposed to be fast as compared with
+        ``self.is_zero()`` or ``self == 0`` and is intended to be
+        used in library code where trying to obtain a mathematically
+        correct result by applying potentially expensive rewrite rules
+        is not desirable.
 
-        Coordinate functions associated to a 2-dimensional chart::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function(x^2+3*y+1)
+            sage: f = X.function(0)
+            sage: f.is_trivial_zero()
+            True
+            sage: f = X.function(float(0.0))
+            sage: f.is_trivial_zero()
+            True
+            sage: f = X.function(x-x)
+            sage: f.is_trivial_zero()
+            True
+            sage: X.zero_function().is_trivial_zero()
+            True
+
+        No simplification is attempted, so that ``False`` is returned for
+        non-trivial cases::
+
+            sage: f = X.function(cos(x)^2 + sin(x)^2 - 1)
+            sage: f.is_trivial_zero()
+            False
+
+        On the contrary, the method
+        :meth:`~sage.structure.element.Element.is_zero` and the direct
+        comparison to zero involve some simplification algorithms and
+        return ``True``::
+
             sage: f.is_zero()
-            False
+            True
             sage: f == 0
-            False
-            sage: g = X.function(0)
-            sage: g.is_zero()
-            True
-            sage: g == 0
-            True
-            sage: X.zero_function().is_zero()
-            True
-            sage: X.zero_function() == 0
             True
 
         """
-        return bool(self.expr(self._calc_method._current) == 0)
+        curr = self._calc_method._current
+        res = self.expr(curr)
+        if curr == 'SR':
+            return res.is_trivial_zero()
+        elif curr == 'sympy':
+            return res.is_zero
+
+
+        # return self._calc_method.is_trivial_zero(self.expr(self._calc_method._current))
+
 
 
     def copy(self):
@@ -1875,7 +1911,7 @@ class ChartFunction(AlgebraElement):
             sage: X.<x,y> = M.chart()
             sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
             sage: f.display()
-            (x, y) |--> cos(x)^2 + sin(x)^2 + sqrt(x^2)
+            (x, y) |--> cos(x)^2 + sin(x)^2 + abs(x)
             sage: f.simplify()
             abs(x) + 1
 
@@ -1910,8 +1946,6 @@ class ChartFunction(AlgebraElement):
             sage: X.<x,y> = M.chart('x:(-oo,0) y')
             sage: f = X.function(sqrt(x^2))
             sage: f
-            sqrt(x^2)
-            sage: f.simplify()
             -x
 
         The same tests with ``sympy``::
@@ -1921,7 +1955,7 @@ class ChartFunction(AlgebraElement):
             sage: X.<x,y> = M.chart(calc_method='sympy')
             sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
             sage: f.simplify()
-            abs(x) + 1
+            Abs(x) + 1
 
             sage: f = X.function((x^2-1)/(x+1))
             sage: f
@@ -1940,8 +1974,6 @@ class ChartFunction(AlgebraElement):
             sage: X.<x,y> = M.chart('x:(-oo,0) y',calc_method='sympy')
             sage: f = X.function(sqrt(x^2))
             sage: f
-            sqrt(x**2)
-            sage: f.simplify()
             -x
 
 
@@ -2300,6 +2332,7 @@ class MultiCoordFunction(SageObject):
 
     A function `f: V \subset \RR^2 \longrightarrow \RR^3`::
 
+        sage: forget()  # to clear the previous assumption on x
         sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()
         sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y)); f

@@ -50,11 +50,17 @@ def _SR_to_Sympy(expression):
     #     return (_Sympy_to_SR(expression))._sympy_()
 
 def _Sympy_to_SR(expression):
-    #print('_Sympy_to_SR',expression)
     try:
         return SR(expression)
     except:
-        return expression._sage_()
+        # If SR cannot transform a sympy expression is because it is a
+        # sympy abstract function.
+        a = expression._sage_()
+        # As all sage objects have a ._sage_ operator, they have to be
+        # catched
+        if type(a) == type(expression):
+            raise TypeError
+        return a
 
 class CalculusMethod(SageObject):
     r"""
@@ -116,6 +122,13 @@ class CalculusMethod(SageObject):
     def simplify(self,expression,method=None):
         if method is None : method = self._current
         return self._simplify_dict[method](expression)
+
+    # def is_trivial_zero(self,expression,method=None):
+    #     if method is None : method = self._current
+    #     if method == 'SR':
+    #         return expression.is_trivial_zero()
+    #     elif method == 'sympy':
+    #         return expression.is_zero
 
 
     def set(self,method):

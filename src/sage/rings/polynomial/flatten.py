@@ -479,7 +479,7 @@ class SpecializationMorphism(Morphism):
             else:
                 R = PolynomialRing(R, var_names)
             # Map variables in "new" to R
-            psi.update(zip([ phi(w) for w in new], R.gens()))
+            psi.update(zip([phi(w) for w in new], R.gens()))
 
         # Compose D with psi
         vals = []

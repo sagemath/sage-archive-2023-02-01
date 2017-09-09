@@ -650,7 +650,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.padded_list(5)
             doctest:warning
             ...
-            DeprecationWarning: padded_list is deprecated.  Please use expansion instead.
+            DeprecationWarning: padded_list is deprecated.  Please use expansion or Integer.digits with the padto keyword instead.
             See http://trac.sagemath.org/14825 for details.
             [0, 2, 1, 0, 0]
             sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.padded_list(5)
@@ -666,7 +666,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: a.padded_list(3)
             [2, 1]
         """
-        deprecation(14825, "padded_list is deprecated.  Please use expansion instead.")
+        deprecation(14825, "padded_list is deprecated.  Please use expansion or Integer.digits with the padto keyword instead.")
         L = list(self.expansion(lift_mode=lift_mode))
         if lift_mode == 'simple' or lift_mode == 'smallest':
             # defined in the linkage file.

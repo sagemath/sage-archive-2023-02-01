@@ -66,22 +66,28 @@ import operator
 from .matrix_space import MatrixSpace, is_MatrixSpace
 from sage.modules.free_module import FreeModule, is_FreeModule
 from sage.structure.element cimport coercion_model
+from sage.categories.homset import Hom, End 
+from sage.schemes.generic.homset import SchemeHomset_generic
 
 
 cdef class MatrixMulAction(Action):
     def __init__(self, G, S, is_left):
         if not is_MatrixSpace(G):
             raise TypeError("Not a matrix space: %s" % G)
-        if G.base_ring() is not S.base_ring():
-            base = coercion_model.common_parent(G.base_ring(), S.base_ring())
+        if isinstance(S, SchemeHomset_generic):
+            if G.base_ring() is not S.domain().base_ring():
+                base = coercion_model.common_parent(G.base_ring(), S.domain().base_ring())
+            else:
+                base = G.base_ring()
         else:
-            base = G.base_ring()
+            if G.base_ring() is not S.base_ring():
+                base = coercion_model.common_parent(G.base_ring(), S.base_ring())
+            else:
+                base = G.base_ring()
+            self.fix_sparseness = G.is_sparse() != S.is_sparse()
         Action.__init__(self, G, S, is_left, operator.mul)
         self._codomain = self._create_codomain(base)
-        try:
-            self.fix_sparseness = G.is_sparse() != S.is_sparse()
-        except AttributeError:
-            pass
+
     def codomain(self):
         return self._codomain
 
@@ -360,7 +366,8 @@ cdef class VectorMatrixAction(MatrixMulAction):
 cdef class MatrixPolymapAction(MatrixMulAction):
     def __init__(self, G, S):
         """
-        Examples::
+        EXAMPLES::
+
             sage: from sage.matrix.action import MatrixPolymapAction
             sage: M = MatrixSpace(QQ,2,2)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
@@ -372,31 +379,33 @@ cdef class MatrixPolymapAction(MatrixMulAction):
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
         """
-        from sage.schemes.generic.homset import SchemeHomset_generic
-        if not isinstance(S,SchemeHomset_generic):
+        if not isinstance(S, SchemeHomset_generic):
             raise TypeError("not a scheme polynomial morphism: %s"% S)
         MatrixMulAction.__init__(self, G, S, True)
 
-    def _create_codomain(self,base):
+    def _create_codomain(self, base):
         """
-        Examples::
+        EXAMPLES::
 
             sage: from sage.matrix.action import MatrixPolymapAction
             sage: M = MatrixSpace(QQ,2,2)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = Hom(P,P)
+            sage: H = End(P)
             sage: A = MatrixPolymapAction(M,H)
             sage: A.codomain()
             Set of morphisms
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
+            sage: A.codomain().is_endomorphism_set()
+            True
         """
-        from sage.categories.homset import Hom 
-        return Hom(self.underlying_set().domain().change_ring(base),self.underlying_set().codomain().change_ring(base))
+        if self.underlying_set().is_endomorphism_set():
+            return End(self.underlying_set().domain().change_ring(base))
+        return Hom(self.underlying_set().domain().change_ring(base), self.underlying_set().codomain().change_ring(base))
 
     cpdef _call_(self, mat, f):
         """
-        Examples::
+        EXAMPLES::
 
             sage: from sage.matrix.action import MatrixPolymapAction
             sage: M = MatrixSpace(QQ, 2, 2)
@@ -406,9 +415,7 @@ cdef class MatrixPolymapAction(MatrixMulAction):
             sage: A = MatrixPolymapAction(M, H)
             sage: m = matrix([[1,1], [0,1]])
             sage: A._call_(m, f)
-            Scheme morphism:
-              From: Projective Space of dimension 1 over Rational Field
-              To:   Projective Space of dimension 1 over Rational Field
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + 2*y^2 : y^2)
         """
@@ -417,7 +424,9 @@ cdef class MatrixPolymapAction(MatrixMulAction):
 cdef class PolymapMatrixAction(MatrixMulAction):
     def __init__(self, G, S):
         """
-        Examples::
+        Initialize the action.
+
+        EXAMPLES::
 
             sage: from sage.matrix.action import PolymapMatrixAction
             sage: M = MatrixSpace(QQ,2,2)
@@ -430,31 +439,37 @@ cdef class PolymapMatrixAction(MatrixMulAction):
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
         """
-        from sage.schemes.generic.homset import SchemeHomset_generic
-        if not isinstance(S,SchemeHomset_generic):
+        if not isinstance(S, SchemeHomset_generic):
             raise TypeError("not a scheme polynomial morphism: %s"% S)
         MatrixMulAction.__init__(self, G, S, False  )
 
-    def _create_codomain(self,base):
+    def _create_codomain(self, base):
         """
-        Examples::
+        Create the codomain.
+
+        EXAMPLES::
 
             sage: from sage.matrix.action import PolymapMatrixAction
             sage: M = MatrixSpace(QQ,2,2)
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = Hom(P,P)
+            sage: H = End(P)
             sage: A = PolymapMatrixAction(M,H)
             sage: A.codomain()
             Set of morphisms
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
+            sage: A.codomain().is_endomorphism_set()
+            True
         """
-        from sage.categories.homset import Hom
-        return Hom(self.underlying_set().domain().change_ring(base),self.underlying_set().codomain().change_ring(base))
+        if self.underlying_set().is_endomorphism_set():
+            return End(self.underlying_set().domain().change_ring(base))
+        return Hom(self.underlying_set().domain().change_ring(base), self.underlying_set().codomain().change_ring(base))
 
     cpdef _call_(self, f, mat):
         """
-        Examples::
+        Call the action.
+
+        EXAMPLES::
 
             sage: from sage.matrix.action import PolymapMatrixAction
             sage: M = MatrixSpace(QQ, 2, 2)
@@ -464,9 +479,7 @@ cdef class PolymapMatrixAction(MatrixMulAction):
             sage: A = PolymapMatrixAction(M, H)
             sage: m = matrix([[1,1], [0,1]])
             sage: A._call_(f, m)
-            Scheme morphism:
-              From: Projective Space of dimension 1 over Rational Field
-              To:   Projective Space of dimension 1 over Rational Field
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 + 2*x*y + 2*y^2 : y^2)
         """

@@ -626,7 +626,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                         return matrix_action.MatrixMatrixAction(self, S)
                     elif sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.MatrixVectorAction(self, S)
-                    elif isinstance(S,SchemeHomset_generic):
+                    elif isinstance(S, SchemeHomset_generic):
                         return matrix_action.MatrixPolymapAction(self, S)
                     else:
                         # action of base ring
@@ -634,7 +634,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 else:
                     if sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.VectorMatrixAction(self, S)
-                    elif isinstance(S,SchemeHomset_generic):
+                    elif isinstance(S, SchemeHomset_generic):
                         return matrix_action.PolymapMatrixAction(self, S)
                     else:
                         # action of base ring

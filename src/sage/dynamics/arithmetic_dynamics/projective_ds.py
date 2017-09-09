@@ -1511,6 +1511,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Dynamical System of Projective Space of dimension 1 over Number Field in i with defining polynomial x^2 + 1
               Defn: Defined on coordinates by sending (x : y) to
                     ((1/3*i)*x^2 + (1/2*i)*y^2 : (-i)*y^2)
+                    
+            .. TODO::
+            
+            Use the left and right action functionality to replace the code below with
+            #return DynamicalSystem_projective(M.inverse()*self*M, domain=self.codomain())
+            once there is a function to pass to the smallest field of definition.
+            
         """
         if not (M.is_square() == 1 and M.determinant() != 0
             and M.ncols() == self.domain().ambient_space().dimension_relative() + 1):

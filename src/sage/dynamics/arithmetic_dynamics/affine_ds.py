@@ -791,6 +791,55 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             Q = R
         return l
 
+    def conjugate(self, M):
+        r"""
+        Conjugate this dynamical system by ``M``, i.e. `M^{-1} \circ f \circ M`.
+
+        If possible the new map will be defined over the same space.
+        Otherwise, will try to coerce to the base ring of ``M``.
+
+        INPUT:
+
+        - ``M`` -- a square invertible matrix
+
+        OUTPUT: 
+        
+        An affine dynamical system
+        
+        Examples::
+        
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem_affine([x^2+1])
+            sage: f.conjugate(matrix([[1,2], [0,1]]))
+            Dynamical System of Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 4*x + 3)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: f = DynamicalSystem_affine([x^3+y^3,y^2])
+            sage: f.conjugate(matrix([[1,2,3], [0,1,2], [0,0,1]]))
+            Dynamical System of Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x, y) to
+                    (x^3 + 6*x^2*y + 12*x*y^2 + 9*y^3 + 9*x^2 + 36*x*y + 40*y^2 + 27*x + 58*y + 28, y^2 + 4*y + 2)
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<i> = NumberField(x^2+1)
+            sage: A.<x> = AffineSpace(ZZ,1)
+            sage: f = DynamicalSystem_affine([x^3+2*x^2+3])
+            sage: f.conjugate(matrix([[i,i], [0,-i]]))
+            Dynamical System of Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^3 + x^2 - x - 5)
+
+        """
+        d = self.codomain().ngens()
+        f = self.homogenize(d).conjugate(M)
+        return f.dehomogenize(d)
+
 class DynamicalSystem_affine_field(DynamicalSystem_affine,
                                    SchemeMorphism_polynomial_affine_space_field):
     @cached_method

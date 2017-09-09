@@ -619,6 +619,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         try:
             from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
             from sage.schemes.generic.homset import SchemeHomset_generic
+            from sage.schemes.generic.homset import SchemeHomset_points
             if op is operator.mul:
                 from . import action as matrix_action
                 if self_on_left:
@@ -626,6 +627,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                         return matrix_action.MatrixMatrixAction(self, S)
                     elif sage.modules.free_module.is_FreeModule(S):
                         return matrix_action.MatrixVectorAction(self, S)
+                    elif isinstance(S, SchemeHomset_points):
+                        return matrix_action.MatrixSchemePointAction(self, S)
                     elif isinstance(S, SchemeHomset_generic):
                         return matrix_action.MatrixPolymapAction(self, S)
                     else:

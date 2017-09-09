@@ -1887,19 +1887,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     H = H + R(g).abs().log() / (d**(n+1))
                     x_i = x / g
                     y_i = y / g
-            # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
+            # this looks different than Wells' Algorithm because of the difference
+            # between what Wells' calls H_infty,
             # and what Green's Function returns for the infinite place
             h = f.green_function(Q, 0 , **kwds) - H + R(t).log()
             # The value returned by Well's algorithm may be negative. As the canonical height
             # is always nonnegative, so if this value is within -err of 0, return 0.
             if h < 0:
-                if h < -err:
+                assert h > -err, "A negative height less than -error_bound was computed. " + \
+                 "This should be impossible, please report bug on trac.sagemath.org."
                     # This should be impossible. The error bound for Wells' is rigorous
                     # and the actual height is always >= 0. If we see something less than -err,
-                    # something has gone very wrong.
-                    raise ValueError("A negative height less than -error_bound was computed. This should be impossible, please report bug on trac.sagemath.org.")
-                else:
-                    h = R(0)
+                    # something has g one very wrong.
+                h = R(0)
             return h
 
         if bad_primes is None:

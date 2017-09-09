@@ -797,6 +797,86 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.affine_ds.multiplier instead")
         return self.as_dynamical_system().multiplier(P, n, check)
 
+    def _matrix_times_polymap_(self, mat, h):
+        """
+        Multiplies the morphism on the left by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        OUTPUT: a scheme morphism given by ``self*mat``
+
+        EXAMPLES::
+
+            sage: A.<x> = AffineSpace(ZZ, 1)
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + 1])
+            sage: matrix([[1,2], [0,1]]) * f
+            Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 3)
+
+        ::
+
+            sage: A1 = AffineSpace(ZZ,1)
+            sage: A2 = AffineSpace(ZZ,2)
+            sage: H = Hom(A1, A2)
+            sage: f = H([x^2+1,x^2-1])
+            sage: matrix([[1,2,3], [0,1,2], [0,0,1]]) * f
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Integer Ring
+              To:   Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (3*x^2 + 2, x^2 + 1)
+        """
+        if self.is_endomorphism():
+            d = self.domain().ngens()
+        else:
+            d = (self.domain().ngens(),self.codomain().ngens())
+        f = mat*self.homogenize(d)
+        return f.dehomogenize(d)
+
+    def _polymap_times_matrix_(self, mat, h):
+        """
+        Multiplies the morphism on the right by a matrix ``mat``.
+
+        INPUT:
+
+        - ``mat`` -- a matrix
+
+        OUTPUT: a scheme morphism given by ``mat*self``
+
+        EXAMPLES::
+
+            sage: A.<x> = AffineSpace(ZZ, 1)
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + 1])
+            sage: f * matrix([[1,2], [0,1]])
+            Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 4*x + 5)
+
+        ::
+
+            sage: A1 = AffineSpace(ZZ,1)
+            sage: A2 = AffineSpace(ZZ,2)
+            sage: H = Hom(A1, A2)
+            sage: f = H([x^2+1,x^2-1])
+            sage: f * matrix([[1,2], [0,1]])
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Integer Ring
+              To:   Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 + 4*x + 5, x^2 + 4*x + 3)
+        """
+        if self.is_endomorphism():
+            d = self.domain().ngens()
+        else:
+            d = (self.domain().ngens(),self.codomain().ngens())
+        f = self.homogenize(d)*mat
+        return f.dehomogenize(d)
+
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
 
     @cached_method

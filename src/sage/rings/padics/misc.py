@@ -28,7 +28,9 @@ from __future__ import absolute_import
 
 from six.moves.builtins import min as python_min
 from six.moves.builtins import max as python_max
+from six.moves.builtins import range
 from sage.rings.infinity import infinity
+from itertools import izip
 
 def gauss_sum(a, p, f, prec=20):
     r"""
@@ -107,7 +109,7 @@ def gauss_sum(a, p, f, prec=20):
     R = Zp(p, prec)
     X = PolynomialRing(R, name='X').gen()
     pi = R.ext(X**(p - 1) + p, names='pi').gen()
-    digits = Zp(p)(a).list(start_val=0)
+    digits = list(Zp(p)(a).expansion())
     n = len(digits)
     digits = digits + [0] * (f - n)
     s = sum(digits)
@@ -181,3 +183,45 @@ def precprint(prec_type, prec_cap, p):
              'floating-point':'with floating precision %s'%prec_cap,
              'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap)}
     return precD[prec_type]
+
+def trim_zeros(L):
+    r"""
+    Strips trailing zeros/empty lists from a list.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.misc import trim_zeros
+        sage: trim_zeros([1,0,1,0])
+        [1, 0, 1]
+        sage: trim_zeros([[1],[],[2],[],[]])
+        [[1], [], [2]]
+        sage: trim_zeros([[],[]])
+        []
+        sage: trim_zeros([])
+        []
+
+    Zeros are also trimmed from nested lists (one deep):
+
+        sage: trim_zeros([[1,0]])
+        [[1]]
+        sage: trim_zeros([[0],[1]])
+        [[], [1]]
+    """
+    strip_trailing = True
+    n = len(L)
+    for i, c in izip(reversed(range(len(L))), reversed(L)):
+        if strip_trailing and (c == 0 or c == []):
+            n = i
+        elif isinstance(c, list):
+            strip_trailing = False
+            m = len(c)
+            # strip trailing zeros from the sublists
+            for j, d in izip(reversed(range(len(c))), reversed(c)):
+                if d == 0:
+                    m = j
+                else:
+                    break
+            L[i] = c[:m]
+        else:
+            break
+    return L[:n]

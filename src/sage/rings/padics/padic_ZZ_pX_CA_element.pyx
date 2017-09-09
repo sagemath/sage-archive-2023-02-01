@@ -1860,15 +1860,17 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: A.<a> = R.ext(g)
             sage: y = 75 + 45*a + 1200*a^2; y
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
-            sage: y.expansion()
+            sage: E = y.expansion(); E
+            5-adic expansion of 4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
+            sage: list(E)
             [[], [0, 4], [3, 1, 3], [0, 0, 4], [0, 0, 1]]
-            sage: y.expansion(lift_mode='smallest')
+            sage: list(y.expansion(lift_mode='smallest'))
             [[], [0, -1], [-2, 2, -2], [1], [0, 0, 2]]
             sage: 5*((-2*5 + 25) + (-1 + 2*5)*a + (-2*5 + 2*125)*a^2)
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
             sage: W(0).expansion()
             []
-            sage: A(0,4).expansion()
+            sage: list(A(0,4).expansion())
             []
         """
         if lift_mode == 'teichmuller':
@@ -2010,11 +2012,13 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         EXAMPLES::
 
             sage: R.<a> = Zq(5^4,4)
-            sage: L = a.teichmuller_expansion(); L
+            sage: E = a.teichmuller_expansion(); E
+            5-adic expansion of a + O(5^4) (teichmuller)
+            sage: list(E)
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + O(5^3), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + O(5^2), (a^3 + a^2 + a + 4) + O(5)]
-            sage: sum([5^i*L[i] for i in range(4)])
+            sage: sum([c * 5^i for i, c in enumerate(E)])
             a + O(5^4)
-            sage: all([L[i]^625 == L[i] for i in range(4)])
+            sage: all([c^625 == c for c in E])
             True
 
             sage: S.<x> = ZZ[]

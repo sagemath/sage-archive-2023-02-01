@@ -932,6 +932,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Affine Space of dimension 1 over Maximal Order in Number Field in w with defining polynomial x^2 - 3 with w = 1.732050807568878?
               Defn: Defined on coordinates by sending (x) to
                     (x^2 - w)
+
+        ::
+
+            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P2.<u,v,w> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P2,P1)
+            sage: f = H([u^2,v^2])
+            sage: f.dehomogenize((2,1))
+            Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x0, x1) to
+                    (x0^2/x1^2)
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -952,9 +965,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             Aff_domain = PS_domain.affine_patch(ind[0])
             S = Aff_domain.ambient_space().coordinate_ring()
+            M = A_domain.dimension_relative()
             N = self.codomain().ambient_space().dimension_relative()
             R = A_domain.coordinate_ring()
+<<<<<<< HEAD
             phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], FS)
+=======
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], M)], S)
+>>>>>>> 23813 Added examples, fixed dehomogenize again.
             F = []
             G = phi(self._polys[ind[1]])
             for i in range(0, N + 1):

@@ -47,6 +47,13 @@
 
 namespace GiNaC {
 
+void Log(const power_ocvector_map& m)
+{
+        for (auto item : m) {
+                std::cerr << item.first << ":\n";
+                Log(item.second);
+        }
+}
 
 static CanonicalForm num2canonical(const numeric& n)
 {
@@ -95,16 +102,27 @@ void ex::collect_powers(power_ocvector_map& pomap) const
                 const power& the_pow = ex_to<power>(*this);
                 if (is_exactly_a<numeric>(the_pow.op(1))) {
                         numeric n = ex_to<numeric>(the_pow.op(1));
-                        if (n.is_rational())
-                                add_to_pomap(pomap, the_pow.op(0), _ex1, n);
+                        if (n.is_rational()) {
+                                if (n.is_negative())
+                                        add_to_pomap(pomap, the_pow.op(0), _ex_1, -n);
+                                else
+                                        add_to_pomap(pomap, the_pow.op(0), _ex1, n);
+                        }
                 }
                 if (is_exactly_a<mul>(the_pow.op(1))) {
                         mul m = ex_to<mul>(the_pow.op(1));
                         numeric oc = m.overall_coeff;
                         if (oc.is_rational()) {
-                                m.overall_coeff = *_num1_p;
-                                ex mm = m.eval();
-                                add_to_pomap(pomap, the_pow.op(0), mm, oc);
+                                if (oc.is_negative()) {
+                                        m.overall_coeff = *_num_1_p;
+                                        ex mm = m.eval();
+                                        add_to_pomap(pomap, the_pow.op(0), mm, -oc);
+                                }
+                                else {
+                                        m.overall_coeff = *_num1_p;
+                                        ex mm = m.eval();
+                                        add_to_pomap(pomap, the_pow.op(0), mm, oc);
+                                }
                         }
                 }
         }
@@ -148,9 +166,10 @@ void ex::collect_powers(power_ocvector_map& pomap) const
 static void transform_powers(power_ocvector_map& pomap)
 {
         for (auto& it : pomap) {
-                numeric g(*_num1_p);
-                for (const numeric& num : it.second)
+                numeric g(*_num0_p);
+                for (const numeric& num : it.second) {
                         g = g.gcd(num);
+                }
                 (it.second)[0] = g;
         }
 }
@@ -200,7 +219,14 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 for (const auto& termex : m.seq) {
                         p = p * m.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p = p * m.overall_coeff.to_canonical();
+                CanonicalForm oc;
+                try {
+                         oc = m.overall_coeff.to_canonical();
+                }
+                catch (std::runtime_error) {
+                        oc = replace_with_symbol(m.overall_coeff, map, revmap);
+                }
+                p = p * oc;
                 return p;
         }
         else if (is_exactly_a<power>(*this))
@@ -209,12 +235,27 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 if (is_exactly_a<numeric>(pow.exponent)) {
                         numeric expo = ex_to<numeric>(pow.exponent);
                         if (expo.is_rational()) {
-                                auto var = replace_with_symbol(pow.basis, map, revmap);
-                                auto it = pomap.find(pow.basis);
-                                if (it == pomap.end())
-                                        throw std::runtime_error("can't happen in ex::to_canonical");
-                                numeric n = expo.div(it->second[0]);
-                                revmap[var.level()-1] = GiNaC::power(it->first, it->second[0]);
+                                CanonicalForm var;
+                                power_ocvector_map::iterator it;
+                                numeric n;
+                                if (expo.is_negative()) {
+                                        var = replace_with_symbol(power(pow.basis, _ex_1),
+                                                        map, revmap);
+                                        it = pomap.find(power(pow.basis,
+                                                                _ex_1));
+                                        if (it == pomap.end())
+                                                throw std::runtime_error("can't happen in ex::to_canonical");
+                                        n = -expo.div(it->second[0]);
+                                }
+                                else {
+                                        var = replace_with_symbol(pow.basis, map, revmap);
+                                        it = pomap.find(pow.basis);
+                                        if (it == pomap.end())
+                                                throw std::runtime_error("can't happen in ex::to_canonical");
+                                        n = expo.div(it->second[0]);
+                                }
+                                revmap[var.level()-1] = GiNaC::power(it->first,
+                                                               it->second[0]);
                                 return ::power(var, n.to_int());
                         }
                 }
@@ -222,13 +263,29 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                         mul m = ex_to<mul>(pow.exponent);
                         numeric oc = m.overall_coeff;
                         if (oc.is_rational()) {
-                                m.overall_coeff = *_num1_p;
-                                ex mm = m.eval();
-                                auto it = pomap.find(GiNaC::power(pow.basis, mm));
-                                if (it == pomap.end())
-                                        throw std::runtime_error("can't happen in ex::to_canonical");
-                                auto var = replace_with_symbol(it->first, map, revmap);
-                                numeric n = oc.div(it->second[0]);
+                                CanonicalForm var;
+                                power_ocvector_map::iterator it;
+                                numeric n;
+                                if (oc.is_negative()) {
+                                        m.overall_coeff = *_num_1_p;
+                                        ex mm = m.eval();
+                                        it = pomap.find(GiNaC::power(pow.basis, mm));
+                                        if (it == pomap.end())
+                                                throw std::runtime_error("can't happen in ex::to_canonical");
+                                        var = replace_with_symbol(it->first,
+                                                                  map, revmap);
+                                        n = -oc.div(it->second[0]);
+                                }
+                                else {
+                                        m.overall_coeff = *_num1_p;
+                                        ex mm = m.eval();
+                                        it = pomap.find(GiNaC::power(pow.basis, mm));
+                                        if (it == pomap.end())
+                                                throw std::runtime_error("can't happen in ex::to_canonical");
+                                        var = replace_with_symbol(it->first,
+                                                                  map, revmap);
+                                        n = oc.div(it->second[0]);
+                                }
                                 revmap[var.level()-1] = GiNaC::power(it->first, it->second[0]);
                                 return ::power(var, n.to_int());
                         }

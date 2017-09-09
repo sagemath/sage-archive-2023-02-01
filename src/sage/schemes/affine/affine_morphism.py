@@ -869,6 +869,20 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
               To:   Affine Space of dimension 2 over Integer Ring
               Defn: Defined on coordinates by sending (x) to
                     (x^2 + 4*x + 5, x^2 + 4*x + 3)
+
+        ::
+
+            sage: P.<x, y> = AffineSpace(QQ, 2)
+            sage: P2.<u,v,w> = AffineSpace(QQ,3)
+            sage: H = Hom(P2, P)
+            sage: f = H([u^2 + v^2, w^2])
+            sage: m = matrix([[1,1,1], [1,0,1],[0,0,1]])
+            sage: m*f
+            Scheme morphism:
+              From: Affine Space of dimension 3 over Rational Field
+              To:   Affine Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x0, x1, x2) to
+                    (x0^2 + x1^2 + x2^2 + 1, x0^2 + x1^2 + 1)
         """
         if self.is_endomorphism():
             d = self.domain().ngens()

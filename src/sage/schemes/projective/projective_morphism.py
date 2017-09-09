@@ -1006,6 +1006,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 2*x*y, y^2])
             sage: f.dehomogenize(0).homogenize(0) == f
             True
+
+        ::
+
+            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P2.<u,v,w> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P2,P1)
+            sage: f = H([u^2,v^2])
+            sage: f.dehomogenize((2,1))
+            Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x0, x1) to
+                    (x0^2/x1^2)
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -1026,9 +1039,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             Aff_domain = PS_domain.affine_patch(ind[0])
             S = Aff_domain.ambient_space().coordinate_ring()
+            M = A_domain.dimension_relative()
             N = self.codomain().ambient_space().dimension_relative()
             R = A_domain.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], M)], S)
             F = []
             G = phi(self._polys[ind[1]])
             for i in range(0, N + 1):

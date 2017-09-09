@@ -1766,12 +1766,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.canonical_height(P.point([2,1]), error_bound=0.001)
             1.0984430632822307984974382955
 
-        Notice that preperiodic points may not be exactly 0::
+        Notice that preperiodic points may not return exactly 0::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2]);
-            sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            -4.1314791474339086378649206722e-8
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(X^2 + X - 1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
+            sage: Q = P.point([a,1])
+            sage: f.canonical_height(Q, error_bound=0.000001) # Answer only within error_bound of 0
+            5.7364919788790160119266380480e-8
+            sage: f.nth_iterate(Q,2) == Q # but it is indeed preperiodic
+            True
 
         ::
 
@@ -2916,7 +2921,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^3-3/4*x*y^2 + 3/4*y^3, y^3])
             sage: f.critical_height(error_bound=0.0001)
-            -6.5213935371936424684699969258e-6
+            0.00000000000000000000000000000
         """
         PS = self.codomain()
         if PS.dimension_relative() > 1:

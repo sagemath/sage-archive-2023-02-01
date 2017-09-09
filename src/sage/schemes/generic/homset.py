@@ -532,6 +532,14 @@ class SchemeHomset_points(SchemeHomset_generic):
             sage: PP3(QQ)._coerce_map_from_(PP1(ZZ))
             False
 
+        ::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: H = A.subscheme(z)
+            sage: A(K).has_coerce_map_from(H(QQ))
+            True
+
         TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)

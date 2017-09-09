@@ -3805,7 +3805,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f._is_preperiodic(Q)
             True
 
-        Check that :trac:`23814` is fixed (works even if domain is not specified):::
+        Check that :trac:`23814` is fixed (works even if domain is not specified)::
 
             sage: R.<X> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(X^2 + X - 1)
@@ -3814,7 +3814,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: Q = P.point([a,1])
             sage: Q.is_preperiodic(f)
             True
-
         """
         if not is_ProjectiveSpace(self.codomain()):
             raise NotImplementedError("must be over projective space")

@@ -33,6 +33,7 @@
 #include "function.h"
 #include "inifcns.h"
 #include "order.h"
+#include "mpoly.h"
 
 #include <iostream>
 #include <vector>
@@ -1350,7 +1351,6 @@ ex mul::expand(unsigned options) const
 		if (is_exactly_a<add>(elem.rest) &&
 			(elem.coeff.is_integer_one())) {
 			if (is_exactly_a<add>(last_expanded)) {
-
 				// Expand a product of two sums, aggressive version.
 				// Caring for the overall coefficients in separate loops can
 				// sometimes give a performance gain of up to 15%!
@@ -1365,8 +1365,21 @@ ex mul::expand(unsigned options) const
 				const auto& add2begin = add2.seq.begin();
 				const auto& add2end   = add2.seq.end();
 				epvector distrseq;
-				distrseq.reserve(add1.seq.size()+add2.seq.size());
+				auto s = add1.seq.size()+add2.seq.size();
+                                if (s > 400) {
+//                                // the condition is probably too simple
+                                        try {
+                                        // can it be converted/expanded via Singular?
+                                        last_expanded = poly_mul_expand(last_expanded,
+                                                                        elem.rest);
+                                                continue;
+                                        }
+                                        catch (std::runtime_error) {
+                                                std::cerr << "can't happen while calling poly_mul_expand\n";
+                                        }
+                                }
 
+				distrseq.reserve(s);
 				// Multiply add2 with the overall coefficient of add1 and append it to distrseq:
 				if (!add1.overall_coeff.is_zero()) {
 					if (add1.overall_coeff.is_one())

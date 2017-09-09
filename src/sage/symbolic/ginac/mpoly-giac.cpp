@@ -507,6 +507,28 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
         return true;
 }
 
+ex poly_mul_expand(const ex& a, const ex& b)
+{
+        exmap repl;
+        ex poly_a = a.to_rational(repl);
+        ex poly_b = b.to_rational(repl);
+
+        symbolset s1 = poly_a.symbols();
+        const symbolset& s2 = poly_b.symbols();
+        s1.insert(s2.begin(), s2.end());
+        the_dimension = s1.size();
+
+        ex_int_map map;
+        exvector revmap;
+
+        giac::polynome p = poly_a.to_polynome(map, revmap);
+        giac::polynome q = poly_b.to_polynome(map, revmap);
+        giac::polynome d(the_dimension);
+        d = p * q;
+
+        return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
+}
+
 } // namespace GiNaC
 
 #endif // HAVE_LIBGIAC

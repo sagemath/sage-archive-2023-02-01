@@ -33,6 +33,7 @@ class symbol;
 // Polynomial GCD in Z[X], cofactors are returned in ca and cb, if desired
 extern ex gcdpoly(const ex &a, const ex &b, ex *ca = nullptr, ex *cb = nullptr, bool check_args = true);
 extern bool factorpoly(const ex& p, ex& res);
+extern ex poly_mul_expand(const ex &a, const ex &b); 
 
 // Polynomial LCM in Z[X]
 extern ex lcm(const ex &a, const ex &b, bool check_args = true);

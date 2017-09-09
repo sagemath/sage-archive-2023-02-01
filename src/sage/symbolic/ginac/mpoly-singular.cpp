@@ -637,6 +637,25 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
         return true;
 }
 
+ex poly_mul_expand(const ex& a, const ex& b)
+{
+        ex_int_map map;
+        exvector revmap;
+        power_ocvector_map pomap;
+        a.collect_powers(pomap);
+        b.collect_powers(pomap);
+//        Log(pomap);
+        transform_powers(pomap);
+        CanonicalForm p = a.to_canonical(map, pomap, revmap);
+        CanonicalForm q = b.to_canonical(map, pomap, revmap);
+        CanonicalForm d = p * q;
+//        Log(map);
+//        Log(revmap);
+//        Log(pomap);
+        ex res = canonical_to_ex(d, revmap);
+        return res;
+}
+
 #endif //PYNAC_HAVE_LIBGIAC
 
 ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)

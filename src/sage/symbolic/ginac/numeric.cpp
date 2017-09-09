@@ -3498,7 +3498,7 @@ const numeric numeric::binomial(const numeric &k) const {
                 if (is_positive() and k.is_positive()
                     and *this < 13) {
                         static long fac[] = {1, 1, 2, 6, 24, 120, 720,
-                                5040, 40320, 362880, 362880, 39916800,
+                                5040, 40320, 362880, 3628800, 39916800,
                                 479001600};
                         long a = to_long();
                         long b = k.to_long();

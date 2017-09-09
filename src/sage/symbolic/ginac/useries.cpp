@@ -273,6 +273,7 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
                 return true;
         if (is_exactly_a<numeric>(the_ex))
                 return not (ex_to<numeric>(the_ex).is_mpz()
+                                or ex_to<numeric>(the_ex).is_long()
                                 or ex_to<numeric>(the_ex).is_mpq());
         if (is_exactly_a<symbol>(the_ex)) {
                 return (not ex_to<symbol>(the_ex).is_equal(symb));
@@ -461,7 +462,9 @@ void add::useries(flint_series_t& fp, int order) const
                 return;
 
         flint_series_t fp1;
-        if (oc.is_mpz())
+        if (oc.is_long())
+                fmpq_poly_set_si(fp1.ft, oc.to_long());
+        else if (oc.is_mpz())
                 fmpq_poly_set_mpz(fp1.ft, oc.as_mpz());
         else
                 fmpq_poly_set_mpq(fp1.ft, oc.as_mpq());
@@ -483,7 +486,9 @@ void mul::useries(flint_series_t& fp, int order) const
         if (oc.is_one())
                 return;
 
-        if (oc.is_mpz())
+        if (oc.is_long())
+                fmpq_poly_scalar_mul_si(fp.ft, fp.ft, oc.to_long());
+        else if (oc.is_mpz())
                 fmpq_poly_scalar_mul_mpz(fp.ft, fp.ft, oc.as_mpz());
         else
                 fmpq_poly_scalar_mul_mpq(fp.ft, fp.ft, oc.as_mpq());
@@ -583,7 +588,9 @@ void function::useries(flint_series_t& fp, int order) const
 
 void numeric::useries(flint_series_t& fp, int order) const
 {
-        if (is_mpz())
+        if (is_long())
+                fmpq_poly_set_si(fp.ft, to_long());
+        else if (is_mpz())
                 fmpq_poly_set_mpz(fp.ft, as_mpz());
         else
                 fmpq_poly_set_mpq(fp.ft, as_mpq());

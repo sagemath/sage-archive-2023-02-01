@@ -112,18 +112,11 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cdef int _get_value(self, celement value) except -1:
+    cdef int _get_unit(self, celement value) except -1:
         """
-        Sets ``value`` to the value held by this p-adic element.
-
-        The behavior varies based on whether the parent is a field.
-
-        - if the parent is a field, sets ``value`` to the unit part,
-          or zero for inexact zeros
-        - otherwise, sets ``value`` to the value itself.
+        Sets ``value`` to the unit of this p-adic element.
         """
         cremove(value, self.value, 0, self.prime_pow)
-        #ccopy(value, self.value, self.prime_pow)
 
     cdef int check_preccap(self) except -1:
         """

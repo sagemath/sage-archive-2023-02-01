@@ -203,19 +203,11 @@ cdef class CRElement(pAdicTemplateElement):
         ans._normalize()
         return ans
 
-    cdef int _get_value(self, celement value) except -1:
+    cdef int _get_unit(self, celement value) except -1:
         """
-        Sets ``value`` to the value held by this p-adic element.
-
-        The behavior varies based on whether the parent is a field.
-
-        - if the parent is a field, sets ``value`` to the unit part,
-          or zero for inexact zeros
-        - otherwise, sets ``value`` to the value itself.
+        Sets ``value`` to the unit of this p-adic element.
         """
         ccopy(value, self.unit, self.prime_pow)
-        #if not (self.prime_pow.in_field or self.ordp == 0 or ciszero(value, self.prime_pow)):
-        #    cshift(value, value, self.ordp, 0, self.prime_pow, False)
 
     cdef int check_preccap(self) except -1:
         """

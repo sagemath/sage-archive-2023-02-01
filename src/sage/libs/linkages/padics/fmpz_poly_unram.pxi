@@ -525,6 +525,17 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
 
 # the expansion_mode enum is defined in padic_template_element_header.pxi
 cdef inline cexpansion_next(fmpz_poly_t value, expansion_mode mode, long curpower, PowComputer_ prime_pow):
+    """
+    Return the next digit in a `p`-adic expansion of ``value``.
+
+    INPUT:
+
+    - ``value`` -- the `p`-adic element whose expansion is desired.
+    - ``mode`` -- either ``simple_mode`` or ``smallest_mode``
+    - ``curpower`` -- the current power of `p` for which the coefficient
+      is being found.  Only used in ``smallest_mode``.
+    - ``prime_pow`` -- A ``PowComputer`` holding `p`-adic data.
+    """
     if mode == teichmuller_mode: raise NotImplementedError
     ans = []
     cdef fmpz* c
@@ -532,17 +543,26 @@ cdef inline cexpansion_next(fmpz_poly_t value, expansion_mode mode, long curpowe
     cdef Integer digit
     for i in range(fmpz_poly_length(value)):
         c = fmpz_poly_get_coeff_ptr(value, i)
-        fmpz_fdiv_qr(c, prime_pow.fmpz_clist, c, prime_pow.fprime)
-        if mode == smallest_mode and fmpz_cmp(prime_pow.fmpz_clist, prime_pow.half_prime) > 0:
-            fmpz_sub(prime_pow.fmpz_clist, prime_pow.fmpz_clist, prime_pow.fprime)
+        fmpz_fdiv_qr(c, prime_pow.fmpz_cexp, c, prime_pow.fprime)
+        if mode == smallest_mode and fmpz_cmp(prime_pow.fmpz_cexp, prime_pow.half_prime) > 0:
+            fmpz_sub(prime_pow.fmpz_cexp, prime_pow.fmpz_cexp, prime_pow.fprime)
             fmpz_add_ui(c, c, 1)
         digit = PY_NEW(Integer)
-        fmpz_get_mpz(digit.value, prime_pow.fmpz_clist)
+        fmpz_get_mpz(digit.value, prime_pow.fmpz_cexp)
         ans.append(digit)
     _fmpz_poly_normalise(value)
     return trim_zeros(ans) # defined in sage.rings.padics.misc and imported in padic_template_element
 
 cdef inline cexpansion_getitem(fmpz_poly_t value, long m, PowComputer_ prime_pow):
+    """
+    Return the `m`th `p`-adic digit in the ``simple_mode`` expansion.
+
+    INPUT:
+
+    - ``value`` -- the `p`-adic element whose expansion is desired.
+    - ``m`` -- a non-negative integer: which entry in the `p`-adic expansion to return.
+    - ``prime_pow`` -- A ``PowComputer`` holding `p`-adic data.
+    """
     ans = []
     cdef fmpz* c
     cdef long i
@@ -550,61 +570,17 @@ cdef inline cexpansion_getitem(fmpz_poly_t value, long m, PowComputer_ prime_pow
     for i in range(fmpz_poly_length(value)):
         c = fmpz_poly_get_coeff_ptr(value, i)
         if m > 0:
-            fmpz_fdiv_q(prime_pow.fmpz_clist, c, prime_pow.pow_fmpz_t_tmp(m)[0])
-            fmpz_mod(prime_pow.fmpz_clist, prime_pow.fmpz_clist, prime_pow.fprime)
+            fmpz_fdiv_q(prime_pow.fmpz_cexp, c, prime_pow.pow_fmpz_t_tmp(m)[0])
+            fmpz_mod(prime_pow.fmpz_cexp, prime_pow.fmpz_cexp, prime_pow.fprime)
         else:
-            fmpz_mod(prime_pow.fmpz_clist, c, prime_pow.fprime)
+            fmpz_mod(prime_pow.fmpz_cexp, c, prime_pow.fprime)
         digit = PY_NEW(Integer)
-        fmpz_get_mpz(digit.value, prime_pow.fmpz_clist)
+        fmpz_get_mpz(digit.value, prime_pow.fmpz_cexp)
         ans.append(digit)
     _fmpz_poly_normalise(value)
     return trim_zeros(ans) # defined in sage.rings.padics.misc and imported in padic_template_element
 
-cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
-    """
-    Returns a list of digits in the series expansion.
-
-    This function is used in printing, and expresses ``a`` as a series
-    in the standard uniformizer ``p``.
-
-    INPUT:
-
-    - ``a`` -- an ``celement`` giving the underlying `p`-adic element.
-    - ``prec`` -- a precision giving the number of digits desired.
-    - ``pos`` -- if True then representatives in 0..(p-1) are used;
-                 otherwise the range (-p/2..p/2) is used.
-    - ``prime_pow`` -- a PowComputer for the ring.
-
-    OUTPUT:
-
-    A list of `p`-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1*p +
-    \cdots` modulo `p^{prec}`. The digits are represented as lists themselves.
-    The returned list might omit trailing zeros and therefore contain less than
-    ``prec`` elements.
-    """
-
-    ret = []
-    cdef Integer digit, zero = Integer(0)
-    cdef long i,j
-    for i in range(fmpz_poly_length(a)):
-        fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_clist, a, i)
-        j = 0
-        while j < prec:
-            if fmpz_is_zero(prime_pow.fmpz_clist): break
-            fmpz_fdiv_qr(prime_pow.fmpz_clist, prime_pow.fmpz_clist2, prime_pow.fmpz_clist, prime_pow.fprime)
-            if not fmpz_is_zero(prime_pow.fmpz_clist2):
-                if not pos and fmpz_cmp(prime_pow.fmpz_clist2, prime_pow.half_prime) > 0:
-                    fmpz_sub(prime_pow.fmpz_clist2, prime_pow.fmpz_clist2, prime_pow.fprime)
-                    fmpz_add_ui(prime_pow.fmpz_clist, prime_pow.fmpz_clist, 1)
-                while len(ret) <= j: ret.append([])
-                while len(ret[j]) <= i: ret[j].append(zero)
-                digit = PY_NEW(Integer)
-                fmpz_get_mpz(digit.value, prime_pow.fmpz_clist2)
-                ret[j][i] =digit
-            j += 1
-    return ret
-
-# The element is filled in for zero in the output of clist if necessary.
+# The element is filled in for zero in the p-adic expansion if necessary.
 _expansion_zero = []
 
 cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime_pow):

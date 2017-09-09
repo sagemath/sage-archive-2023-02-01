@@ -485,6 +485,17 @@ cdef inline long chash(mpz_t a, long ordp, long prec, PowComputer_ prime_pow) ex
 
 # the expansion_mode enum is defined in padic_template_element_header.pxi
 cdef inline cexpansion_next(mpz_t value, expansion_mode mode, long curpower, PowComputer_ prime_pow):
+    """
+    Return the next digit in a `p`-adic expansion of ``value``.
+
+    INPUT:
+
+    - ``value`` -- the `p`-adic element whose expansion is desired.
+    - ``mode`` -- either ``simple_mode`` or ``smallest_mode``
+    - ``curpower`` -- the current power of `p` for which the coefficient
+      is being found.  Only used in ``smallest_mode``.
+    - ``prime_pow`` -- A ``PowComputer`` holding `p`-adic data.
+    """
     if mode == teichmuller_mode: raise NotImplementedError
     cdef Integer ans = PY_NEW(Integer)
     cdef bint neg
@@ -503,68 +514,21 @@ cdef inline cexpansion_next(mpz_t value, expansion_mode mode, long curpower, Pow
     return ans
 
 cdef inline cexpansion_getitem(mpz_t value, long m, PowComputer_ prime_pow):
+    """
+    Return the `m`th `p`-adic digit in the ``simple_mode`` expansion.
+
+    INPUT:
+
+    - ``value`` -- the `p`-adic element whose expansion is desired.
+    - ``m`` -- a non-negative integer: which entry in the `p`-adic expansion to return.
+    - ``prime_pow`` -- A ``PowComputer`` holding `p`-adic data.
+    """
     cdef Integer ans = PY_NEW(Integer)
     if m > 0:
         mpz_fdiv_q(ans.value, value, prime_pow.pow_mpz_t_tmp(m))
         mpz_mod(ans.value, ans.value, prime_pow.prime.value)
     else:
         mpz_mod(ans.value, value, prime_pow.prime.value)
-    return ans
-
-cdef clist(mpz_t a, long prec, bint pos, PowComputer_ prime_pow):
-    """
-    Returns a list of digits in the series expansion.
-
-    This function is used in printing, and expresses ``a`` as a series
-    in the standard uniformizer ``p``.
-
-    INPUT:
-
-    - ``a`` -- an ``mpz_t`` giving the underlying `p`-adic element.
-    - ``prec`` -- a precision giving the number of digits desired.
-    - ``pos`` -- if True then representatives in 0..(p-1) are used;
-                 otherwise the range (-p/2..p/2) is used.
-    - ``prime_pow`` -- a PowComputer for the ring.
-
-    OUTPUT:
-
-    - A list of p-adic digits `[a_0, a_1, \ldots]` so that
-      `a = a_0 + a_1*p + \cdots` modulo `p^{prec}`.
-    """
-    cdef mpz_t tmp, halfp
-    cdef bint neg
-    cdef long curpower
-    cdef Integer list_elt
-    ans = PyList_New(0)
-    mpz_set(holder.value, a)
-    if pos:
-        curpower = prec
-        while mpz_sgn(holder.value) != 0 and curpower >= 0:
-            list_elt = PY_NEW(Integer)
-            mpz_mod(list_elt.value, holder.value, prime_pow.prime.value)
-            mpz_sub(holder.value, holder.value, list_elt.value)
-            mpz_divexact(holder.value, holder.value, prime_pow.prime.value)
-            PyList_Append(ans, list_elt)
-            curpower -= 1
-    else:
-        neg = False
-        curpower = prec
-        mpz_fdiv_q_2exp(holder2.value, prime_pow.prime.value, 1)
-        while mpz_sgn(holder.value) != 0 and curpower > 0:
-            curpower -= 1
-            list_elt = PY_NEW(Integer)
-            mpz_mod(list_elt.value, holder.value, prime_pow.prime.value)
-            if mpz_cmp(list_elt.value, holder2.value) > 0:
-                mpz_sub(list_elt.value, list_elt.value, prime_pow.prime.value)
-                neg = True
-            else:
-                neg = False
-            mpz_sub(holder.value, holder.value, list_elt.value)
-            mpz_divexact(holder.value, holder.value, prime_pow.prime.value)
-            if neg:
-                if mpz_cmp(holder.value, prime_pow.pow_mpz_t_tmp(curpower)) >= 0:
-                    mpz_sub(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(curpower))
-            PyList_Append(ans, list_elt)
     return ans
 
 # The element is filled in for zero in the the p-adic expansion if necessary.

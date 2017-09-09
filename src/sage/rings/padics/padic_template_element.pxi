@@ -176,15 +176,9 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         raise NotImplementedError
 
-    cdef int _get_value(self, celement value) except -1:
+    cdef int _get_unit(self, celement value) except -1:
         """
-        Sets ``value`` to the value held by this p-adic element.
-
-        The behavior varies based on whether the parent is a field.
-
-        - if the parent is a field, sets ``value`` to the unit part,
-          or zero for inexact zeros
-        - otherwise, sets ``value`` to the value itself.
+        Sets ``value`` to the unit of this p-adic element.
         """
         raise NotImplementedError
 
@@ -654,6 +648,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         EXAMPLES::
 
             sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.padded_list(5)
+            doctest:warning
+            ...
+            DeprecationWarning: padded_list is deprecated.  Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
             [0, 2, 1, 0, 0]
             sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.padded_list(5)
             [0, 2, 1, 0, 0]
@@ -668,6 +666,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: a.padded_list(3)
             [2, 1]
         """
+        deprecation(14825, "padded_list is deprecated.  Please use expansion instead.")
         L = list(self.expansion(lift_mode=lift_mode))
         if lift_mode == 'simple' or lift_mode == 'smallest':
             # defined in the linkage file.
@@ -927,12 +926,39 @@ cdef long padic_pow_helper(celement result, celement base, long base_val, long b
     return bloga_aprec
 
 cdef _zero(expansion_mode mode, teich_ring):
+    """
+    Return an appropriate zero for a given expansion mode.
+
+    INPUT:
+
+    - ``mode`` -- either ``simple_mode`` or ``smallest_mode`` or ``teichmuller_mode``
+    - ``teich_ring`` -- the integer ring of the maximal unramified subextension
+      of the parent.  Only used in ``teichmuller_mode``.
+    """
     if mode == teichmuller_mode:
         return teich_ring(0)
     else:
         return _expansion_zero
 
 cdef class ExpansionIter(object):
+    """
+    An iterator over a `p`-adic expansion.
+
+    This class should not be instantiated directly, but instead using :meth:`expansion`.
+
+    INPUT:
+
+    - ``elt`` -- the `p`-adic element
+    - ``prec`` -- the nunmber of terms to be emitted
+    - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
+
+    EXAMPLES::
+
+        sage: E = Zp(5,4)(373).expansion()
+        sage: I = iter(E) # indirect doctest
+        sage: type(I)
+        <type 'sage.rings.padics.padic_capped_relative_element.ExpansionIter'>
+    """
     cdef pAdicTemplateElement elt
     cdef celement tmp
     cdef celement curvalue
@@ -942,6 +968,16 @@ cdef class ExpansionIter(object):
     cdef object teich_ring
 
     def __cinit__(self, pAdicTemplateElement elt, long prec, expansion_mode mode):
+        """
+        Allocates memory for the iterator.
+
+        TESTS::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: I = iter(E)
+            sage: next(I)
+            3
+        """
         self.elt = elt
         self.curpower = prec
         self.mode = mode
@@ -951,20 +987,63 @@ cdef class ExpansionIter(object):
             self.teich_ring = R.maximal_unramified_subextension().integer_ring()
         cconstruct(self.tmp, elt.prime_pow)
         cconstruct(self.curvalue, elt.prime_pow)
-        elt._get_value(self.curvalue)
+        elt._get_unit(self.curvalue)
 
     def __dealloc__(self):
+        """
+        Deallocates memory for the iterator.
+
+        TESTS::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: I = iter(E)
+            sage: del I
+        """
         cdestruct(self.tmp, self.elt.prime_pow)
         cdestruct(self.curvalue, self.elt.prime_pow)
 
     def __iter__(self):
+        """
+        Chracteristic property of an iterator: ``__iter__`` returns itself.
+
+        TESTS::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: I = iter(E)
+            sage: I is iter(I)
+            True
+        """
         return self
 
     def __len__(self):
+        """
+        Returns the number of terms that will be emitted.
+
+        TESTS::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: I = iter(E)
+            sage: len(I)
+            4
+            sage: c = next(I); len(I)
+            3
+        """
         return self.curpower
 
     def __next__(self):
-        if self.curpower == 0:
+        """
+        Provides the next coefficient in the `p`-adic expansion.
+
+        EXAMPLES::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: I = iter(E)
+            sage: next(I)
+            3
+            sage: next(I), next(I), next(I)
+            (4, 4, 2)
+        """
+        if self.curpower <= 0:
             raise StopIteration
         self.curpower -= 1
         cdef pAdicTemplateElement ans
@@ -987,6 +1066,25 @@ cdef class ExpansionIter(object):
             return cexpansion_next(self.curvalue, self.mode, self.curpower, pp)
 
 cdef class ExpansionIterable(object):
+    """
+    An iterable storing a `p`-adic expansion of an element.
+
+    This class should not be instantiated directly, but instead using :meth:`expansion`.
+
+    INPUT:
+
+    - ``elt`` -- the `p`-adic element
+    - ``prec`` -- the nunmber of terms to be emitted
+    - ``val_shift`` -- how many zeros to add at the beginning of the expansion,
+      or the number of initial terms to truncate (if negative)
+    - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
+
+    EXAMPLES::
+
+        sage: E = Zp(5,4)(373).expansion() # indirect doctest
+        sage: type(E)
+        <type 'sage.rings.padics.padic_capped_relative_element.ExpansionIterable'>
+    """
     cdef pAdicTemplateElement elt
     cdef celement tmp
     cdef long prec
@@ -995,6 +1093,14 @@ cdef class ExpansionIterable(object):
     cdef object teich_ring
 
     def __cinit__(self, pAdicTemplateElement elt, long prec, long val_shift, expansion_mode mode):
+        """
+        Allocates memory for the iteratable.
+
+        TESTS::
+
+            sage: Zp(5,4)(373).expansion()
+            5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4)
+        """
         self.elt = elt
         cconstruct(self.tmp, elt.prime_pow)
         self.prec = prec
@@ -1004,9 +1110,39 @@ cdef class ExpansionIterable(object):
             self.teich_ring = elt.parent().maximal_unramified_subextension().integer_ring()
 
     def __dealloc__(self):
+        """
+        Deallocates memory for the iteratable.
+
+        TESTS::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: del E
+        """
         cdestruct(self.tmp, self.elt.prime_pow)
 
     def __iter__(self):
+        """
+        Returns an iterator, based on a corresponding :class:`ExpansionIter`.
+
+        If ``val_shift`` is positive, will first emit that many zeros
+        (of the approrpiate type: ``[]`` instead when the inertia degree
+        is larger than one.
+
+        If ``val_shift`` is negative, will truncate that many terms at
+        the start of the expansion.
+
+        EXAMPLES::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: type(iter(E))
+            <type 'sage.rings.padics.padic_capped_relative_element.ExpansionIter'>
+            sage: E = Zp(5,4)(373).expansion(start_val=-1)
+            sage: type(iter(E))
+            <type 'itertools.chain'>
+            sage: E = Zp(5,4)(373).expansion(start_val=1)
+            sage: type(iter(E))
+            <type 'itertools.islice'>
+        """
         cdef ExpansionIter expansion = ExpansionIter(self.elt, self.prec, self.mode)
         if self.val_shift == 0:
             return expansion
@@ -1016,9 +1152,44 @@ cdef class ExpansionIterable(object):
             return itertools.chain(itertools.repeat(_zero(self.mode, self.teich_ring), self.val_shift), expansion)
 
     def __len__(self):
+        """
+        Returns the number of terms that will be emitted.
+
+        TESTS::
+
+            sage: len(Zp(5,4)(373).expansion())
+            4
+            sage: len(Zp(5,4)(373).expansion(start_val=-1))
+            5
+            sage: len(Zp(5,4)(373).expansion(start_val=1))
+            3
+            sage: len(Zp(5,4)(0).expansion())
+            0
+        """
         return self.prec + self.val_shift
 
     def __getitem__(self, n):
+        """
+        Return the ``n``th entry in the expansion.
+
+        Negative indices are not allowed.
+
+        EXAMPLES::
+
+            sage: E = Zp(5,4)(373).expansion()
+            sage: E[0]
+            3
+            sage: E[3]
+            2
+            sage: list(E[::2])
+            [3, 4]
+            sage: a = E[-1]
+            Traceback (most recent call last):
+            ...
+            ValueError: Negative indices not supported
+            sage: Zp(5,4)(373).expansion(lift_mode='smallest')[3]
+            -2
+        """
         if isinstance(n, slice):
             return itertools.islice(iter(self), n.start, n.stop, n.step)
         cdef long m = n - self.val_shift
@@ -1030,7 +1201,7 @@ cdef class ExpansionIterable(object):
         elif m >= self.prec:
             raise PrecisionError
         elif self.mode == simple_mode:
-            self.elt._get_value(self.tmp)
+            self.elt._get_unit(self.tmp)
             return cexpansion_getitem(self.tmp, m, self.elt.prime_pow)
         else:
             expansion = ExpansionIter(self.elt, self.prec, self.mode)
@@ -1039,6 +1210,18 @@ cdef class ExpansionIterable(object):
             return next(itertools.islice(expansion, m, m+1))
 
     def __repr__(self):
+        """
+        String representation.
+
+        EXAMPLES::
+
+            sage: Zp(5,4)(373).expansion()
+            5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4)
+            sage: Zp(5,4)(373).expansion(lift_mode='smallest')
+            5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4) (balanced)
+            sage: Zp(5,4)(373).expansion(lift_mode='teichmuller')
+            5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4) (teichmuller)
+        """
         if self.mode == simple_mode:
             modestr = ""
         elif self.mode == smallest_mode:

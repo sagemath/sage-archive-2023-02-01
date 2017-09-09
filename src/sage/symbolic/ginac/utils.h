@@ -456,6 +456,20 @@ void classname::do_print_latex(const print_latex & c, unsigned level) const \
 	c.s << latex; \
 }
 
+template<typename Key, typename Value>
+std::ostream& operator<<(std::ostream& os, const std::pair<const Key, Value>& p)
+{
+        os << p.first << " => " << p.second;
+        return os;
+}
+
+template<typename Container>
+void Log(const Container& c) {
+        for(typename Container::const_iterator it = c.begin();
+                                                        it != c.end(); ++it)
+                std::cerr << *it << '\n';
+}
+
 } // namespace GiNaC
 
 

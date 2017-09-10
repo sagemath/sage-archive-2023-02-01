@@ -579,13 +579,13 @@ def generic_cmp(x,y):
     Compare x and y and return -1, 0, or 1.
 
     This is similar to x.__cmp__(y), but works even in some cases
-    when a .__cmp__ method isn't defined.
+    when a .__cmp__ method is not defined.
     """
     from sage.misc.superseded import deprecation
     deprecation(21926, "generic_cmp() is deprecated")
-    if x<y:
+    if x < y:
         return -1
-    elif x==y:
+    elif x == y:
         return 0
     return 1
 
@@ -594,9 +594,12 @@ def cmp_props(left, right, props):
     from sage.misc.superseded import deprecation
     deprecation(23149, "cmp_props is deprecated")
     for a in props:
-        c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c:
-            return c
+        lx = left.__getattribute__(a)()
+        rx = right.__getattribute__(a)()
+        if lx < rx:
+            return -1
+        elif lx > rx:
+            return 1
     return 0
 
 

@@ -2383,6 +2383,12 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(a*sqrt(-2)*sqrt(-3))
             conjugate(sqrt(-2))*conjugate(sqrt(-3))*conjugate(a)
 
+        Check that sums are handled correctly::
+
+            sage: y = var('y', domain='real')
+            sage: conjugate(y + I)
+            y - I
+
         Test pickling::
 
             sage: loads(dumps(conjugate))

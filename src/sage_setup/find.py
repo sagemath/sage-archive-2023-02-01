@@ -101,8 +101,9 @@ def find_extra_files(packages, src_dir, cythonized_dir, special_filenames=[]):
     EXAMPLES::
 
         sage: from sage_setup.find import find_extra_files
-        sage: from sage.env import SAGE_SRC, SAGE_CYTHONIZED
-        sage: find_extra_files(["sage.ext.interpreters"], SAGE_SRC, SAGE_CYTHONIZED)
+        sage: from sage.env import SAGE_SRC
+        sage: cythonized_dir = os.path.join(SAGE_SRC, "build", "cythonized")
+        sage: find_extra_files(["sage.ext.interpreters"], SAGE_SRC, cythonized_dir)
         [('sage/ext/interpreters',
           ['.../src/sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...])]
     """

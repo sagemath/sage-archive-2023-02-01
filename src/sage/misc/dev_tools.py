@@ -585,7 +585,7 @@ def import_statements(*objects, **kwds):
             raise ValueError("no import statement found for '{}'.".format(obj))
 
         if len(modules) == 1:  # the module is well defined
-            module_name, obj_names = modules.items()[0]
+            module_name, obj_names = next(iter(modules.items()))
             if name is None:
                 if verbose and len(obj_names) > 1:
                     print("# ** Warning **: several names for that object: {}".format(', '.join(sorted(obj_names))))

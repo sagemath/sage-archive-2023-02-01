@@ -1610,7 +1610,7 @@ class FreeModuleTensor(ModuleElement):
             return self._fmodule._def_basis  # the default basis is privileged
         else:
             # a basis is picked arbitrarily:
-            return self._components.items()[0][0]
+            return next(iter(self._components.items()))[0]
 
     def __eq__(self, other):
         r"""

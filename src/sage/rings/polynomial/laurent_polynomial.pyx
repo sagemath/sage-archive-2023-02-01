@@ -1938,7 +1938,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         cdef dict d = self.dict()
         cdef ETuple e
         if len(d) == 1:
-            e, c = d.items()[0]
+            e, c = next(iter(d.items()))
             e = e.emul(-1)
             P = self.parent()
             try:

@@ -395,10 +395,43 @@ cdef class GLPKBackend(GenericBackend):
 
         EXAMPLES::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "GLPK")
-            sage: p.set_verbosity(2)
+            sage: p.<x> = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.add_constraint(10 * x[0] <= 1)
+            sage: p.add_constraint(5 * x[1] <= 1)
+            sage: p.set_objective(x[0] + x[1])
+            sage: p.solve()
+            0.30000000000000004
+            sage: p.get_backend().set_verbosity(3)
+            sage: p.solve()
+            GLPK Integer Optimizer, v4.63
+            2 rows, 2 columns, 2 non-zeros
+            0 integer variables, none of which are binary
+            Preprocessing...
+            Objective value =   3.000000000e-01
+            INTEGER OPTIMAL SOLUTION FOUND BY MIP PREPROCESSOR
+            0.30000000000000004
 
+        ::
+
+            sage: p.<x> = MixedIntegerLinearProgram(solver="GLPK/exact")
+            sage: p.add_constraint(10 * x[0] <= 1)
+            sage: p.add_constraint(5 * x[1] <= 1)
+            sage: p.set_objective(x[0] + x[1])
+            sage: p.solve()
+            0.3
+            sage: p.get_backend().set_verbosity(2)
+            sage: p.solve()
+            *     2:   objval =                    0.3   (0)
+            *     2:   objval =                    0.3   (0)
+            0.3
+            sage: p.get_backend().set_verbosity(3)
+            sage: p.solve()
+            glp_exact: 2 rows, 2 columns, 2 non-zeros
+            GNU MP bignum library is being used
+            *     2:   objval =                    0.3   (0)
+            *     2:   objval =                    0.3   (0)
+            OPTIMAL SOLUTION FOUND
+            0.3
         """
         if level == 0:
             self.iocp.msg_lev = GLP_MSG_OFF
@@ -910,11 +943,6 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: lp.solver_parameter("simplex_or_intopt", "exact_simplex_only") # use exact simplex only
             sage: lp.solve()
-            glp_exact: 3 rows, 2 columns, 6 non-zeros
-            GNU MP bignum library is being used
-            *     2:   objval =                      2   (0)
-            *     2:   objval =                      2   (0)
-            OPTIMAL SOLUTION FOUND
             2.0
             sage: lp.get_values([x, y])
             [1.5, 0.5]
@@ -947,11 +975,6 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.add_constraint(x <= test)
             sage: lp.set_objective(x)
             sage: lp.solve() == test # yes, we want an exact comparison here
-            glp_exact: 1 rows, 1 columns, 1 non-zeros
-            GNU MP bignum library is being used
-            *     0:   objval =                      0   (0)
-            *     1:   objval =   9.00719925474095e+15   (0)
-            OPTIMAL SOLUTION FOUND
             True
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
             True

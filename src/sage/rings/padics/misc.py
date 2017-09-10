@@ -28,9 +28,8 @@ from __future__ import absolute_import
 
 from six.moves.builtins import min as python_min
 from six.moves.builtins import max as python_max
-from six.moves.builtins import range
+from six.moves.builtins import range, zip
 from sage.rings.infinity import infinity
-from itertools import izip
 
 def gauss_sum(a, p, f, prec=20):
     r"""
@@ -209,14 +208,14 @@ def trim_zeros(L):
     """
     strip_trailing = True
     n = len(L)
-    for i, c in izip(reversed(range(len(L))), reversed(L)):
+    for i, c in zip(reversed(range(len(L))), reversed(L)):
         if strip_trailing and (c == 0 or c == []):
             n = i
         elif isinstance(c, list):
             strip_trailing = False
             m = len(c)
             # strip trailing zeros from the sublists
-            for j, d in izip(reversed(range(len(c))), reversed(c)):
+            for j, d in zip(reversed(range(len(c))), reversed(c)):
                 if d == 0:
                     m = j
                 else:

@@ -1305,13 +1305,15 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         n = len(list(corner)) - 1
         for k in range(n):
             asm_list.append([])
+        S=[0]*n
+        C=[0]*n
         for i in range(n):
+            R = 0
             for j in range(n):
-                y = corner[i+1][j+1] \
-                     - sum([sum([asm_list[i2][j2] for i2 in range(i)])
-                            for j2 in range(j)]) \
-                     - sum([asm_list[i2][j] for i2 in range(i)]) \
-                     - sum([asm_list[i][j2] for j2 in range(j)])
+                y = corner[i+1][j+1] - S[j] - C[j] - R
+                S[j] += R
+                C[j] += y
+                R += y
                 asm_list[i].append(y)
         return AlternatingSignMatrix(asm_list)
 
@@ -1331,9 +1333,9 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 1 -1  1]
             [ 0  1  0]
         """
-        return self.from_corner_sum(matrix( [[((i+j-height[i][j])//2)
-                                              for i in range(len(list(height)))]
-                                             for j in range(len(list(height)))] ))
+        return self.from_corner_sum( [[((i+j-height[i][j])//2)
+                                       for i in range(len(list(height)))]
+                                      for j in range(len(list(height)))] )
 
     def from_contre_tableau(self, comps):
         r"""

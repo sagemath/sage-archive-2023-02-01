@@ -1230,7 +1230,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         - ``n`` -- integer (default ``None``).  If given, returns the corresponding
           entry in the expansion.
 
-        NOTES:
+        .. NOTE::
 
         - If ``lift_mode == 'simple' or 'smallest'``, the returned list will
           consist of

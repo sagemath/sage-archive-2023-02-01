@@ -107,7 +107,8 @@ const giac::polynome num_to_polynome(const numeric& num,
         } else { // complex
                 numeric re = num.real();
                 numeric im = num.imag();
-                giac::polynome re_p, im_p;
+                giac::polynome re_p(the_dimension);
+                giac::polynome im_p(the_dimension);
                 if (re.is_integer() or re.is_rational())
                         re_p = gen2pol(num2gen(re));
                 else
@@ -398,14 +399,14 @@ factored_b:
         giac::gcd(p, q, d);
 
         if (ca != nullptr) {
-                giac::polynome quo;
+                giac::polynome quo(the_dimension);
                 if (giac::exactquotient(p, d, quo))
                         *ca = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
                 else
                         throw(std::runtime_error("can't happen in gcdpoly"));
         }
         if (cb != nullptr) {
-                giac::polynome quo;
+                giac::polynome quo(the_dimension);
                 if (giac::exactquotient(q, d, quo))
                         *cb = polynome_to_ex(quo, revmap).subs(repl, subs_options::no_pattern);
                 else

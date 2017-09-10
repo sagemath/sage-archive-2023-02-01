@@ -100,7 +100,7 @@ class SageDisplayFormatter(DisplayFormatter):
         self.dm.check_backend_class(BackendIPython)
 
     def default_mime(self):
-        """
+        r"""
         Return the default mime output(s)
 
         If these are the only output mime types from the Sage rich output machinery, then

@@ -198,7 +198,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                 children.parent() == parent):
             children = list(children)
         else:
-            children = [self.__class__(parent, x) for x in children]
+            children = [self.__class__(parent, x, check=check) for x in children]
         ClonableArray.__init__(self, parent, children, check=check)
 
     def check(self):
@@ -4800,14 +4800,14 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         """
         LT = self.parent()._element_constructor_
         if not self:
-            return LT([], label=letter)
+            return LT([], label=letter, check=False)
         else:
             if letter <= self.label():
                 fils = self[0].binary_search_insert(letter)
-                return LT([fils, self[1]], label=self.label())
+                return LT([fils, self[1]], label=self.label(), check=False)
             else:
                 fils = self[1].binary_search_insert(letter)
-                return LT([self[0], fils], label=self.label())
+                return LT([self[0], fils], label=self.label(), check=False)
 
     def semistandard_insert(self, letter):
         """

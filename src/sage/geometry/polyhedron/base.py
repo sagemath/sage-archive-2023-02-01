@@ -4291,7 +4291,7 @@ class Polyhedron_base(Element):
 
           * ``ambient`` (default): Lebesgue measure of ambient space (volume)
           * ``induced``: Lebesgue measure of the affine hull (relative volume)
-          * ``induced_rational``: Scaling of the Lebesgue measure for lattice polytopes
+          * ``induced_rational``: Scaling of the Lebesgue measure for rational polytopes
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
@@ -4365,14 +4365,14 @@ class Polyhedron_base(Element):
             1
 
             sage: Dexact = polytopes.dodecahedron()
-            sage: Dinexact = polytopes.dodecahedron(exact=False)
-            sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal')
             sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
             sage: v = Dexact.faces(2)[4].as_polyhedron().volume(measure='induced', engine='internal'); v
             -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
-            sage: RDF(v)    # abs tol 1e9
+            sage: RDF(v)    # abs tol 1e-9
             1.53406271079044
+
+            sage: Dinexact = polytopes.dodecahedron(exact=False)
             sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
             1.534062710738235
 
@@ -4396,6 +4396,25 @@ class Polyhedron_base(Element):
             1
             sage: Q.volume(measure='induced_rational') # optional -- latte_int
             1/2
+
+        The volume of a full-dimensional unbounded polyhedron is infinity::
+
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P.volume()
+            +Infinity
+
+        The volume of a non full-dimensional unbounded polyhedron depends on the measure used::
+
+            sage: P = Polyhedron(ieqs = [[1,1,1],[-1,-1,-1],[3,1,0]]); P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.volume()
+            0
+            sage: P.volume(measure='induced')
+            +Infinity
+            sage: P.volume(measure='ambient')
+            0
+            sage: P.volume(measure='induced_rational')
+            +Infinity
         """
         if measure == 'induced_rational' and engine not in ['auto', 'latte']:
             raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
@@ -4409,6 +4428,10 @@ class Polyhedron_base(Element):
                 return self._volume_lrs(**kwds)
             elif engine == 'latte':
                 return self._volume_latte(**kwds)
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             triangulation = self.triangulate(engine=engine, **kwds)
             pc = triangulation.point_configuration()
             return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
@@ -4416,6 +4439,10 @@ class Polyhedron_base(Element):
             # if polyhedron is actually full-dimensional, return volume with ambient measure
             if self.dim() == self.ambient_dim():
                 return self.volume(measure='ambient', engine=engine, **kwds)
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
             A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
             Adet = (A.matrix().transpose() * A.matrix()).det()
@@ -4423,6 +4450,10 @@ class Polyhedron_base(Element):
         elif measure == 'induced_rational':
             if self.dim() < self.ambient_dim() and engine != 'latte':
                 raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             return self._volume_latte(**kwds)
 
     def integrate(self, polynomial, **kwds):

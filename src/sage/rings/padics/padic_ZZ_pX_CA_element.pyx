@@ -127,7 +127,7 @@ You can get at the underlying ntl representation::
     sage: y._ntl_rep_abs()
     ([5 95367431640505 25 95367431640560 5], 0)
 
-NOTES:
+.. NOTE::
 
 If you get an error 'internal error: can't grow this
 _ntl_gbigint,' it indicates that moduli are being mixed

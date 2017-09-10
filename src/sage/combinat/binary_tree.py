@@ -191,7 +191,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             children = literal_eval(children)
         if children is None:
             children = []
-        elif (children == [] or children == () or
+        elif (isinstance(children, (list, tuple)) and not children or
               isinstance(children, (Integer, int))):
             children = [None, None]
         if (children.__class__ is self.__class__ and

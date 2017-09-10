@@ -13,8 +13,12 @@ Clean the Install Dir
 
 
 import os
+import six
 
-from sage_setup.find import installed_files_by_module
+if not six.PY2:
+    import importlib.util
+
+from sage_setup.find import installed_files_by_module, get_extensions
 
 
 
@@ -50,12 +54,19 @@ def _remove(file_set, module_base, to_remove):
         {'a/b/d.py'}
     """
     path = os.path.join(*module_base.split('.'))
+
     for filename in to_remove:
         if filename.startswith('.'):
             filename = path + filename
         else:
             filename = os.path.join(path, filename)
-        file_set.difference_update([filename])
+
+        remove = [filename]
+
+        if not six.PY2:
+            remove.append(importlib.util.cache_from_source(filename))
+
+        file_set.difference_update(remove)
 
 
 def _find_stale_files(site_packages, python_packages, python_modules, ext_modules, data_files):
@@ -90,9 +101,9 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         ....:     if f.endswith(skip_extensions): continue
         ....:     print('Found stale file: ' + f)
     """
-    from sage.misc.sageinspect import loadable_module_extension
-    PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
-    CEXTMOD_EXTS = (loadable_module_extension(),)
+
+    PYMOD_EXTS = get_extensions('source') + get_extensions('bytecode')
+    CEXTMOD_EXTS = get_extensions('extension')
     INIT_FILES = tuple('__init__' + x for x in PYMOD_EXTS)
 
     module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])

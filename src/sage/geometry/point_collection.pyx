@@ -916,7 +916,7 @@ cdef class PointCollection(SageObject):
             sage: from six import StringIO
             sage: f = StringIO()
             sage: o.vertices().write_for_palp(f)
-            sage: print f.getvalue()
+            sage: print(f.getvalue())
             6 3
             1 0 0
             0 1 0
@@ -968,7 +968,7 @@ def read_palp_point_collection(f, lattice=None, permutation=False):
     EXAMPLES::
 
         sage: data = "3 2 regular\n1 2\n3 4\n5 6\n2 3 transposed\n1 2 3\n4 5 6"
-        sage: print data
+        sage: print(data)
         3 2 regular
         1 2
         3 4

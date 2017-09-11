@@ -331,7 +331,7 @@ class AlternatingSignMatrix(Element):
     @combinatorial_map(name='transpose')
     def transpose(self):
         r"""
-        Return the counterclockwise quarter turn rotation of ``self``.
+        Return ``self`` transposed.
 
         EXAMPLES::
 
@@ -588,7 +588,7 @@ class AlternatingSignMatrix(Element):
         """
         hf = self.height_function()
         _inplace_height_function_gyration(hf)
-        return  self.parent().from_height_function(hf)
+        return self.parent().from_height_function(hf)
 
     def gyration_orbit(self):
         r"""
@@ -1300,24 +1300,21 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 0  1  0]
             [ 1 -1  1]
             [ 0  1  0]
-        """
-        asm_list=[]
-        n = len(list(corner)) - 1
-        for k in range(n):
-            asm_list.append([])
-        S=[0]*n
-        C=[0]*n
-        for i in range(n):
-            R = 0
-            for j in range(n):
-                y = corner[i+1][j+1] - S[j] - C[j] - R
-                S[j] += R
-                C[j] += y
-                R += y
-                asm_list[i].append(y)
-        return AlternatingSignMatrix(asm_list)
 
-    def from_height_function(self,height):
+        TESTS::
+
+            sage: A = AlternatingSignMatrices(4)
+            sage: all(A.from_corner_sum(a.corner_sum_matrix()) == a for a in A)
+            True
+        """
+        n = self._n
+        corner = matrix(ZZ, n+1, n+1, corner)
+        asm = [[corner[i+1,j+1]+corner[i,j]-corner[i,j+1]-corner[i+1,j]
+                for j in range(n)]
+               for i in range(n)]
+        return self.element_class(self, self._matrix_space(asm))
+
+    def from_height_function(self, height):
         r"""
         Return an alternating sign matrix from a height function.
 
@@ -1333,9 +1330,11 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 1 -1  1]
             [ 0  1  0]
         """
-        return self.from_corner_sum( [[((i+j-height[i][j])//2)
-                                       for i in range(len(list(height)))]
-                                      for j in range(len(list(height)))] )
+        n = self._n
+        height = matrix(ZZ, n+1, n+1, height)
+        return self.from_corner_sum( [[((i+j-height[i,j])//2)
+                                       for i in range(n+1)]
+                                      for j in range(n+1)] )
 
     def from_contre_tableau(self, comps):
         r"""

@@ -84,7 +84,7 @@ from sage.structure.parent cimport Parent
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-import sage.structure.factorization
+
 
 import sage.rings.real_mpfr
 import sage.rings.real_double
@@ -3024,8 +3024,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             ArithmeticError: factorization of 0 is not defined
         """
+        from sage.structure.factorization import Factorization
         return self.numerator().factor() * \
-           sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])
+           Factorization([(p, -e) for p, e in self.denominator().factor()])
 
     def support(self):
         """

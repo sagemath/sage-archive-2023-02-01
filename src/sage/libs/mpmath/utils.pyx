@@ -12,8 +12,6 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.rings.complex_number cimport ComplexNumber
 from sage.structure.element cimport Element
 
-import sage.all
-
 from sage.libs.mpfr cimport *
 from sage.libs.gmp.all cimport *
 

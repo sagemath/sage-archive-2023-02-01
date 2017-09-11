@@ -579,14 +579,14 @@ class Posets(object):
         `p=1` will return a chain. To create interesting examples,
         keep the probability small, perhaps on the order of `1/n`.
 
-        .. SEEALSO:: :meth:`RandomLattice`
-
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
             sage: P = Posets.RandomPoset(5, 0.3)
             sage: P.cover_relations()
             [[5, 4], [4, 2], [1, 2]]
+
+        .. SEEALSO:: :meth:`RandomLattice`
 
         TESTS::
 
@@ -672,8 +672,6 @@ class Posets(object):
             Results are reproducible in same Sage version only. Underlying
             algorithm may change in future versions.
 
-        .. SEEALSO:: :meth:`RandomPoset`
-
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
@@ -684,6 +682,8 @@ class Posets(object):
             sage: L = Posets.RandomLattice(10, 0, properties=['dismantlable'])
             sage: L.is_dismantlable()
             True
+
+        .. SEEALSO:: :meth:`RandomPoset`
 
         TESTS::
 
@@ -908,11 +908,8 @@ class Posets(object):
 
         REFERENCES:
 
-        .. [Rosen] \K. Rosen *Handbook of Discrete and Combinatorial
-           Mathematics* (1999), Chapman and Hall.
-
-        .. [Garg] \V. Garg *Introduction to Lattice Theory with Computer
-           Science Applications* (2015), Wiley.
+        - [Gar2015]_
+        - [Ros1999]_
 
         TESTS::
 
@@ -1084,13 +1081,6 @@ class Posets(object):
             sage: tet = Posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
             sage: ji.is_isomorphic(tet)
             True
-
-        REFERENCES:
-
-        .. [Striker2011] \J. Striker. *A unifying poset perspective on
-           alternating sign matrices, plane partitions, Catalan objects,
-           tournaments, and tableaux*, Advances in Applied Mathematics 46
-           (2011), no. 4, 583-609. :arXiv:`1408.5391`
         """
         n = n - 1
         try:

@@ -1,6 +1,7 @@
 When using FfSetNoc() correctly, the equation
 FfCurrentRowSizeIo==FfTrueRowSize(FfNoc) will always hold.
 This patch replaces all calls to FfTrueRowSize(FfNoc).
+See trac ticket #23410.
 
 AUTHOR:
 

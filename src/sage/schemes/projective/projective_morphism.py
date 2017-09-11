@@ -2195,12 +2195,40 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
               To:   Projective Space of dimension 2 over Number Field in a with defining polynomial y^4 + 3*y^2 + 1
               Defn: Defined on coordinates by sending (z0 : z1) to
                     (z0^2 + (a^3 + 2*a)*z0*z1 + 3*z1^2 : z1^2 : (2*a^2 + 3)*z0*z1)
+
+        The following was fixed in :trac:`23808`::
+
+            sage: R.<t>=PolynomialRing(QQ)
+            sage: s = (t^3+t+1).roots(QQbar)[0][0]
+            sage: P.<x,y>=ProjectiveSpace(QQbar,1)
+            sage: H = Hom(P,P)
+            sage: f = H([s*x^3-13*y^3, y^3-15*y^3])
+            sage: f
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    ((-0.6823278038280193?)*x^3 + (-13)*y^3 : (-14)*y^3)
+            sage: f_alg = f._number_field_from_algebraics()
+            sage: f_alg.change_ring(QQbar) # Used to fail
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic Field
+              Defn: Defined on coordinates by sending (z0 : z1) to
+                    ((-0.6823278038280193?)*z0^3 + (-13)*z1^3 : (-14)*z1^3)
+
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not (is_ProjectiveSpace(self.domain()) and is_ProjectiveSpace(self.domain())):
             raise NotImplementedError("not implemented for subschemes")
 
-        K,C,phi = number_field_elements_from_algebraics([c for f in self for c in f.coefficients()])
+        K_pre,C,phi = number_field_elements_from_algebraics([c for f in self for c in f.coefficients()])
+        # Trac 23808: The field K_pre returned above does not have its embedding set to be phi
+        # and phi is forgotten, so we redefine K_pre to be a field K with phi as the specified
+        # embedding:
+        if K_pre is QQ:
+            K = QQ
+        else:
+            from sage.rings.number_field.number_field import NumberField
+            K = NumberField(K_pre.polynomial(), embedding=phi(K_pre.gen()), name='a')
+            psi = K_pre.hom([K.gen()], K) # Identification of K_pre with K
+            C = [ psi(c) for c in C ] # The elements of C were in K_pre, move them to K
         from sage.schemes.projective.projective_space import ProjectiveSpace
         N = self.domain().dimension_relative()
         PS = ProjectiveSpace(K,N,'z')

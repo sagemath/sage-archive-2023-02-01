@@ -128,7 +128,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
          (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
         Category of infinite finite dimensional algebras with basis over
-         (quotient fields and metric spaces)
+         (number fields and quotient fields and metric spaces)
 
     TESTS::
 

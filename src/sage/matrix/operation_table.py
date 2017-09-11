@@ -620,7 +620,7 @@ class OperationTable(SageObject):
             sage: P=OperationTable(G, operator.mul)
             sage: Q=OperationTable(G, operator.mul)
             sage: R=OperationTable(H, operator.mul)
-            sage: S=OperationTable(G, operator.div)
+            sage: S=OperationTable(G, operator.truediv)
             sage: P == P, P == Q, P == R, P == S
             (True, True, False, False)
         """
@@ -638,7 +638,7 @@ class OperationTable(SageObject):
             sage: P=OperationTable(G, operator.mul)
             sage: Q=OperationTable(G, operator.mul)
             sage: R=OperationTable(H, operator.mul)
-            sage: S=OperationTable(G, operator.div)
+            sage: S=OperationTable(G, operator.truediv)
             sage: P != P, P != Q, P != R, P != S
             (False, False, True, True)
         """

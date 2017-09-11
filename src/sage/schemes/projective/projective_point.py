@@ -1584,12 +1584,36 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             (1/2*a^3 + a^2 - 1/2*a : 1)
             sage: S.codomain()
             Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 1
+
+        The following was fixed in :trac:`23808`::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: Q = P([-1/2*QQbar(sqrt(2)) + QQbar(I), 1]);Q
+            (-0.7071067811865475? + 1*I : 1)
+            sage: S = Q._number_field_from_algebraics(); S
+            (1/2*a^3 + a^2 - 1/2*a : 1)
+            sage: T = S.change_ring(QQbar) # Used to fail
+            sage: T
+            (-0.7071067811865475? + 1.000000000000000?*I : 1)
+            sage: Q[0] == T[0]
+            True
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(self.codomain()):
             raise NotImplementedError("not implemented for subschemes")
 
-        K,P,phi = number_field_elements_from_algebraics(list(self))
+        # Trac #23808: Keep the embedding info associated with the number field K
+        # used below, instead of in the separate embedding map phi which is
+        # forgotten.
+        K_pre,P,phi = number_field_elements_from_algebraics(list(self))
+        if K_pre is QQ:
+            K = QQ
+        else:
+            from sage.rings.number_field.number_field import NumberField
+            K = NumberField(K_pre.polynomial(), embedding=phi(K_pre.gen()), name='a')
+            psi = K_pre.hom([K.gen()], K) # Identification of K_pre with K
+            P = [ psi(p) for p in P ] # The elements of P were elements of K_pre
         from sage.schemes.projective.projective_space import ProjectiveSpace
         PS = ProjectiveSpace(K,self.codomain().dimension_relative(),'z')
         return(PS(P))

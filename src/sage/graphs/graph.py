@@ -1455,7 +1455,7 @@ class Graph(GenericGraph):
         r"""
         Returns a list of the bridges (or cut edges).
 
-        A bridge is an edge so that deleting it disconnects the graph.
+        A bridge is an edge whose deletion disconnects the graph.
         A disconnected graph has no bridge.
 
         INPUT:
@@ -1465,22 +1465,32 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-             sage: g = 2*graphs.PetersenGraph()
-             sage: g.add_edge(1,10)
-             sage: g.is_connected()
-             True
-             sage: g.bridges()
-             [(1, 10, None)]
+            sage: g = 2*graphs.PetersenGraph()
+            sage: g.add_edge(1,10)
+            sage: g.is_connected()
+            True
+            sage: g.bridges()
+            [(1, 10, None)]
+
+        TESTS:
+
+        Ticket :trac:`23817` is solved::
+
+            sage: G = Graph()
+            sage: G.add_edge(0, 1)
+            sage: G.bridges()
+            [(0, 1, None)]
+            sage: G.allow_loops(True)
+            sage: G.add_edge(0, 0)
+            sage: G.add_edge(1, 1)
+            sage: G.bridges()
+            [(0, 1, None)]
         """
         # Small graphs and disconnected graphs have no bridge
         if self.order() < 2 or not self.is_connected():
             return []
 
         B,C = self.blocks_and_cut_vertices()
-
-        # A graph without cut-vertex has no bridge
-        if not C:
-            return []
 
         # A block of size 2 is a bridge, unless the vertices are connected with
         # multiple edges.
@@ -2780,6 +2790,18 @@ class Graph(GenericGraph):
             sage: g.treewidth()
             2
 
+        The decomposition is a tree (:trac:`23546`)::
+
+            sage: g = Graph({0:[1,2], 3:[4,5]})
+            sage: t = g.treewidth(certificate=True)
+            sage: t.is_tree()
+            True
+            sage: vertices = set()
+            sage: for s in t.vertices():
+            ....:     vertices = vertices.union(s)
+            sage: vertices == set(g.vertices())
+            True
+
         Trivially true::
 
             sage: graphs.PetersenGraph().treewidth(k=35)
@@ -2849,9 +2871,12 @@ class Graph(GenericGraph):
                 else:
                     return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
             else:
-                return Graph(sum([cc.treewidth(certificate=True).edges(labels=False)
-                                  for cc in g.connected_components_subgraphs()],[]),
-                             name="Tree decomposition")
+                T = [cc.treewidth(certificate=True) for cc in g.connected_components_subgraphs()]
+                tree = Graph([sum([t.vertices() for t in T],[]), sum([t.edges(labels=False) for t in T],[])], name="Tree decomposition")
+                v = next(T[0].vertex_iterator())
+                for t in T[1:]:
+                    tree.add_edge(next(t.vertex_iterator()),v)
+                return tree 
 
         # Forcing k to be defined
         if k is None:
@@ -4746,7 +4771,7 @@ class Graph(GenericGraph):
         Ticket :trac:`23658` is fixed::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.fractional_chromatic_index(solver='GLPK')
+            sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
             3.0
             sage: g.fractional_chromatic_index(solver='PPL')
             3

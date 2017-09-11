@@ -7576,7 +7576,7 @@ def _init_qqbar():
 
     AA_0 = AA.zero()
 
-    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen())
+    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
 

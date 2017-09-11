@@ -465,6 +465,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -10380104371593008048799446356441519384
         sage: Integer(pari('Pol([-3])'))
         -3
+
+    .. automethod:: __pow__
     """
 
     def __cinit__(self):
@@ -1960,6 +1962,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 0^0
             1
+
+        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
+        `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
         The base need not be an integer (it can be a builtin Python type).
 

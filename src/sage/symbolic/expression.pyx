@@ -2118,6 +2118,16 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: (-pi).is_negative()
             True
+
+        Assumptions on symbols are handled correctly::
+
+            sage: y = var('y')
+            sage: assume(y < 0)
+            sage: y.is_positive()
+            False
+            sage: y.is_negative()
+            True
+            sage: forget()
         """
         return self._gobj.info(info_negative)
 

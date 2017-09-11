@@ -1312,15 +1312,6 @@ Sage uses the following environment variables when it runs:
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
-Sage overrides the user's settings of the following variables:
-
-- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
-  matplotlib config directory.
-  Due to incompatibilities in the contents of this directory among different
-  versions of matplotlib, Sage overrides the user's setting, defining it
-  instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
-  current matplotlib version number.
-
 Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds

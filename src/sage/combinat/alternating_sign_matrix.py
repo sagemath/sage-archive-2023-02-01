@@ -444,9 +444,9 @@ class AlternatingSignMatrix(Element):
         col_sum = [ZZ.zero()] * n
         for i in range(n):
             for j in range(n):
-                col_sum[j] += asm[i,j]
-                ans[i+1, j+1] = ans[i+1, j] + 1 - 2 * col_sum[j]
-        return ans.transpose()
+                col_sum[j] += asm[i, j]
+                ans[j+1, i+1] = ans[j, i+1] + 1 - 2 * col_sum[j]
+        return ans
 
     def to_six_vertex_model(self):
         r"""

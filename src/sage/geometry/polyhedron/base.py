@@ -159,7 +159,7 @@ class Polyhedron_base(Element):
 
         See :mod:`sage.misc.sage_input` for details.
 
-        TODO::
+        .. TODO::
 
             Add the option `preparse` to the method.
 

@@ -5536,7 +5536,7 @@ cdef class Expression(CommutativeRingElement):
         cdef unsigned serial
         if is_a_add(self._gobj):
             return add_vararg
-        elif is_a_mul(self._gobj) or is_a_ncmul(self._gobj):
+        elif is_a_mul(self._gobj):
             return mul_vararg
         elif is_a_power(self._gobj):
             return operator.pow

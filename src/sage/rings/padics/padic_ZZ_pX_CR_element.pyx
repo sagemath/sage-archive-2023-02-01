@@ -154,10 +154,11 @@ You can get at the underlying ntl unit::
 
 .. NOTE::
 
-    If you get an error ``internal error: can't grow this
-    _ntl_gbigint,`` it indicates that moduli are being mixed
-    inappropriately somewhere.  For example, when calling a function
-    with a ``ZZ_pX_c`` as an argument, it copies.  If the modulus is not
+    If you get an error ``internal error: can't grow this _ntl_gbigint,``
+    it indicates that moduli are being mixed inappropriately somewhere.
+
+    For example, when calling a function with a ``ZZ_pX_c`` as an
+    argument, it copies.  If the modulus is not
     set to the modulus of the ``ZZ_pX_c``, you can get errors.
 
 AUTHORS:

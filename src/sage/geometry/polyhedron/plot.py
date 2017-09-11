@@ -1264,7 +1264,7 @@ class Projection(SageObject):
             lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
             pgplt = self.render_solid_3d(**polygon_opts)
-        return pplt + lplt + pgplt
+        return sum(_ for _ in [pplt, lplt, pgplt] if _ != None)
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=2,
              edge_color='blue!95!black', facet_color='blue!95!black',

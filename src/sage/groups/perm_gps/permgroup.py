@@ -149,7 +149,6 @@ from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
-from sage.functions.other import factorial
 from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
                                     richcmp, rich_to_bool, op_EQ)
 
@@ -1601,6 +1600,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             ....:     [(9,10), (8,10), (7,10), (6,10), (5,10), (4,10), (3,10), (2,10)]]
             sage: [SymmetricGroup(n).subgroup(gen)._order() for gen in special_gens]
             [6, 24, 120, 720, 5040, 40320, 362880]
+
+        Checks that output is a Sage integer (:trac:`23778`)::
+
+            sage: P = PermutationGroup(['(1,2)','(1,3)'])
+            sage: P.cardinality()
+            6
+            sage: isinstance(P.cardinality(), Integer)
+            True
         """
         gens = self.gens()
         # This special case only works with more than 1 generator.
@@ -1620,14 +1627,18 @@ class PermutationGroup_generic(group.FiniteGroup):
         # and therefore its order is n!.
 
         # Check that all generators are order 2 and have length-1 cycle tuples.
+        cycle_tuples = []
         for g in gens:
             if g.order() != 2:
                 return None
-            if len(g.cycle_tuples()) != 1:
+            c = g.cycle_tuples()
+            if len(c) != 1:
                 return None
+            cycle_tuples.append(c)
+
         # Find the common element.
-        g0 = gens[0].cycle_tuples()[0]
-        g1 = gens[1].cycle_tuples()[0]
+        g0 = cycle_tuples[0][0]
+        g1 = cycle_tuples[1][0]
         a, b = g0
         if a not in g1 and b not in g1:
             return None
@@ -1637,14 +1648,15 @@ class PermutationGroup_generic(group.FiniteGroup):
             elem = b
         # Count the number of unique elements in the generators.
         unique = set()
-        for g in gens:
-            a, b = g.cycle_tuples()[0]
+        for c in cycle_tuples:
+            a, b = c[0]
             if a != elem and b != elem:
                 return None
             unique.add(a)
             unique.add(b)
+
         # Compute the order.
-        return factorial(len(unique))
+        return Integer(len(unique)).factorial()
 
     def order(self):
         """
@@ -1662,12 +1674,23 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([])
             sage: G.order()
             1
+
+        ``cardinality`` is just an alias::
+
+            sage: PermutationGroup([(1,2,3)]).cardinality()
+            3
         """
-        if not self.gens() or self.gens() == [self(1)]:
+        gens = self.gens()
+
+        if not gens:
             return Integer(1)
+        elif len(gens) == 1:
+            return gens[0].order()
+
         subgroup_order = self._order()
         if subgroup_order is not None:
           return subgroup_order
+
         return Integer(self._gap_().Size())
 
     cardinality = order

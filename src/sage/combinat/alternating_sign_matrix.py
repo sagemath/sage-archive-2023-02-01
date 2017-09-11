@@ -98,7 +98,7 @@ class AlternatingSignMatrix(Element):
        http://www.sciencedirect.com/science/article/pii/0097316583900687
     """
     @staticmethod
-    def __classcall_private__(cls, asm):
+    def __classcall_private__(cls, asm, check=True):
         """
         Create an ASM.
 
@@ -116,10 +116,10 @@ class AlternatingSignMatrix(Element):
             sage: AlternatingSignMatrix([])
             []
         """
-        asm = matrix(asm)
+        asm = matrix(ZZ, asm)
         if not asm.is_square():
             raise ValueError("The alternating sign matrices must be square")
-        return AlternatingSignMatrices(asm.nrows())(asm)
+        return AlternatingSignMatrices(asm.nrows())(asm, check=check)
 
     def __init__(self, parent, asm):
         """
@@ -269,7 +269,7 @@ class AlternatingSignMatrix(Element):
         """
         l = list(self._matrix.transpose())
         l.reverse()
-        return AlternatingSignMatrix(matrix(l))
+        return AlternatingSignMatrix(l)
 
     def inversion_number(self):
         r"""
@@ -703,7 +703,7 @@ class AlternatingSignMatrix(Element):
         M = AlternatingSignMatrices(n)
         sign = []
         asm = self.to_matrix()
-        B = matrix(n+1)
+        B = matrix(ZZ, n+1)
         A = 2 * self.height_function()
         for i in range(n):
             for j in range(n):
@@ -762,8 +762,8 @@ class AlternatingSignMatrix(Element):
 
         """
         n = self.parent()._n
-        M = AlternatingSignMatrices(n)
-        A = matrix(n)
+        M = AlternatingSignMatrices(n-1)
+        A = matrix(ZZ, n)
         asm = self.to_matrix()
         B = 2*self.height_function()[:n,:n]
         sign = []
@@ -1190,10 +1190,14 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             if asm.parent() is self:
                 return asm
             raise ValueError("Cannot convert between alternating sign matrices of different sizes")
-        elif asm in MonotoneTriangles(self._n):
-            return self.from_monotone_triangle(asm, check=check)
-        else:
+        try:
             m = self._matrix_space(asm)
+        except StandardError:
+            try:
+                return self.from_monotone_triangle(asm, check=check)
+            except StandardError:
+                raise ValueError('invalid alternating sign matrix')
+        else:
             m.set_immutable()
             if check and m not in self:
                 raise ValueError('invalid alternating sign matrix')

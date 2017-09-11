@@ -66,7 +66,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
 from sage.arith.all import binomial, integer_ceil as ceil
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.misc.misc import newton_method_sizes
 
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve

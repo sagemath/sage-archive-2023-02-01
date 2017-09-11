@@ -1998,7 +1998,7 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (cos(exp(t0) + log(t1))^8).is_real()
             True
-            sage: cos(I).is_real()
+            sage: cos(I + 1).is_real()
             False
             sage: sin(2 - I).is_real()
             False
@@ -2093,7 +2093,7 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: gamma(real(x)^2+1).is_positive()
             True
-            sage: cos(I).is_positive()
+            sage: cos(I + 1).is_positive()
             False
             sage: sin(2 - I).is_positive()
             False
@@ -6040,7 +6040,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coefficient(1)
             0
             sage: f.coefficient(x, 0)
-            sqrt(x)*sin(y) + z^z
+            z^z
 
         TESTS:
 

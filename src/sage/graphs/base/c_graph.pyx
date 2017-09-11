@@ -38,7 +38,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 include "sage/data_structures/bitset.pxi"
 
@@ -2004,7 +2004,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     for j in self.iterator_verts():
                         if self.has_edge(j, j, None):
                             k += 1
-            i = (i - k) / 2
+            i = (i - k) // 2
             return i + k
 
     def num_verts(self):

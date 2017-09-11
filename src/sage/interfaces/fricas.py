@@ -185,7 +185,6 @@ FriCAS does some limits right::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
-# from __future__ import absolute_import
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
@@ -193,7 +192,7 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import DOT_SAGE
 from sage.docs.instancedoc import instancedoc
 import re
-import six
+
 
 FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the line number
 FRICAS_MULTI_LINE_START = 2  # and when it doesn't
@@ -1063,14 +1062,15 @@ class FriCASElement(ExpectElement):
             1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
 
         """
-        from sage.symbolic.ring import SR
+        from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.libs.pynac.pynac import symbol_table
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
                         ('::Symbol', ' ')]
         for old, new in replacements:
             s = s.replace(old, new)
         try:
-            return SR(s)
+            return symbolic_expression_from_string(s, symbol_table["fricas"])
         except TypeError:
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 

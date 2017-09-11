@@ -11,6 +11,7 @@ Root system data for super type A
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
@@ -45,7 +46,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         ct = root_system.cartan_type()
         if index_set is None:
-            index_set = tuple(range(-ct.m-1,0) + range(1,ct.n+2))
+            index_set = tuple(list(range(-ct.m - 1, 0)) +
+                              list(range(1, ct.n + 2)))
         ambient_space.AmbientSpace.__init__(self, root_system, base_ring,
                                             index_set=index_set)
 
@@ -174,11 +176,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-j) - self.monomial(-i)
-                for i in range(1,ct.m+2)
-                for j in range(i+1,ct.m+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(i + 1, ct.m + 2)]
         ret += [self.monomial(i) - self.monomial(j)
-                for i in range(1,ct.n+2)
-                for j in range(i+1,ct.n+2)]
+                for i in range(1, ct.n + 2)
+                for j in range(i + 1, ct.n + 2)]
         return ret
 
     def positive_odd_roots(self):
@@ -198,8 +200,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         ct = self.root_system.cartan_type()
         return [self.monomial(-i) - self.monomial(j)
-                for i in range(1,ct.m+2)
-                for j in range(1,ct.n+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(1, ct.n + 2)]
 
     def highest_root(self):
         """
@@ -249,11 +251,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-i) - self.monomial(-j)
-                for i in range(1,ct.m+2)
-                for j in range(i+1,ct.m+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(i + 1, ct.m + 2)]
         ret += [self.monomial(j) - self.monomial(i)
-                for i in range(1,ct.n+2)
-                for j in range(i+1,ct.n+2)]
+                for i in range(1, ct.n + 2)
+                for j in range(i + 1, ct.n + 2)]
         return ret
 
     def negative_odd_roots(self):
@@ -273,8 +275,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         ct = self.root_system.cartan_type()
         return [self.monomial(j) - self.monomial(-i)
-                for i in range(1,ct.m+2)
-                for j in range(1,ct.n+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(1, ct.n + 2)]
 
     def fundamental_weight(self, i):
         """
@@ -523,7 +525,7 @@ class CartanType(SuperCartanType_standard):
             sage: CartanType(['A', [2,3]]).index_set()
             (-2, -1, 0, 1, 2, 3)
         """
-        return tuple(range(-self.m, self.n+1))
+        return tuple(range(-self.m, self.n + 1))
 
     AmbientSpace = AmbientSpace
 

@@ -328,8 +328,8 @@ class Differential(with_metaclass(
         """
         A = self.domain()
         dom = A.basis(n)
-        cod = A.basis(n+1)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cod = A.basis(n + 1)
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(A.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -571,7 +571,7 @@ class Differential_multigraded(Differential):
         n = G(vector(n))
         dom = A.basis(n)
         cod = A.basis(n+self._degree_of_differential)
-        cokeys = [a.lift().dict().keys()[0] for a in cod]
+        cokeys = [next(iter(a.lift().dict().keys())) for a in cod]
         m = matrix(self.base_ring(), len(dom), len(cod))
         for i in range(len(dom)):
             im = self(dom[i])
@@ -1054,7 +1054,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             el = prod([self.gen(i)**v[i] for i in range(len(v))])
             di = el.dict()
             if len(di) == 1:
-                if tuple(di.keys()[0]) == v:
+                if tuple(next(iter(di.keys()))) == v:
                     basis.append(el)
         return basis
 

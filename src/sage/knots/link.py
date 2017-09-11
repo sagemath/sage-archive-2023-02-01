@@ -2881,13 +2881,13 @@ class Link(object):
         while len(used_edges) < len(edges):
             i = 0
             j = 0
-            while crossings.keys()[i][j] in used_edges:
+            while list(crossings.keys())[i][j] in used_edges:
                 if j < 3:
                     j += 1
                 else:
                     j = 0
-                    i+=1
-            c = crossings.keys()[i]
+                    i += 1
+            c = list(crossings.keys())[i]
             e = c[j]
             used_edges.append(e)
             direction = (crossings[c][2] - c.index(e)) % 4

@@ -1016,7 +1016,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 R = self.parent()['x']
                 modulus = R.gen()**2 - R(self)
                 if self._parent.is_field():
-                    from finite_field_constructor import FiniteField
+                    from .finite_field_constructor import FiniteField
                     Q = FiniteField(self.__modulus.sageInteger**2, y, modulus)
                 else:
                     R = self.parent()['x']

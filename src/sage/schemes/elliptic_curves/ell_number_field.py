@@ -969,7 +969,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - ``P`` -- either None or a prime ideal of the base field of self.
+        - ``P`` -- either None, a prime ideal of the base field of self, or an element of the base field that generates a prime ideal.
 
         - ``proof`` -- whether to only use provably correct methods
           (default controlled by global proof module).  Note that the
@@ -1027,6 +1027,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
+            sage: E.local_data(2*i + 1)
+            Local data at Fractional ideal (2*i + 1):
+            Reduction type: bad non-split multiplicative
+            Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
+            Minimal discriminant valuation: 1
+            Conductor exponent: 1
+            Kodaira Symbol: I1
+            Tamagawa Number: 1
 
         An example raised in :trac:`3897`::
 
@@ -1039,6 +1047,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
+
+
         """
         if proof is None:
             import sage.structure.proof.proof

@@ -36,6 +36,7 @@ from six.moves import range
 
 import time
 from operator import pos
+from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.rings.all import QQ, infinity
@@ -346,7 +347,7 @@ class ClusterSeed(SageObject):
                 self._init_vars = copy(xs)
                 self._init_vars.update(ys)
 
-            self._init_exch = dict(list(self._init_vars.items())[:self._n])
+            self._init_exch = dict(islice(self._init_vars.items(), self._n))
             self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
             self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
             self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
@@ -651,7 +652,7 @@ class ClusterSeed(SageObject):
                 if self._G == matrix.identity(self._n): # If we are at the root
                     if not self._use_g_vec:
                         self.use_g_vectors(True)
-                    self._init_exch = dict(list(self._init_vars.items())[:self._n])
+                    self._init_exch = dict(islice(self._init_vars.items(), self._n))
                     self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
                     self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
                     self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])

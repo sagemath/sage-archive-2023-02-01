@@ -56,6 +56,7 @@ from sage.schemes.generic.spec import Spec
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
+
 def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     r"""
     Given a sequence of traces `t_1, \dots, t_k`, return the
@@ -128,15 +129,15 @@ def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     ring = PolynomialRing(ZZ, 'T')
 
     series = sum(- api * t**(i + 1) / (i + 1) for i, api in enumerate(traces))
-    series = series.O(d//2 + 1).exp()
+    series = series.O(d // 2 + 1).exp()
     coeffs = list(series)
-    coeffs += [0,] * max(0,d//2+1-len(coeffs))
+    coeffs += [0] * max(0, d // 2 + 1 - len(coeffs))
 
     data = [0 for _ in range(d + 1)]
-    for k in range(d//2+1):
+    for k in range(d // 2 + 1):
         data[k] = coeffs[k]
-    for k in range(d//2+1, d+1):
-        data[k] = sign*coeffs[d-k]*q**(i*(k-d/2))
+    for k in range(d // 2 + 1, d + 1):
+        data[k] = sign * coeffs[d - k] * q**(i * (k - d / 2))
     return ring(data)
 
 
@@ -191,7 +192,7 @@ def cyclotomic_to_alpha(cyclo):
 
     The output is the list of arguments of the roots of the
     given product of cyclotomic polynomials.
-    
+
     This is the inverse of :func:`alpha_to_cyclotomic`.
 
     EXAMPLES::
@@ -421,12 +422,10 @@ class HypergeometricData(object):
         self._alpha = alpha
         self._beta = beta
         self._deg = deg
-        if self.weight()%2 == 1:
+        if self.weight() % 2:
             self._sign_param = 1
         else:
-            gamma = self.gamma_array()
-            
-            if deg%2 == 1:
+            if deg % 2:
                 self._sign_param = prod(cyclotomic_polynomial(v).disc()
                                         for v in cyclo_down)
             else:
@@ -531,10 +530,10 @@ class HypergeometricData(object):
         beta = self._beta
         if flip_beta:
             return(sum(1 for a in alpha if a <= x) -
-                 sum(1 for b in beta if 1-b <= x))
+                   sum(1 for b in beta if 1 - b <= x))
         else:
             return(sum(1 for a in alpha if a <= x) -
-                 sum(1 for b in beta if b <= x))
+                   sum(1 for b in beta if b <= x))
 
     def weight(self):
         """
@@ -872,13 +871,13 @@ class HypergeometricData(object):
             (T^5 + 3*T^4 + 3*T^3 + 3*T^2 + 3*T + 1)/T^2
         """
         alpha = self._alpha
-        beta = self._beta
 
         def z(x):
             return alpha.count(x)
 
         T = polygen(ZZ, 'T')
-        return sum(T ** (self.zigzag(a,flip_beta=True) - z(a)) * (T**z(a) - 1) // (T - 1)
+        return sum(T ** (self.zigzag(a, flip_beta=True) - z(a)) *
+                   (T**z(a) - 1) // (T - 1)
                    for a in set(alpha))
 
     def padic_H_value(self, p, f, t, prec=20):
@@ -930,14 +929,14 @@ class HypergeometricData(object):
         beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.padic_H_value(p,f,1/t,prec))
+            return(H.padic_H_value(p, f, ~t, prec))
         t = QQ(t)
         gamma = self.gamma_array()
         q = p ** f
 
         m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
         M = self.M_value()
-        D = -min(self.zigzag(x,flip_beta=True) for x in alpha+beta)
+        D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
 #        D = (self.weight() + 1 - m[0]) // 2
 
         gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
@@ -946,7 +945,7 @@ class HypergeometricData(object):
         teich = p_ring.teichmuller(M / t)
         sigma = sum(q**(D + m[0] - m[r]) *
                     (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
-                             for v, gv in gamma.items())//(p-1)) *
+                               for v, gv in gamma.items()) // (p - 1)) *
                     prod(gauss_table[(v * r) % (q - 1)][1] ** gv
                          for v, gv in gamma.items()) *
                     teich ** r
@@ -1015,7 +1014,7 @@ class HypergeometricData(object):
         beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.H_value(p,f,1/t,ring))
+            return(H.H_value(p, f, ~t, ring))
         if ring is None:
             ring = UniversalCyclotomicField()
         t = QQ(t)
@@ -1023,7 +1022,7 @@ class HypergeometricData(object):
         q = p ** f
 
         m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
-        D = -min(self.zigzag(x,flip_beta=True) for x in alpha+beta)
+        D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
 #        D = (self.weight() + 1 - m[0]) // 2
         M = self.M_value()
 
@@ -1132,10 +1131,9 @@ class HypergeometricData(object):
 
         """
         alpha = self._alpha
-        beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.euler_factor(1/t,p,degree))
+            return(H.euler_factor(~t, p, degree))
 
         if t not in QQ or t in [0, 1]:
             raise ValueError('wrong t')
@@ -1153,12 +1151,12 @@ class HypergeometricData(object):
 
         w = self.weight()
 
-        if w%2 == 1: # sign is always +1 for odd weight
+        if w % 2:  # sign is always +1 for odd weight
             sign = 1
-        elif d%2 == 1:
-            sign = -kronecker_symbol((1-t)*self._sign_param, p)
+        elif d % 2:
+            sign = -kronecker_symbol((1 - t) * self._sign_param, p)
         else:
-            sign = kronecker_symbol(t*(t-1)*self._sign_param, p)
+            sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
 
         return characteristic_polynomial_from_traces(traces, d, p, w, sign)
 

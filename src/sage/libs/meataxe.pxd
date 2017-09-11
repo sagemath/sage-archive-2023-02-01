@@ -149,7 +149,7 @@ cdef extern from "meataxe.h":
 
 ###############################################################
 ## It is needed to do some initialisation. Since meataxe is
-## a dynamic library, it is needed to do this initialisation
+## a static library, it is needed to do this initialisation
 ## by calling meataxe_init() in all modules calling MeatAxe
 ## library functions
 

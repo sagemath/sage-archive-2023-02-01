@@ -1198,11 +1198,11 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
                 return self.from_monotone_triangle(asm, check=check)
             except (TypeError, ValueError):
                 raise ValueError('invalid alternating sign matrix')
-        else:
-            m.set_immutable()
-            if check and m not in self:
-                raise ValueError('invalid alternating sign matrix')
-            return self.element_class(self, m)
+
+        m.set_immutable()
+        if check and m not in self:
+            raise ValueError('invalid alternating sign matrix')
+        return self.element_class(self, m)
 
     Element = AlternatingSignMatrix
 

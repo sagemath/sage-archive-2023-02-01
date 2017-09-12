@@ -1193,10 +1193,10 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             raise ValueError("Cannot convert between alternating sign matrices of different sizes")
         try:
             m = self._matrix_space(asm)
-        except StandardError:
+        except (TypeError, ValueError):
             try:
                 return self.from_monotone_triangle(asm, check=check)
-            except StandardError:
+            except (TypeError, ValueError):
                 raise ValueError('invalid alternating sign matrix')
         else:
             m.set_immutable()

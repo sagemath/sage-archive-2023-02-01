@@ -1626,12 +1626,14 @@ class Graphics(WithEqualityById, SageObject):
         requires that LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='latex') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         If you want all the text in your plot to use Type 1 fonts, then
         set the ``typeset`` option to ``"type1"``. This requires that
         LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='type1') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         You can turn on the drawing of a frame around the plots::
 

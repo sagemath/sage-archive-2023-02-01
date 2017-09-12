@@ -67,7 +67,7 @@ def wrapperdescr_call(slotwrapper, self, *args, **kwds):
         63/5
         sage: from sage.numerical.mip import MixedIntegerLinearProgram
         sage: wrapperdescr_call(type.__call__, MixedIntegerLinearProgram, maximization=False)
-        Mixed Integer Program  ( minimization, 0 variables, 0 constraints )
+        Mixed Integer Program (no objective, 0 variables, 0 constraints)
 
     TESTS::
 

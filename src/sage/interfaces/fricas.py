@@ -1073,11 +1073,12 @@ class FriCASElement(ExpectElement):
             sage: f._sage_expression(s)                                         # optional - fricas
             1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
 
-        Check that #23782 is fixed:
+        Check that :trac:`23782` is fixed::
 
             sage: s = '((3*n^10-25*n^9+50*n^8+62*n^7-229*n^6-25*n^5+320*n^4-12*n^3-144*n^2)/11520)::EXPR INT'
-            sage: fricas(s).sage()
+            sage: fricas(s).sage()                                              # optional - fricas
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
+
         """
         from sage.symbolic.ring import SR
         s = unparsed_InputForm

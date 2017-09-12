@@ -1279,7 +1279,7 @@ class Ideal_principal(Ideal_generic):
             other = self.ring().ideal(other)
 
         if not other.is_principal():
-            return NotImplemented
+            return rich_to_bool(op, -1)
 
         if self.is_zero():
             if not other.is_zero():

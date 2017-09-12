@@ -246,7 +246,7 @@ from sage.rings.ideal import Ideal_generic
 from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
-
+from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod, verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
@@ -3195,7 +3195,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         return other.__lt__(self)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Comparison of ``self`` with ``other``.
 
@@ -3205,7 +3205,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         OUTPUT:
 
-        - 0 if ``self`` and ``other`` are the same ideal, 1 otherwise.
+        boolean
 
         NOTES:
 
@@ -3214,17 +3214,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]; I = R*[x^2 + y, 2*y]; J = R*[x^2 + y]
-            sage: cmp(I,J)
-            1
-            sage: cmp(J,I)
-            -1
-            sage: cmp(I,I)
-            0
+            sage: I > J
+            True
+            sage: J < I
+            True
+            sage: I == I
+            True
         """
 
         # first check the type
         if not isinstance(other, MPolynomialIdeal):
-            return 1
+            return rich_to_bool(op, 1)
 
         # the ideals may be defined w.r.t. to different term orders
         # but are still the same.
@@ -3234,7 +3234,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if type(R) is type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
                 other = other.change_ring(R)
             else:
-                return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))
+                return richcmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()), op)
 
         # now, check whether the GBs are cached already
         l = self.gens()
@@ -3248,7 +3248,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         except AttributeError: # e.g. quotient rings
             l = self.groebner_basis()
             r = other.groebner_basis()
-        return cmp(l,r)
+        return richcmp(l, r, op)
 
     def __eq__(self, other):
         r"""

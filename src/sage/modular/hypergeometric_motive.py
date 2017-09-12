@@ -6,6 +6,9 @@ important conventional difference: the motivic parameter `t` has been replaced
 with `1/t` to match the classical literature on hypergeometric series.
 (E.g., see Beukers-Heckman, Monodromy for the hypergeometric function nF_{n-1}.)
 
+The computation of Euler factors is currently only supported for primes `p`
+of good reduction. That is, it is required that `v_p(t) = v_p(t-1) = 0`.
+
 AUTHORS:
 
 - Frederic Chapoton
@@ -227,7 +230,8 @@ def alpha_to_cyclotomic(alpha):
     The input represents arguments of some roots of unity.
 
     The output represent a product of cyclotomic polynomials with exactly
-    the given roots.
+    the given roots. Note that the multiplicity of `r/s` in the list 
+    must be independent of `r`; otherwise, a ValueError will be raised.
 
     This is the inverse of :func:`cyclotomic_to_alpha`.
 
@@ -252,7 +256,10 @@ def alpha_to_cyclotomic(alpha):
         d = q.denominator()
         for k in range(1, d):
             if gcd(k, d) == 1 and QQ((k, d)) != q:
-                Alpha.remove(QQ((k, d)))
+                try:
+                    Alpha.remove(QQ((k, d)))
+                except ValueError:
+                    raise ValueError, "multiplicities not balanced"
         cyclo.append(d)
     return sorted(cyclo)
 
@@ -352,7 +359,7 @@ def gamma_list_to_cyclotomic(galist):
 
     return (sorted(d for d in resu for k in range(resu[d])),
             sorted(d for d in resu for k in range(-resu[d])))
-
+J
 
 class HypergeometricData(object):
     def __init__(self, cyclotomic=None, alpha_beta=None, gamma_list=None):
@@ -388,6 +395,8 @@ class HypergeometricData(object):
 
             sage: Hyp(gamma_list=([5],[1,1,1,1,1]))
             Hypergeometric motive for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
+            sage: Hyp(gamma_list=([5,-1,-1,-1,-1,-1]))
+            Hypergeometric motive for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
         """
         if gamma_list is not None:
             if isinstance(gamma_list[0], (list, tuple)):
@@ -397,7 +406,7 @@ class HypergeometricData(object):
         if cyclotomic is not None:
             cyclo_up, cyclo_down = cyclotomic
             if any(x in cyclo_up for x in cyclo_down):
-                raise ValueError('must be prime')
+                raise ValueError('overlapping parameters not allowed')
             deg = sum(euler_phi(x) for x in cyclo_down)
             up_deg = sum(euler_phi(x) for x in cyclo_up)
             if up_deg != deg:
@@ -647,7 +656,7 @@ class HypergeometricData(object):
 
     def M_value(self):
         """
-        Return the `M` coefficient that appears in the equations.
+        Return the `M` coefficient that appears in the trace formula.
 
         OUTPUT:
 
@@ -955,7 +964,8 @@ class HypergeometricData(object):
 
     def H_value(self, p, f, t, ring=None):
         """
-        Return the trace of the Frobenius.
+        Return the trace of the Frobenius, computed in terms of Gauss sums
+        using the hypergeometric trace formula.
 
         INPUT:
 

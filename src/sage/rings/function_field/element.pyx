@@ -58,8 +58,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from sage.misc.cachefunc import cached_method
+from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 from sage.misc.cachefunc import cached_method
@@ -78,7 +77,7 @@ def is_FunctionFieldElement(x):
         False
     """
     if isinstance(x, FunctionFieldElement): return True
-    from function_field import is_FunctionField
+    from .function_field import is_FunctionField
     return is_FunctionField(x.parent())
 
 def make_FunctionFieldElement(parent, element_class, representing_element):

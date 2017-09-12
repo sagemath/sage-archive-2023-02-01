@@ -15,14 +15,12 @@ Frédéric Chapoton (2017)
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.categories.algebras import Algebras
-from sage.categories.magmatic_algebras import MagmaticAlgebras
+from sage.categories.hopf_algebras import HopfAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.binary_tree import (BinaryTrees, BinaryTree,
                                        LabelledBinaryTrees,
                                        LabelledBinaryTree)
-from sage.combinat.ordered_tree import OrderedTree, LabelledOrderedTree
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
@@ -142,10 +140,10 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
             sage: A = algebras.FreeDendriform(QQ, '@'); A
             Free Dendriform algebra on one generator ['@'] over Rational Field
-            sage: TestSuite(A).run()
+            sage: TestSuite(A).run()  # long time (3s)
 
             sage: F = algebras.FreeDendriform(QQ, 'xy')
-            sage: TestSuite(F).run() # long time
+            sage: TestSuite(F).run() # long time (3s)
         """
         if names.cardinality() == 1:
             Trees = BinaryTrees()
@@ -156,7 +154,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         # Here one would need LabelledBinaryTrees(names)
         # so that one can restrict the labels to some fixed set
         self._alphabet = names
-        cat = Algebras(R).WithBasis().Graded()
+        cat = HopfAlgebras(R).WithBasis().Graded().Connected()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
                                          sorting_key=key,
@@ -312,24 +310,21 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         y = u + x
         return [u, o, x, y]
 
-    @cached_method
-    def one(self):
-        r"""
-        Return the element `1` of ``self``.
-
-        This is the unit for the associative dendriform product `*`.
+    def one_basis(self):
+        """
+        Return the index of the unit.
 
         EXAMPLES::
 
             sage: A = algebras.FreeDendriform(QQ, '@')
-            sage: A.one()
-            B[.]
+            sage: A.one_basis()
+            .
             sage: A = algebras.FreeDendriform(QQ, 'xy')
-            sage: A.one()
-            B[.]
+            sage: A.one_basis()
+            .
         """
         Trees = self.basis().keys()
-        return self._monomial(Trees(None))
+        return Trees(None)
 
     def product_on_basis(self, x, y):
         r"""
@@ -525,7 +520,8 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: A.over(x, x)
             B[[., [., .]]]
         """
-        ov = lambda x, y: self._monomial(x.over(y))
+        def ov(x, y):
+            return self._monomial(x.over(y))
         return self._module_morphism(self._module_morphism(ov, position=0,
                                                            codomain=self),
                                      position=1)
@@ -552,10 +548,53 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: A.under(x, x)
             B[[[., .], .]]
         """
-        und = lambda x, y: self._monomial(x.under(y))
+        def und(x, y):
+            return self._monomial(x.under(y))
         return self._module_morphism(self._module_morphism(und, position=0,
                                                            codomain=self),
                                      position=1)
+
+    def coproduct_on_basis(self, x):
+        """
+        Return the coproduct of a binary tree.
+
+        EXAMPLES::
+
+            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: x = A.gen(0)
+            sage: ascii_art(A.coproduct(A.one()))  # indirect doctest
+            1 # 1
+
+            sage: ascii_art(A.coproduct(x))  # indirect doctest
+            1 # B  + B  # 1
+                 o    o
+
+            sage: A = algebras.FreeDendriform(QQ, 'xyz')
+            sage: x, y, z = A.gens()
+            sage: w = A.under(z,A.over(x,y))
+            sage: A.coproduct(z)
+            B[.] # B[z[., .]] + B[z[., .]] # B[.]
+            sage: A.coproduct(w)
+            B[.] # B[x[z[., .], y[., .]]] + B[x[., .]] # B[z[., y[., .]]] +
+            B[x[., .]] # B[y[z[., .], .]] + B[x[., y[., .]]] # B[z[., .]] +
+            B[x[z[., .], .]] # B[y[., .]] + B[x[z[., .], y[., .]]] # B[.]
+        """
+        B = self.basis()
+        Trees = B.keys()
+        if not x.node_number():
+            return self.one().tensor(self.one())
+        L, R = list(x)
+        try:
+            root = x.label()
+        except AttributeError:
+            root = '@'
+        resu = self.one().tensor(self.monomial(x))
+        resu += sum(cL * cR *
+                    self.monomial(Trees([LL[0], RR[0]], root)).tensor(
+                        self.monomial(LL[1]) * self.monomial(RR[1]))
+                    for LL, cL in self.coproduct_on_basis(L)
+                    for RR, cR in self.coproduct_on_basis(R))
+        return resu
 
     # after this line : coercion
     def _element_constructor_(self, x):

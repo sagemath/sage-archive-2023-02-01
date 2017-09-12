@@ -28,7 +28,7 @@ between `V_d` and `V_{d+1}`::
     sage: [V.get_degree(i).dimension() for i in range(0,4)]
     [2, 2, 0, 0]
 
-To construct general filtrations, you need tell Sage about generating
+To construct general filtrations, you need to tell Sage about generating
 vectors for the nested subspaces. For example, a dictionary whose keys
 are the degrees and values are a list of generators::
 
@@ -897,9 +897,9 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             s += ' in ' + self._repr_vector_space(self.degree())
         return s
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two filtered vector spaces.
+        Return whether ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -923,24 +923,44 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: S2 = O_P + T_P
             sage: S1._filt[0].is_isomorphic(S2._filt[0])  # known bug
             True
+
             sage: FilteredVectorSpace(2, base_ring=QQ) == FilteredVectorSpace(2, base_ring=GF(5))
             False
         """
-        c = cmp(type(self), type(other))
-        if c!=0: return c
-        c = cmp(self.base_ring(), other.base_ring())
-        if c!=0: return c
-        c = cmp(self.dimension(), other.dimension())
-        if c!=0: return c
-        c = cmp(len(self._filt), len(other._filt))
-        if c!=0: return c
+        if type(self) != type(other):
+            return False
+        if self.base_ring() != other.base_ring():
+            return False
+        if self.dimension() != other.dimension():
+            return False
+        if len(self._filt) != len(other._filt):
+            return False
         for self_filt, other_filt in zip(self._filt, other._filt):
-            c = cmp(self_filt[0], other_filt[0])   # compare degree
-            if c!=0: return c
-            c = cmp(self_filt[1].echelonized_basis_matrix(),   # compare vector subspace
-                    other_filt[1].echelonized_basis_matrix())
-            if c!=0: return c
-        return 0
+            if self_filt[0] != other_filt[0]:
+                # compare degree
+                return False
+            if (self_filt[1].echelonized_basis_matrix() !=
+                    other_filt[1].echelonized_basis_matrix()):
+                # compare vector subspace
+                return False
+        return True
+
+    def __ne__(self, other):
+        """
+        Return whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: V = FilteredVectorSpace(2, 0)
+            sage: W = FilteredVectorSpace([(1,0),(0,1)], {0:[0, 1]})
+            sage: V != W
+            False
+
+            sage: W = FilteredVectorSpace([(1,0),(1,1)], {0:[1]})
+            sage: V != W
+            True
+        """
+        return not (self == other)
 
     def direct_sum(self, other):
         """

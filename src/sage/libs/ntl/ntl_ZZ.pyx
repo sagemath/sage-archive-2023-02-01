@@ -19,14 +19,12 @@ from cysignals.signals cimport sig_on, sig_off
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.int cimport PyInt_AS_LONG
 
-ZZ_sage = IntegerRing()
 
 cdef make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
@@ -82,10 +80,11 @@ cdef class ntl_ZZ(object):
         """
         if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
+        elif isinstance(v, long):
+            # Note: This case should be first since on Python 3 long is int
+            PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, int):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
-        elif isinstance(v, long):
-            PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)
         elif v is not None:

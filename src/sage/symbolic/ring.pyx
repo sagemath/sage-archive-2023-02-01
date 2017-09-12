@@ -229,7 +229,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: x.subs(x=y0/y1)
             y0/y1
             sage: x + long(1)
-            x + 1L
+            x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
         `a` itself (not a copy)::
@@ -728,7 +728,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         - ``latex_name`` -- (optional) string used when printing in latex mode, if not specified use ``'name'``
 
-        - ``n`` -- (optional) nonnegative integer; number of symbolic variables, indexed from `0` to `n-1`
+        - ``n`` -- (optional) positive integer; number of symbolic variables, indexed from `0` to `n-1`
 
         - ``domain`` -- (optional) specify the domain of the variable(s); it is the complex plane
           by default, and possible options are (non-exhaustive list, see note below):
@@ -778,8 +778,11 @@ cdef class SymbolicRing(CommutativeRing):
 
         Automatic indexing is available as well::
 
-            sage: SR.var('x', 4)
-            (x0, x1, x2, x3)
+            sage: x = SR.var('x', 4)
+            sage: x[0], x[3]
+            (x0, x3)
+            sage: sum(x)
+            x0 + x1 + x2 + x3
 
         TESTS::
 

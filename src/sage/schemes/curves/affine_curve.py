@@ -1527,6 +1527,24 @@ class AffinePlaneCurve(AffineCurve):
         f = self.defining_polynomial()
         return fundamental_group(f, projective=False)
 
+    def riemann_surface(self,**kwargs):
+        r"""Return the complex riemann surface determined by this curve
+
+        OUTPUT:
+
+         - RiemannSurface object
+
+        EXAMPLES::
+
+            sage: R.<x,y>=QQ[]
+            sage: C=Curve(x^3+3*y^3+5)
+            sage: C.riemann_surface()
+            Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
+
+        """
+        from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+        return RiemannSurface(self.defining_polynomial(),**kwargs)
+
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
 

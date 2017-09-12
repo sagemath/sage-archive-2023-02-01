@@ -627,7 +627,7 @@ def entropy_inverse(x, q=2):
 
         sage: from sage.coding.code_bounds import entropy_inverse
         sage: entropy_inverse(0.1)
-        0.012986862055848683
+        0.012986862055...
         sage: entropy_inverse(1)
         1/2
         sage: entropy_inverse(0, 3)

@@ -714,7 +714,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: fricas        # indirect doctest
+            sage: fricas                                                        # indirect doctest
             FriCAS
         """
         return "FriCAS"
@@ -747,11 +747,11 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: fricas.set("x", "1783"); fricas("x")                               # optional - fricas
+            sage: fricas.set("x", "1783"); fricas("x")                          # optional - fricas
             1783
-            sage: fricas.eval(")cl val x");                                          # optional - fricas
+            sage: fricas.eval(")cl val x");                                     # optional - fricas
             ''
-            sage: fricas("x")                                                        # optional - fricas
+            sage: fricas("x")                                                   # optional - fricas
             x
 
         """

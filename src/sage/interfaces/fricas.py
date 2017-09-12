@@ -67,8 +67,8 @@ with how the rest of SageMath works::
 
     sage: f = fricas('x^5 - y^5')                                               # optional - fricas
     sage: f^2                                                                   # optional - fricas
-       10     5 5    10
-      y   - 2x y  + x
+     10      5 5    10
+    y   - 2 x y  + x
     sage: f.factor()                                                            # optional - fricas
                4      3    2 2    3     4
     - (y - x)(y  + x y  + x y  + x y + x )
@@ -93,37 +93,45 @@ differential equation for the generating function for integer
 partitions::
 
     sage: fricas("guessADE([partition n for n in 0..40], homogeneous==4)")      # optional - fricas
-     [
-       [
-           n
-         [x ]f(x):
-              2    3 (iv)          2    2 ,             3  ,,,         2    2 ,,   2
-             x f(x) f    (x) + (20x f(x) f (x) + 5x f(x) )f   (x) - 39x f(x) f  (x)
+    [
+      [
+          n
+        [x ]f(x):
+               2    3 (iv)           2    2 ,              3  ,,,
+              x f(x) f    (x) + (20 x f(x) f (x) + 5 x f(x) )f   (x)
     <BLANKLINE>
-           +
-                 2     ,   2           2 ,           3  ,,        2 ,   4
-             (12x f(x)f (x)  - 15x f(x) f (x) + 4f(x) )f  (x) + 6x f (x)
+            +
+                    2    2 ,,   2
+              - 39 x f(x) f  (x)
     <BLANKLINE>
-           +
-                      ,   3         2 ,   2
-             10x f(x)f (x)  - 16f(x) f (x)
+            +
+                   2     ,   2            2 ,            3  ,,         2 ,   4
+              (12 x f(x)f (x)  - 15 x f(x) f (x) + 4 f(x) )f  (x) + 6 x f (x)
     <BLANKLINE>
-             =
-             0
-         ,
-                        2     3      4
-        f(x)= 1 + x + 2x  + 3x  + O(x )]
-       ]
+            +
+                        ,   3          2 ,   2
+              10 x f(x)f (x)  - 16 f(x) f (x)
+    <BLANKLINE>
+          =
+            0
+        ,
+                         2      3      4
+       f(x) = 1 + x + 2 x  + 3 x  + O(x )]
+      ]
 
 FriCAS can solve linear ordinary differential equations::
 
     sage: fricas.set("y", "operator y")                                         # optional - fricas
     sage: fricas.set("deq", "x^3*D(y x, x, 3) + x^2*D(y x, x, 2) - 2*x*D(y x, x) + 2*y x - 2*x^4")  # optional - fricas
     sage: fricas.set("sol", "solve(deq, y, x)"); fricas("sol")                  # optional - fricas
-                  5      3      2               3     2      3      3     2
-                 x  - 10x  + 20x  + 4         2x  - 3x  + 1 x  - 1 x  - 3x  - 1
-    [particular= --------------------,basis= [-------------,------,------------]]
-                          15x                       x          x         x
+                   5       3       2
+                  x  - 10 x  + 20 x  + 4
+    [particular = ----------------------,
+                           15 x
+                 3      2       3       3      2
+              2 x  - 3 x  + 1  x  - 1  x  - 3 x  - 1
+     basis = [---------------, ------, -------------]]
+                     x            x          x
 
     sage: fricas("sol.particular").sage()                                       # optional - fricas
     1/15*(x^5 - 10*x^3 + 20*x^2 + 4)/x
@@ -155,17 +163,20 @@ FriCAS can expand expressions into series::
     sage: x = fricas("x::TaylorSeries Fraction Integer")                        # optional - fricas
     sage: y = fricas("y::TaylorSeries Fraction Integer")                        # optional - fricas
     sage: 2*(1+2*x+sqrt(1-4*x)-2*x*y).recip()                                   # optional - fricas
-                   2      3     2 2     3      4       4       5
-       1 + (x y + x ) + 2x  + (x y  + 2x y + 6x ) + (4x y + 18x )
-     +
-         3 3     4 2      5       6       5 2      6        7
-       (x y  + 3x y  + 13x y + 57x ) + (6x y  + 40x y + 186x )
-     +
-         4 4     5 3      6 2       7        8       6 3      7 2       8         9
-       (x y  + 4x y  + 21x y  + 130x y + 622x ) + (8x y  + 66x y  + 432x y + 2120x )
-     +
-         5 5     6 4      7 3       8 2        9         10
-       (x y  + 5x y  + 30x y  + 220x y  + 1466x y + 7338x  ) + O(11)
+                  2       3     2 2      3       4        4        5
+      1 + (x y + x ) + 2 x  + (x y  + 2 x y + 6 x ) + (4 x y + 18 x )
+    +
+        3 3      4 2       5        6        5 2       6         7
+      (x y  + 3 x y  + 13 x y + 57 x ) + (6 x y  + 40 x y + 186 x )
+    +
+        4 4      5 3       6 2        7         8
+      (x y  + 4 x y  + 21 x y  + 130 x y + 622 x )
+    +
+          6 3       7 2        8          9
+      (8 x y  + 66 x y  + 432 x y + 2120 x )
+    +
+        5 5      6 4       7 3        8 2         9          10
+      (x y  + 5 x y  + 30 x y  + 220 x y  + 1466 x y + 7338 x  ) + O(11)
 
 FriCAS does some limits right::
 
@@ -542,12 +553,12 @@ class FriCAS(ExtraTabCompletion, Expect):
             '2'
             sage: a = fricas('(1 + sqrt(2))^5')                                 # optional - fricas
             sage: fricas.get(a.name())                                          # optional - fricas
-            '   +-+\r\n29\\|2  + 41'
+            '    +-+\r\n29 \\|2  + 41'
             sage: fricas.get('(1 + sqrt(2))^5')                                 # optional - fricas
-            '   +-+\r\n29\\|2  + 41'
+            '    +-+\r\n29 \\|2  + 41'
             sage: fricas.new('(1 + sqrt(2))^5')                                 # optional - fricas
-               +-+
-            29\|2  + 41
+                +-+
+            29 \|2  + 41
         """
         output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
@@ -628,7 +639,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         TESTS::
 
             sage: fricas.get_unparsed_InputForm('1..3')                         # optional - fricas
-            '1..3$Segment(Integer())'
+            '(1..3)$Segment(PositiveInteger())'
 
         """
         return self.get_string('unparse((%s)::InputForm)' %str(var))
@@ -654,13 +665,13 @@ class FriCAS(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: a = fricas(x==6); a                                           # optional - fricas, indirect doctest
-            x= 6
+            x = 6
 
         A warning:
 
             sage: fricas.set("x", 2);                                           # optional - fricas
             sage: a = fricas(x==6); a                                           # optional - fricas
-            2= 6
+            2 = 6
             sage: fricas.eval(")cl val x")                                      # optional - fricas
             ''
         """
@@ -850,7 +861,7 @@ class FriCASElement(ExpectElement):
 
             - can we somehow implement negative arguments?
 
-        TESTS:
+        TESTS::
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
@@ -1102,8 +1113,8 @@ class FriCASElement(ExpectElement):
         Algebraic numbers::
 
             sage: a = fricas('(1 + sqrt(2))^5'); a                              # optional - fricas
-               +-+
-            29\|2  + 41
+                +-+
+            29 \|2  + 41
             sage: b = a.sage(); b                                               # optional - fricas
             82.0121933088198?
             sage: b.radical_expression()                                        # optional - fricas

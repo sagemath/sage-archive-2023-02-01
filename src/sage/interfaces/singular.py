@@ -2051,7 +2051,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             [4]:
                _[1]=0
             sage: RL.sage_structured_str_list()
-            ['0', ['x', 'y'], [['dp', '1,\n1'], ['C', '0']], '0']
+            ['0', ['x', 'y'], [['dp', '1,\n1 '], ['C', '0 ']], '0']
         """
         if not (self.type()=='list'):
             return str(self)

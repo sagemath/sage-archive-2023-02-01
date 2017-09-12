@@ -94,6 +94,7 @@ from sage.manifolds.differentiable.tangent_vector import TangentVector
 from sage.calculus.interpolation import Spline
 from sage.misc.decorators import options
 from sage.misc.functional import numerical_approx
+from sage.arith.srange import srange
 
 class IntegratedCurve(DifferentiableCurve):
     r"""
@@ -895,7 +896,7 @@ class IntegratedCurve(DifferentiableCurve):
           * ``'rk4imp'`` - implicit 4th order Runge-Kutta at Gaussian points
           * ``'gear1'`` - `M=1` implicit Gear
           * ``'gear2'`` - `M=2` implicit Gear
-          * ``'bsimp'`` - implicit Burlisch-Stoer (requires Jacobian)
+          * ``'bsimp'`` - implicit Bulirsch-Stoer (requires Jacobian)
 
         - ``solution_key`` -- (default: ``None``) key which the
           resulting numerical solution will be associated to; a default
@@ -1065,6 +1066,8 @@ class IntegratedCurve(DifferentiableCurve):
         if step is None:
             step = (t_max - t_min) / 100
 
+        step = numerical_approx(step)
+
         initial_pt_coords = [numerical_approx(coord) for coord
                              in initial_pt_coords]
         initial_tgt_vec_comps = [numerical_approx(comp) for comp
@@ -1220,9 +1223,7 @@ class IntegratedCurve(DifferentiableCurve):
                         return jac
                     T.jacobian = jacobian
 
-                T.ode_solve(jacobian=jacobian, y_0=y_0, t_span=t_span)
-            else:
-                T.ode_solve(y_0=y_0, t_span=t_span)
+            T.ode_solve(y_0=y_0, t_span=t_span)
 
             sol0 = T.solution
             sol = []

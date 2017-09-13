@@ -2878,8 +2878,8 @@ class Link(object):
         availables = self.pd_code()[1:]
         used_edges = []
         ims = line([], **kwargs)
-        cross_keys = list(crossings.keys())
         while len(used_edges) < len(edges):
+            cross_keys = list(crossings.keys())
             i = 0
             j = 0
             while cross_keys[i][j] in used_edges:

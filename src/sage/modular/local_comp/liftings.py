@@ -6,9 +6,11 @@ This module contains various functions relating to lifting elements of
 problems.
 """
 
-from sage.rings.all import ZZ, Zmod
+from sage.rings.all import ZZ
 from sage.arith.all import crt, inverse_mod
 from sage.modular.modsym.p1list import lift_to_sl2z
+from copy import copy
+
 
 def lift_to_gamma1(g, m, n):
     r"""
@@ -162,3 +164,78 @@ def lift_ramified(g, p, u, n):
     d = d - p**u * r * b
     # assert (c - g[2]) % p**(u+1) == 0
     return [a,b,c,d]
+
+
+def lift_for_SL(A, N):
+    r"""
+    Lift a matrix `A` from `SL_m(\ZZ / N\ZZ)` to `SL_m(\ZZ)`.
+
+    Follows Shimura, Lemma 1.38, p. 21.
+
+    EXAMPLES::
+
+
+        sage: from sage.modular.local_comp.liftings import lift_for_SL
+        sage: N = 11
+        sage: A = matrix(ZZ, 4, 4, [6, 0, 0, 9, 1, 6, 9, 4, 4, 4, 8, 0, 4, 0, 0, 8])
+        sage: A.det()
+        144
+        sage: A.change_ring(Zmod(N)).det()
+        1
+        sage: L = lift_for_SL(A, N)
+        sage: L.det()
+        1
+        sage: (L - A) * Mod(1, N) == 0
+        True
+
+        sage: N = 19
+        sage: B = matrix(ZZ, 4, 4, [1, 6, 10, 4, 4, 14, 15, 4, 13, 0, 1, 15, 15, 15, 17, 10])
+        sage: B.det()
+        4447
+        sage: B.change_ring(Zmod(N)).det()
+        1
+        sage: L = lift_for_SL(B, N)
+        sage: L.det()
+        1
+        sage: (L - B) * Mod(1, N) == 0
+        True
+    """
+    from sage.matrix.constructor import matrix
+    from sage.matrix.special import identity_matrix, diagonal_matrix, block_diagonal_matrix
+    from sage.misc.misc_c import prod
+
+    m = A.nrows()
+    if m == 1:
+        return identity_matrix(1)
+
+    D, U, V = A.smith_form()
+    diag = diagonal_matrix([-1] + [1] * (m - 1))
+    if U.det() == -1 :
+        U = diag * U
+    if V.det() == -1 :
+        V = V * diag
+    D = U * A * V
+
+    a = [D[i, i] for i in range(m)]
+    b = prod(a[1:])
+    W = identity_matrix(m)
+    W[0, 0] = b
+    W[1, 0] = b - 1
+    W[0, 1] = 1
+
+    X = identity_matrix(m)
+    X[0, 1] = -a[1]
+
+    Ap = copy(D)
+    Ap[0, 0] = 1
+    Ap[1, 0] = 1 - a[0]
+    Ap[1, 1] *= a[0]
+
+    Cp = diagonal_matrix(a[1:])
+    Cp[0, 0] *= a[0]
+    C = lift_for_SL(Cp, N)
+
+    Cpp = block_diagonal_matrix(identity_matrix(1), C)
+    Cpp[1, 0] = 1 - a[0]
+
+    return (~U * ~W * Cpp * ~X * ~V).change_ring(ZZ)

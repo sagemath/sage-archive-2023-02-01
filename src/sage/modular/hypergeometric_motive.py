@@ -102,8 +102,6 @@ def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     and should have the property that reciprocals of all roots have
     absolute value `q^{i/2}`.
 
-    The sign specified here is the local root number times `(-1)^d`.
-
     INPUT:
 
     - ``traces`` -- a list of integers `t_1, \dots, t_k`

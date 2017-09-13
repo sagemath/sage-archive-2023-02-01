@@ -694,7 +694,7 @@ class FreeModule_generic(Module):
              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
             Category of finite dimensional vector spaces with basis over
-             (quotient fields and metric spaces)
+             (number fields and quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
             Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
@@ -702,7 +702,8 @@ class FreeModule_generic(Module):
              (euclidean domains and infinite enumerated sets
               and metric spaces)
             sage: (QQ^0).category()
-            Category of finite enumerated finite dimensional vector spaces with basis over (quotient fields and metric spaces)
+            Category of finite enumerated finite dimensional vector spaces with basis
+             over (number fields and quotient fields and metric spaces)
 
         TESTS::
 
@@ -3186,7 +3187,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Set of Morphisms from Vector space of dimension 2 over Rational Field
              to Ambient free module of rank 3 over the principal ideal domain Integer Ring
              in Category of finite dimensional vector spaces with basis over
-              (quotient fields and metric spaces)
+              (number fields and quotient fields and metric spaces)
         """
         if Y.base_ring().is_field():
             from . import vector_space_homspace

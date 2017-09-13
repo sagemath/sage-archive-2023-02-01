@@ -1,17 +1,18 @@
+# -*- coding: utf-8 -*-
 """
 Hypergeometric motives
 
 This is largely a port of the corresponding package in Magma. One
 important conventional difference: the motivic parameter `t` has been replaced
 with `1/t` to match the classical literature on hypergeometric series.
-(E.g., see Beukers-Heckman, Monodromy for the hypergeometric function nF_{n-1}.)
+(E.g., see [BeukersHeckman]_)
 
 The computation of Euler factors is currently only supported for primes `p`
 of good reduction. That is, it is required that `v_p(t) = v_p(t-1) = 0`.
 
 AUTHORS:
 
-- Frederic Chapoton
+- Frédéric Chapoton
 - Kiran S. Kedlaya
 
 EXAMPLES::
@@ -25,6 +26,33 @@ EXAMPLES::
     True
     sage: H.euler_factor(2, 7)
     T^8 + T^5 + T^3 + 1
+
+REFERENCES:
+
+.. [BeukersHeckman] \F. Beukers and \G. Heckman,
+   *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,
+   Invent. Math. 95 (1989)
+
+.. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
+   http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
+
+.. [MagmaHGM] *Hypergeometric motives* in Magma,
+   http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
+
+.. [Roberts2017] David P. Roberts, *Hypergeometric motives and an unusual
+   application of the Guinand-Weil-Mestre explicit formula*,
+   https://www.matrix-inst.org.au/wp_Matrix2016/wp-content/uploads/2016/04/Roberts-2.pdf
+
+.. [Roberts2015] David P. Roberts, *Hypergeometric Motives I*, https://icerm.brown.edu/materials/Slides/sp-f15-offweeks/Hypergeomteric_Motives,_I_]_David_Roberts,_University_of_Minnesota_-_Morris.pdf
+
+.. [BeCoMe] Frits Beukers, Henri Cohen, Anton Mellit,
+   *Finite hypergeometric functions*,
+   https://arxiv.org/pdf/1505.02900.pdf
+
+.. [Watkins] Mark Watkins,
+   *Hypergeometric motives over Q and their L-functions*,
+   http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
+
 """
 #*****************************************************************************
 #       Copyright (C) 2017     Frederic Chapoton
@@ -807,9 +835,9 @@ class HypergeometricData(object):
             sage: Hyp(alpha_beta=[[1/2]*16,[0]*16]).has_symmetry_at_one()
             True
 
-        REFERENCE:
+        REFERENCES:
 
-        - https://www.matrix-inst.org.au/wp_Matrix2016/wp-content/uploads/2016/04/Roberts-2.pdf
+        - [Roberts2017]_
         """
         _, beta_twist = self.twist().alpha_beta()
         return self.degree() % 2 == 0 and self._alpha == beta_twist
@@ -910,7 +938,7 @@ class HypergeometricData(object):
 
         EXAMPLES:
 
-        From Benasque report, page 8::
+        From Benasque report [Benasque2009]_, page 8::
 
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2]*4,[0]*4))
@@ -930,9 +958,9 @@ class HypergeometricData(object):
             sage: H.padic_H_value(13,1,1/t)
             0
 
-        REFERENCE:
+        REFERENCES:
 
-        - http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
+        - [MagmaHGM]_
         """
         alpha = self._alpha
         beta = self._beta
@@ -1015,10 +1043,8 @@ class HypergeometricData(object):
 
         REFERENCES:
 
-        - https://arxiv.org/pdf/1505.02900.pdf, Theorem 1.3
-
-        - http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
-
+        - [BeCoMe]_ (Theorem 1.3)
+        - [Benasque2009]_
         """
         alpha = self._alpha
         beta = self._beta
@@ -1074,11 +1100,10 @@ class HypergeometricData(object):
 
         a polynomial
 
-        See http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
-        for explicit examples of Euler factors.
+        See [Benasque2009]_ for explicit examples of Euler factors.
 
         For odd weight, the sign of the functional equation is +1. For even
-        weight, the sign is computed by a recipe found in 11.1 of Watkins.
+        weight, the sign is computed by a recipe found in 11.1 of [Watkins]_.
 
         EXAMPLES::
 
@@ -1134,11 +1159,10 @@ class HypergeometricData(object):
              sage: H.euler_factor(5,7)
              16807*T^5 - 686*T^4 - 105*T^3 - 15*T^2 - 2*T + 1
 
-        REFERENCE:
+        REFERENCES:
 
-        - https://icerm.brown.edu/materials/Slides/sp-f15-offweeks/Hypergeomteric_Motives,_I_]_David_Roberts,_University_of_Minnesota_-_Morris.pdf
-        - http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
-
+        - [Roberts2015]_
+        - [Watkins]_
         """
         alpha = self._alpha
         if 0 in alpha:

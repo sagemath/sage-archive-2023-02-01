@@ -110,6 +110,7 @@ class CalculusMethod(SageObject):
         else :
             self._bf_type = 'bo'
 
+        #initiliazation of the dict for simplifications
         if self._bf_type == 'real':
             self._simplify_dict['sympy'] = simplify_chain_real_sympy
             self._simplify_dict['SR'] = simplify_chain_real
@@ -123,12 +124,12 @@ class CalculusMethod(SageObject):
         if method is None : method = self._current
         return self._simplify_dict[method](expression)
 
-    # def is_trivial_zero(self,expression,method=None):
-    #     if method is None : method = self._current
-    #     if method == 'SR':
-    #         return expression.is_trivial_zero()
-    #     elif method == 'sympy':
-    #         return expression.is_zero
+    def is_trivial_zero(self,expression,method=None):
+        if method is None : method = self._current
+        if method == 'SR':
+            return expression.is_trivial_zero()
+        elif method == 'sympy':
+            return expression.is_zero
 
 
     def set(self,method):

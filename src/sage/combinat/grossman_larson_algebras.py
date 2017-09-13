@@ -25,6 +25,7 @@ from sage.combinat.rooted_tree import (RootedTrees, RootedTree,
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
 from sage.sets.family import Family
+from sage.rings.integer_ring import ZZ
 from itertools import combinations, product
 
 # we use a fixed special symbol for the fake root
@@ -131,14 +132,14 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         either on ``RootedTrees`` or on ``LabelledRootedTrees``, with no
         restriction on the labellings. This means that all code calling
         the :meth:`basis` method would not give meaningful results, since
-        :meth:`basis` returns many "chaff" elements that don't belong to
+        :meth:`basis` returns many "chaff" elements that do not belong to
         the algebra.
 
     REFERENCES:
 
-    .. [Pana2002]_
+    - [Pana2002]_
 
-    .. [GroLar1]_
+    - [GroLar1]_
     """
     @staticmethod
     def __classcall_private__(cls, R, names=None):
@@ -154,6 +155,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             True
         """
         if names is not None:
+            if names not in ZZ and ',' in names:
+                names = [u for u in names if u != ',']
             names = Alphabet(names)
 
         if R not in Rings():
@@ -305,6 +308,23 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         Trees = self.basis().keys()
         return tuple(Family(self._alphabet,
                             lambda a: self.monomial(Trees([Trees([], a)], ROOT))))
+
+    def change_ring(self, R):
+        """
+        Return the Grossman-Larson algebra in the same variables over `R`.
+
+        INPUT:
+
+        - `R` -- a ring
+
+        EXAMPLES::
+
+            sage: A = algebras.GrossmanLarson(ZZ, 'fgh')
+            sage: A.change_ring(QQ)
+            Grossman-Larson Hopf algebra on 3 generators ['f', 'g', 'h']
+            over Rational Field
+        """
+        return GrossmanLarsonAlgebra(R, names=self.variable_names())
 
     def degree_on_basis(self, t):
         """

@@ -1751,7 +1751,6 @@ class NumberField_relative(NumberField_generic):
             self.__abs_gen = self._element_class(self, QQ['x'].gen())
             return self.__abs_gen
 
-    @cached_method
     def absolute_field(self, names):
         r"""
         Return an absolute number field `K` that is isomorphic to this

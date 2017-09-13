@@ -2237,7 +2237,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return not self.is_absolute()
 
-    @cached_method
     def absolute_field(self, names):
         """
         Returns self as an absolute extension over QQ.

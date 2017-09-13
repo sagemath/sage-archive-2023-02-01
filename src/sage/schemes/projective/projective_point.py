@@ -1140,7 +1140,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             self.normalize_coordinates()
             if self.parent().value_ring() is QQ:
                 self.clear_denominators()
-            #assures integer coeffcients
+            #assures integer coefficients
             coeffs = F[0].coefficients() + F[1].coefficients()
             t = 1
             for c in coeffs:

@@ -427,7 +427,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         - ``Hrep`` -- a list `[ieqs, eqns]`` or ``None``.
 
         - ``convert`` -- boolean keyword argument (default:
-          ``True``). Whether to convert the cooordinates into the base
+          ``True``). Whether to convert the coordinates into the base
           ring.
 
         - ``**kwds`` -- optional remaining keywords that are passed to the

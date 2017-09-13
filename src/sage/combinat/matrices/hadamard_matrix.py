@@ -1293,7 +1293,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
 
     From a :func:`symmetric_conference_matrix`, we only need the Seidel
     adjacency matrix of the underlying strongly regular conference (i.e. Paley
-    type) graph, which we constuct directly.
+    type) graph, which we construct directly.
 
     INPUT:
 

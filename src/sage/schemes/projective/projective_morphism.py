@@ -3975,7 +3975,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
             res = res.univariate_polynomial()
 
-        #the sigmas are the coeficients
+        #the sigmas are the coefficients
         #need to fix the signs and the order
         sig = res.coefficients(sparse=False)
         den = sig.pop(-1)
@@ -4004,7 +4004,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``prec`` -- integer, desired precision (default: 300)
 
-        - ``return_conjuagtion`` -- A Boolean. Returns element of `SL(2, \ZZ)`. (default: True)
+        - ``return_conjugation`` -- A Boolean. Returns element of `SL(2, \ZZ)`. (default: True)
 
         - ``error_limit`` -- sets the error tolerance (default:0.000001)
 

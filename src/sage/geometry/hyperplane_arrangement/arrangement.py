@@ -1212,7 +1212,7 @@ class HyperplaneArrangementElement(Element):
             assert row[pivot] == 1
             echelon_pivots.append(pivot)
             hyperplanes = [h - h.A()[pivot] * H(row, 0) for h in hyperplanes]
-        # eliminate the pivot'ed coodinates
+        # eliminate the pivot'ed coordinates
         restricted = []
         for h in hyperplanes:
             A = h.A()

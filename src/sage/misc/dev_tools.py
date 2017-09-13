@@ -513,7 +513,7 @@ def import_statements(*objects, **kwds):
     answer_as_str = kwds.pop("answer_as_str", False)
 
     if kwds:
-        raise TypeError("Unexpected '%s' argument" % kwds.keys()[0])
+        raise TypeError("Unexpected '%s' argument" % next(iter(kwds.keys())))
 
     for obj in objects:
         name = None    # the name of the object
@@ -638,7 +638,7 @@ def import_statements(*objects, **kwds):
                                if '.all_' not in module_name and not module_name.endswith('.all')]
             if not(not_all_modules):
                 print("# ** Warning **: the object {} is only defined in .all modules".format(obj))
-                module_name = modules.keys()[0]
+                module_name = next(iter(modules.keys()))
             else:
                 if len(not_all_modules) > 1:
                     print("# ** Warning **: several modules for the object {}: {}".format(obj, ', '.join(modules.keys())))

@@ -55,16 +55,6 @@ void Log(const power_ocvector_map& m)
         }
 }
 
-static CanonicalForm num2canonical(const numeric& n)
-{
-        if (n.is_long() or n.is_mpz() or n.is_mpq())
-                return n.to_canonical();
-
-        std::cerr << "\nn = " << n << "\n";
-        std::cerr << "is_pyobject = " << n.is_pyobject() << "\n";
-        throw std::runtime_error("num2canonical: can't happen");
-}
-
 static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector& revmap)
 {
         // Expression already replaced? Then return the assigned symbol
@@ -78,6 +68,30 @@ static CanonicalForm replace_with_symbol(const ex& e, ex_int_map& map, exvector&
         map.insert(std::make_pair(e, index));
         revmap.push_back(e);
         return Variable(index);
+}
+
+static CanonicalForm num2canonical(const numeric& n, ex_int_map& map, exvector& revmap)
+{
+        try {
+                return n.to_canonical();
+        }
+        catch (std::runtime_error) {
+                if (not n.is_real()) {
+                        numeric re = n.real();
+                        numeric im = n.imag();
+                        CanonicalForm re_p, im_p;
+                        if (re.is_rational())
+                                re_p = re.to_canonical();
+                        else
+                                re_p = replace_with_symbol(re, map, revmap);
+                        if (im.is_rational())
+                                im_p = im.to_canonical();
+                        else
+                                im_p = replace_with_symbol(im, map, revmap);
+                        return re_p + im_p * replace_with_symbol(I, map, revmap);
+                }
+                return replace_with_symbol(n, map, revmap);
+        }
 }
 
 static symbol symbol_E;
@@ -186,46 +200,21 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 for (const auto& termex : a.seq) {
                         p = p + a.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                p = p + a.overall_coeff.to_canonical();
+                p = p + num2canonical(a.overall_coeff, map, revmap);
                 return p;
         }
         else if (is_exactly_a<numeric>(*this))
         {
-                numeric num = ex_to<numeric>(*this);
-                if (num.is_real()) {
-                        if (num.is_rational())
-                                return num2canonical(num);
-                        else
-                                return replace_with_symbol(num, map, revmap);
-                } else { // complex
-                        numeric re = num.real();
-                        numeric im = num.imag();
-                        CanonicalForm re_p, im_p;
-                        if (re.is_rational())
-                                re_p = num2canonical(re);
-                        else
-                                re_p = replace_with_symbol(re, map, revmap);
-                        if (im.is_rational())
-                                im_p = num2canonical(im);
-                        else
-                                im_p = replace_with_symbol(im, map, revmap);
-                        return re_p + im_p * replace_with_symbol(I, map, revmap);
-                }
+                return num2canonical(ex_to<numeric>(*this), map, revmap);
         }
         else if (is_exactly_a<mul>(*this))
         {
                 const mul& m = ex_to<mul>(*this);
-                CanonicalForm p = num2canonical(*_num1_p);
+                CanonicalForm p = num2canonical(*_num1_p, map, revmap);
                 for (const auto& termex : m.seq) {
                         p = p * m.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
                 }
-                CanonicalForm oc;
-                try {
-                         oc = m.overall_coeff.to_canonical();
-                }
-                catch (std::runtime_error) {
-                        oc = replace_with_symbol(m.overall_coeff, map, revmap);
-                }
+                CanonicalForm oc = num2canonical(m.overall_coeff, map, revmap);
                 p = p * oc;
                 return p;
         }

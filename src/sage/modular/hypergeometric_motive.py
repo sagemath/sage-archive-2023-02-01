@@ -1090,11 +1090,10 @@ class HypergeometricData(object):
 
         a polynomial
 
-        See http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
-        for explicit examples of Euler factors.
+        See [Benasque2009]_ for explicit examples of Euler factors.
 
         For odd weight, the sign of the functional equation is +1. For even
-        weight, the sign is computed by a recipe found in 11.1 of Watkins.
+        weight, the sign is computed by a recipe found in 11.1 of [Watkins]_.
 
         EXAMPLES::
 

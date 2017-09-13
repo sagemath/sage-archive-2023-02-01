@@ -493,7 +493,8 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         components = self.homogeneous_components()
         if len(components) != 1:
             raise ValueError("this element is not homogeneous")
-        return next(iter(components.keys()))
+        k, = components.keys()
+        return k
 
     def F_polynomial(self):
         r"""

@@ -1054,7 +1054,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             el = prod([self.gen(i)**v[i] for i in range(len(v))])
             di = el.dict()
             if len(di) == 1:
-                if tuple(next(iter(di.keys()))) == v:
+                k, = di.keys()
+                if tuple(k) == v:
                     basis.append(el)
         return basis
 

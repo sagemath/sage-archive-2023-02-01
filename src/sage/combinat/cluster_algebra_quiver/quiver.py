@@ -220,8 +220,8 @@ class ClusterQuiver(SageObject):
             user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
         elif isinstance(user_labels, dict):
             values = [tuple(user_labels[x]) if isinstance(user_labels[x], list) else user_labels[x] for x in user_labels]
-            user_labels = {ky: values[i] for ky, i in zip(user_labels.keys(),
-                                                          range(len(values)))}
+            user_labels = {key: val for key, val in zip(user_labels.keys(),
+                                                        values)}
 
         # constructs a quiver from a mutation type
         if type( data ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:

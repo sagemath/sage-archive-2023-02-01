@@ -204,8 +204,7 @@ class IntegratedCurve(DifferentiableCurve):
         sage: sol = c.solve(step=0.2,
         ....:         parameters_values={B_0:1, m:1, q:1, L:10, T:1},
         ....:         solution_key='carac time 1', verbose=True)
-        Performing 4th order Runge-Kutta integration with Maxima by
-         default...
+        Performing numerical integration with method 'rk4_maxima'...
         Numerical integration completed.
         <BLANKLINE>
         Checking all points are in the chart domain...
@@ -867,16 +866,18 @@ class IntegratedCurve(DifferentiableCurve):
 
         return tuple(coords_sol_expr)
 
-    def solve(self, step=None, method=None, solution_key=None,
+    def solve(self, step=None, method='rk4_maxima', solution_key=None,
               parameters_values=None, verbose=False):
         r"""
         Integrate the curve numerically over the domain of integration.
 
         INPUT:
 
-        - ``step`` -- (default: ``0.1``) step of integration
-        - ``method`` -- (default: ``None``) numerical scheme to use for
-          the integration of the curve; algorithms available are:
+        - ``step`` -- (default: ``None``) step of integration; default
+          value is a hundredth of the domain of integration if none is
+          provided
+        - ``method`` -- (default: ``'rk4_maxima'``) numerical scheme to
+          use for the integration of the curve; algorithms available are:
 
           * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
             makes use of Maxima's dynamics package via Sage solver
@@ -939,8 +940,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol = c.solve(
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1},
             ....:        verbose=True)
-            Performing 4th order Runge-Kutta integration with Maxima by
-             default...
+            Performing numerical integration with method 'rk4_maxima'...
             Resulting list of points will be associated with the key
              'rk4_maxima' by default.
             Numerical integration completed.
@@ -960,11 +960,9 @@ class IntegratedCurve(DifferentiableCurve):
 
         from sage.symbolic.ring import SR
 
-        if method is None:
-            method = 'rk4_maxima'
-            if verbose:
-                print("Performing 4th order Runge-Kutta integration " +
-                      "with Maxima by default...")
+        if verbose:
+            print("Performing numerical integration with method '" +
+                  method + "'...")
 
         if solution_key is None:
             solution_key = method

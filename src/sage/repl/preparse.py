@@ -475,22 +475,28 @@ def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True)
     TESTS::
 
         sage: containing_block('((a{))',0)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('((a{))',1)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('((a{))',2)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('((a{))',3)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('((a{))',4)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('((a{))',5)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('(()()',1)
         (1, 3)
@@ -499,7 +505,8 @@ def containing_block(code, idx, delimiters=['()','[]','{}'], require_delim=True)
         sage: containing_block('(()()',4)
         (3, 5)
         sage: containing_block('(()()',0)
-          File "<string>", line unknown
+        Traceback (most recent call last):
+        ...
         SyntaxError: Unbalanced delimiters
         sage: containing_block('(()()',0, require_delim=False)
         (0, 5)

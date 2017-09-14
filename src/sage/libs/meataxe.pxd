@@ -158,7 +158,7 @@ from cpython.bytes cimport PyBytes_AsString
 cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err)
 
 cdef inline meataxe_init():
-    ## Define an environment variable that enables MeatAxe to find
+    ## Assign to a variable that enables MeatAxe to find
     ## its multiplication tables.
     import os
     from sage.env import DOT_SAGE

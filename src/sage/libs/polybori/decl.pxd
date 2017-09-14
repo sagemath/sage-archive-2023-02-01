@@ -57,10 +57,10 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
         int (*lastBlockStart)()
         bint isDegreeOrder()
 
-    ctypedef struct PBSet "DefaultRinged<BooleSet>"
-    ctypedef struct PBPoly "DefaultRinged<BoolePolynomial>"
+    ctypedef struct PBSet "DefaultRinged<BooleSet> "
+    ctypedef struct PBPoly "DefaultRinged<BoolePolynomial> "
 
-    ctypedef struct PBVar "DefaultRinged<BooleVariable>":
+    ctypedef struct PBVar "DefaultRinged<BooleVariable> ":
         int (* index "index")()
         bint (* is_equal "operator==")(PBVar right)
 
@@ -102,7 +102,7 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
     void PBMonomVarIter_destruct "Destruct<BooleMonomial::variable_iterator>" \
             (PBMonomVarIter *mem)
 
-    ctypedef struct PBMonom "DefaultRinged<BooleMonomial>":
+    ctypedef struct PBMonom "DefaultRinged<BooleMonomial> ":
         bint (* reducibleBy)(PBMonom rhs)
         int (* deg)()
         size_t (* hash)()
@@ -122,8 +122,6 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
         PBMonom (* GCD)(PBMonom rhs)
         PBRing (* ring)()
 
-    object PBMonom_to_str "_to_PyString<BooleMonomial>"(PBMonom *p)
-
     # Wrapping constructors
     PBMonom PBMonom_Constructor "BooleMonomial" (PBRing r)
     PBMonom PBMonom_Constructor_var "BooleMonomial" (PBVar m)
@@ -141,7 +139,7 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
 
     void PBSetIter_destruct "Destruct<BooleSet::const_iterator>"(PBSetIter *mem)
 
-    ctypedef struct PBSet "DefaultRinged<BooleSet>":
+    ctypedef struct PBSet "DefaultRinged<BooleSet> ":
         bint (* owns)(PBMonom val)
         int (* nNodes)()
         int (* nSupport)()
@@ -169,8 +167,6 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
     PBSet pb_include_divisors "include_divisors" (PBSet p)
     PBSet pb_minimal_elements "minimal_elements" (PBSet p)
 
-    object PBSet_to_str "_to_PyString<BooleSet>"(PBSet *p)
-
     # non-allocating versions
     PBSet PBSet_Constructor_ring "BooleSet"(PBRing r)
     PBSet PBSet_Constructor_poly "BooleSet"(PBPoly p)
@@ -186,7 +182,7 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
 
     void PBPolyIter_destruct "Destruct<BoolePolynomial::ordered_iterator>"(PBPolyIter *mem)
 
-    ctypedef struct PBPoly "DefaultRinged<BoolePolynomial>":
+    ctypedef struct PBPoly "DefaultRinged<BoolePolynomial> ":
         int (* deg)()
         int (* leadDeg)()
         int (* lexLeadDeg)()
@@ -240,8 +236,6 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
     PBPoly PBPoly_Constructor_var "BoolePolynomial" (PBVar d)
     PBPoly PBPoly_Constructor_int_ring "BoolePolynomial" (int d, PBRing r)
 
-    object PBPoly_to_str "_to_PyString<DefaultRinged<BoolePolynomial> >"(PBPoly *p)
-
     ctypedef struct PBPolyVectorIter \
             "std::vector<BoolePolynomial>::iterator ":
         PBPoly (* value "operator*")()
@@ -251,7 +245,7 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
 
     void PBPolyVectorIter_destruct "Destruct<std::vector<BoolePolynomial>::iterator>"(PBPolyVectorIter *mem)
 
-    ctypedef struct PBPolyVector "std::vector<BoolePolynomial>":
+    ctypedef struct PBPolyVector "std::vector<BoolePolynomial> ":
         int (* size)()
         PBPoly (* get "operator[]")(int)
         PBPolyVectorIter (* begin)()
@@ -291,7 +285,7 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
         int (* size)()
         PBPolyEntry (* get "operator[]")(int)
 
-    ctypedef struct PBFglmStrategy "PBWrappedPtr<FGLMStrategy>":
+    ctypedef struct PBFglmStrategy "PBWrappedPtr<FGLMStrategy> ":
         PBPolyVector (* main "operator->()->main")()
 
     PBFglmStrategy PBFglmStrategy_Constructor "PBWrappedPtr<FGLMStrategy>" \
@@ -451,13 +445,13 @@ cdef extern from "sage/libs/polybori/pb_wrap.h":
     PBConstant* PBConstant_construct "Construct_p<BooleConstant, int>" \
         (void* mem, int val)
 
-    ctypedef struct PBVarFactory "DefaultRinged<VariableFactory>":
+    ctypedef struct PBVarFactory "DefaultRinged<VariableFactory> ":
         PBVar (* call "operator()")(int index)
 
-    ctypedef struct PBMonomFactory "DefaultRinged<MonomialFactory>":
+    ctypedef struct PBMonomFactory "DefaultRinged<MonomialFactory> ":
        PBMonom (* call "operator()")()
 
-    ctypedef struct PBPolyFactory "DefaultRinged<PolynomialFactory>":
+    ctypedef struct PBPolyFactory "DefaultRinged<PolynomialFactory> ":
         PBPoly (* call_int "operator()")(int)
         PBPoly (* call_poly "operator()")(PBPoly)
         PBPoly (* call_monom "operator()")(PBMonom)

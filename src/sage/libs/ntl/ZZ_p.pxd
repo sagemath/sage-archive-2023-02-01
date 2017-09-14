@@ -2,9 +2,6 @@
 
 from .types cimport ZZ_c, ZZ_p_c
 
-cdef extern from "ccobject.h":
-    void ZZ_p_from_str "_from_str<ZZ_p>"(ZZ_p_c* dest, char* s)
-    object ZZ_p_to_PyString "_to_PyString<ZZ_p>"(ZZ_p_c *x)
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     char* ZZ_p_to_str(ZZ_p_c* x)

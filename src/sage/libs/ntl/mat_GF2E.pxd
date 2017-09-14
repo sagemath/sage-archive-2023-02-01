@@ -1,8 +1,5 @@
 from .types cimport mat_GF2E_c, vec_GF2E_c, GF2E_c
 
-cdef extern from "ccobject.h":
-    void mat_GF2E_from_str "_from_str<mat_GF2E>"(mat_GF2E_c* dest, char* s)
-    object mat_GF2E_to_PyString "_to_PyString<mat_GF2E>"(mat_GF2E_c *x)
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void mat_GF2E_add "add"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)

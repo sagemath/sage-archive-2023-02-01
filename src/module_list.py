@@ -602,6 +602,11 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
+    OptionalExtension("sage.libs.meataxe",
+              sources = ['sage/libs/meataxe.pyx'],
+              libraries = ['mtx'],
+              package = 'meataxe'),
+
     Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',

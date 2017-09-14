@@ -279,11 +279,12 @@ ext_modules = [
     ## sage.dynamics
     ##
     ################################
-    
+
+    Extension('sage.dynamics.arithmetic_dynamics.projective_ds_helper',
+              sources = ['sage/dynamics/arithmetic_dynamics/projective_ds_helper.pyx']),
 
     Extension('sage.dynamics.complex_dynamics.mandel_julia_helper',
                 sources = ['sage/dynamics/complex_dynamics/mandel_julia_helper.pyx']),
-
 
     ################################
     ##
@@ -1638,9 +1639,6 @@ ext_modules = [
               language = 'c++',
               include_dirs = ['sage/libs/ntl/',
                               'sage/schemes/hyperelliptic_curves/hypellfrob/']),
-
-    Extension('sage.schemes.projective.projective_morphism_helper',
-              sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
 
     Extension('sage.schemes.toric.divisor_class',
               sources = ['sage/schemes/toric/divisor_class.pyx']),

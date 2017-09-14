@@ -204,8 +204,7 @@ def find_objects_from_name(name, module_name=None):
     r"""
     Return the list of objects from ``module_name`` whose name is ``name``.
 
-    If ``name`` is in the global namespace, the result is a list of length 1
-    that contains only this object. Otherwise, the function runs through all
+    If ``module_name`` is ``None``, the function runs through all
     loaded modules and returns the list of objects whose name matches ``name``.
 
     If ``module_name`` is not ``None``, then search only in submodules of

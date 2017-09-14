@@ -39,6 +39,10 @@ REFERENCES:
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
+.. [Fedorov2015] Roman Fedorov, *Variations of Hodge structures for hypergeometric 
+   differential operators and parabolic Higgs bundles*,
+   https://arxiv.org/pdf/1505.01704
+
 .. [Roberts2017] David P. Roberts, *Hypergeometric motives and an unusual
    application of the Guinand-Weil-Mestre explicit formula*,
    https://www.matrix-inst.org.au/wp_Matrix2016/wp-content/uploads/2016/04/Roberts-2.pdf
@@ -55,7 +59,7 @@ REFERENCES:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2017     Frederic Chapoton
+#       Copyright (C) 2017     Frédéric Chapoton
 #                              Kiran S. Kedlaya <kskedl@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -874,6 +878,10 @@ class HypergeometricData(object):
             sage: H = Hyp(gamma_list=[-3]*4 + [1]*12)
             sage: H.hodge_numbers()
             [1, 1, 1, 1, 1, 1, 1, 1]
+
+        REFERENCES:
+
+        - [Fedorov2015]_
         """
         alpha = [(x, 'a') for x in self._alpha]
         beta = [(x, 'b') for x in self._beta]

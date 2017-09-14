@@ -110,12 +110,27 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
 
+            sage: AlternatingSignMatrix([[0, 1, 0],[1, -1, 1],[0, 1, 0]])
+            [ 0  1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
+
         TESTS:
 
         Check that :trac:`22032` is fixed::
 
             sage: AlternatingSignMatrix([])
             []
+
+        Check dimension 1::
+
+            sage: AlternatingSignMatrix([1])
+            [1]
+
+            sage: AlternatingSignMatrix([-1])
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid alternating sign matrix
         """
         asm = matrix(ZZ, asm)
         if not asm.is_square():

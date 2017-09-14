@@ -58,15 +58,17 @@ def lift_to_gamma1(g, m, n):
         [1, 0, 0, 1]
     """
     if m == 1:
-        return [ZZ(1),ZZ(0),ZZ(0),ZZ(1)]
-    a,b,c,d = [ZZ(x) for x in g]
-    if not (a*d - b*c) % m == 1:
-        raise ValueError( "Determinant is {0} mod {1}, should be 1".format((a*d - b*c) % m, m) )
+        return [ZZ.one(), ZZ.zero(), ZZ.zero(), ZZ.one()]
+    a, b, c, d = [ZZ(x) for x in g]
+    det = (a * d - b * c) % m
+    if det != 1:
+        raise ValueError("Determinant is {0} mod {1}, should be 1".format(det, m))
     c2 = crt(c, 0, m, n)
     d2 = crt(d, 1, m, n)
-    a3,b3,c3,d3 = [ZZ(_) for _ in lift_to_sl2z(c2,d2,m*n)]
+    a3,b3,c3,d3 = [ZZ(_) for _ in lift_to_sl2z(c2, d2, m * n)]
     r = (a3*b - b3*a) % m
-    return [a3 + r*c3, b3 + r*d3, c3, d3]
+    return [a3 + r * c3, b3 + r * d3, c3, d3]
+
 
 def lift_matrix_to_sl2z(A, N):
     r"""
@@ -76,7 +78,7 @@ def lift_matrix_to_sl2z(A, N):
 
     This is a special case of :func:`~lift_to_gamma1`, and is coded as such.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.modular.local_comp.liftings import lift_matrix_to_sl2z
         sage: lift_matrix_to_sl2z([10, 11, 3, 11], 19)
@@ -89,6 +91,7 @@ def lift_matrix_to_sl2z(A, N):
         ValueError: Determinant is 2 mod 5, should be 1
     """
     return lift_to_gamma1(A, N, 1)
+
 
 def lift_gen_to_gamma1(m, n):
     r"""
@@ -116,6 +119,7 @@ def lift_gen_to_gamma1(m, n):
     """
     return lift_to_gamma1([0,-1,1,0], m, n)
 
+
 def lift_uniformiser_odd(p, u, n):
     r"""
     Construct a matrix over `\ZZ` whose determinant is `p`, and which is
@@ -134,7 +138,7 @@ def lift_uniformiser_odd(p, u, n):
         <type 'sage.rings.integer.Integer'>
     """
     g = lift_gen_to_gamma1(p**u, n)
-    return [p*g[0], g[1], p*g[2], g[3]]
+    return [p * g[0], g[1], p * g[2], g[3]]
 
 
 def lift_ramified(g, p, u, n):

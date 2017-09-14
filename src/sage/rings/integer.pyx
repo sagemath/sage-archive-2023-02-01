@@ -3826,7 +3826,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # Naive method is faster for small inputs. Testing shows cutoff
         # is ~1000
         if self < 1000 and m < 1000:
-            return [Integer(n) for n in range(1, m) if self.gcd(m) == 1]
+            return [Integer(n) for n in range(1, m) if self.gcd(n) == 1]
 
         # Sieve
         V = [True] * m

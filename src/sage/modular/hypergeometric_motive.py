@@ -389,7 +389,7 @@ def gamma_list_to_cyclotomic(galist):
 
     return (sorted(d for d in resu for k in range(resu[d])),
             sorted(d for d in resu for k in range(-resu[d])))
-J
+
 
 class HypergeometricData(object):
     def __init__(self, cyclotomic=None, alpha_beta=None, gamma_list=None):

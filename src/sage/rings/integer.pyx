@@ -3816,15 +3816,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         - Naqi Jaffery (2006-01-24): examples
 
-        ALGORITHM: Naive - compute lots of GCD's. If this isn't good enough
-        for you, please code something better and submit a patch.
+        - Simon Spicer (2013-11-12): Now uses sieving for larger inputs
+
+        ALGORITHM: Create a list of ``True`` booleans of length m, then for
+        all primes p dividing self, set the boolean at index a multiple
+        of p to ``False``. Afterwards return all integers n where the index
+        at n is ``True``.
         """
-        # TODO -- make VASTLY faster
-        v = []
-        for n in range(1,m):
-            if self.gcd(n) == 1:
-                v.append(Integer(n))
-        return v
+        # Naive method is faster for small inputs. Testing shows cutoff
+        # is ~1000
+        if self < 1000 and m < 1000:
+            return [Integer(n) for n in range(1, m) if self.gcd(m) == 1]
+
+        # Sieve
+        V = [True] * m
+        for p in self.prime_divisors():
+            for i in range(0, m, p):
+                V[i] = False
+        return [Integer(n) for n in range(1, m) if V[n]]
 
     def divides(self, n):
         """

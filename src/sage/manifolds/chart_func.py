@@ -2130,7 +2130,8 @@ class ChartFunction(AlgebraElement):
             sage: f.display()
             (x, y) |--> 1/((x + 1)*y)
 
-        The same test with ``sympy`` ::
+        The same test with ``sympy``::
+
             sage: X.set_calculus_method('sympy')
             sage: g = X.function(x/(x^2*y + x*y))
             sage: g.display()

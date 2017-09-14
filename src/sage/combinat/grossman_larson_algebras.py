@@ -75,7 +75,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
     EXAMPLES::
 
         sage: G = algebras.GrossmanLarson(QQ, 'xy')
-        sage: x, y = G.gens()
+        sage: x, y = G.single_vertex_all()
         sage: ascii_art(x*y)
         B  + B
          #      #_
@@ -109,7 +109,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
     this corresponds to a `1`-element set `E`::
 
         sage: G = algebras.GrossmanLarson(QQ, None)
-        sage: x = G.gens()[0]
+        sage: x = G.single_vertex_all()[0]
         sage: ascii_art(x*x)
         B  + B
          o      o_
@@ -245,7 +245,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: algebras.GrossmanLarson(QQ, ['a','b'])
             Grossman-Larson Hopf algebra on 2 generators ['a', 'b'] over Rational Field
         """
-        n = len(self.gens())
+        n = len(self.single_vertex_all())
         if n == 1:
             gen = "one generator"
         else:
@@ -256,11 +256,14 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         except NotImplementedError:
             return s.format(gen, self._alphabet, self.base_ring())
 
-    def gen(self, i):
+    def single_vertex(self, i):
         r"""
-        Return the ``i``-th generator.
+        Return the ``i``-th rooted forest with one vertex.
 
-        See :meth:`gens`.
+        This is the rooted forest with just one vertex, labelled by the
+        ``i``-th element of the label list.
+
+        .. SEEALSO:: :meth:`single_vertex_all`.
 
         INPUT:
 
@@ -269,45 +272,63 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: F = algebras.GrossmanLarson(ZZ, 'xyz')
-            sage: F.gen(0)
+            sage: F.single_vertex(0)
             B[#[x[]]]
 
-            sage: F.gen(4)
+            sage: F.single_vertex(4)
             Traceback (most recent call last):
             ...
             IndexError: argument i (= 4) must be between 0 and 2
         """
-        G = self.gens()
+        G = self.single_vertex_all()
         n = len(G)
         if i < 0 or not i < n:
             m = "argument i (= {}) must be between 0 and {}".format(i, n - 1)
             raise IndexError(m)
         return G[i]
 
-    def gens(self):
+    def single_vertex_all(self):
         """
-        Return the generators of ``self``.
+        Return the rooted forests with one vertex in ``self``.
 
-        These are the rooted forests with just one vertex. They freely
-        generate the Lie algebra of primitive elements as a pre-Lie algebra.
+        They freely generate the Lie algebra of primitive elements
+        as a pre-Lie algebra.
+
+        .. SEEALSO:: :meth:`single_vertex`.
 
         EXAMPLES::
 
             sage: A = algebras.GrossmanLarson(ZZ, 'fgh')
-            sage: A.gens()
+            sage: A.single_vertex_all()
             (B[#[f[]]], B[#[g[]]], B[#[h[]]])
 
             sage: A = algebras.GrossmanLarson(QQ, ['x1','x2'])
-            sage: A.gens()
+            sage: A.single_vertex_all()
             (B[#[x1[]]], B[#[x2[]]])
 
             sage: A = algebras.GrossmanLarson(ZZ, None)
-            sage: A.gens()
+            sage: A.single_vertex_all()
             (B[[[]]],)
         """
         Trees = self.basis().keys()
         return tuple(Family(self._alphabet,
                             lambda a: self.monomial(Trees([Trees([], a)], ROOT))))
+
+    def _first_ngens(self, n):
+        """
+        Return the first generators.
+
+        EXAMPLES::
+
+            sage: A = algebras.GrossmanLarson(QQ, ['x1','x2'])
+            sage: A._first_ngens(2)
+            (B[#[x1[]]], B[#[x2[]]])
+
+            sage: A = algebras.GrossmanLarson(ZZ, None)
+            sage: A._first_ngens(1)
+            (B[[[]]],)
+        """
+        return self.single_vertex_all()[:n]
 
     def change_ring(self, R):
         """
@@ -352,7 +373,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             sage: A.an_element()
             B[#[x[]]] + 2*B[#[x[x[]]]] + 2*B[#[x[], x[]]]
         """
-        o = self.gen(0)
+        o = self.single_vertex(0)
         return o + 2 * o * o
 
     def some_elements(self):
@@ -374,8 +395,8 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
              B[#[]] + B[#[x[x[]]]] + B[#[x[], x[]]],
              B[#[x[x[]]]] + 3*B[#[x[y[]]]] + B[#[x[], x[]]] + 3*B[#[x[], y[]]]]
         """
-        o = self.gen(0)
-        o1 = self.gens()[-1]
+        o = self.single_vertex(0)
+        o1 = self.single_vertex_all()[-1]
         x = o * o
         y = o * o1
         return [o, 1 + x, x + 3 * y]
@@ -433,7 +454,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: G = algebras.GrossmanLarson(QQ,2)
-            sage: x, y = G.gens()
+            sage: x, y = G.single_vertex_all()
             sage: ascii_art(G.coproduct(x))  # indirect doctest
             1 # B  + B  # 1
                  #    #
@@ -485,7 +506,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: G = algebras.GrossmanLarson(QQ,2)
-            sage: x, y = G.gens()
+            sage: x, y = G.single_vertex_all()
             sage: G.antipode(x)  # indirect doctest
             -B[#[0[]]]
 
@@ -511,7 +532,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: R = algebras.GrossmanLarson(QQ, 'xy')
-            sage: x, y = R.gens()
+            sage: x, y = R.single_vertex_all()
             sage: R(x)
             B[#[x[]]]
             sage: R(x+4*y)
@@ -522,7 +543,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
             B[#[]]
 
             sage: D = algebras.GrossmanLarson(ZZ, 'xy')
-            sage: X, Y = D.gens()
+            sage: X, Y = D.single_vertex_all()
             sage: R(X-Y).parent()
             Grossman-Larson Hopf algebra on 2 generators ['x', 'y'] over Rational Field
 
@@ -578,7 +599,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
 
         Elements of the Grossman-Larson Hopf algebra canonically coerce in::
 
-            sage: x, y, z = F.gens()
+            sage: x, y, z = F.single_vertex_all()
             sage: F.coerce(x+y) == x+y
             True
 
@@ -586,7 +607,7 @@ class GrossmanLarsonAlgebra(CombinatorialFreeModule):
         coerces in, since `\ZZ` coerces to `\GF{7}`::
 
             sage: G = algebras.GrossmanLarson(ZZ, 'xyz')
-            sage: Gx,Gy,Gz = G.gens()
+            sage: Gx,Gy,Gz = G.single_vertex_all()
             sage: z = F.coerce(Gx+Gy); z
             B[#[x[]]] + B[#[y[]]]
             sage: z.parent() is F

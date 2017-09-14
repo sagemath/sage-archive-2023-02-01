@@ -1244,7 +1244,7 @@ class Projection(SageObject):
             sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
             Graphics3d Object
 
-        The origin is no included, if it is not in the polyhedron (:trac:`23555`)::
+        The origin is not included, if it is not in the polyhedron (:trac:`23555`)::
 
             sage: Q = Polyhedron([[100],[101]])
             sage: P = Q*Q*Q; P

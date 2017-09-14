@@ -961,7 +961,7 @@ class AlternatingSignMatrix(Element):
 
         The left key of an alternating sign matrix was defined by Lascoux
         in [LascouxPreprint]_ and is obtained by successively removing all the
-        `-1`'suntil what remains is a permutation matrix. This notion
+        `-1`'s until what remains is a permutation matrix. This notion
         corresponds to the notion of left key for semistandard tableaux. So
         our algorithm proceeds as follows: we map ``self`` to its
         corresponding monotone triangle, view that monotone triangle as a
@@ -1328,11 +1328,12 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             True
         """
         n = self._n
-        corner = matrix(ZZ, n+1, n+1, corner)
+        corner = MatrixSpace(ZZ, n+1)(corner)
         asm = [[corner[i+1,j+1]+corner[i,j]-corner[i,j+1]-corner[i+1,j]
                 for j in range(n)]
                for i in range(n)]
         return self.element_class(self, self._matrix_space(asm))
+
 
     def from_height_function(self, height):
         r"""
@@ -1351,7 +1352,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
             [ 0  1  0]
         """
         n = self._n
-        height = matrix(ZZ, n+1, n+1, height)
+        height = MatrixSpace(ZZ, n+1)(height)
         return self.from_corner_sum( [[((i+j-height[i,j])//2)
                                        for i in range(n+1)]
                                       for j in range(n+1)] )

@@ -1007,8 +1007,12 @@ REFERENCES:
             Verlag, 2007.
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
-            birational rowmotion
-            I*. http://web.mit.edu/~darij/www/algebra/skeletal.pdf
+            birational rowmotion*.
+            http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
+
+.. [GroLar1] \R. Grossman and R. G. Larson, *Hopf-algebraic structure of
+             families of trees*, J. Algebra 126 (1) (1989), 184-210.
+             Preprint: :arxiv:`0711.3877v1`
 
 .. [Grinb2016a] Darij Grinberg,
                 *Double posets and the antipode of QSym*,
@@ -1705,6 +1709,11 @@ REFERENCES:
           Analyzing Lattice Polytopes with Applications to Toric
           Geometry" omput.Phys.Commun. 157 (2004) 87-106
           :arxiv:`math/0204356`
+
+.. [Pana2002] \F. Panaite, *Relating the Connes-Kreimer and
+              Grossman-Larson Hopf algebras built on rooted trees*,
+              Lett. Math. Phys. 51 (2000), no. 3, pages 211-219.
+              Preprint: :arxiv:`math/0003074v1`
 
 .. [PearsonTest] :wikipedia:`Goodness_of_fit`, accessed 13th
                  October 2009.

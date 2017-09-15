@@ -434,7 +434,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     (3/5*x^2 : y^2)
         """
         # Next attribute needed for _fast_eval and _fastpolys
-        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring()) 
+        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
         DynamicalSystem.__init__(self,polys,domain)
 
     def __copy__(self):
@@ -514,7 +514,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         .. MATH::
 
-            \Phi^{\ast}_{m,n}(f)(x,y) = \Phi^{\ast}_n(f)(F_m,G_m) / 
+            \Phi^{\ast}_{m,n}(f)(x,y) = \Phi^{\ast}_n(f)(F_m,G_m) /
                 \Phi^{\ast}_n(f)(F_{m-1},G_{m-1})
 
         REFERENCES:
@@ -1766,12 +1766,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.canonical_height(P.point([2,1]), error_bound=0.001)
             1.0984430632822307984974382955
 
-        Notice that preperiodic points may not be exactly 0::
+        Notice that preperiodic points may not return exactly 0::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2]);
-            sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            2.5736717542538205822319812073e-7
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(X^2 + X - 1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
+            sage: Q = P.point([a,1])
+            sage: f.canonical_height(Q, error_bound=0.000001) # Answer only within error_bound of 0
+            5.7364919788790160119266380480e-8
+            sage: f.nth_iterate(Q,2) == Q # but it is indeed preperiodic
+            True
 
         ::
 
@@ -1816,23 +1821,52 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
 
-        #Wells' Algorithm
+        if not K in NumberFields():
+            if not K is QQbar:
+                raise NotImplementedError("must be over a number field or a number field order or QQbar")
+            else:
+                #since this an absolute height, we can compute the height of a QQbar point
+                #by choosing any number field it is defined over.
+                Q = P._number_field_from_algebraics()
+                K = Q.codomain().base_ring()
+                f = self._number_field_from_algebraics().as_dynamical_system()
+                if K == QQ:
+                    K = f.base_ring()
+                    Q = Q.change_ring(K)
+                elif f.base_ring() == QQ:
+                    f = f.change_ring(K)
+                else:
+                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
+                    Q = Q.change_ring(K, embedding=phi)
+                    f = f.change_ring(K, embedding=psi)
+        else:
+            if not K.is_absolute():
+                raise TypeError("must be an absolute field")
+            Q = P
+            f = self
+
+        # After moving from QQbar to K being something like QQ, we need
+        # to renormalize f, especially to match the normalized resultant.
+        f.normalize_coordinates()
+
+        # If our map and point are defined on P^1(QQ), use Wells' Algorithm
+        # instead of the usual algorithm using local Green's functions:
         if K is QQ and self.codomain().ambient_space().dimension_relative() == 1:
             # write our point with coordinates whose gcd is 1
-            P.normalize_coordinates()
-            if P.parent().value_ring() is QQ:
-                P.clear_denominators()
+            Q.normalize_coordinates()
+            if Q.parent().value_ring() is QQ:
+                Q.clear_denominators()
             #assures integer coeffcients
-            coeffs = self[0].coefficients() + self[1].coefficients()
+            coeffs = f[0].coefficients() + f[1].coefficients()
             t = 1
             for c in coeffs:
                 t = lcm(t, c.denominator())
-            A = t * self[0]
-            B = t * self[1]
-            Res = self.resultant(normalize=True)
+            A = t * f[0]
+            B = t * f[1]
+            Res = f.resultant(normalize=True)
             H = 0
-            x_i = P[0]
-            y_i = P[1]
+            x_i = Q[0]
+            y_i = Q[1]
             d = self.degree()
             R = RealField(prec)
             N = kwds.get('N', 10)
@@ -1853,33 +1887,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     H = H + R(g).abs().log() / (d**(n+1))
                     x_i = x / g
                     y_i = y / g
-            # this looks different than Wells' Algorithm because of the difference between what Wells' calls H_infty,
+            # this looks different than Wells' Algorithm because of the difference
+            # between what Wells' calls H_infty,
             # and what Green's Function returns for the infinite place
-            return self.green_function(P, 0 , **kwds) - H + R(t).log()
-
-        if not K in NumberFields():
-            if not K is QQbar:
-                raise NotImplementedError("must be over a number field or a number field order or QQbar")
-            else:
-                #since this an absolute hieght, we can compute the height of a QQbar point
-                #by choosing any number field it is defined over.
-                Q = P._number_field_from_algebraics()
-                K = Q.codomain().base_ring()
-                f = self._number_field_from_algebraics().as_dynamical_system()
-                if K == QQ:
-                    K = f.base_ring()
-                    Q = Q.change_ring(K)
-                elif f.base_ring() == QQ:
-                    f = f.change_ring(K)
-                else:
-                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
-                    Q = Q.change_ring(K, embedding=phi)
-                    f = f.change_ring(K, embedding=psi)
-        else:
-            if not K.is_absolute():
-                raise TypeError("must be an absolute field")
-            Q = P
-            f = self
+            h = f.green_function(Q, 0 , **kwds) - H + R(t).log()
+            # The value returned by Well's algorithm may be negative. As the canonical height
+            # is always nonnegative, so if this value is within -err of 0, return 0.
+            if h < 0:
+                assert h > -err, "A negative height less than -error_bound was computed. " + \
+                 "This should be impossible, please report bug on trac.sagemath.org."
+                    # This should be impossible. The error bound for Wells' is rigorous
+                    # and the actual height is always >= 0. If we see something less than -err,
+                    # something has g one very wrong.
+                h = R(0)
+            return h
 
         if bad_primes is None:
             bad_primes = []
@@ -2900,7 +2921,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem_projective([x^3-3/4*x*y^2 + 3/4*y^3, y^3])
             sage: f.critical_height(error_bound=0.0001)
-            0.000011738508366948556443245983996
+            0.00000000000000000000000000000
         """
         PS = self.codomain()
         if PS.dimension_relative() > 1:
@@ -3785,7 +3806,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``error_bound`` -- (default: 0.1) a positive real number;
           sets the error_bound used in the canonical height computation
-          and ``return_period`` a boolean which 
+          and ``return_period`` a boolean which
 
         - ``return_period`` -- (default: ``False``) boolean; controls if
           the period is returned if the point is preperiodic

@@ -937,7 +937,7 @@ class ImplicitSuffixTree(SageObject):
         r"""
         Returns the node obtained by starting from ``node`` and following the
         edges labelled by the letters of ``word``. Returns ``("explicit",
-        end_node)`` if we end at ``end_node``, or ``("implicit", (edge, d))``
+        end_node)`` if we end at ``end_node``, or ``("implicit", edge, d)``
         if we end `d` spots along an edge.
 
         INPUT:

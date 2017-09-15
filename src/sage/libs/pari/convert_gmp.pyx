@@ -22,7 +22,7 @@ AUTHORS:
 
 from __future__ import absolute_import, division, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.all cimport *
 

@@ -463,8 +463,8 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import string_types
 
 import os
 import re
@@ -473,6 +473,7 @@ import pexpect
 from random import randrange
 
 from sage.env import DOT_SAGE, SAGE_LOCAL
+from sage.misc.misc import ECL_TMP
 
 from .expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled)
@@ -556,6 +557,7 @@ class Maxima(MaximaAbstract, Expect):
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
+                        env = {'TMPDIR': str(ECL_TMP)},
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -639,7 +641,7 @@ class Maxima(MaximaAbstract, Expect):
         """
         return reduce_load_Maxima, tuple([]) #(self.__init_code,)
 
-    def _sendline(self, str):
+    def _sendline(self, string):
         """
         Send a string followed by a newline character.
 
@@ -649,7 +651,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima.get('t')
             '9'
         """
-        self._sendstr(str)
+        self._sendstr(string)
         os.write(self._expect.child_fd, os.linesep)
 
     def _expect_expr(self, expr=None, timeout=None):
@@ -995,7 +997,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima.get('xxxxx')
             '2'
         """
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise TypeError
         cmd = '%s : %s$'%(var, value.rstrip(';'))
         if len(cmd) > self.__eval_using_file_cutoff:

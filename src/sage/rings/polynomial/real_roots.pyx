@@ -32,7 +32,7 @@ algorithm in that paper:
 
 The best description of the algorithms used (other than this source
 code itself) is in the slides for my Sage Days 4 talk, currently available
-from http://www.sagemath.org:9001/days4schedule .
+from https://wiki.sagemath.org/days4schedule .
 """
 
 ################################################################################
@@ -130,7 +130,7 @@ from http://www.sagemath.org:9001/days4schedule .
 # This may be vastly faster than the exact calculations carried out
 # by this algorithm!  Is it enough faster to be faster than, say,
 # Pari's floating-point algorithms?)
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from random import Random

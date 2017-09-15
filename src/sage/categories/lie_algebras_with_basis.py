@@ -17,7 +17,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-#from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
 
@@ -143,6 +143,24 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.basis().cardinality()
 
+        def pbw_basis(self, basis_key=None, **kwds):
+            """
+            Return the Poincare-Birkhoff-Witt basis of the universal
+            enveloping algebra corresponding to ``self``.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.sl(QQ, 2)
+                sage: PBW = L.pbw_basis()
+            """
+            from sage.algebras.lie_algebras.poincare_birkhoff_witt \
+                import PoincareBirkhoffWittBasis
+            return PoincareBirkhoffWittBasis(self, basis_key, **kwds)
+
+        poincare_birkhoff_witt_basis = pbw_basis
+
+        _construct_UEA = pbw_basis
+
     class ElementMethods:
         def _bracket_(self, y):
             """
@@ -195,4 +213,41 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             M = self.parent().module()
             B = M.basis()
             return M.sum(self[i] * B[i] for i in self.support())
+
+        def lift(self):
+            """
+            Lift ``self`` to the universal enveloping algebra.
+
+            EXAMPLES::
+
+                sage: S = SymmetricGroup(3).algebra(QQ)
+                sage: L = LieAlgebra(associative=S)
+                sage: x = L.gen(2)
+                sage: y = L.gen(1)
+                sage: x.lift()
+                b2
+                sage: y.lift()
+                b1
+                sage: x * y
+                b1*b2 + b4 - b5
+            """
+            P = self.parent()
+            UEA = P.universal_enveloping_algebra()
+            try:
+                gen_dict = UEA.algebra_generators()
+            except (TypeError, AttributeError):
+                gen_dict = UEA.gens_dict()
+            s = UEA.zero()
+            if not self:
+                return s
+            # Special hook for when the index set of the parent of ``self``
+            #   does not match the generators index set of the UEA.
+            if hasattr(P, '_UEA_names_map'):
+                names_map = P._UEA_names_map
+                for t, c in self.monomial_coefficients(copy=False).items():
+                    s += c * gen_dict[names_map[t]]
+            else:
+                for t, c in self.monomial_coefficients(copy=False).items():
+                    s += c * gen_dict[t]
+            return s
 

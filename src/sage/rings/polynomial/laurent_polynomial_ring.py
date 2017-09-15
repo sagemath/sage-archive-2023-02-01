@@ -33,6 +33,7 @@ AUTHORS:
 #       Copyright (C) 2008 David Roe <roed@math.harvard.edu>,
 #                          William Stein <wstein@gmail.com>,
 #                          Mike Hansen <mhansen@gmail.com>
+#                          Vincent Delecroix <20100.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,7 +42,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six import iteritems, iterkeys
+from six import iteritems, iterkeys, integer_types
 from six.moves import range
 
 from sage.structure.category_object import normalize_names
@@ -226,12 +227,12 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
            sage: (w0 + 2*w8 + w13)^2
            w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
     """
-    if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
+    if is_Element(arg1) and not isinstance(arg1, integer_types + (Integer,)):
         arg1 = repr(arg1)
-    if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
+    if is_Element(arg2) and not isinstance(arg2, integer_types + (Integer,)):
         arg2 = repr(arg2)
 
-    if isinstance(arg1, (int, long, Integer)):
+    if isinstance(arg1, integer_types + (Integer,)):
         arg1, arg2 = arg2, arg1
 
     if not names is None:
@@ -250,7 +251,7 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
         arg2 = [str(x) for x in arg2]
-    if isinstance(arg2, (int, long, Integer)):
+    if isinstance(arg2, integer_types + (Integer,)):
         # 3. LaurentPolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
             raise TypeError("You *must* specify the names of the variables.")
@@ -383,7 +384,7 @@ def _multi_variate(base_ring, names, n, sparse, order):
                 break
         else:
             break
-    R = _multi_variate_poly(base_ring, names, n, sparse, order, None)
+    R = _multi_variate_poly(base_ring, names, sparse, order)
     P = LaurentPolynomialRing_mpair(R, prepend_string, names)
     _save_in_cache(key, P)
     return P
@@ -470,7 +471,7 @@ def _split_dict_(D, indices, group_by=None):
 
 def _split_laurent_polynomial_dict_(P, M, d):
     r"""
-    Helper function for splitting a multivariate laurent polynomial
+    Helper function for splitting a multivariate Laurent polynomial
     during conversion.
 
     INPUT:
@@ -620,7 +621,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     def variable_names_recursive(self, depth=infinity):
         r"""
         Return the list of variable names of this ring and its base rings,
-        as if it were a single multi-variate laurent polynomial.
+        as if it were a single multi-variate Laurent polynomial.
 
         INPUT:
 
@@ -700,8 +701,6 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         else:
             return LaurentPolynomialFunctor(vars[-1], True), LaurentPolynomialRing(self.base_ring(), vars[:-1])
 
-
-
     def completion(self, p, prec=20, extras=None):
         """
         EXAMPLES::
@@ -723,9 +722,6 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             return LaurentSeriesRing(self.base_ring(), name=self._names[0])
         else:
             raise TypeError("Cannot complete %s with respect to %s" % (self, p))
-
-
-
 
     def remove_var(self, var):
         """
@@ -782,27 +778,49 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             from sage.categories.morphism import CallMorphism
             return CallMorphism(Hom(self._R, self)) * f
 
-    def __cmp__(left, right):
+    def __eq__(self, right):
         """
+        Check whether ``self`` is equal to ``right``.
+
         EXAMPLES::
 
             sage: R = LaurentPolynomialRing(QQ,'x,y,z')
             sage: P = LaurentPolynomialRing(ZZ,'x,y,z')
             sage: Q = LaurentPolynomialRing(QQ,'x,y')
 
-            sage: cmp(R,R)
-            0
-            sage: cmp(R,Q) == 0
+            sage: R == R
+            True
+            sage: R == Q
             False
-            sage: cmp(Q,P) == 0
+            sage: Q == P
             False
-            sage: cmp(R,P) == 0
+            sage: P == R
             False
         """
-        c = cmp(type(left), type(right))
-        if c == 0:
-            c = cmp(left._R, right._R)
-        return c
+        if type(self) != type(right):
+            return False
+        return self._R == right._R
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R = LaurentPolynomialRing(QQ,'x,y,z')
+            sage: P = LaurentPolynomialRing(ZZ,'x,y,z')
+            sage: Q = LaurentPolynomialRing(QQ,'x,y')
+
+            sage: R != R
+            False
+            sage: R != Q
+            True
+            sage: Q != P
+            True
+            sage: P != R
+            True
+        """
+        return not (self == other)
 
     def _latex_(self):
         """
@@ -1104,6 +1122,40 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         if not R.base_ring().is_integral_domain():
             raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R, prepend_string, names)
+
+    def monomial(self, *args):
+        r"""
+        Return the monomial whose exponents are given in argument.
+
+        EXAMPLES::
+
+            sage: L = LaurentPolynomialRing(QQ, 'x', 2)
+            sage: L.monomial(-3, 5)
+            x0^-3*x1^5
+            sage: L.monomial(1, 1)
+            x0*x1
+            sage: L.monomial(0, 0)
+            1
+            sage: L.monomial(-2, -3)
+            x0^-2*x1^-3
+
+            sage: x0, x1 = L.gens()
+            sage: L.monomial(-1, 2) == x0^-1 * x1^2
+            True
+
+            sage: L.monomial(1, 2, 3)
+            Traceback (most recent call last):
+            ...
+            TypeError: tuple key must have same length as ngens
+        """
+        element_class = LaurentPolynomial_mpair
+
+        if len(args) != self.ngens():
+            raise TypeError("tuple key must have same length as ngens")
+
+        from sage.rings.polynomial.polydict import ETuple
+        m = ETuple(args, int(self.ngens()))
+        return element_class(self, self.polynomial_ring().one(), m)
 
     def _element_constructor_(self, x, mon=None):
         """

@@ -910,7 +910,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
     def _char_from_weights(self, mdict):
         """
-        Helper method for :meth:'char_from_weights'.
+        Helper method for :meth:`char_from_weights`.
 
         INPUT:
 

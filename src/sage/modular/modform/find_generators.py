@@ -8,8 +8,6 @@ AUTHORS:
 
 - William Stein (2007-08-24): first version
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein
 #
@@ -19,8 +17,11 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import Integer, QQ, ZZ, PowerSeriesRing
 from sage.misc.all import prod, verbose
 from sage.misc.cachefunc import cached_method
@@ -159,6 +160,8 @@ def basis_for_modform_space(*args):
     """
     raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
 
+
+@richcmp_method
 class ModularFormsRing(SageObject):
 
     def __init__(self, group, base_ring=QQ):
@@ -215,7 +218,7 @@ class ModularFormsRing(SageObject):
             ...
             ValueError: Base ring (=Univariate Polynomial Ring in x over Integer Ring) should be QQ, ZZ or a finite prime field
         """
-        if isinstance(group, (int, long, Integer)):
+        if isinstance(group, integer_types + (Integer,)):
             group = Gamma0(group)
         elif not is_CongruenceSubgroup(group):
             raise ValueError("Group (=%s) should be a congruence subgroup" % group)
@@ -255,10 +258,11 @@ class ModularFormsRing(SageObject):
         """
         return self.__base_ring
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self to other. Rings are equal if and only if their groups and
-        base rings are.
+        Compare self to other.
+
+        Rings are equal if and only if their groups and base rings are.
 
         EXAMPLES::
 
@@ -269,11 +273,11 @@ class ModularFormsRing(SageObject):
             sage: ModularFormsRing(Gamma0(3)) == ModularFormsRing(Gamma0(3))
             True
         """
-
         if not isinstance(other, ModularFormsRing):
-            return cmp( type(self), type(other) )
-        else:
-            return cmp(self.group(), other.group()) or cmp(self.base_ring(), other.base_ring())
+            return NotImplemented
+
+        return richcmp((self.group(), self.base_ring()),
+                       (other.group(), other.base_ring()), op)
 
     def _repr_(self):
         r"""

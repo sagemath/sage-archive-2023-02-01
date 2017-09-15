@@ -522,7 +522,7 @@ class Decorator(object):
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][18]
+            sage: S[0][25]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines
@@ -550,7 +550,7 @@ class Decorator(object):
 
         Needs to be implemented in derived subclass.
 
-        TEST::
+        TESTS::
 
             sage: from sage.sets.set_from_iterator import Decorator
             sage: d = Decorator()

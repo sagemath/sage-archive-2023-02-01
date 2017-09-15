@@ -80,8 +80,6 @@ AUTHORS:
 - Chris Wuthrich: more documentation 2010-01
 
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -96,7 +94,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six import integer_types
 
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
@@ -1122,7 +1121,7 @@ def check_prime(K,P):
         [Fractional ideal (5/2*a + 1/2), Fractional ideal (5/2*a - 1/2)]
     """
     if K is QQ:
-        if isinstance(P, (int,long,Integer)):
+        if isinstance(P, integer_types + (Integer,)):
             P = Integer(P)
             if P.is_prime():
                 return P

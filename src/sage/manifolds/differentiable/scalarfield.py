@@ -612,7 +612,7 @@ class DiffScalarField(ScalarField):
         r"""
         Construct a scalar field.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -637,7 +637,7 @@ class DiffScalarField(ScalarField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -653,7 +653,7 @@ class DiffScalarField(ScalarField):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

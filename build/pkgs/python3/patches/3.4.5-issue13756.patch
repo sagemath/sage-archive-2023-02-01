@@ -4,7 +4,7 @@ diff --git a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ex
 index acbe648..6bedbb2 100644
 --- a/Lib/distutils/command/build_ext.py
 +++ b/Lib/distutils/command/build_ext.py
-@@ -695,10 +695,6 @@ class build_ext(Command):
+@@ -715,10 +715,6 @@ class build_ext(Command):
                  return ext.libraries + [pythonlib]
              else:
                  return ext.libraries
@@ -19,7 +19,7 @@ diff --git a/Makefile.pre.in b/Makefile.pre.in
 index e19fc00..87b6dad 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -636,9 +636,9 @@ $(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK): \
+@@ -672,9 +672,9 @@ $(PYTHONFRAMEWORKDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK): \
  	$(LN) -fsn Versions/Current/$(PYTHONFRAMEWORK) $(PYTHONFRAMEWORKDIR)/$(PYTHONFRAMEWORK)
  	$(LN) -fsn Versions/Current/Resources $(PYTHONFRAMEWORKDIR)/Resources
  
@@ -35,7 +35,7 @@ diff --git a/Modules/makesetup b/Modules/makesetup
 index 8b5cc28..abc7eee 100755
 --- a/Modules/makesetup
 +++ b/Modules/makesetup
-@@ -91,7 +91,7 @@ CYGWIN*) if test $libdir = .
+@@ -92,7 +92,7 @@ CYGWIN*) if test $libdir = .
  	 else
  	 	ExtraLibDir='$(LIBPL)'
  	 fi

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Class to flatten polynomial rings over polynomial ring
 
@@ -166,7 +167,7 @@ class FlatteningMorphism(Morphism):
 
     def _call_(self, p):
         r"""
-        Evaluate an flatenning morphism.
+        Evaluate an flattening morphism.
 
         EXAMPLES::
 
@@ -214,7 +215,7 @@ class FlatteningMorphism(Morphism):
     @cached_method
     def section(self):
         """
-        Inverse of this flattenning morphism.
+        Inverse of this flattening morphism.
 
         EXAMPLES::
 
@@ -420,57 +421,65 @@ class SpecializationMorphism(Morphism):
             sage: xi = SpecializationMorphism(S, {a:1/2})
             Traceback (most recent call last):
             ...
-            ValueError: values must be in base ring
+            TypeError: no conversion of this rational to integer
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
-            raise ValueError("domain should be a polynomial ring")
+            raise TypeError("domain should be a polynomial ring")
+
+        # We use this composition where "flat" is a flattened
+        # polynomial ring.
+        #
+        #            phi       D       psi
+        #     domain  →  flat  →  flat  →  R
+        #        │         │               │
+        #        └─────────┴───────────────┘
+        # _flattening_morph     _eval_morph
+        #             = phi       = psi ∘ D
 
         phi = FlatteningMorphism(domain)
-        newD = dict()
-        for k in D.keys():
-            newD[phi(k)] = D[k]
-        self._im_dict = newD
-        self._flattening_morph = phi
+        flat = phi.codomain()
+        base = flat.base_ring()
 
-        base = phi.codomain().base_ring()
-        if not all([c in base for c in D.values()]):
-            raise ValueError("values must be in base ring")
+        # Change domain of D to "flat" and ensure that the values lie
+        # in the base ring.
+        D = {phi(k): base(D[k]) for k in D}
 
-        #make unflattened codomain
-        old_vars = []
-        ring = domain
-        while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
-            old_vars.append([ring.gens(), is_MPolynomialRing(ring)])
-            ring = ring.base_ring()
-        new_vars = [[[t for t in v if t not in newD.keys()], b] for v,b in old_vars]
-        new_vars.reverse()
-        old_vars.reverse()
-        R = ring.base_ring()
-        new_gens=[]
-        for i in range(len(new_vars)):
-            if new_vars[i][0] != []:
-                #check to see if it should be multi or univariate
-                if not new_vars[i][1] or (len(new_vars[i][0])==1 and len(old_vars[i][0])>1):
-                    R = PolynomialRing(R, new_vars[i][0])
-                else:
-                    R = PolynomialRing(R, new_vars[i][0], len(new_vars[i][0]))
-                new_gens.extend(list(R.gens()))
-        old_gens = [t for v in new_vars for t in v]
+        # Construct unflattened codomain R
+        new_vars = []
+        R = domain
+        while is_PolynomialRing(R) or is_MPolynomialRing(R):
+            old = R.gens()
+            new = [t for t in old if t not in D]
+            force_multivariate = ((len(old) == 1) and is_MPolynomialRing(R))
+            new_vars.append((new, force_multivariate))
+            R = R.base_ring()
 
-        #unflattening eval
-        vals = []
-        ind = 0
-        for t in phi.codomain().gens():
-            if t in newD.keys():
-                vals.append(newD[t])
+        # Construct unflattening map psi (only defined on the variables
+        # of "flat" which are not involved in D)
+        psi = dict()
+        for new, force_multivariate in reversed(new_vars):
+            if not new:
+                continue
+            # Pass in the names of the variables
+            var_names = [str(var) for var in new]
+            if force_multivariate:
+                R = PolynomialRing(R, var_names, len(var_names))
             else:
-                vals.append(new_gens[ind])
-                ind += 1
-        psi = phi.codomain().hom(vals, R)
-        self._unflattening_morph = psi
+                R = PolynomialRing(R, var_names)
+            # Map variables in "new" to R
+            psi.update(zip(new, R.gens()))
 
+        # Compose D with psi
+        vals = []
+        for t in flat.gens():
+            if t in D:
+                vals.append(R.coerce(D[t]))
+            else:
+                vals.append(psi[t])
+
+        self._flattening_morph = phi
+        self._eval_morph = flat.hom(vals, R)
         self._repr_type_str = 'Specialization'
-
         Morphism.__init__(self, domain, R)
 
     def _call_(self, p):
@@ -487,4 +496,4 @@ class SpecializationMorphism(Morphism):
             sage: xi(a*x + b*y + c*z)
             x + 2*y + 3*z
         """
-        return self._unflattening_morph(self._flattening_morph(p).subs(self._im_dict))
+        return self._eval_morph(self._flattening_morph(p))

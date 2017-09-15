@@ -162,7 +162,7 @@ the operator ``[:]``::
     [x + y     0]
     [    y  -3*x]
 
-To avoid any insconstency between the various components, the method
+To avoid any inconsistency between the various components, the method
 :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.set_comp`
 clears the components in other frames.
 To keep the other components, one must use the method
@@ -417,7 +417,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         [ 0  0  0]
         [ 0  0  0]
 
-    To avoid any insconstency between the various components, the method
+    To avoid any inconsistency between the various components, the method
     :meth:`set_comp` deletes the components in other frames.
     Accordingly, the components in the frame ``e`` have been deleted::
 
@@ -661,7 +661,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
@@ -683,7 +683,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
@@ -790,7 +790,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         for assignment.
 
         The components with respect to other frames on the same domain are
-        kept. To delete them them, use the method :meth:`set_comp` instead.
+        kept. To delete them, use the method :meth:`set_comp` instead.
 
         INPUT:
 

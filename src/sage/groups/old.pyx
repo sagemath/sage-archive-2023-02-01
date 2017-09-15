@@ -16,6 +16,7 @@ Base class for groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 doc="""
 Base class for all groups
@@ -23,7 +24,7 @@ Base class for all groups
 
 import random
 
-from   sage.rings.infinity import infinity
+from sage.rings.infinity import infinity
 import sage.rings.integer_ring
 
 cdef class Group(sage.structure.parent_gens.ParentWithGens):

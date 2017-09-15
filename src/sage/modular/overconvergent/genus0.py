@@ -171,9 +171,9 @@ classical) does not apply.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
+from six import integer_types
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
@@ -186,6 +186,7 @@ from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
 from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
+from sage.structure.richcmp import richcmp
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
 import weakref
@@ -417,7 +418,7 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: M = OverconvergentModularForms(2, 0, 1/2, base_ring = Qp(2))
             sage: M.base_extend(Qp(2).extension(x^2 - 2, names="w"))
-            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over Eisenstein Extension of 2-adic Field ...
+            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over Eisenstein Extension ...
             sage: M.base_extend(QQ)
             Traceback (most recent call last):
             ...
@@ -487,9 +488,9 @@ class OverconvergentModularFormsSpace(Module):
         """
         return self._const
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
-        Compare self to other.
+        Check whether ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -503,9 +504,26 @@ class OverconvergentModularFormsSpace(Module):
             True
         """
         if not isinstance(other, OverconvergentModularFormsSpace):
-            return cmp(type(self), type(other))
+            return False
         else:
-            return cmp(self._params(), other._params())
+            return self._params() == other._params()
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: OverconvergentModularForms(3, 12, 1/2) != ModularForms(3, 12)
+            True
+            sage: OverconvergentModularForms(3, 0, 1/2) != OverconvergentModularForms(3, 0, 1/3)
+            True
+            sage: OverconvergentModularForms(3, 0, 1/2) != OverconvergentModularForms(3, 0, 1/2, base_ring = Qp(3))
+            True
+            sage: OverconvergentModularForms(3, 0, 1/2) != OverconvergentModularForms(3, 0, 1/2)
+            False
+        """
+        return not (self == other)
 
     def _params(self):
         r"""
@@ -690,7 +708,7 @@ class OverconvergentModularFormsSpace(Module):
             sage: M10(M(f))
             3-adic overconvergent modular form of weight-character 0 with q-expansion 27*q + 324*q^2 + 2430*q^3 + 13716*q^4 + O(q^5)
         """
-        if isinstance(input, (int, long)):
+        if isinstance(input, integer_types):
             input = ZZ(input)
 
         if isinstance(input, OverconvergentModularFormElement):
@@ -1504,22 +1522,19 @@ class OverconvergentModularFormElement(ModuleElement):
         """
         return "%s-adic overconvergent modular form of weight-character %s with q-expansion %s" % (self.prime(), self.weight(), self.q_expansion())
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self to other.
 
         EXAMPLES::
 
-            sage: o=OverconvergentModularForms(3, 0, 1/2)
+            sage: o = OverconvergentModularForms(3, 0, 1/2)
             sage: o([1, 1, 1, 0, 0, 0, 0]) == o([2, 1, 0])
             False
             sage: o([1, 1, 1, 0, 0, 0, 0]) == o([1,1])
             True
         """
-
-        if other.parent() != self.parent():
-            raise ArithmeticError("Can't get here!")
-        return cmp(self.gexp(), other.gexp())
+        return richcmp(self.gexp(), other.gexp(), op)
 
     def r_ord(self, r):
         r"""

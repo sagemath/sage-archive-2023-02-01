@@ -82,8 +82,9 @@ Another colored example::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from math import cos, sin
 from sage.rings.all import RDF
@@ -202,7 +203,7 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         Return an instance of RenderParams suitable for plotting this object.
 
-        TEST::
+        TESTS::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: type(MoebiusStrip(3,3).default_render_params())
@@ -522,7 +523,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def get_grid(self, ds):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
             sage: def f(x,y): return x+y,x-y,x*y
@@ -662,7 +663,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def eval(self, double u, double v):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
             sage: def f(x,y): return x+y,x-y,x*y

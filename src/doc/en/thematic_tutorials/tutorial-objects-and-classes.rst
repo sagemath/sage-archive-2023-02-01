@@ -282,16 +282,19 @@ Some particular actions modify the data structure of ``el``::
        sage: F = CombinatorialFreeModule(QQ, Permutations())
        sage: el = 3*F([1,3,2])+ F([1,2,3])
        sage: el.rename("foo")
+       sage: el.blah = 42
        sage: el.__class__
         <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
        sage: el.__dict__
        {'__custom_name': 'foo',
-        '_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}}
+        'blah': 42}
 
     Lots of Sage objects are not Python objects but compiled Cython
-    objects. Python sees them as builtin objects and you don't have access to
-    the data structure. Examples include integers and permutation group
-    elements::
+    objects. Python sees them as builtin objects and you don't have
+    access to some of their data structure. In particular, we do not
+    see the attribute ``_monomial_coefficients`` in the ``__dict__``
+    above. Other examples of compiled Cython objects include integers
+    and permutation group elements::
 
         sage: e = Integer(9)
         sage: type(e)

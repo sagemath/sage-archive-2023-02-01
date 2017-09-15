@@ -71,9 +71,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import string_types
 
-from sage.misc import six
+from sage.misc.six import with_metaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -98,7 +99,7 @@ from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
 
-class Differential(six.with_metaclass(
+class Differential(with_metaclass(
         InheritComparisonClasscallMetaclass,
         UniqueRepresentation, Morphism
     )):
@@ -849,7 +850,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, six.string_types):
+        elif isinstance(names, string_types):
             names = tuple(names.split(','))
             n = len(names)
         else:

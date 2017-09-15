@@ -2,7 +2,7 @@
 """
 Enumerate Points of a Toric Variety
 
-The classes here are not meant to be instatiated manually. Instead,
+The classes here are not meant to be instantiated manually. Instead,
 you should always use the methods of the :class:`point set
 <sage.schemes.toric.homset.SchemeHomset_points_toric_field>` of the
 variety.

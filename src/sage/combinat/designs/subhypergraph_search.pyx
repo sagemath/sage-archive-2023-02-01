@@ -119,7 +119,7 @@ Methods
 
 from libc.stdlib cimport qsort
 from libc.stdint cimport uint64_t
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_realloc, sig_free
 
 ctypedef struct hypergraph:
     int n

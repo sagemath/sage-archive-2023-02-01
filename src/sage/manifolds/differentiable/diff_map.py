@@ -117,7 +117,7 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent() is Hom(M, N)
         True
         sage: type(Phi)
-        <class 'sage.manifolds.differentiable.diff_map.DifferentiableManifoldHomset_with_category.element_class'>
+        <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
         on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
@@ -473,7 +473,7 @@ class DiffMap(ContinuousMap):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -493,7 +493,7 @@ class DiffMap(ContinuousMap):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

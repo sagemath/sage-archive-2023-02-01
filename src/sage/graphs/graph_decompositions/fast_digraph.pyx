@@ -14,9 +14,8 @@ set if element i belongs to the set.
 """
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
-
 from libc.stdint cimport uint8_t
+from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 
 cdef class FastDigraph:
 
@@ -64,8 +63,7 @@ cdef class FastDigraph:
         r"""
         Destructor.
         """
-        if self.graph != NULL:
-            sig_free(self.graph)
+        sig_free(self.graph)
         sig_free(self.degree)
 
     def print_adjacency_matrix(self):

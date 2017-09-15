@@ -78,6 +78,7 @@ TESTS::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six import integer_types
 
 from sage.structure.parent_gens import localvars
 
@@ -827,9 +828,9 @@ class NumberField_relative(NumberField_generic):
         # todo: more general coercion if embedding have been asserted
         raise TypeError("Cannot coerce element into this number field")
 
-    def _coerce_non_number_field_element_in(self, x):
+    def _convert_non_number_field_element(self, x):
         r"""
-        Coerce the non-number field element `x` into this number field.
+        Convert the non-number field element `x` into this number field.
 
         INPUT:
 
@@ -838,50 +839,11 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2/3)
-            sage: K._coerce_non_number_field_element_in(-7/8)
-            -7/8
-            sage: K._coerce_non_number_field_element_in([1,2,3])
-            3*a^2 + 2*a + 1
-
-        The list is just turned into a polynomial in the generator.::
-
-            sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
-            -2/3*a - 2/3
-
-        Any polynomial whose coefficients can be coerced to rationals will
-        coerce, e.g., this one in characteristic 7.::
-
-            sage: f = GF(7)['y']([1,2,3]); f
-            3*y^2 + 2*y + 1
-            sage: K._coerce_non_number_field_element_in(f)
-            3*a^2 + 2*a + 1
-
-        But not this one over a field of order 27.::
-
-            sage: F27.<g> = GF(27)
-            sage: f = F27['z']([g^2, 2*g, 1]); f
-            z^2 + 2*g*z + g^2
-            sage: K._coerce_non_number_field_element_in(f)
-            Traceback (most recent call last):
-            ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
-
-        One can also coerce an element of the polynomial quotient ring
-        that is isomorphic to the number field::
-
-            sage: K.<a> = NumberField(x^3 + 17)
-            sage: b = K.polynomial_quotient_ring().random_element()
-            sage: K(b)
-            -1/2*a^2 - 4
-
-        MORE EXAMPLES::
-
             sage: x = polygen(ZZ)
-            sage: K.<a> = NumberField(x^5 + 2, 'a')
-            sage: L.<b> = K.extension(x^2 + 3*a, 'b')
-            sage: u = QQ['u'].gen()
-            sage: t = u.parent()['t'].gen()
+            sage: K.<a> = NumberField(x^5 + 2)
+            sage: L.<b> = K.extension(x^2 + 3*a)
+            sage: R.<u> = QQ[]
+            sage: S.<t> = R[]
 
             sage: L(a + b)
             b + a
@@ -949,7 +911,7 @@ class NumberField_relative(NumberField_generic):
             sage: L(L)
             Traceback (most recent call last):
             ...
-            TypeError: <class 'sage.rings.number_field.number_field_rel.NumberField_relative_with_category'>
+            TypeError: unable to convert Number Field in a0 with defining polynomial x^2 + 1 over its base field to Number Field in a0 with defining polynomial x^2 + 1 over its base field
             sage: L in L
             False
 
@@ -1007,15 +969,7 @@ class NumberField_relative(NumberField_generic):
             sage: L(a)
             a
         """
-        if isinstance(x, (int, long, rational.Rational,
-                              integer.Integer, pari_gen,
-                              list)):
-            return self._element_class(self, x)
-        elif isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
-               and (x in self.polynomial_quotient_ring()):
-            y = self.polynomial_ring().gen()
-            return x.lift().subs({y:self.gen()})
-        elif isinstance(x, polynomial_element.Polynomial):
+        if isinstance(x, polynomial_element.Polynomial):
             # we have been given a polynomial, change it to an absolute polynomial
             K = self.base_ring()
             R = self.polynomial_ring()
@@ -1027,12 +981,9 @@ class NumberField_relative(NumberField_generic):
             x = self.polynomial_ring()(x)
             f = R( [ K(coeff) for coeff in x.list() ] )
             return self._element_class(self, f(self.gen()).polynomial() )
-        else:
-            try:
-                return self._element_class(self, x._rational_())
-            except AttributeError:
-                pass
-            raise TypeError(type(x))
+
+        # Anything else: use the code for generic number fields
+        return super(NumberField_relative, self)._convert_non_number_field_element(x)
 
     def _coerce_map_from_(self, R):
         """
@@ -1053,11 +1004,13 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: c = a + b # no output
         """
-        if R in [int, long, ZZ, QQ, self.base_field()]:
-            return self._generic_convert_map(R)
+        if R in integer_types:
+            return self._generic_coerce_map(R)
+        elif R in (ZZ, QQ, self.base_field()):
+            return self._generic_coerce_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
-            return self._generic_convert_map(R)
+            return self._generic_coerce_map(R)
         mor = self.base_field()._internal_coerce_map_from(R)
         if mor is not None:
             return self._internal_coerce_map_from(self.base_field()) * mor

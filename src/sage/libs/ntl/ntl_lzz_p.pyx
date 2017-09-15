@@ -27,7 +27,8 @@ AUTHORS:
 
 from __future__ import absolute_import, division
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 from sage.libs.gmp.mpz cimport *
@@ -406,7 +407,7 @@ def make_zz_p(val, context):
     """
     For unpickling.
 
-    TEST:
+    TESTS:
         sage: f = ntl.zz_p(1, 12)
         sage: loads(dumps(f)) == f
         True

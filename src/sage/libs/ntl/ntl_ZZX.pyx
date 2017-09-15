@@ -12,11 +12,10 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division, print_function, absolute_import
 
-from __future__ import division, print_function
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 

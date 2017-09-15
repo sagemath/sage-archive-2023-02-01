@@ -71,7 +71,7 @@ class CoordFunction(AlgebraElement):
         r"""
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -300,9 +300,11 @@ class CoordFunction(AlgebraElement):
         """
 
     @abstract_method
-    def is_zero(self):
+    def __bool__(self):
         r"""
-        Return ``True`` if the function is zero and ``False`` otherwise.
+        Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
+
+        This method is called by :meth:`~sage.structure.element.Element.is_zero()`.
 
         TESTS:
 
@@ -313,12 +315,41 @@ class CoordFunction(AlgebraElement):
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X.function_ring())
-            sage: f.is_zero()
+            sage: f.__bool__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: <abstract method is_zero at 0x...>
+            NotImplementedError: <abstract method __bool__ at 0x...>
 
         """
+
+    @abstract_method
+    def is_trivial_zero(self):
+        r"""
+        Check if ``self`` is trivially equal to zero without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self.is_zero()`` or ``self == 0`` and is intended to be
+        used in library code where trying to obtain a mathematically
+        correct result by applying potentially expensive rewrite rules
+        is not desirable.
+
+        TESTS:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X.function_ring())
+            sage: f.is_trivial_zero()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method is_trivial_zero at 0x...>
+
+        """
+
 
     @abstract_method
     def copy(self):

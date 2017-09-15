@@ -1565,7 +1565,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
         sage: generate_dense_graphs_vert_addition(8) # long time
         13599
 
-    TEST::
+    TESTS::
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import generate_dense_graphs_vert_addition
         sage: generate_dense_graphs_vert_addition(10, base_G=Graph('HEhf^rs'))

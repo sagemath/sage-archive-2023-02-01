@@ -14,10 +14,12 @@ Utility functions for libGAP
 
 from __future__ import print_function, absolute_import
 
-from sage.interfaces.gap_workspace import prepare_workspace_dir
+from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cysignals.signals cimport sig_on, sig_off, sig_error
+
+from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
-from libc.stdint cimport uintptr_t
 from .element cimport *
 
 
@@ -337,9 +339,6 @@ cdef void hold_reference(libGAP_Obj obj):
 ############################################################################
 ### Error handler ##########################################################
 ############################################################################
-
-include "cysignals/signals.pxi"
-from cpython.exc cimport PyErr_SetObject
 
 cdef void error_handler(char* msg):
     """

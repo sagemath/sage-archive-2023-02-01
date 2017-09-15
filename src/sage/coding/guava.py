@@ -16,7 +16,7 @@ AUTHORS:
 - David Joyner (2008-03): removed QR, XQR, cyclic and ReedSolomon codes
 
 - David Joyner (2009-05): added "optional package" comments, fixed some
-  docstrings to to be sphinx compatible
+  docstrings to be sphinx compatible
 
 
 REFERENCES:
@@ -40,6 +40,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.interfaces.gap import gfq_gap_to_sage
 from .linear_code import LinearCode
+from sage.misc.package import is_package_installed, PackageNotFoundError
 
 
 def QuasiQuadraticResidueCode(p):
@@ -70,6 +71,8 @@ def QuasiQuadraticResidueCode(p):
 
     AUTHOR: David Joyner (11-2005)
     """
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
     F = GF(2)
     gap.load_package("guava")
     gap.eval("C:=QQRCode(" + str(p) + ")")
@@ -110,6 +113,8 @@ def RandomLinearCodeGuava(n, k, F):
     current_randstate().set_seed_gap()
 
     q = F.order()
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
     gap.load_package("guava")
     gap.eval("C:=RandomLinearCode("+str(n)+","+str(k)+", GF("+str(q)+"))")
     gap.eval("G:=GeneratorMat(C)")

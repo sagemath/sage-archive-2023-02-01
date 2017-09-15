@@ -13,18 +13,18 @@ Classes for symbolic functions
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import division
+from __future__ import division, absolute_import
 
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from .expression cimport new_Expression_from_GEx, Expression
-from ring import SR
+from .ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
 from sage.structure.element cimport coercion_model
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -619,9 +619,7 @@ cdef class Function(SageObject):
             sage: g._sympy_init_()
             'gg'
             sage: g(x)._sympy_()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: SymPy function 'gg' doesn't exist
+            gg(x)
         """
         return self._conversions.get('sympy', self._name)
 
@@ -806,7 +804,7 @@ cdef class GinacFunction(BuiltinFunction):
         # get serial
         try:
             self._serial = find_function(fname, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
 
         global sfunction_serial_dict
@@ -1061,7 +1059,7 @@ cdef class BuiltinFunction(Function):
         # search ginac registry for name and nargs
         try:
             serial = find_function(self._name, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             pass
 
         # if match, get operator from function table

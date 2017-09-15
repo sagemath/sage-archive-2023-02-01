@@ -1735,6 +1735,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             r"""
             Return ``True`` if ``self`` is a Coxeter element.
 
+            This is, whether ``self`` has an eigenvalue that is a
+            primitive `h`-th root of unity.
+
             INPUT:
 
             - ``which_primitive`` -- (default:``1``) for which power of
@@ -1747,6 +1750,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             .. SEEALSO::
 
                 :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
+                :meth:`~sage.categories.finite_complex_reflection_groups.coxeter_elements`
 
             EXAMPLES::
 

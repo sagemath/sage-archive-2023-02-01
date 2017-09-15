@@ -50,7 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
-import six
+from six import integer_types, iteritems
 from six.moves import range
 
 from . import constructor
@@ -681,7 +681,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         the elliptic curve database.
 
         If there is no elliptic curve isomorphic to ``self`` in the
-        database, a ``RuntimeError`` is raised.
+        database, a ``LookupError`` is raised.
 
         EXAMPLES::
 
@@ -700,20 +700,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.database_attributes()
             Traceback (most recent call last):
             ...
-            RuntimeError: no database entry for Elliptic Curve defined by y^2 + 8*x*y + 21*y = x^3 + 13*x^2 + 34*x + 55 over Rational Field
-
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 + 8*x*y + 21*y = x^3 + 13*x^2 + 34*x + 55 over Rational Field
         """
         from sage.databases.cremona import CremonaDatabase
         ainvs = self.minimal_model().ainvs()
         try:
             return CremonaDatabase().data_from_coefficients(ainvs)
         except RuntimeError:
-            raise RuntimeError("no database entry for %s" % self)
+            raise LookupError("Cremona database does not contain entry for " + repr(self))
 
     def database_curve(self):
         """
         Return the curve in the elliptic curve database isomorphic to this
-        curve, if possible. Otherwise raise a ``RuntimeError`` exception.
+        curve, if possible. Otherwise raise a ``LookupError`` exception.
 
         Since :trac:`11474`, this returns exactly the same curve as
         :meth:`minimal_model`; the only difference is the additional
@@ -1598,7 +1597,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
           - ``True`` -- the computation is first run with small and then
             successively larger `\Delta` values up to max_Delta. If at any
-            point the computed bound is 0 (or 1 when when root_number is -1
+            point the computed bound is 0 (or 1 when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
           - ``False`` -- the computation is run a single time with `\Delta`
@@ -2074,7 +2073,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 self.__rank[True] = self.database_attributes()['rank']
                 return self.__rank[True]
-            except (KeyError, RuntimeError):
+            except LookupError:
                 # curve not in database, or rank not known
                 pass
         if not only_use_mwrank:
@@ -2289,7 +2288,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 data = self.database_attributes()
                 iso = E.isomorphism_to(self)
                 return [iso(E(P)) for P in data['gens']], True
-            except (KeyError, RuntimeError):
+            except LookupError:
                 # curve not in database, or generators not known
                 pass
 
@@ -2395,16 +2394,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return True in self.__gens
 
-    def ngens(self, proof = None):
+    def ngens(self, proof=None):
         """
         Return the number of generators of this elliptic curve.
 
-        .. note::
+        .. NOTE::
 
-           See :meth:'.gens' for further documentation. The function
-           :meth:`.ngens` calls :meth:`.gens` if not already done, but
+           See :meth:`gens` for further documentation. The function
+           :meth:`ngens` calls :meth:`gens` if not already done, but
            only with default parameters.  Better results may be
-           obtained by calling ``mwrank()`` with carefully chosen
+           obtained by calling :meth:`mwrank` with carefully chosen
            parameters.
 
         EXAMPLES::
@@ -3946,7 +3945,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def cremona_label(self, space=False):
         """
         Return the Cremona label associated to (the minimal model) of this
-        curve, if it is known. If not, raise a ``RuntimeError`` exception.
+        curve, if it is known. If not, raise a ``LookupError`` exception.
 
         EXAMPLES::
 
@@ -3972,15 +3971,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.cremona_label()
             Traceback (most recent call last):
             ...
-            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + y = x^3 - 79*x + 342 over Rational Field.
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 + y = x^3 - 79*x + 342 over Rational Field
         """
         try:
             label = self.__cremona_label
         except AttributeError:
-            try:
-                label = self.database_attributes()['cremona_label']
-            except RuntimeError:
-                raise RuntimeError("Cremona label not known for %s."%self)
+            label = self.database_attributes()['cremona_label']
             self.__cremona_label = label
         if not space:
             return label.replace(' ', '')
@@ -5189,7 +5185,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in six.iteritems(v)])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in iteritems(v)])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5222,7 +5218,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in six.iteritems(v) if deg]  # get just the degrees
+        v = [deg for num, deg in iteritems(v) if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -6830,7 +6826,7 @@ def cremona_curves(conductors):
         ('39a3', 0),
         ('39a4', 0)]
     """
-    if isinstance(conductors, (int,long, rings.RingElement)):
+    if isinstance(conductors, integer_types + (rings.RingElement,)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter(conductors)
 
@@ -6856,7 +6852,7 @@ def cremona_optimal_curves(conductors):
         ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
 
     """
-    if isinstance(conductors, (int,long,rings.RingElement)):
+    if isinstance(conductors, integer_types + (rings.RingElement,)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 

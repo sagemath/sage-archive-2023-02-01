@@ -92,6 +92,7 @@ class DocTestDefaults(SageObject):
         self.abspath = True         # sage-runtests default is False
         self.verbose = False
         self.debug = False
+        self.only_errors = False
         self.gdb = False
         self.valgrind = False
         self.massif = False
@@ -123,7 +124,7 @@ class DocTestDefaults(SageObject):
         s += ")"
         return s
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison by __dict__.
 
@@ -135,9 +136,23 @@ class DocTestDefaults(SageObject):
             sage: DD1 == DD2
             True
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__,other.__dict__)
+        if not isinstance(other, DocTestDefaults):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults
+            sage: DD1 = DocTestDefaults(long=True)
+            sage: DD2 = DocTestDefaults(long=True)
+            sage: DD1 != DD2
+            False
+        """
+        return not (self == other)
 
 
 def skipdir(dirname):
@@ -706,8 +721,8 @@ class DocTestController(SageObject):
 
             sage: dirname = tmp_dir()
             sage: filename = os.path.join(dirname, 'not_tested.py')
-            sage: with open(filename, 'w') as F:
-            ....:     _ = F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: DC.sources

@@ -52,7 +52,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.taylor_polynomial)
     Interactive function <function taylor_polynomial at ...> with 3 widgets
-      title: HTML(value=u'<h2>Taylor polynomial</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Taylor polynomial</h2>')
       f: EvalText(value=u'e^(-x)*sin(x)', description=u'$f(x)=$')
       order: SelectionSlider(value=1, options=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], description=u'order')
     <script type="math/tex">f(x)\;=\;e^{\left(-x\right)} \sin\left(x\right)</script>
@@ -60,7 +60,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.definite_integral)
     Interactive function <function definite_integral at ...> with 6 widgets
-      title: HTML(value=u'<h2>Definite integral</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Definite integral</h2>')
       f: EvalText(value=u'3*x', description=u'$f(x)=$')
       g: EvalText(value=u'x^2', description=u'$g(x)=$')
       interval: IntRangeSlider(value=(0, 3), min=-10, max=10, step=1, description=u'Interval')
@@ -70,7 +70,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.function_derivative)
     Interactive function <function function_derivative at ...> with 4 widgets
-      title: HTML(value=u'<h2>Derivative grapher</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Derivative grapher</h2>')
       function: EvalText(value=u'x^5-3*x^3+1', description=u'Function:')
       x_range: FloatRangeSlider(value=(-2.0, 2.0), min=-15.0, max=15.0, step=0.1, description=u'Range (x)')
       y_range: FloatRangeSlider(value=(-8.0, 6.0), min=-15.0, max=15.0, step=0.1, description=u'Range (y)')
@@ -80,7 +80,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.difference_quotient)
     Interactive function <function difference_quotient at ...> with 5 widgets
-      title: HTML(value=u'<h2>Difference quotient</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Difference quotient</h2>')
       f: EvalText(value=u'sin(x)', description=u'f(x)')
       interval: FloatRangeSlider(value=(0.0, 10.0), min=0.0, max=10.0, step=0.1, description=u'Range')
       a: IntSlider(value=5, min=0, max=10, step=1, description=u'$a$')
@@ -115,7 +115,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.secant_method)
     Interactive function <function secant_method at ...> with 5 widgets
-      title: HTML(value=u'<h2>Secant method for numerical root finding</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Secant method for numerical root finding</h2>')
       f: EvalText(value=u'x^2-2', description=u'f(x)')
       interval: IntRangeSlider(value=(0, 4), min=-5, max=5, step=1, description=u'range')
       d: IntSlider(value=3, min=1, max=16, step=1, description=u'10^-d precision')
@@ -127,7 +127,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.newton_method)
     Interactive function <function newton_method at ...> with 7 widgets
-      title: HTML(value=u'<h2>Newton method</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Newton method</h2>')
       f: EvalText(value=u'x^2 - 2', description=u'f')
       c: IntSlider(value=6, min=-10, max=10, step=1, description=u'Start ($x$)')
       d: IntSlider(value=3, min=1, max=16, step=1, description=u'$10^{-d}$ precision')
@@ -141,7 +141,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.trapezoid_integration)
     Interactive function <function trapezoid_integration at ...> with 7 widgets
-      title: HTML(value=u'<h2>Trapezoid integration</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Trapezoid integration</h2>')
       f: EvalText(value=u'x^2-5*x + 10', description=u'$f(x)=$')
       n: IntSlider(value=5, min=1, max=100, step=1, description=u'# divisions')
       interval_input: ToggleButtons(value='from slider', options=['from slider', 'from keyboard'], description=u'Integration interval')
@@ -164,7 +164,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.simpson_integration)
     Interactive function <function simpson_integration at ...> with 7 widgets
-      title: HTML(value=u'<h2>Simpson integration</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Simpson integration</h2>')
       f: EvalText(value=u'x*sin(x)+x+1', description=u'$f(x)=$')
       n: IntSlider(value=6, min=2, max=100, step=2, description=u'# divisions')
       interval_input: ToggleButtons(value='from slider', options=['from slider', 'from keyboard'], description=u'Integration interval')
@@ -187,7 +187,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.bisection_method)
     Interactive function <function bisection_method at ...> with 5 widgets
-      title: HTML(value=u'<h2>Bisection method</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Bisection method</h2>')
       f: EvalText(value=u'x^2-2', description=u'f(x)')
       interval: IntRangeSlider(value=(0, 4), min=-5, max=5, step=1, description=u'range')
       d: IntSlider(value=3, min=1, max=8, step=1, description=u'$10^{-d}$ precision')
@@ -199,14 +199,14 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.calculus.riemann_sum)
     Manual interactive function <function riemann_sum at ...> with 9 widgets
-      title: HTML(value=u'<h2>Riemann integral with random sampling</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Riemann integral with random sampling</h2>')
       f: EvalText(value=u'x^2+1', description=u'$f(x)=$')
       n: IntSlider(value=5, min=1, max=30, step=1, description=u'# divisions')
-      hr1: HTML(value=u'<hr>', description=u'hr1')
+      hr1: HTMLText(value=u'<hr>')
       interval_input: ToggleButtons(value='from slider', options=['from slider', 'from keyboard'], description=u'Integration interval')
       interval_s: IntRangeSlider(value=(0, 2), min=-5, max=10, step=1, description=u'slider: ')
       interval_g: Grid(value=[[0, 2]], description=u'keyboard: ', children=(Label(value=u'keyboard: '), VBox(children=(EvalText(value=u'0'),)), VBox(children=(EvalText(value=u'2'),))))
-      hr2: HTML(value=u'<hr>', description=u'hr2')
+      hr2: HTMLText(value=u'<hr>')
       list_table: Checkbox(value=False, description=u'List table')
     <small>Adjust your data and click Update button. Click repeatedly for another random values.</small>
     Riemann sum: <script type="math/tex">\displaystyle\sum_{i=1}^{5} f(\eta_i)(x_i-x_{i-1})=...</script>
@@ -274,7 +274,7 @@ Test all interacts from the Sage interact library::
 
     sage: test(interacts.geometry.special_points)
     Interactive function <function special_points at ...> with 10 widgets
-      title: HTML(value=u'<h2>Special points in triangle</h2>', description=u'title')
+      title: HTMLText(value=u'<h2>Special points in triangle</h2>')
       a0: IntSlider(value=30, min=0, max=360, step=1, description=u'A')
       a1: IntSlider(value=180, min=0, max=360, step=1, description=u'B')
       a2: IntSlider(value=300, min=0, max=360, step=1, description=u'C')

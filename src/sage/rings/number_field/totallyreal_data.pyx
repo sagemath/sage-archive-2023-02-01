@@ -25,8 +25,8 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/memory.pxi"
 from libc.math cimport sqrt
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.arith.all import binomial, gcd
 from sage.libs.gmp.mpz cimport *

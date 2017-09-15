@@ -42,6 +42,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.misc.cachefunc import cached_method
+from sage.rings.integer import Integer
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.differentiable.vectorfield import (VectorField, VectorFieldParal)
 
@@ -167,7 +168,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         sage: XU.has_coerce_map_from(XM)
         True
         sage: XU.coerce_map_from(XM)
-        Conversion map:
+        Coercion map:
           From: Module X(M) of vector fields on the 2-dimensional differentiable manifold M
           To:   Free module X(U) of vector fields on the Open subset U of the 2-dimensional differentiable manifold M
 
@@ -255,7 +256,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)
@@ -273,7 +274,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unnamed) element of the module.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
@@ -300,7 +301,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Determine whether coercion to self exists from other parent.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
@@ -324,7 +325,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         String representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
@@ -352,7 +353,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         LaTeX representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
@@ -1149,7 +1150,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: XU.has_coerce_map_from(XM)
         True
         sage: XU.coerce_map_from(XM)
-        Conversion map:
+        Coercion map:
           From: Free module X(S^1) of vector fields on the 1-dimensional differentiable manifold S^1
           To:   Free module X(U) of vector fields on the Open subset U of the 1-dimensional differentiable manifold S^1
 
@@ -1241,7 +1242,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self.zero()
         if isinstance(comp, VectorField):
             if (self._domain.is_subset(comp._domain)

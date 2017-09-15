@@ -17,6 +17,7 @@ AUTHORS:
 ########################################################################
 from __future__ import absolute_import
 
+import glob
 import os
 import socket
 import site
@@ -66,6 +67,13 @@ def _add_variable_or_fallback(key, fallback, force=False):
         '---foo---'
         sage: sage.env.SAGE_ENV['SAGE_BAR']
         '---foo---'
+
+    Test that :trac:`23758` has been resolved::
+
+        sage: sage.env._add_variable_or_fallback('SAGE_BA', '---hello---')
+        sage: sage.env._add_variable_or_fallback('TEMP', '$SAGE_BAR')
+        sage: sage.env.SAGE_ENV['TEMP']
+        '---foo---'
     """
     global SAGE_ENV
     import six
@@ -77,6 +85,26 @@ def _add_variable_or_fallback(key, fallback, force=False):
     if force:
         value = fallback
     if isinstance(value, six.string_types):
+        # Now do the variable replacement. First treat 'value' as if
+        # it were a path and do the substitution on each of the
+        # components. This is to avoid the sloppiness in the second
+        # round of substitutions: if VAR and VAR_NEW are both in
+        # SAGE_ENV, then when doing substitution on the string
+        # "$VAR_NEW/a/b", we want to match VAR_NEW, not VAR, if
+        # possible.
+        for sep in set([os.path.sep, '/']):
+            components = []
+            for s in value.split(sep):
+                if s.startswith('$'):
+                    components.append(SAGE_ENV.get(s[1:], s))
+                else:
+                    components.append(s)
+            value = sep.join(components)
+        # Now deal with any remaining substitutions. The following is
+        # sloppy, as mentioned above: if $VAR and $VAR_NEW are both in
+        # SAGE_ENV, the substitution for "$VAR_NEw" depends on which
+        # of the two appears first when iterating over
+        # SAGE_ENV.items().
         for k,v in SAGE_ENV.items():
             if isinstance(v, six.string_types):
                 value = value.replace('$'+k, v)
@@ -105,8 +133,6 @@ except AttributeError:  # in case of use inside virtualenv
 _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
-
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
 
 # Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
 _add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
@@ -142,14 +168,22 @@ _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
 
 # locate singular shared object
 if UNAME[:6] == "CYGWIN":
-    extension = "dll"
-elif UNAME == "Darwin":
-    extension = "dylib"
+    SINGULAR_SO = ([None] + glob.glob(os.path.join(
+        SAGE_LOCAL, "bin", "cygSingular-*.dll")))[-1]
 else:
-    extension = "so"
-# library name changed from libsingular to libSingular btw 3.x and 4.x
-SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+    if UNAME == "Darwin":
+        extension = "dylib"
+    else:
+        extension = "so"
+    # library name changed from libsingular to libSingular btw 3.x and 4.x
+    SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+
 _add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
+
+if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+    raise RuntimeError(
+        "libSingular not found--a working Singular install in $SAGE_LOCAL "
+        "is required for Sage to work")
 
 # post process
 if ' ' in DOT_SAGE:
@@ -227,10 +261,86 @@ def sage_include_directories(use_sources=False):
     if use_sources :
         include_directories.extend([SAGE_SRC,
                                     opj(SAGE_SRC, 'sage', 'ext')])
-        include_directories.extend([SAGE_CYTHONIZED,
-                                    opj(SAGE_CYTHONIZED, 'sage', 'ext')])
     else:
         include_directories.extend([SAGE_LIB,
                                     opj(SAGE_LIB, 'sage', 'ext')])
 
     return include_directories
+
+
+def cython_aliases():
+    """
+    Return the aliases for compiling Cython code. These aliases are
+    macros which can occur in ``# distutils`` headers.
+
+    EXAMPLES::
+
+        sage: from sage.env import cython_aliases
+        sage: cython_aliases()
+        {...}
+        sage: sorted(cython_aliases().keys())
+        ['FFLASFFPACK_CFLAGS',
+         'FFLASFFPACK_LIBDIR',
+         'FFLASFFPACK_LIBRARIES',
+         'GIVARO_CFLAGS',
+         'GIVARO_LIBDIR',
+         'GIVARO_LIBRARIES',
+         'GSL_INCDIR',
+         'GSL_LIBDIR',
+         'GSL_LIBRARIES',
+         'LINBOX_CFLAGS',
+         'LINBOX_LIBDIR',
+         'LINBOX_LIBRARIES',
+         'SINGULAR_CFLAGS',
+         'SINGULAR_LIBDIR',
+         'SINGULAR_LIBRARIES']
+    """
+    import pkgconfig
+
+    # FFLAS-FFPACK
+    fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')
+    fflas_ffpack_libs = fflas_ffpack_pc['libraries']
+    fflas_ffpack_library_dirs = fflas_ffpack_pc['library_dirs']
+    fflas_ffpack_cflags = pkgconfig.cflags('fflas-ffpack').split()
+
+    # Givaro
+    givaro_pc = pkgconfig.parse('givaro')
+    givaro_libs = givaro_pc['libraries']
+    givaro_library_dirs = givaro_pc['library_dirs']
+    givaro_cflags = pkgconfig.cflags('givaro').split()
+
+    # GNU Scientific Library
+    gsl_pc = pkgconfig.parse('gsl')
+    gsl_libs = gsl_pc['libraries']
+    gsl_library_dirs = gsl_pc['library_dirs']
+    gsl_include_dirs = gsl_pc['include_dirs']
+
+    # LinBox
+    linbox_pc = pkgconfig.parse('linbox')
+    linbox_libs = linbox_pc['libraries']
+    linbox_library_dirs = linbox_pc['library_dirs']
+    linbox_cflags = pkgconfig.cflags('linbox').split()
+
+    # Singular
+    singular_pc = pkgconfig.parse('Singular')
+    singular_libs = singular_pc['libraries']
+    singular_library_dirs = singular_pc['library_dirs']
+    singular_cflags = pkgconfig.cflags('Singular').split()
+
+    return dict(
+        FFLASFFPACK_CFLAGS=fflas_ffpack_cflags,
+        FFLASFFPACK_LIBRARIES=fflas_ffpack_libs,
+        FFLASFFPACK_LIBDIR=fflas_ffpack_library_dirs,
+        GIVARO_CFLAGS=givaro_cflags,
+        GIVARO_LIBRARIES=givaro_libs,
+        GIVARO_LIBDIR=givaro_library_dirs,
+        GSL_LIBRARIES=gsl_libs,
+        GSL_LIBDIR=gsl_library_dirs,
+        GSL_INCDIR=gsl_include_dirs,
+        LINBOX_CFLAGS=linbox_cflags,
+        LINBOX_LIBRARIES=linbox_libs,
+        LINBOX_LIBDIR=linbox_library_dirs,
+        SINGULAR_CFLAGS=singular_cflags,
+        SINGULAR_LIBRARIES=singular_libs,
+        SINGULAR_LIBDIR=singular_library_dirs
+    )

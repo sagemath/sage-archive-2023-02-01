@@ -14,10 +14,9 @@ Dancing Links internal pyx code
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
 from cpython.object cimport PyObject_RichCompare
-
 from libcpp.vector cimport vector
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "dancing_links_c.h":
     ctypedef struct dancing_links:
@@ -461,5 +460,5 @@ def make_dlxwrapper(s):
         sage: print(x.__str__())
         Dancing links solver for 3 columns and 1 rows
     """
-    from sage.all import loads
+    from sage.structure.sage_object import loads
     return dancing_linksWrapper(loads(s))

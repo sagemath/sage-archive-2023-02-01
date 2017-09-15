@@ -78,7 +78,7 @@ from __future__ import print_function
 
 from sage.structure.element cimport MultiplicativeGroupElement, Element, MonoidElement, Matrix
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.libs.gap.element cimport GapElement, GapElement_List
 from sage.groups.libgap_wrapper cimport ElementLibGAP
 
@@ -607,7 +607,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         return [r.list() for r in self.matrix().rows()]
 
     @cached_method
-    def order(self):
+    def multiplicative_order(self):
         """
         Return the order of this group element, which is the smallest
         positive integer `n` such that `g^n = 1`, or
@@ -615,7 +615,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
 
         EXAMPLES::
 
-            sage: k = GF(7);
+            sage: k = GF(7)
             sage: G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])]); G
             Matrix group over Finite Field of size 7 with 2 generators (
             [1 1]  [1 0]
@@ -623,6 +623,11 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             )
             sage: G.order()
             21
+            sage: G.gen(0).multiplicative_order(), G.gen(1).multiplicative_order()
+            (7, 3)
+
+        ``order`` is just an alias for ``multiplicative_order``::
+
             sage: G.gen(0).order(), G.gen(1).order()
             (7, 3)
 

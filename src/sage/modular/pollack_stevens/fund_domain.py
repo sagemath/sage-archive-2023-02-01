@@ -1516,7 +1516,7 @@ class ManinRelations(PollackStevensModularDomain):
     def prep_hecke_on_gen_list(self, l, gen, modulus=None):
         r"""
         Return the precomputation to compute `T_l` in a way that
-        speeds up the hecke calculation.
+        speeds up the Hecke calculation.
 
         Namely, returns a list of the form [h,A].
 

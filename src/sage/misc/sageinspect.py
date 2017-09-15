@@ -114,7 +114,8 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, string_types, class_types, text_type
+from sage.misc.six import u
 
 import ast
 import inspect
@@ -354,9 +355,9 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, str):
+    if isinstance(lines, string_types):
         lines = lines.splitlines(True) # true keeps the '\n'
-    if len(lines) > 0:
+    if len(lines):
         # Fixes an issue with getblock
         lines[-1] += '\n'
 
@@ -409,7 +410,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
             [True, False, None, 'foo', 'bar']
             sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<... 'bool'>, <... 'bool'>, <type 'NoneType'>, <... 'str'>, <... 'str'>]
+            [<... 'bool'>, <... 'bool'>, <... 'NoneType'>, <... 'str'>, <... 'str'>]
         """
         what = node.id
         if what == 'None':
@@ -839,7 +840,7 @@ def _split_syntactical_unit(s):
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
-    TEST:
+    TESTS:
 
     The following was fixed in :trac:`16309`::
 
@@ -1633,9 +1634,9 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if not isinstance(r, types.StringTypes):
+    if not isinstance(r, string_types):
         return ''
-    elif isinstance(r, unicode):
+    elif isinstance(r, text_type):  # unicode (py2) = str (py3)
         return r.encode('utf-8', 'ignore')
     else:
         return r
@@ -1707,7 +1708,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, (type, types.ClassType) ):
+    if isinstance(obj, class_types):
         typ = obj
     else:
         typ = type(obj)
@@ -1974,7 +1975,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        26
+        28
         sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 
@@ -1997,11 +1998,11 @@ def sage_getsourcelines(obj):
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
 
-        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
-        sage: sage_getsourcelines(obj)
-        (['def create_set_partition_function(letter, k):\n',
+        sage: from sage.tests.functools_partial_src import test_func
+        sage: sage_getsourcelines(test_func)
+        (['def base(x):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 36)
+        '    return x\n'], 7)
 
     Here are some cases that were covered in :trac:`11298`;
     note that line numbers may easily change, and therefore we do
@@ -2115,7 +2116,11 @@ def sage_getsourcelines(obj):
     pos = _extract_embedded_position(d)
     if pos is None:
         try:
+            # BEWARE HERE
+            # inspect gives str (=bytes) in python2
+            # and str (=unicode) in python3
             return inspect.getsourcelines(obj)
+
         except (IOError, TypeError) as err:
             try:
                 objinit = obj.__init__
@@ -2257,7 +2262,7 @@ def __internal_tests():
         ''
 
         sage: sage_getsource(sage)
-        "...all..."
+        '...all...'
 
     A cython function with default arguments (one of which is a string)::
 

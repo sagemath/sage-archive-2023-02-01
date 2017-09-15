@@ -84,13 +84,15 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
     """
     if backend is None:
-        if base_ring is ZZ:
-            backend = 'ppl'
-        elif base_ring is QQ:
+        if base_ring is ZZ or base_ring is QQ:
             backend = 'ppl'
         elif base_ring is RDF:
             backend = 'cdd'
         elif base_ring.is_exact():
+            # TODO: find a more robust way of checking that the coefficients are indeed
+            # real numbers
+            if not RDF.has_coerce_map_from(base_ring):
+                raise ValueError("invalid base ring")
             backend = 'field'
         else:
             raise ValueError("no appropriate backend for computations with {}".format(base_ring))
@@ -378,7 +380,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: Polyhedra(QQ, 3)._repr_ambient_module()
             'QQ^3'
-            sage: K.<sqrt3> = NumberField(x^2-3)
+            sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3).sqrt())
             sage: Polyhedra(K, 4)._repr_ambient_module()
             '(Number Field in sqrt3 with defining polynomial x^2 - 3)^4'
         """
@@ -647,7 +649,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Right action by Integer Ring on Polyhedra in ZZ^2
             sage: PZZ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Polyhedra in ZZ^2
               To:   Polyhedra in QQ^2
             with precomposition on right by Identity endomorphism of Rational Field

@@ -483,7 +483,7 @@ class Polytopes():
         """
         Return the great rhombicuboctahedron.
 
-        The great rohombicuboctahedron (or truncated cuboctahedron) is an
+        The great rhombicuboctahedron (or truncated cuboctahedron) is an
         Archimedean solid with 48 vertices and 26 faces. For more information
         see the :wikipedia:`Truncated_cuboctahedron`.
 

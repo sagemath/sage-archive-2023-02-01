@@ -105,9 +105,10 @@ Authors
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
+from __future__ import absolute_import, print_function
+
+from cysignals.memory cimport check_calloc, sig_free
 
 import math
 import sys
@@ -295,7 +296,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     ng = B_pari
     pari_tmp1 = B_pari
 
-    dB = PY_NEW(Integer)
+    dB = Integer.__new__(Integer)
     dB_odlyzko = odlyzko_bound_totallyreal(n_int)
     mpz_set_d(dB.value, dB_odlyzko)
     dB = 40000*((dB+1)**n_int)
@@ -303,10 +304,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         counts[i] = 0
 
     B_pari = pari(B)
-    f_out = <int *>sig_malloc((n_int+1)*sizeof(int))
-    if f_out == NULL: raise MemoryError
-    for i from 0 <= i < n_int:
-        f_out[i] = 0
+    f_out = <int *>check_calloc(n_int + 1, sizeof(int))
     f_out[n_int] = 1
 
     if keep_fields:

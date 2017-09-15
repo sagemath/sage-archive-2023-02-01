@@ -10,6 +10,7 @@ Affine `n` space over a ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import integer_types
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -92,7 +93,7 @@ def AffineSpace(n, R=None, names='x'):
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R
         return A
-    if isinstance(R, (int, long, Integer)):
+    if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
@@ -250,7 +251,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise TypeError("second argument (= %s) must be a finite field"%F)
         return [ P for P in self.base_extend(F) ]
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Compare the space with ``right``.
 
@@ -258,15 +259,29 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
             sage: AffineSpace(QQ, 3, 'a') == AffineSpace(ZZ, 3, 'a')
             False
-            sage: AffineSpace(ZZ,1, 'a') == AffineSpace(ZZ, 0, 'a')
+            sage: AffineSpace(ZZ, 1, 'a') == AffineSpace(ZZ, 0, 'a')
             False
-            sage: loads(AffineSpace(ZZ, 1, 'x').dumps()) == AffineSpace(ZZ, 1, 'x')
+            sage: A = AffineSpace(ZZ, 1, 'x')
+            sage: loads(A.dumps()) == A
             True
         """
         if not isinstance(right, AffineSpace_generic):
-            return -1
-        return cmp([self.dimension_relative(), self.coordinate_ring()],
-                   [right.dimension_relative(), right.coordinate_ring()])
+            return False
+        return (self.dimension_relative() == right.dimension_relative() and
+                self.coordinate_ring() == right.coordinate_ring())
+
+    def __ne__(self, other):
+        """
+        Check whether the space is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: AffineSpace(QQ, 3, 'a') != AffineSpace(ZZ, 3, 'a')
+            True
+            sage: AffineSpace(ZZ, 1, 'a') != AffineSpace(ZZ, 0, 'a')
+            True
+        """
+        return not (self == other)
 
     def _latex_(self):
         r"""
@@ -931,7 +946,7 @@ class AffineSpace_field(AffineSpace_generic):
         zero = R(0)
         P = [ zero for _ in range(n) ]
         yield self(P)
-        if (ftype == False):
+        if not ftype:
             iters = [ R.range_by_height(bound) for _ in range(n) ]
         else:
             iters = [ R.elements_of_bounded_height(bound) for _ in range(n) ]
@@ -943,7 +958,7 @@ class AffineSpace_field(AffineSpace_generic):
                 yield self(P)
                 i = 0
             except StopIteration:
-                if (ftype == False):
+                if not ftype:
                     iters[i] = R.range_by_height(bound) # reset
                 else:
                     iters[i] = R.elements_of_bounded_height(bound)

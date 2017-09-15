@@ -1703,7 +1703,7 @@ def OA_520_plus_x(x):
     r"""
     Return an `OA(10+x,520+x)`.
 
-    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    The construction shared by Julian R. Abel works for :func:`OA(10,520)
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
     <OA_14_524>`.
 
@@ -4202,9 +4202,10 @@ def BIBD_45_9_8(from_code=False):
          '6q533lm6w', '6rsie7cbk', '6tjgpxic0', '70k7ao9m0', '7103zqlvk', '71i1x52bm', '7447g0dfw', '7sogja9z4',
          '7up5z9m9u', '7w7esu6fm', '7zmqtlrpd', '81tsbnzsw', '8kofgi1he', '8mhi35nc1', '9cv1pjiaw', '9d6ef1dah',
          '9dftsor9c', '9du8c1vcw', '9jr5vsnj4', 'a8b405mps', 'ajqhmxkj4', 'ax2xsvfic']
-    B = [Integer(x,base=36) for x in B]
+    B = [Integer(x, base=36) for x in B]
     return [[i for i in range(45) if x&(1<<i)]
             for x in B]
+
 
 def BIBD_66_6_1():
     r"""
@@ -4227,7 +4228,8 @@ def BIBD_66_6_1():
             [0, 12, 29, 46, 51, 63], [0, 6, 21, 30, 43, 48], [4, 17, 22, 36, 47, 59],
             [0, 1, 2, 3, 4, 65], [23, 39, 44, 53, 59, 63], [12, 22, 28, 48, 55, 60],
             [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]]
-    return map(list,frozenset(BIBD))
+    return [list(t) for t in frozenset(BIBD)]
+
 
 def BIBD_76_6_1():
     r"""
@@ -4250,7 +4252,8 @@ def BIBD_76_6_1():
              [10, 20, 61, 63, 71, 72], [13, 26, 30, 39, 45, 67], [11, 21, 25, 30, 55, 58],
              [2, 5, 34, 52, 54, 70], [6, 8, 29, 48, 70, 71], [10, 15, 36, 41, 44, 56],
              [0, 6, 13, 27, 44, 72]]]
-    return map(list,frozenset(BIBD))
+    return [list(t) for t in frozenset(BIBD)]
+
 
 def BIBD_96_6_1():
     r"""
@@ -4272,7 +4275,8 @@ def BIBD_96_6_1():
             [[3, 13, 32, 47, 68, 87], [9, 36, 70, 75, 81, 88], [22, 52, 72, 76, 78, 79],
              [15, 23, 41, 43, 46, 58], [7, 8, 21, 57, 66, 94], [8, 22, 30, 51, 55, 93],
              [15, 31, 47, 63, 79, 95], [2, 18, 34, 50, 66, 82]]]
-    return map(list,frozenset(BIBD))
+    return [list(t) for t in frozenset(BIBD)]
+
 
 def BIBD_106_6_1():
     r"""

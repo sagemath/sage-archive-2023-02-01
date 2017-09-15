@@ -2475,7 +2475,7 @@ class Partition(CombinatorialElement):
         Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
         `q` is "generic" is
 
-        ..MATH::
+        .. MATH::
 
             q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
 

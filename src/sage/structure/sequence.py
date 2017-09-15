@@ -115,7 +115,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
       after each comma when calling ``str()`` on this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -299,7 +299,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
       after each comma when printing this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -642,7 +642,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         TESTS::
 
-            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
+            sage: B.sort(cmp = lambda x,y: (x<y)-(x>y)); B
             doctest:...: DeprecationWarning: sorting using cmp is deprecated
             See http://trac.sagemath.org/21376 for details.
             [3, 2, 1/5]

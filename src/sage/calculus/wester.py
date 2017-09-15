@@ -509,6 +509,8 @@ explicit calls to Maxima or other systems.
     sage: #    Verify(D(x) Abs(x), Sign(x));
     sage: diff(abs(x))
     1/2*(x + conjugate(x))/abs(x)
+    sage: _.simplify_full()
+    x/abs(x)
     sage: _ = var('x', domain='real')
     sage: diff(abs(x))
     x/abs(x)

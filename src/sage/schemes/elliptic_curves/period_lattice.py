@@ -111,6 +111,7 @@ from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 
 
 class PeriodLattice(FreeModule_generic_pid):
@@ -119,6 +120,8 @@ class PeriodLattice(FreeModule_generic_pid):
     """
     pass
 
+
+@richcmp_method
 class PeriodLattice_ell(PeriodLattice):
     r"""
     The class for the period lattice of an elliptic curve.
@@ -257,7 +260,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         PeriodLattice.__init__(self, base_ring=ZZ, rank=2, degree=1, sparse=False)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Comparison function for period lattices
 
@@ -270,13 +273,17 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L1,L2,L3 = [PeriodLattice_ell(E,e) for e in embs]
             sage: L1 < L2 < L3
             True
-
         """
-        if not isinstance(other, PeriodLattice_ell): return -1
-        t = cmp(self.E, other.E)
-        if t: return t
+        if not isinstance(other, PeriodLattice_ell):
+            return NotImplemented
+
+        lx = self.E
+        rx = other.E
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         a = self.E.base_field().gen()
-        return cmp(self.embedding(a), other.embedding(a))
+        return richcmp(self.embedding(a), other.embedding(a), op)
 
     def __repr__(self):
         """
@@ -986,10 +993,10 @@ class PeriodLattice_ell(PeriodLattice):
            documentation for ellsigma is very vague.  Also this is
            only implemented for curves defined over `\QQ`.
 
-        TODO:
+        .. TODO::
 
-        This function does not use any of the PeriodLattice functions
-        and so should be moved to ell_rational_field.
+            This function does not use any of the PeriodLattice functions
+            and so should be moved to ell_rational_field.
 
         EXAMPLES::
 
@@ -1051,7 +1058,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: abs(x1.real())+abs(x2.real())<1e-14
             True
             sage: x1.imag(),x2.imag(),x3
-            (-1.122462048309373?, 1.122462048309373?, -1)
+            (-1.122462048309373?, 1.122462048309373?, -1.000000000000000?)
 
         ::
 
@@ -1088,7 +1095,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         When ``rounding`` is 'floor', returns a tuple of integers
         `n_1`, `n_2` which are the integer parts to the `x`, `y`
-        defined above. These are used in :meth:``.reduce``
+        defined above. These are used in :meth:`.reduce`
 
         EXAMPLES::
 

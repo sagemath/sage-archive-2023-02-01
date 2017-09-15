@@ -41,7 +41,7 @@ cdef class Point(SageObject):
     relations between the points, for example encoded by the
     :meth:`~sage.geometry.triangulation.point_configuration.PointConfiguration.circuits`.
 
-    .. Warning::
+    .. WARNING::
 
         You should not create :class:`Point` objects manually. The
         constructor of :class:`PointConfiguration_base` takes care of

@@ -519,7 +519,7 @@ cdef class CoxGroup(SageObject):
         if self.is_finite():
             return Integer(self.x.order())
         else:
-            from sage.all import infinity
+            from sage.rings.infinity import infinity
             return infinity
 
     def is_finite(self):
@@ -623,7 +623,7 @@ cdef class CoxGroup(SageObject):
             [2 2 2 3 1]
 
         """
-        from sage.all import matrix, ZZ
+        from sage.matrix.constructor import matrix
         rank = self.rank()
         m = matrix(ZZ, rank, rank)
         for i, ii in enumerate(self.cartan_type.index_set()):
@@ -654,7 +654,7 @@ cdef class CoxGroup(SageObject):
             sage: sorted(W.coxeter_graph().edges())                              # optional - coxeter3
             [(1, 2, None), (2, 3, None), (3, 4, None), (4, 5, None)]
         """
-        from sage.all import Graph
+        from sage.graphs.graph import Graph
         g = Graph()
         m = self.coxeter_matrix()
         rank = self.rank()
@@ -1102,7 +1102,6 @@ cdef class CoxGroupElement:
             sage: W([1,2,1]).kazhdan_lusztig_polynomial([])                                          # optional - coxeter3
             0
         """
-        from sage.all import ZZ
         cdef CoxGroupElement vv
         if not isinstance(v, CoxGroupElement):
             vv = CoxGroupElement(self._parent_group, v)
@@ -1141,7 +1140,6 @@ cdef class CoxGroupElement:
             sage: v.mu_coefficient(w)                               # optional - coxeter3
             1
         """
-        from sage.all import ZZ
         cdef CoxGroupElement vv = CoxGroupElement(self._parent_group, v)
         cdef CoxNbr x = self.group.extendContext(self.word)
         cdef CoxNbr y = self.group.extendContext(vv.word)
@@ -1237,7 +1235,7 @@ def get_CoxGroup(cartan_type):
         sage: from sage.libs.coxeter3.coxeter import get_CoxGroup as CoxGroup, CoxGroupIterator  # optional - coxeter3
         sage: W = CoxGroup(['A', 2])                                                             # optional - coxeter3
     """
-    from sage.all import CartanType
+    from sage.combinat.root_system.cartan_type import CartanType
     cartan_type = CartanType(cartan_type)
     if cartan_type not in CoxGroup_cache:
         CoxGroup_cache[cartan_type] = CoxGroup(cartan_type)

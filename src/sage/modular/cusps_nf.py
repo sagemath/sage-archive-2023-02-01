@@ -82,10 +82,11 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import integer_types
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
-from sage.structure.sage_object import richcmp, rich_to_bool
+from sage.structure.richcmp import richcmp, rich_to_bool
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
@@ -268,12 +269,9 @@ class NFCuspsSpace(ParentWithBase):
         self.__number_field = number_field
         ParentWithBase.__init__(self, self)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Return equality only if right is the set of cusps for the same field.
-
-        Comparing sets of cusps for two different fields gives the same
-        result as comparing the two fields.
 
         EXAMPLES::
 
@@ -289,13 +287,31 @@ class NFCuspsSpace(ParentWithBase):
             True
             sage: LCusps == kCusps
             False
-
         """
-        t = cmp(type(self), type(right))
-        if t:
-            return t
-        else:
-            return cmp(self.number_field(), right.number_field())
+        if not isinstance(right, NFCuspsSpace):
+            return False
+        return self.number_field() == right.number_field()
+
+    def __ne__(self, right):
+        """
+        Check that ``self`` is not equal to ``right``.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: L.<a> = NumberField(x^2 + 23)
+            sage: kCusps = NFCusps(k); kCusps
+            Set of all cusps of Number Field in a with defining polynomial x^2 + 5
+            sage: LCusps = NFCusps(L); LCusps
+            Set of all cusps of Number Field in a with defining polynomial x^2 + 23
+            sage: kCusps != NFCusps(k)
+            False
+            sage: LCusps != NFCusps(L)
+            False
+            sage: LCusps != kCusps
+            True
+        """
+        return not (self == right)
 
     def _repr_(self):
         """
@@ -535,7 +551,7 @@ class NFCusp(Element):
             elif is_InfinityElement(a):
                 self.__a = R.one()
                 self.__b = R.zero()
-            elif isinstance(a, (int, long)):
+            elif isinstance(a, integer_types):
                 self.__a = R(a)
                 self.__b = R.one()
             elif isinstance(a, (tuple, list)):
@@ -591,7 +607,7 @@ class NFCusp(Element):
                 self.__a = R.zero()
                 self.__b = R.one()
                 return
-            if (b in R or isinstance(b, (int, long))) and (a in R or isinstance(a, (int, long))):
+            if (b in R or isinstance(b, integer_types)) and (a in R or isinstance(a, integer_types)):
                 self.__a = R(a)
                 self.__b = R(b)
             else:
@@ -607,7 +623,7 @@ class NFCusp(Element):
                         self.__b = R.zero()
                         return
                     r = a.__a / (a.__b * b)
-                elif isinstance(a, (int, long)):
+                elif isinstance(a, integer_types):
                     r = R(a) / b
                 elif isinstance(a, (tuple, list)):
                     if len(a) != 2:

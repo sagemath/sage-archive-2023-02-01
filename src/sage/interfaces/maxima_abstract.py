@@ -50,6 +50,7 @@ and library interfaces to Maxima.
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
 
 import os
 import re
@@ -59,7 +60,9 @@ import subprocess
 from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
+from sage.misc.misc import ECL_TMP
 from sage.misc.multireplace import multiple_replace
+from sage.structure.richcmp import richcmp, rich_to_bool
 import sage.server.support
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
@@ -167,9 +170,14 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         if sage.server.support.EMBEDDED_MODE:
             cmd += '< /dev/null'
 
+        env = os.environ.copy()
+        env['TMPDIR'] = str(ECL_TMP)
+
         if redirect:
-            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(cmd, shell=True, env=env,
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
             res = p.stdout.read()
             # We get 4 lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
@@ -177,7 +185,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
                 res = res[res.find('\n')+1:]
             return AsciiArtString(res)
         else:
-            subprocess.Popen(cmd, shell=True)
+            subprocess.Popen(cmd, shell=True, env=env)
 
     def help(self, s):
         r"""
@@ -402,7 +410,8 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
 
         OUTPUT: float
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = maxima.cputime()
             sage: _ = maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
             sage: maxima.cputime(t) # output random
@@ -637,13 +646,13 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         name = self._next_var_name()
         if isinstance(defn, MaximaAbstractElement):
             defn = defn.str()
-        elif not isinstance(defn, str):
+        elif not isinstance(defn, string_types):
             defn = str(defn)
         if isinstance(args, MaximaAbstractElement):
             args = args.str()
-        elif not isinstance(args, str):
+        elif not isinstance(args, string_types):
             args = str(args)
-        cmd = '%s(%s) := %s'%(name, args, defn)
+        cmd = '%s(%s) := %s' % (name, args, defn)
         self._eval_line(cmd)
         if rep is None:
             rep = defn
@@ -847,7 +856,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
             y=-%e^-1*(5*%e^x-3*%e*x-3*%e)
         """
-        if not isinstance(vars, str):
+        if not isinstance(vars, string_types):
             str_vars = '%s, %s'%(vars[1], vars[0])
         else:
             str_vars = vars
@@ -1128,7 +1137,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         P = self._check_valid()
         return P.eval('is(%s = 0);'%self.name()) == P._false_symbol() # but be careful, since for relations things like is(equal(a,b)) are what Maxima needs
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare this Maxima object with ``other``.
 
@@ -1136,7 +1145,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
 
         - ``other`` - an object to compare to
 
-        OUTPUT: integer
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -1158,22 +1167,21 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: -f == g.diff('x')
             True
         """
-
         # thanks to David Joyner for telling me about using "is".
         # but be careful, since for relations things like is(equal(a,b))
         # are what Maxima needs
         P = self.parent()
         try:
             if P.eval("is (%s < %s)"%(self.name(), other.name())) == P._true_symbol():
-                return -1
+                return rich_to_bool(op, -1)
             elif P.eval("is (%s > %s)"%(self.name(), other.name())) == P._true_symbol():
-                return 1
+                return rich_to_bool(op, 1)
             elif P.eval("is (%s = %s)"%(self.name(), other.name())) == P._true_symbol():
-                return 0
+                return rich_to_bool(op, 0)
         except TypeError:
             pass
-        return cmp(repr(self),repr(other))
-        # everything is supposed to be comparable in Python,
+        return richcmp(repr(self), repr(other), op)
+        # everything is supposed to be comparable in Python2,
         # so we define the comparison thus when no comparable
         # in interfaced system.
 

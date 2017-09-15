@@ -1,9 +1,11 @@
 This patch is needed for the ctypes library to get the correct name of the
 libpython DLL, and is related to https://bugs.python.org/issue13756
---- a/Lib/ctypes/__init__.py	2017-03-21 15:16:01.564958900 +0100
-+++ b/Lib/ctypes/__init__.py	2017-03-21 15:18:10.476792300 +0100
-@@ -430,7 +430,8 @@
- if _os.name in ("nt", "ce"):
+diff --git a/Lib/ctypes/__init__.py.orig b/Lib/ctypes/__init__.py
+index f870968..8c87b7c 100644
+--- a/Lib/ctypes/__init__.py
++++ b/Lib/ctypes/__init__.py
+@@ -431,7 +431,8 @@ pydll = LibraryLoader(PyDLL)
+ if _os.name == "nt":
      pythonapi = PyDLL("python dll", None, _sys.dllhandle)
  elif _sys.platform == "cygwin":
 -    pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])

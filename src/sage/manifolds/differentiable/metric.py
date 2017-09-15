@@ -433,7 +433,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -458,7 +458,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -483,7 +483,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -2012,7 +2012,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2033,7 +2033,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - ``del_restrictions`` -- (default: True) determines whether the
           restrictions of ``self`` to subdomains are deleted.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2050,7 +2050,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable

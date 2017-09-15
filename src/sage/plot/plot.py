@@ -1709,6 +1709,7 @@ def plot(funcs, *args, **kwds):
     Ghostscript be installed::
 
         sage: plot(x, typeset='type1') # optional - latex
+        Graphics object consisting of 1 graphics primitive
 
     A example with excluded values::
 
@@ -2179,7 +2180,7 @@ def _plot(funcs, xrange, parametric=False,
                     linestyle_entry = default_line_styles[i]
             elif linestyle_temp == 'automatic':
                 linestyle_entry = default_line_styles[i]
-            elif linestyle_temp == None:
+            elif linestyle_temp is None:
                 linestyle_entry = 'solid'
             else:
                 linestyle_entry = linestyle_temp
@@ -2222,7 +2223,7 @@ def _plot(funcs, xrange, parametric=False,
     exclude = options.pop('exclude')
     if exclude is not None:
         from sage.symbolic.expression import Expression
-        if isinstance(exclude, Expression) and exclude.is_relational() == True:
+        if isinstance(exclude, Expression) and exclude.is_relational():
             if len(exclude.variables()) > 1:
                 raise ValueError('exclude has to be an equation of only one variable')
             v = exclude.variables()[0]
@@ -2343,7 +2344,7 @@ def _plot(funcs, xrange, parametric=False,
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if excluded_points or detect_poles != False:
+    if excluded_points or detect_poles:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -2364,7 +2365,7 @@ def _plot(funcs, xrange, parametric=False,
             x1, y1 = exclude_data[i+1]
 
             # detect poles
-            if (not (polar or parametric)) and detect_poles != False \
+            if (not (polar or parametric)) and detect_poles \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
                 # calculate the slope of the line segment
                 dy = abs(y1-y0)
@@ -3042,7 +3043,7 @@ def plot_loglog(funcs, *args, **kwds):
         sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
 
-    .. PLOT ::
+    .. PLOT::
 
         g = plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         sphinx_plot(g)

@@ -90,9 +90,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             I = self._basis_ordering
             try:
                 names = [str(x) for x in I]
+                def names_map(x): return x
                 F = FreeAlgebra(self.base_ring(), names)
             except ValueError:
                 names = ['b{}'.format(i) for i in range(self.dimension())]
+                self._UEA_names_map = {g: names[i] for i,g in enumerate(I)}
+                names_map = self._UEA_names_map.__getitem__
                 F = FreeAlgebra(self.base_ring(), names)
             # ``F`` is the free algebra over the basis of ``self``. The
             # universal enveloping algebra of ``self`` will be constructed
@@ -100,7 +103,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             d = F.gens_dict()
             rels = {}
             S = self.structure_coefficients(True)
-            get_var = lambda g: d[names[I.index(g)]]
+            # Construct the map from indices to names of the UEA
+            def get_var(g): return d[names_map(g)]
             # The function ``get_var`` sends an element of the basis of
             # ``self`` to the corresponding element of ``F``.
             for k in S.keys():
@@ -715,6 +719,41 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 False
             """
             return not self.killing_form_matrix().is_singular()
+
+        def as_finite_dimensional_algebra(self):
+            """
+            Return ``self`` as a :class:`FiniteDimensionalAlgebra`.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.cross_product(QQ)
+                sage: x,y,z = L.basis()
+                sage: F = L.as_finite_dimensional_algebra()
+                sage: X,Y,Z = F.basis()
+                sage: x.bracket(y)
+                Z
+                sage: X * Y
+                Z
+            """
+            K = self._basis_ordering
+            B = self.basis()
+            mats = []
+            R = self.base_ring()
+            S = dict(self.structure_coefficients())
+            V = self._dense_free_module()
+            zero_vec = V.zero()
+            for k in K:
+                M = []
+                for kp in K:
+                    if (k, kp) in S:
+                        M.append( -S[k,kp].to_vector() )
+                    elif (kp, k) in S:
+                        M.append( S[kp,k].to_vector() )
+                    else:
+                        M.append( zero_vec )
+                mats.append(matrix(R, M))
+            from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra
+            return FiniteDimensionalAlgebra(R, mats, names=self._names)
 
     class ElementMethods:
         def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a mophism

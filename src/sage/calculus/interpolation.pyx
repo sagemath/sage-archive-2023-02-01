@@ -2,8 +2,8 @@ r"""
 Real Interpolation using GSL
 """
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 
 cdef class Spline:

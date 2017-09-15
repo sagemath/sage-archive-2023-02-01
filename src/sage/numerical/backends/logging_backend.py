@@ -222,7 +222,7 @@ r'''
         """
         Run tests on ...
 
-        TEST::
+        TESTS::
 
             SAGE: from sage.numerical.backends.generic_backend import GenericBackend
             SAGE: p = GenericBackend()
@@ -333,7 +333,7 @@ def LoggingBackendFactory(solver=None, printing=True, doctest_file=None, test_me
         |        ...
         |        Run tests on ...
         |
-        |        TEST::
+        |        TESTS::
         |
         |            sage: from sage.numerical.backends.generic_backend import GenericBackend
         |            sage: p = GenericBackend()

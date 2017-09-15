@@ -710,7 +710,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
 
     def is_untwisted_affine(self):
         """
-        Implements :meth:'CartanType_affine.is_untwisted_affine`.
+        Implement :meth:`CartanType_affine.is_untwisted_affine`.
 
         A marked Cartan type is untwisted affine if the original is.
 
@@ -720,4 +720,3 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
             True
         """
         return self._type.is_untwisted_affine()
-

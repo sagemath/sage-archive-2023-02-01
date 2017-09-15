@@ -102,9 +102,9 @@ TESTS::
     True
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.categories.algebras import Algebras
 
@@ -160,7 +160,7 @@ class G_AlgFactory(UniqueFactory):
           variable names, a term order, and a category
         - ``extra_args`` - a dictionary, whose only relevant key is 'check'.
 
-        TEST::
+        TESTS::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H=A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -188,7 +188,7 @@ class G_AlgFactory(UniqueFactory):
         - ``category`` - (optional) category
         - ``check`` - optional bool
 
-        TEST::
+        TESTS::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -636,7 +636,7 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         return False
 
-    def is_field(self):
+    def is_field(self, *args, **kwargs):
         """
         Return ``False``.
 
@@ -645,6 +645,14 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
             sage: P.is_field()
+            False
+
+        TESTS:
+
+        Make the method accept additional parameters, such as the flag ``proof``.
+        See :trac:`22910`::
+
+            sage: P.is_field(proof=False)
             False
         """
         return False
@@ -693,7 +701,6 @@ cdef class NCPolynomialRing_plural(Ring):
         result = ringlist(self, ring=self)
         return result
 
-
     def relations(self, add_commutative = False):
         """
         Return the relations of this g-algebra.
@@ -726,7 +733,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 return self._relations_commutative
 
             from sage.algebras.free_algebra import FreeAlgebra
-            A = FreeAlgebra( self.base_ring(), self.ngens(), self.gens() )
+            A = FreeAlgebra(self.base_ring(), self.ngens(), self.variable_names())
 
             res = {}
             n = self.ngens()
@@ -740,7 +747,7 @@ cdef class NCPolynomialRing_plural(Ring):
             return self._relations
 
         from sage.algebras.free_algebra import FreeAlgebra
-        A = FreeAlgebra( self.base_ring(), self.ngens(), self.gens() )
+        A = FreeAlgebra(self.base_ring(), self.ngens(), self.variable_names())
 
         res = {}
         n = self.ngens()
@@ -1313,7 +1320,7 @@ def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
     """
     Auxiliary function to unpickle a non-commutative polynomial.
 
-    TEST::
+    TESTS::
 
         sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
         sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -1376,7 +1383,7 @@ cdef class NCPolynomial_plural(RingElement):
 
     def __reduce__(self):
         """
-        TEST::
+        TESTS::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -1502,7 +1509,7 @@ cdef class NCPolynomial_plural(RingElement):
                                 _ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply ``self`` with a base ring element.
 
@@ -1545,7 +1552,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: (3/2*x - 1/2*y - 1) * (3/2*x + 1/2*y + 1) # indirect doctest
             9/4*x^2 + 3/2*x*y - 3/4*z - 1/4*y^2 - y - 1
 
-        TEST::
+        TESTS::
 
             sage: A.<x,z,y> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y + z},  order='lex')
@@ -2219,7 +2226,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: f[0,0,0]
             0
 
-            sage: R.<x> = PolynomialRing(GF(7),1); R
+            sage: R.<x> = PolynomialRing(GF(7), implementation="singular"); R
             Multivariate Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             -2*x^2 + 3

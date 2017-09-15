@@ -17,13 +17,57 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.structure.sage_object cimport richcmp, rich_to_bool
+from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
-cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
+cdef class LaurentPolynomial(CommutativeAlgebraElement):
     """
-    A generic Laurent polynomial.
+    Base class for Laurent polynomials.
     """
+    cpdef _add_(self, other):
+        """
+        Abstract addition method
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial._add_(x, x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    cpdef _mul_(self, other):
+        """
+        Abstract multiplication method
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial._mul_(x, x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    cpdef _floordiv_(self, other):
+        """
+        Abstract floor division method
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial._floordiv_(x, x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
 
     def _integer_(self, ZZ):
         r"""
@@ -110,8 +154,57 @@ cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
         from sage.rings.rational_field import QQ
         return QQ(self.constant_coefficient())
 
+    def change_ring(self, R):
+        """
+        Return a copy of this Laurent polynomial, with coefficients in ``R``.
 
-cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(QQ)
+            sage: a = x^2 + 3*x^3 + 5*x^-1
+            sage: a.change_ring(GF(3))
+            2*x^-1 + x^2
+
+        Check that :trac:`22277` is fixed::
+
+            sage: R.<x, y> = LaurentPolynomialRing(QQ)
+            sage: a = 2*x^2 + 3*x^3 + 4*x^-1
+            sage: a.change_ring(GF(3))
+            -x^2 + x^-1
+        """
+        return self._parent.change_ring(R)(self)
+
+    cpdef long number_of_terms(self) except -1:
+        """
+        Abstract method for number of terms
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial.number_of_terms(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def hamming_weight(self):
+        """
+        Return the number of non-zero coefficients of self. Also called
+        weight, hamming weight or sparsity.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: f = x^3 - 1
+            sage: f.number_of_terms()
+            2
+        """
+        return self.number_of_terms()
+
+
+cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     """
     A univariate Laurent polynomial in the form of `t^n \cdot f`
     where `f` is a polynomial in `t`.
@@ -190,19 +283,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             True
         """
         return LaurentPolynomial_univariate, (self._parent, self.__u, self.__n)
-
-    def change_ring(self, R):
-        """
-        Return a copy of this Laurent polynomial, with coefficients in ``R``.
-
-        EXAMPLES::
-
-            sage: R.<x> = LaurentPolynomialRing(QQ)
-            sage: a = x^2 + 3*x^3 + 5*x^-1
-            sage: a.change_ring(GF(3))
-            2*x^-1 + x^2
-        """
-        return self.parent().change_ring(R)(self)
 
     def is_unit(self):
         """
@@ -511,7 +591,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
         return self.__u[i - self.__n]
 
-    cpdef long number_of_terms(self):
+    cpdef long number_of_terms(self) except -1:
         """
         Return the number of non-zero coefficients of self. Also called weight,
         hamming weight or sparsity.
@@ -534,8 +614,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             101
         """
         return self.__u.number_of_terms()
-
-    hamming_weight = number_of_terms
 
     def __iter__(self):
         """
@@ -790,7 +868,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -801,7 +879,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -1260,8 +1338,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         The formal derivative of this Laurent polynomial, with respect
         to variables supplied in args.
 
-        Multiple variables and iteration counts may be supplied; see
-        documentation for the global :func`derivative()` function for more
+        Multiple variables and iteration counts may be supplied. See
+        documentation for the global :func:`derivative` function for more
         details.
 
         .. SEEALSO::
@@ -1399,7 +1477,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             raise ArithmeticError("coefficients of integral cannot be coerced into the base ring")
         return LaurentPolynomial_univariate(self._parent, u, n+1)
 
-    def __call__(self, *x):
+    def __call__(self, *x, **kwds):
         """
         Compute value of this Laurent polynomial at ``x``.
 
@@ -1413,7 +1491,30 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             2
             sage: f(1/3)
             82/9
+            sage: f(t=-1)
+            2
+            sage: f(x=-1)
+            t^-2 + t^2
+            sage: f()
+            t^-2 + t^2
+            sage: f(1,2)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of arguments does not match number of
+             variables in parent
         """
+        if kwds:
+            f = self.subs(**kwds)
+            if x: # If there are non-keyword arguments
+                return f(*x)
+            else:
+                return f
+
+        if not x:
+            return self
+        if len(x) != 1:
+            raise TypeError("number of arguments does not match number"
+                            " of variables in parent")
         if isinstance(x[0], tuple):
             x = x[0]
         return self.__u(x) * (x[0]**self.__n)
@@ -1479,7 +1580,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return self[0]
 
-cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
+
+cdef class LaurentPolynomial_mpair(LaurentPolynomial):
     """
     Multivariate Laurent polynomials.
     """
@@ -1787,7 +1889,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         return self._prod.latex(self.parent().latex_variable_names(),
                                 atomic_coefficients=atomic, sortkey=key)
 
-    cpdef long number_of_terms(self):
+    cpdef long number_of_terms(self) except -1:
         """
         Return the number of non-zero coefficients of self. Also called weight,
         hamming weight or sparsity.
@@ -1810,8 +1912,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             101
         """
         return self._poly.number_of_terms()
-
-    hamming_weight = number_of_terms
 
     def __invert__(LaurentPolynomial_mpair self):
         """
@@ -2303,7 +2403,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = -self._poly
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Returns self * right where right is in self's base ring.
 
@@ -2320,7 +2420,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * right
         return ans
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Returns left*self where left is in self's base ring.
 
@@ -2399,16 +2499,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     @coerce_binop
     def quo_rem(self, right):
         """
-        Divide this laurent polynomial by ``right`` and return a quotient and
+        Divide this Laurent polynomial by ``right`` and return a quotient and
         a remainder.
 
         INPUT:
 
-        - ``right`` -- a laurent polynomial
+        - ``right`` -- a Laurent polynomial
 
         OUTPUT:
 
-        A pair of laurent polynomials.
+        A pair of Laurent polynomials.
 
         EXAMPLES::
 
@@ -2545,6 +2645,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
     def __call__(self, *x, **kwds):
         """
+        Compute value of ``self`` at ``x``.
 
         EXAMPLES::
 
@@ -2564,19 +2665,17 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: f(2)
             Traceback (most recent call last):
             ...
-            TypeError: number of arguments does not match the number of generators in parent.
+            TypeError: number of arguments does not match the number of generators in parent
             sage: f(2,0)
             Traceback (most recent call last):
             ...
-            TypeError: number of arguments does not match the number of generators in parent.
+            TypeError: number of arguments does not match the number of generators in parent
             sage: f( (1,1,1) )
             6
         """
-        n = self.parent().ngens()
-
-        if len(kwds) > 0:
+        if kwds:
             f = self.subs(**kwds)
-            if len(x) > 0:
+            if x: # More than 1 non-keyword argument
                 return f(*x)
             else:
                 return f
@@ -2587,17 +2686,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x = x[0]
             l = len(x)
 
-        if l != n:
-            raise TypeError("number of arguments does not match the number of generators in parent.")
+        if l != self.parent().ngens():
+            raise TypeError("number of arguments does not match the number"
+                            " of generators in parent")
 
         #Check to make sure that we aren't dividing by zero
-        for m in range(n):
+        cdef int m
+        for m in range(l):
             if x[m] == 0:
                 if self.has_inverse_of(m):
                     raise ZeroDivisionError
 
         ans = self._poly(*x)
-        if ans != 0:
+        if ans:
             for m in self._mon.nonzero_positions():
                 ans *= x[m]**self._mon[m]
 

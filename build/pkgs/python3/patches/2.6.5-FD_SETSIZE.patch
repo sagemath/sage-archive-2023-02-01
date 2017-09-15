@@ -2,11 +2,13 @@ This patch has never been submitted upstream for some reason, but it simply
 increases the default number of file descriptors the Python process can have on
 Cygwin, which mitigates some issues; see
 https://cygwin.com/ml/cygwin/2011-03/msg00651.html
---- a/Modules/selectmodule.c	2012-02-02 22:35:21.835125000 -0500
-+++ b/Modules/selectmodule.c	2012-02-02 22:41:41.210125000 -0500
-@@ -6,6 +6,21 @@
-    >= 0.
- */
+diff --git a/Python-3.6.1/Modules/selectmodule.c.orig b/Python-3.6.1/Modules/selectmodule.c
+index 47da493..ae60234 100644
+--- a/Modules/selectmodule.c
++++ b/Modules/selectmodule.c
+@@ -8,6 +8,21 @@
+ #define _GNU_SOURCE
+ #endif
  
 +/* Windows #defines FD_SETSIZE to 64 if FD_SETSIZE isn't already defined.
 +   64 is too small (too many people have bumped into that limit).
@@ -26,7 +28,7 @@ https://cygwin.com/ml/cygwin/2011-03/msg00651.html
  #include "Python.h"
  #include <structmember.h>
  
-@@ -16,16 +31,6 @@
+@@ -26,16 +41,6 @@
  #undef HAVE_BROKEN_POLL
  #endif
  

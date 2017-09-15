@@ -171,7 +171,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         weight = None
         ep     = None
 
-    # Note that we intentially leave out the d-factor!
+    # Note that we intentionally leave out the d-factor!
     if (n == infinity):
         finf_pol = (x-y**2)
     else:

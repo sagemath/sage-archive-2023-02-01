@@ -24,9 +24,9 @@ Development supported by NSF award No. 0702939.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics

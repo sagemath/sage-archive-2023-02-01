@@ -107,7 +107,7 @@ class restricted_output(object):
 
         In the context, the output is restricted to the output
         container types listed in ``output_classes``. Additionally,
-        display preferences are changed not not show graphics.
+        display preferences are changed not to show graphics.
 
         INPUT:
 
@@ -562,7 +562,7 @@ class DisplayManager(SageObject):
         OUTPUT:
 
         Whatever ``_rich_repr_`` returned. If it raises an exception,
-        then a :class:`DisplayFormatterWarning`` is displayed and
+        then a :class:`DisplayFormatterWarning` is displayed and
         ``None`` is returned.
 
         EXAMPLES::

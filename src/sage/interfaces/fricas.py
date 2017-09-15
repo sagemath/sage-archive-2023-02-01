@@ -850,7 +850,7 @@ class FriCASElement(ExpectElement):
 
             - can we somehow implement negative arguments?
 
-        TEST:
+        TESTS:
 
             sage: fricas("[1,2,3]")[0]                                          # optional - fricas
             1
@@ -873,7 +873,7 @@ class FriCASElement(ExpectElement):
 
     def __int__(self):
         """
-        TEST::
+        TESTS::
 
             sage: int(fricas(2))                                                # optional - fricas
             2
@@ -910,7 +910,7 @@ class FriCASElement(ExpectElement):
 
     def __long__(self):
         """
-        TEST::
+        TESTS::
 
             sage: long(fricas('1'))                                             # optional - fricas
             1L
@@ -919,7 +919,7 @@ class FriCASElement(ExpectElement):
 
     def __float__(self):
         """
-        TEST::
+        TESTS::
 
             sage: float(fricas(2))                                              # optional - fricas
             2.0

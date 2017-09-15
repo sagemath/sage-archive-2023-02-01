@@ -18,7 +18,7 @@ Functions
 ---------
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import six
 from six.moves import range
 
@@ -51,7 +51,7 @@ def from_graph6(G, g6_string):
     ss = g6_string[:n]
     n, s = length_and_string_from_graph6(ss)
     m = binary_string_from_graph6(s, n)
-    expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
+    expected = n*(n-1)//2 + (6 - n*(n-1)//2)%6
     if len(m) > expected:
         raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
     elif len(m) < expected:
@@ -100,7 +100,7 @@ def from_sparse6(G, g6_string):
         bits = ''.join([int_to_binary_string(o-63).zfill(6) for o in ords])
         b = []
         x = []
-        for i in range(int(floor(len(bits)/(k+1)))):
+        for i in range(len(bits)//(k+1)):
             b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
             x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
         v = 0
@@ -369,6 +369,15 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
         sage: from_oriented_incidence_matrix(g, digraphs.Circuit(10).incidence_matrix())
         sage: g.is_isomorphic(digraphs.Circuit(10))
         True
+
+    TESTS:
+
+    Fix bug reported in :trac:`22985`::
+
+        sage: DiGraph(matrix ([[1,0,0,1],[0,0,1,1],[0,0,1,1]]).transpose())
+        Traceback (most recent call last):
+        ...
+        ValueError: each column represents an edge: -1 goes to 1
     """
     from sage.matrix.matrix import is_Matrix
     assert is_Matrix(M)
@@ -380,8 +389,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
             raise ValueError("There must be two nonzero entries (-1 & 1) per column.")
         L = sorted(set(c.list()))
         if L != [-1,0,1]:
-            msg += "Each column represents an edge: -1 goes to 1."
-            raise ValueError(msg)
+            raise ValueError("each column represents an edge: -1 goes to 1")
         if c[NZ[0]] == -1:
             positions.append(tuple(NZ))
         else:

@@ -7,7 +7,7 @@ This module allows to solve the `Quantumino puzzle
 made by Family Games America (see also `this video
 <http://www.youtube.com/watch?v=jX_VKzakZi8>`_ on Youtube). This puzzle was
 left at the dinner room of the Laboratoire de Combinatoire Informatique
-Mathematique in Montreal by Franco Saliola during winter 2011.
+Mathématique in Montreal by Franco Saliola during winter 2011.
 
 The solution uses the dancing links code which is in Sage and is based on
 the more general code available in the module :mod:`sage.combinat.tiling`.
@@ -27,7 +27,7 @@ This module defines two classes :
 
 AUTHOR:
 
-    - Sebastien Labbe, April 28th, 2011
+- Sébastien Labbé, April 28th, 2011
 
 DESCRIPTION (from [1]):
 

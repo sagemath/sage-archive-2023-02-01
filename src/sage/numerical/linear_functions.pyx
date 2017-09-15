@@ -309,7 +309,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.explain(10, LF(1), operator.le)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Integer Ring
                   To:   Linear functions over Real Double Field
             Arithmetic performed after coercions.
@@ -957,7 +957,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef _lmul_(self, RingElement b):
+    cpdef _lmul_(self, Element b):
         r"""
         Multiplication by scalars
 

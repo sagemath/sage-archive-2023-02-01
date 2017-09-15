@@ -842,7 +842,7 @@ class ParametrizedSurface3D(SageObject):
             [                1/2 -1/2*sqrt(3)/cos(v)]
             [ 1/2*sqrt(3)*cos(v)                 1/2]
 
-        We verify that three succesive rotations over $\pi/3$ yield minus the identity::
+        We verify that three successive rotations over $\pi/3$ yield minus the identity::
 
             sage: rotation^3
             [-1  0]

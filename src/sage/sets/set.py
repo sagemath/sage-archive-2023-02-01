@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import integer_types
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
@@ -275,7 +276,7 @@ class Set_object(Set_generic):
             and 'Integer Ring'
         """
         from sage.rings.integer import is_Integer
-        if isinstance(X, (int, long)) or is_Integer(X):
+        if isinstance(X, integer_types) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
 

@@ -454,8 +454,7 @@ examples.
 from __future__ import print_function, absolute_import
 from six.moves import range
 
-from sage.combinat.free_module import CombinatorialFreeModule, \
-    CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import ModulesWithBasis, tensor, Hom
@@ -3073,22 +3072,22 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
     # element class
     ######################################################
 
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
         r"""
         Class for elements of the Steenrod algebra.  Since the
         Steenrod algebra class is based on
         :class:`CombinatorialFreeModule
         <sage.combinat.free_module.CombinatorialFreeModule>`, this is
-        based on :class:`CombinatorialFreeModuleElement
-        <sage.combinat.free_module.CombinatorialFreeModuleElement>`.
+        based on :class:`IndexedFreeModuleElement
+        <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`.
         It has new methods reflecting its role, like :meth:`degree`
         for computing the degree of an element.
 
         EXAMPLES:
 
         Since this class inherits from
-        :class:`CombinatorialFreeModuleElement
-        <sage.combinat.free_module.CombinatorialFreeModuleElement>`,
+        :class:`IndexedFreeModuleElement
+        <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`,
         elements can be used as iterators, and there are other useful
         methods::
 

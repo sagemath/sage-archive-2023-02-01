@@ -39,16 +39,16 @@ Check the fix from :trac:`8323`::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import integer_types
 
-from warnings import warn
 import os
 import stat
 import sys
 import time
 import resource
 import sage.misc.prandom as random
+import warnings
 from .lazy_string import lazy_string
-
 
 from sage.env import DOT_SAGE, HOSTNAME
 
@@ -127,6 +127,24 @@ def SAGE_TMP():
     sage_makedirs(d)
     return d
 
+
+@lazy_string
+def ECL_TMP():
+    """
+    Temporary directory that should be used by ECL interfaces launched from
+    Sage.
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import ECL_TMP
+        sage: ECL_TMP
+        l'.../temp/.../ecl'
+    """
+    d = os.path.join(str(SAGE_TMP), 'ecl')
+    sage_makedirs(d)
+    return d
+
+
 @lazy_string
 def SPYX_TMP():
     """
@@ -136,7 +154,8 @@ def SPYX_TMP():
         sage: SPYX_TMP
         l'.../temp/.../spyx'
     """
-    return os.path.join(SAGE_TMP, 'spyx')
+    return os.path.join(str(SAGE_TMP), 'spyx')
+
 
 @lazy_string
 def SAGE_TMP_INTERFACE():
@@ -147,7 +166,7 @@ def SAGE_TMP_INTERFACE():
         sage: SAGE_TMP_INTERFACE
         l'.../temp/.../interface'
     """
-    d = os.path.join(SAGE_TMP, 'interface')
+    d = os.path.join(str(SAGE_TMP), 'interface')
     sage_makedirs(d)
     return d
 
@@ -220,11 +239,11 @@ def cputime(t=0, subprocesses=False):
         sage: walltime(w)         # somewhat random
         0.58425593376159668
 
-    .. note ::
+    .. NOTE::
 
-      Even with ``subprocesses=True`` there is no guarantee that the
-      CPU time is reported correctly because subprocesses can be
-      started and terminated at any given time.
+        Even with ``subprocesses=True`` there is no guarantee that the
+        CPU time is reported correctly because subprocesses can be
+        started and terminated at any given time.
     """
     if isinstance(t, GlobalCputime):
         subprocesses=True
@@ -560,21 +579,29 @@ def generic_cmp(x,y):
     Compare x and y and return -1, 0, or 1.
 
     This is similar to x.__cmp__(y), but works even in some cases
-    when a .__cmp__ method isn't defined.
+    when a .__cmp__ method is not defined.
     """
     from sage.misc.superseded import deprecation
     deprecation(21926, "generic_cmp() is deprecated")
-    if x<y:
+    if x < y:
         return -1
-    elif x==y:
+    elif x == y:
         return 0
     return 1
 
+
 def cmp_props(left, right, props):
+    from sage.misc.superseded import deprecation
+    deprecation(23149, "cmp_props is deprecated")
     for a in props:
-        c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c: return c
+        lx = left.__getattribute__(a)()
+        rx = right.__getattribute__(a)()
+        if lx < rx:
+            return -1
+        elif lx > rx:
+            return 1
     return 0
+
 
 def union(x, y=None):
     """
@@ -629,7 +656,7 @@ def coeff_repr(c, is_latex=False):
             return c._coeff_repr()
         except AttributeError:
             pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()
@@ -1150,10 +1177,29 @@ def random_sublist(X, s):
     return [a for a in X if random.random() <= s]
 
 
-def some_tuples(elements, repeat, bound):
+def some_tuples(elements, repeat, bound, max_samples=None):
     r"""
     Return an iterator over at most ``bound`` number of ``repeat``-tuples of
     ``elements``.
+
+    INPUT:
+
+    - ``elements`` -- an iterable
+    - ``repeat`` -- integer (default ``None``), the length of the tuples to be returned.
+      If ``None``, just returns entries from ``elements``.
+    - ``bound`` -- the maximum number of tuples returned (ignored if ``max_samples`` given)
+    - ``max_samples`` -- non-negative integer (default ``None``).  If given,
+      then a sample of the possible tuples will be returned,
+      instead of the first few in the standard order.
+
+    OUTPUT:
+
+    If ``max_samples`` is not provided, an iterator over the first
+    ``bound`` tuples of length ``repeat``, in the standard nested-for-loop order.
+
+    If ``max_samples`` is provided, a list of at most ``max_samples`` tuples,
+    sampled uniformly from the possibilities.  In this case, ``elements``
+    must be finite.
 
     TESTS::
 
@@ -1168,15 +1214,44 @@ def some_tuples(elements, repeat, bound):
         sage: len(list(l))
         10
 
-    .. TODO::
-
-        Currently, this only return an iterator over the first element of the
-        Cartesian product. It would be smarter to return something more
-        "random like" as it is used in tests. However, this should remain
-        deterministic.
+        sage: l = some_tuples(range(3), 2, None, max_samples=10)
+        sage: len(list(l))
+        9
     """
-    from itertools import islice, product
-    return islice(product(elements, repeat=repeat), bound)
+    if max_samples is None:
+        from itertools import islice, product
+        P = elements if repeat is None else product(elements, repeat=repeat)
+        return islice(P, bound)
+    else:
+        if not (hasattr(elements, '__len__') and hasattr(elements, '__getitem__')):
+            elements = list(elements)
+        n = len(elements)
+        N = n if repeat is None else n**repeat
+        if N <= max_samples:
+            from itertools import product
+            return elements if repeat is None else product(elements, repeat=repeat)
+        return _some_tuples_sampling(elements, repeat, max_samples, n)
+
+def _some_tuples_sampling(elements, repeat, max_samples, n):
+    """
+    Internal function for :func:`some_tuples`.
+
+    TESTS::
+
+        sage: from sage.misc.misc import _some_tuples_sampling
+        sage: list(_some_tuples_sampling(range(3), 3, 2, 3))
+        [(0, 1, 0), (1, 1, 1)]
+        sage: list(_some_tuples_sampling(range(20), None, 4, 20))
+        [0, 6, 9, 3]
+    """
+    from sage.rings.integer import Integer
+    N = n if repeat is None else n**repeat
+    # We sample on range(N) and create tuples manually since we don't want to create the list of all possible tuples in memory
+    for a in random.sample(range(N), max_samples):
+        if repeat is None:
+            yield elements[a]
+        else:
+            yield tuple(elements[j] for j in Integer(a).digits(n, padto=repeat))
 
 def powerset(X):
     r"""
@@ -1787,7 +1862,7 @@ def get_main_globals():
     return G
 
 
-def inject_variable(name, value):
+def inject_variable(name, value, warn=True):
     """
     Inject a variable into the main global namespace.
 
@@ -1795,6 +1870,7 @@ def inject_variable(name, value):
 
     - ``name``  -- a string
     - ``value`` -- anything
+    - ``warn`` -- a boolean (default: :obj:`False`)
 
     EXAMPLES::
 
@@ -1820,6 +1896,13 @@ def inject_variable(name, value):
         doctest:...: UserWarning: blah
         sage: warn("blah")
 
+    Warnings can be disabled::
+
+        sage: b = 3
+        sage: inject_variable("b", 42, warn=False)
+        sage: b
+        42
+
     Use with care!
     """
     assert isinstance(name, str)
@@ -1827,8 +1910,8 @@ def inject_variable(name, value):
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.
     G = get_main_globals()
-    if name in G:
-        warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
+    if name in G and warn:
+        warnings.warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
     G[name] = value
 
 

@@ -222,11 +222,11 @@ be obtained and queried.
 
     sage: cm.explain(ZZ['x','y'], QQ['x'])
     Coercion on left operand via
-       Conversion map:
+       Coercion map:
          From: Multivariate Polynomial Ring in x, y over Integer Ring
          To:   Multivariate Polynomial Ring in x, y over Rational Field
     Coercion on right operand via
-       Conversion map:
+       Coercion map:
          From: Univariate Polynomial Ring in x over Rational Field
          To:   Multivariate Polynomial Ring in x, y over Rational Field
     Arithmetic performed after coercions.
@@ -257,7 +257,7 @@ discovered between steps 1 and 2 above.
     Result lives in Univariate Polynomial Ring in x over Integer Ring
     Univariate Polynomial Ring in x over Integer Ring
 
-    sage: cm.explain(ZZ['x'], ZZ, operator.div)
+    sage: cm.explain(ZZ['x'], ZZ, operator.truediv)
     Action discovered.
        Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
        with precomposition on right by Natural morphism:

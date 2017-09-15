@@ -32,6 +32,7 @@ test.spyx
 --optional
 --preparse
 --python
+--python3
 -q
 --R
 --root
@@ -489,6 +490,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
+        sage: (out, err, ret) = test_executable(["sage", "--python3"], "print(3^33)\n")
+        sage: out
+        '34\n'
+        sage: err
+        ''
+        sage: ret
+        0
+
         sage: (out, err, ret) = test_executable(["sage", "--cython"])
         sage: print(err)
         Cython (http://cython.org) is a compiler for code written in the
@@ -560,12 +569,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ''
         sage: ret
         0
-
-    Check that ``sage-location`` did its job in making Python scripts
-    relative.  We test it on the ``ipython`` script::
-
-        sage: open(os.path.join(SAGE_LOCAL, "bin", "ipython")).readline()
-        '#!/usr/bin/env python\n'
 
     Test GP using the ``-f`` option which prevents the reading of a ``.gprc``
     configuration file::

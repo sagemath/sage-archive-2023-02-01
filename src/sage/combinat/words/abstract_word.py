@@ -209,16 +209,16 @@ class Word_class(SageObject):
 
     def __len__(self):
         r"""
-        Returns the length of self (as a python integer).
+        Return the length of self (as a python integer).
 
-        ..NOTE::
+        .. NOTE::
 
             For infinite words or words of unknown length,
             use `length()` method instead.
 
         OUTPUT:
 
-            positive integer
+        positive integer
 
         EXAMPLES::
 
@@ -322,9 +322,10 @@ class Word_class(SageObject):
                 else:
                     key_cs = cmp_key(cs)
                     key_co = cmp_key(co)
-                    r = cmp(key_cs, key_co)
-                    if r != 0:
-                        return r
+                    if key_cs < key_co:
+                        return -1
+                    elif key_cs > key_co:
+                        return 1
 
     def __eq__(self, other):
         r"""

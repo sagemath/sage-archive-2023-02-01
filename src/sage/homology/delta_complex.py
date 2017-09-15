@@ -50,6 +50,7 @@ vertex.
 """
 from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 
 from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
@@ -295,7 +296,7 @@ class DeltaComplex(GenericCellComplex):
                     new_data[dim] = s
                     dim += 1
             elif isinstance(data, dict):
-                if all(isinstance(a, (Integer, int, long)) for a in data):
+                if all(isinstance(a, (Integer,) + integer_types) for a in data):
                     # a dictionary indexed by integers
                     new_data = data
                     if -1 not in new_data:
@@ -1262,7 +1263,7 @@ class DeltaComplex(GenericCellComplex):
         of a single top-dimensional simplex without subdividing every
         simplex in the complex.
 
-        The term "elementary subdivison" is taken from p. 112 in John
+        The term "elementary subdivision" is taken from p. 112 in John
         M. Lee's book [Lee2011]_.
 
         EXAMPLES::

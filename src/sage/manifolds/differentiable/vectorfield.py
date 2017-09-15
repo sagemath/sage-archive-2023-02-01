@@ -58,7 +58,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
+from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 from sage.misc.decorators import options
@@ -1202,7 +1202,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorFiel
         - ``del_restrictions`` -- (default: ``True``) determines whether
           the restrictions of ``self`` to subdomains are deleted
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable

@@ -74,12 +74,13 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from libc.string cimport memcpy
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-
-from sage.structure.sage_object cimport SageObject, richcmp
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport richcmp
 
 from sage.rings.integer cimport Integer
 
@@ -515,7 +516,7 @@ cdef class Converter(SageObject):
         if ring is not None:
             self._singular_ring = access_singular_ring(ring)
 
-        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         from sage.matrix.matrix_generic_dense import Matrix_generic_dense
         for a in args:
@@ -928,7 +929,7 @@ cdef class Converter(SageObject):
 
         - ``to_convert`` - a Singular ``leftv``
 
-        TEST:
+        TESTS:
 
         Check that negative integers come through unscathed::
 
@@ -1315,8 +1316,9 @@ cdef class SingularFunction(SageObject):
             ring = self.common_ring(args, ring)
             if ring is None:
                 if dummy_ring is None:
-                    from sage.all import QQ, PolynomialRing
-                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default
+                    from sage.rings.polynomial.all import PolynomialRing
+                    from sage.rings.rational_field import QQ
+                    dummy_ring = PolynomialRing(QQ, "dummy", implementation="singular") # seems a reasonable default
                 ring = dummy_ring
         if not (isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural)):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
@@ -1397,7 +1399,7 @@ The Singular documentation for '%s' is given below.
         - ``args`` -- a list of Python objects
         - ``ring`` -- an optional ring to check
         """
-        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         ring2 = None
         for a in args:

@@ -247,7 +247,7 @@ as if you were `installing Sage from scratch
 <http://doc.sagemath.org/html/en/installation/source.html>`_.
 However, this time only packages which were changed (or which depend
 on a changed package) will be recompiled,
-so it shoud be much faster than compiling Sage
+so it should be much faster than compiling Sage
 the first time.
 
 .. NOTE::

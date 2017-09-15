@@ -155,9 +155,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, integer_types
 
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.infinity import infinity, is_Infinite
@@ -282,7 +282,7 @@ class MPowerSeries(PowerSeries):
 
     Convert elements from polynomial rings::
 
-        sage: R = PolynomialRing(ZZ,5,T.gens())
+        sage: R = PolynomialRing(ZZ,5,T.variable_names())
         sage: t = R.gens()
         sage: r = -t[2]*t[3] + t[3]^2 + t[4]^2
         sage: T(r)
@@ -1079,7 +1079,7 @@ class MPowerSeries(PowerSeries):
             sage: g.polynomial() == f.polynomial() % 2
             True
         """
-        if isinstance(other,(int,Integer,long)):
+        if isinstance(other, integer_types + (Integer,)):
             return self.change_ring(Zmod(other))
         raise NotImplementedError("Mod on multivariate power series ring elements not defined except modulo an integer.")
 

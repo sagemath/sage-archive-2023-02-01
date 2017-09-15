@@ -1328,7 +1328,19 @@ cdef py_float(n, PyObject* kwds):
         <type 'sage.rings.complex_number.ComplexNumber'>
     """
     if kwds is not NULL:
-        return (<object>kwds)['parent'](n)
+        p = (<object>kwds)['parent']
+        if p is float:
+            try:
+                return float(n)
+            except TypeError:
+                return complex(n)
+        elif p is complex:
+            return p(n)
+        else:
+            try:
+                return p(n)
+            except (TypeError,ValueError):
+                return p.complex_field()(n)
     else:
         try:
             return RR(n)
@@ -1344,6 +1356,12 @@ def py_float_for_doctests(n, kwds):
         sage: from sage.libs.pynac.pynac import py_float_for_doctests
         sage: py_float_for_doctests(pi, {'parent':RealField(80)})
         3.1415926535897932384626
+        sage: py_float_for_doctests(I, {'parent':RealField(80)})
+        1.0000000000000000000000*I
+        sage: py_float_for_doctests(I, {'parent':float})
+        1j
+        sage: py_float_for_doctests(pi, {'parent':complex})
+        (3.141592653589793+0j)
     """
     return py_float(n, <PyObject*>kwds)
 
@@ -1791,19 +1809,34 @@ cdef py_atan2(x, y):
         2.284887025407...
         sage: atan2(2.1000000000000000000000000000000000000, -1.20000000000000000000000000000000)
         2.089942441041419571002776071...
+
+    Check that :trac:`22877` is fixed::
+
+        sage: atan2(CC(I), CC(I+1))
+        0.553574358897045 + 0.402359478108525*I
+        sage: atan2(CBF(I), CBF(I+1))
+        [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
+
+    Check that :trac:`23776` is fixed and RDF input gives real output::
+
+        sage: atan2(RDF(-3), RDF(-1))
+        -1.8925468811915387
     """
     from sage.symbolic.constants import pi, NaN
     P = coercion_model.common_parent(x, y)
     if P is ZZ:
         P = RR
     if y != 0:
-        if x > 0:
-            res = py_atan(abs(y/x))
-        elif x < 0:
-            res = P(pi) - py_atan(abs(y/x))
+        if RR.has_coerce_map_from(P):
+            if x > 0:
+                res = py_atan(abs(y/x))
+            elif x < 0:
+                res = P(pi) - py_atan(abs(y/x))
+            else:
+                res = P(pi)/2
+            return res if y > 0 else -res
         else:
-            res = P(pi)/2
-        return res if y > 0 else -res
+            return -I*py_log((x + I*y)/py_sqrt(x**2 + y**2))
     else:
         if x > 0:
             return P(0)
@@ -1871,6 +1904,10 @@ cdef py_atanh(x):
     try:
         return x.arctanh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arctanh()
+    except TypeError:
         return CC(x).arctanh()
 
 cdef py_lgamma(x):

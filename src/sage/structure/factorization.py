@@ -181,16 +181,19 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
-from six import iteritems
+from six import iteritems, integer_types
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 
 
+
+@richcmp_method
 class Factorization(SageObject):
     """
     A formal factorization of an object.
@@ -378,10 +381,16 @@ class Factorization(SageObject):
         """
         return len(self.__x)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare self and other.  This compares the underlying
-        lists of self and other, ignoring the unit!
+        Compare ``self`` and ``other``.
+
+        This first compares the values.
+
+        If values are equal, this compares the units.
+
+        If units are equal, this compares the underlying lists of
+        ``self`` and ``other``.
 
         EXAMPLES:
 
@@ -411,13 +420,19 @@ class Factorization(SageObject):
             True
         """
         if not isinstance(other, Factorization):
-            return cmp(type(self), type(other))
-        try:
-            return cmp(self.value(), other.value())
-        except Exception:
-            c = cmp(self.__unit, other.__unit)
-            if c: return c
-            return list.__cmp__(self, other)
+            return NotImplemented
+
+        lx = self.value()
+        rx = other.value()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.__unit
+        rx = other.__unit
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.__x, other.__x, op)
 
     def __copy__(self):
         r"""
@@ -676,10 +691,10 @@ class Factorization(SageObject):
 
         TESTS:
 
-        We sort it using the negated version of the
-        Python cmp function (using ``_cmp`` is deprecated)::
+        We sort it using a custom comparison function
+        (using ``_cmp`` is deprecated)::
 
-            sage: F.sort(_cmp=lambda x,y: -cmp(x,y))
+            sage: F.sort(_cmp=lambda x,y: (x<y)-(x>y))
             doctest:...: DeprecationWarning: Please use 'key' to sort.
             See http://trac.sagemath.org/21145 for details.
             sage: F
@@ -829,7 +844,7 @@ class Factorization(SageObject):
             mul += '\n'
         x = self.__x[0][0]
         try:
-            atomic = (isinstance(x, (int, long)) or
+            atomic = (isinstance(x, integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -876,7 +891,7 @@ class Factorization(SageObject):
         if len(self) == 0:
             return self.__unit._latex_()
         try:
-            atomic = (isinstance(self.__x[0][0], (int, long)) or
+            atomic = (isinstance(self.__x[0][0], integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -1196,7 +1211,7 @@ class Factorization(SageObject):
             sage: F.value()
             x^3*y^2*x
         """
-        return prod([p**e for p,e in self.__x], self.__unit)
+        return prod([p**e for p, e in self.__x], self.__unit)
 
     # Two aliases for ``value(self)``.
     expand = value

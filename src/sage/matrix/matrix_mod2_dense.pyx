@@ -101,9 +101,10 @@ TODO:
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_malloc, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
 
+from collections import Iterator, Sequence
 cimport sage.matrix.matrix_dense as matrix_dense
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector,
@@ -254,12 +255,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         R = self.base_ring()
 
         # scalar ?
-        if not isinstance(entries, list):
+        if not isinstance(entries, (Iterator, Sequence)):
             if self._nrows and self._ncols and R(entries) == 1:
                 mzd_set_ui(self._entries, 1)
             return
 
-        # all entries are given as a long list
+        # all entries are given as a long iterable
+        if not isinstance(entries, (list, tuple)):
+            entries = list(entries)
         if len(entries) != self._nrows * self._ncols:
             raise IndexError("The vector of entries has the wrong length.")
 
@@ -296,7 +299,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: hash(M) == hash(MS)
             True
 
-        TEST::
+        TESTS::
 
             sage: A = matrix(GF(2),2,0)
             sage: hash(A)
@@ -1795,7 +1798,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             data = ''
         else:
             n = self._nrows*self._ncols*2 + 2
-            s = <char*> sig_malloc(n * sizeof(char))
+            s = <char*> check_malloc(n * sizeof(char))
             k = 0
             sig_on()
             for i in range(self._nrows):
@@ -2041,7 +2044,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     if r == 0 or c == 0:
         return A
 
-    cdef signed char *buf = <signed char*>sig_malloc(size)
+    cdef signed char *buf = <signed char*>check_malloc(size)
     for i from 0 <= i < size:
         buf[i] = data[i]
 

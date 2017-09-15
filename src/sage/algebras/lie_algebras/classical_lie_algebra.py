@@ -116,16 +116,26 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.sl(QQ, 3, representation='matrix')
             sage: TestSuite(g).run()
+
+        TESTS:
+
+        Check that :trac:`23266` is fixed::
+
+            sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+            sage: isinstance(sl2.indices(), FiniteEnumeratedSet)
+            True
         """
         n = len(e)
         names = ['e%s'%i for i in range(1, n+1)]
         names += ['f%s'%i for i in range(1, n+1)]
         names += ['h%s'%i for i in range(1, n+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(names)
         LieAlgebraFromAssociative.__init__(self, e[0].parent(),
                                            gens=tuple(e + f + h),
                                            names=tuple(names),
-                                           index_set=tuple(names),
+                                           index_set=index_set,
                                            category=category)
         self._cartan_type = ct
 
@@ -262,9 +272,10 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         else:
             gens = self._f
         cur = gens[i]
-        for j in w:
+        for j in reversed(w):
             for k in range(-r.scalar(coroots[j])):
                 cur = self.bracket(gens[j], cur)
+            r = r.reflection(coroots[j], True)
         return cur
 
     @cached_method
@@ -307,13 +318,20 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
                 expanded = True
         return Family(basis)
 
-    # TODO: Uncomment once #16825 is done
-    #def affine(self, kac_moody=False):
-    #    """
-    #    Return the (untwisted) affine (Kac-Moody) Lie algebra of ``self``.
-    #    """
-    #    from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
-    #    return AffineLieAlgebra(self, kac_moody)
+    def affine(self, kac_moody=False):
+        """
+        Return the affine (Kac-Moody) Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: so5 = lie_algebras.so(QQ, 5, 'matrix')
+            sage: so5
+            Special orthogonal Lie algebra of rank 5 over Rational Field
+            sage: so5.affine()
+            Affine Special orthogonal Kac-Moody algebra of rank 5 over Rational Field
+        """
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+        return AffineLieAlgebra(self, kac_moody)
 
 class gl(LieAlgebraFromAssociative):
     r"""
@@ -335,6 +353,17 @@ class gl(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.gl(QQ, 4)
             sage: TestSuite(g).run()
+
+        TESTS:
+
+        Check that :trac:`23266` is fixed::
+
+            sage: gl2 = lie_algebras.gl(QQ, 2)
+            sage: isinstance(gl2.basis().keys(), FiniteEnumeratedSet)
+            True
+            sage: Ugl2 = gl2.pbw_basis()
+            sage: prod(Ugl2.gens())
+            PBW['E_0_0']*PBW['E_0_1']*PBW['E_1_0']*PBW['E_1_1']
         """
         MS = MatrixSpace(R, n, sparse=True)
         one = R.one()
@@ -348,9 +377,11 @@ class gl(LieAlgebraFromAssociative):
                 gens.append(mat)
         self._n = n
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(names)
         LieAlgebraFromAssociative.__init__(self, MS, tuple(gens),
                                            names=tuple(names),
-                                           index_set=tuple(names),
+                                           index_set=index_set,
                                            category=category)
 
     def _repr_(self):
@@ -402,6 +433,49 @@ class gl(LieAlgebraFromAssociative):
         """
         G = self.gens()
         return Family(self._indices, lambda i: G[self._indices.index(i)])
+
+    def monomial(self, i):
+        r"""
+        Return the basis element indexed by ``i``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: gl4 = lie_algebras.gl(QQ, 4)
+            sage: gl4.monomial('E_2_1')
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+            sage: gl4.monomial((2,1))
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+        """
+        if isinstance(i, tuple):
+            return self.basis()['E_{}_{}'.format(*i)]
+        return self.basis()[i]
+
+    class Element(LieAlgebraFromAssociative.Element):
+        def monomial_coefficients(self, copy=True):
+            r"""
+            Return the monomial coefficients of ``self``.
+
+            EXAMPLES::
+
+                sage: gl4 = lie_algebras.gl(QQ, 4)
+                sage: x = gl4.monomial('E_2_1') + 3*gl4.monomial('E_0_3')
+                sage: x.monomial_coefficients()
+                {'E_0_3': 3, 'E_2_1': 1}
+            """
+            d = {}
+            for k in self.value.nonzero_positions():
+                d['E_{}_{}'.format(*k)] = self.value[k]
+            return d
 
 class sl(ClassicalMatrixLieAlgebra):
     r"""
@@ -747,7 +821,8 @@ class f4(ExceptionalMatrixLieAlgebra):
     The matrix Lie algebra `\mathfrak{f}_4`.
 
     The simple Lie algebra `\mathfrak{f}_f` of type `F_4`. The matrix
-    representation is given following [HRT2000]_.
+    representation is given following [HRT2000]_ but indexed in the
+    reversed order (i.e., interchange 1 with 4 and 2 with 3).
     """
     def __init__(self, R):
         """
@@ -783,6 +858,9 @@ class f4(ExceptionalMatrixLieAlgebra):
         f[0][14,12] = 2*one
         f[1][15,13] = 2*one
 
+        # Our Cartan matrix convention is dual to that of [HRT2000]_
+        e.reverse()
+        f.reverse()
         ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['F', 4]), e, f)
 
 class g2(ExceptionalMatrixLieAlgebra):
@@ -978,7 +1056,10 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         names += ['f{}'.format(i) for i in range(1, num_sroots+1)]
         names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
-        index_set = p_roots + n_roots + list(alphacheck)
+        index_set = p_roots + list(alphacheck) + n_roots
+        names = tuple(names)
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(index_set)
         LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeffs, names, index_set,
                                                      category, prefix='E', bracket='[',
                                                      sorting_key=self._basis_key)
@@ -1054,7 +1135,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: K = L.basis().keys()
             sage: L._repr_generator(K[0])
             'E[alpha[2]]'
-            sage: L._repr_generator(K[-1])
+            sage: L._repr_generator(K[4])
             'h2'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():
@@ -1071,7 +1152,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: K = L.basis().keys()
             sage: L._latex_generator(K[0])
             'E_{\\alpha_{2}}'
-            sage: L._latex_generator(K[-1])
+            sage: L._latex_generator(K[4])
             'h_{2}'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():
@@ -1141,13 +1222,20 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         from sage.combinat.root_system.weyl_group import WeylGroup
         return WeylGroup(self._cartan_type)
 
-    # TODO: Uncomment once #16825 is done
-    #def affine(self, kac_moody=False):
-    #    """
-    #    Return the (untwisted) affine Lie algebra of ``self``.
-    #    """
-    #    from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
-    #    return AffineLieAlgebra(self, kac_moody)
+    def affine(self, kac_moody=False):
+        """
+        Return the affine Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: sp6 = lie_algebras.sp(QQ, 6)
+            sage: sp6
+            Lie algebra of ['C', 3] in the Chevalley basis
+            sage: sp6.affine()
+            Affine Kac-Moody algebra of ['C', 3] in the Chevalley basis
+        """
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+        return AffineLieAlgebra(self, kac_moody)
 
     # Useful in creating the UEA
     @cached_method

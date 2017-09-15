@@ -148,6 +148,7 @@ We can also make mutable copies of an immutable simplicial complex
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import integer_types
 
 # possible future directions for SimplicialComplex:
 #
@@ -226,11 +227,11 @@ def lattice_paths(t1, t2, length=None):
          [('a', 0), ('a', 3), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('c', 0), ('c', 3), ('c', 5)]]
-        sage: lattice_paths(list(range(3)), list(range(3)), length=2)
+        sage: lattice_paths(range(3), range(3), length=2)
         []
-        sage: lattice_paths(list(range(3)), list(range(3)), length=3)
+        sage: lattice_paths(range(3), range(3), length=3)
         [[(0, 0), (1, 1), (2, 2)]]
-        sage: lattice_paths(list(range(3)), list(range(3)), length=4)
+        sage: lattice_paths(range(3), range(3), length=4)
         [[(0, 0), (1, 1), (1, 2), (2, 2)],
          [(0, 0), (0, 1), (1, 2), (2, 2)],
          [(0, 0), (1, 1), (2, 1), (2, 2)],
@@ -238,6 +239,9 @@ def lattice_paths(t1, t2, length=None):
          [(0, 0), (0, 1), (1, 1), (2, 2)],
          [(0, 0), (1, 0), (1, 1), (2, 2)]]
     """
+    # Convert t1, t2 to tuples, in case they are (for example) Python 3 ranges.
+    t1 = tuple(t1)
+    t2 = tuple(t2)
     if length is None:
         # 0 x n (or k x 0) rectangle:
         if len(t1) == 0 or len(t2) == 0:
@@ -1388,7 +1392,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             This list is sorted to provide reliable indexing for the
             rows and columns of the matrices of differentials in the
-            associateed chain complex.
+            associated chain complex.
 
         EXAMPLES::
 
@@ -2093,11 +2097,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
                                                sort_facets=False, is_mutable=False)
         # now construct the range of dimensions in which to compute
         if dimensions is None:
-            dimensions = list(range(self.dimension() + 1))
+            dimensions = range(self.dimension() + 1)
             first = 0
         else:
             augmented = False
             first = dimensions[0]
+        dimensions = list(dimensions)
         differentials = {}
         # in the chain complex, compute the first dimension by hand,
         # and don't cache it: it may be differ from situation to
@@ -2294,13 +2299,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
         from sage.homology.homology_group import HomologyGroup
 
         if dim is not None:
-            if isinstance(dim, (list, tuple)):
+            if isinstance(dim, (list, tuple, range)):
                 low = min(dim) - 1
                 high = max(dim) + 2
             else:
                 low = dim - 1
                 high = dim + 2
-            dims = list(range(low, high))
+            dims = range(low, high)
         else:
             dims = None
 
@@ -2342,9 +2347,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
                             algorithm=algorithm)
 
         if dim is None:
-            dim = list(range(self.dimension() + 1))
+            dim = range(self.dimension() + 1)
         zero = HomologyGroup(0, base_ring)
-        if isinstance(dim, (list, tuple)):
+        if isinstance(dim, (list, tuple, range)):
             # Fix non-reduced answer.
             if subcomplex is None and not reduced and 0 in dim:
                 try:
@@ -2516,6 +2521,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: t0.add_face(('e', 'f', 'c'))
             sage: t0.homology()
             {0: Z, 1: 0, 2: 0}
+
+        Check that we've fixed the bug reported at :trac:`22880`::
+
+            sage: X = SimplicialComplex([[0], [1]])
+            sage: temp = X.faces(SimplicialComplex(()))
+            sage: X.add_face([0,1])
         """
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
@@ -2551,7 +2562,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         if L is None:
                             new_faces = all_new_faces[dim]
                         else:
-                            new_faces = all_new_faces[dim].difference(L.faces()[dim])
+                            new_faces = all_new_faces[dim].difference(L.n_cells(dim))
                         L_complex[dim] = L_complex[dim].union(new_faces)
                     else:
                         L_complex[dim] = all_new_faces[dim]
@@ -4172,7 +4183,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: s._is_numeric()
             False
         """
-        return all([isinstance(v, (int, Integer, long)) for v in self._vertex_set])
+        return all(isinstance(v, integer_types + (Integer,))
+                   for v in self._vertex_set)
 
     # @cached_method    when we switch to immutable SimplicialComplex
     def _translation_to_numeric(self):

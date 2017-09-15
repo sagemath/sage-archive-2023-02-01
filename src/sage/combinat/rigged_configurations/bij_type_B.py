@@ -123,7 +123,9 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
                 self.ret_rig_con[-1] = RiggedPartition(self.ret_rig_con[-1]._list,
                                                        self.ret_rig_con[-1].rigging,
                                                        self.ret_rig_con[-1].vacancy_numbers)
-                bij = KRTToRCBijectionTypeA2Odd(KRT.module_generators[0]) # Placeholder element
+                # Placeholder element
+                elt = KRT(*[C.module_generators[0] for C in KRT.crystals])
+                bij = KRTToRCBijectionTypeA2Odd(elt)
                 bij.ret_rig_con = KRT.rigged_configurations()(*self.ret_rig_con, use_vacancy_numbers=True)
                 bij.cur_path = self.cur_path
                 bij.cur_dims = self.cur_dims

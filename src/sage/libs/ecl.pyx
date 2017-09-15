@@ -9,20 +9,20 @@ Library interface to Embeddable Common Lisp (ECL)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "cysignals/signals.pxi"
-
 from libc.stdlib cimport abort
 from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
 from libc.signal cimport raise_ as signal_raise
 from posix.signal cimport sigaction, sigaction_t
+cimport cysignals.signals
 
 from sage.libs.gmp.types cimport mpz_t
+from sage.misc.misc import ECL_TMP
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from cpython.object cimport Py_EQ, Py_NE
@@ -280,6 +280,11 @@ def init_ecl():
     # *SAGE-LIST-OF-OBJECTS* to make it rooted in the reachable tree for the GC
     list_of_objects=cl_cons(Cnil,cl_cons(Cnil,Cnil))
     cl_set(string_to_object("*SAGE-LIST-OF-OBJECTS*"),list_of_objects)
+
+    cl_eval(string_to_object("""
+        (setf (logical-pathname-translations "TMP")
+              '(("**;*.*" "%s/**/*.*")))
+        """ % ECL_TMP))
 
     # We define our own error catching eval, apply and funcall/
     # Presently these routines are only converted to byte-code. If they

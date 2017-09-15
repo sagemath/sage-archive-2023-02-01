@@ -16,8 +16,8 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: b=Mat(RDF,2,3).basis()
-    sage: b[0]
+    sage: b = Mat(RDF,2,3).basis()
+    sage: b[0,0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
 
@@ -47,7 +47,8 @@ TESTS::
 from __future__ import absolute_import
 
 import math
-
+from collections import Iterator, Sequence
+        
 import sage.rings.real_double
 import sage.rings.complex_double
 
@@ -225,8 +226,11 @@ cdef class Matrix_double_dense(Matrix_dense):
         cdef cnumpy.npy_intp dims[2]
         dims[0] = self._nrows
         dims[1] = self._ncols
-        if isinstance(entries,(tuple, list)):
-            if len(entries)!=self._nrows*self._ncols:
+        if isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
+
+            if len(entries) != self._nrows * self._ncols:
                     raise TypeError("entries has wrong length")
 
             if coerce:
@@ -625,7 +629,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             9923.88955...
             sage: A.condition(p='frob')
             9923.88955...
-            sage: A.condition(p=Infinity)  # tol 2e-14
+            sage: A.condition(p=Infinity)  # tol 3e-14
             22738.50000000045
             sage: A.condition(p=-Infinity)  # tol 2e-14
             17.50000000000028
@@ -1697,7 +1701,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_right(b)
             Traceback (most recent call last):
             ...
-            LinAlgError: singular matrix
+            LinAlgError: Matrix is singular.
 
         The vector of constants needs the correct degree.  ::
 
@@ -1773,7 +1777,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         ALGORITHM:
 
         Uses the ``solve()`` routine from the SciPy ``scipy.linalg`` module,
-        after taking the tranpose of the coefficient matrix.
+        after taking the transpose of the coefficient matrix.
 
         EXAMPLES:
 
@@ -1784,7 +1788,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(1e-17) # fix noisy zeroes
+            sage: x = A.solve_left(b); x.zero_at(2e-17) # fix noisy zeroes
             (0.666666666..., 0.0, 0.333333333...)
             sage: x.parent()
             Vector space of dimension 3 over Real Double Field
@@ -1837,7 +1841,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.solve_left(b)
             Traceback (most recent call last):
             ...
-            LinAlgError: singular matrix
+            LinAlgError: Matrix is singular.
 
         The vector of constants needs the correct degree.  ::
 

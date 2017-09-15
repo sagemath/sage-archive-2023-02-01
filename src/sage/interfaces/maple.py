@@ -758,9 +758,9 @@ connection to a server running Maple; for hints, type
         except Exception:
             pager()('No source code could be found.')
 
-    def _help(self, str):
+    def _help(self, string):
         r"""
-        Return the Maple help on ``str``.
+        Return the Maple help on ``string``.
 
         EXAMPLES::
 
@@ -768,26 +768,26 @@ connection to a server running Maple; for hints, type
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
-        return os.popen('echo "?%s" | maple -q'%str).read()
+        return os.popen('echo "?%s" | maple -q' % string).read()
 
-    def help(self, str):
+    def help(self, string):
         """
-        Display Maple help about ``str``.
+        Display Maple help about ``string``.
 
-        This is the same as typing "?str" in the Maple console.
+        This is the same as typing "?string" in the Maple console.
 
         INPUT:
 
-        -  ``str`` - a string to search for in the maple help
+        -  ``string`` - a string to search for in the maple help
            system
 
         EXAMPLES::
 
-            sage: maple.help('digamma') #not tested
+            sage: maple.help('Psi')  # not tested
             Psi - the Digamma and Polygamma functions
             ...
         """
-        pager()(self._help(str))
+        pager()(self._help(string))
 
     def with_package(self, package):
         """

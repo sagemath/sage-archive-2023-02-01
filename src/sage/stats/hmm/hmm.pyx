@@ -21,18 +21,20 @@ AUTHOR:
    - William Stein, 2010-03
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL) v2+.
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-
-cdef extern from "math.h":
-    double log(double)
+from libc.math cimport log
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.finance.time_series cimport TimeSeries
 from sage.matrix.matrix import is_Matrix

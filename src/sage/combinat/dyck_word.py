@@ -1098,6 +1098,103 @@ class DyckWord(CombinatorialElement):
                 height -= 1
         return pos
 
+    def ascent_prime_decomposition(self):
+        r"""
+        Decompose this Dyck word into a sequence of ascents and prime
+        Dyck paths.
+
+        A Dyck word is *prime* if it is complete and has precisely
+        one return - the final step.  In particular, the empty Dyck
+        path is not prime.  Thus, the factorization is unique.
+
+        This decomposition yields a sequence of odd length: the words
+        with even indices consist of up steps only, the words with
+        odd indices are prime Dyck paths.  The concatenation of the
+        result is the original word.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,1,1,0,1,0,1,1,1,1,0,1])
+            sage: D.ascent_prime_decomposition()
+            [[1, 1], [1, 0], [], [1, 0], [1, 1, 1], [1, 0], [1]]
+
+            sage: DyckWord([]).ascent_prime_decomposition()
+            [[]]
+
+            sage: DyckWord([1,1]).ascent_prime_decomposition()
+            [[1, 1]]
+
+            sage: DyckWord([1,0,1,0]).ascent_prime_decomposition()
+            [[], [1, 0], [], [1, 0], []]
+
+        """
+        n = self.length()
+        H = self.heights()
+        result = []
+        i = 0
+        height = 0
+        up = 0
+        while i < n:
+            j = i+1
+            while H[j] != height:
+                if j == n:
+                    i += 1
+                    height += 1
+                    up += 1
+                    break
+                j += 1
+            else:
+                result.extend([DyckWord([open_symbol]*up),
+                               DyckWord(self[i:j])])
+                i = j
+                up = 0
+
+        result.append(DyckWord([open_symbol]*up))
+        return result
+
+    def catalan_factorization(self):
+        r"""
+        Decompose this Dyck word into a sequence of complete Dyck
+        words.
+
+        Each element of the list returned is a (possibly empty)
+        complete Dyck word.  The original word is obtained by placing
+        an up step between each of these complete Dyck words.  Thus,
+        the number of words returned is one more than the final
+        height.
+
+        See Section 1.2 of [CC1982]_ or Lemma 9.1.1 of [Lot2005]_.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,1,1,0,1,0,1,1,1,1,0,1])
+            sage: D.catalan_factorization()
+            [[], [], [1, 0, 1, 0], [], [], [1, 0], []]
+
+            sage: DyckWord([]).catalan_factorization()
+            [[]]
+
+            sage: DyckWord([1,1]).catalan_factorization()
+            [[], [], []]
+
+            sage: DyckWord([1,0,1,0]).catalan_factorization()
+            [[1, 0, 1, 0]]
+        """
+        H = self.heights()
+        h = 0
+        i = 0
+        j = n = self.length()
+        result = []
+        while i <= n:
+            if H[j] == h or j == i:
+                result.append(DyckWord(self[i:j]))
+                h += 1
+                i = j+1
+                j = n
+            else:
+                j -= 1
+        return result
+
     def number_of_initial_rises(self):
         r"""
         Return the length of the initial run of ``self``
@@ -2178,7 +2275,7 @@ class DyckWord_complete(DyckWord):
             i = j
             p += 1
 
-        if len(stack) > 0:
+        if stack:
             raise ValueError("incorrect Dyck word")
 
         return partition

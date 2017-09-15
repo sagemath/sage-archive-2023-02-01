@@ -146,7 +146,7 @@ class BCHCode(CyclicCode):
         s = Zmod(length)(q).multiplicative_order()
         if gcd(jump_size, q ** s - 1) != 1:
             raise ValueError("jump_size must be coprime with the order of "
-                             "the multicative group of the splitting field")
+                             "the multiplicative group of the splitting field")
 
         D = [(offset + jump_size * i) % length
              for i in range(designed_distance - 1)]

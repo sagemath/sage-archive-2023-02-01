@@ -195,7 +195,7 @@ object. In many cases, it will just work. In particular, it should be able to
 convert expressions entirely consisting of:
 
 - numbers, i.e. integers, floats, complex numbers;
-- functions and named constants also present in Sage, where Sage knows how to 
+- functions and named constants also present in Sage, where Sage knows how to
   translate the function or constant's name from Giac's
 - symbolic variables whose names don't pathologically overlap with
   objects already defined in Sage.
@@ -205,12 +205,12 @@ This method will not work when Giac's output includes functions unknown to Sage.
 If you want to convert more complicated Giac expressions, you can
 instead call ``GiacElement._sage_()`` and supply a translation dictionary::
 
-    sage: g = giac('NewFn(x)')       
-    sage: g._sage_(locals={'NewFn': sin})   
+    sage: g = giac('NewFn(x)')
+    sage: g._sage_(locals={'NewFn': sin})
     sin(x)
 
-Moreover, new conversions can be permanently added using Pynac's 
-``register_symbol``, and this is the recommended approach for library code. 
+Moreover, new conversions can be permanently added using Pynac's
+``register_symbol``, and this is the recommended approach for library code.
 For more details, see the documentation for ``._sage_()``.
 """
 
@@ -734,35 +734,34 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         """
         return ":="
 
-    def _help(self, str):
+    def _help(self, string):
         r"""
-        Returns the Giac help on ``str``.
+        Return the Giac help on ``string``.
 
         EXAMPLES::
 
             sage: giac._help('gcd')  # not tested ; output may vary (LANG)
             "...gcd - greatest common divisor of polynomials...
         """
-        return os.popen('cas_help %s'%str).read()
-        # return os.popen('echo "?%s" | giac'%str).read()
+        return os.popen('cas_help %s' % string).read()
+        # return os.popen('echo "?%s" | giac' % string).read()
 
-    def help(self, str):
+    def help(self, string):
         """
-        Display Giac help about str. This is the same as typing "?str" in
-        the Giac console.
+        Display Giac help about string.
+
+        This is the same as typing "?string" in the Giac console.
 
         INPUT:
 
-        -  ``str`` - a string to search for in the giac help
-           system
-
+        -  ``string`` -- a string to search for in the giac help system
 
         EXAMPLES::
 
             sage: giac.help('Psi')         # not tested - depends of giac and $LANG
             Psi(a,n)=nth-derivative of the function DiGamma (=ln@Gamma) at point a (Psi(a,0)=Psi(a))...
         """
-        pager()(self._help(str))
+        pager()(self._help(string))
 
     def clear(self, var):
         """
@@ -1004,7 +1003,8 @@ class GiacElement(ExpectElement):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
         should be a  Giac matrix.
-        Warning: It is slow, don't convert big matrices.
+
+        .. WARNING:: It is slow, do not convert big matrices.
 
         EXAMPLES::
 
@@ -1030,13 +1030,12 @@ class GiacElement(ExpectElement):
         entries = [[R(self[r, c]) for c in range(m)] for r in range(n)]
         return M(entries)
 
-
     def _sage_(self, locals={}):
         r"""
         Convert a giac expression back to a Sage expression, if possible.
 
-        NOTES: 
-        
+        NOTES:
+
         This method works successfully when Giac returns a result
         or list of results that consist only of:
         - numbers, i.e. integers, floats, complex numbers;
@@ -1044,53 +1043,60 @@ class GiacElement(ExpectElement):
             - Sage knows how to translate the function or constant's name
             from Giac's naming scheme through the symbols_table, or
             - you provide a translation dictionary ``locals``.
-            
+
         New conversions can be added using Pynac's ``register_symbol``.
         This is the recommended approach for library code.
 
-        Warning: List conversion is slow.
+        .. WARNING:: List conversion is slow.
 
         EXAMPLES::
 
-        sage: m = giac('x^2 + 5*y')
-        sage: m.sage()
-        x^2 + 5*y
+            sage: m = giac('x^2 + 5*y')
+            sage: m.sage()
+            x^2 + 5*y
 
         ::
 
-        sage: m = giac('sin(2*sqrt(1-x^2)) * (1 - cos(1/x))^2')
-        sage: m.trigexpand().sage()
-        2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
+            sage: m = giac('sin(2*sqrt(1-x^2)) * (1 - cos(1/x))^2')
+            sage: m.trigexpand().sage()
+            2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
 
         Converting a custom name using the ``locals`` dictionary::
-        
-        sage: ex = giac('myFun(x)')
-        sage: ex._sage_({'myFun': sin})
-        sin(x)
-        
+
+            sage: ex = giac('myFun(x)')
+            sage: ex._sage_({'myFun': sin})
+            sin(x)
+
         Same but by adding a new entry to the ``symbols_table``::
-        
-        sage: ex = giac('myFun(x)')
-        sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
-        sage: ex._sage_()
-        sin(x)
+
+            sage: ex = giac('myFun(x)')
+            sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
+            sage: ex._sage_()
+            sin(x)
+
+        Conversion of lists::
+
+            sage: L = giac('solve((2/3)^x-2, x)'); L
+            list[ln(2)/(ln(2)-ln(3))]
+            sage: L.sage()
+            [-ln(2)/(ln(3) - ln(2))]
         """
         from sage.libs.pynac.pynac import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string
-        
+
         result = repr(self) # string representation
-        
-        if str(self.type()) != 'DOM_LIST' :   
-            
+
+        if str(self.type()) not in ['DOM_LIST', 'vector', 'vecteur']:
+
             # Merge the user-specified locals dictionary and the symbol_table
             # (locals takes priority)
             lsymbols = symbol_table['giac'].copy()
-            lsymbols.update(locals)    
-            
+            lsymbols.update(locals)
+
             try:
                 return symbolic_expression_from_string(result, lsymbols,
                     accept_sequence=True)
-                    
+
             except Exception:
                 raise NotImplementedError("Unable to parse Giac output: %s" % result)
         else:

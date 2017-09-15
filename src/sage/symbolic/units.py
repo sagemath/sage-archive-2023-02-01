@@ -1044,10 +1044,10 @@ class Units(ExtraTabCompletion):
     """
     A collection of units of some type.
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: units.power
-            Collection of units of power: cheval_vapeur horsepower watt
+        sage: units.power
+        Collection of units of power: cheval_vapeur horsepower watt
     """
     def __init__(self, data, name=''):
         """
@@ -1092,9 +1092,10 @@ class Units(ExtraTabCompletion):
         self.__data = state[1]
         self.__units = {}
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two collections of units, or a collection of units with some other object.
+        Compare two collections of units, or a collection of units
+        with some other object.
 
         EXAMPLES::
 
@@ -1106,9 +1107,24 @@ class Units(ExtraTabCompletion):
             False
         """
         if not isinstance(other, Units):
-            return cmp(type(self), type(other))
-        return cmp((self.__name, self.__data), (other.__name, other.__data))
+            return False
+        return (self.__name, self.__data) == (other.__name, other.__data)
 
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: units.length != 5
+            True
+            sage: units.length != units.length
+            False
+            sage: units.length != units.mass
+            True
+        """
+        return not (self == other)
+    
     def _tab_completion(self):
         """
         Return tab completions.

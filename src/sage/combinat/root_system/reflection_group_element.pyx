@@ -26,7 +26,7 @@ from __future__ import print_function
 from sage.misc.cachefunc import cached_method#, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.arith.misc import lcm
+from sage.arith.functions import lcm
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap3 import gap3

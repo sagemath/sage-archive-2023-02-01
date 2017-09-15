@@ -182,6 +182,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
     :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
     :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
+    :meth:`bounded_affine_permutation` | Returns a partial permutation representing the bounded affine permutation of a matrix.
     :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
     :meth:`descents_composition_first` | Returns the smallest element of a descent class.
     :meth:`descents_composition_last` | Returns the largest element of a descent class.
@@ -6222,6 +6223,23 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         return factorial(self.n)
 
+    def degree(self):
+        """
+        Return the degree of ``self``.
+
+        This is the cardinality `n` of the set ``self`` acts on.
+
+        EXAMPLES::
+
+            sage: Permutations(0).degree()
+            0
+            sage: Permutations(1).degree()
+            1
+            sage: Permutations(5).degree()
+            5
+        """
+        return self.n
+
     def degrees(self):
         """
         Return the degrees of ``self``.
@@ -6986,6 +7004,62 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     return value
 
+
+def bounded_affine_permutation(A):
+    r"""
+    Return the bounded affine permutation of a matrix.
+
+    The *bounded affine permutation* of a matrix `A` with entries in `R`
+    is a partial permutation of length `n`, where `n` is the number of
+    columns of `A`. The entry in position `i` is the smallest value `j`
+    such that column `i` is in the span of columns `i+1, \ldots, j`,
+    over `R`, where column indices are taken modulo `n`.
+    If column `i` is the zero vector, then the permutation has a
+    fixed point at `i`.
+
+    INPUT:
+
+    - ``A`` -- matrix with entries in a ring `R`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.permutation import bounded_affine_permutation
+        sage: A = Matrix(ZZ, [[1,0,0,0], [0,1,0,0]])
+        sage: bounded_affine_permutation(A)
+        [5, 6, 3, 4]
+
+        sage: A = Matrix(ZZ, [[0,1,0,1,0], [0,0,1,1,0]])
+        sage: bounded_affine_permutation(A)
+        [1, 4, 7, 8, 5]
+
+    REFERENCES:
+
+    - [KLS2013]_
+    """
+    n = A.ncols()
+    R = A.base_ring()
+    from sage.modules.free_module import FreeModule
+    from sage.modules.free_module import span
+    z = FreeModule(R, A.nrows()).zero()
+    v = A.columns()
+    perm = []
+    for j in range(n):
+        if not v[j]:
+            perm.append(j + 1)
+            continue
+        V = span([z], R)
+        for i in range(j + 1, j + n + 1):
+            index = i % n
+            V = V + span([v[index]], R)
+            if not V.dimension():
+                continue
+            if v[j] in V:
+                perm.append(i + 1)
+                break
+    S = Permutations(2 * n, n)
+    return S(perm)
+
+
 class StandardPermutations_descents(StandardPermutations_n_abstract):
     """
     Permutations of `\{1, \ldots, n\}` with a fixed set of descents.
@@ -7701,7 +7775,7 @@ def to_standard(p, cmp=None, key=None):
 
     Deprecation of ``cmp`` in favor of ``key``::
 
-        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: int(-1)*cmp(x,y))
+        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: (x<y)-(x>y))
         doctest:warning...:
         DeprecationWarning: do not use 'cmp' but rather 'key' for comparison
         See http://trac.sagemath.org/21435 for details.

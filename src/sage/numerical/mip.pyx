@@ -49,15 +49,12 @@ A mixed integer linear program can give you an answer:
 
   #. You have to create an instance of :class:`MixedIntegerLinearProgram` and
      -- in our case -- specify that it is a minimization.
-  #. Create a dictionary ``w`` of integer variables ``w`` via ``w =
-     p.new_variable(integer=True)`` (note that **by default all variables are
-     non-negative**, cf :meth:`~MixedIntegerLinearProgram.new_variable`).
+  #. Create a dictionary ``w`` of non-negative integer variables ``w`` via ``w =
+     p.new_variable(integer=True, nonnegative=True)``.
   #. Add those three equations as equality constraints via
      :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`.
   #. Also add the inequality constraint.
   #. Add an inequality constraint `w_3 \geq 1` to exclude the trivial solution.
-  #. By default, all variables are non-negative. We remove that constraint
-     via ``p.set_min(variable, None)``, see :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`.
   #. Specify the objective function via :meth:`set_objective <sage.numerical.mip.MixedIntegerLinearProgram.set_objective>`.
      In our case that is just `w_3`. If it
      is a pure constraint satisfaction problem, specify it as ``None``.
@@ -74,7 +71,6 @@ The following example shows all these steps::
     sage: p.add_constraint(2*w[2] - 3*w[3] == 0)
     sage: p.add_constraint(w[0] - w[1] - w[2] >= 0)
     sage: p.add_constraint(w[3] >= 1)
-    sage: _ = [ p.set_min(w[i], None) for i in range(1,4) ]
     sage: p.set_objective(w[3])
     sage: p.show()
     Minimization:
@@ -87,9 +83,9 @@ The following example shows all these steps::
       - x_3 <= -1.0
     Variables:
       x_0 is an integer variable (min=0.0, max=+oo)
-      x_1 is an integer variable (min=-oo, max=+oo)
-      x_2 is an integer variable (min=-oo, max=+oo)
-      x_3 is an integer variable (min=-oo, max=+oo)
+      x_1 is an integer variable (min=0.0, max=+oo)
+      x_2 is an integer variable (min=0.0, max=+oo)
+      x_3 is an integer variable (min=0.0, max=+oo)
     sage: print('Objective Value: {}'.format(p.solve()))
     Objective Value: 2.0
     sage: for i, v in p.get_values(w).iteritems():
@@ -156,6 +152,12 @@ also allowed::
       b[3] = x_1 is a continuous variable (min=-oo, max=+oo)
       a[(4, 'string', Rational Field)] = x_2 is a continuous variable (min=-oo, max=+oo)
       b[2] = x_3 is a continuous variable (min=-oo, max=+oo)
+
+Upper/lower bounds on a variable can be specified either as separate constraints
+(see :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`) or
+using the methods :meth:`set_max <sage.numerical.mip.MixedIntegerLinearProgram.set_max>`
+and :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`
+respectively.
 
 The default MIP variable
 ------------------------
@@ -297,11 +299,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         used.
 
       - Defaults to ``False``.
-
-    .. WARNING::
-
-        All LP variables are non-negative by default (see :meth:`new_variable`
-        and :meth:`set_min`).
 
     .. SEEALSO::
 
@@ -531,28 +528,68 @@ cdef class MixedIntegerLinearProgram(SageObject):
     linear_function = __call__
 
     def _repr_(self):
-         r"""
-         Returns a short description of the ``MixedIntegerLinearProgram``.
+        r"""
+        Return a short description of the ``MixedIntegerLinearProgram``.
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-             sage: v = p.new_variable(nonnegative=True)
-             sage: p.add_constraint(v[1] + v[2], max=2)
-             sage: print(p)
-             Mixed Integer Program ( maximization, 2 variables, 1 constraints )
-         """
-         cdef GenericBackend b = self._backend
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: v = p.new_variable(binary=True)
+            sage: p.add_constraint(v[1] + v[2], max=1)
+            sage: p
+            Boolean Program (no objective, 2 variables, 1 constraint)
+            sage: p.set_objective(1); p
+            Boolean Program (constant objective, 2 variables, 1 constraint)
+            sage: p.set_objective(v[1]); p
+            Boolean Program (maximization, 2 variables, 1 constraint)
+        """
+        cdef GenericBackend b = self._backend
 
-         return ("Mixed Integer Program "+
+        cdef int nvars = b.ncols()
+        cdef int i
 
-                 ( "\"" +self._backend.problem_name()+ "\""
-                   if (str(self._backend.problem_name()) != "") else "")+
+        cdef int have_int = 0, have_bool = 0, have_cont = 0
+        for i in range(nvars):
+            if b.is_variable_binary(i):
+                have_bool = 1
+            elif b.is_variable_integer(i):
+                have_int = 1
+            else:
+                have_cont = 1
 
-                 " ( " + ("maximization" if b.is_maximization() else "minimization" ) +
+        if have_cont:
+            if have_int or have_bool:
+                kind = "Mixed Integer Program"
+            else:
+                kind = "Linear Program"
+        elif have_int:
+            kind = "Integer Program"
+        elif have_bool:
+            kind = "Boolean Program"
+        else:
+            # We have no variables...
+            kind = "Mixed Integer Program"
 
-                 ", " + str(b.ncols()) + " variables, " +
-                 str(b.nrows()) + " constraints )")
+        if all(b.objective_coefficient(i) == 0 for i in range(nvars)):
+            if b.objective_constant_term():
+                minmax = "constant objective"
+            else:
+                minmax = "no objective"
+        elif b.is_maximization():
+            minmax = "maximization"
+        else:
+            minmax = "minimization"
+
+        def plural(num, noun):
+            if num != 1:
+                noun = noun + "s"
+            return f"{num} {noun}"
+
+        name = b.problem_name()
+        if name:
+            kind += f' "{name}"'
+
+        return f"{kind} ({minmax}, {plural(b.ncols(), 'variable')}, {plural(b.nrows(), 'constraint')})"
 
     def __copy__(self):
         r"""
@@ -614,7 +651,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: cp.solve()
             6.0
 
-        TEST:
+        TESTS:
 
         Test that `deepcopy` makes actual copies but preserves identities::
 
@@ -690,7 +727,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.set_problem_name("Test program")
             sage: p
-            Mixed Integer Program "Test program" ( maximization, 0 variables, 0 constraints )
+            Mixed Integer Program "Test program" (no objective, 0 variables, 0 constraints)
         """
         self._backend.problem_name(name)
 
@@ -710,7 +747,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         .. SEEALSO::
 
             - :meth:`set_min`, :meth:`get_min` -- set/get the lower bound of a
-              variable. Note that by default, all variables are non-negative.
+              variable.
 
             - :meth:`set_max`, :meth:`get_max` -- set/get the upper bound of a
               variable.
@@ -1074,7 +1111,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['x'] + p['y'] <= 1)
             sage: p.add_constraint(0 <= 3*p['y'] + p['x'] <= 2)
             sage: P = p.polyhedron(); P
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
 
         3-D Polyhedron::
 
@@ -1083,7 +1120,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['y'] + p['z'] + 3*p['x'] <= 1)
             sage: p.add_constraint(0 <= 2*p['z'] + p['x'] + 3*p['y'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 8 vertices
 
         An empty polyhedron::
 
@@ -1093,14 +1130,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(2*v['y'] + v['z'] + 3*v['x'] <= 1)
             sage: p.add_constraint(2*v['z'] + v['x'] + 3*v['y'] >= 2)
             sage: P = p.polyhedron(); P
-            The empty polyhedron in QQ^3
+            The empty polyhedron in RDF^3
 
         An unbounded polyhedron::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
 
         A square (see :trac:`14395`) ::
 
@@ -1111,7 +1148,31 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint( y <= 1 )
             sage: p.add_constraint( y >= -1 )
             sage: p.polyhedron()
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
+
+        We can also use a backend that supports exact arithmetic::
+
+            sage: p = MixedIntegerLinearProgram(solver='PPL')
+            sage: x,y = p['x'], p['y']
+            sage: p.add_constraint( x <= 1 )
+            sage: p.add_constraint( x >= -1 )
+            sage: p.add_constraint( y <= 1 )
+            sage: p.add_constraint( y >= -1 )
+            sage: p.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
+        TESTS:
+
+        Check if :trac:`23326` is fixed::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x, y = p['x'], p['y']
+            sage: p.set_min(x, 0); p.set_min(y, 0)
+            sage: p.set_objective(3.5*x + 2.5*y)
+            sage: p.add_constraint(x+y <= 10)
+            sage: p.add_constraint(18.5*x + 5.1*y <= 110.3)
+            sage: p.polyhedron()
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         cdef GenericBackend b = self._backend
@@ -2185,8 +2246,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         .. WARNING::
 
-            By default, all variables of a LP are assumed to be
-            non-negative. See :meth:`set_min` to change it.
+            By default, no additional assumption is made on the domain of an LP
+            variable. See :meth:`set_min` and :meth:`set_max` to change it.
 
         EXAMPLES:
 
@@ -2555,12 +2616,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Return the value of the currently best known bound.
 
-        This method returns the current best upper (resp. lower) bound on the
-        optimal value of the objective function in a maximization
-        (resp. minimization) problem. It is equal to the output of
-        :meth:get_objective_value if the MILP found an optimal solution, but it
-        can differ if it was interrupted manually or after a time limit (cf
-        :meth:solver_parameter).
+        This method returns the current best upper (resp. lower) bound
+        on the optimal value of the objective function in a
+        maximization (resp. minimization) problem. It is equal to the
+        output of :meth:`get_objective_value` if the MILP found an
+        optimal solution, but it can differ if it was interrupted
+        manually or after a time limit (cf :meth:`solver_parameter`).
 
         .. NOTE::
 
@@ -2719,7 +2780,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Raise exception if exist lower bound
         for constraint in self.constraints():
-            if constraint[0] != None:
+            if constraint[0] is not None:
                 raise ValueError('Problem constraints cannot have lower bounds')
 
         # Construct 'c'

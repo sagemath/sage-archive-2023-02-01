@@ -377,20 +377,10 @@ do.
 
          sage --sdist
 
-2. To make a binary distribution with your currently installed packages,  
-   type:
+   The result is placed in the directory "$SAGE_ROOT/dist/".
 
-         sage --bdist
-
-3. To make a binary that will run on the widest range of target  
-   machines, set the SAGE_FAT_BINARY environment variable to "yes"  
-   before building Sage:  
-
-         export SAGE_FAT_BINARY="yes"
-         make distclean && make
-         ./sage --bdist
-
-In all cases, the result is placed in the directory "$SAGE_ROOT/dist/".  
+2. To make a binary distribution with your currently installed packages,
+   visit https://github.com/sagemath/binary-pkg
 
 
 Changes to Included Software

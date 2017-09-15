@@ -7508,14 +7508,13 @@ class GenericGraph(GenericGraph_pyx):
                     if len(cc) == 1:
                         break
 
-                    # Adding the corresponding constraint
-                    if verbose_constraints:
-                        print("Adding a constraint on set", cc[0])
-
-
-                    p.add_constraint(p.sum(b[u,v] for u,v in
-                                         g.edge_boundary(cc[0], labels = False)),
-                                     min = 1)
+                    # Adding the corresponding constraints
+                    for c in cc:
+                        if verbose_constraints:
+                            print("Adding a constraint on set", c)
+                        p.add_constraint(p.sum(b[u,v] for u,v in
+                                                   g.edge_boundary(c, labels = False)),
+                                             min = 1)
 
                     try:
                         p.solve(log = verbose)
@@ -7559,13 +7558,13 @@ class GenericGraph(GenericGraph_pyx):
                     if len(cc) == 1:
                         break
 
-                    # Adding the corresponding constraint
-                    if verbose_constraints:
-                        print("Adding a constraint on set", cc[0])
-
-                    p.add_constraint(p.sum(B(u,v) for u,v in
-                                         g.edge_boundary(cc[0], labels = False)),
-                                     min = 2)
+                    # Adding the corresponding constraints
+                    for c in cc:
+                        if verbose_constraints:
+                            print("Adding a constraint on set", c)
+                        p.add_constraint(p.sum(B(u,v) for u,v in
+                                                   g.edge_boundary(c, labels = False)),
+                                             min = 2)
 
                     try:
                         p.solve(log = verbose)

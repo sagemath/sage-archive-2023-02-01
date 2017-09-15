@@ -550,7 +550,7 @@ def Omega_ge(a, exponents):
 
     TESTS::
 
-        sage: Omega_ge(0, (2, 2, 1, 1, 1, 1, 1, -1, -1))[0].number_of_terms()  # long time
+        sage: Omega_ge(0, (2, 2, 1, 1, 1, 1, 1, -1, -1))[0].number_of_terms()  # untested (too long, 1 min)
         27837
 
     ::

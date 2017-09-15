@@ -185,20 +185,22 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
         """
-        if (isinstance(children, str)):  # if the input is the repr of a binary tree
+        if isinstance(children, str):  # if the input is the repr of a binary tree
             children = children.replace(".", "None")
             from ast import literal_eval
             children = literal_eval(children)
+
         if children is None:
             children = []
-        elif (children == [] or children == () or
-              isinstance(children, (Integer, int))):
-            children = [None, None]
-        if (children.__class__ is self.__class__ and
-                children.parent() == parent):
+        elif isinstance(children, (list, tuple)) and not children:
+            E = self.__class__(parent, None, check=check)
+            children = [E, E]
+        elif (children.__class__ is self.__class__ and
+              children.parent() == parent):
             children = list(children)
         else:
-            children = [self.__class__(parent, x) for x in children]
+            children = [x if (x.__class__ is self.__class__ and  x.parent() == parent)
+                        else self.__class__(parent, x, check=check) for x in children]
         ClonableArray.__init__(self, parent, children, check=check)
 
     def check(self):
@@ -3269,10 +3271,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                 o
                / \
               o   o
-             /    
-            o     
-             \    
-              o  
+             /
+            o
+             \
+              o
             sage: x.under_decomposition() == [g,r,g,r]
             True
         """
@@ -3408,7 +3410,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                         rt = c_right_list.pop()
                         t = t.under(rt)
                 yield t
-        
+
     def sylvester_class(self, left_to_right=False):
         r"""
         Iterate over the sylvester class corresponding to the binary tree
@@ -4261,7 +4263,7 @@ class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
             sage: it = iter(FB)
             sage: (next(it), next(it), next(it), next(it), next(it))
-            (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]]) 
+            (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]])
             sage: next(it).parent()
             Binary trees
             sage: FB([])
@@ -4800,14 +4802,14 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         """
         LT = self.parent()._element_constructor_
         if not self:
-            return LT([], label=letter)
+            return LT([], label=letter, check=False)
         else:
             if letter <= self.label():
                 fils = self[0].binary_search_insert(letter)
-                return LT([fils, self[1]], label=self.label())
+                return LT([fils, self[1]], label=self.label(), check=False)
             else:
                 fils = self[1].binary_search_insert(letter)
-                return LT([self[0], fils], label=self.label())
+                return LT([self[0], fils], label=self.label(), check=False)
 
     def semistandard_insert(self, letter):
         """

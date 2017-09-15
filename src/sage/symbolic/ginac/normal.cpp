@@ -467,12 +467,11 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 	exvector nums, dens;
 	nums.reserve(seq.size()+1);
 	dens.reserve(seq.size()+1);
-	auto it = seq.begin(), itend = seq.end();
-	while (it != itend) {
-		ex n = ex_to<basic>(recombine_pair_to_ex(*it)).normal(repl, rev_lookup, level-1);
+        for (const auto& pair : seq) {
+		const ex& term = recombine_pair_to_ex(pair);
+		ex n = ex_to<basic>(term).normal(repl, rev_lookup, level-1);
 		nums.push_back(n.op(0));
 		dens.push_back(n.op(1));
-		it++;
 	}
 	ex n = overall_coeff.normal(repl, rev_lookup, level-1);
 	nums.push_back(n.op(0));
@@ -528,12 +527,11 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 	exvector num; num.reserve(seq.size());
 	exvector den; den.reserve(seq.size());
 	ex n;
-	auto it = seq.begin(), itend = seq.end();
-	while (it != itend) {
-		n = ex_to<basic>(recombine_pair_to_ex(*it)).normal(repl, rev_lookup, level-1);
+        for (const auto& pair : seq) {
+		const ex& term = recombine_pair_to_ex(pair);
+		n = ex_to<basic>(term).normal(repl, rev_lookup, level-1);
 		num.push_back(n.op(0));
 		den.push_back(n.op(1));
-		it++;
 	}
 	n = overall_coeff.normal(repl, rev_lookup, level-1);
 	num.push_back(n.op(0));

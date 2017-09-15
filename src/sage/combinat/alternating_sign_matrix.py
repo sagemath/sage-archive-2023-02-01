@@ -1329,9 +1329,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         """
         n = self._n
         corner = MatrixSpace(ZZ, n+1)(corner)
-        asm = [[corner[i+1,j+1]+corner[i,j]-corner[i,j+1]-corner[i+1,j]
-                for j in range(n)]
-               for i in range(n)]
+        asm = corner[1:,1:] + corner[:n,:n] - corner[:n,1:] - corner[1:,:n]
         return self.element_class(self, self._matrix_space(asm))
 
 

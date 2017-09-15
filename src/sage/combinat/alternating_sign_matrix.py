@@ -1330,8 +1330,7 @@ class AlternatingSignMatrices(UniqueRepresentation, Parent):
         n = self._n
         corner = MatrixSpace(ZZ, n+1)(corner)
         asm = corner[1:,1:] + corner[:n,:n] - corner[:n,1:] - corner[1:,:n]
-        return self.element_class(self, self._matrix_space(asm))
-
+        return self.element_class(self, asm)
 
     def from_height_function(self, height):
         r"""

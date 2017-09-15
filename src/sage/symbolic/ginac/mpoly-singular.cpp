@@ -47,8 +47,10 @@
 
 namespace GiNaC {
 
-void Log(const power_ocvector_map& m)
+void Log(const power_ocvector_map& m, std::string str)
 {
+        if (not str.empty())
+                std::cerr << str << ":\n";
         for (auto item : m) {
                 std::cerr << item.first << ":\n";
                 Log(item.second);

@@ -464,7 +464,9 @@ std::ostream& operator<<(std::ostream& os, const std::pair<const Key, Value>& p)
 }
 
 template<typename Container>
-void Log(const Container& c) {
+void Log(const Container& c, std::string str="") {
+        if (not str.empty())
+                std::cerr << str << ":\n";
         for(typename Container::const_iterator it = c.begin();
                                                         it != c.end(); ++it)
                 std::cerr << *it << '\n';

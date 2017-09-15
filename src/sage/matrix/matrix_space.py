@@ -82,6 +82,18 @@ from sage.categories.enumerated_sets import EnumeratedSets
 _Rings = Rings()
 _Fields = Fields()
 
+is_MatrixGroupElement = ArithmeticSubgroupElement = None
+def late_import():
+    """
+    Import the objects/modules after build (when needed).
+
+    TESTS::
+
+        sage: sage.matrix.matrix_space.late_import()
+    """
+    global is_MatrixGroupElement, ArithmeticSubgroupElement
+    from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
+    from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
 
 def is_MatrixSpace(x):
     """
@@ -332,6 +344,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
+        late_import()
 
     def cardinality(self):
         r"""
@@ -696,8 +709,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 if self.base_ring().has_coerce_map_from(x.base_ring()):
                     return self(x)
                 raise TypeError("no canonical coercion")
-        from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
-        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
         if ((is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement))
             and self.base_ring().has_coerce_map_from(x.base_ring())):
             return self(x)
@@ -1515,10 +1526,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
-        from sage.groups.matrix_gps.group_element import \
-            is_MatrixGroupElement
-        from sage.modular.arithgroup.arithgroup_element import \
-            ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
         if isinstance(x, (types.GeneratorType,)):

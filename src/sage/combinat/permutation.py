@@ -1199,8 +1199,9 @@ class Permutation(CombinatorialElement):
         # build the dictionary of entries since the matrix is
         # extremely sparse
         entries = { (v-1, i): 1 for i, v in enumerate(self) }
-        M = MatrixSpace(ZZ, len(self), sparse = True)
-        return Matrix_integer_sparse(M, entries, False, False)
+        M = MatrixSpace(ZZ, len(self), sparse=True)
+        return M(entries)
+        # return Matrix_integer_sparse(M, entries, False, False)
 
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):

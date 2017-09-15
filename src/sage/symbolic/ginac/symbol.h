@@ -89,6 +89,7 @@ public:
 	std::string get_name() const { return name; }
 	unsigned get_domain() const { return domain; }
 	void set_domain(unsigned d);
+        void set_domain_from_ex(const ex& expr);
 	void set_info(unsigned flag, bool value=true) { iflags.set(flag, value); }
 	std::string get_texname() const { return TeX_name; }
 	void set_texname(const std::string & t) { TeX_name = t; }

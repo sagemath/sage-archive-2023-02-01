@@ -293,6 +293,23 @@ void symbol::set_domain(unsigned d)
         }
 }
 
+void symbol::set_domain_from_ex(const ex& expr)
+{
+        iflags.clear();
+        if (expr.info(info_flags::integer)) {
+                iflags.set(info_flags::integer, true);
+                if (expr.info(info_flags::even))
+                        iflags.set(info_flags::even, true);
+        }
+        if (expr.info(info_flags::real)) {
+                iflags.set(info_flags::real, true);
+                if (expr.info(info_flags::positive))
+                        iflags.set(info_flags::positive, true);
+                else if (expr.info(info_flags::negative))
+                        iflags.set(info_flags::negative, true);
+        }
+}
+
 bool symbol::info(unsigned inf) const
 {
 	switch (inf) {

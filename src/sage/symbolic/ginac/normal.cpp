@@ -43,6 +43,7 @@
 #include "matrix.h"
 #include "pseries.h"
 #include "symbol.h"
+#include "wildcard.h"
 #include "utils.h"
 #include "upoly.h"
 #include "mpoly.h"
@@ -68,6 +69,7 @@ namespace GiNaC {
 // Set this to enable some statistical output for the GCD routines
 #define STATISTICS 0
 
+static symbol symbol_E;
 
 /** Compute the integer content (= GCD of all numeric coefficients) of an
  *  expanded polynomial. For a polynomial with rational coefficients, this
@@ -303,7 +305,9 @@ static ex replace_with_symbol(const ex & e, exmap & repl, exmap & rev_lookup)
 	// Otherwise create new symbol and add to list, taking care that the
 	// replacement expression doesn't itself contain symbols from repl,
 	// because subs() is not recursive
-	ex es = (new symbol)->setflag(status_flags::dynallocated);
+	symbol* sp = new symbol;
+        sp->set_domain_from_ex(e_replaced);
+        ex es = sp->setflag(status_flags::dynallocated);
 	repl.insert(std::make_pair(es, e_replaced));
 	rev_lookup.insert(std::make_pair(e_replaced, es));
 	return es;
@@ -327,7 +331,9 @@ static ex replace_with_symbol(const ex & e, exmap & repl)
 	// Otherwise create new symbol and add to list, taking care that the
 	// replacement expression doesn't itself contain symbols from repl,
 	// because subs() is not recursive
-	ex es = (new symbol)->setflag(status_flags::dynallocated);
+	symbol* sp = new symbol;
+        sp->set_domain_from_ex(e_replaced);
+        ex es = sp->setflag(status_flags::dynallocated);
 	repl.insert(std::make_pair(es, e_replaced));
 	return es;
 }
@@ -452,6 +458,21 @@ static ex frac_cancel(const ex &n, const ex &d)
 	return (new lst(num * pre_factor.numer(), den * pre_factor.denom()))->setflag(status_flags::dynallocated);
 }
 
+ex function::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) const
+{
+        if (get_serial() == exp_SERIAL::serial) {
+                GiNaC::power p(symbol_E, op(0));
+                return p.normal(repl, rev_lookup, level, options);
+        }
+        if (level == 1)
+                return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+        else if (level == -max_recursion_level)
+                throw(std::runtime_error("max recursion level reached"));
+        else {
+                normal_map_function map_normal(level - 1);
+                return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+        }
+}
 
 /** Implementation of ex::normal() for a sum. It expands terms and performs
  *  fractional addition.
@@ -638,13 +659,13 @@ ex ex::normal(int level, bool noexpand_combined, bool noexpand_numer) const
                 options |= normal_options::no_expand_combined_numer;
         if (noexpand_numer)
                 options |= normal_options::no_expand_fraction_numer;
-        
+
 	ex e = bp->normal(repl, rev_lookup, level, options);
 	GINAC_ASSERT(is_a<lst>(e));
 
-	// Re-insert replaced symbols
-	if (!repl.empty())
-		e = e.subs(repl, subs_options::no_pattern);
+	// Re-insert replaced symbols and exp functions
+        e = e.subs(repl, subs_options::no_pattern);
+	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
 
         // Convert {numerator, denominator} form back to fraction
         if ((options & normal_options::no_expand_fraction_numer) == 0u)
@@ -668,9 +689,11 @@ ex ex::numer() const
 
 	// Re-insert replaced symbols
 	if (repl.empty())
-		return e.op(0);
+		e = e.op(0);
 	else
-		return e.op(0).subs(repl, subs_options::no_pattern);
+		e = e.op(0).subs(repl, subs_options::no_pattern);
+	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+        return e;
 }
 
 /** Get denominator of an expression. If the expression is not of the normal
@@ -686,11 +709,13 @@ ex ex::denom() const
 	ex e = bp->normal(repl, rev_lookup, 0);
 	GINAC_ASSERT(is_a<lst>(e));
 
-	// Re-insert replaced symbols
+        // Re-insert replaced symbols
 	if (repl.empty())
-		return e.op(1);
+		e = e.op(1);
 	else
-		return e.op(1).subs(repl, subs_options::no_pattern);
+		e = e.op(1).subs(repl, subs_options::no_pattern);
+	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+        return e;
 }
 
 /** Get numerator and denominator of an expression. If the expresison is not
@@ -707,10 +732,10 @@ ex ex::numer_denom() const
 	GINAC_ASSERT(is_a<lst>(e));
 
 	// Re-insert replaced symbols
-	if (repl.empty())
-		return e;
-	else
-		return e.subs(repl, subs_options::no_pattern);
+	if (not repl.empty())
+		e = e.subs(repl, subs_options::no_pattern);
+	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+        return e;
 }
 
 

@@ -266,7 +266,7 @@ We coerce various symbolic expressions into the complex numbers::
     sage: ComplexField(200)(sin(I))
     1.1752011936438014568823818505956008151557179813340958702296*I
     sage: f = sin(I) + cos(I/2); f
-    cos(1/2*I) + sin(I)
+    cosh(1/2) + I*sinh(1)
     sage: CC(f)
     1.12762596520638 + 1.17520119364380*I
     sage: ComplexField(200)(f)

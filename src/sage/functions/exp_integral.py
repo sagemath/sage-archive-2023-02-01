@@ -1130,7 +1130,7 @@ class Function_sinh_integral(BuiltinFunction):
 
             sage: f = sinh_integral(ln(x))
             sage: f.diff(x)
-            sinh(log(x))/(x*log(x))
+            1/2*(x^2 - 1)/(x^2*log(x))
 
         """
         return sinh(z)/z
@@ -1258,7 +1258,7 @@ class Function_cosh_integral(BuiltinFunction):
 
             sage: f = cosh_integral(ln(x))
             sage: f.diff(x)
-            cosh(log(x))/(x*log(x))
+            1/2*(x^2 + 1)/(x^2*log(x))
 
         """
         return cosh(z)/z

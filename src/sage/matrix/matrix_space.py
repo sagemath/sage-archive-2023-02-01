@@ -59,6 +59,8 @@ from . import matrix_rational_sparse
 from . import matrix_polynomial_dense
 from . import matrix_mpolynomial_dense
 
+from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
+
 # Sage imports
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
@@ -1515,8 +1517,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
-        from sage.groups.matrix_gps.group_element import \
-            is_MatrixGroupElement
         from sage.modular.arithgroup.arithgroup_element import \
             ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):

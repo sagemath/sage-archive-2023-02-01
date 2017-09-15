@@ -245,6 +245,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
 from sage.arith.all import factorial
+from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
@@ -1195,15 +1196,11 @@ class Permutation(CombinatorialElement):
             [0 0 1]
             [0 1 0]
         """
-        p = self[:]
-        n = len(p)
-
-        #Build the dictionary of entries since the matrix
-        #is extremely sparse
-        entries = {}
-        for i in range(n):
-            entries[(p[i]-1,i)] = 1
-        return matrix(n, entries, sparse = True)
+        # build the dictionary of entries since the matrix is
+        # extremely sparse
+        entries = { (v-1, i): 1 for i, v in enumerate(self) }
+        M = MatrixSpace(ZZ, len(self), sparse = True)
+        return M(entries)
 
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):

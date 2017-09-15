@@ -204,8 +204,7 @@ def find_objects_from_name(name, module_name=None):
     r"""
     Return the list of objects from ``module_name`` whose name is ``name``.
 
-    If ``name`` is in the global namespace, the result is a list of length 1
-    that contains only this object. Otherwise, the function runs through all
+    If ``module_name`` is ``None``, the function runs through all
     loaded modules and returns the list of objects whose name matches ``name``.
 
     If ``module_name`` is not ``None``, then search only in submodules of
@@ -243,11 +242,6 @@ def find_objects_from_name(name, module_name=None):
         It might be a good idea to move this function into
         :mod:`sage.misc.sageinspect`.
     """
-    # 1. check global namespace
-    if name in globals():
-        return [globals()[name]]
-
-    # 2. look for all modules that contain the name
     import sys
 
     obj = []
@@ -493,6 +487,12 @@ def import_statements(*objects, **kwds):
         sage: import_statements('graph_decompositions')
         import sage.graphs.graph_decompositions
 
+    Check that a name from the global namespace is properly found (see
+    :trac:`23779`)::
+
+        sage: import_statements('log')
+        from sage.functions.log import log
+
     .. NOTE::
 
         The programmers try to made this function as smart as possible.
@@ -520,10 +520,18 @@ def import_statements(*objects, **kwds):
 
         # 1. if obj is a string, we look for an object that has that name
         if isinstance(obj, string_types):
+            from sage.all import sage_globals
+            G = sage_globals()
             name = obj
-            obj = find_objects_from_name(name, 'sage')
-            if not obj:
-                obj = find_objects_from_name(name)
+            if name in G:
+                # 1.a. object in the sage namespace
+                obj = [G[name]]
+            else:
+                # 1.b. object inside a submodule of sage
+                obj = find_objects_from_name(name, 'sage')
+                if not obj:
+                    # 1.c. object from something already imported
+                    obj = find_objects_from_name(name)
 
             # remove lazy imported objects from list obj
             i = 0

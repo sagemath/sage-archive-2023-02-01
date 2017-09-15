@@ -1167,9 +1167,9 @@ class Permutation(CombinatorialElement):
             [0 1 0]
             [0 0 1]
 
-        ::
+        Alternatively::
 
-            sage: Permutation([1,3,2]).to_matrix()
+            sage: matrix(Permutation([1,3,2]))
             [1 0 0]
             [0 0 1]
             [0 1 0]
@@ -1202,6 +1202,8 @@ class Permutation(CombinatorialElement):
         M = MatrixSpace(ZZ, len(self), sparse=True)
         return M(entries)
         # return Matrix_integer_sparse(M, entries, False, False)
+
+    _matrix_ = to_matrix
 
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):
@@ -2757,7 +2759,7 @@ class Permutation(CombinatorialElement):
             from sage.misc.superseded import deprecation
             deprecation(20555, "default behavior of descents may change in the near future to have indices starting from 1")
             from_zero = True
-        
+
         if side == 'right':
             p = self
         else:

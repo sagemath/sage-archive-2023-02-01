@@ -246,7 +246,6 @@ from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -1201,7 +1200,6 @@ class Permutation(CombinatorialElement):
         entries = { (v-1, i): 1 for i, v in enumerate(self) }
         M = MatrixSpace(ZZ, len(self), sparse=True)
         return M(entries)
-        # return Matrix_integer_sparse(M, entries, False, False)
 
     _matrix_ = to_matrix
 

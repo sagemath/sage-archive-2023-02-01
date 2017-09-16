@@ -1742,7 +1742,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: x0,x1,x2 = R.gens()
             sage: hash(x0) == hash(L(x0))
             True
-            sage: hash(1 - 7* x0 + x1*x2) == hash(L(1 - 7 *x0 + x1*x2))
+            sage: hash(1 - 7*x0 + x1*x2) == hash(L(1 - 7*x0 + x1*x2))
             True
         """
         # we reimplement the hash from multipolynomial to handle negative exponents

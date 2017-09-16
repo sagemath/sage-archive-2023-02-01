@@ -106,7 +106,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                 .. MATH::
 
                     c(i) := \begin{cases}
-                    1 & \hbox{if $i$ is the unique element of degree $0$}\\
+                    1 & \hbox{if $i$ indexes the $1$ of the algebra}\\
                     0 & \hbox{otherwise}.
                     \end{cases}
 
@@ -138,7 +138,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                     S(x) := -\sum_{x^L \neq x} S(x^L) \times x^R
 
-                in general or `x` if `|x| = 0`.
+                when `|x| > 0`, and by `S(x) = x` when `|x| = 0`.
 
                 TESTS::
 

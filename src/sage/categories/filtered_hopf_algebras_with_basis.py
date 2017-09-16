@@ -22,14 +22,13 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
     The category of filtered Hopf algebras with a distinguished basis.
 
     A filtered Hopf algebra with basis over a commutative ring `R`
-    is a filtered Hopf algebra over `R` endowed with the structure
-    of a filtered module with basis (with the same underlying
-    filtered-module structure).
-    A filtered Hopf algebra over `R` means a Hopf algebra equipped
-    with a module filtration such that all structure maps of the
-    Hopf algebra respect the filtration. See
+    is a filtered Hopf algebra over `R` (that is, a Hopf algebra
+    equipped with a module filtration such that all structure
+    maps of the Hopf algebra respect the filtration) equipped with
+    an `R`-module basis that makes it a filtered `R`-module with
+    basis (see
     :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`
-    for the notion of a filtered module.
+    for the meaning of the latter requirement).
 
     EXAMPLES::
 
@@ -85,7 +84,8 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
 
                     S(x) := -\sum_{x^L \neq x} S(x^L) \times x^R + \epsilon(x)
 
-                in general or `x` if `|x| = 0`.
+                for all `x`, using the Sweedler notation.
+                Also, `S(x) = x` for all `x` with `|x| = 0`.
 
                 TESTS::
 

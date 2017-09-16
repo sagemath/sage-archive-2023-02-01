@@ -82,18 +82,9 @@ from sage.categories.enumerated_sets import EnumeratedSets
 _Rings = Rings()
 _Fields = Fields()
 
-is_MatrixGroupElement = ArithmeticSubgroupElement = None
-def late_import():
-    """
-    Import the objects/modules after build (when needed).
-
-    TESTS::
-
-        sage: sage.matrix.matrix_space.late_import()
-    """
-    global is_MatrixGroupElement, ArithmeticSubgroupElement
-    from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
-    from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.groups.matrix_gps.group_element', 'is_MatrixGroupElement', at_startup=True)
+lazy_import('sage.modular.arithgroup.arithgroup_element', 'ArithmeticSubgroupElement', at_startup=True)
 
 def is_MatrixSpace(x):
     """
@@ -344,7 +335,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
-        late_import()
 
     def cardinality(self):
         r"""

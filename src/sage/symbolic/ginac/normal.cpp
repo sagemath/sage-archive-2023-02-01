@@ -43,7 +43,6 @@
 #include "matrix.h"
 #include "pseries.h"
 #include "symbol.h"
-#include "wildcard.h"
 #include "utils.h"
 #include "upoly.h"
 #include "mpoly.h"
@@ -665,7 +664,7 @@ ex ex::normal(int level, bool noexpand_combined, bool noexpand_numer) const
 
 	// Re-insert replaced symbols and exp functions
         e = e.subs(repl, subs_options::no_pattern);
-	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+	e = e.subs(symbol_E == exp(1));
 
         // Convert {numerator, denominator} form back to fraction
         if ((options & normal_options::no_expand_fraction_numer) == 0u)
@@ -692,7 +691,7 @@ ex ex::numer() const
 		e = e.op(0);
 	else
 		e = e.op(0).subs(repl, subs_options::no_pattern);
-	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+	e = e.subs(symbol_E == exp(1));
         return e;
 }
 
@@ -714,7 +713,7 @@ ex ex::denom() const
 		e = e.op(1);
 	else
 		e = e.op(1).subs(repl, subs_options::no_pattern);
-	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+	e = e.subs(symbol_E == exp(1));
         return e;
 }
 
@@ -734,7 +733,7 @@ ex ex::numer_denom() const
 	// Re-insert replaced symbols
 	if (not repl.empty())
 		e = e.subs(repl, subs_options::no_pattern);
-	e = e.subs(pow(symbol_E, wild()) == exp(wild()));
+	e = e.subs(symbol_E == exp(1));
         return e;
 }
 

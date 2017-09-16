@@ -1287,9 +1287,7 @@ class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
             sage: bases = FilteredSymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
             [Category of bases of Symmetric Functions over Rational Field,
-             Join of Category of hopf algebras with basis over Rational Field
-                 and Category of filtered algebras with basis over Rational Field
-                 and Category of commutative algebras over Rational Field]
+             Category of commutative filtered hopf algebras with basis over Rational Field]
         """
         cat = HopfAlgebras(self.base().base_ring()).Commutative().WithBasis().Filtered()
         return [SymmetricFunctionsBases(self.base()), cat]

@@ -1041,17 +1041,22 @@ class AsymptoticExpansionGenerators(SageObject):
 
         """
         if period > 1:
-            tau_p = None if tau is None else tau**p
-            aperiodic_result = ImplicitExpansion(var, phi=lambda u: phi(u^(1/p))^p,
-                                                 period=1, tau=tau_p, precision=precision)
-            return (aperiodic_result)^(1/p)
+            tau_p = None if tau is None else tau**period
+            aperiodic_result = asymptotic_expansions.ImplicitExpansion(var,
+                                                phi=lambda u: phi(u**(1/period))**period,
+                                                period=1, tau=tau_p, precision=precision)
+            return (aperiodic_result)**(1/period)
 
         from sage.symbolic.ring import SR
+        from sage.rings.rational_field import QQ
+        from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+        from sage.arith.srange import srange
         y = SR('y')
+        one_half = QQ(1)/2
 
         if tau is None:
             u = SR('u')
-            positive_solution = filter(lambda s: s.rhs() > 0, solve(phi(u) - u*phi(u).diff(u), u))
+            positive_solution = filter(lambda s: s.rhs() > 0, (phi(u) - u*phi(u).diff(u)).solve(u))
             if len(positive_solution) == 1:
                 tau = positive_solution[0].rhs()
             else:
@@ -1067,28 +1072,30 @@ class AsymptoticExpansionGenerators(SageObject):
             precision = A.default_prec
         Z = A.gen()
 
-        def ansatz(precision=precision):
-            if precision < 1:
-                return O(A(1))
-            if precision == 1:
-                return O((1/Z)^(1/2))
-            return (-sqrt(2*tau/phi(tau)/H(y).diff(y,2)(y=tau)) * (1/Z)^(1/2)
-                    + sum([SR("d{}".format(j)) * (1/Z)^(j/2) for j in srange(2, precision)])
-                    + O((1/Z)^(precision/2)))
+        def ansatz(prec=precision):
+            if prec < 1:
+                return A(1).O()
+            if prec == 1:
+                return ((1/Z)**one_half).O()
+            return (-(2*tau/phi(tau)/H(y).diff(y,2)(y=tau)).sqrt() * (1/Z)**one_half
+                    + sum([SR("d{}".format(j)) * (1/Z)**(j * one_half) for j in srange(2, prec)])
+                    + ((1/Z)**(prec * one_half)).O())
+
 
         # we compare coefficients between a "single" Z and the
         # following expansion, this allows us to compute the constants d_j
-        z_expansion = sum([H(z).diff(z, k)(z=tau)/factorial(k) *
-                           ansatz(precision=precision+2-k)^k
-                           for k in srange(2, precision)]) + O((1/Z)^(precision/2))
+        z = SR('z')
+        z_expansion = sum([H(z).diff(z, k)(z=tau)/k.factorial() *
+                           ansatz(prec=precision+2-k)**k
+                           for k in srange(2, precision)]) + ((1/Z)**(precision * one_half)).O()
 
         solution_dict = dict()
         for k in srange(2, precision-1):
-            coef = z_expansion.monomial_coefficient((1/Z)^((k+1)/2))
+            coef = z_expansion.monomial_coefficient((1/Z)**((k+1) * one_half))
             current_var = SR('d{k}'.format(k=k))
             solution_dict[current_var] = coef.subs(solution_dict).solve(current_var)[0].rhs()
 
-        return A(tau) + ansatz(precision=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
+        return A(tau) + ansatz(prec=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
 
 def _sa_coefficients_lambda_(K, beta=0):
     r"""

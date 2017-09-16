@@ -992,6 +992,98 @@ class AsymptoticExpansionGenerators(SageObject):
         return result
 
 
+    @staticmethod
+    def ImplicitExpansion(var, phi, period=1, tau=None, precision=None):
+        """
+        Return the singular expansion for a function `y(z)` defined
+        implicitly by `y(z) = z \Phi(y(z))`.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``phi`` -- the function `\Phi`, which is assumed to be
+          not an affine function, the coefficients of the expansion around
+          `0` need to be non-negative, and it needs to satisfy
+          `\Phi(0) \neq 0`. This is not checked!
+
+        - ``period`` -- (default: 1) the period `p` of the function `\Phi`, i.e., the largest
+          integer `p` such that the power series `\Phi(u)` can be written as `\Psi(u^p)`,
+          where `\Psi` is another power series. (Not yet implemented)
+
+        - ``tau`` -- (default: ``None``) the unique positive solution `\tau` of
+          the characteristic equation, `\Phi(\tau) - \tau \Phi'(\tau) = 0`. If ``None``,
+          then `\tau` is tried to be determined automatically.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+
+        .. NOTE::
+
+            In the given case, the radius of convergence of the function of
+            interest is known to be `\rho = \tau/\Phi(\tau)`. For technical
+            reasons, the variable in the returned asymptotic expansion
+            represents a singular element of the form `(1 - z/\rho)^{-1}`,
+            for the variable `z\to\rho`.
+
+
+        EXAMPLES::
+
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=exp, precision=8)
+            1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
+            43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
+
+        """
+        from sage.symbolic.ring import SR
+        y = SR('y')
+
+        if tau is None:
+            u = SR('u')
+            positive_solution = filter(lambda s: s.rhs() > 0, solve(phi(u) - u*phi(u).diff(u), u))
+            if len(positive_solution) == 1:
+                tau = positive_solution[0].rhs()
+            else:
+                raise ValueError('Fundamental constant tau could not be determined')
+
+        def H(y):
+            return tau/phi(tau) - y/phi(y)
+
+        A = AsymptoticRing(growth_group='{Z}^QQ'.format(Z=var),
+                           coefficient_ring=SR,
+                           default_prec=precision)
+        if precision is None:
+            precision = A.default_prec
+        Z = A.gen()
+
+        def ansatz(precision=precision):
+            if precision < 1:
+                return O(A(1))
+            if precision == 1:
+                return O((1/Z)^(1/2))
+            return (-sqrt(2*tau/phi(tau)/H(y).diff(y,2)(y=tau)) * (1/Z)^(1/2)
+                    + sum([SR("d{}".format(j)) * (1/Z)^(j/2) for j in srange(2, precision)])
+                    + O((1/Z)^(precision/2)))
+
+        # we compare coefficients between a "single" Z and the
+        # following expansion, this allows us to compute the constants d_j
+        z_expansion = sum([H(z).diff(z, k)(z=tau)/factorial(k) *
+                           ansatz(precision=precision+2-k)^k
+                           for k in srange(2, precision)]) + O((1/Z)^(precision/2))
+
+        solution_dict = dict()
+        for k in srange(2, precision-1):
+            coef = z_expansion.monomial_coefficient((1/Z)^((k+1)/2))
+            current_var = SR('d{k}'.format(k=k))
+            solution_dict[current_var] = coef.subs(solution_dict).solve(current_var)[0].rhs()
+
+        return A(tau) + ansatz(precision=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
+
 def _sa_coefficients_lambda_(K, beta=0):
     r"""
     Return the coefficients `\lambda_{k, \ell}(\beta)` used in singularity analysis.

@@ -812,7 +812,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     - ``F`` -- a finite field or a prime power.
 
     - ``point_coordinates`` -- (optional, default ``True``) whether we use
-      coordinates in `\GF(q)^n` or plain integers for the points of the design.
+      coordinates in `\GF{q}^n` or plain integers for the points of the design.
 
     - ``check`` -- (optional, default ``True``) whether to check the output.
 

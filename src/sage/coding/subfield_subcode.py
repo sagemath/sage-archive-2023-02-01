@@ -1,11 +1,11 @@
 r"""
 Subfield subcode
 
-Let `C` be a `[n, k]` code over `\GF(q^t)`.
-Let `Cs = \{c \in C | \forall i, c_i \in \GF(q)\}`, `c_i` being the `i`-th
+Let `C` be a `[n, k]` code over `\GF{q^t}`.
+Let `Cs = \{c \in C | \forall i, c_i \in \GF{q}\}`, `c_i` being the `i`-th
 coordinate of `c`.
 
-`Cs` is called the subfield subcode of `C` over `\GF(q)`
+`Cs` is called the subfield subcode of `C` over `\GF{q}`
 """
 
 #*****************************************************************************

@@ -28,7 +28,7 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
     an `R`-module basis that makes it a filtered `R`-module with
     basis (see
     :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`
-    for the meaning of the latter requirement).
+    for the notion of a filtered module with basis).
 
     EXAMPLES::
 

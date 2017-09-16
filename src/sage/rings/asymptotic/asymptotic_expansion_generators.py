@@ -1040,6 +1040,12 @@ class AsymptoticExpansionGenerators(SageObject):
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
 
         """
+        if period > 1:
+            tau_p = None if tau is None else tau**p
+            aperiodic_result = ImplicitExpansion(var, phi=lambda u: phi(u^(1/p))^p,
+                                                 period=1, tau=tau_p, precision=precision)
+            return (aperiodic_result)^(1/p)
+
         from sage.symbolic.ring import SR
         y = SR('y')
 

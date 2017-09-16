@@ -221,7 +221,6 @@ from sage.categories.algebras import Algebras
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
-import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.all import prod, uniq
@@ -4979,7 +4978,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
         if self == parent.zero():
             return resPR.zero()
-        e = eval('symmetrica.compute_' + str(classical.translate[parent.basis_name()]).lower() + '_with_alphabet')
+        import sage.libs.symmetrica.all as symmetrica
+        e = getattr(symmetrica, 'compute_{}_with_alphabet'.format(classical.translate[parent.basis_name()].lower()))
         def f(part):
             if not part:
                 return resPR.one()

@@ -20,7 +20,7 @@ from __future__ import absolute_import
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.categories.all import GradedAlgebrasWithBasis
-from sage.rings.all import Integer, PolynomialRing
+from sage.rings.all import Integer, PolynomialRing, ZZ
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.permutation import Permutations, Permutation
 import sage.libs.symmetrica.all as symmetrica
@@ -109,12 +109,25 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             p = R(p)
         return p
 
-    def divided_difference(self, i, newm=True):
+    def divided_difference(self, i, algorithm="sage"):
         r"""
         Return the ``i``-th divided difference operator, applied to
         ``self``.
         Here, ``i`` can be either a permutation or a positive integer.
 
+        INPUT:
+        
+        - ``i`` -- permutation or positive integer
+
+        - ``algorithm`` -- (default: ``'sage'``) either ``'sage'``
+          or ``'symmetrica'``; this determines which software is
+          called for the computation
+
+        OUTPUT:
+
+        The result of applying the ``i``-th divided difference
+        operator to ``self``.
+        
         If `i` is a positive integer, then the `i`-th divided
         difference operator `\delta_i` is the linear operator sending
         each polynomial `f = f(x_1, x_2, \ldots, x_n)` (in
@@ -206,8 +219,8 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         if not self: # if self is 0
             return self
         Perms = Permutations()
-        if isinstance(i, (Integer, int)):
-            if newm:
+        if i in ZZ:
+            if algorithm == "sage":
                 if i <= 0:
                     raise ValueError(r"cannot apply \delta_{%s} to a (= %s)" % (i, self))
                 # The operator `\delta_i` sends the Schubert
@@ -231,10 +244,10 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
                     pi = Perms(pi).remove_extra_fixed_points()
                     res_dict[pi] = coeff
                 return self.parent()._from_dict(res_dict)
-            else:
+            else: # if algorithm == "symmetrica":
                 return symmetrica.divdiff_schubert(i, self)
         elif i in Perms:
-            if newm:
+            if algorithm == "sage":
                 i = Permutation(i)
                 redw = i.reduced_word()
                 res_dict = {}
@@ -255,7 +268,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
                     pi = Perms(pi).remove_extra_fixed_points()
                     res_dict[pi] = coeff
                 return self.parent()._from_dict(res_dict)
-            else:
+            else: # if algorithm == "symmetrica":
                 return symmetrica.divdiff_perm_schubert(i, self)
         else:
             raise TypeError("i must either be an integer or permutation")

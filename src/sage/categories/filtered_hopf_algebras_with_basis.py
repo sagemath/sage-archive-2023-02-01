@@ -21,6 +21,16 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
     """
     The category of filtered Hopf algebras with a distinguished basis.
 
+    A filtered Hopf algebra with basis over a commutative ring `R`
+    is a filtered Hopf algebra over `R` endowed with the structure
+    of a filtered module with basis (with the same underlying
+    filtered-module structure).
+    A filtered Hopf algebra over `R` means a Hopf algebra equipped
+    with a module filtration such that all structure maps of the
+    Hopf algebra respect the filtration. See
+    :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`
+    for the notion of a filtered module.
+
     EXAMPLES::
 
         sage: C = HopfAlgebrasWithBasis(ZZ).Filtered(); C

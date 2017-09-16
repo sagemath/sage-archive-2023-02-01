@@ -53,6 +53,7 @@ Here is an example using a colormap and a color function ``c``::
     sage: cm = colormaps.hsv
     sage: def c(x,y): return float((x+y+x*y)/15) % 1
     sage: plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
+    Graphics3d Object
 
 .. PLOT::
 

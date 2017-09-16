@@ -1039,6 +1039,13 @@ class AsymptoticExpansionGenerators(SageObject):
             1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
 
+        ::
+
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + u^2,
+            ....:    period=2, precision=8)
+            1 - Z^(-1/2) + 1/2*Z^(-1) - 1/2*Z^(-3/2) + 3/8*Z^(-2) -
+            3/8*Z^(-5/2) + 5/16*Z^(-3) + O(Z^(-7/2))
+
         """
         if period > 1:
             tau_p = None if tau is None else tau**period

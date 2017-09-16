@@ -21,10 +21,6 @@ class FilteredHopfAlgebrasWithBasis(FilteredModulesCategory):
     """
     The category of filtered Hopf algebras with a distinguished basis.
 
-    The basis is assumed to "respect the filtration," in the sense
-    that it satisfies the requirements of
-    :class:`FilteredModulesWithBasis`.
-
     EXAMPLES::
 
         sage: C = HopfAlgebrasWithBasis(ZZ).Filtered(); C

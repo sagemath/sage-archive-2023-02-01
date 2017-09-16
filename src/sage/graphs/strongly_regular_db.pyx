@@ -30,7 +30,7 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown

@@ -21,6 +21,9 @@
 #      SAGE_ROOT      -- root directory of sage install
 #      SAGE_LOCAL     -- $SAGE_ROOT/local
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
+#      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
+#      PKG_VER        -- the version number of the package
+#      PKG_NAME       -- $PKG_BASE-$PKG_VER
 #      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
 #      CC, CXX, CFLAGS, CXXFLAGS, LDFLAGS, MAKE
 #
@@ -152,6 +155,7 @@ fi
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
 . sage-env
+
 
 if [ $? -ne 0 ]; then
     error_msg "Error setting environment variables by sourcing sage-env"
@@ -673,9 +677,23 @@ export SAGE_ROOT="$SAGE_ROOT"
 export SAGE_SRC="$SAGE_SRC"
 export SAGE_PKG_DIR="$pkgdir"
 
-source "\$SAGE_SRC/bin/sage-env"
+export PKG_NAME="$PKG_NAME"
+export PKG_BASE="$PKG_BASE"
+export PKG_VER="$PKG_VER"
+
+for lib in env dist-helpers; do
+    lib="sage-\$lib"
+    source "\$SAGE_SRC/bin/\$lib"
+    if [ \$? -ne 0 ]; then
+        echo >&2 "Error: failed to source \$lib"
+        echo >&2 "Is \$SAGE_ROOT the correct SAGE_ROOT?"
+        exit 1
+    fi
+done
+
+sdh_guard
 if [ \$? -ne 0 ]; then
-    echo >&2 "Error: failed to source sage-env; is \$SAGE_ROOT the correct SAGE_ROOT?"
+    echo >&2 "Error: sdh_guard not found; Sage environment was not set up properly"
     exit 1
 fi
 
@@ -785,6 +803,7 @@ export rsync_proxy=$http_proxy
 ##################################################################
 # Actually install
 ##################################################################
+
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO

@@ -1244,7 +1244,7 @@ class AffineConnection(SageObject):
           instance of
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
 
-        OUPUT:
+        OUTPUT:
 
         - common frame; if no common frame is found, None is returned.
 

@@ -508,7 +508,7 @@ Check that :trac:`22202` is fixed::
     1/4
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 from six.moves import range
 from six import integer_types, iteritems
 
@@ -3022,7 +3022,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.div))
+        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3254,7 +3254,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.div:
+        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.truediv:
             ans = bool(sd._left)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
@@ -3819,7 +3819,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: AA(1/sqrt(5)).radical_expression()
-            1/5*sqrt(5)
+            sqrt(1/5)
             sage: AA(sqrt(5 + sqrt(5))).radical_expression()
             sqrt(sqrt(5) + 5)
             sage: QQbar.zeta(5).radical_expression()
@@ -5024,7 +5024,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         elif type(sd) is ANBinaryExpr:
             ls = sd._left.sign()
             rs = sd._right.sign()
-            if sd._op is operator.mul or sd._op is operator.div:
+            if sd._op is operator.mul or sd._op is operator.truediv:
                 return sd._left.sign() * sd._right.sign()
             elif sd._op is operator.add:
                 if ls == rs:
@@ -7314,7 +7314,7 @@ class ANBinaryExpr(ANDescr):
             v = sib.sum([v1, -v2], simplify=True)
         elif op is operator.mul:
             v = sib.prod([v1, v2], simplify=True)
-        elif op is operator.div:
+        elif op is operator.truediv:
             v = v1 / v2
         else:
             raise RuntimeError("op is {}".format(op))
@@ -7494,7 +7494,7 @@ def an_binop_element(a, b, op):
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: an_binop_element(a, b, operator.mul)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: an_binop_element(a, b, operator.div)
+        sage: an_binop_element(a, b, operator.truediv)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
 
     The code tries to use existing unions of number fields::

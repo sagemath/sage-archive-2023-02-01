@@ -323,6 +323,35 @@ class CoordFunction(AlgebraElement):
         """
 
     @abstract_method
+    def is_trivial_zero(self):
+        r"""
+        Check if ``self`` is trivially equal to zero without any
+        simplification.
+
+        This method is supposed to be fast as compared with
+        ``self.is_zero()`` or ``self == 0`` and is intended to be
+        used in library code where trying to obtain a mathematically
+        correct result by applying potentially expensive rewrite rules
+        is not desirable.
+
+        TESTS:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X.function_ring())
+            sage: f.is_trivial_zero()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method is_trivial_zero at 0x...>
+
+        """
+
+
+    @abstract_method
     def copy(self):
         r"""
         Return an exact copy of the object.

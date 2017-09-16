@@ -21,11 +21,13 @@ This is a catalog of crystals that are currently implemented in Sage:
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :class:`Induced <sage.combinat.crystals.induced_structure.InducedCrystal>`
+* :class:`KacModule <sage.combinat.crystals.kac_modules.CrystalOfKacModule>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
+* :class:`OddNegativeRoots <sage.combinat.crystals.kac_modules.CrystalOfOddNegativeRoots>`
 * :class:`ProjectedLevelZeroLSPaths
   <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
 * :class:`RiggedConfigurations
@@ -75,6 +77,9 @@ from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCryst
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
+
+from sage.combinat.crystals.kac_modules import CrystalOfKacModule as KacModule
+from sage.combinat.crystals.kac_modules import CrystalOfOddNegativeRoots as OddNegativeRoots
 
 from .tensor_product import TensorProductOfCrystals as TensorProduct
 from .direct_sum import DirectSumOfCrystals as DirectSum

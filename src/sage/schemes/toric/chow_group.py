@@ -1102,7 +1102,7 @@ class ChowGroup_degree_class(SageObject):
     r"""
     A fixed-degree subgroup of the Chow group of a toric variety.
 
-    WARNING ..
+    .. WARNING::
 
         Use
         :meth:`~sage.schemes.toric.chow_group.ChowGroup_class.degree`

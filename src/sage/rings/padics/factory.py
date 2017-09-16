@@ -1695,7 +1695,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
       field.  Individual elements keep track of their own precision.
       See TYPES and PRECISION below.
 
-    - ``type`` -- string (default: ``'capped-abs'``) Valid types are
+    - ``type`` -- string (default: ``'capped-rel'``) Valid types are
       ``'capped-abs'``, ``'capped-rel'``, ``'fixed-mod'``,
       ``'floating-point'`` and ``'lazy'`` (though ``'lazy'`` doesn't
       currently work).  See TYPES and PRECISION below

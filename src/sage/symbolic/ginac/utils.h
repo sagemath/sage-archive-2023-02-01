@@ -466,10 +466,32 @@ std::ostream& operator<<(std::ostream& os, const std::pair<const Key, Value>& p)
 template<typename Container>
 void Log(const Container& c, std::string str="") {
         if (not str.empty())
-                std::cerr << str << ":\n";
-        for(typename Container::const_iterator it = c.begin();
-                                                        it != c.end(); ++it)
-                std::cerr << *it << '\n';
+                std::cerr << str << ":";
+        std::cerr << "{" << c.size() << "}\n";
+        for(const auto& elem : c)
+                std::cerr << elem << '\n';
+}
+
+inline
+void Log(const exmap& c, std::string str="") {
+        if (not str.empty())
+                std::cerr << str << ":";
+        std::cerr << "{" << c.size() << "}\n";
+        for(const auto& elem : c) {
+                std::cerr << "key:";
+                elem.first.dbgprint();
+                std::cerr << "val:";
+                elem.second.dbgprint();
+        }
+}
+
+template<typename K, typename V>
+void Log(const std::map<K,V>& c, std::string str="") {
+        if (not str.empty())
+                std::cerr << str << ":";
+        std::cerr << "{" << c.size() << "}\n";
+        for(const auto& elem : c)
+                std::cerr << "(" << elem.first << "," << elem.second << ")\n";
 }
 
 } // namespace GiNaC

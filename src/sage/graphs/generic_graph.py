@@ -17584,6 +17584,8 @@ class GenericGraph(GenericGraph_pyx):
         If one of the two graphs allows loops (or multiple edges), the resulting
         graph will allow loops (or multiple edges).
 
+        If both graphs are weighted the resulting graphs is weighted.
+
         If both graphs are immutable, the resulting graph is immutable, unless
         requested otherwise.
 
@@ -17630,19 +17632,36 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = g.copy(immutable=True)
             sage: (2*g)._backend
             <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+
+        Check that weighted is appropriately inherited (:trac:`23843`)::
+
+            sage: G1 = Graph(weighted=True)
+            sage: G2 = Graph(weighted=False)
+            sage: G1.union(G1).weighted()
+            True
+            sage: G1.union(G2).weighted() or G2.union(G1).weighted()
+            False
+
+            sage: D1 = DiGraph(weighted=True)
+            sage: D2 = DiGraph(weighted=False)
+            sage: D1.union(D1).weighted()
+            True
+            sage: D1.union(D2).weighted() or D2.union(D1).weighted()
+            False
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
 
         multiedges = self.allows_multiple_edges() or other.allows_multiple_edges()
         loops      = self.allows_loops()          or other.allows_loops()
+        weighted   = self.weighted()              and other.weighted()
 
         if self._directed:
             from sage.graphs.all import DiGraph
-            G = DiGraph(multiedges=multiedges, loops=loops)
+            G = DiGraph(multiedges=multiedges, loops=loops, weighted=weighted)
         else:
             from sage.graphs.all import Graph
-            G = Graph(multiedges=multiedges, loops=loops)
+            G = Graph(multiedges=multiedges, loops=loops, weighted=weighted)
         G.add_vertices(self.vertices())
         G.add_vertices(other.vertices())
         G.add_edges(self.edges())

@@ -12,6 +12,8 @@ from sage.rings.morphism import RingHomomorphism_im_gens, RingHomomorphism
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp
+
 
 class NumberFieldHomset(RingHomset_generic):
     """
@@ -643,9 +645,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
             sage: all([u^2 == e, u*v == w, u != e])
             True
         """
-        return cmp(self.abs_hom(), other.abs_hom())
-
-    __cmp__ = _cmp_
+        return richcmp(self.abs_hom(), other.abs_hom(), op)
 
     def _repr_defn(self):
         r"""

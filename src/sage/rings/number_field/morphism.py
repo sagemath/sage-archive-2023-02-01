@@ -25,6 +25,12 @@ class NumberFieldHomset(RingHomset_generic):
         ...
         The following tests failed: _test_elements
     """
+    def __init__(self, R, S, category=None):
+        if category is None:
+            from sage.categories.fields import Fields
+            category = Fields()
+        RingHomset_generic.__init__(self, R, S, category)
+
     def __call__(self, im_gens, check=True):
         """
         Create the homomorphism sending the generators to ``im_gens``.
@@ -69,7 +75,6 @@ class NumberFieldHomset(RingHomset_generic):
             sage: g = End(H1.domain(), category=Rings())(f)
             sage: f == End(H1.domain(), category=NumberFields())(g)
             True
-
         """
         if not isinstance(x, NumberFieldHomomorphism_im_gens):
             raise TypeError

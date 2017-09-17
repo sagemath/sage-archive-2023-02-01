@@ -634,7 +634,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         self.__im_gens = v
         return v
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare
 

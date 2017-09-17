@@ -46,7 +46,6 @@ from sage.rings.infinity import Infinity
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.positive_integers import PositiveIntegers
 
-import itertools
 
 set_of_letters = {
     'lower'       : "abcdefghijklmnopqrstuvwxyz",

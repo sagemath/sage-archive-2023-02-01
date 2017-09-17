@@ -353,10 +353,10 @@ cdef run_spring(int iterations, dimension_t _dim, double* pos, int* edges, int n
 @cython.cdivision(True)
 cdef inline double sqrt_approx(double x,double y,double xx,double yy):
     r"""
-    Approximation of sqrt(x^2+y^2).
+    Approximation of `\sqrt(x^2+y^2)`.
 
-    Assuming that x>y>0, it is a taylor expansion at x^2. To see how 'bad' the
-    approximation is::
+    Assuming that `x > y > 0`, it is a taylor expansion at `x^2`. To see how
+    'bad' the approximation is::
 
         sage: def dist(x,y):
         ....:    x = abs(x)

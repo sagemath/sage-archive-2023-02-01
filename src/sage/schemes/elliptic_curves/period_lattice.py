@@ -134,7 +134,7 @@ def _ellwp_flag1(lattice, z):
         sage: from sage.schemes.elliptic_curves.period_lattice import _ellwp_flag1
         sage: E = EllipticCurve([0, 1])
         sage: _ellwp_flag1(E, E((0,1)).elliptic_logarithm())
-        (-7.71860259319095 E-30, 2.00000000000000)
+        (-7.718602... E-30, 2.00000000000000)
     """
     global _ellwp_factor2
     if _ellwp_factor2 is None:

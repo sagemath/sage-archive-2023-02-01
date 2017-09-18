@@ -3509,11 +3509,7 @@ class Tableau(ClonableList):
             False
         """
         T_conj = self.conjugate()
-        for i in range(1, len(T_conj)):
-            if not all(x in T_conj[i-1] for x in T_conj[i]):
-                return False
-        return True
-
+        return all(x in T_conj[i-1] for i in range(1, len(T_conj)) for x in T_conj[i])
 
     def right_key_tableau(self):
         """

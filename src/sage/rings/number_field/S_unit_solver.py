@@ -18,6 +18,15 @@ AUTHORS:
 
 EXAMPLE::
 
+    sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
+    sage: K.<xi> = NumberField(x^2+x+1)
+    sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
+    sage: S=SUK.primes()
+    sage: solve_S_unit_equation(K, S, 200)
+    [[(2, 1), (4, 0), xi + 2, -xi - 1],
+     [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
+     [(5, 0), (1, 0), -xi, xi + 1],
+     [(1, 1), (2, 0), -xi + 1, xi]]
 """
 
 
@@ -38,9 +47,6 @@ EXAMPLE::
 
 from __future__ import absolute_import
 
-import numpy
-from math import pi
-
 from sage.rings.ring import Field
 from sage.rings.all import Infinity
 from sage.rings.number_field.number_field import NumberField
@@ -55,7 +61,9 @@ from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RealField
+from sage.rings.real_mpfr import RealField, RR
+from sage.rings.padics.factory import Qp
+from sage.modules.free_module_element import zero_vector
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import gcd, factor, lcm, CRT
@@ -70,7 +78,7 @@ def column_Log(SUK, iota, U, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``iota`` -- an element of ``K``
     - ``U`` -- a list of places (finite or infinite) of ``K``
     - ``prec`` -- (default: None) the precision of the real field
@@ -107,7 +115,7 @@ def c3_func(SUK, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
@@ -159,7 +167,7 @@ def c4_func(SUK,v, A, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
     - ``prec`` -- (default: None) the precision of the real field
@@ -239,7 +247,7 @@ def mus(SUK,v):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- a finite place of ``K``
 
     OUTPUT:
@@ -277,7 +285,7 @@ def possible_mu0s(SUK,v):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- a finite place of ``K``
 
     OUTPUT:
@@ -329,9 +337,9 @@ def c8_c9_func(SUK, v, A, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- a finite place of ``K`` (a fractional ideal)
-    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
     - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
@@ -343,7 +351,7 @@ def c8_c9_func(SUK, v, A, prec=None):
         sage: from sage.rings.number_field.S_unit_solver import c8_c9_func
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-        sage: v_fin = tuple(K.primes_above(3))[0]
+        sage: v_fin = K.primes_above(3)[0]
         sage: A = K.roots_of_unity()
 
         sage: c8_c9_func(SUK,v_fin,A)
@@ -363,11 +371,11 @@ def c8_c9_func(SUK, v, A, prec=None):
     f_p = v.residue_class_degree()
     d = SUK.number_field().degree()
     if p == 2:
-        local_c2 = 197142*36**num_mus
+        local_c2 = Integer(197142)*Integer(36)**num_mus
     elif p%4 == 1:
-        local_c2 = 35009*(45/2)**num_mus
+        local_c2 = Integer(35009)*(Integer(45)/Integer(2))**num_mus
     else:
-        local_c2 = 30760*25**num_mus
+        local_c2 = Integer(30760)*Integer(25)**num_mus
     x = polygen(SUK.number_field())
     if ( p > 2 and not ((x**2+1).is_irreducible()) ) or ( p==2 and not ((x**2+3).is_irreducible()) ):
         D = d
@@ -386,7 +394,7 @@ def c8_c9_func(SUK, v, A, prec=None):
         p = v.smallest_integer()
         from sage.functions.log import log
         max_log_b = max([log(phi(b)).abs() for phi in SUK.number_field().places(prec)])
-        return R(max([b.global_height(),max_log_b/(2*pi*D),f_p*log(p)/d]))
+        return R(max([b.global_height(),max_log_b/(2*R.pi()*D),f_p*log(p)/d]))
 
     mus_prod = prod([modified_height(SUK,v,D,b,prec) for b in mus(SUK,v)])
     local_c3 = R(max([mus_prod*modified_height(SUK,v,D,mu0,prec) for mu0 in possible_mu0s(SUK,v)]))
@@ -406,9 +414,9 @@ def c11_func(SUK, v, A, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
-    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
     - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
@@ -450,7 +458,7 @@ def c13_func(SUK, v, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
     - ``prec`` -- (default: None) the precision of the real field
 
@@ -472,12 +480,27 @@ def c13_func(SUK, v, prec=None):
         sage: c13_func(SUK,phi_complex)
         0.2128929567399017373098663643363
 
+    It is an error to input a finite place
+
+    ::
+
+        sage: phi_finite = K.primes_above(3)[0]
+        sage: c13_func(SUK,phi_finite)
+        Traceback (most recent call last):
+        ...
+        TypeError: Place must be infinite
+
+
     REFERENCE:
 
     - [Sma1995]_ p. 825
     """
     if prec is None:
         prec = 106
+    try:
+        _ = v.codomain()
+    except AttributeError:
+        raise TypeError('Place must be infinite')
     R = RealField(prec)
     if is_real_place(v):
         return c3_func(SUK,prec)
@@ -490,9 +513,8 @@ def K0_func(SUK, A, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
-    - ``v`` -- a finite place of ``K`` (a fractional ideal)
-    - ``A`` -- the set of the product of the coefficients of the $S$-unit equation with each root of unity of ``K``
+    - ``SUK`` -- a group of `S`-units
+    - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
     - ``prec`` -- (default: None) the precision of the real field
 
     OUTPUT:
@@ -544,7 +566,7 @@ def K1_func(SUK, v, A, prec=None):
 
     INPUT:
 
-    - ``SUK`` -- a group of $S$-units
+    - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- a list of all products of each potential ``a``, ``b`` in the S-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
     - ``prec`` -- (default: None) the precision of the real field

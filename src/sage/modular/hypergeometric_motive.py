@@ -289,7 +289,7 @@ def alpha_to_cyclotomic(alpha):
                 try:
                     Alpha.remove(QQ((k, d)))
                 except ValueError:
-                    raise ValueError, "multiplicities not balanced"
+                    raise ValueError("multiplicities not balanced")
         cyclo.append(d)
     return sorted(cyclo)
 

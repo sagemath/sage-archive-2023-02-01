@@ -7071,6 +7071,12 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
+        .. [HabPau10] Michel Habib and Christophe Paul
+          A survey of the algorithmic aspects of modular decomposition
+          Computer Science Review
+          vol 4, number 1, pages 41--59, 2010
+          http://www.lirmm.fr/~paul/md-survey.pdf
+
         .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
           Christophe Paul
           https://arxiv.org/pdf/0710.3901.pdf

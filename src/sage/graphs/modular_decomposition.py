@@ -424,7 +424,7 @@ def number_components(root, vertex_status):
     - ``vertex_status`` -- dictionary which stores the position of vertex
                            w.r.t SOURCE
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
                    VertexPosition, create_normal_node, number_components
@@ -452,7 +452,7 @@ def number_components(root, vertex_status):
         sage: forest.children[-1].children[1].comp_num
         3
 
-    TESTS:
+    TESTS::
 
         sage: forest.children[-1].children[0].comp_num == 2 and \
               forest.children[-1].children[1].comp_num == 3
@@ -492,7 +492,7 @@ def number_cocomponents(root, vertex_status):
     - ``vertex_status`` -- dictionary which stores the position of vertex
                            w.r.t SOURCE
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
                    VertexPosition, create_normal_node, number_cocomponents
@@ -520,7 +520,7 @@ def number_cocomponents(root, vertex_status):
         sage: forest.children[1].children[1].comp_num
         2
 
-    TESTS:
+    TESTS::
 
         sage: forest.children[1].children[0].comp_num and \
               forest.children[1].children[1].comp_num == 2
@@ -559,7 +559,7 @@ def recursively_number_parts(part_root, part_num, by_type):
 
     The value incremented to part_num
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, recursively_number_parts
@@ -575,7 +575,7 @@ def recursively_number_parts(part_root, part_num, by_type):
         sage: series_node.children[1].comp_num
         2
 
-    TESTS:
+    TESTS::
 
         sage: series_node.comp_num == 1 and \
               series_node.children[0].comp_num == 1 and \
@@ -629,7 +629,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
     - ``vertex_dist`` -- Dictionary which stores the distance of vertex from 
                          source vertex
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \ 
               VertexPosition, create_normal_node, number_cocomponents, \
@@ -802,7 +802,7 @@ def check_prime(graph, root, left, right,
     module is formed else ``False`` and ``source_index`` is the index of the
     new module which contains the source vertex
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, number_cocomponents, \
@@ -985,7 +985,7 @@ def check_parallel(graph, root, left, right,
     module is formed else ``False`` and ``source_index`` is the index of the
     new module which contains the source vertex
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, number_cocomponents, \
@@ -1123,7 +1123,7 @@ def check_series(root, left, right, source_index, mu):
     module is formed else ``False`` and ``source_index`` is the index of the
     new module which contains the source vertex
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, number_cocomponents, \
@@ -1250,7 +1250,7 @@ def has_left_cocomponent_fragment(root, cocomp_index):
     ``True`` if cocomponent at  cocomp_index has a cocomponent
     to its left with same comp_num else ``False``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               create_normal_node, has_left_cocomponent_fragment
@@ -1297,7 +1297,7 @@ def has_right_component_fragment(root, comp_index):
     ``True`` if component at  comp_index has a component
     to its right with same comp_num else ``False``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               create_normal_node, has_right_component_fragment
@@ -1347,7 +1347,7 @@ def has_right_layer_neighbor(graph, root, comp_index,
     ``True`` if component at comp_index has a right layer neighbor
     else ``False``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, has_right_layer_neighbor
@@ -1433,7 +1433,7 @@ def compute_mu_for_co_component(graph, component_index, source_index,
 
     The mu value (component in the forest) for the co-component
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, compute_mu_for_co_component
@@ -1497,7 +1497,7 @@ def compute_mu_for_component(graph, component_index, source_index,
 
     The mu value (co-component in the forest) for the component
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, compute_mu_for_component
@@ -1562,7 +1562,7 @@ def is_component_connected(graph, index1, index2, vertices_in_component):
 
     ``True`` if the (co)components are connected else ``False``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               create_normal_node, get_vertices, is_component_connected
@@ -1642,7 +1642,7 @@ def promote_left(root):
 
     - ``root`` -- The forest which needs to be promoted
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, \
@@ -1732,7 +1732,7 @@ def promote_right(root):
 
     - ``root`` -- The forest which needs to be promoted
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, refine, promote_right
@@ -1817,7 +1817,7 @@ def promote_child(root):
 
     - ``root`` -- The forest which needs to be promoted
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, refine, promote_right, \
@@ -1922,7 +1922,7 @@ def refine(graph, root, vertex_dist, vertex_status):
     - ``vertex_status`` -- dictionary mapping the vertex to the position
                            w.r.t source
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, refine
@@ -2011,7 +2011,7 @@ def maximal_subtrees_with_leaves_in_x(root, v, x, vertex_status,
     - ``tree_left_of_source`` -- flag indicating whether tree is
     - ``level`` -- indicates the recursion level, 0 for root
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, \
@@ -2265,7 +2265,7 @@ def test_modular_decomposition(tree_root, graph):
 
     ``True`` if input tree is a modular decomposition else ``False``
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.graphs.modular_decomposition import \
               modular_decomposition, test_modular_decomposition

@@ -994,7 +994,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def ImplicitExpansion(var, phi, period=1, tau=None, precision=None):
-        """
+        r"""
         Return the singular expansion for a function `y(z)` defined
         implicitly by `y(z) = z \Phi(y(z))`.
 
@@ -1009,7 +1009,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``period`` -- (default: 1) the period `p` of the function `\Phi`, i.e., the largest
           integer `p` such that the power series `\Phi(u)` can be written as `\Psi(u^p)`,
-          where `\Psi` is another power series. (Not yet implemented)
+          where `\Psi` is another power series.
 
         - ``tau`` -- (default: ``None``) the unique positive solution `\tau` of
           the characteristic equation, `\Phi(\tau) - \tau \Phi'(\tau) = 0`. If ``None``,

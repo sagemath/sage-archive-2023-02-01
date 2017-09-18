@@ -1319,7 +1319,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if len(argv) != 1:
         raise ValueError("call the limit function like this, e.g. limit(expr, x=2).")
     else:
-        k = argv.keys()[0]
+        k, = argv.keys()
         v = var(k)
         a = argv[k]
 

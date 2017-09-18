@@ -335,7 +335,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             if not arg0:
                 from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
                 return AbelianLieAlgebra(R, names, index_set)
-            elif isinstance(arg0.keys()[0], (list,tuple)):
+            elif isinstance(next(iter(arg0.keys())), (list, tuple)):
                 # We assume it is some structure coefficients
                 arg1, arg0 = arg0, arg1
 

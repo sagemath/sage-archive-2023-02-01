@@ -114,7 +114,7 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems, string_types, class_types
+from six import iteritems, string_types, class_types, text_type
 from sage.misc.six import u
 
 import ast
@@ -1634,12 +1634,14 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if not isinstance(r, string_types):
-        return ''
-    elif not isinstance(r, str): # unicode (py2) = str (py3)
+    if isinstance(r, str):
+        return r
+    elif isinstance(r, text_type):
+        # On Python 2, we want str, not unicode
         return r.encode('utf-8', 'ignore')
     else:
-        return r
+        # Not a string of any kind
+        return ''
 
 
 def sage_getdoc_original(obj):

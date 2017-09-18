@@ -6978,12 +6978,6 @@ class Graph(GenericGraph):
         r"""
         Returns the modular decomposition of the current graph.
 
-        .. NOTE::
-
-            In order to use this method you must install the
-            ``modular_decomposition`` optional package. See
-            :mod:`sage.misc.package`.
-
         Crash course on modular decomposition:
 
         A module `M` of a graph `G` is a proper subset of its vertices
@@ -7036,9 +7030,9 @@ class Graph(GenericGraph):
 
         * The type of the current module :
 
-          * ``"Parallel"``
-          * ``"Prime"``
-          * ``"Serie"``
+          * ``"PARALLEL"``
+          * ``"PRIME"``
+          * ``"SERIES"``
 
         * The list of submodules (as list of pairs ``(type, list)``,
           recursively...) or the vertex's name if the module is a
@@ -7048,13 +7042,13 @@ class Graph(GenericGraph):
 
         The Bull Graph is prime::
 
-            sage: graphs.BullGraph().modular_decomposition() # optional -- modular_decomposition
-            ('Prime', [3, 4, 0, 1, 2])
+            sage: graphs.BullGraph().modular_decomposition()
+            (PRIME, [1, 2, 0, 3, 4])
 
         The Petersen Graph too::
 
-            sage: graphs.PetersenGraph().modular_decomposition() # optional -- modular_decomposition
-            ('Prime', [2, 6, 3, 9, 7, 8, 0, 1, 5, 4])
+            sage: graphs.PetersenGraph().modular_decomposition()
+            (PRIME, [1, 4, 5, 0, 3, 7, 2, 8, 9, 6])
 
         This a clique on 5 vertices with 2 pendant edges, though, has a more
         interesting decomposition ::
@@ -7062,17 +7056,14 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(5)
             sage: g.add_edge(0,5)
             sage: g.add_edge(0,6)
-            sage: g.modular_decomposition() # optional -- modular_decomposition
-            ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
+            sage: g.modular_decomposition()
+            (SERIES, [(PARALLEL, [(SERIES, [4, 3, 2, 1]), 5, 6]), 0])
 
         ALGORITHM:
 
-        This function uses a C implementation of a 2-step algorithm
-        implemented by Fabien de Montgolfier [FMDec]_ :
-
-            * Computation of a factorizing permutation [HabibViennot1999]_.
-
-            * Computation of the tree itself [CapHabMont02]_.
+        This function uses python implementation of algorithm published by
+        Marc Tedder, Derek Corneil, Michel Habib and Christophe Paul
+        [TedCorHabPaul08]
 
         .. SEEALSO::
 
@@ -7080,47 +7071,30 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [FMDec] Fabien de Montgolfier
-          http://www.liafa.jussieu.fr/~fm/algos/index.html
-
-        .. [HabibViennot1999] Michel Habib, Christiphe Paul, Laurent Viennot
-          Partition refinement techniques: An interesting algorithmic tool kit
-          International Journal of Foundations of Computer Science
-          vol. 10 n2 pp.147--170, 1999
-
-        .. [CapHabMont02] \C. Capelle, M. Habib et F. de Montgolfier
-          Graph decomposition and Factorising Permutations
-          Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
-
-        .. [HabPau10] Michel Habib and Christophe Paul
-          A survey of the algorithmic aspects of modular decomposition
-          Computer Science Review
-          vol 4, number 1, pages 41--59, 2010
-          http://www.lirmm.fr/~paul/md-survey.pdf
+        .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
+          Christophe Paul
+          https://arxiv.org/pdf/0710.3901.pdf
 
         TESTS::
 
-            sage: graphs.EmptyGraph().modular_decomposition() # optional -- modular_decomposition
+            sage: graphs.EmptyGraph().modular_decomposition()
             ()
         """
-        try:
-            from sage.graphs.modular_decomposition import modular_decomposition
-        except ImportError:
-            raise RuntimeError("In order to use this method you must "
-                               "install the modular_decomposition package")
+        from sage.graphs.modular_decomposition import modular_decomposition, NodeType
 
         self._scream_if_not_simple()
-        from sage.misc.stopgap import stopgap
-        stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
         if self.order() == 0:
             return tuple()
-        
+
+        if self.order() == 1:
+            return (NodeType.PRIME, self.vertices())
+
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else id_label[x.children[0]]
 
         return relabel(D)
 
@@ -7132,24 +7106,18 @@ class Graph(GenericGraph):
         A graph is prime if all its modules are trivial (i.e. empty, all of the
         graph or singletons) -- see :meth:`modular_decomposition`.
 
-        .. NOTE::
-
-            In order to use this method you must install the
-            ``modular_decomposition`` optional package. See
-            :mod:`sage.misc.package`.
-
         EXAMPLES:
 
         The Petersen Graph and the Bull Graph are both prime::
 
-            sage: graphs.PetersenGraph().is_prime() # optional - modular_decomposition
+            sage: graphs.PetersenGraph().is_prime()
             True
-            sage: graphs.BullGraph().is_prime()     # optional - modular_decomposition
+            sage: graphs.BullGraph().is_prime()
             True
 
         Though quite obviously, the disjoint union of them is not::
 
-            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
+            sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime()
             False
 
         TESTS::
@@ -7157,12 +7125,14 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
-        if self.order() == 0:
+        from sage.graphs.modular_decomposition import NodeType
+
+        if self.order() <= 1:
             return True
 
         D = self.modular_decomposition()
 
-        return D[0] == "Prime" and len(D[1]) == self.order()
+        return D[0] == NodeType.PRIME and len(D[1]) == self.order()
 
     @rename_keyword(deprecation=19550, method='algorithm')
     def _gomory_hu_tree(self, vertices, algorithm=None):

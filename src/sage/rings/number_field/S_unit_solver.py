@@ -16,17 +16,7 @@ AUTHORS:
 
 - Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2017-01-10): original version
 
-EXAMPLE::
-
-    sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
-    sage: K.<xi> = NumberField(x^2+x+1)
-    sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-    sage: S=SUK.primes()
-    sage: solve_S_unit_equation(K, S, 200)
-    [[(2, 1), (4, 0), xi + 2, -xi - 1],
-     [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
-     [(5, 0), (1, 0), -xi, xi + 1],
-     [(1, 1), (2, 0), -xi + 1, xi]]
+    
 """
 
 
@@ -106,8 +96,7 @@ def column_Log(SUK, iota, U, prec=None):
         prec = 106
     R = RealField(prec)
 
-    from sage.functions.log import log
-    return [ R(log(SUK.number_field().abs_val(v,iota,prec))) for v in U]
+    return [ R(SUK.number_field().abs_val(v,iota,prec)).log() for v in U]
 
 def c3_func(SUK, prec=None):
     r"""
@@ -364,7 +353,7 @@ def c8_c9_func(SUK, v, A, prec=None):
 
     """
     if prec is None:
-        prec =106
+        prec = 106
     R = RealField(prec)
     num_mus = len(mus(SUK,v))+1
     p = v.smallest_integer()
@@ -381,8 +370,7 @@ def c8_c9_func(SUK, v, A, prec=None):
         D = d
     else:
         D = 2*d
-    from sage.functions.log import log
-    l_c3 = (num_mus+1)**(2*num_mus+4)*p**(D * f_p/d)*(f_p*log(p))**(-num_mus-1)*D**(num_mus+2)
+    l_c3 = (num_mus+1)**(2*num_mus+4)*p**(D * f_p/d)*(f_p*R(p).log())**(-num_mus-1)*D**(num_mus+2)
 
     def modified_height(SUK,v,D,b, prec=None):
         #[Sma1998]_ p. 226
@@ -392,9 +380,8 @@ def c8_c9_func(SUK, v, A, prec=None):
         d = SUK.number_field().degree()
         f_p = v.residue_class_degree()
         p = v.smallest_integer()
-        from sage.functions.log import log
-        max_log_b = max([log(phi(b)).abs() for phi in SUK.number_field().places(prec)])
-        return R(max([b.global_height(),max_log_b/(2*R.pi()*D),f_p*log(p)/d]))
+        max_log_b = max([phi(b).log().abs() for phi in SUK.number_field().places(prec)])
+        return R(max([b.global_height(),max_log_b/(2*R.pi()*D),f_p*R(p).log()/d]))
 
     mus_prod = prod([modified_height(SUK,v,D,b,prec) for b in mus(SUK,v)])
     local_c3 = R(max([mus_prod*modified_height(SUK,v,D,mu0,prec) for mu0 in possible_mu0s(SUK,v)]))
@@ -402,10 +389,10 @@ def c8_c9_func(SUK, v, A, prec=None):
     l_c3 *= local_c3
     H = max([modified_height(SUK,v,D,alpha, prec) for alpha in mus(SUK,v)+possible_mu0s(SUK,v)])
     if p == 2:
-        local_c4 = log(3*2**10*(num_mus+1)**2*D**2*H)
+        local_c4 = R(3*2**10*(num_mus+1)**2*D**2*H).log()
     else:
-        local_c4 = log(2**11*(num_mus+1)**2*D**2*H)
-    local_c5 = 2*log(D)
+        local_c4 = R(2**11*(num_mus+1)**2*D**2*H).log()
+    local_c5 = 2*R(D).log()
     return R(local_c2*l_c3*local_c4), R(local_c2*l_c3*local_c4*local_c5)
 
 def c11_func(SUK, v, A, prec=None):
@@ -445,12 +432,11 @@ def c11_func(SUK, v, A, prec=None):
     if prec is None:
         prec = 106
     R = RealField(prec)
-    from sage.functions.log import log
     if is_real_place(v):
-        return R(log(4*c4_func(SUK, v, A, prec))/(c3_func(SUK, prec)))
+        return R(R(4*c4_func(SUK, v, A, prec)).log()/(c3_func(SUK, prec)))
     else:
         from sage.functions.other import sqrt
-        return R(2*(log(4*sqrt(c4_func(SUK,v, A, prec))))/(c3_func(SUK, prec)))
+        return R(2*(R(4*sqrt(c4_func(SUK,v, A, prec))).log())/(c3_func(SUK, prec)))
 
 def c13_func(SUK, v, prec=None):
     r"""
@@ -529,7 +515,7 @@ def K0_func(SUK, A, prec=None):
         sage: A = K.roots_of_unity()
 
         sage: K0_func(SUK,A)
-        9.475576673109275443280257946930e17
+        9.475576673109275443280257946929e17
 
     REFERENCE:
 
@@ -540,23 +526,19 @@ def K0_func(SUK, A, prec=None):
     R = RealField(prec)
 
     def c5_func(SUK, v, R):
-        from sage.functions.log import log
-        return R(c3_func(SUK, R.precision())/(v.residue_class_degree()*log(v.smallest_integer())*v.ramification_index()))
+        return R(c3_func(SUK, R.precision())/(v.residue_class_degree()*R(v.smallest_integer()).log()*v.ramification_index()))
 
     def c6_func(SUK, v, A, R):
-        from sage.functions.log import log
-        return R(log(c4_func(SUK, v, A, R.precision()))/(v.residue_class_degree()*log(v.smallest_integer())*v.ramification_index()))
+        return R(R(c4_func(SUK, v, A, R.precision())).log()/(v.residue_class_degree()*R(v.smallest_integer()).log()*v.ramification_index()))
 
     def c7_func(SUK, v, A, R):
-        from sage.functions.log import log
-        return R(log(c4_func(SUK, v, A, R.precision()))/c3_func(SUK, R.precision()))
+        return R(R(c4_func(SUK, v, A, R.precision())).log()/c3_func(SUK, R.precision()))
 
     def c10_func(SUK, v, A, R):
         # [Sma1995]_ p. 824
         e_h = v.ramification_index()
         c_8, c_9 = c8_c9_func(SUK, v, A, R.precision())
-        from sage.functions.log import log
-        return R((2/(e_h*c5_func(SUK, v, R)))*(e_h*c6_func(SUK, v, A, R) + c_9 + c_8 * log( c_8/(e_h*c5_func(SUK, v, R)))))
+        return R((2/(e_h*c5_func(SUK, v, R)))*(e_h*c6_func(SUK, v, A, R) + c_9 + c_8 * R( c_8/(e_h*c5_func(SUK, v, R))).log()))
 
     return R(max([c10_func(SUK,v, A, R) for v in SUK.primes()] + [c7_func(SUK,v,A,R) for v in SUK.primes()]))
 
@@ -599,14 +581,12 @@ def K1_func(SUK, v, A, prec=None):
         prec = 106
     R = RealField(prec)
 
-    from sage.functions.log import log
-
     #[Sma1995]_ p. 825
     if is_real_place(v):
-        c11 = R(log(4*c4_func(SUK, v, A, prec))/(c3_func(SUK, prec)))
+        c11 = R(R(4*c4_func(SUK, v, A, prec)).log()/(c3_func(SUK, prec)))
     else:
         from sage.functions.other import sqrt
-        c11 = R(2*(log(4*sqrt(c4_func(SUK,v, A, prec))))/(c3_func(SUK, prec)))
+        c11 = R(2*(R(4*sqrt(c4_func(SUK,v, A, prec))).log())/(c3_func(SUK, prec)))
 
     #[Sma1995]_ p. 825
     if is_real_place(v):
@@ -618,19 +598,19 @@ def K1_func(SUK, v, A, prec=None):
     #[Sma1998]_ p. 225, Theorem A.1
     d = SUK.number_field().degree()
     t = SUK.rank()
-    Baker_C = R( 18 * factorial(t+2) * (t+1)**(t+2) * (32*d)**(t + 3) * log( 2*(t+1) * d) )
+    Baker_C = R( 18 * factorial(t+2) * (t+1)**(t+2) * (32*d)**(t + 3) * R( 2*(t+1) * d).log() )
 
     def hprime(SUK, alpha, v, prec=None):
         #[Sma1998]_ p. 225
         if prec is None:
             prec = 106
         R = RealField(prec)
-        return R(max(alpha.global_height(), 1/SUK.number_field().degree(), log(v(alpha)).abs()/SUK.number_field().degree()))
+        return R(max(alpha.global_height(), 1/SUK.number_field().degree(), (v(alpha)).log().abs()/SUK.number_field().degree()))
 
     #[Sma1995]_ p. 825 and [Sma1998]_ p. 225, Theorem A.1
     c14 = Baker_C * prod([hprime(SUK, alpha, v, prec) for alpha in SUK.gens_values()])
 
     #[Sma1995]_ p. 825
-    c15 = R(2*(log(c12)+c14*log((SUK.rank()+1)*c14/c13_func(SUK, v, prec)))/c13_func(SUK, v, prec))
+    c15 = R(2*((c12).log()+c14*R((SUK.rank()+1)*c14/c13_func(SUK, v, prec)).log())/c13_func(SUK, v, prec))
 
     return max([c11, c15])

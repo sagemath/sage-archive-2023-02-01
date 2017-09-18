@@ -7024,12 +7024,9 @@ class Graph(GenericGraph):
 
         ALGORITHM:
 
-        This function uses a C implementation of a 2-step algorithm
-        implemented by Fabien de Montgolfier [FMDec]_ :
-
-            * Computation of a factorizing permutation [HabibViennot1999]_.
-
-            * Computation of the tree itself [CapHabMont02]_.
+        This function uses python implementation of algorithm published by
+        Marc Tedder, Derek Corneil, Michel Habib and Christophe Paul
+        [TedCorHabPaul08]
 
         .. SEEALSO::
 
@@ -7037,23 +7034,9 @@ class Graph(GenericGraph):
 
         REFERENCE:
 
-        .. [FMDec] Fabien de Montgolfier
-          http://www.liafa.jussieu.fr/~fm/algos/index.html
-
-        .. [HabibViennot1999] Michel Habib, Christiphe Paul, Laurent Viennot
-          Partition refinement techniques: An interesting algorithmic tool kit
-          International Journal of Foundations of Computer Science
-          vol. 10 n2 pp.147--170, 1999
-
-        .. [CapHabMont02] \C. Capelle, M. Habib et F. de Montgolfier
-          Graph decomposition and Factorising Permutations
-          Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
-
-        .. [HabPau10] Michel Habib and Christophe Paul
-          A survey of the algorithmic aspects of modular decomposition
-          Computer Science Review
-          vol 4, number 1, pages 41--59, 2010
-          http://www.lirmm.fr/~paul/md-survey.pdf
+        .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
+          Christophe Paul
+          https://arxiv.org/pdf/0710.3901.pdf
 
         TESTS::
 
@@ -7107,7 +7090,7 @@ class Graph(GenericGraph):
         """
         from sage.graphs.modular_decomposition import NodeType
 
-        if self.order() == 0 or self.order() == 1:
+        if self.order() <= 1:
             return True
 
         D = self.modular_decomposition()

@@ -299,7 +299,7 @@ def modular_decomposition(graph):
                     5:[2,3,4,6,7], 6:[2,3,4,5,8,9,10,11], \
                     7:[2,3,4,5,8,9,10,11], 8:[6,7,9,10,11], 9:[6,7,8,10,11], \
                     10:[6,7,8,9], 11:[6,7,8,9]}
-        sage: g = Graph(d)
+        sage: g = Graph(d2)
         sage: test_modular_decomposition(modular_decomposition(g), g)
         True
 

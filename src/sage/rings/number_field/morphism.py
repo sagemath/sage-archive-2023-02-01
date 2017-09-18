@@ -27,8 +27,11 @@ class NumberFieldHomset(RingHomset_generic):
     """
     def __init__(self, R, S, category=None):
         if category is None:
-            from sage.categories.fields import Fields
-            category = Fields()
+            from sage.categories.all import Fields, NumberFields
+            if S in NumberFields:
+                category = NumberFields()
+            elif S in Fields:
+                category = Fields()
         RingHomset_generic.__init__(self, R, S, category)
 
     def __call__(self, im_gens, check=True):

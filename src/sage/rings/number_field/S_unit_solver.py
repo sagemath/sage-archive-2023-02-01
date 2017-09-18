@@ -85,7 +85,7 @@ def column_Log(SUK, iota, U, prec=None):
         sage: phi_complex = K.places()[1]
         sage: v_fin = tuple(K.primes_above(3))[0]
         sage: U = [phi_complex, v_fin]
-        sage: column_Log(SUK, xi^2, U)
+        sage: column_Log(SUK, xi^2, U) # abs tol 1e-29
         [1.464816384890812968648768625966, -2.197224577336219382790490473845]
 
     REFERENCE:
@@ -117,7 +117,7 @@ def c3_func(SUK, prec=None):
         sage: K.<xi> = NumberField(x^3-3)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
 
-        sage: c3_func(SUK)
+        sage: c3_func(SUK) # abs tol 1e-29
         0.4257859134798034746197327286726
 
     .. NOTE::
@@ -343,7 +343,7 @@ def c8_c9_func(SUK, v, A, prec=None):
         sage: v_fin = K.primes_above(3)[0]
         sage: A = K.roots_of_unity()
 
-        sage: c8_c9_func(SUK,v_fin,A)
+        sage: c8_c9_func(SUK,v_fin,A) # abs tol 1e-29
         (4.524941291354698258804956696127e15, 1.621521281297160786545580368612e16)
 
     REFERENCES:
@@ -419,10 +419,10 @@ def c11_func(SUK, v, A, prec=None):
         sage: phi_complex = K.places()[1]
         sage: A = K.roots_of_unity()
 
-        sage: c11_func(SUK,phi_real,A)
+        sage: c11_func(SUK,phi_real,A) # abs tol 1e-29
         3.255848343572896153455615423662
 
-        sage: c11_func(SUK,phi_complex,A)
+        sage: c11_func(SUK,phi_complex,A) # abs tol 1e-29
         6.511696687145792306911230847323
 
     REFERENCE:
@@ -435,8 +435,7 @@ def c11_func(SUK, v, A, prec=None):
     if is_real_place(v):
         return R(R(4*c4_func(SUK, v, A, prec)).log()/(c3_func(SUK, prec)))
     else:
-        from sage.functions.other import sqrt
-        return R(2*(R(4*sqrt(c4_func(SUK,v, A, prec))).log())/(c3_func(SUK, prec)))
+        return R(2*(R(4*(c4_func(SUK,v, A, prec)).sqrt()).log())/(c3_func(SUK, prec)))
 
 def c13_func(SUK, v, prec=None):
     r"""
@@ -460,10 +459,10 @@ def c13_func(SUK, v, prec=None):
         sage: phi_real = K.places()[0]
         sage: phi_complex = K.places()[1]
 
-        sage: c13_func(SUK,phi_real)
+        sage: c13_func(SUK,phi_real) # abs tol 1e-29
         0.4257859134798034746197327286726
 
-        sage: c13_func(SUK,phi_complex)
+        sage: c13_func(SUK,phi_complex) # abs tol 1e-29
         0.2128929567399017373098663643363
 
     It is an error to input a finite place
@@ -514,7 +513,7 @@ def K0_func(SUK, A, prec=None):
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
         sage: A = K.roots_of_unity()
 
-        sage: K0_func(SUK,A)
+        sage: K0_func(SUK,A) # abs tol 1e-29
         9.475576673109275443280257946929e17
 
     REFERENCE:
@@ -585,15 +584,13 @@ def K1_func(SUK, v, A, prec=None):
     if is_real_place(v):
         c11 = R(R(4*c4_func(SUK, v, A, prec)).log()/(c3_func(SUK, prec)))
     else:
-        from sage.functions.other import sqrt
-        c11 = R(2*(R(4*sqrt(c4_func(SUK,v, A, prec))).log())/(c3_func(SUK, prec)))
+        c11 = R(2*(R(4*(c4_func(SUK,v, A, prec)).sqrt()).log())/(c3_func(SUK, prec)))
 
     #[Sma1995]_ p. 825
     if is_real_place(v):
         c12 = R(2*c4_func(SUK, v, A, prec))
     else:
-        from sage.functions.other import sqrt
-        c12 = R(2*sqrt(c4_func(SUK,v, A, prec)))
+        c12 = R(2*(c4_func(SUK,v, A, prec)).sqrt())
 
     #[Sma1998]_ p. 225, Theorem A.1
     d = SUK.number_field().degree()

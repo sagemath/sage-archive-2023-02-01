@@ -26,6 +26,18 @@ class NumberFieldHomset(RingHomset_generic):
         The following tests failed: _test_elements
     """
     def __init__(self, R, S, category=None):
+        """
+        TESTS:
+
+        Check that :trac:`23647` is fixed::
+
+            sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: e, u, v, w = End(K)
+            sage: e.abs_hom().parent().category()
+            Category of homsets of number fields
+            sage: (v*v).abs_hom().parent().category()
+            Category of homsets of number fields
+        """
         if category is None:
             from sage.categories.all import Fields, NumberFields
             if S in NumberFields:

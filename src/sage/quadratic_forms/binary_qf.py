@@ -521,7 +521,7 @@ class BinaryQF(SageObject):
         This is just -D/4 where D is the discriminant.  The return
         type is rational even if b (and hence D) is even.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: q = BinaryQF(1,-1,67)
             sage: q.determinant()
@@ -646,7 +646,7 @@ class BinaryQF(SageObject):
         If ``matrix`` is True, return both the reduced form and a
         matrix transforming ``self`` into the reduced form.
 
-        TEST::
+        TESTS::
 
             sage: f = BinaryQF(-1, 0, 3)
             sage: f._reduce_indef(matrix=False)
@@ -761,7 +761,7 @@ class BinaryQF(SageObject):
         Apply Rho and Tau operators to this form, returning
         a new form Q.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: f = BinaryQF(1, 8, -3)
             sage: f._RhoTau()

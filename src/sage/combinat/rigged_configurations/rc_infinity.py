@@ -451,7 +451,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
 
     def from_virtual(self, vrc):
         """
-        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        Convert ``vrc`` in the virtual crystal into a rigged configuration of
         the original Cartan type.
 
         INPUT:

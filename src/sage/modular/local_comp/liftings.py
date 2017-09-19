@@ -174,10 +174,9 @@ def lift_for_SL(A, N):
     r"""
     Lift a matrix `A` from `SL_m(\ZZ / N\ZZ)` to `SL_m(\ZZ)`.
 
-    Follows Shimura, Lemma 1.38, p. 21.
+    This follows [Shimura]_, Lemma 1.38, p. 21.
 
     EXAMPLES::
-
 
         sage: from sage.modular.local_comp.liftings import lift_for_SL
         sage: N = 11
@@ -214,9 +213,9 @@ def lift_for_SL(A, N):
 
     D, U, V = A.smith_form()
     diag = diagonal_matrix([-1] + [1] * (m - 1))
-    if U.det() == -1 :
+    if U.det() == -1:
         U = diag * U
-    if V.det() == -1 :
+    if V.det() == -1:
         V = V * diag
     D = U * A * V
 

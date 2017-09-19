@@ -731,7 +731,7 @@ class Set_object_enumerated(Set_object):
     A finite enumerated set.
     """
     def __init__(self, X):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::

@@ -469,7 +469,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         return "Free Associative Unital Algebra on %d generators %s over %s"%(self.__ngens-self._nb_slackvars,self.gens(),self._base)
 
     def _latex_(self):
-        """
+        r"""
         Representation of this free algebra in LaTeX.
 
         EXAMPLES::
@@ -477,7 +477,6 @@ cdef class FreeAlgebra_letterplace(Algebra):
             sage: F.<bla,alpha,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[1,2,3])
             sage: latex(F)
             \Bold{Q}\langle \mathit{bla}, \alpha, z\rangle
-
         """
         from sage.misc.latex import latex
         return "%s\\langle %s\\rangle"%(latex(self.base_ring()),', '.join(self.latex_variable_names()))

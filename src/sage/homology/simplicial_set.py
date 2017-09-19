@@ -2308,7 +2308,6 @@ class SimplicialSet_arbitrary(Parent):
         As long as the factors are all finite, the inclusion map from
         each factor is available.
 
-
         EXAMPLES::
 
             sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet

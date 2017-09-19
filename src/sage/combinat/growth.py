@@ -142,6 +142,7 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.core import Core, Cores
 from sage.combinat.k_tableau import WeakTableau, StrongTableau
+from sage.combinat.tableau_shifted_primed import ShiftedPrimedTableau
 from copy import copy
 from sage.misc.functional import is_odd, is_even
 from sage.rings.integer_ring import ZZ
@@ -1256,6 +1257,67 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             [[3], [2, 1]]
         """
         return [0] if w.contains(v) else []
+
+    def P_symbol(self):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a shifted tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramShiftedShapes([5, 10, 8, 7, 4, 1, 2, 9, 3, 6])
+            sage: G.P_symbol().pp()
+             1   2   3   6   9
+                 4   5   7
+                     8   10
+
+        """
+        chain = self.P_chain()[::2]
+        shape = chain[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,len(chain)):
+            la = chain[i]
+            mu = chain[i-1]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i
+
+        return ShiftedPrimedTableau(T)
+
+    def Q_symbol(self):
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramShiftedShapes([5, 10, 8, 7, 4, 1, 2, 9, 3, 6])
+            sage: G.Q_symbol().pp()
+            1   2   5'  6'  7'
+                3   8'  8
+                    9   10
+
+        """
+        chain = self.Q_chain()
+        shape = chain[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,(len(chain)+1)//2):
+            la = chain[2*i]
+            if chain[2*i-1] == 3:
+                prime = 0.5
+            else:
+                prime = 0
+            mu = chain[2*(i-1)]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i + prime
+
+        return ShiftedPrimedTableau(T)
+
 
     @staticmethod
     def _forward_rule(y, e, t, f, x, content):

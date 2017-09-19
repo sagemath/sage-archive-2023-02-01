@@ -6613,7 +6613,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - If ``certificate=True`` return either ``True, None`` or
-          ``False, (a, b)``, where the inteval ``(a, b)`` is not
+          ``False, (a, b)``, where the interval ``(a, b)`` is not
           Eulerian. If ``certificate=False`` return ``True`` or ``False``.
 
         EXAMPLES::

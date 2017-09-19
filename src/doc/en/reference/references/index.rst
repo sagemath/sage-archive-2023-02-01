@@ -1955,7 +1955,7 @@ REFERENCES:
 
 .. [SS2015] Anne Schilling and Travis Scrimshaw.
             *Crystal structure on rigged configurations and the filling map*.
-            Electon. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
+            Electron. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
 
 .. [SS2015II] Ben Salisbury and Travis Scrimshaw.
               *A rigged configuration model for* `B(\infty)`.
@@ -1964,7 +1964,7 @@ REFERENCES:
 
 .. [SS2017] Ben Salisbury and Travis Scrimshaw.
             *Rigged configurations for all symmetrizable types*.
-            Electon. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
+            Electron. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
 
 .. [SSAMI2007] \T. Shirai, K. Shibutani, T. Akishita, S. Moriai, and T. Iwata,
                *The 128-bit blockcipher CLEFIA (extended abstract)*; in

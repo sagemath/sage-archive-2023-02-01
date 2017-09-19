@@ -650,9 +650,11 @@ class ShiftedPrimedTableau(ClonableArray):
     def epsilon(self,i):
         r"""
         Compute the value of the crystal function `\epsilon_i` applied to
-        a shifted primed tableau ``self``.  The function `\epsilon_i`
-        is defined to be the maximal number of operators `e_i` one
-        can apply to ``self`` before vanishing into ``None``.
+        a shifted primed tableau ``self``.
+
+        The function `\epsilon_i` is defined to be the maximal number
+        of operators `e_i` one can apply to ``self`` before vanishing
+        into ``None``.
 
         INPUT:
 
@@ -682,9 +684,11 @@ class ShiftedPrimedTableau(ClonableArray):
     def phi(self,i):
         r"""
         Compute value of the crystal function `\phi_i` applied to a
-        shifted primed tableau ``self``.  The function `\phi_i` is
-        defined to be the maximal number of operators `f_i` one can
-        apply to ``self`` before vanishing into ``None``.
+        shifted primed tableau ``self``.
+
+        The function `\phi_i` is defined to be the maximal number of
+        operators `f_i` one can apply to ``self`` before vanishing
+        into ``None``.
 
         INPUT:
 
@@ -714,7 +718,9 @@ class ShiftedPrimedTableau(ClonableArray):
     def is_highest_weight(self):
         """
         Check wether the shifted primed tableau ``self`` is a highest weight element of the crystal.
-        Highest weight element defined to be vanishing under any crystal operator `e_i`.
+
+
+        An element is highest weight if it vanishes under any crystal operator `e_i`.
 
         EXAMPLE::
 
@@ -1051,6 +1057,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     def __init__(self, shape, max_elt):
         """
         Initialize the class of Shifted Primed Tableaux of a given shape.
+
         If ``max_elt`` is specified, a finite set with entries smaller or equal to ``max_elt``.
 
         """

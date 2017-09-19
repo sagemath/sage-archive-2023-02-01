@@ -1263,14 +1263,14 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         Return the labels along the vertical boundary of a rectangular
         growth diagram as a shifted tableau.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: G = GrowthDiagramShiftedShapes([5, 10, 8, 7, 4, 1, 2, 9, 3, 6])
+        Check the example just before Corollary 3.2 in [Sag1987]_::
+
+            sage: G = GrowthDiagramShiftedShapes([2,6,5,1,7,4,3])
             sage: G.P_symbol().pp()
-             1   2   3   6   9
-                 4   5   7
-                     8   10
-
+            1  2  3  6  7
+               4  5
         """
         chain = self.P_chain()[::2]
         shape = chain[-1]
@@ -1291,14 +1291,14 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         Return the labels along the horizontal boundary of a rectangular
         growth diagram as a skew tableau.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: G = GrowthDiagramShiftedShapes([5, 10, 8, 7, 4, 1, 2, 9, 3, 6])
+        Check the example just before Corollary 3.2 in [Sag1987]_::
+
+            sage: G = GrowthDiagramShiftedShapes([2,6,5,1,7,4,3])
             sage: G.Q_symbol().pp()
-            1   2   5'  6'  7'
-                3   8'  8
-                    9   10
-
+            1  2  4' 5  7'
+               3  6'
         """
         chain = self.Q_chain()
         shape = chain[-1]
@@ -1314,7 +1314,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
             for r in range(len(la)):
                 for c in range(mu[r], la[r]):
-                    T[r][c] = i + prime
+                    T[r][c] = i - prime
 
         return ShiftedPrimedTableau(T)
 

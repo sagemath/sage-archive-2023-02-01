@@ -272,7 +272,16 @@ class GrowthDiagram(SageObject):
     @classmethod
     def _is_P_edge(cls, a, b):
         """
-        A default implementation to make :meth:`_shape_from_labels` work.
+        Return ``True`` (or the list of edge colors) if there is an
+        oriented edge from ``a`` to ``b`` in the first dual graded
+        graph.
+
+        The edges are oriented from the elements with larger rank
+        towards those with smaller rank.
+
+        This is a default implementation to make
+        :meth:`_shape_from_labels` work.
+
         """
         if cls._has_multiple_edges:
             return [cls._zero_edge]
@@ -282,7 +291,17 @@ class GrowthDiagram(SageObject):
     @classmethod
     def _is_Q_edge(cls, a, b):
         """
-        A default implementation to make :meth:`_shape_from_labels` work.
+        Return ``True`` (or the list of edge colors) if there is an
+        oriented edge from ``a`` to ``b`` in the second dual graded
+        graph.
+
+        The edges are oriented from the elements with larger rank
+        towards those with smaller rank.
+
+        This is a default implementation which always returns
+        ``True`` (respectively, the list with color zero) to make
+        :meth:`_shape_from_labels` work.
+
         """
         if cls._has_multiple_edges:
             return [cls._zero_edge]
@@ -321,6 +340,11 @@ class GrowthDiagram(SageObject):
     def P_graph(cls, n):
         r"""
         Return the first n levels of the first dual graded graph.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramDomino.P_graph(3)
+            Finite poset containing 8 elements
         """
         if cls._has_multiple_edges:
             D = DiGraph([(x,y,e) for k in range(n-1)
@@ -338,6 +362,11 @@ class GrowthDiagram(SageObject):
     def Q_graph(cls, n):
         r"""
         Return the first n levels of the second dual graded graph.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramDomino.Q_graph(3)
+            Finite poset containing 8 elements
         """
         if cls._has_multiple_edges:
             D = DiGraph([(x,y,e) for k in range(n-1)
@@ -1162,6 +1191,14 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
     @staticmethod
     def vertices(n):
+        """
+        Return the vertices of the dual graded graph on level ``n``.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramShiftedShapes.vertices(3)
+            Partitions of the integer 3 satisfying constraints max_slope=-1
+        """
         if n == 0:
             return [GrowthDiagramShiftedShapes._zero]
         else:
@@ -1169,10 +1206,32 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
     @staticmethod
     def _rank_function(w):
+        """
+        Return the size of the shifted partition.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramShiftedShapes
+            sage: G._rank_function(G.vertices(3)[0])
+            3
+        """
         return w.size()
 
     @staticmethod
     def _is_Q_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``w`` is obtained from ``v`` by adding a
+        cell.  It is a black (color 1) edge, if the cell is on the
+        diagonal, otherwise it can be blue or red (color 2 or 3).
+
+        TESTS::
+
+            sage: G = GrowthDiagramShiftedShapes
+            sage: v = G.vertices(2)[0]; v
+            [2]
+            sage: [(w, G._is_Q_edge(w, v)) for w in G.vertices(3)]
+            [([3], [2, 3]), ([2, 1], [1])]
+        """
         try:
             l = SkewPartition([w, v]).cells()
         except ValueError:
@@ -1185,6 +1244,17 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
 
     @staticmethod
     def _is_P_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``w`` contains ``v``.
+
+        TESTS::
+
+            sage: G = GrowthDiagramShiftedShapes
+            sage: v = G.vertices(2)[0]; v
+            [2]
+            sage: [w for w in G.vertices(3) if G._is_P_edge(w, v)]
+            [[3], [2, 1]]
+        """
         return [0] if w.contains(v) else []
 
     @staticmethod
@@ -1306,6 +1376,37 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         A tuple ``(e, t, f, content)`` consisting of the shape ``t``
         of the fourth word, the colours of the incident edges and the
         content of the cell acording to Sagan - Worley insertion.
+
+        TESTS::
+
+            sage: G = GrowthDiagramShiftedShapes
+            sage: G._backward_rule([], 1, [1], 0, [])
+            (0, [], 0, 1)
+
+            sage: G._backward_rule([1], 2, [2], 0, [1])
+            (0, [1], 0, 1)
+
+        if ``x != y``::
+
+            sage: G._backward_rule([3], 1, [3, 1], 0, [2,1])
+            (0, [2], 1, 0)
+
+            sage: G._backward_rule([2,1], 2, [3, 1], 0, [3])
+            (0, [2], 2, 0)
+
+        if ``x == y != t``::
+
+            sage: G._backward_rule([3], 1, [3, 1], 0, [3])
+            (0, [2], 2, 0)
+
+            sage: G._backward_rule([3,1], 2, [3, 2], 0, [3,1])
+            (0, [2, 1], 2, 0)
+
+            sage: G._backward_rule([2,1], 3, [3, 1], 0, [2,1])
+            (0, [2], 1, 0)
+
+            sage: G._backward_rule([3], 3, [4], 0, [3])
+            (0, [2], 3, 0)
         """
         assert h == 0, "The P-graph should not be colored"
 
@@ -1344,6 +1445,16 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
 def GrowthDiagramLLMS(k):
     """
+    Return the growth diagram class modelling the ``k``-affine Schensted correspondence.
+
+    EXAMPLES::
+
+        sage: GrowthDiagramLLMS(5).vertices(2)
+        5-Cores of length 2
+
+        sage: GrowthDiagramLLMS(5).P_graph(3)
+        Multi-digraph on 4 vertices
+
     """
     class GrowthDiagramLLMS(GrowthDiagramLLMSClass):
         _k = k
@@ -1417,22 +1528,60 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
     @staticmethod
     def _rank_function(w):
+        """
+        Return the length of the core.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramLLMS(3)
+            sage: G._rank_function(G.vertices(3)[0])
+            3
+        """
         return w.length()
 
     @classmethod
     def vertices(cls, n):
+        """
+        Return the vertices of the dual graded graph on level ``n``.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramLLMS(3).vertices(2)
+            3-Cores of length 2
+        """
         return Cores(cls._k, length=n)
 
     @staticmethod
     def _is_Q_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``w`` is a weak cover of ``v``, see
+        :meth:`~sage.combinat.core.Core.weak_covers()`.
+
+        TESTS::
+
+            sage: G = GrowthDiagramLLMS(4)
+            sage: v = G.vertices(3)[1]; v
+            [2, 1]
+            sage: [w for w in G.vertices(4) if len(G._is_Q_edge(w, v)) > 0]
+            [[2, 2], [3, 1, 1]]
+        """
         return [None] if w in v.weak_covers() else []
 
     @staticmethod
     def _is_P_edge(w, v):
-        """For two k-cores v and w containing v, there are as many edges as
+        """
+        For two k-cores v and w containing v, there are as many edges as
         there are components in the skew partition w/v.  These
         components are ribbons, and therefore contain a unique cell
         with maximal content.  We index the edge with this content.
+
+        TESTS::
+
+            sage: G = GrowthDiagramLLMS(4)
+            sage: v = G.vertices(2)[0]; v
+            [2]
+            sage: [(w, G._is_P_edge(w, v)) for w in G.vertices(3)]
+            [([3], [2]), ([2, 1], [-1]), ([1, 1, 1], [])]
         """
         if w in v.strong_covers():
             T = SkewPartition([w.to_partition(), v.to_partition()])
@@ -1667,6 +1816,14 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
     @staticmethod
     def vertices(n):
+        """
+        Return the vertices of the dual graded graph on level ``n``.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramBinWord.vertices(3)
+            [word: 100, word: 101, word: 110, word: 111]
+        """
         if n == 0:
             return [GrowthDiagramBinWord._zero]
         else:
@@ -1675,14 +1832,46 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
     @staticmethod
     def _rank_function(w):
+        """
+        Return the number of letters of the word.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramBinWord
+            sage: G._rank_function(G.vertices(3)[0])
+            3
+        """
         return len(w)
 
     @staticmethod
     def _is_Q_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``w`` is obtained from ``v`` by
+        appending a letter.
+
+        TESTS::
+
+            sage: G = GrowthDiagramBinWord
+            sage: v = G.vertices(2)[0]; v
+            word: 10
+            sage: [w for w in G.vertices(3) if G._is_Q_edge(w, v)]
+            [word: 100, word: 101]
+        """
         return w[:-1] == v
 
     @staticmethod
     def _is_P_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``w`` contains ``v`` as a subword.
+
+        TESTS::
+
+            sage: G = GrowthDiagramBinWord
+            sage: v = G.vertices(2)[1]; v
+            word: 11
+            sage: [w for w in G.vertices(3) if G._is_P_edge(w, v)]
+            [word: 101, word: 110, word: 111]
+        """
         return len(w) == len(v) + 1 and v.is_subword_of(w)
 
     @staticmethod
@@ -1866,14 +2055,48 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
     @staticmethod
     def vertices(n):
+        """
+        Return the vertices of the dual graded graph on level ``n``.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramSylvester.vertices(3)
+            Binary trees of size 3
+        """
         return BinaryTrees(n)
 
     @staticmethod
     def _rank_function(w):
+        """
+        Return the number of nodes of the tree.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramSylvester
+            sage: G._rank_function(G.vertices(3)[0])
+            3
+        """
         return w.node_number()
 
     @staticmethod
     def _is_Q_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``v`` is a subtree of ``w``.
+
+        TESTS::
+
+            sage: G = GrowthDiagramSylvester
+            sage: v = G.vertices(2)[1]; ascii_art(v)
+              o
+             /
+            o
+            sage: ascii_art([w for w in G.vertices(3) if G._is_Q_edge(w, v)])
+            [   o  ,   o,     o ]
+            [  / \    /      /  ]
+            [ o   o  o      o   ]
+            [         \    /    ]
+            [          o  o     ]
+        """
         def is_subtree(T1, T2):
             if T2.is_empty():
                 return False
@@ -1888,6 +2111,25 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
     @staticmethod
     def _is_P_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``v`` is obtained from ``w`` by deleting
+        its right-most node.
+
+        TESTS::
+
+            sage: G = GrowthDiagramSylvester
+            sage: v = G.vertices(2)[1]; ascii_art(v)
+              o
+             /
+            o
+
+            sage: ascii_art([w for w in G.vertices(3) if G._is_P_edge(w, v)])
+            [   o  ,     o ]
+            [  / \      /  ]
+            [ o   o    o   ]
+            [         /    ]
+            [        o     ]
+        """
         if w.is_empty():
             return False
         else:
@@ -1895,8 +2137,26 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
     @staticmethod
     def _delete_right_most_node(b):
+
         """
         Return the tree obtained by deleting the right most node from ``b``.
+
+        TESTS::
+
+            sage: b = BinaryTree([]); b
+            [., .]
+            sage: GrowthDiagramSylvester._delete_right_most_node(b)
+            .
+            sage: b = BinaryTree([[[], []], None]); ascii_art(b)
+                o
+               /
+              o
+             / \
+            o   o
+            sage: ascii_art(GrowthDiagramSylvester._delete_right_most_node(b))
+              o
+             / \
+            o   o
         """
         if b.is_empty():
             raise ValueError("Cannot delete right most node from empty tree")
@@ -2152,6 +2412,14 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
 
     @staticmethod
     def vertices(n):
+        """
+        Return the vertices of the dual graded graph on level ``n``.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramYoungFibonacci.vertices(3)
+            [word: 21, word: 12, word: 111]
+        """
         if n == 0:
             return [GrowthDiagramYoungFibonacci._zero]
         else:
@@ -2159,10 +2427,31 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
 
     @staticmethod
     def _rank_function(w):
+        """
+        Return the size of the corresponding composition.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramYoungFibonacci
+            sage: G._rank_function(G.vertices(3)[0])
+            3
+        """
         return sum(w)
 
     @staticmethod
     def _is_P_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``v`` is obtained from ``w`` by deleting
+        a ``1`` or replacing the left-most ``2`` by a ``1``.
+
+        TESTS::
+
+            sage: G = GrowthDiagramYoungFibonacci
+            sage: v = G.vertices(5)[5]; v
+            word: 1121
+            sage: [w for w in G.vertices(6) if G._is_P_edge(w, v)]
+            [word: 2121, word: 11121]
+        """
         def covers(c):
             for i in range(len(c)+1):
                 d = list(c)
@@ -2660,15 +2949,50 @@ class GrowthDiagramDomino(GrowthDiagram):
     _r = 2
     @staticmethod
     def vertices(n):
+        """
+        Return the vertices of the dual graded graph on level ``n``.
+
+        EXAMPLES::
+
+            sage: GrowthDiagramDomino.vertices(2)
+            [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+        """
         return [la for la in Partitions(2*n) if len(la.core(2)) == 0]
 
     _zero = Partition([])
     @staticmethod
     def _rank_function(w):
-        return w.size()
+        """
+        Return half the size of the partition, which equals the number of
+        dominoes in any filling.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramDomino
+            sage: G._rank_function(G.vertices(3)[0])
+            3
+        """
+        return w.size()//2
 
     @staticmethod
     def _is_P_edge(w, v):
+        """
+        ``(w, v)`` is an edge if ``v`` is obtained from ``w`` by deleting
+        a domino.
+
+        TESTS::
+
+            sage: G = GrowthDiagramDomino
+            sage: v = G.vertices(2)[1]; ascii_art(v)
+            ***
+            *
+            sage: ascii_art([w for w in G.vertices(3) if G._is_P_edge(w, v)])
+            [             *** ]
+            [             *   ]
+            [ *****  ***  *   ]
+            [ *    , ***, *   ]
+
+        """
         try:
             (row_1, col_1), (row_2, col_2) = SkewPartition([w, v]).cells()
             return row_1 == row_2 or col_1 == col_2

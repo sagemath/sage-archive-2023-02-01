@@ -108,9 +108,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G)
-        {0: [0.00..., 0.04...],
-         ...
-         902: [-0.47..., -0.10...]}
+        {0: [0.00..., 0.03...],     # 32-bit
+         ...                        # 32-bit
+         902: [-0.48..., -0.10...]} # 32-bit
+        {0: [0.00..., 0.04...],     # 64-bit
+         ...                        # 64-bit
+         902: [-0.47..., -0.10...]} # 64-bit
 
     With ``split=True``, each component of G is layed out separately,
     placing them adjacent to each other. This is done because on a
@@ -126,9 +129,12 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G, by_component = True)
-        {0: [2.21..., -0.00...],
-         ...
-         902: [3.07..., 0.86...]}
+        {0: [2.22..., -0.00...],  # 32-bit
+         ...                      # 32-bit
+         902: [3.07..., 0.86...]} # 32-bit
+        {0: [2.21..., -0.00...],  # 64-bit
+         ...                      # 64-bit
+         902: [3.07..., 0.86...]} # 64-bit
     """
 
     if by_component:

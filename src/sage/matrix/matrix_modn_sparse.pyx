@@ -80,6 +80,8 @@ TESTS::
 
 from __future__ import absolute_import
 
+from collections import Iterator, Sequence
+
 from cysignals.memory cimport check_calloc, sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -204,7 +206,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
                         raise IndexError("invalid entries list")
                     set_entry(&self.rows[i], j, z)
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
             # Dense input format
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
@@ -352,6 +356,17 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: d = matrix(GF(43), 3, 8, range(24))
             sage: a*c == a*d
             True
+            
+        TESTS:
+        
+        The following shows that :trac:`23669` has been addressed::
+
+            sage: p = next_prime(2**15)
+            sage: M = Matrix(GF(p), 1,3, lambda i,j: -1, sparse=True); M
+            [32770 32770 32770]
+            sage: M*M.transpose() # previously returned [32738]
+            [3]
+
         """
         cdef Matrix_modn_sparse right, ans
         right = _right
@@ -380,7 +395,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if v.positions[k] in c:
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y
-                        s += x
+                        s = (s + x) % self.p
                 set_entry(&ans.rows[i], j, s)
         return ans
 
@@ -658,7 +673,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -697,7 +712,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            cols = list(cols)
 
         A = self.new_matrix(ncols = len(cols))
 

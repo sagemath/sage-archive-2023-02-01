@@ -1,5 +1,9 @@
 from sage.structure.element cimport Element
 from sage.structure.element_wrapper cimport ElementWrapper
+from sage.modules.with_basis.indexed_element cimport IndexedFreeModuleElement
+
+cdef class LieAlgebraElement(IndexedFreeModuleElement):
+    cpdef lift(self)
 
 cdef class LieAlgebraElementWrapper(ElementWrapper):
     cpdef _add_(self, right)
@@ -20,6 +24,10 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
     cdef _c_coeff
     cdef _d_coeff
     cdef long _hash
+
+    cpdef _add_(self, other)
+    cpdef _sub_(self, other)
+    cpdef _neg_(self)
 
     cpdef dict t_dict(self)
     cpdef c_coefficient(self)

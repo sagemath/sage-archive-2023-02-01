@@ -35,15 +35,14 @@ We compute a suborder, which has index a power of 17 in the maximal order::
     sage: factor(m)
     17^45
 """
-from __future__ import absolute_import
-
-#*****************************************************************************
+# ****************************************************************************
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
+from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.ring import IntegralDomain
@@ -75,6 +74,7 @@ def is_NumberFieldOrder(R):
         False
     """
     return isinstance(R, Order) or R == ZZ
+
 
 def EquationOrder(f, names, **kwds):
     r"""
@@ -124,6 +124,7 @@ def EquationOrder(f, names, **kwds):
 
     K = NumberField(f, names=names, **kwds)
     return K.order(K.gens())
+
 
 class Order(IntegralDomain):
     r"""
@@ -289,7 +290,7 @@ class Order(IntegralDomain):
 
     def is_maximal(self):
         """
-        Returns True if this is the maximal order.
+        Return ``True`` if this is the maximal order.
 
         EXAMPLES::
 
@@ -318,7 +319,7 @@ class Order(IntegralDomain):
 
     def is_field(self, proof = True):
         r"""
-        Return False (because an order is never a field).
+        Return ``False`` (because an order is never a field).
 
         EXAMPLES::
 
@@ -332,7 +333,7 @@ class Order(IntegralDomain):
 
     def is_noetherian(self):
         r"""
-        Return True (because orders are always Noetherian)
+        Return ``True`` (because orders are always Noetherian)
 
         EXAMPLES::
 
@@ -345,10 +346,9 @@ class Order(IntegralDomain):
         """
         return True
 
-
     def is_integrally_closed(self):
         """
-        Return True if this ring is integrally closed, i.e., is equal
+        Return ``True`` if this ring is integrally closed, i.e., is equal
         to the maximal order.
 
         EXAMPLES::
@@ -428,30 +428,8 @@ class Order(IntegralDomain):
         """
         b = self.basis()
         if i < 0 or i >= len(b):
-            raise IndexError("no %sth generator"%i)
+            raise IndexError("no %sth generator" % i)
         return self.basis()[i]
-
-    def gens(self):
-        """
-        Deprecated alias for :meth:`basis`.
-
-        .. note::
-
-           For a (much smaller) list of ring generators use
-           :meth:`~ring_generators`.
-
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
-            sage: O = K.maximal_order()
-            sage: O.gens()
-            doctest:...: DeprecationWarning: the gens() method is deprecated, use basis() or ring_generators() instead
-            See http://trac.sagemath.org/15348 for details.
-            [1, 1/2*a^2 + 1/2*a, a^2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15348, "the gens() method is deprecated, use basis() or ring_generators() instead")
-        return self.basis()
 
     def ngens(self):
         """
@@ -482,7 +460,7 @@ class Order(IntegralDomain):
 
     def coordinates(self, x):
         r"""
-        Returns the coordinate vector of `x` with respect to this order.
+        Return the coordinate vector of `x` with respect to this order.
 
         INPUT:
 
@@ -878,17 +856,15 @@ class Order(IntegralDomain):
             return False
         return self.module().is_submodule(other.module())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
-        Compare the order self to other.
+        Check whether the order ``self`` is equal to ``other``.
 
-        .. note::
+        .. NOTE::
 
-           This is a well defined way to compare any two objects, but
-           it is not the partial inclusion ordering!.  Thus self <
-           other being True does not necessarily mean that self is
-           contained in other.  Use ``self.is_suborder(other)`` to
-           determine inclusion.
+            This method is just for equality. If you want to check if
+            ``self`` is contained in ``other``, use instead
+            ``self.is_suborder(other)`` to determine inclusion.
 
         EXAMPLES::
 
@@ -899,27 +875,40 @@ class Order(IntegralDomain):
             Order in Number Field in a with defining polynomial x^3 + 2
             sage: O1 == O2
             False
-            sage: O1 < O2
-            True
-            sage: O2 < O1
-            False
 
-        Note that "less than" does not mean "is a subset"::
-
-            sage: O2.is_suborder(O1)
-            True
             sage: O1 == K
             False
             sage: K == O1
             False
+
+        Here is how to check for inclusion::
+
+            sage: O2.is_suborder(O1)
+            True
         """
         if not isinstance(other, Order):
-            return cmp(type(self), type(other))
+            return False
         if self._K != other._K:
-            return cmp(self._K, other._K)
+            return False
         if self is other:
-            return 0
-        return cmp(self._module_rep, other._module_rep)
+            return True
+        return self._module_rep == other._module_rep
+
+    def __ne__(self, other):
+        """
+        Check whether the order ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: O1 = K.order(a); O1
+            Order in Number Field in a with defining polynomial x^3 + 2
+            sage: O2 = K.order(a^2); O2
+            Order in Number Field in a with defining polynomial x^3 + 2
+            sage: O1 != O2
+            True
+        """
+        return not (self == other)
 
     def random_element(self, *args, **kwds):
         """
@@ -1001,6 +990,44 @@ class Order(IntegralDomain):
             3
         """
         return self.number_field().absolute_degree()
+
+    def some_elements(self):
+        """
+        Return a list of elements of the given order.
+
+        EXAMPLES::
+
+            sage: G = GaussianIntegers(); G
+            Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            sage: G.some_elements()
+            [1, I, 2*I, -1, 0, -I, 2, 4*I, -2, -2*I, -4]
+
+            sage: R.<t> = QQ[]
+            sage: K.<a> = QQ.extension(t^3 - 2); K
+            Number Field in a with defining polynomial t^3 - 2
+            sage: Z = K.ring_of_integers(); Z
+            Maximal Order in Number Field in a with defining polynomial t^3 - 2
+            sage: Z.some_elements()
+            [1, a, a^2, 2*a, 0, 2, a^2 + 2*a + 1, ..., a^2 + 1, 2*a^2 + 2, a^2 + 2*a, 4*a^2 + 4]
+
+        TESTS:
+
+        This also works for trivial extensions::
+        
+            sage: R.<t> = QQ[]
+            sage: K.<a> = QQ.extension(t); K
+            Number Field in a with defining polynomial t
+            sage: Z = K.ring_of_integers(); Z
+            Maximal Order in Number Field in a with defining polynomial t
+            sage: Z.some_elements()
+            [1, 0, 2, -1, -2, 4]
+
+        """
+        elements = list(self.basis())
+        for a in self.fraction_field().some_elements():
+            if a in self and a not in elements:
+                elements.append(self(a))
+        return elements
 
 ##     def absolute_polynomial(self):
 ##         """
@@ -1231,6 +1258,7 @@ class AbsoluteOrder(Order):
 
     absolute_discriminant = discriminant
 
+
     def change_names(self, names):
         """
         Return a new order isomorphic to this one in the number field with
@@ -1421,7 +1449,6 @@ class AbsoluteOrder(Order):
             True
         """
         return self
-
 
 class RelativeOrder(Order):
     """

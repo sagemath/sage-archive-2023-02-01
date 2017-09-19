@@ -56,12 +56,12 @@ import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
 import sage.rings.ideal
-import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
+from sage.structure.element cimport parent
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.richcmp cimport rich_to_bool
@@ -429,9 +429,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if x in self:
             return self
 
-        from sage.rings.number_field.number_field_element import is_NumberFieldElement
-        if is_NumberFieldElement(x):
-            K, from_K = x.parent().subfield(x)
+        from sage.rings.number_field.number_field_element import NumberFieldElement
+        if isinstance(x, NumberFieldElement):
+            K, from_K = parent(x).subfield(x)
             return K.order(K.gen())
 
         return PrincipalIdealDomain.__getitem__(self, x)
@@ -1216,6 +1216,238 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return self(1)
 
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True, algorithm=None):
+        r"""
+        Return the roots of the univariate polynomial ``p``.
+
+        INPUT:
+
+        - ``p`` -- univariate integer polynomial
+
+        - ``ring`` -- ring (default: ``None``); a ring containing `\ZZ` to
+          compute the roots in; ``None`` is equivalent to ``ZZ``
+
+        - ``multiplicities`` -- boolean (default: ``True``); whether to
+          compute the multiplicities
+
+        - ``algorithm`` -- ``"dense"``, ``"sparse"`` or ``None`` (default:
+          ``None``); the algorithm to use
+
+        OUTPUT:
+
+        - If ``multiplicities=True``, the list of pairs `(r, n)` where
+          `r` is a root and `n` the corresponding multiplicity;
+
+        - If ``multiplicities=False``, the list of distincts roots with no
+          information about the multiplicities.
+
+        ALGORITHM:
+
+        If ``algorithm`` is ``"dense"`, the roots are computed using
+        :meth:`_roots_from_factorization`.
+
+        If ``algorithm`` is ``"sparse"``, the roots are computed using the
+        algorithm described in [CKS1999]_.
+
+        If ``algorithm`` is ``None``, use the ``"dense"`` algorithm for
+        polynomials of degree at most `100`, and ``"sparse"`` otherwise.
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`.
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: p *= (1 + x^3458645 - 76*x^3435423343 + x^45346567867756556)
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(1, 23), (-1, 23), (100, 1), (-5445, 5)]
+            sage: p *= x^156468451540687043504386074354036574634735074
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(0, 156468451540687043504386074354036574634735074),
+             (1, 23),
+             (-1, 23),
+             (100, 1),
+             (-5445, 5)]
+            sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
+            [0, 1, -1, 100, -5445]
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=False)
+            sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
+            [100, -5445, 1, -1]
+
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'foobar'
+
+            sage: p = x^20 * p
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
+            [(0, 20), (100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
+            [(100, 1), (-5445, 5), (0, 20), (1, 23), (-1, 23)]
+        """
+        deg = p.degree()
+        if deg < 0:
+            raise ValueError("roots of 0 are not defined")
+
+        # A specific algorithm is available only for integer roots of integer polynomials
+        if ring is not self and ring is not None:
+            raise NotImplementedError
+
+        # Automatic choice of algorithm
+        if algorithm is None:
+            if deg > 100:
+                algorithm = "sparse"
+            else:
+                algorithm = "dense"
+
+        if algorithm != "dense" and algorithm != "sparse":
+            raise ValueError("unknown algorithm '{}'".format(algorithm))
+
+        # Check if the polynomial is a constant, in which case there are
+        #   no roots. Note that the polynomial is not 0.
+        if deg == 0:
+            return []
+
+        # The dense algorithm is to compute the roots from the factorization.
+        if algorithm == "dense":
+            #NOTE: the content sometimes return an ideal sometimes a number...
+            if parent(p).is_sparse():
+                cont = p.content().gen()
+            else:
+                cont = p.content()
+            if not cont.is_unit():
+                p = p.map_coefficients(lambda c: c // cont)
+            return p._roots_from_factorization(p.factor(), multiplicities)
+
+        v = p.valuation()
+        deg -= v
+        cdef list roots
+
+        # Root 0
+        if v > 0:
+            roots = [(self.zero(), v)] if multiplicities else [self.zero()]
+            if deg == 0: # The shifted polynomial will be constant
+                return roots
+        else:
+            roots = []
+
+        p = p.shift(-v)
+        cdef list e = p.exponents()
+        cdef int i_min, i, j, k = len(e)
+
+        # totally dense polynomial
+        if k == 1 + deg:
+            return roots + p._roots_from_factorization(p.factor(), multiplicities)
+
+        #TODO: the content sometimes return an ideal sometimes a number... this
+        # should be corrected. See
+        # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
+        if parent(p).is_sparse():
+            cont = p.content().gen()
+        else:
+            cont = p.content()
+        if not cont.is_unit():
+            p = p.map_coefficients(lambda c: c // cont)
+
+        cdef list c = p.coefficients()
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(p.base_ring(), p.variable_name(), sparse=False)
+        c_max_nbits = c[0].nbits()
+        i_min = 0
+        g = R.zero()
+
+        # Looking for "large" gaps in the exponents
+        # These gaps split the polynomial into lower degree components
+        # Roots of modulus > 1 are common roots of the components
+        for i in range(1, k):
+            if e[i] - e[i-1] > c_max_nbits:
+                g = g.gcd(R( {e[j] - e[i_min]: c[j] for j in range(i_min, i)} ))
+                if g.is_one():
+                    break
+                i_min = i
+                c_max_nbits = c[i].nbits()
+            else:
+                c_max_nbits = max(c[i].nbits(), c_max_nbits)
+
+        # if no gap, directly return the roots of p
+        if g.is_zero():
+            roots.extend(p._roots_from_factorization(p.factor(), multiplicities))
+            return roots
+
+        g = g.gcd(R( {e[j] - e[i_min]: c[j] for j in range(i_min, k)} ))
+
+
+        cdef list cc
+        cdef list ee
+        cdef int m1, m2
+        cdef bint b1, b2
+        # Computation of the roots of modulus 1, without multiplicities
+        # 1 is root iff p(1) == 0 ; -1 iff p(-1) == 0
+        if not multiplicities:
+            if not sum(c):
+                roots.append(self.one())
+            s = 0
+            for j in range(k):
+                s += -c[j] if (e[j] % 2) else c[j]
+            if not s:
+                roots.append(-self.one())
+
+        # Computation of the roots of modulus 1, with multiplicities
+        # For the multiplicities, take the derivatives
+        else:
+            cc = c
+            ee = e
+            m1 = m2 = 0
+            b1 = b2 = True
+
+            for i in range(k):
+                s1 = s2 = 0
+                for j in range(k-i):
+                    if b1: s1 += cc[j]
+                    if b2: s2 += -cc[j] if (ee[j] % 2) else cc[j]
+                if b1 and s1:
+                    m1 = i
+                    b1 = False
+                if b2 and s2:
+                    m2 = i
+                    b2 = False
+                # Stop asap
+                if not (b1 or b2):
+                    break
+
+                # Sparse derivative, that is (p/x^v)' where v = p.val():
+                ee = [ee[j] - ee[0] - 1 for j in range(1,k-i)]
+                cc = [(ee[j] + 1) * cc[j+1] for j in range(k-i-1)]
+
+            if m1 > 0:
+                roots.append((self.one(), m1))
+            if m2 > 0:
+                roots.append((-self.one(), m2))
+
+        # Add roots of modulus > 1 to `roots`:
+        if multiplicities:
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), True)
+                         if r[0].abs() > 1)
+        else:
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), False)
+                         if r.abs() > 1)
+
+        return roots
+
 
     #################################
     ## Coercions to interfaces
@@ -1363,7 +1595,7 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE = X[0].parent().one()
+    ONE = parent(X[0]).one()
     for i in range(len(X)):
         p = X[i]
         others = P // p

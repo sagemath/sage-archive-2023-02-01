@@ -391,7 +391,7 @@ def complementary_subform_to_vector(self, v):
         if Q1[0,i] != 0:
             done_flag = False
 
-    if done_flag == False:
+    if not done_flag:
         raise RuntimeError("There is a problem cancelling out the matrix entries! =O")
 
 

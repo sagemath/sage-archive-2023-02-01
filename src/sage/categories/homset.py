@@ -5,7 +5,7 @@ The class :class:`Hom` is the base class used to represent sets of morphisms
 between objects of a given category.
 :class:`Hom` objects are usually "weakly" cached upon creation so that they
 don't have to be generated over and over but can be garbage collected together
-with the corresponding objects when these are are not stongly ref'ed anymore.
+with the corresponding objects when these are not strongly ref'ed anymore.
 
 EXAMPLES:
 
@@ -646,7 +646,8 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of finite dimensional vector spaces with basis over (quotient fields and metric spaces),
+              Category of finite dimensional vector spaces with basis over
+                 (number fields and quotient fields and metric spaces),
               False))
 
         TESTS::
@@ -1086,7 +1087,7 @@ class Homset(Set_generic):
             sage: H.natural_map()
             Traceback (most recent call last):
             ...
-            TypeError: Natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined.
+            TypeError: natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined
         """
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
@@ -1109,7 +1110,7 @@ class Homset(Set_generic):
             ...
             TypeError: Identity map only defined for endomorphisms. Try natural_map() instead.
             sage: H.natural_map()
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """

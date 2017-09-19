@@ -64,14 +64,14 @@ and function fields as inseparable extensions::
 
 TESTS::
 
-    sage: TestSuite(K).run()
-    sage: TestSuite(L).run()  # long time (8s on sage.math, 2012)
-    sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
-    sage: TestSuite(N).run(skip = '_test_derivation')  # long time
-    sage: TestSuite(O).run(skip = '_test_derivation')  # long time
+    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
+    sage: TestSuite(L).run(max_runs=64)  # long time (10s)
+    sage: TestSuite(M).run(max_runs=32)  # long time (30s)
+    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time (8s)
+    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
 
     sage: TestSuite(R).run()
-    sage: TestSuite(S).run()
+    sage: TestSuite(S).run() # long time (3s)
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -159,19 +159,54 @@ class FunctionField(Field):
         return self.characteristic() == 0
 
     def some_elements(self):
-         """
-         Return a list of elements in the function field.
+        """
+        Return some elemnts in this function field.
 
-         EXAMPLES::
+        EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ)
-            sage: elements = K.some_elements()
-            sage: elements # random output
-            [(x - 3/2)/(x^2 - 12/5*x + 1/18)]
-            sage: False in [e in K for e in elements]
-            False
-         """
-         return [self.random_element(), self.random_element(), self.random_element()]
+           sage: K.<x> = FunctionField(QQ)
+           sage: K.some_elements()
+           [1,
+            x,
+            2*x,
+            x/(x^2 + 2*x + 1),
+            1/x^2,
+            x/(x^2 - 1),
+            x/(x^2 + 1),
+            x/(2*x^2 + 2),
+            0,
+            1/x,
+            ...]
+
+        ::
+
+           sage: R.<y> = K[]
+           sage: L.<y> = K.extension(y^2 - x)
+           sage: L.some_elements()
+           [1,
+            y,
+            1/x*y,
+            ((1/4*x + 1/4)/(1/4*x^2 - 1/2*x + 1/4))*y - 1/2*x/(1/4*x^2 - 1/2*x + 1/4),
+            -1/-x,
+            (1/(x - 1))*y,
+            (1/(x + 1))*y,
+            (1/(2*x + 2))*y,
+            0,
+            ...]
+
+        """
+        elements = []
+
+        polynomials = [self(f) for f in self._ring.some_elements()]
+
+        for numerator in polynomials:
+            for denominator in polynomials:
+                if denominator:
+                    some_element = numerator/denominator
+                    if some_element not in elements:
+                        elements.append(some_element)
+
+        return elements
 
     def characteristic(self):
         """
@@ -372,11 +407,11 @@ class FunctionField(Field):
         from .function_field_order import FunctionFieldOrder
         if isinstance(source, FunctionFieldOrder):
             K = source.fraction_field()
-            source_to_K = K._generic_convert_map(source)
             if K is self:
-                return source_to_K
+                return self._generic_coerce_map(source)
+            source_to_K = K.coerce_map_from(source)
             K_to_self = self.coerce_map_from(K)
-            if K_to_self:
+            if source_to_K and K_to_self:
                 return K_to_self * source_to_K
         from sage.categories.function_fields import FunctionFields
         if source in FunctionFields():

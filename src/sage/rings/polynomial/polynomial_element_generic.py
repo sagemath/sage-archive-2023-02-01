@@ -141,7 +141,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return dict(self.__coeffs)
 
-    def coefficients(self,sparse=True):
+    def coefficients(self, sparse=True):
         """
         Return the coefficients of the monomials appearing in ``self``.
 
@@ -152,12 +152,22 @@ class Polynomial_generic_sparse(Polynomial):
             7*w^10000 + w^1997 + 5
             sage: f.coefficients()
             [5, 1, 7]
+
+        TESTS:
+
+        Check that all coefficients are in the base ring::
+
+            sage: S.<x> = PolynomialRing(QQ, sparse=True)
+            sage: f = x^4
+            sage: all(c.parent() is QQ for c in f.coefficients(False))
+            True
         """
         if sparse:
-          return [c[1] for c in sorted(six.iteritems(self.__coeffs))]
+            return [self.__coeffs[e] for e in self.exponents()]
         else:
-          return [self.__coeffs[i] if i in self.__coeffs else 0
-                  for i in range(self.degree() + 1)]
+            zero = self.parent().base_ring().zero()
+            return [self.__coeffs[i] if i in self.__coeffs else zero
+                    for i in range(self.degree() + 1)]
 
     def exponents(self):
         """
@@ -190,10 +200,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R(0).valuation()
             +Infinity
         """
-        c = self.__coeffs.keys()
-        if len(c) == 0:
+        if not self.__coeffs:
             return infinity
-        return ZZ(min(self.__coeffs.keys()))
+        return ZZ(min(self.__coeffs))
 
     def _derivative(self, var=None):
         """
@@ -295,7 +304,7 @@ class Polynomial_generic_sparse(Polynomial):
         from sage.structure.element import coercion_model as cm
         import operator
         try:
-            Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+            Q = cm.bin_op(R.one(), ZZ.one(), operator.truediv).parent()
         except TypeError:
             F = (R.base_ring().one()/ZZ.one()).parent()
             Q = R.change_ring(F)
@@ -511,10 +520,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.degree()
             50000
         """
-        v = self.__coeffs.keys()
-        if len(v) == 0:
+        if not self.__coeffs:
             return -1
-        return max(v)
+        return max(self.__coeffs)
 
     def _add_(self, right):
         r"""

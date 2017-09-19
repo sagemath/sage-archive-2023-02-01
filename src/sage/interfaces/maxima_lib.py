@@ -112,7 +112,7 @@ ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (mer
 ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
-# the following is a direct adaption of the definition of "retrieve"
+# the following is a direct adaptation of the definition of "retrieve"
 # in the Maxima file macsys.lisp. This routine is normally responsible
 # for displaying a question and returning the answer. We change it to
 # throw an error in which the text of the question is included. We do
@@ -1221,7 +1221,7 @@ lisp_length=EclObject("length")
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
     add_vararg : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
+    sage.symbolic.expression.operator.truediv : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",

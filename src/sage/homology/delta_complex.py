@@ -1263,7 +1263,7 @@ class DeltaComplex(GenericCellComplex):
         of a single top-dimensional simplex without subdividing every
         simplex in the complex.
 
-        The term "elementary subdivison" is taken from p. 112 in John
+        The term "elementary subdivision" is taken from p. 112 in John
         M. Lee's book [Lee2011]_.
 
         EXAMPLES::

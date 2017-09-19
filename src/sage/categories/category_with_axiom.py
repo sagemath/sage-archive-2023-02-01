@@ -267,11 +267,11 @@ from the name of the category with axiom (see
 :func:`base_category_class_and_axiom` for the details). This typically
 covers the following examples::
 
-    sage: FiniteGroups()
-    Category of finite groups
-    sage: FiniteGroups() is Groups().Finite()
+    sage: FiniteCoxeterGroups()
+    Category of finite coxeter groups
+    sage: FiniteCoxeterGroups() is CoxeterGroups().Finite()
     True
-    sage: FiniteGroups._base_category_class_and_axiom_origin
+    sage: FiniteCoxeterGroups._base_category_class_and_axiom_origin
     'deduced by base_category_class_and_axiom'
 
     sage: FiniteDimensionalAlgebrasWithBasis(QQ)
@@ -926,7 +926,7 @@ to an infinite recursion.
 .. TOPIC:: Design discussion
 
     Supporting similar deduction rules will be an important feature in
-    the future, with quite a few occurences already implemented in
+    the future, with quite a few occurrences already implemented in
     upcoming tickets. For the time being though there is a single
     occurrence of this idiom outside of the tests. So this would be an
     easy thing to refactor after :trac:`10963` if a better idiom is

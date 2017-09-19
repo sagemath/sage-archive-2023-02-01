@@ -528,28 +528,68 @@ cdef class MixedIntegerLinearProgram(SageObject):
     linear_function = __call__
 
     def _repr_(self):
-         r"""
-         Returns a short description of the ``MixedIntegerLinearProgram``.
+        r"""
+        Return a short description of the ``MixedIntegerLinearProgram``.
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-             sage: v = p.new_variable(nonnegative=True)
-             sage: p.add_constraint(v[1] + v[2], max=2)
-             sage: print(p)
-             Mixed Integer Program ( maximization, 2 variables, 1 constraints )
-         """
-         cdef GenericBackend b = self._backend
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: v = p.new_variable(binary=True)
+            sage: p.add_constraint(v[1] + v[2], max=1)
+            sage: p
+            Boolean Program (no objective, 2 variables, 1 constraint)
+            sage: p.set_objective(1); p
+            Boolean Program (constant objective, 2 variables, 1 constraint)
+            sage: p.set_objective(v[1]); p
+            Boolean Program (maximization, 2 variables, 1 constraint)
+        """
+        cdef GenericBackend b = self._backend
 
-         return ("Mixed Integer Program "+
+        cdef int nvars = b.ncols()
+        cdef int i
 
-                 ( "\"" +self._backend.problem_name()+ "\""
-                   if (str(self._backend.problem_name()) != "") else "")+
+        cdef int have_int = 0, have_bool = 0, have_cont = 0
+        for i in range(nvars):
+            if b.is_variable_binary(i):
+                have_bool = 1
+            elif b.is_variable_integer(i):
+                have_int = 1
+            else:
+                have_cont = 1
 
-                 " ( " + ("maximization" if b.is_maximization() else "minimization" ) +
+        if have_cont:
+            if have_int or have_bool:
+                kind = "Mixed Integer Program"
+            else:
+                kind = "Linear Program"
+        elif have_int:
+            kind = "Integer Program"
+        elif have_bool:
+            kind = "Boolean Program"
+        else:
+            # We have no variables...
+            kind = "Mixed Integer Program"
 
-                 ", " + str(b.ncols()) + " variables, " +
-                 str(b.nrows()) + " constraints )")
+        if all(b.objective_coefficient(i) == 0 for i in range(nvars)):
+            if b.objective_constant_term():
+                minmax = "constant objective"
+            else:
+                minmax = "no objective"
+        elif b.is_maximization():
+            minmax = "maximization"
+        else:
+            minmax = "minimization"
+
+        def plural(num, noun):
+            if num != 1:
+                noun = noun + "s"
+            return f"{num} {noun}"
+
+        name = b.problem_name()
+        if name:
+            kind += f' "{name}"'
+
+        return f"{kind} ({minmax}, {plural(b.ncols(), 'variable')}, {plural(b.nrows(), 'constraint')})"
 
     def __copy__(self):
         r"""
@@ -611,7 +651,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: cp.solve()
             6.0
 
-        TEST:
+        TESTS:
 
         Test that `deepcopy` makes actual copies but preserves identities::
 
@@ -687,7 +727,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.set_problem_name("Test program")
             sage: p
-            Mixed Integer Program "Test program" ( maximization, 0 variables, 0 constraints )
+            Mixed Integer Program "Test program" (no objective, 0 variables, 0 constraints)
         """
         self._backend.problem_name(name)
 
@@ -1071,7 +1111,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['x'] + p['y'] <= 1)
             sage: p.add_constraint(0 <= 3*p['y'] + p['x'] <= 2)
             sage: P = p.polyhedron(); P
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
 
         3-D Polyhedron::
 
@@ -1080,7 +1120,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(0 <= 2*p['y'] + p['z'] + 3*p['x'] <= 1)
             sage: p.add_constraint(0 <= 2*p['z'] + p['x'] + 3*p['y'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 8 vertices
 
         An empty polyhedron::
 
@@ -1090,14 +1130,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(2*v['y'] + v['z'] + 3*v['x'] <= 1)
             sage: p.add_constraint(2*v['z'] + v['x'] + 3*v['y'] >= 2)
             sage: P = p.polyhedron(); P
-            The empty polyhedron in QQ^3
+            The empty polyhedron in RDF^3
 
         An unbounded polyhedron::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
 
         A square (see :trac:`14395`) ::
 
@@ -1108,7 +1148,31 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint( y <= 1 )
             sage: p.add_constraint( y >= -1 )
             sage: p.polyhedron()
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
+
+        We can also use a backend that supports exact arithmetic::
+
+            sage: p = MixedIntegerLinearProgram(solver='PPL')
+            sage: x,y = p['x'], p['y']
+            sage: p.add_constraint( x <= 1 )
+            sage: p.add_constraint( x >= -1 )
+            sage: p.add_constraint( y <= 1 )
+            sage: p.add_constraint( y >= -1 )
+            sage: p.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
+        TESTS:
+
+        Check if :trac:`23326` is fixed::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x, y = p['x'], p['y']
+            sage: p.set_min(x, 0); p.set_min(y, 0)
+            sage: p.set_objective(3.5*x + 2.5*y)
+            sage: p.add_constraint(x+y <= 10)
+            sage: p.add_constraint(18.5*x + 5.1*y <= 110.3)
+            sage: p.polyhedron()
+            A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 4 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         cdef GenericBackend b = self._backend
@@ -2716,7 +2780,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Raise exception if exist lower bound
         for constraint in self.constraints():
-            if constraint[0] != None:
+            if constraint[0] is not None:
                 raise ValueError('Problem constraints cannot have lower bounds')
 
         # Construct 'c'

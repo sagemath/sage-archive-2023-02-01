@@ -560,7 +560,7 @@ cdef class Expression(CommutativeRingElement):
         if state[0] != 0 or len(state) != 3:
             raise ValueError("unknown state information")
         # set parent
-        self._set_parent(ring.SR)
+        self._parent = ring.SR
         # get variables
         cdef GExList sym_lst
         for name in state[1]:
@@ -1977,10 +1977,30 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (t0*t1).is_real()
             True
-            sage: t2 = SR.symbol("t1", domain='positive')
+            sage: t2 = SR.symbol("t2", domain='positive')
             sage: (t1**t2).is_real()
             True
             sage: (t0*x).is_real()
+            False
+            sage: (t0^t1).is_real()
+            False
+            sage: (t1^t2).is_real()
+            True
+            sage: gamma(pi).is_real()
+            True
+            sage: cosh(-3).is_real()
+            True
+            sage: cos(exp(-3) + log(2)).is_real()
+            True
+            sage: gamma(t1).is_real()
+            True
+            sage: (x^pi).is_real()
+            False
+            sage: (cos(exp(t0) + log(t1))^8).is_real()
+            True
+            sage: cos(I).is_real()
+            False
+            sage: sin(2 - I).is_real()
             False
             sage: (2^t0).is_real()
             True
@@ -1996,7 +2016,21 @@ cdef class Expression(CommutativeRingElement):
             sage: assume(x, 'real')
             sage: x.is_real()
             True
+            sage: cosh(x).is_real()
+            True
             sage: forget()
+
+        The real domain is also set with the integer domain::
+
+            sage: SR.var('x', domain='integer').is_real()
+            True
+
+        TESTS:
+
+        Check that :trac:`23093` is fixed::
+
+            sage: sqrt(-2).is_real()
+            False
         """
         return self._gobj.info(info_real)
 
@@ -2027,11 +2061,42 @@ cdef class Expression(CommutativeRingElement):
             sage: assume(x>0)
             sage: x.is_positive()
             True
+            sage: cosh(x).is_positive()
+            True
             sage: f = function('f')(x)
             sage: assume(f>0)
             sage: f.is_positive()
             True
             sage: forget()
+
+        ::
+
+            sage: cosh(x).is_positive()
+            False
+            sage: cosh(real(x)).is_positive()
+            True
+            sage: (cosh(real(x))^2).is_positive()
+            True
+            sage: ((real(x))^2).is_positive()
+            False
+            sage: gamma(x^2).is_positive()
+            False
+            sage: gamma(x^2+1).is_positive()
+            False
+            sage: gamma(cosh(real(x))).is_positive()
+            True
+            sage: (real(x)^2).is_positive()
+            False
+            sage: (real(x)^2+1).is_positive()
+            True
+            sage: (abs(x)^2+1).is_positive()
+            True
+            sage: gamma(real(x)^2+1).is_positive()
+            True
+            sage: cos(I).is_positive()
+            False
+            sage: sin(2 - I).is_positive()
+            False
         """
         return self._gobj.info(info_positive)
 
@@ -2053,6 +2118,16 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: (-pi).is_negative()
             True
+
+        Assumptions on symbols are handled correctly::
+
+            sage: y = var('y')
+            sage: assume(y < 0)
+            sage: y.is_positive()
+            False
+            sage: y.is_negative()
+            True
+            sage: forget()
         """
         return self._gobj.info(info_negative)
 
@@ -3243,7 +3318,7 @@ cdef class Expression(CommutativeRingElement):
             sage: num.content(c1)
             1
             sage: num.content(c1).pyobject().parent()
-            Finite Field in z of size 2^8
+            Integer Ring
 
         The leading coefficient is a negative number. The normalization process
         tries to convert it to a positive number and extract the content, by
@@ -3305,7 +3380,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (-1.0*x)*(1.0/x)
             -1.00000000000000
             sage: sin(1.0*pi)
-            0
+            sin(1.00000000000000*pi)
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -4154,11 +4229,11 @@ cdef class Expression(CommutativeRingElement):
             sage: f = (x^3 - sin(y)*x^2 - 5*x + 3); f
             x^3 - x^2*sin(y) - 5*x + 3
             sage: g = f.series(x, 4); g
-            3 + (-5)*x + (-sin(y))*x^2 + 1*x^3
+            3 + (-5)*x + (-sin(y))*x^2 + 1*x^3 + Order(x^4)
             sage: g.truncate()
             x^3 - x^2*sin(y) - 5*x + 3
             sage: g = f.series(x==1, 4); g
-            (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
+            (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3 + Order((x - 1)^4)
             sage: h = g.truncate(); h
             (x - 1)^3 - (x - 1)^2*(sin(y) - 3) - 2*(x - 1)*(sin(y) + 1) - sin(y) - 1
             sage: h.expand()
@@ -4226,7 +4301,7 @@ cdef class Expression(CommutativeRingElement):
         cdef int cprec
         cdef int options
         if order is infinity:
-            options = 0
+            options = 4
             order = None
         else:
             options = 2
@@ -4381,8 +4456,9 @@ cdef class Expression(CommutativeRingElement):
             x*y^3
 
         """
-        from sage.all import SR, Integer
-        A=args
+        from sage.rings.integer import Integer
+        from sage.symbolic.ring import SR
+        A = args
         try:
             if isinstance(A[0],tuple):
                 B=[]
@@ -10605,7 +10681,7 @@ cdef class Expression(CommutativeRingElement):
             import indefinite_integral as opii, definite_integral as opdi
         from sage.symbolic.operators import add_vararg as opadd, \
             mul_vararg as opmul
-        from sage.all import prod
+        from sage.misc.misc_c import prod
 
         def treat_term(op, term, args):
             l = sage.all.copy(args)
@@ -12629,7 +12705,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
             # callable methods need to be wrapped to extract the operands
             # and pass them as arguments
             from sage.symbolic.function_factory import eval_on_operands
-            from sage.structure.misc import getattr_from_other_class
+            from sage.cpython.getattr import getattr_from_other_class
             for name in dir(eval_methods):
                 if ismethod(getattr(eval_methods, name)):
                     new_m = eval_on_operands(getattr_from_other_class(

@@ -693,8 +693,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:
@@ -1627,12 +1626,14 @@ class Graphics(WithEqualityById, SageObject):
         requires that LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='latex') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         If you want all the text in your plot to use Type 1 fonts, then
         set the ``typeset`` option to ``"type1"``. This requires that
         LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='type1') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         You can turn on the drawing of a frame around the plots::
 

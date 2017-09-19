@@ -772,15 +772,15 @@ class Function_log_gamma(GinacFunction):
             sage: log_gamma(CC(6))
             4.78749174278205
             sage: log_gamma(CC(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.0562437164976741 - 9.42477796076938*I
             sage: log_gamma(RDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(CDF(-2.5))
-            -0.0562437164976740 - 9.42477796076938*I
+            -0.056243716497674054 - 9.42477796076938*I
             sage: log_gamma(float(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
             sage: log_gamma(complex(-2.5))
-            (-0.05624371649767403-9.42477796076938j)
+            (-0.056243716497674054-9.42477796076938j)
 
         ``conjugate(log_gamma(x)) == log_gamma(conjugate(x))`` unless on the
         branch cut, which runs along the negative real axis.::
@@ -2195,6 +2195,23 @@ class Function_real_part(GinacFunction):
             sage: real(complex(3, 4))
             3.0
 
+        Sage can recognize some expressions as real and accordingly
+        return the identical argument::
+
+            sage: SR.var('x', domain='integer').real_part()
+            x
+            sage: SR.var('x', domain='integer').imag_part()
+            0
+            sage: real_part(sin(x)+x)
+            x + sin(x)
+            sage: real_part(x*exp(x))
+            x*e^x
+            sage: imag_part(sin(x)+x)
+            0
+            sage: real_part(real_part(x))
+            x
+            sage: forget()
+
         TESTS::
 
             sage: loads(dumps(real_part))
@@ -2365,6 +2382,12 @@ class Function_conjugate(GinacFunction):
             a
             sage: conjugate(a*sqrt(-2)*sqrt(-3))
             conjugate(sqrt(-2))*conjugate(sqrt(-3))*conjugate(a)
+
+        Check that sums are handled correctly::
+
+            sage: y = var('y', domain='real')
+            sage: conjugate(y + I)
+            y - I
 
         Test pickling::
 

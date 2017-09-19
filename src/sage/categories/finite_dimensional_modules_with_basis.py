@@ -34,6 +34,22 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     class ParentMethods:
 
+        def gens(self):
+            """
+            Return the generators of ``self``.
+
+            OUTPUT:
+
+            A tuple containing the basis elements of ``self``.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ, ['a', 'b', 'c'])
+                sage: F.gens()
+                (B['a'], B['b'], B['c'])
+            """
+            return tuple(self.basis())
+
         def annihilator(self, S, action=operator.mul, side='right', category=None):
             r"""
             Return the annihilator of a finite set.

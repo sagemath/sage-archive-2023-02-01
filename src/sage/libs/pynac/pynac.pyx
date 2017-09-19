@@ -1816,24 +1816,18 @@ cdef py_atan2(x, y):
         0.553574358897045 + 0.402359478108525*I
         sage: atan2(CBF(I), CBF(I+1))
         [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
+
+    Check that :trac:`23776` is fixed and RDF input gives real output::
+
+        sage: atan2(RDF(-3), RDF(-1))
+        -1.8925468811915387
     """
     from sage.symbolic.constants import pi, NaN
-    from sage.rings.real_arb import RealBallField
-    from sage.rings.real_mpfr import RealField_class
     P = coercion_model.common_parent(x, y)
-    is_real = False
     if P is ZZ:
         P = RR
-    if (P is float
-            or parent(P) is RealField_class
-            or isinstance(P, RealBallField)):
-        is_real = True
     if y != 0:
-        try:
-            is_real = is_real or (x.is_real() and y.is_real())
-        except AttributeError:
-            is_real = False
-        if is_real:
+        if RR.has_coerce_map_from(P):
             if x > 0:
                 res = py_atan(abs(y/x))
             elif x < 0:
@@ -1910,6 +1904,10 @@ cdef py_atanh(x):
     try:
         return x.arctanh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arctanh()
+    except TypeError:
         return CC(x).arctanh()
 
 cdef py_lgamma(x):

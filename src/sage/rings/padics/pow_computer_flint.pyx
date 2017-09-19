@@ -134,7 +134,7 @@ cdef class PowComputer_flint(PowComputer_class):
             fmpz_pow_ui(self._fpow_variable, self.fprime, n)
             return &self._fpow_variable
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n) except NULL:
         """
         Returns a pointer to an ``mpz_t`` holding `p^n`.
 

@@ -42,7 +42,7 @@ from sage.misc.all import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.structure.richcmp import op_NE, richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix

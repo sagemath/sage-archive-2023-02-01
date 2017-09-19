@@ -49,7 +49,7 @@ from sage.combinat.abstract_tree import (AbstractClonableTree,
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
+from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

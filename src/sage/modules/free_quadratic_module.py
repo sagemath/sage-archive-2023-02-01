@@ -801,76 +801,6 @@ class FreeQuadraticModule_ambient(
             return "Ambient free quadratic module of rank %s over %s\n" % ( self.rank(), self.base_ring() ) + \
                 "Inner product matrix:\n%s" % self.inner_product_matrix()
 
-    def __richcmp__(self, other, op):
-        """
-        Compare self and other.
-
-        Modules are ordered by their ambient spaces, then by
-        dimension, then in order by their echelon matrices.
-
-        EXAMPLES:
-
-        We compare rank three free modules over the integers and
-        rationals::
-
-            sage: QQ^3 < CC^3
-            True
-            sage: CC^3 < QQ^3
-            False
-            sage: CC^3 > QQ^3
-            True
-            sage: Q = QQ; Z = ZZ
-            sage: Q^3 > Z^3
-            True
-            sage: Q^3 < Z^3
-            False
-            sage: Z^3 < Q^3
-            True
-            sage: Z^3 > Q^3
-            False
-            sage: Q^3 == Z^3
-            False
-            sage: Q^3 == Q^3
-            True
-
-            sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
-            sage: V
-            Vector space of degree 3 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1]
-            [ 0  1  2]
-            sage: A = QQ^3
-            sage: V < A
-            True
-            sage: A < V
-            False
-        """
-        if self is other:
-            return rich_to_bool(op, 0)
-        if not isinstance(other, free_module.FreeModule_generic):
-            return NotImplemented
-        if isinstance(other, free_module.FreeModule_ambient):
-            lx = self.rank()
-            rx = other.rank()
-            if lx != rx:
-                return richcmp_not_equal(lx, rx, op)
-            lx = self.base_ring()
-            rx = other.base_ring()
-            if lx == rx:
-                return rich_to_bool(op, 0)
-            try:
-                if self.base_ring().is_subring(other.base_ring()):
-                    return rich_to_bool(op, -1)
-                elif other.base_ring().is_subring(self.base_ring()):
-                    return rich_to_bool(op, 1)
-            except NotImplementedError:
-                pass
-            return richcmp_not_equal(lx, rx, op)
-        else:
-            # now other is not ambient or is a quotient;
-            # it knows how to do the comparison.
-            return richcmp(other, self, revop(op))
-
     def _latex_(self):
         r"""
         Return a latex representation of this ambient free quadratic module.
@@ -1216,6 +1146,15 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             [1 0 0]
             [0 2 0]
             [0 0 2]
+            
+        TESTS::
+        
+        We test that :trac:`23703` is fixed::
+            sage: A=FreeQuadraticModule(ZZ,1,matrix.identity(1))
+            sage: B=A.span([[1/2]])
+            sage: C=B.span([[1]])
+            sage: B.intersection(C)==C.intersection(B)
+            True
         """
         free_module.FreeModule_submodule_with_basis_pid.__init__(
             self, ambient=ambient, basis=basis, check=check,
@@ -1266,66 +1205,6 @@ class FreeQuadraticModule_submodule_with_basis_pid(
                 "Basis matrix:\n%r\n" % self.basis_matrix() + \
                 "Inner product matrix:\n%r" % self.inner_product_matrix()
         return s
-
-    def __richcmp__(self, other, op):
-        r"""
-        Compare self and other.
-
-        Modules are ordered by their ambient spaces, then by
-        dimension, then in order by their echelon matrices.
-
-        .. NOTE::
-
-            Use the \code{is_submodule} to determine if one module
-            is a submodule of another.
-
-        EXAMPLES:
-
-        First we compare two equal vector spaces::
-
-            sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
-            sage: W = span([[5,6,7], [8,9,10]], QQ)
-            sage: V == W
-            True
-
-        Next we compare a one dimensional space to the two dimensional
-        space defined above::
-
-            sage: M = span([[5,6,7]], QQ)
-            sage: V == M
-            False
-            sage: M < V
-            True
-            sage: V < M
-            False
-
-        We compare a `\ZZ`-module to the one-dimensional space above::
-
-            sage: V = span([[5,6,7]], ZZ).scale(1/11);  V
-            Free module of degree 3 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [5/11 6/11 7/11]
-            sage: V < M
-            True
-            sage: M < V
-            False
-        """
-        if self is other:
-            return rich_to_bool(op, 0)
-        if not isinstance(other, free_module.FreeModule_generic):
-            return NotImplemented
-        lx = self.ambient_vector_space()
-        rx = other.ambient_vector_space()
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
-        lx = self.dimension()
-        rx = other.dimension()
-        if lx != rx:
-            return richcmp_not_equal(lx, rx, op)
-        # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
-        # with the matrix to avoid a circular reference.
-        return richcmp(self.echelonized_basis_matrix(),
-                       other.echelonized_basis_matrix(), op)
 
     def _latex_(self):
         r"""

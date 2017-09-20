@@ -255,6 +255,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
 
     We compare rank three free modules over the integers and
     rationals::
+    
         sage: Q3 = FreeQuadraticModule(QQ,3,matrix.identity(3)) 
         sage: C3 = FreeQuadraticModule(CC,3,matrix.identity(3))
         sage: Z3 = FreeQuadraticModule(ZZ,3,matrix.identity(3))

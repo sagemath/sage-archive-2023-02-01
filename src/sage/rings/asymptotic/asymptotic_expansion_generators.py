@@ -1084,10 +1084,9 @@ class AsymptoticExpansionGenerators(SageObject):
                 return A(1).O()
             if prec == 1:
                 return ((1/Z)**one_half).O()
-            return (-(2*tau/phi(tau)/H(y).diff(y,2)(y=tau)).sqrt() * (1/Z)**one_half
                     + sum([SR("d{}".format(j)) * (1/Z)**(j * one_half) for j in srange(2, prec)])
+            return (-(2*tau/phi(tau)/H(y).diff(y, 2)(y=tau)).sqrt() * (1/Z)**one_half
                     + ((1/Z)**(prec * one_half)).O())
-
 
         # we compare coefficients between a "single" Z and the
         # following expansion, this allows us to compute the constants d_j

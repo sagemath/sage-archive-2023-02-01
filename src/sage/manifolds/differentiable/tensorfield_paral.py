@@ -342,7 +342,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M` (cf.
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank

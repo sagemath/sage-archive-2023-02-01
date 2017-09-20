@@ -752,7 +752,7 @@ Finally, we check that this indeed computes the Gray code of the first
 Using the hook-functions
 ------------------------
 
-Let's use the :ref:`previous example "divison by
+Let's use the :ref:`previous example "division by
 3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
 state and transition parameters ``hook``.
 
@@ -10046,8 +10046,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             x^2 - x - 1
             sage: R.<phi> = NumberField(x^2-x-1, embedding=1.6)
             sage: N = NAFp.number_of_words(base_ring=R); N
-            1/10*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) + 5)
-            - 1/10*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) - 5)
+            1/2*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) + 1)
+            - 1/2*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) - 1)
             sage: all(len(list(NAFp.language(s)))
             ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
             ....:     for s in srange(1, 6))

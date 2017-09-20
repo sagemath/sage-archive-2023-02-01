@@ -514,6 +514,14 @@ Running Sage from a directory with spaces in its name will also fail.
 #. Optional:  Set various other environment variables that influence the
    build process; see :ref:`section_envvar`.
 
+   Some environment variables deserve a special mention: `CC`, `CXX` and `FC`;
+   and on OS X, `OBJC` and `OBJCXX`. Those variables defining your compilers
+   can be set at configuration time and their values will be recorded for
+   further use at runtime. Those initial values are over-ridden if Sage builds
+   its own compiler or they are set to a different value again before calling
+   Sage. Note that some packages will ignore the compiler settings and use
+   values deemed safe for that package on a particular OS.
+
 #. Optional:  Run the configure script to set some options that
    influence the build process.
 
@@ -1303,15 +1311,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
-
-Sage overrides the user's settings of the following variables:
-
-- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
-  matplotlib config directory.
-  Due to incompatibilities in the contents of this directory among different
-  versions of matplotlib, Sage overrides the user's setting, defining it
-  instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
-  current matplotlib version number.
 
 Variables dealing with doctesting:
 

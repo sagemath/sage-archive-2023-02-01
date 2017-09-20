@@ -59,11 +59,11 @@ from .qadic_flint_FP import qAdicFloatingPointElement
 
 def _make_integral_poly(exact_modulus, p, prec):
     """
-    Converts a defining polynomial into one with integral coefficients.
+    Convert a defining polynomial into one with integral coefficients.
 
-    INPUTS:
+    INPUT:
 
-    - ``exact_modulus`` - a univariate polynomial
+    - ``exact_modulus`` -- a univariate polynomial
 
     - ``p`` -- a prime
 

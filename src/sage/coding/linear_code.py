@@ -2069,7 +2069,6 @@ class AbstractLinearCode(Module):
         # then the implementation here must also be changed so that
         # list(self)[i] and self[i] both return the same element.
 
-        from sage.rings.padics.factory import Zp
         F = self.base_ring()
         maxindex = F.order()**self.dimension()-1
         if i < 0 or i > maxindex:
@@ -2084,8 +2083,7 @@ class AbstractLinearCode(Module):
         A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
-        Z = Zp(p, N)
-        ivec = Z(i).padded_list(N)
+        ivec = Integer(i).digits(p, padto=N)
 
         codeword = 0
         row = 0
@@ -3554,8 +3552,7 @@ class AbstractLinearCode(Module):
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
             sage: C.weight_enumerator(names="var1, var2")
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator(names=(var1, var2))
+            sage: C.weight_enumerator(names=('var1', 'var2'))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: C.weight_enumerator(bivariate=False)
             x^7 + 7*x^4 + 7*x^3 + 1

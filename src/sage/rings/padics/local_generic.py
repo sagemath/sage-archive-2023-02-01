@@ -487,7 +487,7 @@ class LocalGeneric(CommutativeRing):
             sage: R = Zp(3, 10,'capped-abs'); R.precision_cap()
             10
 
-        NOTES::
+        .. NOTE::
 
             This will have different meanings depending on the type of
             local ring.  For fixed modulus rings, all elements are

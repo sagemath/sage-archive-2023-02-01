@@ -30,7 +30,7 @@ from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 ## Define an environment variable that enables MeatAxe to find
 ## its multiplication tables.
@@ -54,6 +54,7 @@ from sage.rings.finite_rings.integer_mod import IntegerMod_int
 from sage.matrix.constructor import random_matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.randstate import current_randstate
+from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
@@ -687,6 +688,12 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [2*z^2 + 2*z + 2               0               0   2*z^2 + z + 2               0         2*z + 1]
             [              0       2*z^2 + z               0               1               0   2*z^2 + z + 1]
 
+        The following tests against a bug that was fixed in :trac:`23352`::
+
+            sage: MS = MatrixSpace(GF(9,'x'),1,5)
+            sage: MS.random_element()     # optional: meataxe
+            [x + 1     x     2 x + 2 x + 2]
+
         """
         self.check_mutability()
         cdef int fl = self.Data.Field
@@ -707,9 +714,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         FfSetField(fl)
         FfSetNoc(nc)
-        cdef int O, MPB, tmp
-        randint = current_randstate().c_random
-        randdouble = current_randstate().c_rand_double
+        cdef int MPB, tmp
+        cdef unsigned char O
+        cdef randstate RandState = current_randstate()
 
         if not nonzero:
             if density == 1:
@@ -719,47 +726,46 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                     MPB += 1
                     tmp *= fl
                 O = (fl**MPB)
-                sig_on()
                 if nc%MPB:
-                    for i from 0 <= i < nr:
+                    for i in range(nr):
                         y = <unsigned char*>x
-                        for j from 0 <= j < FfCurrentRowSizeIo-1:
-                            y[j] = randint()%O
-                        y[FfCurrentRowSizeIo-1] = randint()%(fl**(nc%MPB))
+                        for j in range(FfCurrentRowSizeIo-1):
+                            y[j] = RandState.c_random()%O
+                            sig_check()
+                        for j in range(nc-(nc%MPB), nc):
+                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
+                            sig_check()
                         FfStepPtr(&(x))
                 else:
-                    for i from 0 <= i < nr:
+                    for i in range(nr):
                         y = <unsigned char*>x
-                        for j from 0 <= j < FfCurrentRowSizeIo:
-                            y[j] = randint()%O
+                        for j in range(FfCurrentRowSizeIo):
+                            y[j] = RandState.c_random()%O
+                            sig_check()
                         FfStepPtr(&(x))
-                sig_off()
             else:
-                sig_on()
-                for i from 0 <= i < nr:
-                    for j from 0 <= j < nc:
-                        if randdouble() < density:
-                            FfInsert(x, j, FfFromInt( (randint()%fl) ))
+                for i in range(nr):
+                    for j in range(nc):
+                        if RandState.c_rand_double() < density:
+                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl) ))
+                            sig_check()
                     FfStepPtr(&(x))
-                sig_off()
         else:
             if density == 1:
                 fl -= 1
-                sig_on()
-                for i from 0 <= i < nr:
-                    for j from 0 <= j < nc:
-                        FfInsert(x, j, FfFromInt( (randint()%fl)+1 ))
+                for i in range(nr):
+                    for j in range(nc):
+                        FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
+                        sig_check()
                     FfStepPtr(&(x))
-                sig_off()
             else:
                 fl -= 1
-                sig_on()
-                for i from 0 <= i < nr:
-                    for j from 0 <= j < nc:
-                        if randdouble() < density:
-                            FfInsert(x, j, FfFromInt( (randint()%fl)+1 ))
+                for i in range(nr):
+                    for j in range(nc):
+                        if RandState.c_rand_double() < density:
+                            FfInsert(x, j, FfFromInt( (RandState.c_random()%fl)+1 ))
+                            sig_check()
                     FfStepPtr(&(x))
-                sig_off()
 
 ## Debugging
 #    def show_contents(self, r=None):

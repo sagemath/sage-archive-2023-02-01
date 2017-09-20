@@ -947,14 +947,7 @@ class Rings(CategoryWithAxiom):
                 ...
                 TypeError: power series rings must have at least one variable
 
-            Some flexibility is allowed when specifying variables::
-
-                sage: QQ["x", SR.var('y'), polygen(CC, 'z')]
-                Multivariate Polynomial Ring in x, y, z over Rational Field
-                sage: QQ[["x", SR.var('y'), polygen(CC, 'z')]]
-                Multivariate Power Series Ring in x, y, z over Rational Field
-
-            but more baroque expressions do not work::
+            These kind of expressions do not work::
 
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):

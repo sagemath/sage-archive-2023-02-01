@@ -36,7 +36,7 @@ described throughout the file.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from libc.string cimport memcpy
 from cysignals.memory cimport sig_malloc, sig_free

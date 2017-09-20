@@ -25,6 +25,7 @@ AUTHORS:
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 from sage.structure.element import coerce_binop
+from itertools import islice
 
 cdef class LocalGenericElement(CommutativeRingElement):
     #cpdef _add_(self, right):
@@ -194,7 +195,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         """
         raise TypeError("this local element is not iterable")
 
-    def slice(self, i, j, k = 1):
+    def slice(self, i, j, k = 1, lift_mode='simple'):
         r"""
         Returns the sum of the `p^{i + l \cdot k}` terms of the series
         expansion of this element, for `i + l \cdot k` between ``i`` and
@@ -338,7 +339,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         # construct the return value
         ans = self.parent().zero()
-        for c in self.expansion()[start:stop:k]:
+        for c in islice(self.expansion(lift_mode=lift_mode), start, stop, k):
             ans += ppow * c
             ppow *= pk
 
@@ -833,6 +834,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         shift = self.parent().one()
         v = 0
+        # so that this test doesn't take too long for large precision cap
+        prec_cutoff = min((10000 / (1 + self.precision_relative())).ceil(), 100)
 
         from sage.categories.all import Fields
         if self.parent() in Fields():
@@ -843,13 +846,16 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         for mode in ['simple', 'smallest', 'teichmuller']:
             expansion = self.expansion(lift_mode=mode)
+            expansion_sum = sum(self.parent().maximal_unramified_subextension()(c) *
+                                (self.parent().one()<<i)
+                                for i,c in enumerate(islice(expansion, prec_cutoff))) * shift
 
-            tester.assertEqual(self, shift*sum(self.parent().maximal_unramified_subextension()(c) * (self.parent().one()<<i) for i,c in enumerate(expansion)))
+            tester.assertEqual(self.add_bigoh(prec_cutoff), expansion_sum.add_bigoh(prec_cutoff))
 
-            for i,c in enumerate(expansion):
+            for i,c in enumerate(islice(expansion, prec_cutoff)):
                 tester.assertEqual(c, self.expansion(lift_mode=mode, n=i+v))
 
             if mode == 'teichmuller':
                 q = self.parent().residue_field().cardinality()
-                for c in expansion:
+                for c in islice(expansion, prec_cutoff):
                     tester.assertEqual(c, c**q)

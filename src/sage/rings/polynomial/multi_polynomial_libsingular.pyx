@@ -4779,7 +4779,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.quo_rem(y)
             (2*x^2, x + 1)
             sage: f.quo_rem(3*x)
-            (0, 2*x^2*y + x + 1)
+            (2*x*y + 1, -4*x^2*y - 2*x + 1)
 
         TESTS::
 
@@ -4801,7 +4801,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if right.is_zero():
             raise ZeroDivisionError
 
-        if not self._parent._base.is_field():
+        if not self._parent._base.is_field() and not is_IntegerRing(self._parent._base):
             py_quo = self//right
             py_rem = self - right*py_quo
             return py_quo, py_rem

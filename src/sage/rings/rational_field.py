@@ -158,7 +158,9 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: Q.is_field()
             True
             sage: Q.category()
-            Join of Category of quotient fields and Category of metric spaces
+            Join of Category of number fields
+             and Category of quotient fields
+             and Category of metric spaces
             sage: Q.zeta()
             -1
 
@@ -221,7 +223,9 @@ class RationalField(Singleton, number_field_base.NumberField):
             ('x',)
         """
         from sage.categories.basic import QuotientFields
-        ParentWithGens.__init__(self, self, category=QuotientFields().Metric())
+        from sage.categories.number_fields import NumberFields
+        ParentWithGens.__init__(self, self, category=[QuotientFields().Metric(),
+                                                      NumberFields()])
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=Rational, init_no_parent=True)
 

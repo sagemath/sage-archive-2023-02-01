@@ -2966,7 +2966,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.hypercube(2))
+            sage: L._element_constructor_(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)

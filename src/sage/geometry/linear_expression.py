@@ -592,19 +592,19 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
         Construct from coeffients and constant term::
 
-            sage: L._element_constructor([1, 2, 3], 4)
+            sage: L._element_constructor_([1, 2, 3], 4)
             x + 2*y + 3*z + 4
-            sage: L._element_constructor(vector(ZZ, [1, 2, 3]), 4)
+            sage: L._element_constructor_(vector(ZZ, [1, 2, 3]), 4)
             x + 2*y + 3*z + 4
 
         Construct constant linear expression term::
 
-            sage: L._element_constructor(4)
+            sage: L._element_constructor_(4)
             0*x + 0*y + 0*z + 4
 
         Construct from list/tuple/iterable::
        
-            sage: L._element_constructor(vector([4, 1, 2, 3]))
+            sage: L._element_constructor_(vector([4, 1, 2, 3]))
             x + 2*y + 3*z + 4
 
         Construct from a pair ``(coefficients, constant)``::
@@ -616,7 +616,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
 
             sage: M = LinearExpressionModule(ZZ, ('u', 'v', 'w'))
             sage: m = M([1, 2, 3], 4)
-            sage: L._element_constructor(m)
+            sage: L._element_constructor_(m)
             x + 2*y + 3*z + 4
         """
         R = self.base_ring()

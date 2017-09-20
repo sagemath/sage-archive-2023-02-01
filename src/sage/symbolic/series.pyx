@@ -24,10 +24,10 @@ it back to a polynomial::
     sage: f = (x^3 - sin(y)*x^2 - 5*x + 3); f
     x^3 - x^2*sin(y) - 5*x + 3
     sage: g = f.series(x, 4); g
-    3 + (-5)*x + (-sin(y))*x^2 + 1*x^3
+    3 + (-5)*x + (-sin(y))*x^2 + 1*x^3 + Order(x^4)
     sage: g.truncate()
     x^3 - x^2*sin(y) - 5*x + 3
-    sage: g = f.series(x==1, 4); g
+    sage: g = f.series(x==1, oo); g
     (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
     sage: h = g.truncate(); h
     (x - 1)^3 - (x - 1)^2*(sin(y) - 3) - 2*(x - 1)*(sin(y) + 1) - sin(y) - 1

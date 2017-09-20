@@ -1170,7 +1170,7 @@ class Function_cosh_integral(BuiltinFunction):
 
         sage: f(x) = cosh_integral(x)
         sage: find_root(f, 0.1, 1.0)
-        0.523822571389482...
+        0.523822571389...
 
     Compare ``cosh_integral(3.0)`` to the definition of the value using
     numerical integration::

@@ -3733,7 +3733,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def is_dominant_weight(self): # Or is_dominant_integral_weight?
             """
-            Tests whether ``self`` is a dominant element of the weight lattice
+            Test whether ``self`` is a dominant element of the weight lattice.
 
             EXAMPLES::
 
@@ -3748,11 +3748,11 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (-Lambda[1]+Lambda[2]).is_dominant()
                 False
 
-           Tests that the scalar products with the coroots are all
-           nonnegative integers. For example, if `x` is the sum of a
-           dominant element of the weight lattice plus some other element
-           orthogonal to all coroots, then the implementation correctly
-           reports `x` to be a dominant weight::
+            Tests that the scalar products with the coroots are all
+            nonnegative integers. For example, if `x` is the sum of a
+            dominant element of the weight lattice plus some other element
+            orthogonal to all coroots, then the implementation correctly
+            reports `x` to be a dominant weight::
 
                sage: x = Lambda[1] + L([-1,-1,-1])
                sage: x.is_dominant_weight()

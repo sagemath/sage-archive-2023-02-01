@@ -18,3 +18,9 @@ cdef class InfinityCrystalOfTableauxElement(CrystalOfTableauxElement):
 
 cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElement):
     pass
+
+cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    pass
+
+cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
+    pass

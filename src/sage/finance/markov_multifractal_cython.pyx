@@ -3,6 +3,7 @@ Markov Switching Multifractal model
 
 Cython code
 """
+from __future__ import absolute_import
 
 from sage.misc.randstate cimport randstate, current_randstate
 

@@ -28,6 +28,7 @@ from __future__ import absolute_import
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
+from copy import copy
 
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
@@ -417,6 +418,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         if ans.valuation() > 0:
             return self(0) if prec is None else self(0, prec)
         ans = ans.lift_to_precision(prec)
+        if ans is x:
+            ans = copy(ans)
         ans._teichmuller_set_unsafe()
         return ans
 

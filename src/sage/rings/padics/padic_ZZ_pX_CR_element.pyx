@@ -544,7 +544,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         else:
             return (self.parent(),
                     tuple(tuple(c) if isinstance(c, list) else c
-                          for c in self.unit_part().list()),
+                          for c in self.unit_part().expansion()),
                     self.valuation(), self.precision_relative())
 
     cdef int _set_inexact_zero(self, long absprec) except -1:

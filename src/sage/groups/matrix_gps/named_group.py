@@ -120,7 +120,8 @@ def normalize_args_vectorspace(*args, **kwds):
 
 class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
 
-    def __init__(self, degree, base_ring, special, sage_name, latex_string):
+    def __init__(self, degree, base_ring, special, sage_name, latex_string,
+                 category=None):
         """
         Base class for "named" matrix groups
 
@@ -142,7 +143,7 @@ class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
             sage: isinstance(G, NamedMatrixGroup_generic)
             True
         """
-        MatrixGroup_generic.__init__(self, degree, base_ring)
+        MatrixGroup_generic.__init__(self, degree, base_ring, category=category)
         self._special = special
         self._name_string = sage_name
         self._latex_string = latex_string
@@ -220,7 +221,7 @@ class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
 
 class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):
 
-    def __init__(self, degree, base_ring, special, sage_name, latex_string, gap_command_string):
+    def __init__(self, degree, base_ring, special, sage_name, latex_string, gap_command_string, category=None):
         """
         Base class for "named" matrix groups using LibGAP
 
@@ -246,9 +247,9 @@ class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):
         """
         from sage.libs.gap.libgap import libgap
         group = libgap.eval(gap_command_string)
-        MatrixGroup_gap.__init__(self, degree, base_ring, group)
+        MatrixGroup_gap.__init__(self, degree, base_ring, group,
+                                 category=category)
         self._special = special
         self._gap_string = gap_command_string
         self._name_string = sage_name
         self._latex_string = latex_string
-

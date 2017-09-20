@@ -636,7 +636,7 @@ cdef tuple hyperbolicity_BCCM(int N,
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
 
-    OUTPUTS:
+    OUTPUT:
 
     This function returns a tuple ( h, certificate, h_UB ), where:
 
@@ -892,7 +892,7 @@ cdef tuple hyperbolicity_CCL(int N,
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
 
-    OUTPUTS:
+    OUTPUT:
 
     This function returns a tuple ( h, certificate, h_UB ), where:
 

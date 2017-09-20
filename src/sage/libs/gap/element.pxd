@@ -48,6 +48,8 @@ cdef class GapElement(RingElement):
     cpdef _mul_(self, other)
     cpdef _mod_(self, right)
 
+    cpdef GapElement deepcopy(self, bint mut)
+
 cdef class GapElement_Integer(GapElement):
     pass
 

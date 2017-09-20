@@ -642,7 +642,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         TESTS::
 
-            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
+            sage: B.sort(cmp = lambda x,y: (x<y)-(x>y)); B
             doctest:...: DeprecationWarning: sorting using cmp is deprecated
             See http://trac.sagemath.org/21376 for details.
             [3, 2, 1/5]

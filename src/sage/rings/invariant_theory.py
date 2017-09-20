@@ -110,6 +110,7 @@ from sage.rings.all import QQ
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.cachefunc import cached_method
 
 
@@ -170,6 +171,7 @@ def _guess_variables(polynomial, *args):
 
 ######################################################################
 
+@richcmp_method
 class FormsBase(SageObject):
     """
     The common base class of :class:`AlgebraicForm` and
@@ -504,8 +506,7 @@ class AlgebraicForm(FormsBase):
             cov = getattr(self, method_name)()
             assert (cov - cov_g).is_zero(), 'Not invariant.'
 
-
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` with ``other``.
 
@@ -513,18 +514,14 @@ class AlgebraicForm(FormsBase):
 
             sage: R.<x,y> = QQ[]
             sage: quartic = invariant_theory.binary_quartic(x^4+y^4)
-            sage: cmp(quartic, 'foo') == 0
+            sage: quartic == 'foo'
             False
-            sage: cmp(quartic, quartic)
-            0
-            sage: quartic.__cmp__(quartic)
-            0
+            sage: quartic == quartic
+            True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp(self.coeffs(), other.coeffs())
-
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.coeffs(), other.coeffs(), op)
 
     def _repr_(self):
         """
@@ -2061,7 +2058,7 @@ class SeveralAlgebraicForms(FormsBase):
             raise ValueError('All forms must be in the same variables.')
         self._forms = forms
         
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` with ``other``.
 
@@ -2072,17 +2069,14 @@ class SeveralAlgebraicForms(FormsBase):
             sage: q2 = invariant_theory.quadratic_form(x*y)
             sage: from sage.rings.invariant_theory import SeveralAlgebraicForms
             sage: two_inv = SeveralAlgebraicForms([q1, q2])
-            sage: cmp(two_inv, 'foo') == 0
+            sage: two_inv == 'foo'
             False
-            sage: cmp(two_inv, two_inv)
-            0
-            sage: two_inv.__cmp__(two_inv)
-            0
+            sage: two_inv == two_inv
+            True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        return cmp(self._forms, other._forms)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self._forms, other._forms, op)
 
     def _repr_(self):
         """

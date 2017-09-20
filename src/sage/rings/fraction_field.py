@@ -78,8 +78,11 @@ from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
+from sage.rings.integer_ring import ZZ
+from sage.structure.element import Element
 from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
+from sage.structure.coerce import py_scalar_to_element
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields
 from sage.categories.morphism import Morphism
@@ -501,7 +504,7 @@ class FractionField_generic(ring.Field):
         """
         return self.ring().is_exact()
 
-    def _element_constructor_(self, x, y=1, coerce=True):
+    def _element_constructor_(self, x, y=None, coerce=True):
         """
         Construct an element of this fraction field.
 
@@ -542,6 +545,14 @@ class FractionField_generic(ring.Field):
             sage: S(pari(x + y + 1/z))
             (x*z + y*z + 1)/z
 
+        This example failed before :trac:`23664`::
+
+            sage: P0.<x> = ZZ[]
+            sage: P1.<y> = Frac(P0)[]
+            sage: frac = (x/(x^2 + 1))*y + 1/(x^3 + 1)
+            sage: Frac(ZZ['x,y'])(frac)
+            (x^4*y + x^2 + x*y + 1)/(x^5 + x^3 + x^2 + 1)
+
         Test conversions where `y` is a string but `x` not::
 
             sage: K = ZZ['x,y'].fraction_field()
@@ -559,55 +570,58 @@ class FractionField_generic(ring.Field):
             sage: R.<x> = PolynomialRing(B,'x')
             sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
             a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
-
         """
-        Element = self._element_class
-        if isinstance(x, Element) and y == 1:
-            if x.parent() is self:
+        if y is None:
+            if isinstance(x, Element) and x.parent() is self:
                 return x
             else:
-                return Element(self, x.numerator(), x.denominator())
+                y = self.base_ring().one()
 
-        recurse = False
+        try:
+            return self._element_class(self, x, y, coerce=coerce)
+        except (TypeError, ValueError):
+            pass
+
         if isinstance(x, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
                 x = sage_eval(x, self.gens_dict_recursive())
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(x, self))
-            recurse = True
         if isinstance(y, six.string_types):
             from sage.misc.sage_eval import sage_eval
             try:
                 y = sage_eval(y, self.gens_dict_recursive())
             except NameError:
                 raise TypeError("unable to evaluate {!r} in {}".format(y, self))
-            recurse = True
 
-        try:
-            return Element(self, x, y, coerce=coerce)
-        except (TypeError, ValueError):
-            if recurse:
-                return self._element_constructor(x, y)
-            if y == 1:
-                from sage.symbolic.expression import Expression
-                if isinstance(x, Expression):
-                    return Element(self, x.numerator(), x.denominator())
-                from sage.libs.pari.all import pari_gen
-                if isinstance(x, pari_gen):
-                    t = x.type()
-                    if t == 't_RFRAC':
-                        return Element(self, x.numerator(), x.denominator())
-                    elif t == 't_POL':
-                        # This recursive approach is needed because PARI
-                        # represents multivariate polynomials as iterated
-                        # univariate polynomials (see the above examples).
-                        # Below, v is the variable with highest priority,
-                        # and the x[i] are rational functions in the
-                        # remaining variables.
-                        v = Element(self, x.variable(), 1)
-                        return sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
-            raise
+        x = py_scalar_to_element(x)
+        y = py_scalar_to_element(y)
+
+        from sage.libs.pari.all import pari_gen
+        if isinstance(x, pari_gen) and x.type() == 't_POL':
+            # This recursive approach is needed because PARI
+            # represents multivariate polynomials as iterated
+            # univariate polynomials (see the above examples).
+            # Below, v is the variable with highest priority,
+            # and the x[i] are rational functions in the
+            # remaining variables.
+            v = self._element_class(self, x.variable(), 1)
+            x = sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
+
+        while True:
+            x0, y0 = x, y
+            try:
+                x = x0.numerator()*y0.denominator()
+                y = y0.numerator()*x0.denominator()
+            except AttributeError:
+                raise TypeError("cannot convert {!r}/{!r} to an element of {}",
+                                x0, y0, self)
+            try:
+                return self._element_class(self, x, y, coerce=coerce)
+            except TypeError:
+                if not x != x0:
+                    raise
 
     def construction(self):
         """
@@ -857,6 +871,51 @@ class FractionField_1poly_field(FractionField_generic):
         # This fails silently over some base fields, see #23642, so we convert
         # to the function field and factor there.
         return f.change_ring(self.function_field()).factor().base_change(f.parent())
+
+    def function_field(self):
+        r"""
+        Return the isomorphic function field.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: K.function_field()
+            Rational function field in t over Finite Field of size 5
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.function_field.RationalFunctionField.field`
+
+        """
+        from sage.rings.all import FunctionField
+        return FunctionField(self.base_ring(), names=self.variable_name())
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return a coerce map from ``R`` to this field.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: L = K.function_field()
+            sage: f = K.coerce_map_from(L); f # indirect doctest
+            Isomorphism morphism:
+              From: Rational function field in t over Finite Field of size 5
+              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
+            sage: f(~L.gen())
+            1/t
+
+        """
+        from sage.rings.function_field.function_field import is_RationalFunctionField
+        if is_RationalFunctionField(R) and self.variable_name() == R.variable_name() and self.base_ring() is R.constant_base_field():
+            from sage.categories.all import Hom
+            parent = Hom(R, self)
+            from sage.rings.function_field.maps import FunctionFieldToFractionField
+            return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
+
+        return super(FractionField_1poly_field, self)._coerce_map_from_(R)
 
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):

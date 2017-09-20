@@ -367,7 +367,7 @@ def spanning_forest(M):
 
     INPUT:
 
-    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the 
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the
       rows and columns, if `M[i,j]` is non-zero, then there is an edge
       between row `i` and column `j`.
 
@@ -401,19 +401,19 @@ def spanning_forest(M):
 
 def spanning_stars(M):
     r"""
-    Returns the edges of a connected subgraph that is a union of 
+    Returns the edges of a connected subgraph that is a union of
     all edges incident some subset of vertices.
 
     INPUT:
 
-    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the 
+    - ``M`` -- a matrix defining a bipartite graph G. The vertices are the
       rows and columns, if `M[i,j]` is non-zero, then there is an edge
       between row i and column 0.
 
     OUTPUT:
 
     A list of tuples `(row,column)` in a spanning forest of the bipartite graph defined by ``M``
-    
+
     EXAMPLES::
 
         sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
@@ -722,3 +722,63 @@ def lift_map(target):
             R(-5)**(-1): G(-t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
 
     raise NotImplementedError(target)
+
+def split_vertex(G, u, v=None, edges=None):
+    """
+    Split a vertex in a graph.
+
+    If an edge is inserted between the vertices after splitting, this
+    corresponds to a graphic coextension of a matroid.
+
+    INPUT:
+
+    - ``G`` -- A SageMath Graph.
+    - ``u`` -- A vertex in ``G``.
+    - ``v`` -- (optional) The name of the new vertex after the splitting. If
+      ``v`` is specified and already in the graph, it must be an isolated vertex.
+    - ``edges`` -- (optional) An iterable container of edges on ``u`` that
+      move to ``v`` after the splitting. If ``None``, ``v`` will be an isolated
+      vertex. The edge labels must be specified.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.utilities import split_vertex
+        sage: G = graphs.BullGraph()
+        sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the edges are not all incident with u
+        sage: split_vertex(G, u = 1, v = 'a', edges = [(1, 3, None)])
+        sage: G.edges()
+        [(0, 1, None), (0, 2, None), (1, 2, None), (2, 4, None), (3, 'a', None)]
+
+    """
+    if v is None:
+        v = G.add_vertex()
+    elif v not in G:
+        G.add_vertex(v)
+    elif G.degree(v) != 0:
+        raise ValueError("v must be a new vertex or an isolated vertex")
+    if edges is None:
+        edges = []
+
+    edges_on_u = G.edges_incident(u)
+
+    for e in edges:
+        if e not in edges_on_u:
+            # if e is a loop, put it on u and v
+            # otherwise raise an error
+            if e[0] == e[1]:
+                G.add_edge(u, v, e[2])
+                G.delete_edge(e)
+            else:
+                raise ValueError("the edges are not all incident with u")
+
+        elif e[0] == u:
+            G.add_edge(v, e[1], e[2])
+        elif e[1] == u:
+            G.add_edge(e[0], v, e[2])
+        G.delete_edge(e)
+
+    # This modifies the graph without needing to return anything
+    return

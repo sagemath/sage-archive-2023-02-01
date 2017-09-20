@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Function Fields
 
@@ -7,7 +8,7 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-30): added is_finite()
 
-- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
+- Julian Rüth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
   fixed hom(), extension(); use @cached_method; added derivation(); added
   support for relative vector spaces; fixed conversion to base fields
 
@@ -64,20 +65,20 @@ and function fields as inseparable extensions::
 
 TESTS::
 
-    sage: TestSuite(K).run()
-    sage: TestSuite(L).run()  # long time (8s on sage.math, 2012)
-    sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
-    sage: TestSuite(N).run(skip = '_test_derivation')  # long time
-    sage: TestSuite(O).run(skip = '_test_derivation')  # long time
+    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
+    sage: TestSuite(L).run(max_runs=64)  # long time (10s)
+    sage: TestSuite(M).run(max_runs=32)  # long time (30s)
+    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time (8s)
+    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
 
     sage: TestSuite(R).run()
-    sage: TestSuite(S).run()
+    sage: TestSuite(S).run() # long time (3s)
 """
 from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011-2016 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2017 Julian Rüth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -2041,11 +2042,17 @@ class RationalFunctionField(FunctionField):
         R = constant_field[names[0]]
         self._hash = hash((constant_field, names))
         self._ring = R
+
         self._field = R.fraction_field()
-        self._populate_coercion_lists_(coerce_list=[self._field])
+        from sage.categories.all import Hom
+        hom = Hom(self._field, self)
+        from .maps import FractionFieldToFunctionField
+        self.register_coercion(hom.__make_element_class__(FractionFieldToFunctionField)(hom.domain(), hom.codomain()))
+
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         from sage.categories.morphism import SetMorphism
         R.register_conversion(SetMorphism(self.Hom(R, SetsWithPartialMaps()), self._to_polynomial))
+
         self._gen = self(R.gen())
 
     def __reduce__(self):
@@ -2483,6 +2490,11 @@ class RationalFunctionField(FunctionField):
             sage: K.<t> = FunctionField(GF(7))
             sage: K.field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.fraction_field.FractionField_1poly_field.function_field`
+
         """
         return self._field
 

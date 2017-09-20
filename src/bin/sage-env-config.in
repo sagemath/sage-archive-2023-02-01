@@ -18,3 +18,14 @@
 # SAGE_LOCAL is the installation prefix and can be customized by using
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
+
+#######################################
+# Compilers set at configuration time
+#######################################
+export CONFIGURED_CC="@CC@"
+export CONFIGURED_CXX="@CXX@"
+export CONFIGURED_FC="@FC@"
+export CONFIGURED_OBJC="@OBJ@"
+export CONFIGURED_OBJCXX="@OBJCXX@"
+
+

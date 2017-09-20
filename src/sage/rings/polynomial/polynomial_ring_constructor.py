@@ -72,7 +72,7 @@ def PolynomialRing(base_ring, *args, **kwds):
 
     - ``name`` -- a string
 
-    - ``names`` -- a list or tuple of names, or a comma separated string
+    - ``names`` -- a list or tuple of names (strings), or a comma separated string
 
     - ``var_array`` -- a list or tuple of names, or a comma separated string
 

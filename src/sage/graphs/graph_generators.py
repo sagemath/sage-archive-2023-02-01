@@ -55,7 +55,8 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["BullGraph",
+    ["AztecDiamondGraph",
+     "BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -1987,6 +1988,7 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    AztecDiamondGraph      = staticmethod(sage.graphs.generators.families.AztecDiamondGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)

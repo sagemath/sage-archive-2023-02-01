@@ -576,9 +576,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         return x.lift()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare self and other.
+        Check whether ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -597,10 +597,31 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             True
         """
         if not isinstance(other, PolynomialQuotientRing_generic):
-            return cmp(type(self), type(other))
-        c = cmp(self.polynomial_ring(), other.polynomial_ring())
-        if c: return c
-        return cmp(self.modulus(), other.modulus())
+            return False
+        return (self.polynomial_ring() == other.polynomial_ring() and
+                self.modulus() == other.modulus())
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: Rx.<x> = PolynomialRing(QQ)
+            sage: Ry.<y> = PolynomialRing(QQ)
+            sage: Rx != Ry
+            True
+            sage: Qx = Rx.quotient(x^2+1)
+            sage: Qy = Ry.quotient(y^2+1)
+            sage: Qx != Qy
+            True
+            sage: Qx != Qx
+            False
+            sage: Qz = Rx.quotient(x^2+1)
+            sage: Qz != Qx
+            False
+        """
+        return  not (self == other)
 
     def _singular_init_(self, S=None):
         """

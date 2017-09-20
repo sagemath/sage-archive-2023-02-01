@@ -822,7 +822,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Element of the Rank-3 free module M over the Integer Ring
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp:

@@ -98,6 +98,8 @@ from sage.misc.all import verbose, prod
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import (richcmp_method, richcmp,
+                                    richcmp_not_equal, rich_to_bool)
 
 import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
@@ -252,7 +254,8 @@ class RingClassField(SageObject):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('389a'); K5 = E.heegner_point(-7,5).ring_class_field()
+            sage: E = EllipticCurve('389a')
+            sage: K5 = E.heegner_point(-7,5).ring_class_field()
             sage: K11 = E.heegner_point(-7,11).ring_class_field()
             sage: K5 == K11
             False
@@ -263,6 +266,24 @@ class RingClassField(SageObject):
         """
         return isinstance(other, RingClassField) and self.__D == other.__D and self.__c == other.__c
 
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: K5 = E.heegner_point(-7,5).ring_class_field()
+            sage: K11 = E.heegner_point(-7,11).ring_class_field()
+            sage: K5 != K11
+            True
+            sage: K5 != K5
+            False
+            sage: K11 != 11
+            True
+        """
+        return not (self == other)
+    
     def __hash__(self):
         """
         Used for computing hash of ``self``.
@@ -628,6 +649,21 @@ class GaloisGroup(SageObject):
         """
         return isinstance(G, GaloisGroup) and (G.__field,G.__base) == (self.__field,self.__base)
 
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: G = EllipticCurve('389a').heegner_point(-7,5).ring_class_field().galois_group()
+            sage: G != G
+            False
+            sage: G != 0
+            True
+            sage: H = EllipticCurve('389a').heegner_point(-7,11).ring_class_field().galois_group()
+            sage: G != H
+            True
+        """
+        return not (self == other)
+    
     def __hash__(self):
         """
         Return hash of this Galois group, which is the same as the
@@ -1193,6 +1229,7 @@ class GaloisGroup(SageObject):
 #
 ##################################################################################
 
+
 class GaloisAutomorphism(SageObject):
     """
     An abstract automorphism of a ring class field.
@@ -1243,6 +1280,7 @@ class GaloisAutomorphism(SageObject):
             Ring class field extension of QQ[sqrt(-7)] of conductor 5
         """
         return self.parent().field()
+
 
 class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
     """
@@ -1306,6 +1344,18 @@ class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
         return isinstance(right, GaloisAutomorphismComplexConjugation) and \
                self.parent() == right.parent()
 
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: G = EllipticCurve('389a').heegner_point(-7,5).ring_class_field().galois_group()
+            sage: conj = G.complex_conjugation()
+            sage: conj2 = sage.schemes.elliptic_curves.heegner.GaloisAutomorphismComplexConjugation(G)
+            sage: conj != conj2
+            False
+        """
+        return not (self == other)
+    
     def _repr_(self):
         """
         Return print representation of the complex conjugation automorphism.
@@ -1352,6 +1402,8 @@ class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
         """
         return ZZ(2)
 
+
+@richcmp_method
 class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
     """
     An automorphism of a ring class field defined by a quadratic form.
@@ -1494,11 +1546,14 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
         """
         return hash((self.parent(), tuple(self.__quadratic_form)))
 
-    def __eq__(self, right):
+    def __richcmp__(self, right, op):
         """
+        Comparison.
+
         EXAMPLES::
 
-            sage: H = heegner_points(389,-7,5); s = H.ring_class_field().galois_group(H.quadratic_field())[1]
+            sage: H = heegner_points(389,-7,5)
+            sage: s = H.ring_class_field().galois_group(H.quadratic_field())[1]
             sage: s == s
             True
             sage: s == s*s
@@ -1507,31 +1562,23 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             False
             sage: s == s*s*s*s*s*s*s
             True
-        """
-        return isinstance(right, GaloisAutomorphismQuadraticForm) and \
-               self.parent() == right.parent() and \
-               self.quadratic_form().is_equivalent(right.quadratic_form())
 
-    def __cmp__(self, right):
-        """
-        Compare ``self`` and right.  Used mainly so that lists of
-        automorphisms are sorted consistently between runs.
-
-        EXAMPLES::
-
-            sage: H = heegner_points(389,-20,3); s = H.ring_class_field().galois_group(H.quadratic_field())[0]
-            sage: s.__cmp__(s)
-            0
-            sage: s.__cmp__(0) != 0
+            sage: H = heegner_points(389,-20,3)
+            sage: s = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: s == s
             True
+            sage: s == 0
+            False
         """
         if not isinstance(right, GaloisAutomorphismQuadraticForm):
-            return cmp(type(self), type(right))
-        c = cmp(self.parent(), right.parent())
-        if c: return c
+            return NotImplemented
+        lx = self.parent()
+        rx = right.parent()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
         if self.quadratic_form().is_equivalent(right.quadratic_form()):
-            return 0
-        return cmp(self.quadratic_form(), right.quadratic_form())
+            return rich_to_bool(op, 0)
+        return richcmp(self.quadratic_form(), right.quadratic_form(), op)
 
     def _repr_(self):
         """

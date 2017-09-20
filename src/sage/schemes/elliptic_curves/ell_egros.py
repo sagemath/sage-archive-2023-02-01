@@ -147,7 +147,7 @@ def curve_key(E1):
         from sage.databases.cremona import parse_cremona_label, class_to_int
         N, l, k = parse_cremona_label(E1.label())
         return (N, 0, class_to_int(l), k)
-    except RuntimeError:
+    except LookupError:
         return (E1.conductor(), 1, E1.ainvs())
 
 

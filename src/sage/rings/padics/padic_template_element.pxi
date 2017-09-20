@@ -545,10 +545,6 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         r"""
         Returns the list of coefficients in a `\pi`-adic expansion of this element.
 
-        .. SEEALSO::
-
-            :meth:`expansion`
-
         EXAMPLES::
 
             sage: R = Zp(7,6); a = R(12837162817); a
@@ -559,6 +555,11 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             DeprecationWarning: list is deprecated. Please use expansion instead.
             See http://trac.sagemath.org/14825 for details.
             [3, 4, 4, 0, 4, 0]
+
+        .. SEEALSO::
+
+            :meth:`expansion`
+
         """
         deprecation(14825, "list is deprecated. Please use expansion instead.")
         return list(self.expansion(lift_mode=lift_mode, start_val=start_val))
@@ -614,10 +615,6 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         r"""
         Returns the list of coefficients in the Teichmuller expansion of this element.
 
-        .. SEEALSO::
-
-            :meth:`teichmuller_expansion`
-
         EXAMPLES::
 
             sage: R = Qp(5,5); R(70).teichmuller_list()[1]
@@ -626,6 +623,11 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             DeprecationWarning: teichmuller_list is deprecated. Please use teichmuller_expansion instead.
             See http://trac.sagemath.org/14825 for details.
             3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
+
+        .. SEEALSO::
+
+            :meth:`teichmuller_expansion`
+
         """
         deprecation(14825, "teichmuller_list is deprecated. Please use teichmuller_expansion instead.")
         return list(self.teichmuller_expansion())

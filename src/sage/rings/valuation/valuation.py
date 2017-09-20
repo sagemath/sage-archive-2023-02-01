@@ -55,6 +55,7 @@ send more than just zero to infinity::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.categories.morphism import Morphism
+from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_LT, op_GE, op_GT
 
 from sage.misc.cachefunc import cached_method
 
@@ -221,17 +222,17 @@ class DiscretePseudoValuation(Morphism):
             False
 
         """
-        if op == 0: # <
+        if op == op_LT:
             return self <= other and not (self >= other)
-        if op == 1: # <=
+        if op == op_LE:
             return self._le_(other)
-        if op == 2: # ==
+        if op == op_EQ:
             return self._eq_(other)
-        if op == 3: # !=
+        if op == op_NE:
             return not self == other
-        if op == 4: # >
+        if op == op_GT:
             return self >= other and not (self <= other)
-        if op == 5: # >=
+        if op == op_GE:
             return self._ge_(other)
         raise NotImplementedError("Operator not implemented for this valuation")
 

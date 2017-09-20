@@ -2141,10 +2141,22 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: morphism = {'a':0, 'b':1, 'c': 2, 'd':4, 'e':5, 'f':3}
             sage: M._is_isomorphism(N, morphism)
             True
+
+        TESTS:
+
+        Check that :trac:`23300` was fixed::
+
+            sage: def f(X):
+            ....:     return min(len(X), 2)
+            ....:
+            sage: M = Matroid(groundset='abcd', rank_function=f)
+            sage: N = Matroid(field=GF(3), reduced_matrix=[[1,1],[1,-1]])
+            sage: N._is_isomorphism(M, {0:'a', 1:'b', 2:'c', 3:'d'})
+            True
         """
         if not isinstance(other, BasisExchangeMatroid):
-            import basis_matroid
-            ot = basis_matroid.BasisMatroid(other)
+            from .basis_matroid import BasisMatroid
+            ot = BasisMatroid(other)
         else:
             ot = other
         return self.__is_isomorphism(ot, morphism)
@@ -2196,10 +2208,21 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M1._isomorphism(M2) is None
             True
 
+        TESTS:
+
+        Check that :trac:`23300` was fixed::
+
+            sage: def f(X):
+            ....:     return min(len(X), 2)
+            ....:
+            sage: M = Matroid(groundset='abcd', rank_function=f)
+            sage: N = Matroid(field=GF(3), reduced_matrix=[[1,1],[1,-1]])
+            sage: N._isomorphism(M) is not None
+            True
         """
         if not isinstance(other, BasisExchangeMatroid):
-            import basis_matroid
-            other = basis_matroid.BasisMatroid(other)
+            from .basis_matroid import BasisMatroid
+            other = BasisMatroid(other)
         if self is other:
             return {e:e for e in self.groundset()}
         if len(self) != len(other):

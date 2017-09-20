@@ -19,14 +19,14 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.object cimport *
 from sage.misc.constant_function import ConstantFunction
 
 import operator
 
-import homset
+
 
 from sage.structure.element cimport Element
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
@@ -359,6 +359,30 @@ cdef class Morphism(Map):
         except (AttributeError, NotImplementedError):
             return NotImplemented
 
+    def __nonzero__(self):
+        r"""
+        Return whether this morphism is not a zero morphism.
+
+        .. NOTE::
+
+            Be careful when overriding this method. Often morphisms are used
+            (incorrecly) in constructs such as ``if f: # do something`` where
+            the author meant to write ``if f is not None: # do something``.
+            Having morphisms return ``False`` here can therefore lead to subtle
+            bugs.
+
+        EXAMPLES::
+
+            sage: f = Hom(ZZ,Zmod(1)).an_element()
+            sage: bool(f) # indirect doctest
+            False
+
+        """
+        try:
+            return self._is_nonzero()
+        except Exception:
+            return super(Morphism, self).__nonzero__()
+
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
@@ -383,8 +407,9 @@ cdef class CallMorphism(Morphism):
 cdef class IdentityMorphism(Morphism):
 
     def __init__(self, parent):
-        if not isinstance(parent, homset.Homset):
-            parent = homset.Hom(parent, parent)
+        from .homset import Homset, Hom
+        if not isinstance(parent, Homset):
+            parent = Hom(parent, parent)
         Morphism.__init__(self, parent)
 
     def _repr_type(self):
@@ -419,6 +444,28 @@ cdef class IdentityMorphism(Morphism):
 
     def __invert__(self):
         return self
+
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: Hom(ZZ, ZZ).identity().is_surjective()
+            True
+        """
+        return True
+
+    def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: Hom(ZZ, ZZ).identity().is_injective()
+            True
+        """
+        return True
 
 cdef class SetMorphism(Morphism):
     def __init__(self, parent, function):

@@ -483,7 +483,7 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (type(self), self.parent(), _dict, self._extra_slots({}))
 
     def _repr_type(self):
         """
@@ -636,11 +636,12 @@ cdef class Map(Element):
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains
-             and Category of commutative algebras over (quotient fields and metric spaces)
+             and Category of commutative algebras over
+                 (number fields and quotient fields and metric spaces)
             sage: f.category()
             Category of endsets of unital magmas
-             and right modules over (quotient fields and metric spaces)
-             and left modules over (quotient fields and metric spaces)
+             and right modules over (number fields and quotient fields and metric spaces)
+             and left modules over (number fields and quotient fields and metric spaces)
 
 
         FIXME: find a better name for this method
@@ -699,7 +700,7 @@ cdef class Map(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        TEST:
+        TESTS:
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
@@ -1002,7 +1003,7 @@ cdef class Map(Element):
             sage: phi_xz.category_for()
             Category of monoids
 
-        TEST:
+        TESTS:
 
         This illustrates that it is not tested whether the maps can actually
         be composed, i.e., whether codomain and domain match.
@@ -1888,6 +1889,16 @@ cdef class FormalCompositeMap(Map):
             True
 
         """
+        try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
+            return self.getattr_from_category('is_injective')()
+        except (AttributeError, NotImplementedError):
+            pass
+
         injectives = []
         for f in self.__list:
             if f.is_injective():
@@ -1944,6 +1955,16 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
+        try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
+            return self.getattr_from_category('is_surjective')()
+        except (AttributeError, NotImplementedError):
+            pass
+
         surjectives = []
         for f in self.__list[::-1]:
             if f.is_surjective():

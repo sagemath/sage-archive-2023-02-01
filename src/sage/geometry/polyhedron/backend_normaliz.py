@@ -303,13 +303,12 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],  # indirect doctest # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: set(p.Hrepresentation())                                 # optional - pynormaliz
-            {An inequality (1, 4) x - 2 >= 0,
+            sage: p.Hrepresentation()                               # optional - pynormaliz
+            (An inequality (-5, 12) x + 10 >= 0,
              An inequality (1, -12) x + 6 >= 0,
-             An inequality (-5, 12) x + 10 >= 0}
-            sage: set(p.Vrepresentation())                                 # optional - pynormaliz
-            {A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6)}
-
+             An inequality (1, 4) x - 2 >= 0)
+            sage: p.Vrepresentation()                               # optional - pynormaliz
+            (A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6))
         """
         import PyNormaliz
         self._Vrepresentation = []
@@ -336,13 +335,12 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: p = Polyhedron(vertices=[(0,1/2), (2,0), (4,5/6)],  # indirect doctest # optional - pynormaliz
             ....:                backend='normaliz')
-            sage: set(p.Hrepresentation())                                 # optional - pynormaliz
-            {An inequality (1, 4) x - 2 >= 0,
+            sage: p.Hrepresentation()                                 # optional - pynormaliz
+            (An inequality (-5, 12) x + 10 >= 0,
              An inequality (1, -12) x + 6 >= 0,
-             An inequality (-5, 12) x + 10 >= 0}
-            sage: set(p.Vrepresentation())                                 # optional - pynormaliz
-            {A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6)}
-
+             An inequality (1, 4) x - 2 >= 0)
+            sage: p.Vrepresentation()                                 # optional - pynormaliz
+            (A vertex at (0, 1/2), A vertex at (2, 0), A vertex at (4, 5/6))
         """
         import PyNormaliz
         self._Hrepresentation = []
@@ -390,7 +388,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
             sage: P=Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]],   # optional - pynormaliz
             ....:              backend='normaliz')
-            sage: PI=P.integral_hull()                # indirect doctest   # optional - pynormaliz
+            sage: PI = P.integral_hull()                 # indirect doctest; optional - pynormaliz
         """
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
 
@@ -405,27 +403,28 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         Unbounded example from Normaliz manual, "a dull polyhedron"::
 
-            sage: P=Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]],   # optional - pynormaliz
+            sage: P = Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]], # optional - pynormaliz
             ....:              backend='normaliz')
-            sage: PI=P.integral_hull()                                     # optional - pynormaliz
-            sage: P.plot(color='yellow') + PI.plot(color='green') # not tested   # optional - pynormaliz
-            sage: set(PI.Vrepresentation())                                # optional - pynormaliz
-            {A vertex at (-1, 0), A vertex at (0, 1), A ray in the direction (1, 0)}
+            sage: PI = P.integral_hull()                                   # optional - pynormaliz
+            sage: P.plot(color='yellow') + PI.plot(color='green')          # optional - pynormaliz
+            Graphics object consisting of 10 graphics primitives
+            sage: PI.Vrepresentation()                                     # optional - pynormaliz
+            (A vertex at (-1, 0), A vertex at (0, 1), A ray in the direction (1, 0))
 
         Nonpointed case::
 
-            sage: P=Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]],       # optional - pynormaliz
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]],     # optional - pynormaliz
             ....:              lines=[[-1, 1]], backend='normaliz')
-            sage: PI=P.integral_hull()                                     # optional - pynormaliz
-            sage: set(PI.Vrepresentation())                                # optional - pynormaliz
-            {A vertex at (1, 0),
+            sage: PI = P.integral_hull()                                   # optional - pynormaliz
+            sage: PI.Vrepresentation()                                     # optional - pynormaliz
+            (A vertex at (1, 0),
              A ray in the direction (1, 0),
-             A line in the direction (1, -1)}
+             A line in the direction (1, -1))
 
         Empty polyhedron::
 
             sage: P = Polyhedron(backend='normaliz')                       # optional - pynormaliz
-            sage: PI=P.integral_hull()                                     # optional - pynormaliz
+            sage: PI = P.integral_hull()                                   # optional - pynormaliz
             sage: PI.Vrepresentation()                                     # optional - pynormaliz
             ()
         """

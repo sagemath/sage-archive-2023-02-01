@@ -26,6 +26,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.ext.stdsage cimport PY_NEW
 cimport sage.rings.padics.local_generic_element
@@ -298,6 +299,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
             sage: a[0] #indirect doctest
+            doctest:warning
+            ...
+            DeprecationWarning: __getitem__ is changing to match the behavior of number fields. Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
             5
             sage: a[1]
             4
@@ -326,7 +331,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: b[3]
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            PrecisionError
             sage: b[-2]
             0
 
@@ -361,26 +366,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             :meth:`sage.rings.padics.local_generic_element.LocalGenericElement.slice`
         """
-        if isinstance(n, slice):
-            return self.slice(n.start, n.stop, n.step)
-        if self.parent().f() == 1:
-            zero = Integer(0)
-        else:
-            zero = []
-        if n < self.valuation():
-            return zero
-        if n >= self.precision_absolute():
-            raise IndexError("list index out of range")
-
-        if self.parent().is_field():
-            n -= self.valuation()
-
-        # trailing coefficients which are zero are not stored in self.list() -
-        # we catch an IndexError to check for this.
-        try:
-            return self.list()[n]
-        except IndexError:
-            return zero
+        from sage.misc.superseded import deprecation
+        deprecation(14825, "__getitem__ is changing to match the behavior of number fields. Please use expansion instead.")
+        return self.expansion(n)
 
     def __invert__(self):
         r"""
@@ -816,11 +804,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: The p-adic gamma function only works on elements of Zp
+
+        TESTS:
+
+        We check that :trac:`23784` is resolved::
+
+            sage: Zp(5)(0).gamma()
+            1 + O(5^20)
         """
         if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
         parent = self.parent()
+        if self.precision_absolute() is infinity:
+            # Have to deal with exact zeros separately
+            return parent(1)
         if algorithm == 'pari':
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
@@ -1265,6 +1263,61 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             #won't work for general extensions...
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
+
+    def is_squarefree(self):
+        r"""
+        Return whether this element is squarefree, i.e., whether there exists
+        no non-unit `g` such that `g^2` divides this element.
+
+        EXAMPLES:
+
+        The zero element is never squarefree::
+
+            sage: K = Qp(2)
+            sage: K.zero().is_squarefree()
+            False
+
+        In `p`-adic rings, only elements of valuation at most 1 are
+        squarefree::
+
+            sage: R = Zp(2)
+            sage: R(1).is_squarefree()
+            True
+            sage: R(2).is_squarefree()
+            True
+            sage: R(4).is_squarefree()
+            False
+
+        This works only if the precision is known sufficiently well::
+
+            sage: R(0,1).is_squarefree()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: element not known to sufficient precision to decide squarefreeness
+            sage: R(0,2).is_squarefree()
+            False
+            sage: R(1,1).is_squarefree()
+            True
+
+        For fields we are not so strict about the precision and treat inexact
+        zeros as the zero element::
+
+            K(0,0).is_squarefree()
+            False
+
+        """
+        if self.parent().is_field():
+            if self.is_zero():
+                return False
+            return True
+        else:
+            v = self.valuation()
+            if v >= 2:
+                return False
+            elif self.is_zero():
+                raise PrecisionError("element not known to sufficient precision to decide squarefreeness")
+            else:
+                return True
 
     #def log_artin_hasse(self):
     #    raise NotImplementedError
@@ -2177,7 +2230,197 @@ cdef class pAdicGenericElement(LocalGenericElement):
             retval=R(retval)
         return retval.add_bigoh(aprec)
 
-    def exp(self, aprec = None):
+
+    def _exp_generic(self, aprec):
+        r"""
+        Compute the exponential power series of this element, using Horner's
+        evaluation and only one division.
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="generic")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+
+        AUTHORS:
+
+        - Genya Zaytman (2007-02-15)
+
+        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
+
+        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
+
+        - Julian Rueth (2013-02-14): Rewrite to solve some precision problems
+          in the capped-absolute case
+
+        """
+        R=self.parent()
+        p=self.parent().prime()
+        e=self.parent().ramification_index()
+        x_unit=self.unit_part()
+        p_unit=R(p).unit_part().lift_to_precision()
+        x_val=self.valuation()
+
+        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
+        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
+        # have to sum terms for which n does not exceed N
+        N = (aprec // (x_val - e/(p-1))).floor()
+
+        # We evaluate the exponential series:
+        # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
+        # Horner's method. Then, we divide by N!.
+        # This would only work for capped relative elements since for other
+        # elements, we would lose too much precision in the multiplications
+        # with natural numbers. Therefore, we emulate the behaviour of
+        # capped-relative elements and keep track of the unit part and the
+        # valuation separately.
+
+        # the value of x^N+N*x^(N-1)+...+x*N!+N!
+        series_unit,series_val = R.one(), 0
+
+        # we compute the value of N! as we go through the loop
+        nfactorial_unit,nfactorial_val = R.one(),0
+
+        nmodp = N%p
+        for n in range(N,0,-1):
+            # multiply everything by x
+            series_val += x_val
+            series_unit *= x_unit
+
+            # compute the new value of N*(N-1)*...
+            if nmodp == 0:
+                n_pval, n_punit = Integer(n).val_unit(p)
+                nfactorial_unit *= R(n_punit) * p_unit**n_pval
+                nfactorial_val += n_pval*e
+                nmodp = p
+            else:
+                nfactorial_unit *= n
+            nmodp -= 1
+
+            # now add N*(N-1)*...
+            common_val = min(nfactorial_val, series_val)
+            series_unit = (series_unit<<(series_val-common_val)) + (nfactorial_unit<<(nfactorial_val-common_val))
+            series_val = common_val
+
+        # multiply the result by N!
+        return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
+
+    def _exp_binary_splitting(self, aprec):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Write
+
+        .. MATH::
+
+            self = \sum_{i=1}^\infty a_i p^{2^i}
+
+        with `0 \leq a_i < p^{2^i}` and compute 
+        `\exp(a_i p^{2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+        together with a binary splitting method.
+
+        The binary complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,5)
+            sage: x = R(7)
+            sage: x.exp(algorithm="binary_splitting")   # indirect doctest
+            1 + 7 + 4*7^2 + 2*7^3 + O(7^5)
+
+        """
+        raise NotImplementedError("The binary splitting algorithm is not implemented for the parent: %s" % self.parent())
+
+    def _exp_newton(self, aprec, log_algorithm=None):
+        """
+        Compute the exponential power series of this element
+
+        This is a helper method for :meth:`exp`.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which to compute the
+          exponential
+
+        - ``log_algorithm`` (default: None) -- the algorithm used for
+          computing the logarithm. This attribute is passed to the log
+          method. See :meth:`log` for more details about the possible
+          algorithms.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            the disk of convergence of ``exp``. If this assumption is not 
+            fullfiled the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        Solve the equation `\log(x) = self` using the Newton scheme::
+
+        .. MATH::
+
+            x_{i+1} = x_i \cdot (1 + self - \log(x_i))
+
+        The binary complexity of this algorithm is roughly the same
+        than that of the computation of the logarithm.
+
+        EXAMPLES::
+
+            sage: R.<w> = Zq(7^2,5)
+            sage: x = R(7*w)
+            sage: x.exp(algorithm="newton")   # indirect doctest
+            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
+        """
+        R = self.parent()
+        e = R.e()
+        a = R(1,aprec)
+        l = R(0,aprec)
+        if R.prime() == 2:
+            trunc = e + 1
+            while trunc < aprec:
+                trunc = 2*trunc - e
+                b = (self-l).add_bigoh(trunc).lift_to_precision(aprec)
+                a *= 1+b
+                l += (1+b).log(aprec, algorithm=log_algorithm)
+        else:
+            trunc = 1
+            while trunc < aprec:
+                trunc = 2*trunc
+                b = (self-l).add_bigoh(trunc).lift_to_precision(aprec)
+                a *= 1+b
+                l += (1+b).log(aprec, algorithm=log_algorithm)
+        return a
+
+
+    def exp(self, aprec = None, algorithm=None):
         r"""
         Compute the `p`-adic exponential of this element if the exponential
         series converges.
@@ -2187,12 +2430,28 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - ``aprec`` -- an integer or ``None`` (default: ``None``); if
           specified, computes only up to the indicated precision.
 
-        ALGORITHM: If self has a ``lift`` method (which should happen for
-        elements of `\QQ_p` and `\ZZ_p`), then one uses the rule:
-        `\exp(x)=\exp(p)^{x/p}` modulo the precision. The value of `\exp(p)` is
-        precomputed. Otherwise, use the power series expansion of `\exp`,
-        evaluating a certain number of terms which does about `O(\mbox{prec})`
-        multiplications.
+        - ``algorithm`` -- ``generic``, ``binary_splitting``, ``newton`` 
+          or ``None`` (default)
+          The generic algorithm evaluates naively the series defining the
+          exponential, namely
+
+          .. MATH::
+ 
+              \exp(x) = 1 + x + x^2/2 + x^3/6 + x^4/24 + \cdots
+
+          Its binary complexity is quadratic with respect to the precision.
+
+          The binary splitting algorithm is faster, it has a quasi-linear
+          complexity.
+
+          The ``Newton`` algorithms solve the equation `\log(x) = self` using
+          a Newton scheme. It runs roughly as fast as the computation of the
+          logarithm.
+
+          By default, we use the binary splitting if it is available. 
+          If it is not, we use the Newton algorithm if a fast algorithm for
+          computing the logarithm is available.
+          Otherwise we switch to the generic algorithm.
 
         EXAMPLES:
 
@@ -2326,6 +2585,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (w^4).exp()
             1 + w^4 + w^5 + w^7 + w^9 + w^10 + w^14 + O(w^15)
 
+        Check that all algorithms output the same result::
+
+            sage: R = Zp(5,50)
+            sage: a = 5 * R.random_element()
+            sage: bg = a.exp(algorithm="generic")
+            sage: bbs = a.exp(algorithm="binary_splitting")
+            sage: bn = a.exp(algorithm="newton")
+            sage: bg == bbs
+            True
+            sage: bg == bn
+            True
+
+        Performances::
+
+            sage: R = Zp(17,10^6)
+            sage: a = 17 * R.random_element()
+            sage: b = a.exp()    # should be rather fast
+
         AUTHORS:
 
         - Genya Zaytman (2007-02-15)
@@ -2334,107 +2611,36 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - Julian Rueth (2013-02-14): Added doctests, fixed some corner cases
 
+        - Xavier Caruso (2017-06): Added binary splitting and Newton algorithms
+
         """
         p = self.parent().prime()
 
         if (p-1)*self.valuation() <= self.parent().ramification_index():
             raise ValueError('Exponential does not converge for that input.')
 
-        if aprec is None or aprec > self.parent().precision_cap():
-            aprec=self.parent().precision_cap()
+        # The optimal absolute precision on exp(self)
+        # is the absolution precision on self
+        maxprec = min(self.precision_absolute(), self.parent().precision_cap())
+        if aprec is None or aprec > maxprec:
+            aprec = maxprec
 
-        if hasattr(self,'lift'):
-            y=Rational(self.lift())
-            if p == 2:
-                # in Z_2, the element has at least valuation 2, so we can
-                # divide it by 4 (and use the exponential of 4 since the
-                # exponential of 2 does not exist)
-                p = 4
-            return (self.parent()._exp_p()**Integer(y/p)).add_bigoh(min(aprec,self.precision_absolute()))
-        else:
-            return self._exp(aprec)
-
-    def _exp(self, aprec):
-        r"""
-        Compute the exponential power series of this element, using Horner's
-        evaluation and only one division.
-
-        This is a helper method for :meth:`exp`.
-
-        INPUT:
-
-        - ``aprec`` -- an integer, the precision to which to compute the
-          exponential
-
-        EXAMPLES::
-
-            sage: R.<w> = Zq(7^2,5)
-            sage: x = R(7*w)
-            sage: x._exp(5)
-            1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
-
-        AUTHORS:
-
-        - Genya Zaytman (2007-02-15)
-
-        - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
-
-        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
-
-        - Julian Rueth (2013-02-14): Rewrite to solve some precision problems
-          in the capped-absolute case
-
-        """
-        R=self.parent()
-        p=self.parent().prime()
-        e=self.parent().ramification_index()
-        x_unit=self.unit_part()
-        p_unit=R(p).unit_part().lift_to_precision()
-        x_val=self.valuation()
-
-        # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
-        # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
-        # have to sum terms for which n does not exceed N
-        N = (aprec // (x_val - e/(p-1))).floor()
-
-        # We evaluate the exponential series:
-        # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
-        # Horner's method. Then, we divide by N!.
-        # This would only work for capped relative elements since for other
-        # elements, we would lose too much precision in the multiplications
-        # with natural numbers. Therefore, we emulate the behaviour of
-        # capped-relative elements and keep track of the unit part and the
-        # valuation separately.
-
-        # the value of x^N+N*x^(N-1)+...+x*N!+N!
-        series_unit,series_val = R.one(), 0
-
-        # we compute the value of N! as we go through the loop
-        nfactorial_unit,nfactorial_val = R.one(),0
-
-        nmodp = N%p
-        for n in range(N,0,-1):
-            # multiply everything by x
-            series_val += x_val
-            series_unit *= x_unit
-
-            # compute the new value of N*(N-1)*...
-            if nmodp == 0:
-                n_pval, n_punit = Integer(n).val_unit(p)
-                nfactorial_unit *= R(n_punit) * p_unit**n_pval
-                nfactorial_val += n_pval*e
-                nmodp = p
-            else:
-                nfactorial_unit *= n
-            nmodp -= 1
-
-            # now add N*(N-1)*...
-            common_val = min(nfactorial_val, series_val)
-            series_unit = (series_unit<<(series_val-common_val)) + (nfactorial_unit<<(nfactorial_val-common_val))
-            series_val = common_val
-
-        # multiply the result by N!
-        return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
+        if algorithm is None:
+            try:
+                ans = self._exp_binary_splitting(aprec)
+            except NotImplementedError:
+                try:
+                    ans = self._exp_newton(aprec, log_algorithm='binary_splitting')
+                except NotImplementedError:
+                    ans = self._exp_generic(aprec)
+        elif algorithm == 'generic':
+            ans = self._exp_generic(aprec)
+        elif algorithm == 'binary_splitting':
+            ans = self._exp_binary_splitting(aprec)
+        elif algorithm == 'newton':
+            ans = self._exp_newton(aprec)
+        return ans.add_bigoh(aprec)
+        
 
     def square_root(self, extend = True, all = False):
         r"""
@@ -2684,3 +2890,310 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         raise NotImplementedError
+
+    def _polylog_res_1(self, n):
+        """
+        Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
+        This is an internal function, used by :meth:`polylog`.
+
+        INPUT:
+
+            - ``n`` -- a non-negative integer
+
+        OUTPUT:
+
+            - Li_n(self)
+
+        EXAMPLES ::
+
+            sage: Qp(2)(-1)._polylog_res_1(6) == 0
+            True
+
+        ::
+            sage: Qp(5)(1)._polylog_res_1(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polylogarithm is not defined for 1.
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+        from sage.functions.other import ceil,floor
+        from sage.rings.padics.factory import Qp
+        from sage.misc.all import verbose
+
+        if self == 1:
+            raise ValueError('Polylogarithm is not defined for 1.')
+
+        p = self.parent().prime()
+        prec = self.precision_absolute()
+
+        K = self.parent().fraction_field()
+        z = K(self)
+
+        hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2))
+        N = floor(prec - n*(hsl - 1).log(p))
+
+        verbose(hsl, level=3)
+
+        def bound(m):
+            return prec - m + Integer(1-2**(m-1)).valuation(p) - m*(hsl - 1).log(p)
+
+        gsl = max([_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1)])
+        verbose(gsl, level=3)
+        g = _compute_g(p, n, max([bound(m) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
+        verbose(g, level=3)
+        S = PowerSeriesRing(K, default_prec = ceil(hsl), names='t')
+        t = S.gen()
+        log1plust = (1+t).log()
+        log1plusti = 1
+
+        G = (n+1)*[0]
+        for i in range(n+1):
+            G[i] = (log1plusti)/Integer(i).factorial()
+            log1plusti *= log1plust
+
+        verbose(G, level=3)
+
+        H = (n+1)*[0]
+        H[2] = -sum([((-t)**i)/Integer(i)**2 for i in range(1,hsl+2)])
+        for i in range(2, n):
+            H[i+1] = (H[i]/(1+t) + G[i]/t).integral()
+            if (i + 1) % 2 == 1:
+                if p != 2:
+                    H[i+1] += (2**i*p**(i+1)*g[i+1](1/K(2)))/((1-2**i)*(p**(i+1) - 1))
+                else:
+                    H[i+1] += (2**i*H[i+1](K(-2)))/(1 - 2**(i+1))
+
+        verbose(H, level=3)
+        return (H[n](z - 1) - ((z.log(0))**(n-1)*(1 - z).log(0))/Integer(n-1).factorial()).add_bigoh(N)
+
+    def polylog(self, n):
+        """
+        Return `Li_n(self)` , the `n`th `p`-adic polylogarithm of this element.
+
+        INPUT:
+
+            - ``n`` -- a non-negative integer
+
+        OUTPUT:
+
+            - `Li_n(self)`
+
+        EXAMPLES:
+
+        The `n`-th polylogarithm of `-1` is `0` for even `n` ::
+
+            sage: Qp(13)(-1).polylog(6) == 0
+            True
+
+        We can check some identities, for example those mentioned in [DCW2016]_ ::
+
+            sage: x = Qp(7, prec=30)(1/3)
+            sage: (x^2).polylog(4) - 8*x.polylog(4) - 8*(-x).polylog(4) == 0
+            True
+
+        ::
+
+            sage: x = Qp(5, prec=30)(4)
+            sage: x.polylog(2) + (1/x).polylog(2) + x.log(0)**2/2 == 0
+            True
+
+        ::
+
+            sage: x = Qp(11, prec=30)(2)
+            sage: x.polylog(2) + (1-x).polylog(2) + x.log(0)**2*(1-x).log(0) == 0
+            True
+
+        `Li_1(z) = -\log(1-z)` for `|z| < 1` ::
+
+            sage: Qp(5)(10).polylog(1) == -Qp(5)(1-10).log(0)
+            True
+
+        The polylogarithm of 1 is not defined ::
+
+            sage: Qp(5)(1).polylog(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polylogarithm is not defined for 1.
+
+
+        The polylogarithm of 0 is 0 ::
+
+            sage: Qp(11)(0).polylog(7)
+            0
+
+        ALGORITHM:
+
+        The algorithm of Besser-de Jeu, as described in [BdJ2008]_ is used.
+
+        REFERENCES:
+
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
+
+        .. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
+             unit equation." International Mathematics Research Notices
+             2016.17 (2016): 5291-5354.
+
+        AUTHORS:
+
+        - Jennifer Balakrishnan - Initial implementation
+        - Alex J. Best (2017-07-21) - Extended to other residue disks
+
+        .. TODO::
+
+            - Implement for extensions
+            - Use the change method to create K from self.parent()
+
+
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+        from sage.rings.padics.factory import Qp
+        from sage.misc.all import verbose
+        from sage.functions.other import ceil,floor
+        from sage.rings.infinity import PlusInfinity
+
+        if self.parent().degree() != 1:
+            raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
+            # TODO implement this (possibly after the change method for padic generic elements is added).
+
+        prec = self.precision_absolute()
+
+        p = self.parent().prime()
+        K = self.parent().fraction_field()
+
+        z = K(self)
+        n = Integer(n)
+
+        if z.valuation() < 0:
+            verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(self)), level=2)
+            return (-1)**(n+1)*(1/z).polylog(n)-(z.log(0)**n)/K(n.factorial())
+
+        zeta = K.teichmuller(z)
+
+        # Which residue disk are we in?
+        if zeta == 0:
+            if z.precision_absolute() == PlusInfinity():
+                return K(0)
+            verbose("residue 0, using series. %d %s"%(n,str(self)), level=2)
+            M = ceil((prec/z.valuation()).log(p))
+            N = prec - n*M
+            ret = K(0)
+            for m in range(M + 1):
+                zpm = z**(p**m)
+                ret += p**(-m*n)*sum(zpm**k/Integer(k)**n for k in
+                        range(1, _findprec(p**m*z.valuation(), 0, N + n*m, p)) if k % p != 0)
+
+            return ret.add_bigoh(N)
+
+        if zeta == 1:
+            if z == 1:
+                raise ValueError("Polylogarithm is not defined for 1.")
+            verbose("residue 1, using _polylog_res_1. %d %s"%(n,str(self)), level=2)
+            return self._polylog_res_1(n)
+
+        # Set up precision bounds
+        tsl = prec / (z - zeta).valuation() + 1
+        N = floor(prec - n*(tsl - 1).log(p))
+        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p), p) for m in range(1,n+1)])
+
+        gtr = _compute_g(p, n, prec + n*(gsl - 1).log(p), gsl)
+
+        K = Qp(p, prec)
+
+        # Residue disk around zeta
+        verbose("general case. %d %s"%(n, str(self)), level=2)
+        Li_i_zeta = [0] + [p**i/(p**i-1)*gtr[i](1/(1-zeta)) for i in range(1,n+1)]
+
+        T = PowerSeriesRing(K, default_prec=ceil(tsl), names='t')
+        t = T.gen()
+        F = (n+1)*[0]
+        F[0] = (zeta+t)/(1-zeta-t)
+        for i in range(n):
+            F[i+1] = Li_i_zeta[i+1] + (F[i]/(zeta + t)).integral()
+
+        return (F[n](z - zeta)).add_bigoh(N)
+
+
+# Module functions used by polylog
+def _polylog_c(n, p):
+    """
+    Return c(n, p) = p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p)
+    as defined in Prop 6.1 of [BdJ2008]_ which is used as a precision bound.
+    This is an internal function, used by :meth:`polylog`.
+
+    EXAMPLES::
+
+        sage: sage.rings.padics.padic_generic_element._polylog_c(1, 2)
+        log(4/log(2))/log(2) + 2
+
+    REFERENCES:
+
+    Prop. 6.1 of
+
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
+
+    """
+    return p/(p-1) - (n-1)/p.log() + (n-1)*(n*(p-1)/p.log()).log(p) + (2*p*(p-1)*n/p.log()).log(p)
+
+def _findprec(c_1, c_2, c_3, p):
+    """
+    Return an integer k such that c_1*k - c_2*log_p(k) > c_3.
+    This is an internal function, used by :meth:`polylog`.
+
+    INPUT:
+
+    - `c_1`, `c_2`, `c_3` - positive integers
+    - `p` - prime
+
+    OUTPUT:
+
+    ``sl`` such that `kc_1 - c_2 \log_p(k) > c_3` for all `k \ge sl`
+
+    EXAMPLES::
+
+        sage: sage.rings.padics.padic_generic_element._findprec(1, 1, 2, 2)
+        5
+        sage: 5*1 - 5*log(1, 2) > 2
+        True
+
+    REFERENCES:
+
+    Remark 7.11 of
+
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
+    """
+    from sage.functions.other import ceil
+    k = Integer(max(ceil(c_2/c_1), 2))
+    while True:
+        if c_1*k - c_2*k.log(p) > c_3:
+            return k
+        k += 1
+
+def _compute_g(p, n, prec, terms):
+    """
+    Return the list of power series `g_i = \int(-g_{i-1}/(v-v^2))` used in the computation of polylogarithms.
+    This is an internal function, used by :meth:`polylog`.
+
+    EXAMPLES::
+
+        sage: sage.rings.padics.padic_generic_element._compute_g(7, 3, 3, 3)[0]
+        (O(7^3))*v^2 + (1 + O(7^3))*v + (O(7^3))
+
+    """
+    from sage.rings.power_series_ring import PowerSeriesRing
+    from sage.functions.other import ceil
+    from sage.rings.padics.factory import Qp
+
+    # Compute the sequence of power series g
+    R = PowerSeriesRing(Qp(p, ceil(prec)), default_prec=terms, names='v')
+    v = R.gen()
+    g = (n+1)*[0]
+    g[0] = v - 1 - ((v-1)**p)/(v**p-(v-1)**p)
+    for i in range(n):
+        g[i+1] = -(g[i]/(v-v**2)).integral()
+    return [x.truncate(terms) for x in g]

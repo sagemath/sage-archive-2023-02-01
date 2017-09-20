@@ -848,7 +848,7 @@ class PolynomialFunctor(ConstructionFunctor):
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Finite Field of size 3
               Defn: Induced from base ring by
-                    Ring Coercion morphism:
+                    Natural morphism:
                       From: Integer Ring
                       To:   Finite Field of size 3
         """
@@ -1564,7 +1564,7 @@ class MatrixFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST:
+        TESTS:
 
         The following is a test against a bug discussed at :trac:`8800`::
 
@@ -2585,7 +2585,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F1.commutes(F2)
             True
 
-        TEST:
+        TESTS:
 
         The fraction field ``R`` in the example below has no completion
         method. But completion commutes with the fraction field functor,

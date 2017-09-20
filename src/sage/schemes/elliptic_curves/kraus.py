@@ -582,7 +582,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
     c4val = c4.valuation(P)
 
     if c4val==0:
-        if a1 == None:
+        if a1 is None:
             flag, t = sqrt_mod_4(-c6,P)
             if not flag:
                 return False,0,0
@@ -599,7 +599,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
             raise RuntimeError("check_Kraus_local_2 fails")
 
     if c4val >= 4*e:
-        if a1 == None:
+        if a1 is None:
             a1 = c4.parent().zero() # 0
         flag, a3 = sqrt_mod_4(c6/8,P)
         if flag:

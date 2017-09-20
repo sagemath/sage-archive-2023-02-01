@@ -149,6 +149,8 @@ import operator
 import sys
 
 from sage.ext.stdsage cimport PY_NEW
+from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
+
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
@@ -163,7 +165,6 @@ cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent, coercion_model)
 from sage.structure.parent cimport Parent
-include "sage/ext/python_debug.pxi"
 from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
@@ -464,6 +465,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -10380104371593008048799446356441519384
         sage: Integer(pari('Pol([-3])'))
         -3
+
+    .. automethod:: __pow__
     """
 
     def __cinit__(self):
@@ -1959,6 +1962,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 0^0
             1
+
+        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
+        `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
         The base need not be an integer (it can be a builtin Python type).
 

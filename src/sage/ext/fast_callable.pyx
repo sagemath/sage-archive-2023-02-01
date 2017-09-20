@@ -299,7 +299,7 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 
 import operator
@@ -404,7 +404,7 @@ def fast_callable(x, domain=None, vars=None,
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
-        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent is not None else x*y
         sage: x,y = var('x,y')
         sage: f = function('f', evalf_func=evalf_func)
         sage: fc = fast_callable(f(x, y), vars=[x, y])
@@ -413,7 +413,7 @@ def fast_callable(x, domain=None, vars=None,
 
     And also when there are complex values involved::
 
-        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent is not None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
         sage: fc = fast_callable(g(x, y), vars=[x, y])
         sage: fc(3, 4)
@@ -774,7 +774,12 @@ cdef class ExpressionTreeBuilder:
 cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
-cdef op_div = operator.div
+cdef op_div
+try:
+    op_div = operator.div
+except AttributeError:
+    op_div = object()  # Unique object not equal to anything else
+cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
 cdef op_neg = operator.neg
@@ -927,7 +932,7 @@ cdef class Expression:
             sage: x.__rtruediv__(1)
             div(1, v_0)
         """
-        return _expression_binop_helper(s, o, op_div)
+        return _expression_binop_helper(s, o, op_truediv)
 
     def __div__(s, o):
         r"""
@@ -1651,7 +1656,7 @@ cpdef dict get_builtin_functions():
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
         sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1663,15 +1668,16 @@ cpdef dict get_builtin_functions():
     if builtin_functions is not None:
         return builtin_functions
     builtin_functions = {
-        operator.add: 'add',
-        operator.sub: 'sub',
-        operator.mul: 'mul',
-        operator.div: 'div',
-        operator.floordiv: 'floordiv',
-        operator.abs: 'abs',
-        operator.neg: 'neg',
-        operator.inv: 'inv',
-        operator.pow: 'pow',
+        op_add: 'add',
+        op_sub: 'sub',
+        op_mul: 'mul',
+        op_div: 'div',
+        op_truediv: 'div',
+        op_floordiv: 'floordiv',
+        op_abs: 'abs',
+        op_neg: 'neg',
+        op_inv: 'inv',
+        op_pow: 'pow',
         }
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all

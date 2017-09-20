@@ -127,7 +127,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         i = 0
         for row in self.coeffs_matrix:
-            if self.matrices_dim.get(i) != None:
+            if self.matrices_dim.get(i) is not None:
                 row.append( Matrix.zero(self.matrices_dim[i], self.matrices_dim[i]) )
             else:
                 row.append(0)
@@ -291,7 +291,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
                 raise ValueError("The coefficients must be matrices")
             if not m.is_square():
                 raise ValueError("The matrix has to be a square")
-            if self.matrices_dim.get(self.nrows()) != None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
+            if self.matrices_dim.get(self.nrows()) is not None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
                 raise ValueError("The matrces have to be of the same dimension")
         self.coeffs_matrix.append(coefficients)
         self.matrices_dim[self.nrows()] = m.dimensions()[0] #
@@ -821,7 +821,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.solver_parameter("show_progress")
             True
         """
-        if value == None:
+        if value is None:
             return self.param[name]
         else:
             self.param[name] = value

@@ -39,7 +39,7 @@ bug, see :trac:`17527`)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 from cpython cimport *
 from cysignals.signals cimport sig_check
@@ -1313,7 +1313,7 @@ cdef class Matrix(Matrix1):
         cdef unsigned int num_ones
         cdef int m = self._nrows
         cdef int n = self._ncols
-        cdef int mn = min(m,n)
+        cdef int mn = min(m, n)
         cdef Matrix B
         zero = self.base_ring().zero()
         one  = self.base_ring().one()
@@ -1348,22 +1348,23 @@ cdef class Matrix(Matrix1):
             B = self.new_matrix()
             for i in range(m):
                 for j in range(n):
-                    B.set_unsafe(i,j, one-self.get_unsafe(i,j))
+                    B.set_unsafe(i, j, one-self.get_unsafe(i, j))
             b = B.rook_vector(algorithm=algorithm, use_complement=False)
             complement = not complement
 
         elif algorithm == "Ryser":
-            b = [self.permanental_minor(k,algorithm="Ryser") for k in range(mn+1)]
+            b = [self.permanental_minor(k,algorithm="Ryser")
+                 for k in range(mn + 1)]
 
         elif algorithm == "ButeraPernici":
             p = permanental_minor_polynomial(self)
-            b = [p[k] for k in range(mn+1)]
+            b = [p[k] for k in range(mn + 1)]
 
         elif algorithm == "Godsil":
             from sage.graphs.bipartite_graph import BipartiteGraph
             p = BipartiteGraph(self).matching_polynomial()
             d = p.degree()
-            b = [p[i]*(-1)**((d - i)/2) for i in range(d, d-2*mn-1, -2)]
+            b = [p[i] * (-1)**((d - i)//2) for i in range(d, d-2*mn-1, -2)]
 
         else:
             raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')
@@ -1373,12 +1374,12 @@ cdef class Matrix(Matrix1):
             a = [one]
             c1 = 1
             for k in range(1, mn + 1):
-                c1 = c1*(m-k+1)*(n-k+1)/k
+                c1 = (c1 * (m-k+1) * (n-k+1)) // k
                 c = c1
                 s = c*b[0] + (-one)**k*b[k]
                 for j in range(1, k):
-                    c = -c*(k-j+1)/((m-j+1)*(n-j+1))
-                    s += c*b[j]
+                    c = -c * (k-j+1) // ((m-j+1) * (n-j+1))
+                    s += c * b[j]
                 a.append(s)
             return a
         else:
@@ -1647,7 +1648,7 @@ cdef class Matrix(Matrix1):
         # resulted in further exceptions/ errors.
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
         try:
             c = self.charpoly(var, algorithm="df")[0]
         except ValueError:
@@ -6290,7 +6291,52 @@ cdef class Matrix(Matrix1):
 
     right_eigenmatrix = eigenmatrix_right
 
-    ###################################################################################
+    def eigenvalue_multiplicity(self, s):
+        r"""
+        Return the multiplicity of ``s`` as a generalized eigenvalue
+        of the matrix.
+
+        EXAMPLES::
+        
+            sage: M = Matrix(QQ, [[0,1],[0,0]])
+            sage: M.eigenvalue_multiplicity(0)
+            2
+            sage: M.eigenvalue_multiplicity(1)
+            0
+
+            sage: M = posets.DiamondPoset(5).coxeter_transformation()
+            sage: [M.eigenvalue_multiplicity(x) for x in [-1, 1]]
+            [3, 2]
+
+        TESTS::
+
+            sage: M = Matrix(QQ, [[0,1,2],[0,0,0]])
+            sage: M.eigenvalue_multiplicity(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+        """
+        if not self.is_square():
+            msg = 'matrix must be square, not {0} x {1}'
+            raise TypeError(msg.format(self.nrows(), self.ncols()))
+
+        r = self.dimensions()[0]
+        n = 0
+        m1 = self - s
+        while True:
+            m1 *= m1
+            m2 = m1.extended_echelon_form(subdivide=True)
+            t = r - m2.subdivisions()[0][0]
+            n += t
+            if t == 0 or t == r:
+                return n
+            m3 = m2.subdivision(0, 0)
+            m4 = m2.submatrix(0, r, r, r)
+            m5 = m3 * m4.inverse()
+            m1 = m5.submatrix(0, 0, r - t, r - t)
+            r -= t
+
+    #####################################################################################
     # Generic Echelon Form
     ###################################################################################
 
@@ -7239,7 +7285,7 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``check`` -- (default: ``False``) If ``True`` return a tuple of
-            the maximal matrix and the permutations taking taking ``self``
+            the maximal matrix and the permutations taking ``self``
             to the maximal matrix.
             If ``False``, return only the maximal matrix.
 
@@ -7347,7 +7393,7 @@ cdef class Matrix(Matrix1):
                     SN = [[k[1] for k in s] for s in SN]
                     # Maximal row in this entry of X = MS
                     nb = max(SN)
-                    # Number of occurences.
+                    # Number of occurrences.
                     n = [j for j in range(nrows - l) if SN[j] == nb]
                     # Now compare to our previous max
                     if b < nb:
@@ -10216,7 +10262,7 @@ cdef class Matrix(Matrix1):
         ALGORITHM:
 
         For each eigenvalue, this routine checks that the algebraic
-        multiplicity (number of occurences as a root of the characteristic
+        multiplicity (number of occurrences as a root of the characteristic
         polynomial) is equal to the geometric multiplicity (dimension
         of the eigenspace), which is sufficient to ensure a basis of
         eigenvectors for the columns of `S`.
@@ -10982,9 +11028,6 @@ cdef class Matrix(Matrix1):
             True
             sage: p, S = A.cyclic_subspace(v, var='T'); p
             T^3 - 9*T^2 + 24*T - 16
-            sage: gen = polygen(QQ, 'z')
-            sage: p, S = A.cyclic_subspace(v, var=gen); p
-            z^3 - 9*z^2 + 24*z - 16
             sage: p.degree() == E.dimension()
             True
 
@@ -12372,6 +12415,11 @@ cdef class Matrix(Matrix1):
             sage: A == L*D*L.transpose()
             True
 
+        This works correctly for the 0x0 matrix::
+
+            sage: Matrix(0).indefinite_factorization()
+            ([], ())
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12544,6 +12592,11 @@ cdef class Matrix(Matrix1):
             ValueError: Could not see Finite Field in a of size 5^3 as a subring
             of the real or complex numbers
 
+        The 0x0 matrix is trivially positive definite::
+
+            sage: Matrix(0).is_positive_definite()
+            True
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -12694,7 +12747,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t size,i,j
         cdef object M
 
-        if indices is False:
+        if not indices:
             L = self._list()
             size = PyList_GET_SIZE(L)
             M = PyList_New(0)
@@ -14871,7 +14924,7 @@ def _smith_onestep(m):
             isdone = False
 
     # if not we recurse -- algorithm must terminate if R is Noetherian.
-    if isdone == False:
+    if not isdone:
         s,t,u = _smith_onestep(a.transpose())
         left_mat = u.transpose() * left_mat
         a = t.transpose()
@@ -15003,17 +15056,17 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     cdef Py_ssize_t i
 
-    if k > (n/2):
-        k = n-k
+    if 2 * k > n:
+        k = n - k
     if k == 0:
         return 1
 
     result = n
-    n, k = n-1, k-1
+    n, k = n - 1, k - 1
     i = 2
     while k > 0:
-        result = (result*n)/i
-        i, n, k = i+1, n-1, k-1
+        result = (result * n) // i
+        i, n, k = i + 1, n - 1, k - 1
     return result
 
 def _jordan_form_vector_in_difference(V, W):

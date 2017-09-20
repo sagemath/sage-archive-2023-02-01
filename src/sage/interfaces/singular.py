@@ -1611,7 +1611,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         from sage.all import PolynomialRing
         # Meanwhile Singulars quotient rings are also of 'ring' type, not 'qring' as it was in the past.
         # To find out if a singular ring is a quotient ring or not checking for ring type does not help
-        # and instead of that we we check if the quotient ring is zero or not:
+        # and instead of that we check if the quotient ring is zero or not:
         if (singular.eval('ideal(basering)==0')=='1'):
             return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
@@ -1640,13 +1640,13 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: R = PolynomialRing(GF(2^8,'a'),2,'xy')
-            sage: f=R('a^20*x^2*y+a^10+x')
-            sage: f._singular_().sage_poly(R)==f
+            sage: R = PolynomialRing(GF(2^8,'a'), 'x,y')
+            sage: f = R('a^20*x^2*y+a^10+x')
+            sage: f._singular_().sage_poly(R) == f
             True
-            sage: R = PolynomialRing(GF(2^8,'a'),1,'x')
-            sage: f=R('a^20*x^3+x^2+a^10')
-            sage: f._singular_().sage_poly(R)==f
+            sage: R = PolynomialRing(GF(2^8,'a'), 'x', implementation="singular")
+            sage: f = R('a^20*x^3+x^2+a^10')
+            sage: f._singular_().sage_poly(R) == f
             True
 
         ::

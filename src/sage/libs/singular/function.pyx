@@ -929,7 +929,7 @@ cdef class Converter(SageObject):
 
         - ``to_convert`` - a Singular ``leftv``
 
-        TEST:
+        TESTS:
 
         Check that negative integers come through unscathed::
 
@@ -1316,8 +1316,9 @@ cdef class SingularFunction(SageObject):
             ring = self.common_ring(args, ring)
             if ring is None:
                 if dummy_ring is None:
-                    from sage.all import QQ, PolynomialRing
-                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default
+                    from sage.rings.polynomial.all import PolynomialRing
+                    from sage.rings.rational_field import QQ
+                    dummy_ring = PolynomialRing(QQ, "dummy", implementation="singular") # seems a reasonable default
                 ring = dummy_ring
         if not (isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural)):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))

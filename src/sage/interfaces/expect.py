@@ -123,7 +123,7 @@ class Expect(Interface):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None,
+    def __init__(self, name, prompt, command=None, env={}, server=None,
                  server_tmpdir=None,
                  ulimit = None, maxread=None,
                  script_subdirectory=None, restart_on_ctrlc=False,
@@ -151,6 +151,7 @@ class Expect(Interface):
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__verbose_start = verbose_start
         self.set_server_and_command(server, command, server_tmpdir, ulimit)
+        self._env = env
         self.__do_cleaner = do_cleaner
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
@@ -463,6 +464,7 @@ If this all works, you can then make calls like:
         # the terminal interface.
         # See Trac #12221 and #13859.
         pexpect_env = dict(os.environ)
+        pexpect_env.update(self._env)
         pexpect_del_vars = ['TERM', 'COLUMNS']
         for i in pexpect_del_vars:
             try:
@@ -650,7 +652,7 @@ If this all works, you can then make calls like:
         A string that provides a temporary filename and is unique for the
         given interface.
 
-        TEST:
+        TESTS:
 
         The filename is cached::
 
@@ -785,7 +787,7 @@ If this all works, you can then make calls like:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
-            elif restart_if_needed==True: # the subprocess might have crashed
+            elif restart_if_needed: # the subprocess might have crashed
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
@@ -799,7 +801,7 @@ If this all works, you can then make calls like:
                 if self._expect is None or not self._expect.isalive():
                     return ''
                 raise
-            if restart_if_needed==True and (self._expect is None or not self._expect.isalive()):
+            if restart_if_needed and (self._expect is None or not self._expect.isalive()):
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
@@ -911,7 +913,7 @@ If this all works, you can then make calls like:
                 if len(line) >= 4096:
                     raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
                 E.sendline(line)
-                if wait_for_prompt == False:
+                if not wait_for_prompt:
                     return ''
 
             except OSError as msg:
@@ -955,7 +957,7 @@ If this all works, you can then make calls like:
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    elif restart_if_needed==True: # the subprocess might have crashed
+                    elif restart_if_needed: # the subprocess might have crashed
                         try:
                             self._synchronize()
                             return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)

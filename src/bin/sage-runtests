@@ -50,6 +50,7 @@ if __name__ == "__main__":
     parser.add_option("--abspath", action="store_true", default=False, help="print absolute paths rather than relative paths")
     parser.add_option("--verbose", action="store_true", default=False, help="print debugging output during the test")
     parser.add_option("-d", "--debug", action="store_true", default=False, help="drop into a python debugger when an unexpected error is raised")
+    parser.add_option("--only-errors", action="store_true", default=False, help="only output failures, not test successes")
 
     parser.add_option("--gdb", action="store_true", default=False, help="run doctests under the control of gdb")
     parser.add_option("--valgrind", "--memcheck", action="store_true", default=False,
@@ -86,14 +87,29 @@ if __name__ == "__main__":
     parser.set_usage("sage -t [options] filenames")
 
 
-    from sage.doctest.control import DocTestController
     options, args = parser.parse_args()
 
     if len(args) == 0 and not (options.all or options.sagenb or options.new):
         parser.print_help()
-        err = 2
-    else:
-        DC = DocTestController(options, args)
-        err = DC.run()
+        sys.exit(2)
+
+    # Ensure that all doctests can be run with virtual memory limited
+    # to 3300 MiB. We must set this limit before starting Sage. Note
+    # that this is a per-process limit, so we do not need to worry about
+    # running multiple doctest processes in parallel. It is in
+    # particular doctests in src/sage/schemes/elliptic_curves/heegner.py
+    # which need this much memory.
+    memlimit = 3300 << 20
+    # Python's resource module only supports limits up to sys.maxsize,
+    # even if the OS does support higher limits.
+    if memlimit <= sys.maxsize:
+        import resource
+        lim, hard = resource.getrlimit(resource.RLIMIT_AS)
+        if lim == resource.RLIM_INFINITY or lim > memlimit:
+            resource.setrlimit(resource.RLIMIT_AS, (memlimit, hard))
+
+    from sage.doctest.control import DocTestController
+    DC = DocTestController(options, args)
+    err = DC.run()
 
     sys.exit(err)

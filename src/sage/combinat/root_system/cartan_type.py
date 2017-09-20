@@ -467,7 +467,10 @@ this data.
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
@@ -510,7 +513,7 @@ class CartanTypeFactory(SageObject):
         INPUT:
 
         - ``[letter, rank]`` -- letter is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-          and rank is an integer
+          and rank is an integer or a pair of integers
 
         - ``[letter, rank, twist]`` -- letter is one of 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'BC'
            and rank and twist are integers
@@ -583,7 +586,7 @@ class CartanTypeFactory(SageObject):
         else:
             t = args
 
-        if isinstance(t, CartanType_abstract):
+        if isinstance(t, (CartanType_abstract, SuperCartanType_standard)):
             return t
         if hasattr(t, "cartan_type"):
             return t.cartan_type()
@@ -592,7 +595,7 @@ class CartanTypeFactory(SageObject):
             t = t[0]
 
         # We need to make another check
-        if isinstance(t, CartanType_abstract):
+        if isinstance(t, (CartanType_abstract, SuperCartanType_standard)):
             return t
 
         from sage.rings.semirings.non_negative_integer_semiring import NN
@@ -717,6 +720,13 @@ class CartanTypeFactory(SageObject):
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
             raise ValueError("%s is not a valid Cartan type"%t)
+
+        if isinstance(t[0], string_types) and isinstance(t[1], (list, tuple)):
+            letter, n = t[0], t[1]
+            if len(t) == 2 and len(n) == 2:
+                from . import type_super_A
+                return type_super_A.CartanType(n[0], n[1])
+            raise ValueError("%s is not a valid super Cartan type"%t)
 
         # As the Cartan type has not been recognised try subtypes - but check
         # for the error noted in trac:???
@@ -2460,6 +2470,16 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
     A concrete base class for the finite standard Cartan types.
 
     This includes for example `A_3`, `D_4`, or `E_8`.
+
+     TESTS::
+
+         sage: ct1 = CartanType(['A',4])
+         sage: ct2 = CartanType(['A',4])
+         sage: ct3 = CartanType(['A',5])
+         sage: ct1 == ct2
+         True
+         sage: ct1 != ct3
+         True
     """
     def __init__(self, letter, n):
         """
@@ -2505,24 +2525,6 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
         """
         from .cartan_type import CartanType
         return (CartanType, (self.letter, self.n))
-
-    def __cmp__(self, other):
-         """
-         TESTS::
-
-             sage: ct1 = CartanType(['A',4])
-             sage: ct2 = CartanType(['A',4])
-             sage: ct3 = CartanType(['A',5])
-             sage: ct1 == ct2
-             True
-             sage: ct1 != ct3
-             True
-         """
-         if other.__class__ != self.__class__:
-             return cmp(self.__class__, other.__class__)
-         if other.letter != self.letter:
-             return cmp(self.letter, other.letter)
-         return cmp(self.n, other.n)
 
     def __hash__(self):
         """
@@ -2996,6 +2998,55 @@ class CartanType_decorator(UniqueRepresentation, SageObject, CartanType_abstract
            (0, 1, 2, 3, 4)
         """
         return self._type.index_set()
+
+##############################################################################
+# Base concrete class for superalgebras
+class SuperCartanType_standard(UniqueRepresentation, SageObject):
+    # Technical methods
+    def _repr_(self, compact = False):
+        """
+        TESTS::
+
+            sage: ct = CartanType(['A', [3,2]])
+            sage: repr(ct)
+            "['A', [3, 2]]"
+            sage: ct._repr_(compact=True)
+            'A3|2'
+        """
+        formatstr = '%s%s|%s' if compact else "['%s', [%s, %s]]"
+        return formatstr%(self.letter, self.m, self.n)
+
+    def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: len(CartanType(['A',[4,3]]))
+            2
+        """
+        return 2
+
+    def __getitem__(self, i):
+        """
+        EXAMPLES::
+
+            sage: t = CartanType(['A', [3,6]])
+            sage: t[0]
+            'A'
+            sage: t[1]
+            [3, 6]
+            sage: t[2]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+        """
+        if i == 0:
+            return self.letter
+        elif i == 1:
+            return [self.m, self.n]
+        else:
+            raise IndexError("index out of range")
+
+    options = CartanType.options
 
 ##############################################################################
 # For backward compatibility

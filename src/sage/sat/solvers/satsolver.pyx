@@ -14,6 +14,7 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
+from __future__ import absolute_import
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -323,7 +324,7 @@ def SAT(solver=None, *args, **kwds):
         from sage.sat.solvers.cryptominisat import CryptoMiniSat
         return CryptoMiniSat(*args, **kwds)
     elif solver == "LP":
-        from sat_lp import SatLP
+        from .sat_lp import SatLP
         return SatLP()
     else:
         raise ValueError("Solver '{}' is not available".format(solver))

@@ -558,7 +558,7 @@ def _test_preprocess_list(R, L):
       ``ntl_ZZ_ps``, ``ntl_ZZs``, ``IntegerMods`` or `p`-adic base
       elements
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``LL`` -- if all inputs are integral, a list of ``ntl_ZZs``.
       Otherwise, a list of ``ntl_ZZ_ps``, modulo `p^n` which is
@@ -680,7 +680,7 @@ def _find_val_aprec_test(R, L):
     - ``R`` -- a `p`-adic extension
     - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``min_val`` -- the minimum valuation of any element in the list.
 
@@ -757,7 +757,7 @@ def _test_get_val_prec(R, a):
     - ``a`` -- A rational, integer, int, long, ``ntl_ZZ_p``,
       ``ntl_ZZ``, ``IntegerMod`` or `p`-adic base element.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``val`` -- if ``a`` is exact, ``a.valuation(p)``, otherwise
       ``min(0, a.valuation())``

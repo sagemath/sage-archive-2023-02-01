@@ -137,8 +137,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _ring  = NULL
 
     n = int(n)
-    if n<1:
-        raise ArithmeticError("The number of variables must be at least 1.")
+    if n < 1:
+        raise NotImplementedError(f"polynomials in {n} variables are not supported in Singular")
 
     nvars = n
     order = TermOrder(term_order, n)
@@ -226,10 +226,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1
-        try:
-            k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
-        except TypeError:
-            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s" % (base_ring.variable_name(), MPolynomialRing_libsingular))
+        k = PolynomialRing(RationalField(),
+            name=base_ring.variable_name(), order="lex", implementation="singular")
 
         minpoly = base_ring.polynomial()(k.gen())
 
@@ -257,8 +255,6 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
     elif (isinstance(base_ring, FiniteField_generic) and base_ring.is_prime_field()):
-        #or (is_IntegerModRing(base_ring) and base_ring.characteristic().is_prime()):
-
         if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
         else:
@@ -274,11 +270,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
             raise TypeError("characteristic must be <= 2147483647.")
-        # TODO: This is lazy, it should only call Singular stuff not MPolynomial stuff
-        try:
-            k = PolynomialRing(base_ring.prime_subfield(), 1, [base_ring.variable_name()], 'lex')
-        except TypeError:
-            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s" % (base_ring.variable_name(), base_ring,MPolynomialRing_libsingular))
+
+        # TODO: This is lazy, it should only call Singular stuff not PolynomialRing()
+        k = PolynomialRing(base_ring.prime_subfield(),
+            name=base_ring.variable_name(), order="lex", implementation="singular")
         minpoly = base_ring.polynomial()(k.gen())
 
         ch = base_ring.characteristic()
@@ -307,6 +302,9 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     elif is_IntegerModRing(base_ring):
 
         ch = base_ring.characteristic()
+        if ch < 2:
+            raise NotImplementedError(f"polynomials over {base_ring} are not supported in Singular")
+
         isprime = ch.is_prime()
 
         if not isprime and ch.is_power_of(2):
@@ -356,10 +354,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _cf = nInitChar( n_Zn, <void *>&_info )
         _ring = rDefault( _cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
-
     else:
-        raise NotImplementedError("Base ring is not supported.")
-
+        raise NotImplementedError(f"polynomials over {base_ring} are not supported in Singular")
 
     if (_ring is NULL):
         raise ValueError("Failed to allocate Singular ring.")

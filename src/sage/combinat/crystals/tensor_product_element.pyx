@@ -909,6 +909,28 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             x.reverse()
         return Tableau(tab).conjugate()
 
+    def shape(self):
+        r"""
+        Return the shape of the tableau corresponding to ``self``.
+
+        OUTPUT: an instance of :class:`Partition`
+
+        .. SEEALSO::
+
+            :meth:`to_tableau`
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(["A", 2], shape=[2,1])
+            sage: x = C.an_element()
+            sage: x.to_tableau().shape()
+            [2, 1]
+            sage: x.shape()
+            [2, 1]
+
+        """
+        return self.to_tableau().shape()
+
     def promotion(self):
         """
         Return the result of applying promotion on ``self``.

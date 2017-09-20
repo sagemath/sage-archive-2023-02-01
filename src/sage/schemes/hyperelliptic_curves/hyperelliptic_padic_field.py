@@ -599,14 +599,12 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 self = HyperellipticCurve(f).change_ring(K)
                 xP = P[0]
                 xPv = xP.valuation()
-                xPL = xP.expansion()
-                xPnew = K(sum(xPL[i]*p**(xPv + i) for i in range(len(xPL))))
+                xPnew = K(sum(c * p**(xPv + i) for i, c in enumerate(xP.expansion())))
                 PP = P = self.lift_x(xPnew)
                 TP = self.frobenius(P)
                 xQ = Q[0]
                 xQv = xQ.valuation()
-                xQL = xQ.expansion()
-                xQnew = K(sum(xQL[i]*p**(xQv + i) for i in range(len(xQL))))
+                xQnew = K(sum(c * p**(xQv + i) for i, c in enumerate(xQ.expansion())))
                 QQ = Q = self.lift_x(xQnew)
                 TQ = self.frobenius(Q)
                 V = VectorSpace(K,dim)
@@ -1249,7 +1247,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         M_sys = matrix(K, M_frob).transpose() - 1
         B = (~M_sys)
         BL = B.list()
-        v = [BL[i].valuation() for i in range(len(BL))]
+        v = [c.valuation() for c in B.list()]
         vv= min(v)
         B = (p**(-vv)*B).change_ring(K)
         B = p**(vv)*B

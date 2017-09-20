@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Local Generic Element
 
@@ -8,12 +9,12 @@ AUTHORS:
 
 - David Roe: initial version
 
-- Julian Rueth (2012-10-15, 2014-06-25): added inverse_of_unit(); improved
-  add_bigoh()
+- Julian Rueth (2012-10-15, 2014-06-25, 2017-08-04): added inverse_of_unit(); improved
+  add_bigoh(); added _test_expansion()
 """
 #*****************************************************************************
-#       Copyright (C) 2007-2013 David Roe <roed@math.harvard.edu>
-#                     2012-2014 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2007-2017 David Roe <roed@math.harvard.edu>
+#                     2012-2017 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -24,6 +25,7 @@ AUTHORS:
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 from sage.structure.element import coerce_binop
+from itertools import islice
 
 cdef class LocalGenericElement(CommutativeRingElement):
     #cpdef _add_(self, right):
@@ -193,7 +195,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         """
         raise TypeError("this local element is not iterable")
 
-    def slice(self, i, j, k = 1):
+    def slice(self, i, j, k = 1, lift_mode='simple'):
         r"""
         Returns the sum of the `p^{i + l \cdot k}` terms of the series
         expansion of this element, for `i + l \cdot k` between ``i`` and
@@ -337,7 +339,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         # construct the return value
         ans = self.parent().zero()
-        for c in self.expansion()[start:stop:k]:
+        for c in islice(self.expansion(lift_mode=lift_mode), start, stop, k):
             ans += ppow * c
             ppow *= pk
 
@@ -820,3 +822,43 @@ cdef class LocalGenericElement(CommutativeRingElement):
         one = self.parent().one()
         tester.assertEqual(z, one)
         tester.assertEqual(z.precision_absolute(), one.precision_absolute())
+
+    def _test_expansion(self, **options):
+        r"""
+        Check that ``expansion`` works as expected.
+
+        EXAMPLES::
+
+            sage: x = Zp(3, 5).zero()
+            sage: x._test_expansion()
+
+        """
+        tester = self._tester(**options)
+
+        shift = self.parent().one()
+        v = 0
+        # so that this test doesn't take too long for large precision cap
+        prec_cutoff = min((10000 / (1 + self.precision_relative())).ceil(), 100)
+
+        from sage.categories.all import Fields
+        if self.parent() in Fields():
+            v = self.valuation()
+            from sage.rings.all import infinity
+            if self.valuation() is not infinity:
+                shift = shift << v
+
+        for mode in ['simple', 'smallest', 'teichmuller']:
+            expansion = self.expansion(lift_mode=mode)
+            expansion_sum = sum(self.parent().maximal_unramified_subextension()(c) *
+                                (self.parent().one()<<i)
+                                for i,c in enumerate(islice(expansion, prec_cutoff))) * shift
+
+            tester.assertEqual(self.add_bigoh(prec_cutoff), expansion_sum.add_bigoh(prec_cutoff))
+
+            for i,c in enumerate(islice(expansion, prec_cutoff)):
+                tester.assertEqual(c, self.expansion(lift_mode=mode, n=i+v))
+
+            if mode == 'teichmuller':
+                q = self.parent().residue_field().cardinality()
+                for c in islice(expansion, prec_cutoff):
+                    tester.assertEqual(c, c**q)

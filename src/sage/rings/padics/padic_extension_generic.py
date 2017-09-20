@@ -83,6 +83,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
             elif R._prec_type() == 'floating-point':
                 from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+            elif R._prec_type() == 'fixed-mod':
+                from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
     def __eq__(self, other):

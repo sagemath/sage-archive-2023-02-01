@@ -1962,20 +1962,10 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         TESTS::
 
             sage: from sage.homology.simplicial_set_constructions import WedgeOfSimplicialSets
-            sage: from sage.homology.simplicial_set_examples import Point
             sage: S2 = simplicial_sets.Sphere(2)
             sage: WedgeOfSimplicialSets([S2, S2]) == WedgeOfSimplicialSets((S2, S2))
             True
-            sage: pt = Point()
-            sage: WedgeOfSimplicialSets([S2, pt, pt, S2]) == WedgeOfSimplicialSets((S2, S2))
-            True
         """
-        def is_point(X):
-            return X.is_finite() and sum(X.f_vector()) == 1
-
-        if factors:
-            # Discard any factors which appear to be points.
-            factors = [F for F in factors if not is_point(F)]
         if factors:
             return super(WedgeOfSimplicialSets, cls).__classcall__(cls, factors=tuple(factors))
         return super(WedgeOfSimplicialSets, cls).__classcall__(cls)
@@ -1992,9 +1982,6 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         wedge sum `X \vee Y` is formed by taking the disjoint
         union of `X` and `Y` and identifying their base points. In
         this construction, the new base point is renamed '*'.
-
-        In this implementation, any factors which are single points
-        are ignored.
 
         The wedge comes equipped with maps to and from each factor, or
         actually, maps from each factor, and maps to simplicial sets
@@ -2092,19 +2079,14 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
         EXAMPLES::
 
             sage: from sage.homology.simplicial_set_constructions import WedgeOfSimplicialSets_finite
-            sage: from sage.homology.simplicial_set_examples import Point
             sage: K = simplicial_sets.Simplex(3)
             sage: WedgeOfSimplicialSets_finite((K,K))
             Traceback (most recent call last):
             ...
             ValueError: the simplicial sets must be pointed
-
-            sage: pt = Point()
-            sage: WedgeOfSimplicialSets_finite([pt, pt, pt]).f_vector()
-            [1]
         """
         if not factors:
-            # An empty wedge is a point, as a pushout.
+            # An empty wedge is a point, constructed as a pushout.
             PushoutOfSimplicialSets_finite.__init__(self, [Point().identity()])
         else:
             if any(not space.is_pointed() for space in factors):

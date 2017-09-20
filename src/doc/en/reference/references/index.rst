@@ -442,6 +442,9 @@ REFERENCES:
 
 **C**
 
+.. [Car1972] \R. W. Carter. *Simple groups of Lie type*, volume 28 of
+             Pure and Applied Mathematics. John Wiley and Sons, 1972.
+
 .. [CB2007] Nicolas Courtois, Gregory V. Bard: Algebraic Cryptanalysis
             of the Data Encryption Standard, In 11-th IMA Conference,
             Cirencester, UK, 18-20 December 2007, Springer
@@ -1230,6 +1233,9 @@ REFERENCES:
                        \J. H. Song, Y. Yeom, E-J. Yoon, S. Lee, J. Lee,
                        \S. Chee, D. Han, and J. Hong,
                        *New block cipher: ARIA*; in ICISC, (2004), pp. 432-445.
+
+.. [KL1990] \P. Kleidman and M. Liebeck. *The subgroup structure of
+            the finite classical groups*. Cambridge University Press, 1990.
 
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",

@@ -47,13 +47,7 @@ AUTHORS:
 
 - Volker Braun (2013-1) port to new Parent, libGAP, extreme refactoring.
 
-REFERENCES:
-
-- [KL] Peter Kleidman and Martin Liebeck. *The subgroup structure of
-  the finite classical groups*. Cambridge University Press, 1990.
-
-- [C] R. W. Carter. *Simple groups of Lie type*, volume 28 of Pure and
-  Applied Mathematics. John Wiley and Sons, 1972.
+REFERENCES: See [KL1990]_ and [Car1972]_.
 """
 
 #*****************************************************************************

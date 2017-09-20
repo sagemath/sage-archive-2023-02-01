@@ -925,11 +925,8 @@ class ResidueReductionMap(Morphism):
     """
     Reduction map from a p-adic ring or field to its residue field or ring.
 
-    INPUT:
-
-    - ``R`` -- a `p`-adic ring or field.
-    - ``k`` -- the residue field of ``R``, or a residue ring of ``R``.
-    - ``n`` -- an integer, the power of the maximal ideal giving ``k``.
+    These maps must be created using the :meth:`_create_` method in order
+    to support categories correctly.
 
     EXAMPLES::
 
@@ -945,6 +942,11 @@ class ResidueReductionMap(Morphism):
         """
         Initialization.  We have to implement this as a static method
         in order to call ``__make_element_class__``.
+
+        INPUT:
+
+        - ``R`` -- a `p`-adic ring or field.
+        - ``k`` -- the residue field of ``R``, or a residue ring of ``R``.
 
         EXAMPLES::
 
@@ -1064,10 +1066,8 @@ class ResidueLiftingMap(Morphism):
     """
     Lifting map to a p-adic ring or field from its residue field or ring.
 
-    INPUT:
-
-    - ``k`` -- the residue field of ``R``, or a residue ring of ``R``.
-    - ``R`` -- a `p`-adic ring or field.
+    These maps must be created using the :meth:`_create_` method in order
+    to support categories correctly.
 
     EXAMPLES::
 
@@ -1083,6 +1083,11 @@ class ResidueLiftingMap(Morphism):
         """
         Initialization.  We have to implement this as a static method
         in order to call ``__make_element_class__``.
+
+        INPUT:
+
+        - ``k`` -- the residue field of ``R``, or a residue ring of ``R``.
+        - ``R`` -- a `p`-adic ring or field.
 
         EXAMPLES::
 
@@ -1121,7 +1126,7 @@ class ResidueLiftingMap(Morphism):
         """
         R = self.codomain()
         if R.degree() == 1:
-            return R._element_constructor(R, x, self._n)
+            return R.element_class(R, x, self._n)
         elif R.f() == 1:
             return R([x], self._n)
         elif R.e() == 1:
@@ -1145,7 +1150,7 @@ class ResidueLiftingMap(Morphism):
         else:
             kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
         if R.degree() == 1:
-            return R._element_constructor(R, x, *args, **kwds)
+            return R.element_class(R, x, *args, **kwds)
         elif R.f() == 1:
             return R([x], *args, **kwds)
         elif R.e() == 1:

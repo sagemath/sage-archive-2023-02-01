@@ -1047,13 +1047,11 @@ cdef class FiniteField(Field):
             ...
             TypeError: no canonical coercion from Finite Field of size 7 to Finite Field in a of size 2^3
 
-        Check that :trac:`8240 is resolved::
+        There is no coercion from a `p`-adic ring to its residue field::
 
             sage: R.<a> = Zq(81); k = R.residue_field()
-            sage: k.coerce_map_from(R)
-            Reduction morphism:
-              From: Unramified Extension in a defined by x^4 + 2*x^3 + 2 with capped relative precision 20 over 3-adic Ring
-              To:   Finite Field in a0 of size 3^4
+            sage: k.has_coerce_map_from(R)
+            False
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -1074,9 +1072,6 @@ cdef class FiniteField(Field):
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
-        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
-        if isinstance(R, pAdicGeneric) and not R.is_field() and R.residue_field() is self:
-            return ResidueReductionMap._create_(R, self)
 
     def _convert_map_from_(self, R):
         """
@@ -1089,6 +1084,14 @@ cdef class FiniteField(Field):
             Reduction morphism:
               From: Unramified Extension in a defined by x^2 + 6*x + 3 with capped relative precision 20 over 7-adic Field
               To:   Finite Field in a0 of size 7^2
+
+        Check that :trac:`8240 is resolved::
+
+            sage: R.<a> = Zq(81); k = R.residue_field()
+            sage: k.convert_map_from(R)
+            Reduction morphism:
+              From: Unramified Extension in a defined by x^4 + 2*x^3 + 2 with capped relative precision 20 over 3-adic Ring
+              To:   Finite Field in a0 of size 3^4
         """
         from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
         if isinstance(R, pAdicGeneric) and R.residue_field() is self:

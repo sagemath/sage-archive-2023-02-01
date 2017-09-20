@@ -248,7 +248,33 @@ class GrowthDiagram(SageObject):
           elements are the labels on the boundary on the side of the
           origin.  If ``labels`` is ``None`` (in which case
           ``filling`` must not be ``None``) the value of
-          ``self._zero`` is used to initialise ``labels``.  """
+          ``self._zero`` is used to initialise ``labels``.
+
+        EXAMPLES::
+
+            sage: G = GrowthDiagramRSK([4, 1, 2, 3]); G
+            0  1  0  0
+            0  0  1  0
+            0  0  0  1
+            1  0  0  0
+            sage: G.out_labels()
+            [[], [1], [1, 1], [2, 1], [3, 1], [3], [2], [1], []]
+
+            sage: shape = shape=SkewPartition([[4,4,4,2],[1,1]])
+            sage: G = GrowthDiagramRSK([4, 1, 2, 3], shape=shape); G
+            .  1  0  0
+            .  0  1  0
+            0  0  0  1
+            1  0
+            sage: G.out_labels()
+            [[], [1], [1, 1], [1], [2], [3], [2], [1], []]
+
+            sage: GrowthDiagramRSK(labels=G.out_labels())
+            0  1  0  0
+            0  0  1  0
+            0  0  0  1
+            1  0
+        """
         if filling is None:
             if labels is None:
                 raise ValueError("Please provide a filling or a sequence of labels.")
@@ -282,6 +308,18 @@ class GrowthDiagram(SageObject):
         This is a default implementation to make
         :meth:`_shape_from_labels` work.
 
+        TESTS::
+
+            sage: from sage.combinat.growth import GrowthDiagram
+            sage: class GrowthMinimal(GrowthDiagram):
+            ....:     _zero = 0
+            ....:     _rank_function = lambda self,x: x
+            ....:     _backward_rule = lambda self,y,z,x: (min(x,y), 0 if y==z or x==z else 1)
+            sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
+            1  0  0
+            0  0  1
+            0  1
+
         """
         if cls._has_multiple_edges:
             return [cls._zero_edge]
@@ -302,6 +340,17 @@ class GrowthDiagram(SageObject):
         ``True`` (respectively, the list with color zero) to make
         :meth:`_shape_from_labels` work.
 
+        TESTS::
+
+            sage: from sage.combinat.growth import GrowthDiagram
+            sage: class GrowthMinimal(GrowthDiagram):
+            ....:     _zero = 0
+            ....:     _rank_function = lambda self,x: x
+            ....:     _backward_rule = lambda self,y,z,x: (min(x,y), 0 if y==z or x==z else 1)
+            sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
+            1  0  0
+            0  0  1
+            0  1
         """
         if cls._has_multiple_edges:
             return [cls._zero_edge]
@@ -310,13 +359,17 @@ class GrowthDiagram(SageObject):
 
     @classmethod
     def _check_duality(cls, n):
-        """
-        Raise an error if the graphs are not r-dual at level n.
+        """Raise an error if the graphs are not r-dual at level n.
 
         INPUT:
 
         - ``n``, a positive integer specifying which rank of the graph to test.
 
+        TESTS:
+
+        For binary words, we have indeed provided dual graded graphs::
+
+            sage: GrowthDiagramBinWord._check_duality(3)
         """
         if cls._has_multiple_edges:
             def check_vertex(w, P, Q):
@@ -686,6 +739,29 @@ class GrowthDiagram(SageObject):
         r"""
         Return ``True`` if the growth diagram ``other`` does not have the
         same shape and the same filling as ``self``.
+
+        TESTS:
+
+        Equality ignores zeros in fillings::
+
+            sage: G1 = GrowthDiagramRSK({(0, 1): 1, (1, 0): 1})
+            sage: G2 = GrowthDiagramRSK({(0, 0): 0, (0, 1): 1, (1, 0): 1})
+            sage: G1 != G2
+            False
+
+        Growth diagrams with different shapes are different::
+
+            sage: G1 = GrowthDiagramRSK([[0,1,0],[1,0]])
+            sage: G2 = GrowthDiagramRSK([[0,1,0],[1]])
+            sage: G1 != G2
+            True
+
+        Growth diagrams with different rules are different::
+
+            sage: G1 = GrowthDiagramRSK({(0, 1): 1, (1, 0): 1})
+            sage: G2 = GrowthDiagramBinWord({(0, 1): 1, (1, 0): 1})
+            sage: G1 != G2
+            True
         """
         return not self == other
 

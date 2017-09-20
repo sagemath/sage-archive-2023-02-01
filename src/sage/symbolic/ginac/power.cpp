@@ -549,9 +549,11 @@ ex power::eval(int level) const
 	// power of a function calculated by separate rules defined for this function
         if (is_exactly_a<function>(ebasis)) {
                 const function& f = ex_to<function>(ebasis);
-                if (f.get_serial() == exp_SERIAL::serial
-                    and is_exactly_a<numeric>(f.op(0)))
-                        return exp(mul(eexponent, f.op(0)));
+                if (f.get_serial() == exp_SERIAL::serial) {
+                        if (is_exactly_a<numeric>(f.op(0))
+                            or exponent_is_numerical)
+                                return exp(mul(eexponent, f.op(0)));
+                }
 		return ex_to<function>(ebasis).power(eexponent);
         }
 

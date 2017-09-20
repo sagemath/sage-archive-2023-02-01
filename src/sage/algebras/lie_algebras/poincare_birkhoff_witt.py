@@ -166,7 +166,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: sl2.indices()
             {'e1', 'f1', 'h1'}
             sage: type(sl2.basis().keys())
-            <type 'list'>
+            <... 'list'>
             sage: Usl2 = sl2.pbw_basis()
             sage: Usl2._basis_key(2)
             2

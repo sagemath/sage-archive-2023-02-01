@@ -1709,6 +1709,7 @@ def plot(funcs, *args, **kwds):
     Ghostscript be installed::
 
         sage: plot(x, typeset='type1') # optional - latex
+        Graphics object consisting of 1 graphics primitive
 
     A example with excluded values::
 

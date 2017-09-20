@@ -1860,8 +1860,9 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
 
         EXAMPLES:
 
-        If the modulus of the domain and the codomain is the same, then the map
-        is injective iff the underlying map on the constants is::
+        If the modulus of the domain and the codomain is the same and the
+        leading coefficient is a unit in the domain, then the map is injective
+        if the underlying map on the constants is::
 
             sage: R.<x> = ZZ[]
             sage: S.<x> = QQ[]
@@ -1870,8 +1871,12 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
             True
 
         """
-        if self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus():
-            return self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective()
+        if (self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus()
+            and self.domain().modulus().leading_coefficient().is_unit()):
+            if self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective():
+                return True
+            else:
+                return self.domain().modulus().degree() == 0 # domain and codomain are the zero ring
         return super(PolynomialQuotientRing_coercion, self).is_injective()
 
     def is_surjective(self):
@@ -1923,7 +1928,9 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
             True
 
         """
-        return richcmp((type(self), self.parent()), (type(other), other.parent()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.parent(), other.parent(), op)
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """

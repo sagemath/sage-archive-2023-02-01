@@ -119,6 +119,7 @@ cdef class Ring(ParentWithGens):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_euclidean_degree() . . . pass
+        running ._test_fraction_field() . . . pass
         running ._test_gcd_vs_xgcd() . . . pass
         running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
@@ -137,13 +138,15 @@ cdef class Ring(ParentWithGens):
 
         sage: QQ['x'].category()
         Join of Category of euclidean domains
-             and Category of commutative algebras over (quotient fields and metric spaces)
+             and Category of commutative algebras over
+                 (number fields and quotient fields and metric spaces)
         sage: QQ['x','y'].category()
         Join of Category of unique factorization domains
-             and Category of commutative algebras over (quotient fields and metric spaces)
+             and Category of commutative algebras over
+                 (number fields and quotient fields and metric spaces)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
         Category of algebras over (finite dimensional algebras with basis over
-         (quotient fields and metric spaces) and infinite sets)
+         (number fields and quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 

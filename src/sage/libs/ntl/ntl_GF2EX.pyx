@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -19,8 +20,8 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from ntl_ZZ import unpickle_class_args
-from ntl_GF2EContext import ntl_GF2EContext
+from .ntl_ZZ import unpickle_class_args
+from .ntl_GF2EContext import ntl_GF2EContext
 from .ntl_GF2EContext cimport ntl_GF2EContext_class
 from .ntl_GF2E cimport ntl_GF2E
 

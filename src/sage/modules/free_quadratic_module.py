@@ -1158,41 +1158,42 @@ class FreeQuadraticModule_submodule_with_basis_pid(
     An `R`-submodule of `K^n` with distinguished basis, where `K` is
     the fraction field of a principal ideal domain `R`.
     
-        Modules are ordered by their ambient spaces, then by
-        dimension, then in order by their echelon matrices.
+    Modules are ordered by their ambient spaces, then by
+    dimension, then in order by their echelon matrices.
 
-        .. NOTE::
+    .. NOTE::
 
-            Use the \code{is_submodule} to determine if one module
-            is a submodule of another.
+        Use the \code{is_submodule} to determine if one module
+        is a submodule of another.
 
-        EXAMPLES::
+    EXAMPLES:
 
-        First we compare two equal vector spaces::
-            sage: A = FreeQuadraticModule(QQ,3,2*matrix.identity(3))
-            sage: V = A.span([[1,2,3], [5,6,7], [8,9,10]])
-            sage: W = A.span([[5,6,7], [8,9,10]])
-            sage: V == W
-            True
+    First we compare two equal vector spaces::
 
-        Next we compare a one dimensional space to the two dimensional
-        space defined above::
+        sage: A = FreeQuadraticModule(QQ,3,2*matrix.identity(3))
+        sage: V = A.span([[1,2,3], [5,6,7], [8,9,10]])
+        sage: W = A.span([[5,6,7], [8,9,10]])
+        sage: V == W
+        True
 
-            sage: M = A.span([[5,6,7]])
-            sage: V == M
-            False
-            sage: M < V
-            True
-            sage: V < M
-            False
+    Next we compare a one dimensional space to the two dimensional
+    space defined above::
 
-        We compare a `\ZZ`-module to the one-dimensional space above::
+        sage: M = A.span([[5,6,7]])
+        sage: V == M
+        False
+        sage: M < V
+        True
+        sage: V < M
+        False
 
-            sage: V = span([[5,6,7]], ZZ).scale(1/11);
-            sage: V < M
-            True
-            sage: M < V
-            False
+    We compare a `\ZZ`-module to the one-dimensional space above::
+
+        sage: V = span([[5,6,7]], ZZ).scale(1/11);
+        sage: V < M
+        True
+        sage: M < V
+        False
     """
     def __init__(self, ambient, basis, inner_product_matrix,
         check=True, echelonize=False, echelonized_basis=None, already_echelonized=False):
@@ -1223,9 +1224,10 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             [0 2 0]
             [0 0 2]
             
-        TESTS::
+        TESTS:
         
         We test that :trac:`23703` is fixed::
+
             sage: A=FreeQuadraticModule(ZZ,1,matrix.identity(1))
             sage: B=A.span([[1/2]])
             sage: C=B.span([[1]])

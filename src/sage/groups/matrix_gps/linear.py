@@ -146,10 +146,13 @@ def GL(n, R, var='a'):
         General Linear Group of degree 2 over Finite Field of size 3
     """
     degree, ring = normalize_args_vectorspace(n, R, var='a')
-    if ring.is_finite():
-        cat = Groups().Finite()
-    else:
-        cat = Groups().Infinite()
+    try:
+        if ring.is_finite():
+            cat = Groups().Finite()
+        else:
+            cat = Groups().Infinite()
+    except AttributeError:
+        cat = Groups()
     name = 'General Linear Group of degree {0} over {1}'.format(degree, ring)
     ltx  = 'GL({0}, {1})'.format(degree, latex(ring))
     try:
@@ -228,10 +231,13 @@ def SL(n, R, var='a'):
         Special Linear Group of degree 2 over Finite Field of size 3
     """
     degree, ring = normalize_args_vectorspace(n, R, var='a')
-    if ring.is_finite() or n == 1:
-        cat = Groups().Finite()
-    else:
-        cat = Groups().Infinite()
+    try:
+        if ring.is_finite() or n == 1:
+            cat = Groups().Finite()
+        else:
+            cat = Groups().Infinite()
+    except AttributeError:
+        cat = Groups()
     name = 'Special Linear Group of degree {0} over {1}'.format(degree, ring)
     ltx  = 'SL({0}, {1})'.format(degree, latex(ring))
     from sage.libs.gap.libgap import libgap

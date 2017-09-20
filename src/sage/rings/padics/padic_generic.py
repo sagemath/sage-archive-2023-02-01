@@ -950,9 +950,9 @@ class ResidueReductionMap(Morphism):
 
         EXAMPLES::
 
-            sage: f = Zmod(49).coerce_map_from(Zp(7))
+            sage: f = Zmod(49).convert_map_from(Zp(7))
             sage: TestSuite(f).run()
-            sage: K.<a> = Qq(125); k = K.residue_field(); f = k.coerce_map_from(K)
+            sage: K.<a> = Qq(125); k = K.residue_field(); f = k.convert_map_from(K)
             sage: TestSuite(f).run()
         """
         if R.is_field():
@@ -994,7 +994,7 @@ class ResidueReductionMap(Morphism):
 
         EXAMPLES::
 
-            sage: GF(5).coerce_map_from(ZpCA(5)).is_injective()
+            sage: GF(5).convert_map_from(ZpCA(5)).is_injective()
             False
         """
         return False
@@ -1006,7 +1006,7 @@ class ResidueReductionMap(Morphism):
         EXAMPLES::
 
             sage: R.<a> = Zq(125); k = R.residue_field()
-            sage: f = k.coerce_map_from(R)
+            sage: f = k.convert_map_from(R)
             sage: f(15)
             0
             sage: f(1/(1+a))
@@ -1026,7 +1026,7 @@ class ResidueReductionMap(Morphism):
 
         EXAMPLES::
 
-            sage: GF(3).coerce_map_from(Zp(3)).section()
+            sage: GF(3).convert_map_from(Zp(3)).section()
             Lifting morphism:
               From: Finite Field of size 3
               To:   3-adic Ring with capped relative precision 20
@@ -1039,7 +1039,7 @@ class ResidueReductionMap(Morphism):
 
         EXAMPLES::
 
-            sage: GF(3).coerce_map_from(Zp(3))._repr_type()
+            sage: GF(3).convert_map_from(Zp(3))._repr_type()
             'Reduction'
         """
         return "Reduction"

@@ -247,6 +247,46 @@ def is_FreeQuadraticModule(M):
 class FreeQuadraticModule_generic(free_module.FreeModule_generic):
     """
     Base class for all free quadratic modules.
+    
+    Modules are ordered by their ambient spaces, then by
+    dimension, then in order by their echelon matrices.
+
+    EXAMPLES::
+
+    We compare rank three free modules over the integers and
+    rationals::
+        sage: Q3 = FreeQuadraticModule(QQ,3,matrix.identity(3)) 
+        sage: C3 = FreeQuadraticModule(CC,3,matrix.identity(3))
+        sage: Z3 = FreeQuadraticModule(ZZ,3,matrix.identity(3))
+        sage: Q3 < C3
+        True
+        sage: C3 < Q3
+        False
+        sage: C3 > Q3
+        True
+        sage: Q3 > Z3
+        True
+        sage: Q3 < Z3
+        False
+        sage: Z3 < Q3
+        True
+        sage: Z3 > Q3
+        False
+        sage: Q3 == Z3
+        False
+        sage: Q3 == Q3
+        True
+
+        sage: V = Q3.span([[1,2,3], [5,6,7], [8,9,10]])
+        sage: V < Q3
+        True
+        sage: Q3 < V
+        False
+
+    Beware: currently, the inner_product_matrix is not part of the comparison::
+        sage: Q3zero = FreeQuadraticModule(QQ,3,matrix.zero(3))
+        sage: Q3zero == Q3
+        True
     """
     def __init__(self, base_ring, rank, degree, inner_product_matrix, sparse=False):
         """
@@ -1117,6 +1157,42 @@ class FreeQuadraticModule_submodule_with_basis_pid(
     """
     An `R`-submodule of `K^n` with distinguished basis, where `K` is
     the fraction field of a principal ideal domain `R`.
+    
+        Modules are ordered by their ambient spaces, then by
+        dimension, then in order by their echelon matrices.
+
+        .. NOTE::
+
+            Use the \code{is_submodule} to determine if one module
+            is a submodule of another.
+
+        EXAMPLES::
+
+        First we compare two equal vector spaces::
+            sage: A = FreeQuadraticModule(QQ,3,2*matrix.identity(3))
+            sage: V = A.span([[1,2,3], [5,6,7], [8,9,10]])
+            sage: W = A.span([[5,6,7], [8,9,10]])
+            sage: V == W
+            True
+
+        Next we compare a one dimensional space to the two dimensional
+        space defined above::
+
+            sage: M = A.span([[5,6,7]])
+            sage: V == M
+            False
+            sage: M < V
+            True
+            sage: V < M
+            False
+
+        We compare a `\ZZ`-module to the one-dimensional space above::
+
+            sage: V = span([[5,6,7]], ZZ).scale(1/11);
+            sage: V < M
+            True
+            sage: M < V
+            False
     """
     def __init__(self, ambient, basis, inner_product_matrix,
         check=True, echelonize=False, echelonized_basis=None, already_echelonized=False):

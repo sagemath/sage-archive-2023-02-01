@@ -285,6 +285,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         False
 
     Beware: currently, the inner_product_matrix is not part of the comparison::
+    
         sage: Q3zero = FreeQuadraticModule(QQ,3,matrix.zero(3))
         sage: Q3zero == Q3
         True

@@ -26,6 +26,7 @@ from __future__ import print_function, absolute_import
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
+from sage.rings.padics.misc import trim_zeros
 
 import sys
 
@@ -810,9 +811,9 @@ cdef class pAdicPrinter_class(SageObject):
             from sage.rings.padics.padic_capped_relative_element import base_p_list
             return base_p_list(value, pos, self.prime_pow)
         elif pos:
-            return value.unit_part().expansion()
+            return trim_zeros(list(value.unit_part().expansion()))
         else:
-            return value.unit_part().expansion(lift_mode='smallest')
+            return trim_zeros(list(value.unit_part().expansion(lift_mode='smallest')))
 
     def repr_gen(self, elt, do_latex, pos = None, mode = None, ram_name = None):
         """
@@ -1150,17 +1151,13 @@ cdef class pAdicPrinter_class(SageObject):
                 # since elt was not supposed to be zero, this should give a non-empty list.
                 if len(L) == 0:
                     raise RuntimeError("repr_spec called on zero")
-                if isinstance(L[0], list): # unramified part to the extension
+                if elt.parent().f() > 1: # unramified part to the extension
                     if self.unram_name is None:
                         raise RuntimeError("need to have specified a name for the unramified variable")
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, [])
                     for i from 0 <= i < len(L):
                         term = self._print_unram_term(L[i], do_latex, self.unram_name, self.max_unram_terms, 0, 0)
-                        #L[i], ellipsis_unram = self._truncate_list(L[i], self.max_unram_terms, 0)
-                        #term = self._print_list_as_poly(L[i], do_latex, self.unram_name, 0, 0)
                         if len(term) > 0:
-                            #if ellipsis_unram:
-                            #    term += self._plus_ellipsis(do_latex)
                             exp = i + val
                             if (not do_latex and term.find(" ") != -1) or (do_latex and (term.find(" + ") != -1 or term.find(" - ") != -1)):
                                 if len(s) > 0:
@@ -1192,7 +1189,7 @@ cdef class pAdicPrinter_class(SageObject):
                                     s += self._dot_var(ram_name, exp, do_latex)
                     if ellipsis:
                         s += self._plus_ellipsis(do_latex)
-                else: # L[0] is not a list, so no unramified printing required
+                else: # f = 1, so no unramified printing required
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, 0)
                     s = self._print_list_as_poly(L, do_latex, ram_name, val, 1)
                     if ellipsis:
@@ -1291,21 +1288,19 @@ cdef class pAdicPrinter_class(SageObject):
         - Truncated list -- later terms are removed.
         - Boolean -- whether any truncation occurred.
         """
-        cdef bint ellipsis = 0
-        if max_terms == -1:
-            return L, ellipsis
-        if len(L) == 0:
-            return L, ellipsis
+        if max_terms == -1 or len(L) == 0:
+            return list(L), False
         cdef Py_ssize_t i, nonzero_index
         cdef Py_ssize_t count = 0
-        for i from 0 <= i < len(L):
-            if L[i] != zero:
+        ans = []
+        for i, c in enumerate(L):
+            if c != zero:
                 count += 1
                 if count > max_terms:
-                    ellipsis = 1
-                    return L[:nonzero_index+1], ellipsis
+                    return ans[:nonzero_index+1], True
                 nonzero_index = i
-        return L, ellipsis
+            ans.append(c)
+        return ans, False
 
     cdef _print_unram_term(self, L, bint do_latex, polyname, long max_unram_terms, long expshift, bint increasing):
         """

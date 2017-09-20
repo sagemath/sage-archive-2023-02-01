@@ -1221,14 +1221,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     def expansion(self, n = None, lift_mode = 'simple'):
         """
-        Returns a list giving a series representation of ``self``.
-
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
-        NOTES:
+        Returns a list giving a series representation of this element.
 
         - If ``lift_mode == 'simple' or 'smallest'``, the returned list will
           consist of
@@ -1237,7 +1230,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
           + lists of integers (in the unramified case).
 
-        - ``self`` can be reconstructed as
+        - this element can be reconstructed as
 
           + a sum of elements of the list times powers of the
             uniformiser (in the eisenstein case), or
@@ -1253,8 +1246,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         - If ``lift_mode == 'teichmuller'``, returns a list of
           ``pAdicZZpXCRElements``, all of which are Teichmuller representatives
-          and such that ``self`` is the sum of that list times powers of the
+          and such that this element is the sum of that list times powers of the
           uniformizer.
+
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
 
         EXAMPLES::
 
@@ -1274,15 +1272,17 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: A.<a> = R.ext(g)
             sage: y = 75 + 45*a + 1200*a^2; y
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
-            sage: y.expansion()
+            sage: E = y.expansion(); E
+            5-adic expansion of 4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
+            sage: list(E)
             [[], [0, 4], [3, 1, 3], [0, 0, 4], [0, 0, 1]]
-            sage: y.expansion(lift_mode='smallest')
+            sage: list(y.expansion(lift_mode='smallest'))
             [[], [0, -1], [-2, 2, -2], [1], [0, 0, 2]]
             sage: 5*((-2*5 + 25) + (-1 + 2*5)*a + (-2*5 + 2*125)*a^2)
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
             sage: W(0).expansion()
             []
-            sage: A(0,4).expansion()
+            sage: list(A(0,4).expansion())
             []
         """
         if lift_mode == 'teichmuller':
@@ -1339,11 +1339,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         EXAMPLES::
 
             sage: R.<a> = ZqFM(5^4,4)
-            sage: L = a.teichmuller_expansion(); L
+            sage: E = a.teichmuller_expansion(); E
+            5-adic expansion of a + O(5^4) (teichmuller)
+            sage: list(E)
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + (4*a^2 + a + 3)*5^3 + O(5^4), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + (3*a^3 + 2*a^2 + a + 1)*5^2 + (a^3 + a^2 + 2)*5^3 + O(5^4), (a^3 + a^2 + a + 4) + (3*a^3 + 1)*5 + (3*a^3 + a + 2)*5^2 + (3*a^3 + 3*a^2 + 3*a + 1)*5^3 + O(5^4)]
-            sage: sum([5^i*L[i] for i in range(4)])
+            sage: sum([c * 5^i for i, c in enumerate(E)])
             a + O(5^4)
-            sage: all([L[i]^625 == L[i] for i in range(4)])
+            sage: all([c^625 == c for c in E])
             True
 
             sage: S.<x> = ZZ[]
@@ -1623,9 +1625,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: A.<a> = R.ext(g)
             sage: y = 75 + 45*a + 1200*a^2; y
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
-            sage: y.expansion() #indirect doctest
+            sage: list(y.expansion()) #indirect doctest
             [[], [0, 4], [3, 1, 3], [0, 0, 4], [0, 0, 1]]
-            sage: y.expansion(lift_mode='smallest') #indirect doctest
+            sage: list(y.expansion(lift_mode='smallest')) #indirect doctest
             [[], [0, -1], [-2, 2, -2], [1], [0, 0, 2]]
             sage: 5*((-2*5 + 25) + (-1 + 2*5)*a + (-2*5 + 2*125)*a^2)
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)

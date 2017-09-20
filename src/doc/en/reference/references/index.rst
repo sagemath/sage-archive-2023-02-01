@@ -207,6 +207,10 @@ REFERENCES:
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
 
+.. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
+              *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
+              J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
+
 .. [Ber2008] \W. Bertram : *Differential Geometry, Lie Groups and
              Symmetric Spaces over General Base Fields and Rings*,
              Memoirs of the American Mathematical Society, vol. 192
@@ -214,6 +218,10 @@ REFERENCES:
 
 .. [Ber1991] \C. Berger, "Une version effective du théorème de
              Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
+
+.. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
 
 .. [BFZ2005] \A. Berenstein, \S. Fomin, and \A. Zelevinsky, *Cluster
              algebras. III. Upper bounds and double Bruhat cells*,
@@ -544,6 +552,11 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
+.. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
+             unit equation." International Mathematics Research Notices
+             2016.17 (2016): 5291-5354.
+
+
 .. [Dec1998] \W. Decker and T. de Jong. Groebner Bases and Invariant
              Theory in Groebner Bases and Applications. London
              Mathematical Society Lecture Note Series No. 251. (1998)
@@ -599,6 +612,11 @@ REFERENCES:
             In: V. Kumar Murty (ed.), Seminar on Fermat's Last Theorem
             (Toronto, 1993-1994), 39-133.  CMS Conference
             Proceedings 17.  American Mathematical Society, 1995.
+
+.. [Dil1940] Lattice with Unique Irreducible Decompositions
+             \R. P. Dilworth, 1940 (Annals of Mathematics 41, 771-777)
+             With comments by B. Monjardet
+             http://cams.ehess.fr/docannexe.php?id=1145
 
 .. [Di2000] \L. Dissett, Combinatorial and computational aspects of
             finite geometries, 2000,
@@ -782,6 +800,9 @@ REFERENCES:
             Theory, Version 13.1.2.*. http://www.gambit-project.org
             (2014).
 
+.. [Gar2015] \V. Garg *Introduction to Lattice Theory with Computer
+             Science Applications* (2015), Wiley.
+
 .. [GDR1999] \R. González-Díaz and P. Réal, *A combinatorial method
              for computing Steenrod squares* in J. Pure Appl. Algebra
              139 (1999), 89-108.
@@ -875,6 +896,10 @@ REFERENCES:
             155-170.
 
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+
+.. [GW2014] \G. Gratzer and F. Wehrung,
+            Lattice Theory: Special Topics and Applications Vol. 1,
+            Springer, 2014.
 
 .. [GZ1983] Greene; Zaslavsky, "On the Interpretation of Whitney
             Numbers Through Arrangements of Hyperplanes, Zonotopes,
@@ -1484,6 +1509,11 @@ REFERENCES:
 .. [Piz1980] \A. Pizer. An Algorithm for Computing Modular Forms on
              `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
 
+.. [Platt1976] \C. R. Platt,
+               Planar lattices and planar graphs,
+               Journal of Combinatorial Theory Series B,
+               Vol 21, no. 1 (1976): 30-39.
+
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.
 
@@ -1594,6 +1624,9 @@ REFERENCES:
 
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
+
+.. [Ros1999] \K. Rosen *Handbook of Discrete and Combinatorial
+             Mathematics* (1999), Chapman and Hall.
 
 .. [Rot2001] Gunter Rote, *Division-Free Algorithms for the
              Determinant and the Pfaffian: Algebraic and Combinatorial
@@ -1723,6 +1756,11 @@ REFERENCES:
 
 .. [Str1969] Volker Strassen. Gaussian elimination is not
              optimal. Numerische Mathematik, 13:354-356, 1969.
+
+.. [Striker2011] \J. Striker. *A unifying poset perspective on
+                 alternating sign matrices, plane partitions, Catalan objects,
+                 tournaments, and tableaux*, Advances in Applied Mathematics 46
+                 (2011), no. 4, 583-609. :arXiv:`1408.5391`
 
 .. [Stu1987] \J. Sturm, On the congruence of modular forms, Number
              theory (New York, 1984-1985), Springer, Berlin, 1987,

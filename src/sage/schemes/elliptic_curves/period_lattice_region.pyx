@@ -662,10 +662,11 @@ cdef class PeriodicRegion:
             sage: plot(S) + plot(S.expand(), rgbcolor=(1, 0, 1), thickness=2)
             Graphics object consisting of 46 graphics primitives
         """
-        from sage.all import line
+        from sage.plot.line import line
         dw1, dw2 = self.ds()
         L = []
-        F = line([(0,0), tuple(self.w1), tuple(self.w1+self.w2), tuple(self.w2), (0,0)])
+        F = line([(0,0), tuple(self.w1),
+                  tuple(self.w1+self.w2), tuple(self.w2), (0,0)])
         if not self.full:
             F += line([tuple(self.w2/2), tuple(self.w1+self.w2/2)])
         if 'rgbcolor' not in kwds:

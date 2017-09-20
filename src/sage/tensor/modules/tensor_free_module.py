@@ -436,7 +436,8 @@ class TensorFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if comp == 0:
+        from sage.rings.integer import Integer
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         if isinstance(comp, FiniteRankFreeModuleMorphism):
             # coercion of an endomorphism to a type-(1,1) tensor:

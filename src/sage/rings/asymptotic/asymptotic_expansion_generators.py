@@ -1084,16 +1084,16 @@ class AsymptoticExpansionGenerators(SageObject):
                 return A(1).O()
             if prec == 1:
                 return ((1/Z)**one_half).O()
-                    + sum([SR("d{}".format(j)) * (1/Z)**(j * one_half) for j in srange(2, prec)])
             return (-(2*tau/phi(tau)/H(y).diff(y, 2)(y=tau)).sqrt() * (1/Z)**one_half
+                    + sum(SR("d{}".format(j)) * (1/Z)**(j * one_half) for j in srange(2, prec))
                     + ((1/Z)**(prec * one_half)).O())
 
         # we compare coefficients between a "single" Z and the
         # following expansion, this allows us to compute the constants d_j
         z = SR('z')
-        z_expansion = sum([H(z).diff(z, k)(z=tau)/k.factorial() *
-                           ansatz(prec=precision+2-k)**k
-                           for k in srange(2, precision)]) + ((1/Z)**(precision * one_half)).O()
+        z_expansion = sum(H(z).diff(z, k)(z=tau)/k.factorial() *
+                          ansatz(prec=precision+2-k)**k
+                          for k in srange(2, precision)) + ((1/Z)**(precision * one_half)).O()
 
         solution_dict = dict()
         for k in srange(2, precision-1):

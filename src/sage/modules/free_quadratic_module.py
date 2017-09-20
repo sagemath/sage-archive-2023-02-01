@@ -251,7 +251,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
     Modules are ordered by their ambient spaces, then by
     dimension, then in order by their echelon matrices.
 
-    EXAMPLES::
+    TESTS:
 
     We compare rank three free modules over the integers and
     rationals::

@@ -41,6 +41,7 @@ file gives the function signatures.
 - :meth:`cunpickle` -- reconstruction from the output of :meth:`cpickle`
 - :meth:`chash` -- hashing
 - :meth:`clist` -- a list of digits in the series expansion
+- :meth:`ccoefficients` -- a list of coefficients as elements of the base ring
 - :meth:`cteichmuller` -- Teichmuller lifting
 - :meth:`cconv` -- conversion from other types in Sage
 - :meth:`cconv_mpz_t` -- conversion from mpz_t, separated for speed and
@@ -486,6 +487,19 @@ cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow):
 # It could be [] for some other linkages.
 _list_zero = Integer(0)
 
+cdef list ccoefficients(celement x, long valshift, PowComputer_class prime_pow):
+    """
+    Return a list of coefficients, as elements that can be converted into the base ring.
+
+    INPUT:
+
+    - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
+    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
+    - ``prime_pow`` -- the Powcomputer of the ring
+    """
+    pass
+
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_class prime_pow) except -1:
     """
     Teichmuller lifting.
@@ -585,7 +599,7 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
                  uses rational reconstruction but may change in the
                  future to use a more naive method.
     - ``x`` -- an ``celement`` giving the underlying `p`-adic element.
-    - ``valshift`` -- a long giving the power of `p` to shift `x` by.
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
     -` ``prec`` -- a long, the precision of ``x``, used in rational
                    reconstruction.
     - ``prime_pow`` -- a PowComputer for the ring.

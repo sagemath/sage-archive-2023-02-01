@@ -388,7 +388,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             zero = self.parent()(0,0)
         else:
             raise ValueError("%s not a recognized lift mode"%lift_mode)
-        L = self.list(lift_mode)
+        L = self.expansion(lift_mode=lift_mode)
         if self.prime_pow.in_field == 1:
             if self._is_exact_zero():
                 n = 0
@@ -397,10 +397,20 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         return L[:n] + [zero] * (n - len(L))
 
     def _ext_p_list(self, pos):
+        """
+        Returns the p-adic expansion of the unit part.  Used in printing.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(125)
+            sage: b = a^2 + 5*a + 1
+            sage: b._ext_p_list(True)
+            [[1, 0, 1], [0, 1]]
+        """
         if pos:
-            return self.unit_part().list('simple')
+            return self.unit_part().expansion(lift_mode='simple')
         else:
-            return self.unit_part().list('smallest')
+            return self.unit_part().expansion(lift_mode='smallest')
 
     cpdef pAdicTemplateElement unit_part(self):
         """
@@ -443,13 +453,20 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None, check_prec=True):
         r"""
         Reduce this element modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
         - ``absprec`` -- ``0`` or ``1``.
+
+        - ``field`` -- boolean (default ``None``).  For precision 1, whether to return
+          an element of the residue field or a residue ring.  Currently unused.
+
+        - ``check_prec`` -- boolean (default ``True``).  Whether to raise an error if this
+          element has insufficient precision to determine the reduction.  Errors are never
+          raised for fixed-mod or floating-point types.
 
         OUTPUT:
 
@@ -458,7 +475,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqFM(27, 4)
+            sage: R.<a> = Zq(27, 4)
             sage: (3 + 3*a).residue()
             0
             sage: (a + 1).residue()
@@ -476,6 +493,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: insufficient precision to reduce modulo p^10.
+            sage: a.residue(10, check_prec=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
 
             sage: R.<a> = ZqCA(27, 4)
             sage: (3 + 3*a).residue()
@@ -492,19 +513,23 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: element must have non-negative valuation in order to compute residue.
-            
         """
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
         if self.valuation() < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")
-        if absprec > self.precision_absolute():
+        R = self.parent()
+        if check_prec and (R.is_fixed_mod() or R.is_floating_point()):
+            check_prec = False
+        if check_prec and absprec > self.precision_absolute():
             raise PrecisionError("insufficient precision to reduce modulo p^%s."%absprec)
+        if field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
         if absprec == 0:
             from sage.rings.all import IntegerModRing
             return IntegerModRing(1).zero()
         elif absprec == 1:
-            parent = self.parent().residue_field()
+            parent = R.residue_field()
             if self.valuation() > 0:
                 return parent.zero()
             digits = self.padded_list(1)

@@ -154,15 +154,13 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             sage: v = QQ.valuation(2)
             sage: from operator import mul
             sage: v.parent().get_action(ZZ, mul) # indirect doctest
-            Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
+            Right action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
         """
         from operator import mul, div
         from sage.rings.all import QQ, InfinityRing, ZZ
         if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
-            return ScaleAction(S, self)
-        if op == div and self_on_left and (S is InfinityRing or S is QQ or S is ZZ):
-            return InverseScaleAction(self, S)
+            return ScaleAction(S, self, not self_on_left, op)
         return None
 
     def _an_element_(self):
@@ -1568,7 +1566,8 @@ class ScaleAction(Action):
 
         sage: v = QQ.valuation(5)
         sage: from operator import mul
-        sage: v.parent().get_action(IntegerRing, mul, self_on_left=False)
+        sage: v.parent().get_action(ZZ, mul, self_on_left=False)
+        Left action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
     """
     def _call_(self, s, v):
@@ -1582,29 +1581,7 @@ class ScaleAction(Action):
             3 * 5-adic valuation
             
         """
+        if not self.is_left():
+            # for a right action, the parameters are swapped
+            s,v = v,s
         return v.scale(s)
-
-class InverseScaleAction(Action):
-    r"""
-    Action of integers, rationals and the infinity ring on valuations by
-    scaling it (with the inverse of the scalar.)
-
-    EXAMPLES::
-
-        sage: v = QQ.valuation(5)
-        sage: from operator import div
-        sage: v.parent().get_action(IntegerRing, div, self_on_left=True)
-
-    """
-    def _call_(self, v, s):
-        r"""
-        Let ``s`` act on ``v`` (by division.)
-
-        EXAMPLES::
-
-            sage: v = QQ.valuation(5)
-            sage: v/3 # indirect doctest
-            1/3 * 5-adic valuation
-            
-        """
-        return v.scale(1/s)

@@ -1815,13 +1815,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         """
         Returns a list giving a series representation of ``self``.
 
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
-        NOTES:
-
         - If ``lift_mode == 'simple'`` or ``'smallest'``, the returned
           list will consist of integers (in the eisenstein case) or a
           list of lists of integers (in the unramified case).
@@ -1840,6 +1833,11 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
           ``pAdicZZpXCAElements``, all of which are Teichmuller
           representatives and such that ``self`` is the sum of that
           list times powers of the uniformizer.
+
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
 
         EXAMPLES::
 

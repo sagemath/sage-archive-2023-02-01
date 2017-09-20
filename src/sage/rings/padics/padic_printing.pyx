@@ -21,7 +21,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
@@ -1279,17 +1279,17 @@ cdef class pAdicPrinter_class(SageObject):
 
         INPUT:
 
-            - L -- a list
+        - L -- a list
 
-            - max_terms -- nonnegative integer (or -1, in which case
-              no truncation occurs)
+        - max_terms -- nonnegative integer (or -1, in which case
+          no truncation occurs)
 
-            - zero -- what should be considered zero, usually 0 or [].
+        - zero -- what should be considered zero, usually 0 or [].
 
-        OUTPUTS::
+        OUTPUT:
 
-            - Truncated list -- later terms are removed.
-            - Boolean -- whether any truncation occurred.
+        - Truncated list -- later terms are removed.
+        - Boolean -- whether any truncation occurred.
         """
         cdef bint ellipsis = 0
         if max_terms == -1:

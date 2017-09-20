@@ -320,7 +320,7 @@ class SimplicialSetMorphism(Morphism):
         r"""
         Return a morphism of simplicial sets.
 
-        INPUTS:
+        INPUT:
 
         - ``data`` -- optional. Dictionary defining the map.
         - ``domain`` -- simplicial set

@@ -21,6 +21,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.integer import Integer
@@ -478,7 +479,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
         if absprec > self.precision_absolute():
-            from precision_error import PrecisionError
+            from .precision_error import PrecisionError
             raise PrecisionError("not enough precision known in order to compute residue.")
         if self.valuation() < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")

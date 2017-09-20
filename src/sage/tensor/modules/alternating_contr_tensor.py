@@ -408,9 +408,13 @@ class AlternatingContrTensor(FreeModuleTensor):
         for ind in comp.non_redundant_index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if not (coef == 0):   # NB: coef != 0 would return False for
-                                  # cases in which Sage cannot conclude
-                                  # see :trac:`22520`
+            # Check whether the coefficient is zero, preferably via
+            # the fast method is_trivial_zero():
+            if hasattr(coef, 'is_trivial_zero'):
+                zero_coef = coef.is_trivial_zero()
+            else:
+                zero_coef = coef == 0
+            if not zero_coef:
                 bases_txt = []
                 bases_latex = []
                 for k in range(self._tensor_rank):

@@ -107,6 +107,7 @@ easily::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 from six.moves import range
 
@@ -185,7 +186,9 @@ def QuotientRing(R, I, names=None):
 
     ::
 
-        sage: S = QuotientRing(QQ[x], QQ[x].ideal(x^2 - 2)); S
+        sage: P.<x> = QQ[]
+        sage: S = QuotientRing(P, P.ideal(x^2 - 2))
+        sage: S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 - 2
         sage: xbar = S.gen(); S.gen()
@@ -197,7 +200,8 @@ def QuotientRing(R, I, names=None):
 
     Sage coerces objects into ideals when possible::
 
-        sage: R = QuotientRing(QQ[x], x^2 + 1); R
+        sage: P.<x> = QQ[]
+        sage: R = QuotientRing(P, x^2 + 1); R
         Univariate Quotient Polynomial Ring in xbar over Rational Field with
         modulus x^2 + 1
 

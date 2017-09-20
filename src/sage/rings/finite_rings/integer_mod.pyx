@@ -1016,7 +1016,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                 R = self.parent()['x']
                 modulus = R.gen()**2 - R(self)
                 if self._parent.is_field():
-                    from finite_field_constructor import FiniteField
+                    from .finite_field_constructor import FiniteField
                     Q = FiniteField(self.__modulus.sageInteger**2, y, modulus)
                 else:
                     R = self.parent()['x']
@@ -1561,9 +1561,26 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:                 if not a.is_unit(): continue
             ....:                 if a.is_primitive_root().__xor__(a.multiplicative_order()==phin):
             ....:                     print("mod(%s,%s) incorrect" % (a, n))
+
+        `0` is not a primitive root mod `n` (:trac:`23624`) except for `n=0`::
+
+            sage: mod(0, 17).is_primitive_root()
+            False
+            sage: all(not mod(0, n).is_primitive_root() for n in srange(2, 20))
+            True
+            sage: mod(0, 1).is_primitive_root()
+            True
+
+            sage: all(not mod(p^j, p^k).is_primitive_root()
+            ....:     for p in prime_range(3, 12)
+            ....:     for k in srange(1, 4)
+            ....:     for j in srange(0, k))
+            True
         """
         cdef Integer p1, q = Integer(2)
         m = self.modulus()
+        if m == 1:
+            return True
         if m == 2:
             return self == 1
         if m == 4:
@@ -1584,6 +1601,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             # self**(p**(k-1)*(p-1)//q) = 1 for some q
             # iff mod(self,p)**((p-1)//q) = 1 for some q
             self = self % p
+        if self == 0:
+            return False
         # Now self is modulo a prime and need the factorization of p-1.
         p1 = p - 1
         while mpz_cmpabs_ui(p1.value, 1):

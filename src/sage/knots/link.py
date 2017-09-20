@@ -382,9 +382,9 @@ class Link(object):
             following negative one; of there exist a closed arc,
             it is returned as a list of positive numbers only
 
-        OUPUT:
+        OUTPUT:
 
-        A list of lists represeting the arcs based upon ``presentation``.
+        A list of lists representing the arcs based upon ``presentation``.
 
         EXAMPLES::
 

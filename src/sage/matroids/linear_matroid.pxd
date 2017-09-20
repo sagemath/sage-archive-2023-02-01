@@ -4,8 +4,6 @@ from .matroid cimport Matroid
 from .basis_exchange_matroid cimport BasisExchangeMatroid
 from .lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix
 
-cdef inline gauss_jordan_reduce(LeanMatrix A, columns)
-cdef inline characteristic(LeanMatrix A)
 
 cdef class LinearMatroid(BasisExchangeMatroid):
     cdef LeanMatrix _A, _representation

@@ -856,7 +856,7 @@ class FractionField_1poly_field(FractionField_generic):
         # The default implementation would try to convert this element to singular and factor there.
         # This fails silently over some base fields, see #23642, so we convert
         # to the function field and factor there.
-        return f.change_ring(self.function_field()).factor().base_change(self)
+        return f.change_ring(self.function_field()).factor().base_change(f.parent())
 
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):

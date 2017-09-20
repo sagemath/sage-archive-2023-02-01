@@ -132,9 +132,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
             sage: GF(3).has_coerce_map_from(Zp(3))
             False
-            Reduction morphism:
-              From: 3-adic Ring with capped relative precision 20
-              To:   Finite Field of size 3
         """
         if S is int:
             return integer_mod.Int_to_IntegerMod(self)

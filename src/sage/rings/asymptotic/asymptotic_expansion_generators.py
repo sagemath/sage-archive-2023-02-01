@@ -1045,11 +1045,13 @@ class AsymptoticExpansionGenerators(SageObject):
         from sage.rings.rational_field import QQ
         from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
         from sage.arith.srange import srange
-        y = SR('y')
+        y, u = SR('y'), SR('u')
         one_half = QQ(1)/2
 
+        if phi(0).is_zero() or phi(u) == phi(0) + u*phi(u).diff(u)(u=0):
+            raise ValueError('The function phi does not satisfy the requirements')
+
         if tau is None:
-            u = SR('u')
             positive_solution = filter(lambda s: s.rhs() > 0, (phi(u) - u*phi(u).diff(u)).solve(u))
             if len(positive_solution) == 1:
                 tau = positive_solution[0].rhs()

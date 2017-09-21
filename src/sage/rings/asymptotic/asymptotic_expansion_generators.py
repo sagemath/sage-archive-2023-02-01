@@ -998,18 +998,23 @@ class AsymptoticExpansionGenerators(SageObject):
         Return the singular expansion for a function `y(z)` defined
         implicitly by `y(z) = z \Phi(y(z))`.
 
+        The function `\Phi` is assumed to be analytic around `0`. Furthermore,
+        `\Phi` is not allowed to be an affine-linear function and we require
+        `\Phi(0) \neq 0`.
+
+        The fundamental constant `\tau` is assumed to be the unique positive
+        solution of `\Phi(\tau) - \Phi'(\tau) = 0`.
+
         INPUT:
 
         - ``var`` -- a string for the variable name.
 
-        - ``phi`` -- the function `\Phi`, which is assumed to be
-          not an affine function, the coefficients of the expansion around
-          `0` need to be non-negative, and it needs to satisfy
-          `\Phi(0) \neq 0`. This is not checked!
+        - ``phi`` -- the function `\Phi`. See the extended description for
+          assumptions on `\Phi`.
 
-        - ``tau`` -- (default: ``None``) the unique positive solution `\tau` of
-          the characteristic equation, `\Phi(\tau) - \tau \Phi'(\tau) = 0`. If ``None``,
-          then `\tau` is tried to be determined automatically.
+        - ``tau`` -- (default: ``None``) the fundamental constant described
+          in the extended description. If ``None``, then `\tau` is tried to
+          be determined automatically.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.

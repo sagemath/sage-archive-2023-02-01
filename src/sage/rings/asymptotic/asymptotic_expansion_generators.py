@@ -1154,6 +1154,91 @@ class AsymptoticExpansionGenerators(SageObject):
 
         return A(tau) + ansatz(prec=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
 
+
+    @staticmethod
+    def ImplicitExpansionPeriodicPart(var, phi, tau=None, period=1, precision=None):
+        r"""
+        Return the singular expansion for the periodic part of a function `y(z)`
+        defined implicitly by `y(z) = z \Phi(y(z))`.
+
+        The function `\Phi` is assumed to be analytic around `0`. Furthermore,
+        `\Phi` is not allowed to be an affine-linear function and we require
+        `\Phi(0) \neq 0`. For an integer `p`, `\Phi` is called `p`-periodic
+        if we have `\Psi(u^p) = \Phi(u)` for a power series `\Psi`
+        where `p` is maximal.
+
+        The fundamental constant `\tau` is assumed to be the unique positive
+        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+
+        If `\Phi` is `p`-periodic, then we have `y(z) = z g(z^p)`. This method
+        returns the singular expansion of `g(z)`.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``phi`` -- the function `\Phi`. See the extended description for
+          assumptions on `\Phi`.
+
+        - ``period`` -- (default: `1`) the period of the function `\Phi`. See
+          the extended description for details.
+
+        - ``tau`` -- (default: ``None``) the fundamental constant described
+          in the extended description. If ``None``, then `\tau` is tried to
+          be determined automatically.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+
+        .. NOTE::
+
+            In the given case, the radius of convergence of the function of
+            interest is known to be `\rho = \tau/\Phi(\tau)`. For technical
+            reasons, the variable in the returned asymptotic expansion
+            represents a singular element of the form `(1 - z/\rho)^{-1}`,
+            for the variable `z\to\rho`.
+
+
+        EXAMPLES:
+
+        The generating function enumerating binary trees with respect to
+        tree size satisfies `B(z) = z (1 + B(z)^2)`. This function can be
+        written as `B(z) = z g(z^2)`, and as `B(z)` can be determined
+        explicitly we have `g(z) = \frac{1 - \sqrt{1 - 4z}{2z}}`. We
+        compare the corresponding expansions::
+
+            sage: asymptotic_expansions.ImplicitExpansionPeriodicPart('Z', phi=lambda u: 1 + u^2,
+            ....:                                                     period=2, precision=7)
+            2 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2) - 2*Z^(-5/2) + O(Z^(-3))
+            sage: def g(z):
+            ....:     return (1 - sqrt(1 - 4*z))/(2*z)
+            sage: A.<Z> = AsymptoticRing('Z^QQ', QQ, default_prec=3)
+            sage: g((1 - 1/Z)/4)
+            2 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2) - 2*Z^(-5/2) + O(Z^(-3))
+
+        """
+        from sage.symbolic.ring import SR
+        u = SR('u')
+
+        if tau is None:
+            tau = _fundamental_constant_(phi=phi)
+
+        tau_p = tau**period
+        aperiodic_expansion = asymptotic_expansions.ImplicitExpansion(var,
+                                            phi=lambda u: phi(u**(1/period))**period,
+                                            tau=tau_p, precision=precision)
+
+        rho = tau/phi(tau)
+        Z = aperiodic_expansion.parent().gen()
+        return 1/rho * (aperiodic_expansion/(1 - 1/Z))**(1/period)
+
+
 def _fundamental_constant_(phi):
     r"""
     Return the fundamental constant `\tau` occurring in the analysis of

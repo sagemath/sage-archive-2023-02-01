@@ -304,35 +304,54 @@ class GrowthDiagram(SageObject):
     The base class all variants of growth diagrams inherit from.
 
     Inheriting classes should provide an ``__init__`` method that
-    checks that ``labels``, when provided, are of the correct
-    type, and sets the following attributes:
+    checks that ``labels``, when provided, are of the correct type.
+    Finally, it should then call the ``__init__`` method of this
+    class.
 
-    - ``self._zero``, the zero element of the vertices of the
-      graphs.
+    Inheriting classes should also provide the following attributes:
 
-    - ``self._r`` (default: ``1``), the parameter in the equation
+    - ``_zero``, the zero element of the vertices of the graphs.
+
+    - ``_r`` (default: ``1``), the parameter in the equation
       `DU-UD=rI`.
 
-    - ``self.rank_function``, the rank function of the dual
-      graded graphs.
-
-    - ``self._has_multiple_edges`` (default: ``False``), if the dual
+    - ``_has_multiple_edges`` (default: ``False``), if the dual
       graded graph has multiple edges and therefore edges are triples
       consisting of two vertices and a label.
 
-    - ``self._zero_edge`` (default: ``0``), the zero label of the
-      edges of the graphs.
+    - ``_zero_edge`` (default: ``0``), the zero label of the edges of
+      the graphs used for degenerate edges.  It is allowed to use
+      this label also for other edges.
 
-    - ``self.is_Q_edge``, ``self.is_P_edge`` (default: always
-      ``True``, resp. ``[self._zero_edge]``), functions that take two
-      vertices as arguments and return ``True`` or ``False``, or, if
-      multiple edges are allowed, the list of edge labels of the
-      edges from the second to the first in the respective graded
-      graph.  These are only used for checking user input and
-      providing the dual graded graph, and are therefore not
-      mandatory.
+    Finally, inheriting classes should provide the following methods:
 
-    It should then call the ``__init__`` method of this class.
+    - ``vertices``, a function that takes a nonnegative integer
+      as input and returns the list of vertices on this rank.
+
+    - ``rank_function``, the rank function of the dual graded graphs.
+
+    - ``forward_rule``, a function with input ``(y, t, x, content)``
+      or ``(y, e, t, f, x, content)`` if ``_has_multiple_edges`` is
+      ``True``.  ``(y, e, t)`` is an edge in the graph `P`, ``(t, f,
+      x)`` an edge in the graph ``Q``.  It should return the fourth
+      vertex ``z``, or, if ``_has_multiple_edges`` is ``True``, the
+      path ``(g, z, h)`` from ``y`` to ``x``.
+
+    - ``backward_rule``, a function with input ``(y, z, x)`` or ``(y,
+      g, z, h, x)`` if ``_has_multiple_edges`` is ``True``.  ``(y, g,
+      z)`` is an edge in the graph `Q`, ``(z, h, x)`` an edge in the
+      graph ``P``.  It should return the fourth vertex and the
+      content ``(t, content)``, or, if ``_has_multiple_edges`` is
+      ``True``, the path from ``y`` to ``x`` and the content as ``(e,
+      t, f, content)``.
+
+    - ``is_P_edge``, ``is_Q_edge`` (default: always ``True``,
+      resp. ``[self._zero_edge]``), functions that take two vertices
+      as arguments and return ``True`` or ``False``, or, if multiple
+      edges are allowed, the list of edge labels of the edges from
+      the first vertex to the second in the respective graded graph.
+      These are only used for checking user input and providing the
+      dual graded graph, and are therefore not mandatory.
 
     EXAMPLES::
 

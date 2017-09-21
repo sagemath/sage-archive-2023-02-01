@@ -4211,17 +4211,6 @@ class Partition(CombinatorialElement):
         """
         return Partition(self.k_skew(k).conjugate().row_lengths())
 
-#    def parent(self):
-#        """
-#        Returns the combinatorial class of partitions of ``sum(self)``.
-#
-#        EXAMPLES::
-#
-#            sage: Partition([3,2,1]).parent()
-#            Partitions of the integer 6
-#        """
-#        return Partitions(sum(self[:]))
-
     def arms_legs_coeff(self, i, j):
         r"""
         This is a statistic on a cell `c = (i,j)` in the diagram of partition

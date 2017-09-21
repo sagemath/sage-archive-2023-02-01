@@ -1040,6 +1040,17 @@ class AsymptoticExpansionGenerators(SageObject):
             1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
 
+        TESTS::
+
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + 42*u, precision=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The function phi does not satisfy the requirements
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 42*u + u^2, precision=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The function phi does not satisfy the requirements
+
         """
         from sage.symbolic.ring import SR
         from sage.rings.rational_field import QQ
@@ -1048,7 +1059,7 @@ class AsymptoticExpansionGenerators(SageObject):
         y, u = SR('y'), SR('u')
         one_half = QQ(1)/2
 
-        if phi(0).is_zero() or phi(u) == phi(0) + u*phi(u).diff(u)(u=0):
+        if phi(QQ(0)).is_zero() or phi(u) == phi(0) + u*phi(u).diff(u)(u=0):
             raise ValueError('The function phi does not satisfy the requirements')
 
         if tau is None:

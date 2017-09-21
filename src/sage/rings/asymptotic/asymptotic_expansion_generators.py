@@ -993,7 +993,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
-    def ImplicitExpansion(var, phi, period=1, tau=None, precision=None):
+    def ImplicitExpansion(var, phi, tau=None, precision=None):
         r"""
         Return the singular expansion for a function `y(z)` defined
         implicitly by `y(z) = z \Phi(y(z))`.
@@ -1006,10 +1006,6 @@ class AsymptoticExpansionGenerators(SageObject):
           not an affine function, the coefficients of the expansion around
           `0` need to be non-negative, and it needs to satisfy
           `\Phi(0) \neq 0`. This is not checked!
-
-        - ``period`` -- (default: 1) the period `p` of the function `\Phi`, i.e., the largest
-          integer `p` such that the power series `\Phi(u)` can be written as `\Psi(u^p)`,
-          where `\Psi` is another power series.
 
         - ``tau`` -- (default: ``None``) the unique positive solution `\tau` of
           the characteristic equation, `\Phi(\tau) - \tau \Phi'(\tau) = 0`. If ``None``,
@@ -1039,21 +1035,7 @@ class AsymptoticExpansionGenerators(SageObject):
             1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
 
-        ::
-
-            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + u^2,
-            ....:    period=2, precision=8)
-            1 - Z^(-1/2) + 1/2*Z^(-1) - 1/2*Z^(-3/2) + 3/8*Z^(-2) -
-            3/8*Z^(-5/2) + 5/16*Z^(-3) + O(Z^(-7/2))
-
         """
-        if period > 1:
-            tau_p = None if tau is None else tau**period
-            aperiodic_result = asymptotic_expansions.ImplicitExpansion(var,
-                                                phi=lambda u: phi(u**(1/period))**period,
-                                                period=1, tau=tau_p, precision=precision)
-            return (aperiodic_result)**(1/period)
-
         from sage.symbolic.ring import SR
         from sage.rings.rational_field import QQ
         from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing

@@ -1080,10 +1080,10 @@ class AsymptoticExpansionGenerators(SageObject):
         satisfies the requirements. Only the first of the following
         expansions is correct::
 
-            sage: asymptotic_expansion.ImplicitExpansion('Z',
+            sage: asymptotic_expansions.ImplicitExpansion('Z',
             ....:     phi=lambda u: 1 + 2*u + u^2, precision=5) # correct expansion
             1 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + O(Z^(-2))
-            sage: asymptotic_expansion.ImplicitExpansion('Z', phi=lambda u: 1 + 2*u + u^2, tau=2, precision=5)
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + 2*u + u^2, tau=2, precision=5)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Symbolic division by zero

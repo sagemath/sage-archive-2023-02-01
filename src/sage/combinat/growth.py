@@ -14,6 +14,9 @@ AUTHORS:
     - implement backward rules for :class:`GrowthDiagramDomino`
     - implement backward rule from [LLMSSZ2013]_, [LS2007]_
 
+A guided tour
+-------------
+
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
 generalisation of the Robinson-Schensted-Knuth correspondence between
 matrices with non-negative integer entries and pairs of semistandard
@@ -129,6 +132,155 @@ correspondence producing binary words originally due to Viennot
 domino tableaux (:class:`GrowthDiagramDomino`) originally due to
 Barbasch and Vogan.
 
+Background
+----------
+
+At the heart of Fomin's framework is the notion of dual graded
+graphs.  This is a pair of digraphs `P, Q`, multiple edges being
+allowed, on the same set of vertices `V`, that satisfy the following
+conditions:
+
+* the graphs are graded, that is, there is a function `\rho:
+  V\to\\N`, such that for any edge `(v, w)` of `P` and also of `Q` we
+  have `\rho(w) = \rho(v) + 1`,
+
+* there is a vertex `0` with rank zero, and
+
+* there is a positive integer `r` such that `DU = UD + rI`, where `D`
+  is the down operator of `Q`, assigning each vertex its predecessor,
+  `U` is the up operator of `P`, assigning each vertex its
+  successors, and `I` is the identity operator.
+
+For example, taking for both `P` and `Q` Young's lattice, and `r=1`,
+we obtain the dual graded graphs for classical Schensted insertion.
+
+Given such a pair of graphs, there is a bijection between the
+`r`-colored permutations on `k` letters and pairs `(p,q)`, where `p`
+is a path in `P` from zero to a vertex of rank `k`, and `q` is a path
+in `Q` from zero to the same vertex.
+
+It turns out that - in principle - this bijection can always be
+described by so called local forward and backward rules, see
+[Fom1995]_ for a detailed description.  Knowing at least the forward
+rules, or the backward rules, you can implement your own growth
+diagram class.
+
+Implementing your own growth diagrams
+-------------------------------------
+
+The class :class:`GrowthDiagram` is written so that it is easy to
+implement growth diagrams you come across in your research.  In
+particular, even with very limited knowledge, the framework provided
+here may be useful.  Moreover, the class tolerates some deviations
+from Fomin's definitions.  For example, although the general
+Robinson-Schensted-Knuth correspondence, strictly speaking, does not
+arise from dual graded graphs, it is supported by our framework.
+
+For illustration, let us implement a growth diagram class with the
+backward rule only.  Suppose that the vertices of the graph are the
+nonnegative integers, the rank is given by the integer itself, and
+the backward rule is `(y, z, x) \mapsto (min(x,y), 0)` if `y=z` or
+`x=z` and `(y, z, x) \mapsto (min(x,y), 1)` otherwise::
+
+Let us start with nothing::
+
+    sage: from sage.combinat.growth import GrowthDiagram
+    sage: class GrowthPascal(GrowthDiagram):
+    ....:     pass
+
+The documentation of our new class, accessible using
+``GrowthPascal?``, now provides some hints what has to be supplied.
+
+So let's implement a few things:
+
+    sage: class GrowthPascal(GrowthDiagram):
+    ....:     _zero = 0
+    ....:     _rank_function = lambda self, x: x
+    ....:     _backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
+
+We can now compute the filling corresponding to a sequence of labels
+as follows::
+
+    sage: GrowthPascal(labels=[0,1,2,1,2,1,0])
+    1  0  0
+    0  0  1
+    0  1
+
+Of course, since we have not provided the forward rule, we cannot
+compute the labels belonging to a filling::
+
+    sage: GrowthPascal([3,1,2])
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'GrowthPascal' object has no attribute '_forward_rule'
+
+Let us first provide the dual graded graphs::
+
+    sage: GrowthPascal.vertices = staticmethod(lambda n: [n])
+    sage: GrowthPascal._is_P_edge = staticmethod(lambda v, w: v == w+1)
+    sage: GrowthPascal._is_Q_edge = staticmethod(lambda v, w: v == w+1)
+
+Are they really dual?::
+
+    sage: GrowthPascal._check_duality(3)
+    Traceback (most recent call last):
+    ...
+    AssertionError: D U - U D differs from 1 I for vertex 3!
+
+Oh no!  Well, we need multiple edges here.  The color
+``self._zero_edge``, which defaults to ``0`` is reserved for
+degenerate edges, and, in case one of the graphs has no multiple
+edges, for these::
+
+    sage: GrowthPascal._has_multiple_edges = True
+    sage: GrowthPascal._is_P_edge = staticmethod(lambda v, w: [0] if v == w+1 else [])
+    sage: GrowthPascal._is_Q_edge = staticmethod(lambda v, w: list(range(1,v+1)) if v == w+1 else [])
+
+These are dual::
+
+    sage: GrowthPascal._check_duality(5)
+
+No result, so the first few levels of the graphs are really dual.
+Unfortunately, our backward rule can no longer work.  Let's provide
+the real one - note that the arguments of the rule are vertices
+together with the edge labels now.  The horizontal edges come from
+`Q`, whereas the vertical edges come from `P`.  Here is a template for the docstring::
+
+    INPUT:
+    - ``y, g, z, h, x`` -- a path of three partitions and two
+      colors from a cell in a growth diagram, labelled as::
+             x
+             h
+         y g z
+    OUTPUT:
+    A tuple ``(e, t, f, content)`` consisting of the shape ``t``
+    of the fourth word, the colours of the incident edges and the
+    content of the cell.
+
+Thus, the definition in section 4.7 of [Fom1995]_ translates as
+follows::
+
+    sage: def backward_rule(y, g, z, h, x):
+    ....:     if z == y:
+    ....:         return (0, x, 0, 0)
+    ....:     if z == x:
+    ....:         return (0, y, g, 0)
+    ....:     if g == 1:
+    ....:         return (0, y, 0, 1)
+    ....:     else:
+    ....:         return (0, x-1, g-1, 0)
+    ....:
+    sage: GrowthPascal._backward_rule = staticmethod(backward_rule)
+
+The labels are now alternating between vertices and edge-colors::
+
+    sage: GrowthPascal(labels=[0,1,1,1,2,0,1,0,0])
+    1  0
+    0  1
+
+    sage: GrowthPascal(labels=[0,1,1,2,2,0,1,0,0])
+    0  1
+    1  0
 """
 from sage.structure.sage_object import SageObject
 from sage.combinat.posets.posets import Poset
@@ -315,6 +467,7 @@ class GrowthDiagram(SageObject):
             ....:     _zero = 0
             ....:     _rank_function = lambda self,x: x
             ....:     _backward_rule = lambda self,y,z,x: (min(x,y), 0 if y==z or x==z else 1)
+
             sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
             1  0  0
             0  0  1
@@ -347,6 +500,7 @@ class GrowthDiagram(SageObject):
             ....:     _zero = 0
             ....:     _rank_function = lambda self,x: x
             ....:     _backward_rule = lambda self,y,z,x: (min(x,y), 0 if y==z or x==z else 1)
+
             sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
             1  0  0
             0  0  1
@@ -394,6 +548,9 @@ class GrowthDiagram(SageObject):
         r"""
         Return the first n levels of the first dual graded graph.
 
+        The non-degenerate edges in the vertical direction come from
+        this graph.
+
         EXAMPLES::
 
             sage: GrowthDiagramDomino.P_graph(3)
@@ -404,7 +561,8 @@ class GrowthDiagram(SageObject):
                          for x in cls.vertices(k)
                          for y in cls.vertices(k+1)
                          for e in cls._is_P_edge(y, x)], multiedges=True)
-            D.layout_default = D.layout_acyclic
+            # unfortunately, layout_acyclic will not show multiple edges
+            # D.layout_default = D.layout_acyclic
             return D
         else:
             return Poset(([w for k in range(n) for w in cls.vertices(k)],
@@ -416,6 +574,9 @@ class GrowthDiagram(SageObject):
         r"""
         Return the first n levels of the second dual graded graph.
 
+        The non-degenerate edges in the horizontal direction come
+        from this graph.
+
         EXAMPLES::
 
             sage: GrowthDiagramDomino.Q_graph(3)
@@ -426,7 +587,8 @@ class GrowthDiagram(SageObject):
                             for x in cls.vertices(k)
                             for y in cls.vertices(k+1)
                             for e in cls._is_Q_edge(y, x)], multiedges=True)
-            D.layout_default = D.layout_acyclic
+            # unfortunately, layout_acyclic will not show multiple edges
+            # D.layout_default = D.layout_acyclic
             return D
         else:
             return Poset(([w for k in range(n) for w in cls.vertices(k)],

@@ -1034,11 +1034,55 @@ class AsymptoticExpansionGenerators(SageObject):
             for the variable `z\to\rho`.
 
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We can, for example, determine the singular expansion of the well-known
+        tree function `T` (which satisfies `T(z) = z \exp(T(z))`)::
 
             sage: asymptotic_expansions.ImplicitExpansion('Z', phi=exp, precision=8)
             1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
+
+        Another classical example in this context is the generating function `B(z)`
+        enumerating binary trees with respect to the number of inner nodes. The
+        function satisfies `B(z) = z (1 + 2B(z) + B(z)^2)`, which can also be
+        solved explicitly, yielding `B(z) = \frac{1 - \sqrt{1 - 4z}}{2z} - 1`. We
+        compare the expansions from both approaches::
+
+            sage: def B(z):
+            ....:     return (1 - sqrt(1 - 4*z))/(2*z) - 1
+            sage: A.<Z> = AsymptoticRing('Z^QQ', QQ, default_prec=3)
+            sage: B((1-1/Z)/4)
+            1 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2)
+            - 2*Z^(-5/2) + O(Z^(-3))
+            sage: asymptotic_expansions.ImplicitExpansion(Z, phi=lambda u: 1 + 2*u + u^2, precision=7)
+            1 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2)
+            - 2*Z^(-5/2) + O(Z^(-3))
+
+        Neither `\tau` nor `\Phi` have to be known explicitly, they can
+        also be passed symbolically::
+
+            sage: tau = var('tau')
+            sage: phi = function('phi')
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=phi, tau=tau, precision=3)  # long time
+            tau + (-sqrt(2)*sqrt(-tau*phi(tau)^2/(2*tau*diff(phi(tau), tau)^2
+            - tau*phi(tau)*diff(phi(tau), tau, tau)
+            - 2*phi(tau)*diff(phi(tau), tau))))*Z^(-1/2) + O(Z^(-1))
+
+        Note that we do not check whether a passed `\tau` actually
+        satisfies the requirements. Only the first of the following
+        expansions is correct::
+
+            sage: asymptotic_expansion.ImplicitExpansion('Z',
+            ....:     phi=lambda u: 1 + 2*u + u^2, precision=5) # correct expansion
+            1 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + O(Z^(-2))
+            sage: asymptotic_expansion.ImplicitExpansion('Z', phi=lambda u: 1 + 2*u + u^2, tau=2, precision=5)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Symbolic division by zero
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + 2*u + u^2, tau=3, precision=5)
+            3 - 4*I*sqrt(3)*Z^(-1/2) + 6*I*sqrt(3)*Z^(-3/2) + O(Z^(-2))
+
 
         TESTS::
 

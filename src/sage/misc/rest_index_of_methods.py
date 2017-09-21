@@ -295,7 +295,7 @@ def gen_thematic_rest_table_index(root,additional_categories=None,only_local_fun
                                                     "Unsorted")
             except AttributeError:
                 doc_ind = "Unsorted"
-            theme_to_function[doc_ind].append(f)
+        theme_to_function[doc_ind].append(f)
     s = ["**"+theme+"**\n\n"+gen_rest_table_index(list_of_functions,names=names)
          for theme, list_of_functions in sorted(theme_to_function.items())]
     return "\n\n".join(s)

@@ -180,7 +180,7 @@ For illustration, let us implement a growth diagram class with the
 backward rule only.  Suppose that the vertices of the graph are the
 nonnegative integers, the rank is given by the integer itself, and
 the backward rule is `(y, z, x) \mapsto (min(x,y), 0)` if `y=z` or
-`x=z` and `(y, z, x) \mapsto (min(x,y), 1)` otherwise::
+`x=z` and `(y, z, x) \mapsto (min(x,y), 1)` otherwise.
 
 Let us start with nothing::
 
@@ -195,8 +195,8 @@ So let's implement a few things:
 
     sage: class GrowthPascal(GrowthDiagram):
     ....:     _zero = 0
-    ....:     _rank_function = lambda self, x: x
-    ....:     _backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
+    ....:     rank_function = lambda self, x: x
+    ....:     backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
 
 We can now compute the filling corresponding to a sequence of labels
 as follows::
@@ -212,13 +212,13 @@ compute the labels belonging to a filling::
     sage: GrowthPascal([3,1,2])
     Traceback (most recent call last):
     ...
-    AttributeError: 'GrowthPascal' object has no attribute '_forward_rule'
+    AttributeError: 'GrowthPascal' object has no attribute 'forward_rule'
 
 Let us first provide the dual graded graphs::
 
     sage: GrowthPascal.vertices = staticmethod(lambda n: [n])
-    sage: GrowthPascal._is_P_edge = staticmethod(lambda v, w: v == w+1)
-    sage: GrowthPascal._is_Q_edge = staticmethod(lambda v, w: v == w+1)
+    sage: GrowthPascal.is_P_edge = staticmethod(lambda v, w: w == v+1)
+    sage: GrowthPascal.is_Q_edge = staticmethod(lambda v, w: w == v+1)
 
 Are they really dual?::
 
@@ -233,8 +233,8 @@ degenerate edges, and, in case one of the graphs has no multiple
 edges, for these::
 
     sage: GrowthPascal._has_multiple_edges = True
-    sage: GrowthPascal._is_P_edge = staticmethod(lambda v, w: [0] if v == w+1 else [])
-    sage: GrowthPascal._is_Q_edge = staticmethod(lambda v, w: list(range(1,v+1)) if v == w+1 else [])
+    sage: GrowthPascal.is_P_edge = staticmethod(lambda v, w: [0] if w == v+1 else [])
+    sage: GrowthPascal.is_Q_edge = staticmethod(lambda v, w: list(range(1,w+1)) if w == v+1 else [])
 
 These are dual::
 
@@ -270,7 +270,7 @@ follows::
     ....:     else:
     ....:         return (0, x-1, g-1, 0)
     ....:
-    sage: GrowthPascal._backward_rule = staticmethod(backward_rule)
+    sage: GrowthPascal.backward_rule = staticmethod(backward_rule)
 
 The labels are now alternating between vertices and edge-colors::
 
@@ -313,7 +313,7 @@ class GrowthDiagram(SageObject):
     - ``self._r`` (default: ``1``), the parameter in the equation
       `DU-UD=rI`.
 
-    - ``self._rank_function``, the rank function of the dual
+    - ``self.rank_function``, the rank function of the dual
       graded graphs.
 
     - ``self._has_multiple_edges`` (default: ``False``), if the dual
@@ -323,7 +323,7 @@ class GrowthDiagram(SageObject):
     - ``self._zero_edge`` (default: ``0``), the zero label of the
       edges of the graphs.
 
-    - ``self._is_Q_edge``, ``self._is_P_edge`` (default: always
+    - ``self.is_Q_edge``, ``self.is_P_edge`` (default: always
       ``True``, resp. ``[self._zero_edge]``), functions that take two
       vertices as arguments and return ``True`` or ``False``, or, if
       multiple edges are allowed, the list of edge labels of the
@@ -448,14 +448,14 @@ class GrowthDiagram(SageObject):
     _zero_edge = 0              # override when necessary
     _r = 1                      # override when necessary
     @classmethod
-    def _is_P_edge(cls, a, b):
+    def is_P_edge(cls, v, w):
         """
         Return ``True`` (or the list of edge colors) if there is an
-        oriented edge from ``a`` to ``b`` in the first dual graded
+        oriented edge from ``v`` to ``w`` in the first dual graded
         graph.
 
-        The edges are oriented from the elements with larger rank
-        towards those with smaller rank.
+        The edges are oriented from the elements with smaller rank
+        towards those with larger rank.
 
         This is a default implementation to make
         :meth:`_shape_from_labels` work.
@@ -465,8 +465,8 @@ class GrowthDiagram(SageObject):
             sage: from sage.combinat.growth import GrowthDiagram
             sage: class GrowthMinimal(GrowthDiagram):
             ....:     _zero = 0
-            ....:     _rank_function = lambda self,x: x
-            ....:     _backward_rule = lambda self,y,z,x: (min(x,y), 0 if y==z or x==z else 1)
+            ....:     rank_function = lambda self, x: x
+            ....:     backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
 
             sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
             1  0  0
@@ -480,14 +480,14 @@ class GrowthDiagram(SageObject):
             return True
 
     @classmethod
-    def _is_Q_edge(cls, a, b):
+    def is_Q_edge(cls, v, w):
         """
         Return ``True`` (or the list of edge colors) if there is an
-        oriented edge from ``a`` to ``b`` in the second dual graded
+        oriented edge from ``v`` to ``w`` in the second dual graded
         graph.
 
-        The edges are oriented from the elements with larger rank
-        towards those with smaller rank.
+        The edges are oriented from the elements with smaller rank
+        towards those with larger rank.
 
         This is a default implementation which always returns
         ``True`` (respectively, the list with color zero) to make
@@ -498,8 +498,8 @@ class GrowthDiagram(SageObject):
             sage: from sage.combinat.growth import GrowthDiagram
             sage: class GrowthMinimal(GrowthDiagram):
             ....:     _zero = 0
-            ....:     _rank_function = lambda self,x: x
-            ....:     _backward_rule = lambda self,y,z,x: (min(x,y), 0 if y==z or x==z else 1)
+            ....:     rank_function = lambda self, x: x
+            ....:     backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
 
             sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
             1  0  0
@@ -560,13 +560,13 @@ class GrowthDiagram(SageObject):
             D = DiGraph([(x,y,e) for k in range(n-1)
                          for x in cls.vertices(k)
                          for y in cls.vertices(k+1)
-                         for e in cls._is_P_edge(y, x)], multiedges=True)
+                         for e in cls.is_P_edge(x, y)], multiedges=True)
             # unfortunately, layout_acyclic will not show multiple edges
             # D.layout_default = D.layout_acyclic
             return D
         else:
             return Poset(([w for k in range(n) for w in cls.vertices(k)],
-                          lambda x,y: cls._is_P_edge(y, x)),
+                          lambda x, y: cls.is_P_edge(x, y)),
                          cover_relations=True)
 
     @classmethod
@@ -579,20 +579,23 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: GrowthDiagramDomino.Q_graph(3)
+            sage: Q = GrowthDiagramDomino.Q_graph(3); Q
             Finite poset containing 8 elements
+
+            sage: Q.upper_covers(Partition([1,1]))
+            [[1, 1, 1, 1], [3, 1], [2, 2]]
         """
         if cls._has_multiple_edges:
             D = DiGraph([(x,y,e) for k in range(n-1)
                             for x in cls.vertices(k)
                             for y in cls.vertices(k+1)
-                            for e in cls._is_Q_edge(y, x)], multiedges=True)
+                            for e in cls.is_Q_edge(x, y)], multiedges=True)
             # unfortunately, layout_acyclic will not show multiple edges
             # D.layout_default = D.layout_acyclic
             return D
         else:
             return Poset(([w for k in range(n) for w in cls.vertices(k)],
-                          lambda x,y: cls._is_Q_edge(y, x)),
+                          lambda x,y: cls.is_Q_edge(x, y)),
                          cover_relations=True)
 
     def filling(self):
@@ -927,7 +930,7 @@ class GrowthDiagram(SageObject):
         """
         return not self == other
 
-    def _half_perimeter(self):
+    def half_perimeter(self):
         r"""
         Return half the perimeter of the shape of the growth diagram.
 
@@ -938,7 +941,7 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagramRSK({(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
             .  0  1
             1
-            sage: G._half_perimeter()
+            sage: G.half_perimeter()
             6
 
         """
@@ -955,7 +958,7 @@ class GrowthDiagram(SageObject):
         The shape can be determined from the labels if the size of
         each label differs from the size of its successor.
 
-        Assumes that ``self._rank_function`` is set.
+        Assumes that ``self.rank_function`` is set.
 
         Otherwise raise an error.
 
@@ -972,22 +975,22 @@ class GrowthDiagram(SageObject):
         """
         if self._has_multiple_edges:
             def right_left(la, mu, e):
-                if self._rank_function(la) < self._rank_function(mu):
-                    assert e in self._is_Q_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in Q!" %(la, mu, e)
+                if self.rank_function(la) < self.rank_function(mu):
+                    assert e in self.is_Q_edge(la, mu), "%s has smaller rank than %s but there is no edge of color %s in Q!" %(la, mu, e)
                     return 1
-                elif self._rank_function(la) > self._rank_function(mu):
-                    assert e in self._is_P_edge(la, mu), "%s has smaller rank than %s but there is no edge of color %s in in P!" %(mu, la, e)
+                elif self.rank_function(la) > self.rank_function(mu):
+                    assert e in self.is_P_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in in P!" %(mu, la, e)
                     return 0
                 else:
                     raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
             return Partitions().from_zero_one([right_left(labels[i], labels[i+2], labels[i+1]) for i in range(0, len(labels)-2, 2)])
         else:
             def right_left(la, mu):
-                if self._rank_function(la) < self._rank_function(mu):
-                    assert self._is_Q_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
+                if self.rank_function(la) < self.rank_function(mu):
+                    assert self.is_Q_edge(la, mu), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
                     return 1
-                elif self._rank_function(la) > self._rank_function(mu):
-                    assert self._is_P_edge(la, mu), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
+                elif self.rank_function(la) > self.rank_function(mu):
+                    assert self.is_P_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
                     return 0
                 else:
                     raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
@@ -1015,7 +1018,7 @@ class GrowthDiagram(SageObject):
 
             Can we do something more sensible when the chain of labels is strictly increasing?
         """
-        half_perimeter = self._half_perimeter()
+        half_perimeter = self.half_perimeter()
         if self._has_multiple_edges:
             assert is_odd(len(labels)), "Only a list of odd length can specify a path, but %s has even length."%s
             path_length = (len(labels)+1)/2
@@ -1054,9 +1057,9 @@ class GrowthDiagram(SageObject):
         """
         if labels is None:
             if self._has_multiple_edges:
-                return [self._zero, self._zero_edge]*(self._half_perimeter()-1) + [self._zero]
+                return [self._zero, self._zero_edge]*(self.half_perimeter()-1) + [self._zero]
             else:
-                return [self._zero]*(self._half_perimeter())
+                return [self._zero]*(self.half_perimeter())
         else:
             return labels
 
@@ -1263,7 +1266,7 @@ class GrowthDiagram(SageObject):
                     i = c-l+r
                     (labels[2*c-1],
                      labels[2*c],
-                     labels[2*c+1]) = self._forward_rule(labels[2*c-2],
+                     labels[2*c+1]) = self.forward_rule(labels[2*c-2],
                                                          labels[2*c-1],
                                                          labels[2*c],
                                                          labels[2*c+1],
@@ -1274,7 +1277,7 @@ class GrowthDiagram(SageObject):
                 for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
                     j = r
                     i = c-l+r
-                    labels[c] = self._forward_rule(labels[c-1],
+                    labels[c] = self.forward_rule(labels[c-1],
                                                    labels[c],
                                                    labels[c+1],
                                                    self._filling.get((i,j), 0))
@@ -1347,7 +1350,7 @@ class GrowthDiagram(SageObject):
                     i = c-r-1
                     (labels[2*c-1],
                      labels[2*c],
-                     labels[2*c+1], v) = self._backward_rule(labels[2*c-2],
+                     labels[2*c+1], v) = self.backward_rule(labels[2*c-2],
                                                              labels[2*c-1],
                                                              labels[2*c],
                                                              labels[2*c+1],
@@ -1360,7 +1363,7 @@ class GrowthDiagram(SageObject):
                 for c in range(self._lambda[l-r-1]+r, self._mu[l-r-1]+r, -1):
                     j = l-r-1
                     i = c-r-1
-                    labels[c], v = self._backward_rule(labels[c-1],
+                    labels[c], v = self.backward_rule(labels[c-1],
                                                        labels[c],
                                                        labels[c+1])
                     if v != 0:
@@ -1392,8 +1395,8 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         sage: G.Q_chain()
         [[], 1, [1], 2, [2], 1, [2, 1], 3, [3, 1], 2, [4, 1], 3, [4, 2], 3, [5, 2]]
 
-    .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
+    .. automethod:: forward_rule
+    .. automethod:: backward_rule
 
     TESTS::
 
@@ -1443,22 +1446,22 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             return Partitions(n, max_slope=-1)
 
     @staticmethod
-    def _rank_function(w):
+    def rank_function(w):
         """
         Return the size of the shifted partition.
 
         EXAMPLES::
 
             sage: G = GrowthDiagramShiftedShapes
-            sage: G._rank_function(G.vertices(3)[0])
+            sage: G.rank_function(G.vertices(3)[0])
             3
         """
         return w.size()
 
     @staticmethod
-    def _is_Q_edge(w, v):
+    def is_Q_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``w`` is obtained from ``v`` by adding a
+        ``(v, w)`` is an edge if ``w`` is obtained from ``v`` by adding a
         cell.  It is a black (color 1) edge, if the cell is on the
         diagonal, otherwise it can be blue or red (color 2 or 3).
 
@@ -1467,7 +1470,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             sage: G = GrowthDiagramShiftedShapes
             sage: v = G.vertices(2)[0]; v
             [2]
-            sage: [(w, G._is_Q_edge(w, v)) for w in G.vertices(3)]
+            sage: [(w, G.is_Q_edge(v, w)) for w in G.vertices(3)]
             [([3], [2, 3]), ([2, 1], [1])]
         """
         try:
@@ -1481,22 +1484,22 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
                 return [2,3] # blue, red
 
     @staticmethod
-    def _is_P_edge(w, v):
+    def is_P_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``w`` contains ``v``.
+        ``(v, w)`` is an edge if ``w`` contains ``v``.
 
         TESTS::
 
             sage: G = GrowthDiagramShiftedShapes
             sage: v = G.vertices(2)[0]; v
             [2]
-            sage: [w for w in G.vertices(3) if G._is_P_edge(w, v)]
+            sage: [w for w in G.vertices(3) if G.is_P_edge(v, w)]
             [[3], [2, 1]]
         """
         return [0] if w.contains(v) else []
 
     @staticmethod
-    def _forward_rule(y, e, t, f, x, content):
+    def forward_rule(y, e, t, f, x, content):
         r"""
         Return the output path given two incident edges and the content.
 
@@ -1521,32 +1524,32 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         TESTS::
 
             sage: G = GrowthDiagramShiftedShapes
-            sage: G._forward_rule([], 0, [], 0, [], 1)
+            sage: G.forward_rule([], 0, [], 0, [], 1)
             (1, [1], 0)
 
-            sage: G._forward_rule([1], 0, [1], 0, [1], 1)
+            sage: G.forward_rule([1], 0, [1], 0, [1], 1)
             (2, [2], 0)
 
         if ``x != y``::
 
-            sage: G._forward_rule([3], 0, [2], 1, [2,1], 0)
+            sage: G.forward_rule([3], 0, [2], 1, [2,1], 0)
             (1, [3, 1], 0)
 
-            sage: G._forward_rule([2,1], 0, [2], 2, [3], 0)
+            sage: G.forward_rule([2,1], 0, [2], 2, [3], 0)
             (2, [3, 1], 0)
 
         if ``x == y != t``::
 
-            sage: G._forward_rule([3], 0, [2], 2, [3], 0)
+            sage: G.forward_rule([3], 0, [2], 2, [3], 0)
             (1, [3, 1], 0)
 
-            sage: G._forward_rule([3,1], 0, [2,1], 2, [3,1], 0)
+            sage: G.forward_rule([3,1], 0, [2,1], 2, [3,1], 0)
             (2, [3, 2], 0)
 
-            sage: G._forward_rule([2,1], 0, [2], 1, [2,1], 0)
+            sage: G.forward_rule([2,1], 0, [2], 1, [2,1], 0)
             (3, [3, 1], 0)
 
-            sage: G._forward_rule([3], 0, [2], 3, [3], 0)
+            sage: G.forward_rule([3], 0, [2], 3, [3], 0)
             (3, [4], 0)
 
         """
@@ -1594,7 +1597,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         return g, Partition(z), h
 
     @staticmethod
-    def _backward_rule(y, g, z, h, x):
+    def backward_rule(y, g, z, h, x):
         r"""
         Return the input path and the content given two incident edges.
 
@@ -1618,32 +1621,32 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         TESTS::
 
             sage: G = GrowthDiagramShiftedShapes
-            sage: G._backward_rule([], 1, [1], 0, [])
+            sage: G.backward_rule([], 1, [1], 0, [])
             (0, [], 0, 1)
 
-            sage: G._backward_rule([1], 2, [2], 0, [1])
+            sage: G.backward_rule([1], 2, [2], 0, [1])
             (0, [1], 0, 1)
 
         if ``x != y``::
 
-            sage: G._backward_rule([3], 1, [3, 1], 0, [2,1])
+            sage: G.backward_rule([3], 1, [3, 1], 0, [2,1])
             (0, [2], 1, 0)
 
-            sage: G._backward_rule([2,1], 2, [3, 1], 0, [3])
+            sage: G.backward_rule([2,1], 2, [3, 1], 0, [3])
             (0, [2], 2, 0)
 
         if ``x == y != t``::
 
-            sage: G._backward_rule([3], 1, [3, 1], 0, [3])
+            sage: G.backward_rule([3], 1, [3, 1], 0, [3])
             (0, [2], 2, 0)
 
-            sage: G._backward_rule([3,1], 2, [3, 2], 0, [3,1])
+            sage: G.backward_rule([3,1], 2, [3, 2], 0, [3,1])
             (0, [2, 1], 2, 0)
 
-            sage: G._backward_rule([2,1], 3, [3, 1], 0, [2,1])
+            sage: G.backward_rule([2,1], 3, [3, 1], 0, [2,1])
             (0, [2], 1, 0)
 
-            sage: G._backward_rule([3], 3, [4], 0, [3])
+            sage: G.backward_rule([3], 3, [4], 0, [3])
             (0, [2], 3, 0)
         """
         assert h == 0, "The P-graph should not be colored"
@@ -1739,7 +1742,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         2
         3
 
-    .. automethod:: _forward_rule
+    .. automethod:: forward_rule
 
     TESTS::
 
@@ -1765,14 +1768,14 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
     _has_multiple_edges = True
 
     @staticmethod
-    def _rank_function(w):
+    def rank_function(w):
         """
         Return the length of the core.
 
         EXAMPLES::
 
             sage: G = GrowthDiagramLLMS(3)
-            sage: G._rank_function(G.vertices(3)[0])
+            sage: G.rank_function(G.vertices(3)[0])
             3
         """
         return w.length()
@@ -1790,9 +1793,9 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         return Cores(cls._k, length=n)
 
     @staticmethod
-    def _is_Q_edge(w, v):
+    def is_Q_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``w`` is a weak cover of ``v``, see
+        ``(v, w)`` is an edge if ``w`` is a weak cover of ``v``, see
         :meth:`~sage.combinat.core.Core.weak_covers()`.
 
         TESTS::
@@ -1800,13 +1803,13 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G = GrowthDiagramLLMS(4)
             sage: v = G.vertices(3)[1]; v
             [2, 1]
-            sage: [w for w in G.vertices(4) if len(G._is_Q_edge(w, v)) > 0]
+            sage: [w for w in G.vertices(4) if len(G.is_Q_edge(v, w)) > 0]
             [[2, 2], [3, 1, 1]]
         """
         return [None] if w in v.weak_covers() else []
 
     @staticmethod
-    def _is_P_edge(w, v):
+    def is_P_edge(v, w):
         """
         For two k-cores v and w containing v, there are as many edges as
         there are components in the skew partition w/v.  These
@@ -1818,7 +1821,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G = GrowthDiagramLLMS(4)
             sage: v = G.vertices(2)[0]; v
             [2]
-            sage: [(w, G._is_P_edge(w, v)) for w in G.vertices(3)]
+            sage: [(w, G.is_P_edge(v, w)) for w in G.vertices(3)]
             [([3], [2]), ([2, 1], [-1]), ([1, 1, 1], [])]
         """
         if w in v.strong_covers():
@@ -1866,7 +1869,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         return WeakTableau(SkewTableau(chain = self.Q_chain()[::2]), self._k-1)
 
     @classmethod
-    def _forward_rule(cls, y, e, t, f, x, content):
+    def forward_rule(cls, y, e, t, f, x, content):
         r"""
         Return the output path given two incident edges and the content.
 
@@ -1893,43 +1896,43 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G = GrowthDiagramLLMS(3)
             sage: H = GrowthDiagramLLMS(4)
             sage: Z = G._zero
-            sage: G._forward_rule(Z, None, Z, None, Z, 0)
+            sage: G.forward_rule(Z, None, Z, None, Z, 0)
             (None, [], None)
 
-            sage: G._forward_rule(Z, None, Z, None, Z, 1)
+            sage: G.forward_rule(Z, None, Z, None, Z, 1)
             (None, [1], 0)
 
             sage: Y = Core([3,1,1], 3);
-            sage: G._forward_rule(Y, None, Y, None, Y, 1)
+            sage: G.forward_rule(Y, None, Y, None, Y, 1)
             (None, [4, 2, 1, 1], 3)
 
         if ``x != y``::
 
             sage: Y = Core([1,1], 3); T = Core([1], 3); X = Core([2], 3)
-            sage: G._forward_rule(Y, -1, T, None, X, 0)
+            sage: G.forward_rule(Y, -1, T, None, X, 0)
             (None, [2, 1, 1], -1)
 
             sage: Y = Core([2], 4); T = Core([1], 4); X = Core([1,1], 4)
-            sage: H._forward_rule(Y, 1, T, None, X, 0)
+            sage: H.forward_rule(Y, 1, T, None, X, 0)
             (None, [2, 1], 1)
 
             sage: Y = Core([2,1,1], 3); T = Core([2], 3); X = Core([3,1], 3)
-            sage: G._forward_rule(Y, -1, T, None, X, 0)
+            sage: G.forward_rule(Y, -1, T, None, X, 0)
             (None, [3, 1, 1], -2)
 
 
         if ``x == y != t``::
 
             sage: Y = Core([1], 3); T = Core([], 3); X = Core([1], 3)
-            sage: G._forward_rule(Y, 0, T, None, X, 0)
+            sage: G.forward_rule(Y, 0, T, None, X, 0)
             (None, [1, 1], -1)
 
             sage: Y = Core([1], 4); T = Core([], 4); X = Core([1], 4)
-            sage: H._forward_rule(Y, 0, T, None, X, 0)
+            sage: H.forward_rule(Y, 0, T, None, X, 0)
             (None, [1, 1], -1)
 
             sage: Y = Core([2,1], 4); T = Core([1,1], 4); X = Core([2,1], 4)
-            sage: H._forward_rule(Y, 1, T, None, X, 0)
+            sage: H.forward_rule(Y, 1, T, None, X, 0)
             (None, [2, 2], 0)
 
         """
@@ -2001,8 +2004,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
         sage: pi.descents(from_zero=False)
         [1, 3, 5, 6]
 
-    .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
+    .. automethod:: forward_rule
+    .. automethod:: backward_rule
 
     TESTS::
 
@@ -2069,20 +2072,20 @@ class GrowthDiagramBinWord(GrowthDiagram):
             return [w1+w for w in Words([0,1], n-1)]
 
     @staticmethod
-    def _rank_function(w):
+    def rank_function(w):
         """
         Return the number of letters of the word.
 
         EXAMPLES::
 
             sage: G = GrowthDiagramBinWord
-            sage: G._rank_function(G.vertices(3)[0])
+            sage: G.rank_function(G.vertices(3)[0])
             3
         """
         return len(w)
 
     @staticmethod
-    def _is_Q_edge(w, v):
+    def is_Q_edge(v, w):
         """
         ``(w, v)`` is an edge if ``w`` is obtained from ``v`` by
         appending a letter.
@@ -2092,28 +2095,28 @@ class GrowthDiagramBinWord(GrowthDiagram):
             sage: G = GrowthDiagramBinWord
             sage: v = G.vertices(2)[0]; v
             word: 10
-            sage: [w for w in G.vertices(3) if G._is_Q_edge(w, v)]
+            sage: [w for w in G.vertices(3) if G.is_Q_edge(v, w)]
             [word: 100, word: 101]
         """
         return w[:-1] == v
 
     @staticmethod
-    def _is_P_edge(w, v):
+    def is_P_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``w`` contains ``v`` as a subword.
+        ``(v, w)`` is an edge if ``w`` contains ``v`` as a subword.
 
         TESTS::
 
             sage: G = GrowthDiagramBinWord
             sage: v = G.vertices(2)[1]; v
             word: 11
-            sage: [w for w in G.vertices(3) if G._is_P_edge(w, v)]
+            sage: [w for w in G.vertices(3) if G.is_P_edge(v, w)]
             [word: 101, word: 110, word: 111]
         """
         return len(w) == len(v) + 1 and v.is_subword_of(w)
 
     @staticmethod
-    def _forward_rule(y, t, x, content):
+    def forward_rule(y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -2137,20 +2140,20 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
             sage: G = GrowthDiagramBinWord
 
-            sage: G._forward_rule([], [], [], 1)
+            sage: G.forward_rule([], [], [], 1)
             word: 1
 
-            sage: G._forward_rule([1], [1], [1], 1)
+            sage: G.forward_rule([1], [1], [1], 1)
             word: 11
 
         if ``x != y`` append last letter of ``x`` to ``y``::
 
-            sage: G._forward_rule([1,0], [1], [1,1], 0)
+            sage: G.forward_rule([1,0], [1], [1,1], 0)
             word: 101
 
         if ``x == y != t`` append ``0`` to ``y``::
 
-            sage: G._forward_rule([1,1], [1], [1,1], 0)
+            sage: G.forward_rule([1,1], [1], [1,1], 0)
             word: 110
 
         """
@@ -2177,7 +2180,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
         return z
 
     @staticmethod
-    def _backward_rule(y, z, x):
+    def backward_rule(y, z, x):
         r"""
         Return the content and the input shape.
 
@@ -2237,7 +2240,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
          \     / \
           o   o   o
 
-    .. automethod:: _forward_rule
+    .. automethod:: forward_rule
 
     TESTS::
 
@@ -2304,22 +2307,22 @@ class GrowthDiagramSylvester(GrowthDiagram):
         return BinaryTrees(n)
 
     @staticmethod
-    def _rank_function(w):
+    def rank_function(w):
         """
         Return the number of nodes of the tree.
 
         EXAMPLES::
 
             sage: G = GrowthDiagramSylvester
-            sage: G._rank_function(G.vertices(3)[0])
+            sage: G.rank_function(G.vertices(3)[0])
             3
         """
         return w.node_number()
 
     @staticmethod
-    def _is_Q_edge(w, v):
+    def is_Q_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``v`` is a subtree of ``w``.
+        ``(v, w)`` is an edge if ``v`` is a subtree of ``w``.
 
         TESTS::
 
@@ -2328,7 +2331,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
               o
              /
             o
-            sage: ascii_art([w for w in G.vertices(3) if G._is_Q_edge(w, v)])
+            sage: ascii_art([w for w in G.vertices(3) if G.is_Q_edge(v, w)])
             [   o  ,   o,     o ]
             [  / \    /      /  ]
             [ o   o  o      o   ]
@@ -2348,9 +2351,9 @@ class GrowthDiagramSylvester(GrowthDiagram):
         return is_subtree(v, w)
 
     @staticmethod
-    def _is_P_edge(w, v):
+    def is_P_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``v`` is obtained from ``w`` by deleting
+        ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by deleting
         its right-most node.
 
         TESTS::
@@ -2361,7 +2364,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
              /
             o
 
-            sage: ascii_art([w for w in G.vertices(3) if G._is_P_edge(w, v)])
+            sage: ascii_art([w for w in G.vertices(3) if G.is_P_edge(v, w)])
             [   o  ,     o ]
             [  / \      /  ]
             [ o   o    o   ]
@@ -2404,7 +2407,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
             return BinaryTree([b[0], GrowthDiagramSylvester._delete_right_most_node(b[1])])
 
     @staticmethod
-    def _forward_rule(x, t, y, content):
+    def forward_rule(x, t, y, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -2429,17 +2432,17 @@ class GrowthDiagramSylvester(GrowthDiagram):
             sage: G = GrowthDiagramSylvester
             sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None]); R = B([None,[]]); T = B([[],[]])
 
-            sage: ascii_art(G._forward_rule(E, E, E, 1))
+            sage: ascii_art(G.forward_rule(E, E, E, 1))
             o
-            sage: ascii_art(G._forward_rule(N, N, N, 1))
+            sage: ascii_art(G.forward_rule(N, N, N, 1))
             o
              \
               o
-            sage: ascii_art(G._forward_rule(L, L, L, 1))
+            sage: ascii_art(G.forward_rule(L, L, L, 1))
               o
              / \
             o   o
-            sage: ascii_art(G._forward_rule(R, R, R, 1))
+            sage: ascii_art(G.forward_rule(R, R, R, 1))
             o
              \
               o
@@ -2449,12 +2452,12 @@ class GrowthDiagramSylvester(GrowthDiagram):
         if ``x != y``, obtain ``z`` from ``x`` adding a node such
         that deleting the right most gives ``y``::
 
-            sage: ascii_art(G._forward_rule(R, N, L, 0))
+            sage: ascii_art(G.forward_rule(R, N, L, 0))
               o
              / \
             o   o
 
-            sage: ascii_art(G._forward_rule(L, N, R, 0))
+            sage: ascii_art(G.forward_rule(L, N, R, 0))
               o
              /
             o
@@ -2464,23 +2467,23 @@ class GrowthDiagramSylvester(GrowthDiagram):
         if ``x == y != t``, obtain ``z`` from ``y`` by adding a node
         as left child to the right most node::
 
-            sage: ascii_art(G._forward_rule(N, E, N, 0))
+            sage: ascii_art(G.forward_rule(N, E, N, 0))
               o
              /
             o
-            sage: ascii_art(G._forward_rule(T, L, T, 0))
+            sage: ascii_art(G.forward_rule(T, L, T, 0))
               _o_
              /   \
             o     o
                  /
                 o
-            sage: ascii_art(G._forward_rule(L, N, L, 0))
+            sage: ascii_art(G.forward_rule(L, N, L, 0))
                 o
                /
               o
              /
             o
-            sage: ascii_art(G._forward_rule(R, N, R, 0))
+            sage: ascii_art(G.forward_rule(R, N, R, 0))
             o
              \
               o
@@ -2528,7 +2531,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
         return z
 
     @staticmethod
-    def _backward_rule(y, z, x):
+    def backward_rule(y, z, x):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -2552,9 +2555,9 @@ class GrowthDiagramSylvester(GrowthDiagram):
             sage: G = GrowthDiagramSylvester
             sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None]); R = B([None,[]]); T = B([[],[]])
 
-            sage: ascii_art(G._backward_rule(E, E, E))
+            sage: ascii_art(G.backward_rule(E, E, E))
             ( , 0 )
-            sage: ascii_art(G._backward_rule(N, N, N))
+            sage: ascii_art(G.backward_rule(N, N, N))
             ( o, 0 )
 
         """
@@ -2597,8 +2600,8 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
     largest letter of the permutation and remove them.  If they
     coincide write 1, otherwise write 2.
 
-    .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
+    .. automethod:: forward_rule
+    .. automethod:: backward_rule
 
     TESTS::
 
@@ -2664,22 +2667,22 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
             return [Word(list(w), [1,2]) for w in Compositions(n, max_part=2)]
 
     @staticmethod
-    def _rank_function(w):
+    def rank_function(w):
         """
         Return the size of the corresponding composition.
 
         EXAMPLES::
 
             sage: G = GrowthDiagramYoungFibonacci
-            sage: G._rank_function(G.vertices(3)[0])
+            sage: G.rank_function(G.vertices(3)[0])
             3
         """
         return sum(w)
 
     @staticmethod
-    def _is_P_edge(w, v):
+    def is_P_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``v`` is obtained from ``w`` by deleting
+        ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by deleting
         a ``1`` or replacing the left-most ``2`` by a ``1``.
 
         TESTS::
@@ -2687,7 +2690,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
             sage: G = GrowthDiagramYoungFibonacci
             sage: v = G.vertices(5)[5]; v
             word: 1121
-            sage: [w for w in G.vertices(6) if G._is_P_edge(w, v)]
+            sage: [w for w in G.vertices(6) if G.is_P_edge(v, w)]
             [word: 2121, word: 11121]
         """
         def covers(c):
@@ -2702,10 +2705,10 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                     break
         return sum(w) == sum(v) + 1 and w in covers(v)
 
-    _is_Q_edge = _is_P_edge
+    is_Q_edge = is_P_edge
 
     @staticmethod
-    def _forward_rule(shape3, shape2, shape1, content):
+    def forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -2729,16 +2732,16 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
 
             sage: G = GrowthDiagramYoungFibonacci
 
-            sage: G._forward_rule([], [], [], 1)
+            sage: G.forward_rule([], [], [], 1)
             word: 1
 
-            sage: G._forward_rule([1], [1], [1], 1)
+            sage: G.forward_rule([1], [1], [1], 1)
             word: 11
 
-            sage: G._forward_rule([1,2], [1], [1,1], 0)
+            sage: G.forward_rule([1,2], [1], [1,1], 0)
             word: 21
 
-            sage: G._forward_rule([1,1], [1], [1,1], 0)
+            sage: G.forward_rule([1,1], [1], [1,1], 0)
             word: 21
 
         """
@@ -2763,7 +2766,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         return r
 
     @staticmethod
-    def _backward_rule(y, z, x):
+    def backward_rule(y, z, x):
         r"""
         Return the content and the input shape.
 
@@ -2822,7 +2825,7 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
         if labels is not None:
             labels = [Partition(la) for la in labels]
         self._zero = Partition([])
-        self._rank_function = lambda p: p.size()
+        self.rank_function = lambda p: p.size()
         super(GrowthDiagramOnPartitions, self).__init__(filling = filling,
                                                         shape = shape,
                                                         labels = labels)
@@ -2869,12 +2872,12 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         sage: RSK(pi)
         [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
 
-    .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
+    .. automethod:: forward_rule
+    .. automethod:: backward_rule
 
     """
     @staticmethod
-    def _forward_rule(shape3, shape2, shape1, content):
+    def forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -2899,10 +2902,10 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         TESTS::
 
             sage: G = GrowthDiagramRSK
-            sage: G._forward_rule([2,1],[2,1],[2,1],1)
+            sage: G.forward_rule([2,1],[2,1],[2,1],1)
             [3, 1]
 
-            sage: G._forward_rule([1],[],[2],2)
+            sage: G.forward_rule([1],[],[2],2)
             [4, 1]
         """
         carry = content
@@ -2931,7 +2934,7 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
                 shape3 = shape3[1:]
 
     @staticmethod
-    def _backward_rule(shape3, shape4, shape1):
+    def backward_rule(shape3, shape4, shape1):
         r"""
         Return the content and the input shape.
 
@@ -2987,11 +2990,11 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         1  0
         1  0
 
-    .. automethod:: _forward_rule
-    .. automethod:: _backward_rule
+    .. automethod:: forward_rule
+    .. automethod:: backward_rule
     """
     @staticmethod
-    def _forward_rule(shape3, shape2, shape1, content):
+    def forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -3014,10 +3017,10 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         TESTS::
 
             sage: G = GrowthDiagramBurge
-            sage: G._forward_rule([2,1],[2,1],[2,1],1)
+            sage: G.forward_rule([2,1],[2,1],[2,1],1)
             [3, 1]
 
-            sage: G._forward_rule([1],[],[2],2)
+            sage: G.forward_rule([1],[],[2],2)
             [2, 1, 1, 1]
 
         """
@@ -3047,7 +3050,7 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
                 shape3 = shape3[1:]
 
     @staticmethod
-    def _backward_rule(shape3, shape4, shape1):
+    def backward_rule(shape3, shape4, shape1):
         r"""
         Return the content and the input shape.
 
@@ -3076,7 +3079,7 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
             True
 
             sage: G = GrowthDiagramBurge
-            sage: G._backward_rule([1,1,1],[2,1,1,1],[2,1,1])
+            sage: G.backward_rule([1,1,1],[2,1,1,1],[2,1,1])
             ([1, 1], 0)
 
         """
@@ -3171,7 +3174,7 @@ class GrowthDiagramDomino(GrowthDiagram):
         ...
         AssertionError: [1] has smaller rank than [2, 1] but isn't covered by it in P!
 
-    .. automethod:: _forward_rule
+    .. automethod:: forward_rule
     """
     def __init__(self,
                  filling = None,
@@ -3199,7 +3202,7 @@ class GrowthDiagramDomino(GrowthDiagram):
 
     _zero = Partition([])
     @staticmethod
-    def _rank_function(w):
+    def rank_function(w):
         """
         Return half the size of the partition, which equals the number of
         dominoes in any filling.
@@ -3207,15 +3210,15 @@ class GrowthDiagramDomino(GrowthDiagram):
         EXAMPLES::
 
             sage: G = GrowthDiagramDomino
-            sage: G._rank_function(G.vertices(3)[0])
+            sage: G.rank_function(G.vertices(3)[0])
             3
         """
         return w.size()//2
 
     @staticmethod
-    def _is_P_edge(w, v):
+    def is_P_edge(v, w):
         """
-        ``(w, v)`` is an edge if ``v`` is obtained from ``w`` by deleting
+        ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by deleting
         a domino.
 
         TESTS::
@@ -3224,7 +3227,7 @@ class GrowthDiagramDomino(GrowthDiagram):
             sage: v = G.vertices(2)[1]; ascii_art(v)
             ***
             *
-            sage: ascii_art([w for w in G.vertices(3) if G._is_P_edge(w, v)])
+            sage: ascii_art([w for w in G.vertices(3) if G.is_P_edge(v, w)])
             [             *** ]
             [             *   ]
             [ *****  ***  *   ]
@@ -3237,7 +3240,7 @@ class GrowthDiagramDomino(GrowthDiagram):
         except ValueError:
             return False
 
-    _is_Q_edge = _is_P_edge
+    is_Q_edge = is_P_edge
 
     def P_symbol(self):
         r"""
@@ -3268,7 +3271,7 @@ class GrowthDiagramDomino(GrowthDiagram):
         return SkewTableau(chain = self.Q_chain())
 
     @staticmethod
-    def _forward_rule(shape3, shape2, shape1, content):
+    def forward_rule(shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -3294,43 +3297,43 @@ class GrowthDiagramDomino(GrowthDiagram):
 
         Rule 1::
 
-            sage: G._forward_rule([], [], [], 1)
+            sage: G.forward_rule([], [], [], 1)
             [2]
 
-            sage: G._forward_rule([1,1], [1,1], [1,1], 1)
+            sage: G.forward_rule([1,1], [1,1], [1,1], 1)
             [3, 1]
 
         Rule 2::
 
-            sage: G._forward_rule([1,1], [1,1], [1,1], -1)
+            sage: G.forward_rule([1,1], [1,1], [1,1], -1)
             [1, 1, 1, 1]
 
         Rule 3::
 
-            sage: G._forward_rule([1,1], [1,1], [2,2], 0)
+            sage: G.forward_rule([1,1], [1,1], [2,2], 0)
             [2, 2]
 
         Rule 4::
 
-            sage: G._forward_rule([2,2,2], [2,2], [3,3], 0)
+            sage: G.forward_rule([2,2,2], [2,2], [3,3], 0)
             [3, 3, 2]
 
-            sage: G._forward_rule([2], [], [1,1], 0)
+            sage: G.forward_rule([2], [], [1,1], 0)
             [2, 2]
 
-            sage: G._forward_rule([1,1], [], [2], 0)
+            sage: G.forward_rule([1,1], [], [2], 0)
             [2, 2]
 
-            sage: G._forward_rule([2], [], [2], 0)
+            sage: G.forward_rule([2], [], [2], 0)
             [2, 2]
 
-            sage: G._forward_rule([4], [2], [4], 0)
+            sage: G.forward_rule([4], [2], [4], 0)
             [4, 2]
 
-            sage: G._forward_rule([1,1,1,1], [1,1], [1,1,1,1], 0)
+            sage: G.forward_rule([1,1,1,1], [1,1], [1,1,1,1], 0)
             [2, 2, 1, 1]
 
-            sage: G._forward_rule([2,1,1], [2], [4], 0)
+            sage: G.forward_rule([2,1,1], [2], [4], 0)
             [4, 1, 1]
         """
         def union(la, mu):

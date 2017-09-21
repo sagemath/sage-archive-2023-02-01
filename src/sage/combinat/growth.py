@@ -3134,6 +3134,23 @@ class GrowthDiagramDomino(GrowthDiagram):
         1  2  4  1  3  3
         3  3     4  4
 
+    The spin of a domino tableau is half the number of vertical dominos::
+
+        sage: def spin(T):
+        ....:     return sum(2*len(set(row)) - len(row) for row in T)/4
+
+    According to [Lam2004]_, the number of negative entries in the
+    signed permutation equals the sum of the spins of the two
+    associated tableaux::
+
+        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
+        True
+
+    Negating all signs transposes all the partitions::
+
+        sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
+        True
+
     TESTS:
 
     Check duality::
@@ -3153,23 +3170,6 @@ class GrowthDiagramDomino(GrowthDiagram):
         sage: l = {pi: GrowthDiagramDomino(pi) for pi in SignedPermutations(4)}
         sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
         384
-
-    The spin of a domino tableau is half the number of vertical dominos::
-
-        sage: def spin(T):
-        ....:     return sum(2*len(set(row)) - len(row) for row in T)/4
-
-    According to [Lam2004]_, the number of negative entries in the
-    signed permutation equals the sum of the spins of the two
-    associated tableaux::
-
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
-        True
-
-    Negating all signs transposes all the partitions::
-
-        sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
-        True
 
     Check part of Theorem 4.2.3 in [Lee1996]_::
 

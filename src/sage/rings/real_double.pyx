@@ -1323,8 +1323,13 @@ cdef class RealDoubleElement(FieldElement):
             1.5
             sage: abs(RDF(-1.5))
             1.5
+            sage: abs(RDF(0.0))
+            0.0
+            sage: abs(RDF(-0.0))
+            0.0
         """
-        if self._value >= 0:
+        # Use signbit instead of >= to handle -0.0 correctly
+        if not libc.math.signbit(self._value):
             return self
         else:
             return self._new_c(-self._value)

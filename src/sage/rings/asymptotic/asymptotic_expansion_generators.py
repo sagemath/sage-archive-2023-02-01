@@ -43,6 +43,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
      - an asymptotic expansion obtained by singularity analysis
 
+   * - :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`
+     - the singular expansion of a function `y(z)` satisfying `y(z) = z \Phi(y(z))`
+
 
 AUTHORS:
 
@@ -56,6 +59,11 @@ ACKNOWLEDGEMENT:
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
+REFERENCES:
+
+.. [FS2009] Philippe Flajolet and Robert Sedgewick,
+   `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
+   Cambridge University Press, Cambridge, 2009.
 
 Classes and Methods
 ===================
@@ -92,6 +100,7 @@ class AsymptoticExpansionGenerators(SageObject):
     - :meth:`~log_Stirling`
     - :meth:`~Binomial_kn_over_n`
     - :meth:`~SingularityAnalysis`
+    - :meth:`~ImplicitExpansion`
     """
 
     @staticmethod
@@ -719,11 +728,6 @@ class AsymptoticExpansionGenerators(SageObject):
         See [FS2009]_ together with the
         `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
 
-        REFERENCES:
-
-        .. [FS2009] Philippe Flajolet and Robert Sedgewick,
-           `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
-           Cambridge University Press, Cambridge, 2009.
 
         TESTS::
 
@@ -1003,7 +1007,10 @@ class AsymptoticExpansionGenerators(SageObject):
         `\Phi(0) \neq 0`.
 
         The fundamental constant `\tau` is assumed to be the unique positive
-        solution of `\Phi(\tau) - \Phi'(\tau) = 0`.
+        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+
+        All details are given in Chapter VI.7 of [FS2009]_; also see the corresponding
+        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
 
         INPUT:
 

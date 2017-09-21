@@ -1050,6 +1050,10 @@ class AsymptoticExpansionGenerators(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: The function phi does not satisfy the requirements
+            sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + u^2 + u^42, precision=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Fundamental constant tau could not be determined
 
         """
         from sage.symbolic.ring import SR

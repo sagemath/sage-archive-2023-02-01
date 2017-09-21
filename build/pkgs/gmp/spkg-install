@@ -106,8 +106,8 @@ case "$UNAME" in
                 # Setting ABI=64 shouldn't be necessary, but shouldn't hurt either.
                 echo "Building a 64-bit version of GMP."
                 case "`uname -m`" in
-                    ppc64) ABI=mode64;;
-                    *)     ABI=64
+                    ppc*) ABI=mode64;;
+                    *)    ABI=64
                 esac
             elif $CC $CFLAGS $CFLAG32 -o foo foo.c 2>/dev/null && ./foo 2>/dev/null; then
                 # We're on a 32-bit OS which cannot run 64-bit executables.

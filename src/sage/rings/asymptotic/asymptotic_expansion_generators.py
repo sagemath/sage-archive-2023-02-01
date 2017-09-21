@@ -1118,11 +1118,7 @@ class AsymptoticExpansionGenerators(SageObject):
             raise ValueError('The function phi does not satisfy the requirements')
 
         if tau is None:
-            positive_solution = filter(lambda s: s.rhs() > 0, (phi(u) - u*phi(u).diff(u)).solve(u))
-            if len(positive_solution) == 1:
-                tau = positive_solution[0].rhs()
-            else:
-                raise ValueError('Fundamental constant tau could not be determined')
+            tau = _fundamental_constant_(phi=phi)
 
         def H(y):
             return tau/phi(tau) - y/phi(y)
@@ -1157,6 +1153,43 @@ class AsymptoticExpansionGenerators(SageObject):
             solution_dict[current_var] = coef.subs(solution_dict).solve(current_var)[0].rhs()
 
         return A(tau) + ansatz(prec=precision-1).map_coefficients(lambda term: term.subs(solution_dict).simplify_rational())
+
+def _fundamental_constant_(phi):
+    r"""
+    Return the fundamental constant `\tau` occurring in the analysis of
+    implicitly defined functions.
+
+    For a function `y(z)` satisfying `y(z) = z \Phi(y(z))`, the fundamental
+    constant `\tau` is the unique positive solution of the equation
+    `\Phi(\tau) - \tau \Phi'(\tau) = 0`.
+
+    INPUT:
+
+    - ``phi`` -- the function `\Phi`.
+
+    .. SEEALSO::
+
+        :meth:`AsymptoticExpansionGenerators.ImplicitExpansion`
+        :meth:`AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
+        ....:     import _fundamental_constant_
+        sage: _fundamental_constant_(phi=exp)
+        1
+        sage: _fundamental_constant_(phi=lambda u: 1 + u^2)
+        1
+        sage: _fundamental_constant_(phi=lambda u: 1 + 2*u + 2*u^2)
+        1/2*sqrt(2)
+
+    """
+    from sage.symbolic.ring import SR
+    u = SR('u')
+    positive_solution = filter(lambda s: s.rhs() > 0, (phi(u) - u*phi(u).diff(u)).solve(u))
+    if len(positive_solution) == 1:
+        return positive_solution[0].rhs()
+    raise ValueError('Fundamental constant tau could not be determined')
 
 def _sa_coefficients_lambda_(K, beta=0):
     r"""

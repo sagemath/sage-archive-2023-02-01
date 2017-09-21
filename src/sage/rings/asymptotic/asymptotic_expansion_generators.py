@@ -46,6 +46,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`
      - the singular expansion of a function `y(z)` satisfying `y(z) = z \Phi(y(z))`
 
+   * - :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`
+     - the singular expansion of the periodic part of a function `y(z)` satisfying `y(z) = z\Phi(y(z))`
+
 
 AUTHORS:
 
@@ -101,6 +104,7 @@ class AsymptoticExpansionGenerators(SageObject):
     - :meth:`~Binomial_kn_over_n`
     - :meth:`~SingularityAnalysis`
     - :meth:`~ImplicitExpansion`
+    - :meth:`~ImplicitExpansionPeriodicPart`
     """
 
     @staticmethod
@@ -1210,7 +1214,7 @@ class AsymptoticExpansionGenerators(SageObject):
         The generating function enumerating binary trees with respect to
         tree size satisfies `B(z) = z (1 + B(z)^2)`. This function can be
         written as `B(z) = z g(z^2)`, and as `B(z)` can be determined
-        explicitly we have `g(z) = \frac{1 - \sqrt{1 - 4z}{2z}}`. We
+        explicitly we have `g(z) = \frac{1 - \sqrt{1 - 4z}}{2z}`. We
         compare the corresponding expansions::
 
             sage: asymptotic_expansions.ImplicitExpansionPeriodicPart('Z', phi=lambda u: 1 + u^2,

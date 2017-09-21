@@ -206,6 +206,7 @@ class DiffForm(TensorField):
 
 
     Same tests with ``sympy``::
+
         sage: M.set_calculus_method('sympy')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V

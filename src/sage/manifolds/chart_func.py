@@ -1,10 +1,22 @@
 r"""
 Chart Functions
 
+In the context of a topological manifold `M` over a topological field `K`,
+a *chart function* is a function from a chart codomain
+to `K`.
+In other words, for any defined calculus method, a chart function is a `K`-valued function of
+the coordinates associated to some chart.
+This function can be expressed in different calculus methods
+(for the moment only the symbolic: ``Maxima`` and ``Sympy``). The
+current method is used to carry out calculcations.
+
 
 AUTHORS:
 
-- Eric Gourgoulhon, Marco Mancini (2017) : initial version
+- Marco Mancini (2017) : initial version
+- Eric Gourgoulhon (2015) : The class defined here is a generalization
+  of the class :class:``~sage.manifolds.coord_funct_symb`.
+
 
 """
 #*****************************************************************************
@@ -31,11 +43,27 @@ from sage.structure.sage_object import SageObject
 
 class ChartFunction(AlgebraElement):
     r"""
-    Class containing the dictionary of ChartFunction
+    Chart function with multiple representations.
+    A function of the coordinate on a chart can be represented by
+    different calculus methods (only symbolic for the
+    moment, numeric has to be implemented).
 
-    INPUT:
+    If `(U, \varphi)` is a chart on a topological manifold `M` of
+    dimension `n` over a topological field `K`,  a *chart function*
+    associated to `(U, \varphi)` is a map
 
-    - ``parent`` -- the algebra of chart functions on a given chart
+    .. MATH::
+
+        \begin{array}{llcl}
+        f:& V \subset K^n & \longrightarrow & K \\
+          & (x^1, \ldots, x^n) & \longmapsto & f(x^1, \ldots, x^n),
+        \end{array}
+
+    where `V` is the codomain of `\varphi`. In other words, `f` is a
+    `K`-valued function of the
+    coordinates associated to the chart `(U, \varphi)`.
+
+    `f` can be represented by `SR` (``Maxima``) or ``sympy``.
 
     """
 
@@ -44,7 +72,18 @@ class ChartFunction(AlgebraElement):
         r"""
         Initialize ``self``.
 
-        TEST::
+        INPUT:
+
+        - ``parent`` -- the algebra of chart functions on a given chart
+
+        - ``expression`` -- a symbolic expression representing
+        `f(x^1, \ldots, x^n)`, where `(x^1, \ldots, x^n)` are the
+        coordinates of the chart `(U, \varphi)` (default: `None`)
+
+        - ``calc_method`` -- the used calculus method (default: `None`)
+
+
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -119,6 +158,7 @@ class ChartFunction(AlgebraElement):
         INPUT:
 
         - ``name`` -- (default: ``None``) name given to the scalar field
+
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           scalar field; if ``None``, the LaTeX symbol is set to ``name``
 
@@ -151,8 +191,12 @@ class ChartFunction(AlgebraElement):
         r"""
         Get expression from ``self`` with a particular method.
 
-        TEST::
 
+        INPUT:
+
+        - ``calc_method`` -- the used calculus method (default: `None`)
+
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -200,8 +244,13 @@ class ChartFunction(AlgebraElement):
         r"""
         Return a simplified expression from ``self`` or from the input with a particular method.
 
-        TEST::
+        INPUT:
 
+        - ``expression`` -- a symbolic expression (default: `None`)
+
+        - ``calc_method`` -- the used calculus method (default: `None`)
+
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -228,11 +277,20 @@ class ChartFunction(AlgebraElement):
         return self._calc_method.simplify(expression,method=calc_method)
 
 
-    def set_expr(self,method,expression):
+    def set_expr(self,calc_method,expression):
         r"""
-        String representation of ``self``.
+        Add an expression in a particular calculus method  ``self``.
+        A control is done to verify the consistence between the
+        different representations of the same expression.
 
-        TESTS::
+        INPUT:
+
+        - ``calc_method`` -- calculus method
+
+        - ``expression`` -- symbolic expression
+
+
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -254,11 +312,10 @@ class ChartFunction(AlgebraElement):
 
         """
         for kk,vv in self._express.items():
-            # print(expression,self._calc_method._tranf[method](vv),vv,kk)
-            if not bool(self._calc_method._tranf[method](expression) == self._calc_method._tranf[method](vv)):
+            if not bool(self._calc_method._tranf[calc_method](expression) == self._calc_method._tranf[calc_method](vv)):
                 raise ValueError("Expressions are not equal")
 
-        self._express[method] = expression
+        self._express[calc_method] = expression
 
 
 
@@ -305,6 +362,7 @@ class ChartFunction(AlgebraElement):
     def display(self):
         r"""
         Display ``self`` in arrow notation.
+        For display the standard ``SR`` representation is used.
 
         The output is either text-formatted (console mode) or
         LaTeX-formatted (notebook mode).
@@ -334,13 +392,6 @@ class ChartFunction(AlgebraElement):
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
         from sage.misc.latex import latex
-        # if self._calc_method._current in self._express:
-        #     method = self._calc_method._current
-        # elif self._calc_method._default in self._express:
-        #     method = self._calc_method._default
-        # else:
-        #     method = self._express.keys()[0]
-        #expr = self._express[method]
 
         expr = self.expr('SR')
 
@@ -840,6 +891,7 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> 0
 
         The same test with ``sympy``::
+
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
@@ -908,6 +960,7 @@ class ChartFunction(AlgebraElement):
             True
 
         Tests with ``sympy``::
+
             sage: X.set_calculus_method('sympy')
             sage: h = X.function(2*(x+y^2))
             sage: s = h - f
@@ -955,6 +1008,7 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> 1
 
         The same test with ``sympy``::
+
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y)
             sage: g = X.function(x-y)

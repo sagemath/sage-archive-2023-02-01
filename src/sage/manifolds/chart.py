@@ -267,7 +267,8 @@ class Chart(UniqueRepresentation, SageObject):
         self._manifold = domain.manifold()
         self._domain = domain
 
-        self._calc_method = CalculusMethod(current=calc_method,chart=self)
+        self._calc_method = CalculusMethod(current=calc_method,
+                                           bf_type=self.manifold().base_field_type())
         self.simplify = self._calc_method.simplify
 
         # Treatment of the coordinates:

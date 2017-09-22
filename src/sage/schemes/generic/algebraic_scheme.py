@@ -2857,7 +2857,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``f`` -- a :class:`SchemeMorphism_polynomial` with ``self`` in ``f.domain()``
+        - ``f`` -- a dynamical system with ``self`` in ``f.domain()``
 
         - ``N`` -- a non-negative integer or list or tuple of two non-negative integers
 
@@ -2868,8 +2868,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: H = End(P)
-            sage: f = H([(x-2*y)^2,(x-2*z)^2,(x-2*w)^2,x^2])
+            sage: f = DynamicalSystem_projective([(x-2*y)^2,(x-2*z)^2,(x-2*w)^2,x^2], domain=P)
             sage: f.orbit(P.subscheme([x]),5)
             [Closed subscheme of Projective Space of dimension 3 over Rational Field
             defined by:
@@ -2940,7 +2939,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``f`` -- a SchmemMorphism_polynomial with ``self`` in ``f.domain()``
+        - ``f`` -- a dynamical system with ``self`` in ``f.domain()``
 
         - ``n`` -- a positive integer.
 
@@ -2951,8 +2950,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: H = End(P)
-            sage: f = H([y^2, z^2, x^2, w^2])
+            sage: f = DynamicalSystem_projective([y^2, z^2, x^2, w^2], domain=P)
             sage: f.nth_iterate(P.subscheme([x-w,y-z]), 3)
             Closed subscheme of Projective Space of dimension 3 over Rational Field
             defined by:
@@ -2962,8 +2960,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
-            sage: H = End(PS)
-            sage: f = H([x^2, y^2, z^2])
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2], domain=PS)
             sage: X = PS.subscheme([x-y])
             sage: X.nth_iterate(f,-2)
             Traceback (most recent call last):
@@ -3192,7 +3189,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         The subscheme that maps to this scheme by the map `f^k`.
 
         In particular, `f^{-k}(V(h_1,\ldots,h_t)) = V(h_1 \circ f^k, \ldots, h_t \circ f^k)`.
-        Map must be a morphism and also must be an endomorphism for `k > 1`.
+        Map must be a morphism and also a dynamical system for `k > 1`.
 
         INPUT:
 
@@ -3282,8 +3279,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: Y = P.subscheme([x-y])
-            sage: H = End(P)
-            sage: f = H([x^2, y^2, z^2])
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2], domain=P)
             sage: Y.preimage(f, k=2)
             Closed subscheme of Projective Space of dimension 2 over Rational Field
             defined by:
@@ -3302,7 +3298,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             if k > 1 and not f.is_endomorphism():
                 raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()
-        F = f.nth_iterate_map(k)
+        if k > 1:
+            F = f.nth_iterate_map(k)
+        else:
+            F = f
         dict = {R.gen(i): F[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
 

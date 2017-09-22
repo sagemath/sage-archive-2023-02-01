@@ -348,6 +348,11 @@ REFERENCES:
             group actions}, (preprint March 2003, available on
             Mitter's MIT website).
 
+.. [BM2012] \N. Bruin and A. Molnar, *Minimal models for rational
+            functions in a dynamical setting*,
+            LMS Journal of Computation and Mathematics, Volume 15
+            (2012), pp 400-417.
+
 .. [BN2008] Victor V. Batyrev and Benjamin Nill. Combinatorial aspects
             of mirror symmetry. In *Integer points in polyhedra ---
             geometry, number theory, representation theory, algebra,
@@ -441,6 +446,9 @@ REFERENCES:
 .. _ref-C:
 
 **C**
+
+.. [CS1996] \G. Call and J. Silverman. Computing the Canonical Height on
+            K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
 
 .. [CB2007] Nicolas Courtois, Gregory V. Bard: Algebraic Cryptanalysis
             of the Data Encryption Standard, In 11-th IMA Conference,
@@ -856,11 +864,19 @@ REFERENCES:
              und Geometrie", Dissertation, University of
              Bayreuth, 2013.
 
+.. [FH2015] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
+            Wehler K3 Surfaces over finite fields. New Zealand Journal
+            of Mathematics 45 (2015), 19–31.
+
 .. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
             automorphic forms, and the canonical embedding of Shimura
             curves". LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
+
+.. [FMV2014] Xander Faber, Michelle Manes, and Bianca Viray. Computing
+             Conjugating Sets and Automorphism Groups of Rational Functions.
+             Journal of Algebra, 423 (2014), 1161-1190.
 
 .. [Fom1995] Sergey V. Fomin, "Schensted algorithms for dual graded
              graphs". Journal of Algebraic Combinatorics Volume 4,
@@ -995,8 +1011,12 @@ REFERENCES:
             Verlag, 2007.
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
-            birational rowmotion
-            I*. http://web.mit.edu/~darij/www/algebra/skeletal.pdf
+            birational rowmotion*.
+            http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
+
+.. [GroLar1] \R. Grossman and R. G. Larson, *Hopf-algebraic structure of
+             families of trees*, J. Algebra 126 (1) (1989), 184-210.
+             Preprint: :arxiv:`0711.3877v1`
 
 .. [Grinb2016a] Darij Grinberg,
                 *Double posets and the antipode of QSym*,
@@ -1115,6 +1135,15 @@ REFERENCES:
              (ed.), Geometric Galois Actions II: Dessins d'Enfants,
              Mapping Class Groups and Moduli, volume 243 of LMS
              Lect. Notes, 67-77, Cambridge Univ. Press (1997)
+
+.. [Hutz2007] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
+              than one. PhD Thesis, Brown University 2007
+
+.. [Hutz2009] \B. Hutz. Good reduction of periodic points, Illinois Journal of
+              Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+
+.. [Hutz2015] \B. Hutz. Determination of all rational preperiodic points
+              for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).
@@ -1607,9 +1636,15 @@ REFERENCES:
              Mathematical Surveys and Monographs.
              Providence, RI: American Mathematical Society. (2007)
 
+.. [Mol2015] \A. Molnar, Fractional Linear Minimal Models of Rational Functions,
+             M.Sc. Thesis.
+
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure
              Appl. Algebra 125 (1998), no. 1-3, 235-260.
+
+.. [MoPa1994] \P. Morton and P. Patel. The Galois theory of periodic points
+              of polynomial maps. Proc. London Math. Soc., 68 (1994), 225-263.
 
 .. [MR1989] \G. Melançon and C. Reutenauer.
             *Lyndon words, free algebras and shuffles*,
@@ -1711,6 +1746,11 @@ REFERENCES:
           Analyzing Lattice Polytopes with Applications to Toric
           Geometry" omput.Phys.Commun. 157 (2004) 87-106
           :arxiv:`math/0204356`
+
+.. [Pana2002] \F. Panaite, *Relating the Connes-Kreimer and
+              Grossman-Larson Hopf algebras built on rooted trees*,
+              Lett. Math. Phys. 51 (2000), no. 3, pages 211-219.
+              Preprint: :arxiv:`math/0003074v1`
 
 .. [PearsonTest] :wikipedia:`Goodness_of_fit`, accessed 13th
                  October 2009.
@@ -1915,6 +1955,9 @@ REFERENCES:
                 and T. Shirai, *Piccolo: An ultra-lightweight block-cipher*; in
                 CHES, (2011), pp. 342-457.
 
+.. [Sil2007] Joseph H. Silverman. The Arithmetic of Dynamics Systems.
+             Springer, GTM 241, 2007.
+
 .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties of the
             K3 surface: Simplicial blowups and slicings", Experimental
             Mathematics, Volume 20, Issue 2, 2011.
@@ -1959,7 +2002,7 @@ REFERENCES:
 
 .. [SS2015] Anne Schilling and Travis Scrimshaw.
             *Crystal structure on rigged configurations and the filling map*.
-            Electon. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
+            Electron. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
 
 .. [SS2015II] Ben Salisbury and Travis Scrimshaw.
               *A rigged configuration model for* `B(\infty)`.
@@ -1968,7 +2011,7 @@ REFERENCES:
 
 .. [SS2017] Ben Salisbury and Travis Scrimshaw.
             *Rigged configurations for all symmetrizable types*.
-            Electon. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
+            Electron. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
 
 .. [SSAMI2007] \T. Shirai, K. Shibutani, T. Akishita, S. Moriai, and T. Iwata,
                *The 128-bit blockcipher CLEFIA (extended abstract)*; in
@@ -2188,6 +2231,10 @@ REFERENCES:
 
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
+
+.. [Weh1998] \J. Wehler. Hypersurfaces of the Flag Variety: Deformation
+             Theory and the Theorems of Kodaira-Spencer, Torelli,
+             Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38.
 
 .. [WELLS]   Elliot Wells. Computing the Canonical Height of a Point in Projective Space.
              :arxiv:`1602.04920v1` (2016).

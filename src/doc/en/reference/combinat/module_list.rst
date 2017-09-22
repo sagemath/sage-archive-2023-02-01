@@ -127,6 +127,7 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/growth
+    sage/combinat/grossman_larson_algebras
     sage/combinat/hall_polynomial
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists

@@ -472,6 +472,14 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: TestSuite(R).run(skip='_test_log')
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6, skip='_test_log') # long time
             sage: R._test_log(max_runs=2, elements=[R.random_element() for i in range(4)])
+
+        Fraction fields work after :trac:`23510`::
+
+            sage: R = ZpFM(5)
+            sage: K = R.fraction_field(); K
+            5-adic Field with floating precision 20
+            sage: K(R(90))
+            3*5 + 3*5^2
         """
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFixedModElement)
 
@@ -509,27 +517,6 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             elif (R.precision_cap() == self.precision_cap() and
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
-
-    def fraction_field(self, print_mode = None):
-        r"""
-        Would normally return `\mathbb{Q}_p`, but there is no
-        implementation of `\mathbb{Q}_p` matching this ring so this
-        raises an error
-
-        If you want to be able to divide with elements of a fixed
-        modulus `p`-adic ring, you must cast explicitly.
-
-        EXAMPLES::
-
-            sage: ZpFM(5).fraction_field()
-            Traceback (most recent call last):
-            ...
-            TypeError: This implementation of the p-adic ring does not support fields of fractions.
-
-            sage: a = ZpFM(5)(4); b = ZpFM(5)(5)
-        """
-        raise TypeError("This implementation of the p-adic ring does not support fields of fractions.")
-
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
     r"""
@@ -714,7 +701,7 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
             sage: K.has_coerce_map_from(ZpCA(17,40))
             False
         """
-        if isinstance(R, (pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
+        if isinstance(R, (pAdicRingFixedMod, pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
                 return True
             elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):

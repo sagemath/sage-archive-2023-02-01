@@ -543,6 +543,28 @@ cdef clist(mpz_t a, long prec, bint pos, PowComputer_ prime_pow):
 # It could be [] for some other linkages.
 _list_zero = Integer(0)
 
+cdef list ccoefficients(mpz_t x, long valshift, long prec, PowComputer_ prime_pow):
+    """
+    Return a list of coefficients, as elements that can be converted into the base ring.
+
+    INPUT:
+
+    - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
+    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
+    - ``prime_pow`` -- the Powcomputer of the ring
+    """
+    cdef Integer ansz
+    cdef Rational ansq
+    if valshift >= 0:
+        ansz = PY_NEW(Integer)
+        cconv_mpz_t_out_shared(ansz.value, x, valshift, prec, prime_pow)
+        return [ansz]
+    else:
+        ansq = Rational.__new__(Rational)
+        cconv_mpq_t_out_shared(ansq.value, x, valshift, prec, prime_pow)
+        return [ansq]
+
 cdef int cteichmuller(mpz_t out, mpz_t value, long prec, PowComputer_ prime_pow) except -1:
     """
     Teichmuller lifting.

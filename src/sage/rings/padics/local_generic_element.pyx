@@ -258,6 +258,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: x.slice(None, 3)
             5^-2 + 5 + O(5^3)
             sage: x[:3]
+            doctest:warning
+            ...
+            DeprecationWarning: __getitem__ is changing to match the behavior of number fields. Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
             5^-2 + 5 + O(5^3)
 
         TESTS:
@@ -333,7 +337,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         # construct the return value
         ans = self.parent().zero()
-        for c in self.list()[start:stop:k]:
+        for c in self.expansion()[start:stop:k]:
             ans += ppow * c
             ppow *= pk
 
@@ -426,13 +430,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(3).add_bigoh(5)
             3 + O(3^4)
 
-        However, a negative value for ``absprec`` leads to an error, since
-        there is no fraction field for fixed-mod elements::
+        A negative value for ``absprec`` returns an element in the fraction field::
 
-            sage: R(3).add_bigoh(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: absprec must be at least 0
+            sage: R(3).add_bigoh(-1).parent()
+            3-adic Field with floating precision 4
 
         TESTS:
 

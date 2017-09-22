@@ -1855,7 +1855,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         else:
             return w
 
-    def _Hom_(self, codomain, cat=None):
+    def _Hom_(self, codomain, category=None):
         """
         Return homset of homomorphisms from self to the number field codomain.
 
@@ -1885,12 +1885,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.hom([a]).category_for()
             Category of number fields
 
+        ::
+
+            sage: H = End(K)
+            sage: loads(dumps(H)) is H
+            True
         """
-        if is_NumberFieldHomsetCodomain(codomain):
-            from . import morphism
-            return morphism.NumberFieldHomset(self, codomain, category=cat)
-        else:
-            raise TypeError
+        if not is_NumberFieldHomsetCodomain(codomain):
+            raise TypeError("{} is not suitable as codomain for homomorphisms from {}".format(codomain, self))
+        from .morphism import NumberFieldHomset
+        return NumberFieldHomset(self, codomain, category)
 
     @cached_method
     def structure(self):

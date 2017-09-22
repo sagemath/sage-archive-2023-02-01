@@ -54,7 +54,7 @@ from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.categories.permutation_groups import PermutationGroups
 from sage.sets.family import Family
 from sage.matrix.constructor import Matrix
-from sage.graphs.graph import DiGraph
+
 
 def WeylGroup(x, prefix=None, implementation='matrix'):
     """

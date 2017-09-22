@@ -115,7 +115,7 @@ After these examples, you probably noticed that we use two methods,
 namely ``length()`` and ``dimension()`` without defining them.
 That is because their implementation is provided in
 :class:`sage.coding.linear_code.AbstractLinearCode`.
-The abstract class provides default implantation of the
+The abstract class provides a default implementation of the
 following getter methods:
 
 - :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`

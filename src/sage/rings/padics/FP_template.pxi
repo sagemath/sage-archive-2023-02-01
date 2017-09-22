@@ -1278,7 +1278,7 @@ cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
             <type 'sage.rings.padics.padic_floating_point_element.pAdicCoercion_ZZ_FP'>
         """
         RingHomomorphism.__init__(self, ZZ.Hom(R))
-        self._zero = <FPElement?>R._element_constructor(R, 0)
+        self._zero = R.element_class(R, 0)
         self._section = pAdicConvert_FP_ZZ(R)
 
     cdef dict _extra_slots(self, dict _slots):
@@ -1485,7 +1485,7 @@ cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
             <type 'sage.rings.padics.padic_floating_point_element.pAdicCoercion_QQ_FP'>
         """
         RingHomomorphism.__init__(self, QQ.Hom(R))
-        self._zero = R._element_constructor(R, 0)
+        self._zero = R.element_class(R, 0)
         self._section = pAdicConvert_FP_QQ(R)
 
     cdef dict _extra_slots(self, dict _slots):
@@ -1684,7 +1684,7 @@ cdef class pAdicConvert_QQ_FP(Morphism):
             <type 'sage.rings.padics.padic_floating_point_element.pAdicConvert_QQ_FP'>
         """
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
-        self._zero = R._element_constructor(R, 0)
+        self._zero = R.element_class(R, 0)
 
     cdef dict _extra_slots(self, dict _slots):
         """

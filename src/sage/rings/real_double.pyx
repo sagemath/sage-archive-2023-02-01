@@ -2576,13 +2576,13 @@ cdef class ToRDF(Morphism):
             0.5
             sage: f = RDF.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Real Double Field
             sage: f(3r)
             3.0
             sage: f = RDF.coerce_map_from(float); f
             Native morphism:
-              From: Set of Python objects of type 'float'
+              From: Set of Python objects of class 'float'
               To:   Real Double Field
             sage: f(3.5)
             3.5

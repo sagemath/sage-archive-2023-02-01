@@ -1905,10 +1905,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
             sage: copy(CDF._coerce_map_via([ZZ, RR, CC], int))
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Complex Double Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Integer Ring
                     then
                       Native morphism:
@@ -2030,11 +2030,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: ZZ._internal_coerce_map_from(int)
             (map internal to coercion system -- copy before use)
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
             sage: copy(ZZ._internal_coerce_map_from(int))
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
             sage: copy(QQ._internal_coerce_map_from(ZZ))
             Natural morphism:
@@ -2733,7 +2733,7 @@ cpdef Parent Set_PythonType(theType):
 
         sage: from sage.structure.parent import Set_PythonType
         sage: Set_PythonType(list)
-        Set of Python objects of type 'list'
+        Set of Python objects of class 'list'
         sage: Set_PythonType(list) is Set_PythonType(list)
         True
         sage: S = Set_PythonType(tuple)
@@ -2749,7 +2749,7 @@ cpdef Parent Set_PythonType(theType):
         sage: R = sage.structure.parent.Set_PythonType(int)
         sage: S = sage.structure.parent.Set_PythonType(float)
         sage: Hom(R, S)
-        Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+        Set of Morphisms from Set of Python objects of class 'int' to Set of Python objects of class 'float' in Category of sets
 
     """
     try:
@@ -2758,15 +2758,24 @@ cpdef Parent Set_PythonType(theType):
         _type_set_cache[theType] = theSet = Set_PythonType_class(theType)
         return theSet
 
+
 cdef class Set_PythonType_class(Set_generic):
     r"""
-    The set of Python objects of a given type.
+    The set of Python objects of a given class.
+
+    The elements of this set are not instances of
+    :class:`~sage.structure.element.Element`; they are instances of
+    the given class.
+
+    INPUT:
+
+    - ``theType`` -- a Python (new-style) class
 
     EXAMPLES::
 
         sage: S = sage.structure.parent.Set_PythonType(int)
         sage: S
-        Set of Python objects of type 'int'
+        Set of Python objects of class 'int'
         sage: int('1') in S
         True
         sage: Integer('1') in S
@@ -2775,10 +2784,9 @@ cdef class Set_PythonType_class(Set_generic):
         sage: sage.structure.parent.Set_PythonType(2)
         Traceback (most recent call last):
         ...
-        TypeError: must be initialized with a type, not 2
+        TypeError: must be initialized with a class, not 2
     """
-
-    cdef _type
+    cdef type _type
 
     def __init__(self, theType):
         """
@@ -2789,9 +2797,23 @@ cdef class Set_PythonType_class(Set_generic):
             Category of sets
         """
         if not isinstance(theType, type):
-            raise TypeError("must be initialized with a type, not %r" % theType)
-        Set_generic.__init__(self, element_constructor=theType, category=Sets())
-        self._type = theType
+            raise TypeError(f"must be initialized with a class, not {theType!r}")
+        super().__init__(category=Sets())
+        self._type = <type>theType
+
+    def _element_constructor_(self, *args, **kwds):
+        """
+        Construct an instance of the class.
+
+        EXAMPLES::
+
+            sage: S = sage.structure.parent.Set_PythonType(complex)
+            sage: S._element_constructor_(5)
+            (5+0j)
+            sage: S._element_constructor_(1, 5/2)
+            (1+2.5j)
+        """
+        return self._type(*args, **kwds)
 
     def __reduce__(self):
         r"""
@@ -2801,13 +2823,14 @@ cdef class Set_PythonType_class(Set_generic):
 
             sage: S = sage.structure.parent.Set_PythonType(object)
             sage: loads(dumps(S))
-            Set of Python objects of type 'object'
+            Set of Python objects of class 'object'
         """
         return Set_PythonType, (self._type,)
 
     def __call__(self, x):
         """
-        This doesn't return Elements, but actual objects of the given type.
+        Construct a new instance from ``x``. If ``x`` is already an
+        instance of the correct class, directly return ``x`` itself.
 
         EXAMPLES::
 
@@ -2818,7 +2841,8 @@ cdef class Set_PythonType_class(Set_generic):
             3.0
             sage: S(1/3)
             0.333333333333333...
-
+            sage: a = float(3); S(a) is a
+            True
         """
         if isinstance(x, self._type):
             return x
@@ -2836,8 +2860,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def __richcmp__(self, other, int op):
         """
-        Two Python type sets are considered the same if they contain the same
-        type.
+        Two Python class sets are considered the same if they contain
+        the same class.
 
         EXAMPLES::
 
@@ -2870,8 +2894,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def __contains__(self, x):
         """
-        Only things of the right type (or subtypes thereof) are considered to
-        belong to the set.
+        Only things of the right class (or subclasses thereof) are
+        considered to belong to the set.
 
         EXAMPLES::
 
@@ -2890,13 +2914,13 @@ cdef class Set_PythonType_class(Set_generic):
         EXAMPLES::
 
             sage: sage.structure.parent.Set_PythonType(tuple)
-            Set of Python objects of type 'tuple'
+            Set of Python objects of class 'tuple'
             sage: sage.structure.parent.Set_PythonType(Integer)
-            Set of Python objects of type 'sage.rings.integer.Integer'
+            Set of Python objects of class 'Integer'
             sage: sage.structure.parent.Set_PythonType(Parent)
-            Set of Python objects of type 'sage.structure.parent.Parent'
+            Set of Python objects of class 'Parent'
         """
-        return "Set of Python objects of %s"%(str(self._type)[1:-1])
+        return f"Set of Python objects of class '{self._type.__name__}'"
 
     def object(self):
         """
@@ -2939,6 +2963,7 @@ cdef class Set_PythonType_class(Set_generic):
             # probably
             import sage.rings.infinity
             return sage.rings.infinity.infinity
+
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their

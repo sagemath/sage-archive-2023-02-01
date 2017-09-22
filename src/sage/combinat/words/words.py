@@ -16,7 +16,7 @@ AUTHORS:
 EXAMPLES::
 
     sage: Words()
-    Finite and infinite words over Set of Python objects of type 'object'
+    Finite and infinite words over Set of Python objects of class 'object'
     sage: Words(4)
     Finite and infinite words over {1, 2, 3, 4}
     sage: Words(4,5)
@@ -66,9 +66,9 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
     EXAMPLES::
 
         sage: Words()
-        Finite and infinite words over Set of Python objects of type 'object'
+        Finite and infinite words over Set of Python objects of class 'object'
         sage: Words(length=7)
-        Words of length 7 over Set of Python objects of type 'object'
+        Words of length 7 over Set of Python objects of class 'object'
         sage: Words(5)
         Finite and infinite words over {1, 2, 3, 4, 5}
         sage: Words(5, 3)
@@ -180,7 +180,7 @@ class AbstractLanguage(Parent):
             sage: FiniteWords([1,2,3]).alphabet()
             {1, 2, 3}
             sage: FiniteWords().alphabet()
-            Set of Python objects of type 'object'
+            Set of Python objects of class 'object'
         """
         return self._alphabet
 
@@ -766,7 +766,7 @@ class FiniteWords(AbstractLanguage):
             sage: w = Word("abbabaab"); w
             word: abbabaab
             sage: w.parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
 
         Creation of a word from a word::
 
@@ -944,7 +944,7 @@ class FiniteWords(AbstractLanguage):
         EXAMPLES::
 
             sage: FiniteWords() # indirect doctest
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
         """
         return 'Finite words over {!r}'.format(self.alphabet())
 
@@ -1993,7 +1993,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             sage: w = Words()("abbabaab"); w
             word: abbabaab
             sage: w.parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
 
         Creation of a word from a word::
 
@@ -2109,7 +2109,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
 
             sage: p = ParkingFunction([2,2,1])
             sage: Word(p).parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
         """
         # try to guess `length` from the `datatype` or `data` if not given
         if length is None or length == 'unknown':
@@ -2435,7 +2435,7 @@ class Words_all(FiniteOrInfiniteWords):
             doctest:...: DeprecationWarning: Words_all is deprecated, use
             FiniteOrInfiniteWords instead
             See http://trac.sagemath.org/19619 for details.
-            Finite and infinite words over Set of Python objects of type 'object'
+            Finite and infinite words over Set of Python objects of class 'object'
         """
         from sage.misc.superseded import deprecation
         deprecation(19619, "Words_all is deprecated, use FiniteOrInfiniteWords instead")

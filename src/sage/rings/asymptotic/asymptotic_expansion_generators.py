@@ -1297,7 +1297,24 @@ class AsymptoticExpansionGenerators(SageObject):
 
         EXAMPLES:
 
-        TODO
+        There are `C_n` (the `n`-th Catalan number) different binary trees
+        of size `2n+1`, and there are no binary trees with an even number of
+        nodes. The corresponding generating function satisfies
+        `B(z) = z (1 + B(z)^2)`, which allows us to compare the asymptotic
+        expansions for the number of binary trees of size `n` obtained via
+        `C_n` and obtained via the analysis of `B(z)`::
+
+            sage: A.<n> = AsymptoticRing('QQ^n * n^QQ', SR)
+            sage: binomial_expansion = asymptotic_expansions.Binomial_kn_over_n(n, k=2, precision=3)
+            sage: catalan_expansion = binomial_expansion / (n+1)
+            sage: catalan_expansion.subs(n=(n-1)/2)
+            2*sqrt(1/2)/sqrt(pi)*2^n*n^(-3/2) - 3/2*sqrt(1/2)/sqrt(pi)*2^n*n^(-5/2)
+            + 25/16*sqrt(1/2)/sqrt(pi)*2^n*n^(-7/2) + O(2^n*n^(-9/2))
+            sage: asymptotic_expansions.InverseFunctionAnalysis(n, phi=lambda u: 1 + u^2, period=2,
+            ....:                                               tau=1, precision=8)
+            2*sqrt(1/2)/sqrt(pi)*2^n*n^(-3/2) - 3/2*sqrt(1/2)/sqrt(pi)*2^n*n^(-5/2)
+            + 25/16*sqrt(1/2)/sqrt(pi)*2^n*n^(-7/2) + O(2^n*n^(-9/2))
+
         """
         if tau is None:
             tau = _fundamental_constant_implicit_function_(phi=phi)

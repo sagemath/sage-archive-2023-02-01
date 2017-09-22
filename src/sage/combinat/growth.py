@@ -48,7 +48,7 @@ of each of the 36 cells of this matrix - with the exception of the
 corners on the left and top boundary, which are initialized with the
 empty partition.  The partitions along the boundary opposite of the
 origin are obtained by using the method
-:meth:`GrowthDiagramRSK.out_labels()`::
+:meth:`~sage.combinat.growth.GrowthDiagram.out_labels`::
 
     sage: G.out_labels()
     [[],
@@ -141,7 +141,7 @@ allowed, on the same set of vertices `V`, that satisfy the following
 conditions:
 
 * the graphs are graded, that is, there is a function `\rho:
-  V\to\\N`, such that for any edge `(v, w)` of `P` and also of `Q` we
+  V\to\NN`, such that for any edge `(v, w)` of `P` and also of `Q` we
   have `\rho(w) = \rho(v) + 1`,
 
 * there is a vertex `0` with rank zero, and
@@ -191,7 +191,7 @@ Let us start with nothing::
 The documentation of our new class, accessible using
 ``GrowthPascal?``, now provides some hints what has to be supplied.
 
-So let's implement a few things:
+So let us implement a few things::
 
     sage: class GrowthPascal(GrowthDiagram):
     ....:     _zero = 0
@@ -229,12 +229,14 @@ Are they really dual?::
 
 Oh no!  Well, we need multiple edges here.  The color
 ``self._zero_edge``, which defaults to ``0`` is reserved for
-degenerate edges, and, in case one of the graphs has no multiple
-edges, for these::
+degenerate edges, but may be abused for the unique edge if one of the
+graphs has no multiple edges.  For greater clarity in this example we
+set it to ``None``::
 
     sage: GrowthPascal._has_multiple_edges = True
+    sage: GrowthPascal._zero_edge = None
     sage: GrowthPascal.is_P_edge = staticmethod(lambda v, w: [0] if w == v+1 else [])
-    sage: GrowthPascal.is_Q_edge = staticmethod(lambda v, w: list(range(1,w+1)) if w == v+1 else [])
+    sage: GrowthPascal.is_Q_edge = staticmethod(lambda v, w: list(range(w)) if w == v+1 else [])
 
 These are dual::
 
@@ -261,12 +263,12 @@ Thus, the definition in section 4.7 of [Fom1995]_ translates as
 follows::
 
     sage: def backward_rule(y, g, z, h, x):
-    ....:     if z == y:
-    ....:         return (0, x, 0, 0)
-    ....:     if z == x:
-    ....:         return (0, y, g, 0)
-    ....:     if g == 1:
-    ....:         return (0, y, 0, 1)
+    ....:     if g is None:
+    ....:         return (0, x, None, 0)
+    ....:     if h is None:
+    ....:         return (None, y, g, 0)
+    ....:     if g == 0:
+    ....:         return (None, y, None, 1)
     ....:     else:
     ....:         return (0, x-1, g-1, 0)
     ....:
@@ -274,11 +276,11 @@ follows::
 
 The labels are now alternating between vertices and edge-colors::
 
-    sage: GrowthPascal(labels=[0,1,1,1,2,0,1,0,0])
+    sage: GrowthPascal(labels=[0,0,1,0,2,0,1,0,0])
     1  0
     0  1
 
-    sage: GrowthPascal(labels=[0,1,1,2,2,0,1,0,0])
+    sage: GrowthPascal(labels=[0,0,1,1,2,0,1,0,0])
     0  1
     1  0
 """
@@ -301,150 +303,151 @@ from sage.graphs.digraph import DiGraph
 
 class GrowthDiagram(SageObject):
     r"""
-    The base class all variants of growth diagrams inherit from.
+    A generalized Schensted growth diagram in the sense of Fomin.
 
-    Inheriting classes should provide an ``__init__`` method that
-    checks that ``labels``, when provided, are of the correct type.
-    Finally, it should then call the ``__init__`` method of this
-    class.
+    An instance of the class is a growth diagram consisting of a
+    filling and labels on the boundary.  To initialise it, it is
+    necessary to provide either a filling and labels for the
+    border on the side of the origin (forward growth), or labels
+    for the boundary opposite of the origin (backward growth).
 
-    Inheriting classes should also provide the following attributes:
+    Coordinates are of the form (col, row) where the origin is in
+    the upper left, to be consistent with permutation matrices
+    and skew tableaux.  This is different from Fomin's
+    convention, who uses a Cartesian coordinate system.
 
-    - ``_zero``, the zero element of the vertices of the graphs.
+    INPUT:
 
-    - ``_r`` (default: ``1``), the parameter in the equation
-      `DU-UD=rI`.
+    - ``filling`` is ``None``, if the growth diagram should be
+      determined by applying the backward rules to the ``labels``
+      decorating the boundary opposite of the origin of the
+      ``shape``.  Otherwise it can be a dictionary with keys
+      being coordinates and integer values, a sequence of
+      sequences of integers (including matrices), or a word with
+      integer letters (including permutations).  In the latter
+      case, words with negative letters but without repetitions
+      are allowed and interpreted as coloured permutations.
 
-    - ``_has_multiple_edges`` (default: ``False``), if the dual
-      graded graph has multiple edges and therefore edges are triples
-      consisting of two vertices and a label.
+    - ``shape`` is a (possibly skew) partition or ``None``.  In
+      the latter case it is determined as the Ferrers shape given
+      by ``filling``, if that is a sequence of sequences, the
+      bounding rectangle (including the origin) of ``filling``,
+      or, if possible, inferred from ``labels``, if ``filling``
+      is ``None``.
 
-    - ``_zero_edge`` (default: ``0``), the zero label of the edges of
-      the graphs used for degenerate edges.  It is allowed to use
-      this label also for other edges.
+    - ``labels`` is ``None`` or a list.  If it is a list, it
+      specifies a path whose length is the half-perimeter of
+      ``shape``.  Thus, when ``self._has_multiple_edges`` is
+      ``True``, it is of the form `(v_1, e_1,..., e_{n-1}, v_n)`,
+      where `n` is the half-perimeter of ``shape``, and
+      `(v_{i-1}, e_i, v_i)` is an edge in the dual graded graph
+      for all `i`.  Otherwise, it is a list of `n` vertices.
 
-    Finally, inheriting classes should provide the following methods:
-
-    - ``vertices``, a function that takes a nonnegative integer
-      as input and returns the list of vertices on this rank.
-
-    - ``rank_function``, the rank function of the dual graded graphs.
-
-    - ``forward_rule``, a function with input ``(y, t, x, content)``
-      or ``(y, e, t, f, x, content)`` if ``_has_multiple_edges`` is
-      ``True``.  ``(y, e, t)`` is an edge in the graph `P`, ``(t, f,
-      x)`` an edge in the graph ``Q``.  It should return the fourth
-      vertex ``z``, or, if ``_has_multiple_edges`` is ``True``, the
-      path ``(g, z, h)`` from ``y`` to ``x``.
-
-    - ``backward_rule``, a function with input ``(y, z, x)`` or ``(y,
-      g, z, h, x)`` if ``_has_multiple_edges`` is ``True``.  ``(y, g,
-      z)`` is an edge in the graph `Q`, ``(z, h, x)`` an edge in the
-      graph ``P``.  It should return the fourth vertex and the
-      content ``(t, content)``, or, if ``_has_multiple_edges`` is
-      ``True``, the path from ``y`` to ``x`` and the content as ``(e,
-      t, f, content)``.
-
-    - ``is_P_edge``, ``is_Q_edge`` (default: always ``True``,
-      resp. ``[self._zero_edge]``), functions that take two vertices
-      as arguments and return ``True`` or ``False``, or, if multiple
-      edges are allowed, the list of edge labels of the edges from
-      the first vertex to the second in the respective graded graph.
-      These are only used for checking user input and providing the
-      dual graded graph, and are therefore not mandatory.
-
-    EXAMPLES::
-
-        sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
-        sage: [G.P_symbol(), G.Q_symbol()]
-        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
-        sage: RSK(w)
-        [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+      If ``filling`` is ``None``, its elements are the labels of
+      the boundary opposite of the origin.  Otherwise its
+      elements are the labels on the boundary on the side of the
+      origin.  If ``labels`` is ``None`` (in which case
+      ``filling`` must not be ``None``) the value of
+      ``self._zero`` is used to initialise ``labels``.
 
     TESTS::
 
-        sage: G = GrowthDiagramRSK()
-        Traceback (most recent call last):
-        ...
-        ValueError: Please provide a filling or a sequence of labels.
+        sage: G = GrowthDiagramRSK([4, 1, 2, 3]); G
+        0  1  0  0
+        0  0  1  0
+        0  0  0  1
+        1  0  0  0
+        sage: G.out_labels()
+        [[], [1], [1, 1], [2, 1], [3, 1], [3], [2], [1], []]
+
+        sage: shape = shape=SkewPartition([[4,4,4,2],[1,1]])
+        sage: G = GrowthDiagramRSK([4, 1, 2, 3], shape=shape); G
+        .  1  0  0
+        .  0  1  0
+        0  0  0  1
+        1  0
+        sage: G.out_labels()
+        [[], [1], [1, 1], [1], [2], [3], [2], [1], []]
+
+        sage: GrowthDiagramRSK(labels=G.out_labels())
+        0  1  0  0
+        0  0  1  0
+        0  0  0  1
+        1  0
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
         r"""
-        Initialise a generalized Schensted growth diagram in the sense of
-        Fomin.
+        The base all variants of growth diagrams inherit from.
 
-        An instance of the class is a growth diagram consisting of a
-        filling and labels on the boundary.  To initialise it, it is
-        necessary to provide either a filling and labels for the
-        border on the side of the origin (forward growth), or labels
-        for the boundary opposite of the origin (backward growth).
+        Inheriting classes should provide an ``__init__`` method that
+        checks that ``labels``, when provided, are of the correct
+        type.  Finally, it should then call the ``__init__`` method
+        of the class :class:`GrowthDiagram` work.
 
-        Coordinates are of the form (col, row) where the origin is in
-        the upper left, to be consistent with permutation matrices
-        and skew tableaux.  This is different from Fomin's
-        convention, who uses a Cartesian coordinate system.
+        Inheriting classes should also provide the following
+        attributes:
 
-        INPUT:
+        - ``_zero``, the zero element of the vertices of the graphs.
 
-        - ``filling`` is ``None``, if the growth diagram should be
-          determined by applying the backward rules to the ``labels``
-          decorating the boundary opposite of the origin of the
-          ``shape``.  Otherwise it can be a dictionary with keys
-          being coordinates and integer values, a sequence of
-          sequences of integers (including matrices), or a word with
-          integer letters (including permutations).  In the latter
-          case, words with negative letters but without repetitions
-          are allowed and interpreted as coloured permutations.
+        - ``_r`` (default: ``1``), the parameter in the equation
+          `DU-UD=rI`.
 
-        - ``shape`` is a (possibly skew) partition or ``None``.  In
-          the latter case it is determined as the Ferrers shape given
-          by ``filling``, if that is a sequence of sequences, the
-          bounding rectangle (including the origin) of ``filling``,
-          or, if possible, inferred from ``labels``, if ``filling``
-          is ``None``.
+        - ``_has_multiple_edges`` (default: ``False``), if the dual
+          graded graph has multiple edges and therefore edges are
+          triples consisting of two vertices and a label.
 
-        - ``labels`` is ``None`` or a list.  If it is a list, it
-          specifies a path whose length is the half-perimeter of
-          ``shape``.  Thus, when ``self._has_multiple_edges`` is
-          ``True``, it is of the form `(v_1, e_1,..., e_{n-1}, v_n)`,
-          where `n` is the half-perimeter of ``shape``, and
-          `(v_{i-1}, e_i, v_i)` is an edge in the dual graded graph
-          for all `i`.  Otherwise, it is a list of `n` vertices.
+        - ``_zero_edge`` (default: ``0``), the zero label of the
+          edges of the graphs used for degenerate edges.  It is
+          allowed to use this label also for other edges.
 
-          If ``filling`` is ``None``, its elements are the labels of
-          the boundary opposite of the origin.  Otherwise its
-          elements are the labels on the boundary on the side of the
-          origin.  If ``labels`` is ``None`` (in which case
-          ``filling`` must not be ``None``) the value of
-          ``self._zero`` is used to initialise ``labels``.
+        Finally, inheriting classes should provide the following
+        methods:
 
-        EXAMPLES::
+        - ``vertices``, a function that takes a nonnegative integer
+          as input and returns the list of vertices on this rank.
 
-            sage: G = GrowthDiagramRSK([4, 1, 2, 3]); G
-            0  1  0  0
-            0  0  1  0
-            0  0  0  1
-            1  0  0  0
-            sage: G.out_labels()
-            [[], [1], [1, 1], [2, 1], [3, 1], [3], [2], [1], []]
+        - ``rank_function``, the rank function of the dual graded
+          graphs.
 
-            sage: shape = shape=SkewPartition([[4,4,4,2],[1,1]])
-            sage: G = GrowthDiagramRSK([4, 1, 2, 3], shape=shape); G
-            .  1  0  0
-            .  0  1  0
-            0  0  0  1
-            1  0
-            sage: G.out_labels()
-            [[], [1], [1, 1], [1], [2], [3], [2], [1], []]
+        - ``forward_rule``, a function with input ``(y, t, x,
+          content)`` or ``(y, e, t, f, x, content)`` if
+          ``_has_multiple_edges`` is ``True``.  ``(y, e, t)`` is an
+          edge in the graph `P`, ``(t, f, x)`` an edge in the graph
+          ``Q``.  It should return the fourth vertex ``z``, or, if
+          ``_has_multiple_edges`` is ``True``, the path ``(g, z, h)``
+          from ``y`` to ``x``.
 
-            sage: GrowthDiagramRSK(labels=G.out_labels())
-            0  1  0  0
-            0  0  1  0
-            0  0  0  1
-            1  0
+        - ``backward_rule``, a function with input ``(y, z, x)`` or
+          ``(y, g, z, h, x)`` if ``_has_multiple_edges`` is ``True``.
+          ``(y, g, z)`` is an edge in the graph `Q`, ``(z, h, x)`` an
+          edge in the graph ``P``.  It should return the fourth
+          vertex and the content ``(t, content)``, or, if
+          ``_has_multiple_edges`` is ``True``, the path from ``y`` to
+          ``x`` and the content as ``(e, t, f, content)``.
+
+        - ``is_P_edge``, ``is_Q_edge``, functions that take two
+          vertices as arguments and return ``True`` or ``False``, or,
+          if multiple edges are allowed, the list of edge labels of
+          the edges from the first vertex to the second in the
+          respective graded graph.  These are only used for checking
+          user input and providing the dual graded graph, and are
+          therefore not mandatory.
+
+        TESTS::
+
+            sage: w = [3,3,2,4,1]; G = GrowthDiagramRSK(w)
+            sage: [G.P_symbol(), G.Q_symbol()]
+            [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+            sage: RSK(w)
+            [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
+
+            sage: G = GrowthDiagramRSK()
+            Traceback (most recent call last):
+            ...
+            ValueError: Please provide a filling or a sequence of labels.
         """
         if filling is None:
             if labels is None:
@@ -466,69 +469,6 @@ class GrowthDiagram(SageObject):
     _has_multiple_edges = False # override when necessary
     _zero_edge = 0              # override when necessary
     _r = 1                      # override when necessary
-    @classmethod
-    def is_P_edge(cls, v, w):
-        """
-        Return ``True`` (or the list of edge colors) if there is an
-        oriented edge from ``v`` to ``w`` in the first dual graded
-        graph.
-
-        The edges are oriented from the elements with smaller rank
-        towards those with larger rank.
-
-        This is a default implementation to make
-        :meth:`_shape_from_labels` work.
-
-        TESTS::
-
-            sage: from sage.combinat.growth import GrowthDiagram
-            sage: class GrowthMinimal(GrowthDiagram):
-            ....:     _zero = 0
-            ....:     rank_function = lambda self, x: x
-            ....:     backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
-
-            sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
-            1  0  0
-            0  0  1
-            0  1
-
-        """
-        if cls._has_multiple_edges:
-            return [cls._zero_edge]
-        else:
-            return True
-
-    @classmethod
-    def is_Q_edge(cls, v, w):
-        """
-        Return ``True`` (or the list of edge colors) if there is an
-        oriented edge from ``v`` to ``w`` in the second dual graded
-        graph.
-
-        The edges are oriented from the elements with smaller rank
-        towards those with larger rank.
-
-        This is a default implementation which always returns
-        ``True`` (respectively, the list with color zero) to make
-        :meth:`_shape_from_labels` work.
-
-        TESTS::
-
-            sage: from sage.combinat.growth import GrowthDiagram
-            sage: class GrowthMinimal(GrowthDiagram):
-            ....:     _zero = 0
-            ....:     rank_function = lambda self, x: x
-            ....:     backward_rule = lambda self, y, z, x: (min(x,y), 0 if y==z or x==z else 1)
-
-            sage: GrowthMinimal(labels=[0,1,2,1,2,1,0]) # indirect doctest
-            1  0  0
-            0  0  1
-            0  1
-        """
-        if cls._has_multiple_edges:
-            return [cls._zero_edge]
-        else:
-            return True
 
     @classmethod
     def _check_duality(cls, n):
@@ -992,13 +932,18 @@ class GrowthDiagram(SageObject):
             [2, 1, 1]
 
         """
+        # we can determine the shape even if is_P_edge is not implemented
+        is_P_edge = getattr(self, "is_P_edge", None)
+        is_Q_edge = getattr(self, "is_Q_edge", None)
         if self._has_multiple_edges:
             def right_left(la, mu, e):
                 if self.rank_function(la) < self.rank_function(mu):
-                    assert e in self.is_Q_edge(la, mu), "%s has smaller rank than %s but there is no edge of color %s in Q!" %(la, mu, e)
+                    if is_Q_edge is not None:
+                        assert e in is_Q_edge(la, mu), "%s has smaller rank than %s but there is no edge of color %s in Q!" %(la, mu, e)
                     return 1
                 elif self.rank_function(la) > self.rank_function(mu):
-                    assert e in self.is_P_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in in P!" %(mu, la, e)
+                    if is_P_edge is not None:
+                        assert e in is_P_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in in P!" %(mu, la, e)
                     return 0
                 else:
                     raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
@@ -1006,10 +951,12 @@ class GrowthDiagram(SageObject):
         else:
             def right_left(la, mu):
                 if self.rank_function(la) < self.rank_function(mu):
-                    assert self.is_Q_edge(la, mu), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
+                    if is_Q_edge is not None:
+                        assert is_Q_edge(la, mu), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
                     return 1
                 elif self.rank_function(la) > self.rank_function(mu):
-                    assert self.is_P_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
+                    if is_P_edge is not None:
+                        assert is_P_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
                     return 0
                 else:
                     raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
@@ -1414,9 +1361,6 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         sage: G.Q_chain()
         [[], 1, [1], 2, [2], 1, [2, 1], 3, [3, 1], 2, [4, 1], 3, [4, 2], 3, [5, 2]]
 
-    .. automethod:: forward_rule
-    .. automethod:: backward_rule
-
     TESTS::
 
         sage: SY = GrowthDiagramShiftedShapes
@@ -1444,7 +1388,6 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         super(GrowthDiagramShiftedShapes, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = Partition([])
     _has_multiple_edges = True
@@ -1701,30 +1644,6 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
                     raise ValueError("This should not happen.")
 
 class GrowthDiagramLLMSClass(GrowthDiagram):
-    pass
-
-def GrowthDiagramLLMS(k):
-    """
-    Return the growth diagram class modelling the ``k``-affine Schensted correspondence.
-
-    EXAMPLES::
-
-        sage: GrowthDiagramLLMS(5).vertices(2)
-        5-Cores of length 2
-
-        sage: GrowthDiagramLLMS(5).P_graph(3)
-        Multi-digraph on 4 vertices
-
-    """
-    class GrowthDiagramLLMS(GrowthDiagramLLMSClass):
-        _k = k
-        _zero = Core([], k)
-        _zero_edge = None # to prevent confusion with the edge labelled with content 0
-
-    return GrowthDiagramLLMS
-
-
-class GrowthDiagramLLMSClass(GrowthDiagram):
     r"""
     A class modelling the Schensted correspondence for affine
     permutations.
@@ -1760,29 +1679,26 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         1  3  4
         2
         3
-
-    .. automethod:: forward_rule
-
-    TESTS::
-
-        sage: G = GrowthDiagramLLMS(3)
-        sage: G._zero
-        []
-
-        sage: G._check_duality(4)
-
     """
     def __init__(self,
                  filling = None,
                  shape = None,
                  labels = None):
+        """
+        TESTS::
+
+            sage: G = GrowthDiagramLLMS(3)
+            sage: G._zero
+            []
+
+            sage: G._check_duality(4)
+        """
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Core(labels[i], self._k) if is_even(i) else labels[i] for i in range(len(labels))]
         super(GrowthDiagramLLMSClass, self).__init__(filling = filling,
                                                      shape = shape,
                                                      labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _has_multiple_edges = True
 
@@ -1998,6 +1914,33 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
         return g, z, h
 
+def GrowthDiagramLLMS(k):
+    """
+    Return the growth diagram class modelling the ``k``-affine Schensted correspondence.
+
+    EXAMPLES::
+
+        sage: GrowthDiagramLLMS(5).vertices(2)
+        5-Cores of length 2
+
+        sage: GrowthDiagramLLMS(5).P_graph(3)
+        Multi-digraph on 4 vertices
+
+    TESTS::
+
+        sage: GrowthDiagramLLMS(5).__doc__ is not None
+        True
+
+    """
+    # we create the class using type instead of using class to make
+    # the docstring available interactively.
+    return type("GrowthDiagramLLMS", (GrowthDiagramLLMSClass,),
+                {"__doc__": GrowthDiagramLLMSClass.__doc__,
+                 "_k": k,
+                 "_zero": Core([], k),
+                 "_zero_edge": None  # to prevent confusion with the edge labelled with content 0
+                })
+
 class GrowthDiagramBinWord(GrowthDiagram):
     r"""
     A class modelling a Schensted-like correspondence for binary
@@ -2022,9 +1965,6 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
         sage: pi.descents(from_zero=False)
         [1, 3, 5, 6]
-
-    .. automethod:: forward_rule
-    .. automethod:: backward_rule
 
     TESTS::
 
@@ -2070,7 +2010,6 @@ class GrowthDiagramBinWord(GrowthDiagram):
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = Word([], alphabet=[0,1])
 
@@ -2259,8 +2198,6 @@ class GrowthDiagramSylvester(GrowthDiagram):
          \     / \
           o   o   o
 
-    .. automethod:: forward_rule
-
     TESTS::
 
         sage: SY = GrowthDiagramSylvester
@@ -2309,7 +2246,6 @@ class GrowthDiagramSylvester(GrowthDiagram):
         super(GrowthDiagramSylvester, self).__init__(filling = filling,
                                                      shape = shape,
                                                      labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = BinaryTree()
 
@@ -2596,7 +2532,6 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
 class GrowthDiagramYoungFibonacci(GrowthDiagram):
     r"""
-
     A class modelling a Schensted-like correspondence for
     Young-Fibonacci-tableaux.
 
@@ -2618,9 +2553,6 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
     The Kleitman Greene invariant is: take the last letter and the
     largest letter of the permutation and remove them.  If they
     coincide write 1, otherwise write 2.
-
-    .. automethod:: forward_rule
-    .. automethod:: backward_rule
 
     TESTS::
 
@@ -2666,7 +2598,6 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
                                                           shape = shape,
                                                           labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = Word([], alphabet=[1,2])
 
@@ -2848,7 +2779,6 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
         super(GrowthDiagramOnPartitions, self).__init__(filling = filling,
                                                         shape = shape,
                                                         labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     def P_symbol(self):
         r"""
@@ -2890,10 +2820,6 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         ([[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]])
         sage: RSK(pi)
         [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
-
-    .. automethod:: forward_rule
-    .. automethod:: backward_rule
-
     """
     @staticmethod
     def forward_rule(shape3, shape2, shape1, content):
@@ -3008,9 +2934,6 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         0  1
         1  0
         1  0
-
-    .. automethod:: forward_rule
-    .. automethod:: backward_rule
     """
     @staticmethod
     def forward_rule(shape3, shape2, shape1, content):
@@ -3073,17 +2996,17 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         r"""
         Return the content and the input shape.
 
-        See [Kra2006]_ `(B^4 0)-(B^4 2)`.  There is a typo in the
-        computation of carry in `(B^4 2)` in the arXiv version of the
-        article, `\rho` must be replaced by `\lambda`.
+        See [Kra2006]_ `(B^4 0)-(B^4 2)`.  (In the arXiv version of
+        the article there is a typo: in the computation of carry in
+        `(B^4 2)` , `\rho` must be replaced by `\lambda`).
 
         INPUT:
 
         - ``shape3, shape4, shape1`` -- three partitions from a cell in a
           growth diagram, labelled as::
 
-                   shape1         mu
-            shape3 shape4      nu lambda
+                   shape1
+            shape3 shape4
 
         OUTPUT:
 
@@ -3143,19 +3066,21 @@ class GrowthDiagramDomino(GrowthDiagram):
     signed permutation equals the sum of the spins of the two
     associated tableaux::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
+        sage: pi = [3,-1,2,4,-5]
+        sage: G = GrowthDiagramDomino(pi)
+        sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
 
-        sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
+        sage: G.P_symbol() == GrowthDiagramDomino([-e for e in pi]).P_symbol().conjugate()
         True
 
     TESTS:
 
     Check duality::
 
-        sage: GrowthDiagramDomino._check_duality(4)
+        sage: GrowthDiagramDomino._check_duality(3)
 
         sage: G = GrowthDiagramDomino([[0,1,0],[0,0,-1],[1,0,0]]); G
         0  1  0
@@ -3170,6 +3095,16 @@ class GrowthDiagramDomino(GrowthDiagram):
         sage: l = {pi: GrowthDiagramDomino(pi) for pi in SignedPermutations(4)}
         sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
         384
+
+    Check the color-to-spin property for all permutations of size 4::
+
+        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
+        True
+
+    Negating all signs transposes all the partitions::
+
+        sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
+        True
 
     Check part of Theorem 4.2.3 in [Lee1996]_::
 
@@ -3192,8 +3127,6 @@ class GrowthDiagramDomino(GrowthDiagram):
         Traceback (most recent call last):
         ...
         AssertionError: [1] has smaller rank than [2, 1] but isn't covered by it in P!
-
-    .. automethod:: forward_rule
     """
     def __init__(self,
                  filling = None,
@@ -3204,7 +3137,6 @@ class GrowthDiagramDomino(GrowthDiagram):
         super(GrowthDiagramDomino, self).__init__(filling = filling,
                                                   shape = shape,
                                                   labels = labels)
-    __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _r = 2
     @staticmethod

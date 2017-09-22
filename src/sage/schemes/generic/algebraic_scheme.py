@@ -156,6 +156,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.calculus.functions import jacobian
 
 import sage.schemes.affine
@@ -879,6 +880,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
 
 #*******************************************************************
+@richcmp_method
 class AlgebraicScheme_subscheme(AlgebraicScheme):
     """
     An algebraic scheme presented as a closed subscheme is defined by
@@ -1003,7 +1005,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         A = self.ambient_space().base_extend(R)
         return A.subscheme(self.__polys)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         EXAMPLES::
 
@@ -1018,11 +1020,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             False
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
-            return -1
+            return NotImplemented
         A = self.ambient_space()
         if other.ambient_space() != A:
-            return -1
-        return cmp(self.defining_ideal(), other.defining_ideal())
+            return NotImplemented
+        return richcmp(self.defining_ideal(), other.defining_ideal(), op)
 
     def _latex_(self):
         """
@@ -1217,7 +1219,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         A = self.ambient_space()
         C = Sequence([A.subscheme(X) for X in P], check=False, cr=True)
-        C.sort()
+        C.sort(key=lambda scheme: scheme.defining_ideal().gens())
         C.set_immutable()
         self.__irreducible_components = C
         return C

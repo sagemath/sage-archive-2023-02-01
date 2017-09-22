@@ -85,6 +85,7 @@ Classes and Methods
 from __future__ import print_function
 from __future__ import absolute_import
 
+from sage.misc.superseded import experimental
 from sage.structure.sage_object import SageObject
 
 
@@ -1001,6 +1002,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
+    @experimental(20050)
     def ImplicitExpansion(var, phi, tau=None, precision=None):
         r"""
         Return the singular expansion for a function `y(z)` defined
@@ -1051,6 +1053,10 @@ class AsymptoticExpansionGenerators(SageObject):
         tree function `T` (which satisfies `T(z) = z \exp(T(z))`)::
 
             sage: asymptotic_expansions.ImplicitExpansion('Z', phi=exp, precision=8)
+            doctest:warning
+            ...
+            FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20050 for details.
             1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
 
@@ -1161,6 +1167,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     @staticmethod
     def ImplicitExpansionPeriodicPart(var, phi, tau=None, period=1, precision=None):
+    @experimental(20050)
         r"""
         Return the singular expansion for the periodic part of a function `y(z)`
         defined implicitly by `y(z) = z \Phi(y(z))`.
@@ -1219,6 +1226,10 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: asymptotic_expansions.ImplicitExpansionPeriodicPart('Z', phi=lambda u: 1 + u^2,
             ....:                                                     period=2, precision=7)
+            doctest:warning
+            ...
+            FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20050 for details.
             2 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2) - 2*Z^(-5/2) + O(Z^(-3))
             sage: def g(z):
             ....:     return (1 - sqrt(1 - 4*z))/(2*z)

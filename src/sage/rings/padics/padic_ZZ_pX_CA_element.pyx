@@ -127,15 +127,14 @@ You can get at the underlying ntl representation::
     sage: y._ntl_rep_abs()
     ([5 95367431640505 25 95367431640560 5], 0)
 
-NOTES:
+.. NOTE::
 
-If you get an error 'internal error: can't grow this
-_ntl_gbigint,' it indicates that moduli are being mixed
-inappropriately somewhere.
+    If you get an error ``internal error: can't grow this _ntl_gbigint,``
+    it indicates that moduli are being mixed inappropriately somewhere.
 
-For example, when calling a function with a ZZ_pX_c as an
-argument, it copies.  If the modulus is not set to the modulus of
-the ZZ_pX_c, you can get errors.
+    For example, when calling a function with a ``ZZ_pX_c`` as an
+    argument, it copies.  If the modulus is not
+    set to the modulus of the ``ZZ_pX_c``, you can get errors.
 
 AUTHORS:
 
@@ -1816,13 +1815,6 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         """
         Returns a list giving a series representation of ``self``.
 
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
-        NOTES:
-
         - If ``lift_mode == 'simple'`` or ``'smallest'``, the returned
           list will consist of integers (in the eisenstein case) or a
           list of lists of integers (in the unramified case).
@@ -1842,6 +1834,11 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
           representatives and such that ``self`` is the sum of that
           list times powers of the uniformizer.
 
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         EXAMPLES::
 
             sage: R = ZpCA(5,5)
@@ -1860,15 +1857,17 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: A.<a> = R.ext(g)
             sage: y = 75 + 45*a + 1200*a^2; y
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
-            sage: y.expansion()
+            sage: E = y.expansion(); E
+            5-adic expansion of 4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
+            sage: list(E)
             [[], [0, 4], [3, 1, 3], [0, 0, 4], [0, 0, 1]]
-            sage: y.expansion(lift_mode='smallest')
+            sage: list(y.expansion(lift_mode='smallest'))
             [[], [0, -1], [-2, 2, -2], [1], [0, 0, 2]]
             sage: 5*((-2*5 + 25) + (-1 + 2*5)*a + (-2*5 + 2*125)*a^2)
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
             sage: W(0).expansion()
             []
-            sage: A(0,4).expansion()
+            sage: list(A(0,4).expansion())
             []
         """
         if lift_mode == 'teichmuller':
@@ -2010,11 +2009,13 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         EXAMPLES::
 
             sage: R.<a> = Zq(5^4,4)
-            sage: L = a.teichmuller_expansion(); L
+            sage: E = a.teichmuller_expansion(); E
+            5-adic expansion of a + O(5^4) (teichmuller)
+            sage: list(E)
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + O(5^3), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + O(5^2), (a^3 + a^2 + a + 4) + O(5)]
-            sage: sum([5^i*L[i] for i in range(4)])
+            sage: sum([c * 5^i for i, c in enumerate(E)])
             a + O(5^4)
-            sage: all([L[i]^625 == L[i] for i in range(4)])
+            sage: all([c^625 == c for c in E])
             True
 
             sage: S.<x> = ZZ[]

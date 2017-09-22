@@ -3926,6 +3926,12 @@ cdef class Expression(CommutativeRingElement):
             0.000000000000000
             sage: exp(x)^1.0
             (e^x)^1.00000000000000
+
+        Check that :trac:`23921` is resolved::
+
+            sage: A.<n> = AsymptoticRing('SR^n * n^SR', SR)
+            sage: SR(2)^n
+            2^n
         """
         cdef Expression base, nexp
 

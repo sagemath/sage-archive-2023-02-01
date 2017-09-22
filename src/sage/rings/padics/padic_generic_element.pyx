@@ -299,6 +299,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
             sage: a[0] #indirect doctest
+            doctest:warning
+            ...
+            DeprecationWarning: __getitem__ is changing to match the behavior of number fields. Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
             5
             sage: a[1]
             4
@@ -327,7 +331,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: b[3]
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            PrecisionError
             sage: b[-2]
             0
 
@@ -362,26 +366,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             :meth:`sage.rings.padics.local_generic_element.LocalGenericElement.slice`
         """
-        if isinstance(n, slice):
-            return self.slice(n.start, n.stop, n.step)
-        if self.parent().f() == 1:
-            zero = Integer(0)
-        else:
-            zero = []
-        if n < self.valuation():
-            return zero
-        if n >= self.precision_absolute():
-            raise IndexError("list index out of range")
-
-        if self.parent().is_field():
-            n -= self.valuation()
-
-        # trailing coefficients which are zero are not stored in self.list() -
-        # we catch an IndexError to check for this.
-        try:
-            return self.list()[n]
-        except IndexError:
-            return zero
+        from sage.misc.superseded import deprecation
+        deprecation(14825, "__getitem__ is changing to match the behavior of number fields. Please use expansion instead.")
+        return self.expansion(n)
 
     def __invert__(self):
         r"""

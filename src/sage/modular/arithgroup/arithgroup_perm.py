@@ -2012,16 +2012,16 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
 
         INPUT:
 
-        - ``on_right`` -- boolean (default: True) - if False, return spanning
-          tree for the left cosets.
+        - ``on_right`` -- boolean (default: ``True``) - if ``False``,
+          return spanning tree for the left cosets.
 
         OUTPUT:
 
         - ``tree`` -- a spanning tree (with an embedding) of the graph
           associated to the action of ``S2`` and ``S3`` on the cosets
 
-        - ``reps`` -- list of matrices in `{\rm SL}_2(\ZZ)`` - representatives of the
-          cosets with respect to the spanning tree
+        - ``reps`` -- list of matrices in `{\rm SL}_2(\ZZ)` - representatives
+          of the cosets with respect to the spanning tree
 
         - ``word_reps`` -- list of lists with ``s2`` and ``s3`` - word
           representatives of the cosets with respect to the spanning tree.
@@ -2035,26 +2035,17 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             sage: tree,reps,wreps,gens = G._spanning_tree_kulkarni()
             sage: tree
             Digraph on 4 vertices
-            sage: for m in reps:
-            ....:     print(m)
-            ....:     print("\n****")
-            [1 0]
-            [0 1]
-            ****
-            [ 0  1]
-            [-1  1]
-            ****
-            [-1  1]
-            [-1  0]
-            ****
-            [1 1]
-            [0 1]
-            ****
+            sage: emb = tree.get_embedding()
+
+            sage: ascii_art(reps)
+            [ [1 0]  [ 0  1]  [-1  1]  [1 1] ]
+            [ [0 1], [-1  1], [-1  0], [0 1] ]
+
             sage: for w in wreps: print(','.join(w))
-            <BLANKLINE>
             s3
             s3,s3
             s3,s3,s2
+
             sage: gens
             [(0, 1, 's2'), (3, 3, 's3')]
         """

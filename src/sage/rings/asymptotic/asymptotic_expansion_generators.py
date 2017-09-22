@@ -1122,7 +1122,7 @@ class AsymptoticExpansionGenerators(SageObject):
             raise ValueError('The function phi does not satisfy the requirements')
 
         if tau is None:
-            tau = _fundamental_constant_(phi=phi)
+            tau = _fundamental_constant_implicit_function_(phi=phi)
 
         def H(y):
             return tau/phi(tau) - y/phi(y)
@@ -1231,7 +1231,7 @@ class AsymptoticExpansionGenerators(SageObject):
         u = SR('u')
 
         if tau is None:
-            tau = _fundamental_constant_(phi=phi)
+            tau = _fundamental_constant_implicit_function_(phi=phi)
 
         tau_p = tau**period
         aperiodic_expansion = asymptotic_expansions.ImplicitExpansion(var,
@@ -1243,7 +1243,7 @@ class AsymptoticExpansionGenerators(SageObject):
         return 1/rho * (aperiodic_expansion/(1 - 1/Z))**(1/period)
 
 
-def _fundamental_constant_(phi):
+def _fundamental_constant_implicit_function_(phi):
     r"""
     Return the fundamental constant `\tau` occurring in the analysis of
     implicitly defined functions.
@@ -1264,12 +1264,12 @@ def _fundamental_constant_(phi):
     TESTS::
 
         sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
-        ....:     import _fundamental_constant_
-        sage: _fundamental_constant_(phi=exp)
+        ....:     import _fundamental_constant_implicit_function_
+        sage: _fundamental_constant_implicit_function_(phi=exp)
         1
-        sage: _fundamental_constant_(phi=lambda u: 1 + u^2)
+        sage: _fundamental_constant_implicit_function_(phi=lambda u: 1 + u^2)
         1
-        sage: _fundamental_constant_(phi=lambda u: 1 + 2*u + 2*u^2)
+        sage: _fundamental_constant_implicit_function_(phi=lambda u: 1 + 2*u + 2*u^2)
         1/2*sqrt(2)
 
     """

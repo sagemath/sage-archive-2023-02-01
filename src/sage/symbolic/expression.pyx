@@ -3937,7 +3937,12 @@ cdef class Expression(CommutativeRingElement):
             nexp = <Expression?>exp
             base = nexp.coerce_in(self)
         else:
-            nexp = base.coerce_in(exp)
+            try:
+                nexp = base.coerce_in(exp)
+            except TypeError:
+                from sage.structure.element import get_coercion_model
+                P = get_coercion_model().common_parent(base, exp)
+                return P(base) ** P(exp)
         cdef GEx x
         if is_a_relational(base._gobj):
             x = relational(g_pow(base._gobj.lhs(), nexp._gobj),

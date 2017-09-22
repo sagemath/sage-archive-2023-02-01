@@ -18,9 +18,9 @@ A guided tour
 -------------
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
-generalisation of the Robinson-Schensted-Knuth correspondence between
-matrices with non-negative integer entries and pairs of semistandard
-Young tableaux of the same shape.
+generalisation of the Robinson-Schensted-Knuth (RSK) correspondence
+between matrices with non-negative integer entries and pairs of
+semistandard Young tableaux of the same shape.
 
 The main fact is that many correspondences similar to RSK can be
 defined by providing a so-called 'forward' rule: a function whose
@@ -85,12 +85,12 @@ generalised permutation::
     4 2 3
 
 as a dictionary of coordinates, subtracting `1` from all entries
-because lists in SageMath are zero-based::
+because lists are zero-based::
 
-    sage: w = {(1-1,4-1):1, (2-1,2-1):1, (4-1,3-1):1}
-    sage: T = SkewTableau([[None, None],[None,5],[1]])
-    sage: U = SkewTableau([[None, None],[None,3],[5]])
-    sage: G = GrowthDiagramRSK(filling = w, shape = [5]*5, labels = T.to_chain()[::-1]+U.to_chain()[1:]); G
+    sage: w = {(1-1,4-1): 1, (2-1,2-1): 1, (4-1,3-1): 1}
+    sage: T = SkewTableau([[None, None], [None,5], [1]])
+    sage: U = SkewTableau([[None, None], [None,3], [5]])
+    sage: G = GrowthDiagramRSK(filling=w, shape=[5]*5, labels=T.to_chain()[::-1]+U.to_chain()[1:]); G
     0  0  0  0  0
     0  1  0  0  0
     0  0  0  1  0
@@ -103,7 +103,7 @@ because lists in SageMath are zero-based::
 Moreover, we are not forced to use rectangular fillings.  For
 example, consider the Stanley-Sundaram correspondence between (skew)
 oscillating tableaux and (partial) perfect matchings.  Again, from
-Tom Roby's thesis::
+[Rob1991]_::
 
     sage: o = [[2,1],[2,2],[3,2],[4,2],[4,1],[4,1,1],[3,1,1],[3,1],[3,2],[3,1],[2,1]]
     sage: l = [None]*(2*len(o)-1)
@@ -125,12 +125,13 @@ Tom Roby's thesis::
 
 As mentioned at the beginning, the Robinson-Schensted-Knuth
 correspondence is just a special case of growth diagrams.  In
-particular, we have implemented local rules for the variation of RSK
-originally due to Burge (:class:`GrowthDiagramBurge`), a
-correspondence producing binary words originally due to Viennot
-(:class:`GrowthDiagramBinWord`), and a correspondence producing
-domino tableaux (:class:`GrowthDiagramDomino`) originally due to
-Barbasch and Vogan.
+particular, we have implemented the following local rules:
+
+- a variation of RSK originally due to Burge (:class:`GrowthDiagramBurge`),
+- a correspondence producing binary words originally due to Viennot
+  (:class:`GrowthDiagramBinWord`),
+- a correspondence producing domino tableaux
+  (:class:`GrowthDiagramDomino`) originally due to Barbasch and Vogan.
 
 Background
 ----------
@@ -140,8 +141,8 @@ graphs.  This is a pair of digraphs `P, Q`, multiple edges being
 allowed, on the same set of vertices `V`, that satisfy the following
 conditions:
 
-* the graphs are graded, that is, there is a function `\rho:
-  V\to\\N`, such that for any edge `(v, w)` of `P` and also of `Q` we
+* the graphs are graded, that is, there is a function `\rho :
+  V \to \NN`, such that for any edge `(v, w)` of `P` and also of `Q` we
   have `\rho(w) = \rho(v) + 1`,
 
 * there is a vertex `0` with rank zero, and
@@ -151,12 +152,12 @@ conditions:
   `U` is the up operator of `P`, assigning each vertex its
   successors, and `I` is the identity operator.
 
-For example, taking for both `P` and `Q` Young's lattice, and `r=1`,
+For example, taking for both `P` and `Q` to be Young's lattice and `r=1`,
 we obtain the dual graded graphs for classical Schensted insertion.
 
 Given such a pair of graphs, there is a bijection between the
-`r`-colored permutations on `k` letters and pairs `(p,q)`, where `p`
-is a path in `P` from zero to a vertex of rank `k`, and `q` is a path
+`r`-colored permutations on `k` letters and pairs `(p, q)`, where `p`
+is a path in `P` from zero to a vertex of rank `k` and `q` is a path
 in `Q` from zero to the same vertex.
 
 It turns out that - in principle - this bijection can always be
@@ -244,15 +245,20 @@ No result, so the first few levels of the graphs are really dual.
 Unfortunately, our backward rule can no longer work.  Let's provide
 the real one - note that the arguments of the rule are vertices
 together with the edge labels now.  The horizontal edges come from
-`Q`, whereas the vertical edges come from `P`.  Here is a template for the docstring::
+`Q`, whereas the vertical edges come from `P`.
+Here is a template for the docstring::
 
     INPUT:
+
     - ``y, g, z, h, x`` -- a path of three partitions and two
       colors from a cell in a growth diagram, labelled as::
+
              x
              h
          y g z
+
     OUTPUT:
+
     A tuple ``(e, t, f, content)`` consisting of the shape ``t``
     of the fourth word, the colours of the incident edges and the
     content of the cell.
@@ -366,14 +372,11 @@ class GrowthDiagram(SageObject):
         sage: G = GrowthDiagramRSK()
         Traceback (most recent call last):
         ...
-        ValueError: Please provide a filling or a sequence of labels.
+        ValueError: please provide a filling or a sequence of labels
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         r"""
-        Initialise a generalized Schensted growth diagram in the sense of
+        Initialize a generalized Schensted growth diagram in the sense of
         Fomin.
 
         An instance of the class is a growth diagram consisting of a
@@ -448,7 +451,7 @@ class GrowthDiagram(SageObject):
         """
         if filling is None:
             if labels is None:
-                raise ValueError("Please provide a filling or a sequence of labels.")
+                raise ValueError("please provide a filling or a sequence of labels")
 
             if shape is None:
                 shape = self._shape_from_labels(labels)
@@ -466,6 +469,7 @@ class GrowthDiagram(SageObject):
     _has_multiple_edges = False # override when necessary
     _zero_edge = 0              # override when necessary
     _r = 1                      # override when necessary
+
     @classmethod
     def is_P_edge(cls, v, w):
         """
@@ -532,11 +536,13 @@ class GrowthDiagram(SageObject):
 
     @classmethod
     def _check_duality(cls, n):
-        """Raise an error if the graphs are not r-dual at level n.
+        """
+        Raise an error if the graphs are not r-dual at level n.
 
         INPUT:
 
-        - ``n``, a positive integer specifying which rank of the graph to test.
+        - ``n`` -- a positive integer specifying which rank of
+          the graph to test
 
         TESTS:
 
@@ -646,7 +652,7 @@ class GrowthDiagram(SageObject):
             True
         """
         F = {(j,i): v for (i,j),v in self._filling.items()}
-        return self.parent()(filling = F)
+        return self.parent()(filling=F)
 
     def rotate(self):
         r"""
@@ -734,7 +740,7 @@ class GrowthDiagram(SageObject):
             else:
                 return self._out_labels[self._lambda[0]:][::-1]
         else:
-            raise ValueError("The P symbol is only defined for rectangular shapes.")
+            raise ValueError("the P symbol is only defined for rectangular shapes")
 
     def Q_chain(self):
         r"""
@@ -753,7 +759,7 @@ class GrowthDiagram(SageObject):
             else:
                 return self._out_labels[:self._lambda[0]+1]
         else:
-            raise ValueError("The Q symbol is only defined for rectangular shapes.")
+            raise ValueError("the Q symbol is only defined for rectangular shapes")
 
     def is_rectangular(self):
         r"""
@@ -786,25 +792,24 @@ class GrowthDiagram(SageObject):
             [3, 3, 2, 4, 1]
 
         """
-        if self.is_rectangular():
-            w = [0]*self._lambda[0]
-            for ((i,j), v) in self._filling.items():
-                if v != 0:
-                    if v == 1:
-                        if w[i] == 0:
-                            w[i] = j+1
-                        else:
-                            raise ValueError("Can only convert fillings with at most one entry per column to words.")
-                    elif v == -1:
-                        if w[i] == 0:
-                            w[i] = -(j+1)
-                        else:
-                            raise ValueError("Can only convert fillings with at most one entry per column to words.")
+        if not self.is_rectangular():
+            raise ValueError("can only convert fillings of rectangular shapes to words")
+        w = [0] * self._lambda[0]
+        for ((i,j), v) in self._filling.items():
+            if v != 0:
+                if v == 1:
+                    if w[i] == 0:
+                        w[i] = j+1
                     else:
-                        raise ValueError("Can only convert 0-1 fillings to words.  Try ``to_biword``.")
-            return w
-        else:
-            raise ValueError("Can only convert fillings of rectangular shapes to words.")
+                        raise ValueError("can only convert fillings with at most one entry per column to words")
+                elif v == -1:
+                    if w[i] == 0:
+                        w[i] = -(j+1)
+                    else:
+                        raise ValueError("can only convert fillings with at most one entry per column to words")
+                else:
+                    raise ValueError("can only convert 0-1 fillings to words; try 'to_biword'")
+        return w
 
     def to_biword(self):
         r"""
@@ -830,18 +835,17 @@ class GrowthDiagram(SageObject):
             [[[1, 1, 2], [2]], [[1, 2, 2], [2]]]
 
         """
-        if self.is_rectangular():
-            w1 = []
-            w2 = []
-            for ((i,j), v) in sorted(self._filling.items()):
-                if v >= 0:
-                    w1.extend([i+1]*v)
-                    w2.extend([j+1]*v)
-                else:
-                    raise ValueError("Can only convert fillings with nonnegative entries to words.")
-            return (w1, w2)
-        else:
-            raise ValueError("Can only convert fillings of rectangular shapes to words.")
+        if not self.is_rectangular():
+            raise ValueError("can only convert fillings of rectangular shapes to words")
+        w1 = []
+        w2 = []
+        for ((i,j), v) in sorted(self._filling.items()):
+            if v >= 0:
+                w1.extend([i+1]*v)
+                w2.extend([j+1]*v)
+            else:
+                raise ValueError("can only convert fillings with nonnegative entries to words")
+        return (w1, w2)
 
     def __iter__(self):
         r"""
@@ -953,8 +957,6 @@ class GrowthDiagram(SageObject):
         r"""
         Return half the perimeter of the shape of the growth diagram.
 
-        Assumes that ``self._lambda`` is already set.
-
         TESTS::
 
             sage: G = GrowthDiagramRSK({(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
@@ -962,12 +964,11 @@ class GrowthDiagram(SageObject):
             1
             sage: G.half_perimeter()
             6
-
         """
-        if len(self._lambda) == 0:
+        # Assume that ``self._lambda`` is already set.
+        if not self._lambda:
             return 1
-        else:
-            return self._lambda[0]+len(self._lambda)+1
+        return self._lambda[0] + len(self._lambda) + 1
 
     def _shape_from_labels(self, labels):
         r"""
@@ -1001,8 +1002,9 @@ class GrowthDiagram(SageObject):
                     assert e in self.is_P_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in in P!" %(mu, la, e)
                     return 0
                 else:
-                    raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
-            return Partitions().from_zero_one([right_left(labels[i], labels[i+2], labels[i+1]) for i in range(0, len(labels)-2, 2)])
+                    raise ValueError("can only determine the shape of the growth diagram if ranks of successive labels differ")
+            return Partitions().from_zero_one([right_left(labels[i], labels[i+2], labels[i+1])
+                                               for i in range(0, len(labels)-2, 2)])
         else:
             def right_left(la, mu):
                 if self.rank_function(la) < self.rank_function(mu):
@@ -1012,8 +1014,9 @@ class GrowthDiagram(SageObject):
                     assert self.is_P_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
                     return 0
                 else:
-                    raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
-            return Partitions().from_zero_one([right_left(labels[i], labels[i+1]) for i in range(len(labels)-1)])
+                    raise ValueError("can only determine the shape of the growth diagram if ranks of successive labels differ")
+            return Partitions().from_zero_one([right_left(labels[i], labels[i+1])
+                                               for i in range(len(labels)-1)])
 
     def _check_labels(self, labels):
         r"""
@@ -1026,12 +1029,12 @@ class GrowthDiagram(SageObject):
             sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])                 # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: The number of labels is 2, but for this shape we need 3.
+            ValueError: the number of labels is 2, but for this shape we need 3
 
             sage: GrowthDiagramRSK(labels=[[], [1], [2], [2,1]])                # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: The number of labels is 4, but for this shape we need 1.
+            ValueError: the number of labels is 4, but for this shape we need 1
 
         .. TODO::
 
@@ -1039,14 +1042,14 @@ class GrowthDiagram(SageObject):
         """
         half_perimeter = self.half_perimeter()
         if self._has_multiple_edges:
-            assert is_odd(len(labels)), "Only a list of odd length can specify a path, but %s has even length."%s
-            path_length = (len(labels)+1)/2
+            assert is_odd(len(labels)), "only a list of odd length can specify a path, but %s has even length"%s
+            path_length = (len(labels) + 1) / 2
         else:
             path_length = len(labels)
 
         if path_length != half_perimeter:
-            raise ValueError("The number of labels is %s, but for this shape we need %s."
-                             %(path_length, half_perimeter))
+            raise ValueError("the number of labels is %s, but for this shape we need %s"
+                             % (path_length, half_perimeter))
 
     def _init_labels_forward_from_various_input(self, labels):
         r"""
@@ -1074,13 +1077,12 @@ class GrowthDiagram(SageObject):
             [[], [1], [], [1], []]
 
         """
-        if labels is None:
-            if self._has_multiple_edges:
-                return [self._zero, self._zero_edge]*(self.half_perimeter()-1) + [self._zero]
-            else:
-                return [self._zero]*(self.half_perimeter())
-        else:
+        if labels is not None:
             return labels
+        if self._has_multiple_edges:
+            return [self._zero, self._zero_edge]*(self.half_perimeter()-1) + [self._zero]
+        else:
+            return [self._zero] * self.half_perimeter()
 
     def _init_shape_from_various_input(self, shape):
         r"""
@@ -1110,15 +1112,14 @@ class GrowthDiagram(SageObject):
         """
         try:
             shape = Partition(shape)
-            return (list(shape), [0]*len(shape))
         except ValueError:
             try:
                 shape = SkewPartition(shape)
-                return (list(shape[0]),
-                        list(shape[1]) + [0]*(len(shape[0])-len(shape[1])))
             except ValueError:
-                raise ValueError("Cannot make sense of shape %s" %shape)
-
+                raise ValueError("cannot make sense of shape %s" % shape)
+            return ( list(shape[0]),
+                     list(shape[1]) + [0]*(len(shape[0])-len(shape[1])) )
+        return (list(shape), [0]*len(shape))
 
     def _init_filling_and_shape_from_various_input(self, filling, shape):
         r"""
@@ -1219,7 +1220,7 @@ class GrowthDiagram(SageObject):
                 for i, row in enumerate(filling):
                     for j, v in enumerate(row):
                         if v != 0:
-                            F[(j,i)] = int(v)
+                            F[j,i] = int(v)
                 if shape is None:
                     shape = [len(row) for row in filling]
 
@@ -1227,9 +1228,9 @@ class GrowthDiagram(SageObject):
                 # it is a word - for convenience we allow signed words
                 for i, l in enumerate(filling):
                     if l > 0:
-                        F[(i, l-1)] = 1
+                        F[i, l-1] = 1
                     else:
-                        F[(i, -l-1)] = -1
+                        F[i, -l-1] = -1
 
         if shape is None:
             if F == {}:
@@ -1286,20 +1287,20 @@ class GrowthDiagram(SageObject):
                     (labels[2*c-1],
                      labels[2*c],
                      labels[2*c+1]) = self.forward_rule(labels[2*c-2],
-                                                         labels[2*c-1],
-                                                         labels[2*c],
-                                                         labels[2*c+1],
-                                                         labels[2*c+2],
-                                                         self._filling.get((i,j), 0))
+                                                        labels[2*c-1],
+                                                        labels[2*c],
+                                                        labels[2*c+1],
+                                                        labels[2*c+2],
+                                                        self._filling.get((i,j), 0))
         else:
             for r in range(l):
                 for c in range(self._mu[r]+l-r, self._lambda[r]+l-r):
                     j = r
                     i = c-l+r
                     labels[c] = self.forward_rule(labels[c-1],
-                                                   labels[c],
-                                                   labels[c+1],
-                                                   self._filling.get((i,j), 0))
+                                                  labels[c],
+                                                  labels[c+1],
+                                                  self._filling.get((i,j), 0))
 
         self._out_labels = labels
 
@@ -1337,7 +1338,7 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagramRSK(labels=labels)
             Traceback (most recent call last):
             ...
-            ValueError: Can only determine the shape of the growth diagram if ranks of successive labels differ.
+            ValueError: can only determine the shape of the growth diagram if ranks of successive labels differ
             sage: G = GrowthDiagramRSK(shape=[3,2,1], labels=labels)
             sage: G._filling                                                    # indirect doctest
             {(1, 0): 1}
@@ -1370,10 +1371,10 @@ class GrowthDiagram(SageObject):
                     (labels[2*c-1],
                      labels[2*c],
                      labels[2*c+1], v) = self.backward_rule(labels[2*c-2],
-                                                             labels[2*c-1],
-                                                             labels[2*c],
-                                                             labels[2*c+1],
-                                                             labels[2*c+2])
+                                                            labels[2*c-1],
+                                                            labels[2*c],
+                                                            labels[2*c+1],
+                                                            labels[2*c+2])
                     if v != 0:
                         F[(i,j)] = v
 
@@ -1383,8 +1384,8 @@ class GrowthDiagram(SageObject):
                     j = l-r-1
                     i = c-r-1
                     labels[c], v = self.backward_rule(labels[c-1],
-                                                       labels[c],
-                                                       labels[c+1])
+                                                      labels[c],
+                                                      labels[c+1])
                     if v != 0:
                         F[(i,j)] = v
 
@@ -1441,9 +1442,9 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Partition(labels[i]) if is_even(i) else ZZ(labels[i]) for i in range(len(labels))]
-        super(GrowthDiagramShiftedShapes, self).__init__(filling = filling,
-                                                   shape = shape,
-                                                   labels = labels)
+        super(GrowthDiagramShiftedShapes, self).__init__(filling=filling,
+                                                         shape=shape,
+                                                         labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = Partition([])
@@ -1572,10 +1573,10 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             (3, [4], 0)
 
         """
-        assert e == 0, "The P-graph should not be colored"
+        assert e == 0, "the P-graph should not be colored"
         h = 0
         if x == t == y:
-            assert f == 0, "Degenerate edge f should have color 0"
+            assert f == 0, "degenerate edge f should have color 0"
             if content == 0:
                 g, z = 0, x
             elif content == 1:
@@ -1586,11 +1587,11 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
         elif x != t == y:
             g, z = f, x
         elif x == t != y:
-            assert f == 0, "Degenerate edge f should have color 0"
+            assert f == 0, "degenerate edge f should have color 0"
             g, z = f, y
         else:
             if x != y:
@@ -1607,7 +1608,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
                 col = c[0] + c[1] + 1
                 # print y, t, x, c, col
                 for i in range(len(y)):
-                    if i+y[i] == col:
+                    if i + y[i] == col:
                         z = y[:i] + [y[i]+1] + y[i+1:]
                         break
                 g = 3
@@ -1668,15 +1669,15 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
             sage: G.backward_rule([3], 3, [4], 0, [3])
             (0, [2], 3, 0)
         """
-        assert h == 0, "The P-graph should not be colored"
+        assert h == 0, "the P-graph should not be colored"
 
         if x == y == z:
-            assert g == 0, "Degenerate edge g should have color 0"
+            assert g == 0, "degenerate edge g should have color 0"
             return (0, x, 0, 0)
         elif x == z != y:
             return (0, y, g, 0)
         elif x != z == y:
-            assert g == 0, "Degenerate edge g should have color 0"
+            assert g == 0, "degenerate edge g should have color 0"
             return (0, x, 0, 0)
         else:
             if x != y:
@@ -1698,7 +1699,7 @@ class GrowthDiagramShiftedShapes(GrowthDiagram):
                             else:
                                 t = y[:i] + [y[i]-1] + y[i+1:]
                                 return (0, t, 3, 0)
-                    raise ValueError("This should not happen.")
+                    raise ValueError("this should not happen")
 
 class GrowthDiagramLLMSClass(GrowthDiagram):
     pass
@@ -1772,16 +1773,14 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
         sage: G._check_duality(4)
 
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         # TODO: should check that the filling is standard
         if labels is not None:
-            labels = [Core(labels[i], self._k) if is_even(i) else labels[i] for i in range(len(labels))]
-        super(GrowthDiagramLLMSClass, self).__init__(filling = filling,
-                                                     shape = shape,
-                                                     labels = labels)
+            labels = [Core(labels[i], self._k) if is_even(i) else labels[i]
+                      for i in range(len(labels))]
+        super(GrowthDiagramLLMSClass, self).__init__(filling=filling,
+                                                     shape=shape,
+                                                     labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _has_multiple_edges = True
@@ -1863,7 +1862,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
 
         """
         C = self.P_chain()
-        T = SkewTableau(chain = C[::2])
+        T = SkewTableau(chain=C[::2])
         S = T.to_list()
         for entry, content in enumerate(C[1::2], 1):
             for i,j in T.cells_containing(entry):
@@ -1883,9 +1882,8 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G.Q_symbol().pp()
             1 2
             3 4
-
         """
-        return WeakTableau(SkewTableau(chain = self.Q_chain()[::2]), self._k-1)
+        return WeakTableau(SkewTableau(chain=self.Q_chain()[::2]), self._k-1)
 
     @classmethod
     def forward_rule(cls, y, e, t, f, x, content):
@@ -1903,7 +1901,7 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
               e
               y
 
-        - ``content`` -- 0 or 1, the content of the cell.
+        - ``content`` -- 0 or 1, the content of the cell
 
         OUTPUT:
 
@@ -1939,7 +1937,6 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             sage: G.forward_rule(Y, -1, T, None, X, 0)
             (None, [3, 1, 1], -2)
 
-
         if ``x == y != t``::
 
             sage: Y = Core([1], 3); T = Core([], 3); X = Core([1], 3)
@@ -1955,10 +1952,10 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
             (None, [2, 2], 0)
 
         """
-        assert f == None, "The Q-graph should not be colored"
+        assert f == None, "the Q-graph should not be colored"
         g = None
         if x == t == y:
-            assert e == None, "Degenerate edge e should have color None"
+            assert e == None, "degenerate edge e should have color None"
             if content == 0:
                 z, h = x, None
             elif content == 1:
@@ -1968,11 +1965,11 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
                     z = t.affine_symmetric_group_simple_action((t[0])%(cls._k))
                 h = z[0]-1
             else:
-                raise ValueError("Should not happen.")
+                assert False, "BUG in GrowthDiagramLLMSClass"
         elif content != 0:
-            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
         elif x != t == y:
-            assert e == None, "Degenerate edge e should have color None"
+            assert e == None, "degenerate edge e should have color None"
             z, h = x, e
         elif x == t != y:
             z, h = y, e
@@ -1993,15 +1990,14 @@ class GrowthDiagramLLMSClass(GrowthDiagram):
                 cprime = sorted([c for c in y.to_partition().addable_cells()
                                  if c[1]-c[0] <= e],
                                 key = lambda c: -(c[1]-c[0]))[0]
-                h = cprime[1]-cprime[0]
+                h = cprime[1] - cprime[0]
                 z = y.affine_symmetric_group_simple_action(h%(cls._k))
 
         return g, z, h
 
 class GrowthDiagramBinWord(GrowthDiagram):
     r"""
-    A class modelling a Schensted-like correspondence for binary
-    words.
+    A class modelling a Schensted-like correspondence for binary words.
 
     EXAMPLES::
 
@@ -2060,16 +2056,13 @@ class GrowthDiagramBinWord(GrowthDiagram):
         True
 
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[0,1]) for la in labels]
-        super(GrowthDiagramBinWord, self).__init__(filling = filling,
-                                                   shape = shape,
-                                                   labels = labels)
+        super(GrowthDiagramBinWord, self).__init__(filling=filling,
+                                                   shape=shape,
+                                                   labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = Word([], alphabet=[0,1])
@@ -2088,7 +2081,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
             return [GrowthDiagramBinWord._zero]
         else:
             w1 = Word([1], [0,1])
-            return [w1+w for w in Words([0,1], n-1)]
+            return [w1 + w for w in Words([0,1], n-1)]
 
     @staticmethod
     def rank_function(w):
@@ -2149,7 +2142,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
               t x
               y
 
-        - ``content`` -- 0 or 1, the content of the cell.
+        - ``content`` -- 0 or 1, the content of the cell
 
         OUTPUT:
 
@@ -2184,7 +2177,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
         elif x != t == y:
             z = x
         elif x == t != y:
@@ -2238,8 +2231,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
 
 class GrowthDiagramSylvester(GrowthDiagram):
     r"""
-    A class modelling a Schensted-like correspondence for binary
-    trees.
+    A class modelling a Schensted-like correspondence for binary trees.
 
     EXAMPLES:
 
@@ -2299,16 +2291,13 @@ class GrowthDiagramSylvester(GrowthDiagram):
         True
 
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [BinaryTree(la) for la in labels]
-        super(GrowthDiagramSylvester, self).__init__(filling = filling,
-                                                     shape = shape,
-                                                     labels = labels)
+        super(GrowthDiagramSylvester, self).__init__(filling=filling,
+                                                     shape=shape,
+                                                     labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = BinaryTree()
@@ -2419,7 +2408,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
             o   o
         """
         if b.is_empty():
-            raise ValueError("Cannot delete right most node from empty tree")
+            raise ValueError("cannot delete right most node from empty tree")
         elif b[1].is_empty():
             return b[0]
         else:
@@ -2440,7 +2429,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
               t y
               x
 
-        - ``content`` -- 0 or 1, the content of the cell.
+        - ``content`` -- 0 or 1, the content of the cell
 
         OUTPUT:
 
@@ -2449,7 +2438,8 @@ class GrowthDiagramSylvester(GrowthDiagram):
         TESTS::
 
             sage: G = GrowthDiagramSylvester
-            sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None]); R = B([None,[]]); T = B([[],[]])
+            sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None])
+            sage: R = B([None,[]]); T = B([[],[]])
 
             sage: ascii_art(G.forward_rule(E, E, E, 1))
             o
@@ -2468,7 +2458,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
                \
                 o
 
-        if ``x != y``, obtain ``z`` from ``x`` adding a node such
+        If ``x != y``, obtain ``z`` from ``x`` adding a node such
         that deleting the right most gives ``y``::
 
             sage: ascii_art(G.forward_rule(R, N, L, 0))
@@ -2483,7 +2473,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
              \
               o
 
-        if ``x == y != t``, obtain ``z`` from ``y`` by adding a node
+        If ``x == y != t``, obtain ``z`` from ``y`` by adding a node
         as left child to the right most node::
 
             sage: ascii_art(G.forward_rule(N, E, N, 0))
@@ -2530,7 +2520,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
             for t in successors(x):
                 if GrowthDiagramSylvester._delete_right_most_node(t) == y:
                     return t
-            raise ValueError("Couldn't find union of %s and %s" %(x,y))
+            raise ValueError("could not find union of %s and %s" % (x,y))
 
         if x == t == y:
             if content == 0:
@@ -2540,7 +2530,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("For y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
         elif x != t == y:
             z = x
         elif x == t != y:
@@ -2656,16 +2646,13 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         True
 
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         # TODO: should check that the filling is standard
         if labels is not None:
             labels = [Word(la, alphabet=[1,2]) for la in labels]
-        super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
-                                                          shape = shape,
-                                                          labels = labels)
+        super(GrowthDiagramYoungFibonacci, self).__init__(filling=filling,
+                                                          shape=shape,
+                                                          labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _zero = Word([], alphabet=[1,2])
@@ -2741,7 +2728,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
               shape2 shape1
               shape3
 
-        - ``content`` -- 0 or 1, the content of the cell.
+        - ``content`` -- 0 or 1, the content of the cell
 
         OUTPUT:
 
@@ -2772,7 +2759,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("For shape3=%s, shape2=%s, shape1=%s, the content should be 0 but is %s" %(shape3, shape2, shape1, content))
+            raise ValueError("for shape3=%s, shape2=%s, shape1=%s, the content should be 0 but is %s" % (shape3, shape2, shape1, content))
         elif shape1 == shape2:
             r = shape3
         elif shape3 == shape2:
@@ -2781,7 +2768,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
             if shape1 != shape2 != shape3:
                 r = Word([2] + list(shape2), alphabet=[1,2])
             else:
-                raise NotImplementedError("For shape3=%s, shape2=%s, shape1=%s, content %s we have no rule." %(shape3, shape2, shape1, content))
+                raise NotImplementedError("for shape3=%s, shape2=%s, shape1=%s, content %s we have no rule" % (shape3, shape2, shape1, content))
         return r
 
     @staticmethod
@@ -2834,20 +2821,17 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
         sage: G = GrowthDiagramBurge(labels = [[1],[1]])                    # indirect doctest
         Traceback (most recent call last):
         ...
-        ValueError: Can only determine the shape of the growth diagram if ranks of successive labels differ.
+        ValueError: can only determine the shape of the growth diagram if ranks of successive labels differ
 
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         if labels is not None:
             labels = [Partition(la) for la in labels]
         self._zero = Partition([])
         self.rank_function = lambda p: p.size()
-        super(GrowthDiagramOnPartitions, self).__init__(filling = filling,
-                                                        shape = shape,
-                                                        labels = labels)
+        super(GrowthDiagramOnPartitions, self).__init__(filling=filling,
+                                                        shape=shape,
+                                                        labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     def P_symbol(self):
@@ -2862,7 +2846,7 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
             1  2  2
             2
         """
-        return SkewTableau(chain = self.P_chain())
+        return SkewTableau(chain=self.P_chain())
 
     def Q_symbol(self):
         r"""
@@ -2876,7 +2860,7 @@ class GrowthDiagramOnPartitions(GrowthDiagram):
             1  3  3
             2
         """
-        return SkewTableau(chain = self.Q_chain())
+        return SkewTableau(chain=self.Q_chain())
 
 class GrowthDiagramRSK(GrowthDiagramOnPartitions):
     r"""
@@ -2916,7 +2900,6 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
 
         The fourth partition according to the Robinson-Schensted-Knuth
         correspondence.
-
 
         TESTS::
 
@@ -3112,7 +3095,7 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
 
             shape2 = [min(mu_i, nu_i) - min(int(mu_i == nu_i == la_i), carry)] + shape2
             carry = carry - min(int(mu_i == nu_i == la_i), carry) + la_i - max(mu_i, nu_i)
-            i = i-1
+            i = i - 1
         return (Partition(shape2), carry)
 
 class GrowthDiagramDomino(GrowthDiagram):
@@ -3195,18 +3178,16 @@ class GrowthDiagramDomino(GrowthDiagram):
 
     .. automethod:: forward_rule
     """
-    def __init__(self,
-                 filling = None,
-                 shape = None,
-                 labels = None):
+    def __init__(self, filling=None, shape=None, labels=None):
         if labels is not None:
             labels = [Partition(la) for la in labels]
-        super(GrowthDiagramDomino, self).__init__(filling = filling,
-                                                  shape = shape,
-                                                  labels = labels)
+        super(GrowthDiagramDomino, self).__init__(filling=filling,
+                                                  shape=shape,
+                                                  labels=labels)
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     _r = 2
+
     @staticmethod
     def vertices(n):
         """
@@ -3232,7 +3213,7 @@ class GrowthDiagramDomino(GrowthDiagram):
             sage: G.rank_function(G.vertices(3)[0])
             3
         """
-        return w.size()//2
+        return w.size() // 2
 
     @staticmethod
     def is_P_edge(v, w):
@@ -3255,9 +3236,9 @@ class GrowthDiagramDomino(GrowthDiagram):
         """
         try:
             (row_1, col_1), (row_2, col_2) = SkewPartition([w, v]).cells()
-            return row_1 == row_2 or col_1 == col_2
         except ValueError:
             return False
+        return row_1 == row_2 or col_1 == col_2
 
     is_Q_edge = is_P_edge
 
@@ -3273,7 +3254,7 @@ class GrowthDiagramDomino(GrowthDiagram):
             1  2  2
             2
         """
-        return SkewTableau(chain = self.P_chain())
+        return SkewTableau(chain=self.P_chain())
 
     def Q_symbol(self):
         r"""
@@ -3287,7 +3268,7 @@ class GrowthDiagramDomino(GrowthDiagram):
             1  3  3
             2
         """
-        return SkewTableau(chain = self.Q_chain())
+        return SkewTableau(chain=self.Q_chain())
 
     @staticmethod
     def forward_rule(shape3, shape2, shape1, content):
@@ -3363,7 +3344,7 @@ class GrowthDiagramDomino(GrowthDiagram):
             return [max(p,q) for (p,q) in zip_longest(la, mu, fillvalue=0)]
 
         if content not in [0,1,-1]:
-            raise ValueError("Domino: The content of the filling must be in {-1,0,1}")
+            raise ValueError("domino: the content of the filling must be in {-1,0,1}")
 
         if content == 1:
             assert shape1 == shape2 == shape3
@@ -3425,7 +3406,8 @@ class GrowthDiagramDomino(GrowthDiagram):
                         shape4[r+1] += 1
                         break
                 else:
-                    raise NotImplementedError("Domino: cannot call forward rule with shapes %s and content %s"
+                    raise NotImplementedError("domino: cannot call forward rule with shapes %s and content %s"
                                               %((shape3, shape2, shape1), content))
 
         return shape4
+

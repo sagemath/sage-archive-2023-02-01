@@ -1166,8 +1166,8 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
-    def ImplicitExpansionPeriodicPart(var, phi, tau=None, period=1, precision=None):
     @experimental(20050)
+    def ImplicitExpansionPeriodicPart(var, phi, period, tau=None, precision=None):
         r"""
         Return the singular expansion for the periodic part of a function `y(z)`
         defined implicitly by `y(z) = z \Phi(y(z))`.
@@ -1191,8 +1191,8 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``phi`` -- the function `\Phi`. See the extended description for
           assumptions on `\Phi`.
 
-        - ``period`` -- (default: `1`) the period of the function `\Phi`. See
-          the extended description for details.
+        - ``period`` -- the period of the function `\Phi`. See the
+          extended description for details.
 
         - ``tau`` -- (default: ``None``) the fundamental constant described
           in the extended description. If ``None``, then `\tau` is determined

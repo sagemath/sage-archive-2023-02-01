@@ -247,7 +247,7 @@ from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
-                                    op_LT, op_GT, op_LE, op_GE)
+                                    op_LT, op_GT, op_LE, op_GE, rich_to_bool)
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod, verbose, get_verbose
@@ -3142,8 +3142,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: R = PolynomialRing(QQ, names=[])
             sage: R.ideal(0) == R.ideal(0)
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
             True
 
         ::
@@ -3217,6 +3215,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if not isinstance(other, MPolynomialIdeal):
             return NotImplemented
 
+        if self is other:
+            return rich_to_bool(op, 0)
+
         # comparison for >= and > : swap the arguments
         if op == op_GE:
             return other.__richcmp__(self, op_LE)
@@ -3239,6 +3240,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             other_new = other.change_ring(R)
         else:
             other_new = other
+
+        if self.gens() == other_new.gens():
+            return rich_to_bool(op, 0)
 
         # comparison for <= and <
         # needs just the Groebner basis for other

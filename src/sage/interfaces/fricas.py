@@ -196,7 +196,6 @@ FriCAS does some limits right::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
-# from __future__ import absolute_import
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
@@ -204,7 +203,7 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import DOT_SAGE
 from sage.docs.instancedoc import instancedoc
 import re
-import six
+
 
 FRICAS_SINGLE_LINE_START = 3 # where the output starts when it fits next to the line number
 FRICAS_MULTI_LINE_START = 2  # and when it doesn't
@@ -1073,6 +1072,50 @@ class FriCASElement(ExpectElement):
             sage: f._sage_expression(s)                                         # optional - fricas
             1/2*sqrt(2)*sqrt(pi)*fresnelS(sqrt(2)*x/sqrt(pi))
 
+        Check that :trac:`22525` is fixed::
+
+            sage: l = [sin, cos, sec, csc, cot, tan, asin, acos, atan, acot, acsc, asec, arcsin, arccos, arctan, arccot, arccsc, arcsec]
+            sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
+            [0.783326909627483,
+             0.621609968270664,
+             1.60872581046605,
+             1.27660621345890,
+             0.793551147842317,
+             1.26015821755034,
+             1.11976951499863,
+             0.451026811796262,
+             0.732815101786507,
+             0.837981225008390,
+             NaN,
+             NaN,
+             1.11976951499863,
+             0.451026811796262,
+             0.732815101786507,
+             0.837981225008390,
+             NaN,
+             NaN]
+
+            sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
+            sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
+            [0.716297870199024,
+             1.02651672570818,
+             1.43308638544877,
+             1.39606725303001,
+             0.697794641100332,
+             0.974168247780004,
+             0.808866935652782,
+             NaN,
+             1.47221948958322,
+             NaN,
+             0.467145308103262,
+             0.957800449200672,
+             0.808866935652782,
+             NaN,
+             1.47221948958322,
+             NaN,
+             0.467145308103262,
+             0.957800449200672]
+
         Check that :trac:`23782` is fixed::
 
             sage: s = '((3*n^10-25*n^9+50*n^8+62*n^7-229*n^6-25*n^5+320*n^4-12*n^3-144*n^2)/11520)::EXPR INT'
@@ -1080,15 +1123,16 @@ class FriCASElement(ExpectElement):
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
 
         """
-        from sage.symbolic.ring import SR
+        from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.libs.pynac.pynac import symbol_table
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
                         ('::Symbol', ' ')]
         for old, new in replacements:
             s = s.replace(old, new)
         try:
-            return SR(s)
-        except TypeError:
+            return symbolic_expression_from_string(s, symbol_table["fricas"])
+        except (SyntaxError, TypeError):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
 

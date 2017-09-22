@@ -94,7 +94,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.arith.all import gcd
 
-from .matrix2 import cmp_pivots, decomp_seq
+from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
 from sage.misc.all import verbose, get_verbose, prod

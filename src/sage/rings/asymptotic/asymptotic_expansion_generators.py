@@ -1012,8 +1012,8 @@ class AsymptoticExpansionGenerators(SageObject):
         `\Phi` is not allowed to be an affine-linear function and we require
         `\Phi(0) \neq 0`.
 
-        The fundamental constant `\tau` is assumed to be the unique positive
-        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+        Furthermore, it is assumed that there is a unique positive solution `\tau`
+        of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
 
         All details are given in Chapter VI.7 of [FS2009]_; also see the corresponding
         `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
@@ -1026,8 +1026,8 @@ class AsymptoticExpansionGenerators(SageObject):
           assumptions on `\Phi`.
 
         - ``tau`` -- (default: ``None``) the fundamental constant described
-          in the extended description. If ``None``, then `\tau` is tried to
-          be determined automatically.
+          in the extended description. If ``None``, then `\tau` is determined
+          automatically if possible.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
@@ -1178,8 +1178,8 @@ class AsymptoticExpansionGenerators(SageObject):
         if we have `\Psi(u^p) = \Phi(u)` for a power series `\Psi`
         where `p` is maximal.
 
-        The fundamental constant `\tau` is assumed to be the unique positive
-        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+        Furthermore, it is assumed that there is a unique positive solution `\tau`
+        of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
 
         If `\Phi` is `p`-periodic, then we have `y(z) = z g(z^p)`. This method
         returns the singular expansion of `g(z)`.
@@ -1195,8 +1195,8 @@ class AsymptoticExpansionGenerators(SageObject):
           the extended description for details.
 
         - ``tau`` -- (default: ``None``) the fundamental constant described
-          in the extended description. If ``None``, then `\tau` is tried to
-          be determined automatically.
+          in the extended description. If ``None``, then `\tau` is determined
+          automatically if possible.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.

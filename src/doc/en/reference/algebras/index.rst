@@ -48,6 +48,7 @@ Named associative algebras
    sage/algebras/iwahori_hecke_algebra
    sage/combinat/posets/incidence_algebras
    sage/algebras/group_algebra
+   sage/combinat/grossman_larson_algebras
    sage/combinat/posets/moebius_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/orlik_solomon

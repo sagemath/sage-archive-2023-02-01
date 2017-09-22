@@ -544,7 +544,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         else:
             return (self.parent(),
                     tuple(tuple(c) if isinstance(c, list) else c
-                          for c in self.unit_part().list()),
+                          for c in self.unit_part().expansion()),
                     self.valuation(), self.precision_relative())
 
     cdef int _set_inexact_zero(self, long absprec) except -1:
@@ -2673,13 +2673,6 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         """
         Returns a list giving a series representation of self.
 
-        INPUT:
-
-        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
-          entry in the expansion.
-
-        NOTES:
-
         - If ``lift_mode == 'simple'`` or ``'smallest'``, the returned
           list will consist of integers (in the Eisenstein case) or a
           list of lists of integers (in the unramified case).  ``self``
@@ -2702,6 +2695,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Note that zeros are truncated from the returned list if
         ``self.parent()`` is a field, so you must use the
         ``valuation`` function to fully reconstruct ``self``.
+
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
 
         EXAMPLES::
 

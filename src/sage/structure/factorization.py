@@ -691,10 +691,10 @@ class Factorization(SageObject):
 
         TESTS:
 
-        We sort it using the negated version of the
-        Python cmp function (using ``_cmp`` is deprecated)::
+        We sort it using a custom comparison function
+        (using ``_cmp`` is deprecated)::
 
-            sage: F.sort(_cmp=lambda x,y: -cmp(x,y))
+            sage: F.sort(_cmp=lambda x,y: (x<y)-(x>y))
             doctest:...: DeprecationWarning: Please use 'key' to sort.
             See http://trac.sagemath.org/21145 for details.
             sage: F

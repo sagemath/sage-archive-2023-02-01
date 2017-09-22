@@ -14,7 +14,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import absolute_import, division
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -24,7 +24,7 @@ from .ntl_ZZ cimport ntl_ZZ
 from .ntl_GF2 cimport ntl_GF2
 from .ntl_GF2X cimport ntl_GF2X
 from .ntl_GF2EContext cimport ntl_GF2EContext_class
-from ntl_GF2EContext import ntl_GF2EContext
+from .ntl_GF2EContext import ntl_GF2EContext
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 from sage.misc.randstate cimport randstate, current_randstate
 

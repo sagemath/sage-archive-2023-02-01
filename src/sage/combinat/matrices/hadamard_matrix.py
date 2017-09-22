@@ -59,10 +59,9 @@ from six.moves import range
 from six import itervalues
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
 from urllib import urlopen
-from sage.arith.all import is_prime, is_square, is_prime_power, divisors, kronecker_symbol
+from sage.arith.all import is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J

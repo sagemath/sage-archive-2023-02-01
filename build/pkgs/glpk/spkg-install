@@ -57,6 +57,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Remove old libraries to make sure we can downgrade it if needed.
+# See https://trac.sagemath.org/ticket/23596#comment:4 and later.
+rm -f "$SAGE_LOCAL"/lib/libglpk.*
+
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GLPK."

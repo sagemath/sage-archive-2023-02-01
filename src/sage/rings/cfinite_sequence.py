@@ -830,12 +830,12 @@ class CFiniteSequence(FieldElement):
         Binet's formula for the Fibonacci numbers::
 
             sage: CFiniteSequence(x/(1-x-x^2)).closed_form()
-            1/5*sqrt(5)*(1/2*sqrt(5) + 1/2)^n - 1/5*sqrt(5)*(-1/2*sqrt(5) + 1/2)^n
+            sqrt(1/5)*(1/2*sqrt(5) + 1/2)^n - sqrt(1/5)*(-1/2*sqrt(5) + 1/2)^n
             sage: [_.subs(n=k).full_simplify() for k in range(6)]
             [0, 1, 1, 2, 3, 5]
 
             sage: CFiniteSequence((4*x+3)/(1-2*x-5*x^2)).closed_form()
-            1/12*(sqrt(6) + 1)^n*(7*sqrt(6) + 18) - 1/12*(-sqrt(6) + 1)^n*(7*sqrt(6) - 18)
+            1/2*(sqrt(6) + 1)^n*(7*sqrt(1/6) + 3) - 1/2*(-sqrt(6) + 1)^n*(7*sqrt(1/6) - 3)
 
         Examples with multiple roots::
 
@@ -846,7 +846,7 @@ class CFiniteSequence(FieldElement):
             sage: CFiniteSequence(1/(1-x)^3/(1-2*x)^4).closed_form()
             4/3*(n^3 - 3*n^2 + 20*n - 36)*2^n + 1/2*n^2 + 19/2*n + 49
             sage: CFiniteSequence((x/(1-x-x^2))^2).closed_form()
-            1/25*(5*n - sqrt(5))*(1/2*sqrt(5) + 1/2)^n + 1/25*(5*n + sqrt(5))*(-1/2*sqrt(5) + 1/2)^n
+            1/5*(n - sqrt(1/5))*(1/2*sqrt(5) + 1/2)^n + 1/5*(n + sqrt(1/5))*(-1/2*sqrt(5) + 1/2)^n
         """
         from sage.arith.all import binomial
         from sage.rings.qqbar import QQbar
@@ -1031,10 +1031,9 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
         x = self.gen()
         return self((2-x)/(1-x-x**2))
 
-
     def __contains__(self, x):
         """
-        Return True if x is an element of ``CFinteSequences`` or
+        Return True if x is an element of ``CFiniteSequences`` or
         canonically coerces to this ring.
 
         EXAMPLES::

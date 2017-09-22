@@ -1527,8 +1527,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         INPUT:
 
-        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
-          of this projective space.
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in
+          the coordinate ring of this projective space.
 
         EXAMPLES::
 

@@ -634,7 +634,7 @@ class AffineConnection(SageObject):
         Return the connection coefficients in a given frame for assignment.
 
         See method :meth:`coef` for details about the definition of the
-        connection coefficents.
+        connection coefficients.
 
         The connection coefficients with respect to other frames are deleted,
         in order to avoid any inconsistency. To keep them, use the method
@@ -726,7 +726,7 @@ class AffineConnection(SageObject):
         keeping the coefficients in other frames.
 
         See method :meth:`coef` for details about the definition of the
-        connection coefficents.
+        connection coefficients.
 
         To delete the connection coefficients in other frames, use the method
         :meth:`set_coef` instead.

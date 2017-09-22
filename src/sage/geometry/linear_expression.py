@@ -590,7 +590,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L = LinearExpressionModule(QQ, ('x', 'y', 'z'))
 
-        Construct from coeffients and constant term::
+        Construct from coefficients and constant term::
 
             sage: L._element_constructor([1, 2, 3], 4)
             x + 2*y + 3*z + 4
@@ -641,7 +641,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
                 const = arg0[0]
                 coeffs = arg0[1:]
         else:
-            # arg1 is not None, construct from coeffients and constant term
+            # arg1 is not None, construct from coefficients and constant term
             coeffs = list(arg0)
             const = arg1
         coeffs = self.ambient_module()(coeffs)

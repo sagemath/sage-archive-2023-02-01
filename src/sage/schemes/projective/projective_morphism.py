@@ -1476,7 +1476,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         OUTPUT: an ideal in the coordinate ring of the domain of this map.
 
-        Examples::
+        EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<w> = NumberField(x^2+11)

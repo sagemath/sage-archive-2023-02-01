@@ -1078,6 +1078,35 @@ class Chart(UniqueRepresentation, SageObject):
         return self.function_ring().one()
 
     def set_calculus_method(self,method):
+        r"""
+        Set the calculus method to use for computations on the chart.
+
+        INPUT:
+
+        - ``method`` -- calculus method
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
+            Scalar field F on the Open subset U of the 3-dimensional topological manifold M
+
+            sage: type(f.coord_function(c_xyz).expr())
+            <type 'sage.symbolic.expression.Expression'>
+
+        The calculus method is changed::
+            sage: c_xyz.set_calculus_method('sympy')
+
+            sage: g = U.scalar_field(sin(x) + y - z, name='G'); g
+            Scalar field G on the Open subset U of the 3-dimensional topological manifold M
+
+            sage: type(g.coord_function(c_xyz).expr())
+            <class 'sympy.core.add.Add'>
+
+        """
+
         self._calc_method.set(method)
 
     def multifunction(self, *expressions):

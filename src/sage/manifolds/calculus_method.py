@@ -2,7 +2,8 @@ r"""
 Calculus method control
 
 This module defines the class :class:`CalculusMethod` to govern the
-calculus (symbolic or numerical) method used in manifolds.
+calculus method (symbolic or numerical) which will be used for function
+defined on a manifolds.
 
 
 AUTHORS:
@@ -118,10 +119,13 @@ class CalculusMethod(SageObject):
     Calculus method used in manifolds.
     The class store the possible calculus methods and permits to
     select some basic operations working on them.
-    For the moment, only two calculus methods are implemented :
-     - `Maxima`, indicated with `SR` (Symbolic Ring)
-     - `Sympy`, indicated with 'sympy'.
-    The current method is indicated with a `*`.
+    For the moment, only two calculus methods are implemented:
+
+    - ``Maxima``, indicated with ``SR`` (Symbolic Ring)
+
+    - ``Sympy``, indicated with ``sympy``.
+
+    The current method is pointed out by `*`.
 
 
     EXAMPLES::
@@ -151,9 +155,23 @@ class CalculusMethod(SageObject):
 
         INPUT:
 
-        - ``current`` -- Current symbolic method (default: `None`)
+        - ``current`` -- Current symbolic method (default: ``None``)
 
         - ``bf_type`` -- base field (default: `complex`)
+
+
+        TESTS::
+            sage: from sage.manifolds.calculus_method import CalculusMethod
+            sage: calc_mth = CalculusMethod(bf_type='complex')
+            sage: calc_mth._repr_()
+            'Possible symbolic methods:\n - SR (*) (default)\n - sympy'
+
+            sage: calc_mth.set('sympy')
+            sage: print (calc_mth)
+            Possible symbolic methods:
+             - SR (default)
+             - sympy (*)
+            sage: calc_mth.reset()
 
 
         """
@@ -181,7 +199,7 @@ class CalculusMethod(SageObject):
 
         - ``expression`` -- expression to simplify
 
-        - ``method`` -- calculus method to use (default: `None`)
+        - ``method`` -- calculus method to use (default: ``None``)
 
 
         EXAMPLES::
@@ -194,21 +212,21 @@ class CalculusMethod(SageObject):
             sage: calc_mth.simplify(f)
             x^2 + 1
 
-        Method cannot be mixed::
+        Methods cannot be mixed::
 
-        sage: calc_mth.set('sympy')
+            sage: calc_mth.set('sympy')
             sage: calc_mth.simplify(f)
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'combsimp'
 
-        sage: calc_mth.simplify(f._sympy_())
-        x**2 + 1
+            sage: calc_mth.simplify(f._sympy_())
+            x**2 + 1
 
         or::
 
-        sage: calc_mth.simplify(f,method="SR")
-        x^2 + 1
+            sage: calc_mth.simplify(f,method="SR")
+            x^2 + 1
 
         """
 
@@ -217,18 +235,18 @@ class CalculusMethod(SageObject):
 
     def is_trivial_zero(self, expression, method=None):
         r"""
-        Chek if expression is trivially equal to zero without any
+        Check if an expression is trivially equal to zero without any
         simplification.
 
         INPUT:
 
         - ``expression`` -- expression
 
-        - ``method`` -- calculus method to use (default: `None`)
+        - ``method`` -- calculus method to use (default: ``None``)
 
         OUTPUT:
 
-        - `True` is expression is trivially zero, `False` elsewhere.
+        - ``True`` is expression is trivially zero, ``False`` elsewhere.
 
 
         EXAMPLES::

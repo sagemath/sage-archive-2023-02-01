@@ -7,3 +7,5 @@ Coordinate Charts
    sage/manifolds/chart
 
    sage/manifolds/chart_func
+
+   sage/manifolds/calculus_method

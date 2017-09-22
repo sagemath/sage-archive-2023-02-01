@@ -1,11 +1,11 @@
 r"""
 Chart Functions
 
-In the context of a topological manifold `M` over a topological field `K`,
-a *chart function* is a function from a chart codomain
+In the context of a topological manifold `M` over a topological field
+`K`, a *chart function* is a function from a chart codomain
 to `K`.
-In other words, for any defined calculus method, a chart function is a `K`-valued function of
-the coordinates associated to some chart.
+In other words, for any defined calculus method, a chart function is a
+`K`-valued function of the coordinates associated to some chart.
 This function can be expressed in different calculus methods
 (for the moment only the symbolic: ``Maxima`` and ``Sympy``). The
 current method is used to carry out calculcations.
@@ -15,7 +15,7 @@ AUTHORS:
 
 - Marco Mancini (2017) : initial version
 - Eric Gourgoulhon (2015) : The class defined here is a generalization
-  of the class :class:``~sage.manifolds.coord_funct_symb`.
+  of the class :class:``~sage.manifolds.coord_funct_symb``.
 
 
 """
@@ -63,7 +63,7 @@ class ChartFunction(AlgebraElement):
     `K`-valued function of the
     coordinates associated to the chart `(U, \varphi)`.
 
-    `f` can be represented by `SR` (``Maxima``) or ``sympy``.
+    `f` can be represented by ``SR`` (``Maxima``) or ``sympy``.
 
     """
 
@@ -2245,24 +2245,54 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
 
 
     def _element_constructor_(self, expression, calc_method=None):
-        # if isinstance(expression, ChartFunction):
-        #     return self.element_class(self, expression)
-        # from sage.rings.integer_ring import ZZ
-        # if expression is SR or expression is ZZ:
-        #     self.element_class(self, expression, calc_method=calc_method)
+        r"""
+        Construct a chart function
+
+        INPUT:
+
+        - ``expression`` -- Expression
+        - ``calc_method`` -- Calculation method (default: ``None``)
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(sin(x*y))
+            sage: type(f)
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
+
+        """
         return self.element_class(self, expression, calc_method=calc_method)
 
 
     def _coerce_map_from_(self, other):
-        # from sage.symbolic.ring import SR
-        from sage.rings.integer_ring import ZZ
-        if other is SR or other is ZZ:
+        r"""
+        Determine whether coercion to ``self`` exists from ``other``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(sin(x*y))
+            sage: g = f+1; g.display()
+            (x, y) |--> sin(x*y) + 1
+
+
+
+        .. TODO::
+            There is a problem with coercion with rationals
+
+
+        """
+        from sage.rings.all import RR, ZZ
+
+        if other is SR or other is ZZ or other is RR:
             return True
         return False
 
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::

@@ -2809,7 +2809,7 @@ class EllipticCurveIsogeny(Morphism):
 
            This function returns the `x`-coordinate component of the
            isogeny as a rational function in `F(x)`, where `F` is the
-           base field.  To obtain both coordiunate functions as
+           base field.  To obtain both coordinate functions as
            elements of the function field `F(x,y)` in two variables,
            use :meth:`rational_maps`.
 

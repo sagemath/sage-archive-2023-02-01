@@ -1708,15 +1708,15 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [(0 : 1 : 0), (0 : 1 : 1), (0 : 6 : 1), (2 : 0 : 1),
              (4 : 0 : 1), (6 : 1 : 1), (6 : 6 : 1)]
 
-        TODO:
+        .. TODO::
 
-        1. The above algorithms enumerate all projective points and
-           test whether they lie on the scheme; Implement a more naive
-           sieve at least for covers of the projective line.
+            1. The above algorithms enumerate all projective points and
+               test whether they lie on the scheme; Implement a more naive
+               sieve at least for covers of the projective line.
 
-        2. Implement Stoll's model in weighted projective space to
-           resolve singularities and find two points (1 : 1 : 0) and
-           (-1 : 1 : 0) at infinity.
+            2. Implement Stoll's model in weighted projective space to
+               resolve singularities and find two points (1 : 1 : 0) and
+               (-1 : 1 : 0) at infinity.
         """
         if F is None:
             F = self.base_ring()

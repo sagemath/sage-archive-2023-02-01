@@ -3825,12 +3825,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: Q = P(-1, 1)
             sage: f._is_preperiodic(Q)
             True
+
+        Check that :trac:`23814` is fixed (works even if domain is not specified)::
+
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(X^2 + X - 1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
+            sage: Q = P.point([a,1])
+            sage: Q.is_preperiodic(f)
+            True
         """
         if not is_ProjectiveSpace(self.codomain()):
             raise NotImplementedError("must be over projective space")
         if not self.is_morphism():
             raise TypeError("must be a morphism")
-        if not P.codomain() is self.domain():
+        if not P.codomain() == self.domain():
             raise TypeError("point must be in domain of map")
 
         K = FractionField(self.codomain().base_ring())

@@ -1243,6 +1243,73 @@ class AsymptoticExpansionGenerators(SageObject):
         return 1/rho * (aperiodic_expansion/(1 - 1/Z))**(1/period)
 
 
+    @staticmethod
+    def InverseFunctionAnalysis(var, phi, tau=None, period=1, precision=None):
+        r"""
+        Return the coefficient growth of a function `y(z)` defined implicitly
+        by `y(z) = z \Phi(y(z))`.
+
+        The function `\Phi` is assumed to be analytic around `0`. Furthermore,
+        `\Phi` is not allowed to be an affine-linear function and we require
+        `\Phi(0) \neq 0`. For an integer `p`, `\Phi` is called `p`-periodic
+        if we have `\Psi(u^p) = \Phi(u)` for a power series `\Psi`
+        where `p` is maximal.
+
+        The fundamental constant `\tau` is assumed to be the unique positive
+        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``phi`` -- the function `\Phi`. See the extended description for
+          assumptions on `\Phi`.
+
+        - ``period`` -- (default: `1`) the period of the function `\Phi`. See
+          the extended description for details.
+
+        - ``tau`` -- (default: ``None``) the fundamental constant described
+          in the extended description. If ``None``, then `\tau` is tried to
+          be determined automatically.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+
+        .. NOTE::
+
+            It is not checked that the passed period actually fits to
+            the passed function `\Phi`.
+
+            The resulting asymptotic expansion is only valid
+            for `n \equiv 1 \mod p`, where `p` is the period. All other
+            coefficients are `0`.
+
+
+        EXAMPLES:
+
+        TODO
+        """
+        if tau is None:
+            tau = _fundamental_constant_(phi=phi)
+
+        rho = tau/phi(tau)
+
+        if period == 1:
+            expansion = asymptotic_expansions.ImplicitExpansion(var=var, phi=phi,
+                                                                tau=tau, precision=precision)
+            return expansion._singularity_analysis_(var, zeta=rho, precision=precision)
+        expansion = asymptotic_expansions.ImplicitExpansionPeriodicPart(var=var, phi=phi,
+                                                     period=period, tau=tau, precision=precision)
+        growth = expansion._singularity_analysis_(var, zeta=rho**period, precision=precision)
+        n = growth.parent().gen()
+        return growth.subs({n: (n-1)/period})
+
 def _fundamental_constant_(phi):
     r"""
     Return the fundamental constant `\tau` occurring in the analysis of

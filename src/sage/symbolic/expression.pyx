@@ -3931,8 +3931,9 @@ cdef class Expression(CommutativeRingElement):
         Check that :trac:`23921` is resolved::
 
             sage: A.<n> = AsymptoticRing('SR^n * n^SR', SR)
-            sage: SR(2)^n
-            2^n
+            sage: elem = SR(2)^n
+            sage: (elem, elem.parent())
+            (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
         """
         from sage.structure.element import get_coercion_model
         cdef Expression base, nexp

@@ -3905,7 +3905,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x)^None
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
+            TypeError: cannot create 'NoneType' instances
 
         Check that :trac:`18088` is fixed::
 

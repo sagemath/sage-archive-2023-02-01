@@ -1269,8 +1269,8 @@ def _fundamental_constant_implicit_function_(phi):
 
     .. SEEALSO::
 
-        :meth:`AsymptoticExpansionGenerators.ImplicitExpansion`
-        :meth:`AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`
+        :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`,
+        :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`.
 
     TESTS::
 

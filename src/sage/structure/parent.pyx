@@ -201,7 +201,7 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(sage.structure.category_object.CategoryObject):
-    def __init__(self, base=None, *, category=None, element_constructor=None,
+    def __init__(self, base=None, *, category=None,
                  names=None, normalize=True, facade=None, **kwds):
         """
         Base class for all parents.
@@ -225,10 +225,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
           :class:`~sage.structure.category_object.CategoryObject`),
           but won't be used to inherit parent's or element's code from
           this category.
-
-        - ``element_constructor`` -- A class or function that creates
-          elements of this Parent given appropriate input (can also be
-          filled in later with :meth:`_populate_coercion_lists_`)
 
         - ``names`` -- Names of generators.
 
@@ -255,7 +251,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Eventually, category should be
             :class:`~sage.categories.sets_cat.Sets` by default.
 
-
         TESTS:
 
         We check that the facade option is compatible with specifying
@@ -265,6 +260,21 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P = MyClass(facade = ZZ, category = (Monoids(), CommutativeAdditiveMonoids()))
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
+
+        Test the deprecated ``element_constructor`` argument::
+
+            sage: class MyParent(Parent):
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, element_constructor=self.make_element)
+            ....:     def make_element(self, x):
+            ....:         print("Making element")
+            ....:         return x
+            sage: P = MyParent()
+            doctest:...: DeprecationWarning: the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead
+            See http://trac.sagemath.org/23917 for details.
+            sage: P(42)
+            Making element
+            42
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
@@ -277,37 +287,31 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         .. automethod:: _repr_option
         .. automethod:: _init_category_
         """
-        # TODO: in the long run, we want to get rid of the element_constructor = argument
-        # (element_constructor would always be set by inheritance)
-        # Then, all the element_constructor logic should be moved to init_coerce.
-        CategoryObject.__init__(self, base = base)
+        if "element_constructor" in kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(23917, "the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead")
+            element_constructor = kwds.pop("element_constructor")
+        else:
+            element_constructor = None
+
         if isinstance(category, (tuple, list)):
             category = Category.join(category)
         if facade is not None and facade is not False:
-            if isinstance(facade, Parent):
-                facade = (facade,)
             if facade is not True:
-                assert isinstance(facade, tuple)
-                self._facade_for = facade
+                if isinstance(facade, Parent):
+                    self._facade_for = (facade,)
+                else:
+                    self._facade_for = tuple(facade)
             if category is None:
                 category = Sets().Facade()
             else:
-                if isinstance(category, (tuple,list)):
-                    category = Category.join(tuple(category) + (Sets().Facade(),))
-                else:
-                    category = Category.join((category,Sets().Facade()))
-        # Setting the categories is currently done in a separate
-        # method to let some subclasses (like ParentsWithBase)
-        # call it without calling the full constructor
-        self._init_category_(category)
+                category = Category.join((category, Sets().Facade()))
 
-        if len(kwds) > 0:
+        CategoryObject.__init__(self, category, base)
+
+        if kwds:
             if debug.bad_parent_warnings:
                 print("Illegal keywords for %s: %s" % (type(self), kwds))
-        # TODO: many classes don't call this at all, but __new__ crashes Sage
-        if debug.bad_parent_warnings:
-            if element_constructor is not None and not callable(element_constructor):
-                print("coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor)
         if names is not None:
             self._assign_names(names, normalize)
         if element_constructor is None:

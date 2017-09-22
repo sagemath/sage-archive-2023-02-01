@@ -639,7 +639,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             2.41421356237310?
             sage: (1 + E(8) - E(8,3))._eval_complex_(CC)
             2.41421356237309
-            sage: (1 + E(8) - E(8,3))._eval_complex_(CDF)
+            sage: (1 + E(8) - E(8,3))._eval_complex_(CDF) # abs tol 1e-14
             2.414213562373095
         """
         if self._obj.IsRat():

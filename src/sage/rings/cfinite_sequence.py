@@ -1031,10 +1031,9 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
         x = self.gen()
         return self((2-x)/(1-x-x**2))
 
-
     def __contains__(self, x):
         """
-        Return True if x is an element of ``CFinteSequences`` or
+        Return True if x is an element of ``CFiniteSequences`` or
         canonically coerces to this ring.
 
         EXAMPLES::

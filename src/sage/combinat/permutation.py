@@ -245,7 +245,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer, PolynomialRing
 from sage.arith.all import factorial
-from sage.matrix.all import matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.tools import transitive_ideal
 from sage.combinat.composition import Composition
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -1166,9 +1166,9 @@ class Permutation(CombinatorialElement):
             [0 1 0]
             [0 0 1]
 
-        ::
+        Alternatively::
 
-            sage: Permutation([1,3,2]).to_matrix()
+            sage: matrix(Permutation([1,3,2]))
             [1 0 0]
             [0 0 1]
             [0 1 0]
@@ -1195,15 +1195,13 @@ class Permutation(CombinatorialElement):
             [0 0 1]
             [0 1 0]
         """
-        p = self[:]
-        n = len(p)
+        # build the dictionary of entries since the matrix is
+        # extremely sparse
+        entries = { (v-1, i): 1 for i, v in enumerate(self) }
+        M = MatrixSpace(ZZ, len(self), sparse=True)
+        return M(entries)
 
-        #Build the dictionary of entries since the matrix
-        #is extremely sparse
-        entries = {}
-        for i in range(n):
-            entries[(p[i]-1,i)] = 1
-        return matrix(n, entries, sparse = True)
+    _matrix_ = to_matrix
 
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):
@@ -2759,7 +2757,7 @@ class Permutation(CombinatorialElement):
             from sage.misc.superseded import deprecation
             deprecation(20555, "default behavior of descents may change in the near future to have indices starting from 1")
             from_zero = True
-        
+
         if side == 'right':
             p = self
         else:

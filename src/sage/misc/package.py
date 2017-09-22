@@ -144,7 +144,7 @@ def pip_installed_packages():
         '...'
     """
     proc = subprocess.Popen(["pip", "list", "--no-index", "--format", "json"], stdout=subprocess.PIPE)
-    stdout = str(proc.communicate()[0])
+    stdout = proc.communicate()[0].decode()
     return {package['name'].lower():package['version'] for package in json.loads(stdout)}
 
 def list_packages(*pkg_types, **opts):

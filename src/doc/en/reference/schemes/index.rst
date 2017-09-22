@@ -53,11 +53,9 @@ Products of Projective Spaces
    :maxdepth: 2
 
    sage/schemes/product_projective/space
+   sage/schemes/product_projective/homset
    sage/schemes/product_projective/morphism
    sage/schemes/product_projective/point
-   sage/schemes/product_projective/subscheme
-   sage/schemes/product_projective/wehlerK3
-   sage/schemes/product_projective/homset
 
 Toric Varieties
 ---------------

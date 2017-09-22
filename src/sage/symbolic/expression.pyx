@@ -1998,7 +1998,7 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (cos(exp(t0) + log(t1))^8).is_real()
             True
-            sage: cos(I).is_real()
+            sage: cos(I + 1).is_real()
             False
             sage: sin(2 - I).is_real()
             False
@@ -2093,7 +2093,7 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: gamma(real(x)^2+1).is_positive()
             True
-            sage: cos(I).is_positive()
+            sage: cos(I + 1).is_positive()
             False
             sage: sin(2 - I).is_positive()
             False
@@ -2118,6 +2118,16 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: (-pi).is_negative()
             True
+
+        Assumptions on symbols are handled correctly::
+
+            sage: y = var('y')
+            sage: assume(y < 0)
+            sage: y.is_positive()
+            False
+            sage: y.is_negative()
+            True
+            sage: forget()
         """
         return self._gobj.info(info_negative)
 
@@ -5536,7 +5546,7 @@ cdef class Expression(CommutativeRingElement):
         cdef unsigned serial
         if is_a_add(self._gobj):
             return add_vararg
-        elif is_a_mul(self._gobj) or is_a_ncmul(self._gobj):
+        elif is_a_mul(self._gobj):
             return mul_vararg
         elif is_a_power(self._gobj):
             return operator.pow
@@ -6040,7 +6050,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coefficient(1)
             0
             sage: f.coefficient(x, 0)
-            sqrt(x)*sin(y) + z^z
+            z^z
 
         TESTS:
 

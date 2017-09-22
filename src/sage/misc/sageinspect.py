@@ -1634,12 +1634,14 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if not isinstance(r, string_types):
-        return ''
-    elif isinstance(r, text_type):  # unicode (py2) = str (py3)
+    if isinstance(r, str):
+        return r
+    elif isinstance(r, text_type):
+        # On Python 2, we want str, not unicode
         return r.encode('utf-8', 'ignore')
     else:
-        return r
+        # Not a string of any kind
+        return ''
 
 
 def sage_getdoc_original(obj):

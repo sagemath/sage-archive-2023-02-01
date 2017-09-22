@@ -25,6 +25,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :func:`algebras.GradedCommutative
   <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
 - :class:`algebras.Group <sage.algebras.group_algebra.GroupAlgebra>`
+- :class:`algebras.GrossmanLarson <sage.combinat.grossman_larson_algebras.GrossmanLarsonAlgebra>`
 - :class:`algebras.Hall <sage.algebras.hall_algebra.HallAlgebra>`
 - :class:`algebras.Incidence <sage.combinat.posets.incidence_algebras.IncidenceAlgebra>`
 - :class:`algebras.IwahoriHecke
@@ -89,6 +90,7 @@ lazy_import('sage.combinat.diagram_algebras', 'TemperleyLiebAlgebra', 'Temperley
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 lazy_import('sage.combinat.free_dendriform_algebra', 'FreeDendriformAlgebra', 'FreeDendriform')
+lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')

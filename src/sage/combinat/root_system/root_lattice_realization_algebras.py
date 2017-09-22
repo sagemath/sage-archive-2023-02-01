@@ -13,7 +13,7 @@ Group algebras of root lattice realizations
 from __future__ import print_function
 
 import functools, operator
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc_c import prod
 from sage.categories.algebra_functor import AlgebrasCategory

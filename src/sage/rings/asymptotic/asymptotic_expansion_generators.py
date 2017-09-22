@@ -62,11 +62,6 @@ ACKNOWLEDGEMENT:
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
-REFERENCES:
-
-.. [FS2009] Philippe Flajolet and Robert Sedgewick,
-   `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
-   Cambridge University Press, Cambridge, 2009.
 
 Classes and Methods
 ===================
@@ -85,6 +80,7 @@ Classes and Methods
 from __future__ import print_function
 from __future__ import absolute_import
 
+from sage.misc.superseded import experimental
 from sage.structure.sage_object import SageObject
 
 
@@ -729,8 +725,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         ALGORITHM:
 
-        See [FS2009]_ together with the
-        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+        See [FS2009]_.
 
 
         TESTS::
@@ -1001,6 +996,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
+    @experimental(20050)
     def ImplicitExpansion(var, phi, tau=None, precision=None):
         r"""
         Return the singular expansion for a function `y(z)` defined
@@ -1010,11 +1006,10 @@ class AsymptoticExpansionGenerators(SageObject):
         `\Phi` is not allowed to be an affine-linear function and we require
         `\Phi(0) \neq 0`.
 
-        The fundamental constant `\tau` is assumed to be the unique positive
-        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+        Furthermore, it is assumed that there is a unique positive solution `\tau`
+        of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
 
-        All details are given in Chapter VI.7 of [FS2009]_; also see the corresponding
-        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+        All details are given in Chapter VI.7 of [FS2009]_.
 
         INPUT:
 
@@ -1024,8 +1019,8 @@ class AsymptoticExpansionGenerators(SageObject):
           assumptions on `\Phi`.
 
         - ``tau`` -- (default: ``None``) the fundamental constant described
-          in the extended description. If ``None``, then `\tau` is tried to
-          be determined automatically.
+          in the extended description. If ``None``, then `\tau` is determined
+          automatically if possible.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
@@ -1039,8 +1034,8 @@ class AsymptoticExpansionGenerators(SageObject):
         .. NOTE::
 
             In the given case, the radius of convergence of the function of
-            interest is known to be `\rho = \tau/\Phi(\tau)`. For technical
-            reasons, the variable in the returned asymptotic expansion
+            interest is known to be `\rho = \tau/\Phi(\tau)`.  Until :trac:`20050`
+            is implemented, the variable in the returned asymptotic expansion
             represents a singular element of the form `(1 - z/\rho)^{-1}`,
             for the variable `z\to\rho`.
 
@@ -1051,6 +1046,10 @@ class AsymptoticExpansionGenerators(SageObject):
         tree function `T` (which satisfies `T(z) = z \exp(T(z))`)::
 
             sage: asymptotic_expansions.ImplicitExpansion('Z', phi=exp, precision=8)
+            doctest:warning
+            ...
+            FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20050 for details.
             1 - sqrt(2)*Z^(-1/2) + 2/3*Z^(-1) - 11/36*sqrt(2)*Z^(-3/2) +
             43/135*Z^(-2) - 769/4320*sqrt(2)*Z^(-5/2) + 1768/8505*Z^(-3) + O(Z^(-7/2))
 
@@ -1122,7 +1121,7 @@ class AsymptoticExpansionGenerators(SageObject):
             raise ValueError('The function phi does not satisfy the requirements')
 
         if tau is None:
-            tau = _fundamental_constant_(phi=phi)
+            tau = _fundamental_constant_implicit_function_(phi=phi)
 
         def H(y):
             return tau/phi(tau) - y/phi(y)
@@ -1160,7 +1159,8 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
-    def ImplicitExpansionPeriodicPart(var, phi, tau=None, period=1, precision=None):
+    @experimental(20050)
+    def ImplicitExpansionPeriodicPart(var, phi, period, tau=None, precision=None):
         r"""
         Return the singular expansion for the periodic part of a function `y(z)`
         defined implicitly by `y(z) = z \Phi(y(z))`.
@@ -1171,8 +1171,8 @@ class AsymptoticExpansionGenerators(SageObject):
         if we have `\Psi(u^p) = \Phi(u)` for a power series `\Psi`
         where `p` is maximal.
 
-        The fundamental constant `\tau` is assumed to be the unique positive
-        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+        Furthermore, it is assumed that there is a unique positive solution `\tau`
+        of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
 
         If `\Phi` is `p`-periodic, then we have `y(z) = z g(z^p)`. This method
         returns the singular expansion of `g(z)`.
@@ -1184,12 +1184,12 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``phi`` -- the function `\Phi`. See the extended description for
           assumptions on `\Phi`.
 
-        - ``period`` -- (default: `1`) the period of the function `\Phi`. See
-          the extended description for details.
+        - ``period`` -- the period of the function `\Phi`. See the
+          extended description for details.
 
         - ``tau`` -- (default: ``None``) the fundamental constant described
-          in the extended description. If ``None``, then `\tau` is tried to
-          be determined automatically.
+          in the extended description. If ``None``, then `\tau` is determined
+          automatically if possible.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.
@@ -1203,8 +1203,8 @@ class AsymptoticExpansionGenerators(SageObject):
         .. NOTE::
 
             In the given case, the radius of convergence of the function of
-            interest is known to be `\rho = \tau/\Phi(\tau)`. For technical
-            reasons, the variable in the returned asymptotic expansion
+            interest is known to be `\rho = \tau/\Phi(\tau)`. Until :trac:`20050`
+            is implemented, the variable in the returned asymptotic expansion
             represents a singular element of the form `(1 - z/\rho)^{-1}`,
             for the variable `z\to\rho`.
 
@@ -1219,6 +1219,10 @@ class AsymptoticExpansionGenerators(SageObject):
 
             sage: asymptotic_expansions.ImplicitExpansionPeriodicPart('Z', phi=lambda u: 1 + u^2,
             ....:                                                     period=2, precision=7)
+            doctest:warning
+            ...
+            FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/20050 for details.
             2 - 2*Z^(-1/2) + 2*Z^(-1) - 2*Z^(-3/2) + 2*Z^(-2) - 2*Z^(-5/2) + O(Z^(-3))
             sage: def g(z):
             ....:     return (1 - sqrt(1 - 4*z))/(2*z)
@@ -1231,7 +1235,7 @@ class AsymptoticExpansionGenerators(SageObject):
         u = SR('u')
 
         if tau is None:
-            tau = _fundamental_constant_(phi=phi)
+            tau = _fundamental_constant_implicit_function_(phi=phi)
 
         tau_p = tau**period
         aperiodic_expansion = asymptotic_expansions.ImplicitExpansion(var,
@@ -1296,7 +1300,7 @@ class AsymptoticExpansionGenerators(SageObject):
         TODO
         """
         if tau is None:
-            tau = _fundamental_constant_(phi=phi)
+            tau = _fundamental_constant_implicit_function_(phi=phi)
 
         rho = tau/phi(tau)
 
@@ -1310,7 +1314,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = growth.parent().gen()
         return growth.subs({n: (n-1)/period})
 
-def _fundamental_constant_(phi):
+def _fundamental_constant_implicit_function_(phi):
     r"""
     Return the fundamental constant `\tau` occurring in the analysis of
     implicitly defined functions.
@@ -1325,18 +1329,18 @@ def _fundamental_constant_(phi):
 
     .. SEEALSO::
 
-        :meth:`AsymptoticExpansionGenerators.ImplicitExpansion`
-        :meth:`AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`
+        :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`,
+        :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`.
 
     TESTS::
 
         sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
-        ....:     import _fundamental_constant_
-        sage: _fundamental_constant_(phi=exp)
+        ....:     import _fundamental_constant_implicit_function_
+        sage: _fundamental_constant_implicit_function_(phi=exp)
         1
-        sage: _fundamental_constant_(phi=lambda u: 1 + u^2)
+        sage: _fundamental_constant_implicit_function_(phi=lambda u: 1 + u^2)
         1
-        sage: _fundamental_constant_(phi=lambda u: 1 + 2*u + 2*u^2)
+        sage: _fundamental_constant_implicit_function_(phi=lambda u: 1 + 2*u + 2*u^2)
         1/2*sqrt(2)
 
     """

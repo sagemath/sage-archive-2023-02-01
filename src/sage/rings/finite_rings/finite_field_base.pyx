@@ -1066,6 +1066,14 @@ cdef class FiniteField(Field):
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(R, pAdicGeneric) and not R.is_field() and R.residue_field() is self:
+            return ResidueReductionMap(R, self)
+
+    def _convert_map_from_(self, R):
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(R, pAdicGeneric) and R.residue_field() is self:
+            return ResidueReductionMap(R, self)
 
     def construction(self):
         """

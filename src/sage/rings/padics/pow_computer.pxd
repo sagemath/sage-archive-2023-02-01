@@ -9,10 +9,14 @@ cdef class PowComputer_class(SageObject):
     cdef int __allocated
     cdef public object _prec_type
 
-    # the following three should be set by the subclasses
     cdef long ram_prec_cap # = prec_cap * e
+
+    # the following constants should be set by the subclasses
+    # the relative degree of the p-adic ring over its base
     cdef long deg
+    # the ramification index of the p-adic ring over its base
     cdef long e
+    # the residual degree of the p-adic ring over its base
     cdef long f
 
     cdef unsigned long cache_limit
@@ -26,4 +30,6 @@ cdef class PowComputer_class(SageObject):
 cdef class PowComputer_base(PowComputer_class):
     cdef mpz_t* small_powers
     cdef mpz_t top_power
+    cdef mpz_t powhelper_oneunit
+    cdef mpz_t powhelper_teichdiff
     cdef object __weakref__

@@ -136,6 +136,12 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         #coercion base.
         return self._res_field
 
+    def residue_ring(self, n):
+        if n == 1:
+            return self._res_field
+        else:
+            raise NotImplementedError
+
     def discriminant(self, K=None):
         """
         Returns the discriminant of self over the subring K.

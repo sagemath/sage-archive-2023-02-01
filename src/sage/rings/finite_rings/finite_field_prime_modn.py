@@ -141,9 +141,17 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
                     return integer_mod.IntegerMod_to_IntegerMod(S, self)
                 except TypeError:
                     pass
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(S, pAdicGeneric) and not S.is_field() and S.residue_field() is self:
+            return ResidueReductionMap(S, self)
         to_ZZ = ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
+
+    def _convert_map_from_(self, R):
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(R, pAdicGeneric) and R.residue_field() is self:
+            return ResidueReductionMap(R, self)
 
     def construction(self):
         """

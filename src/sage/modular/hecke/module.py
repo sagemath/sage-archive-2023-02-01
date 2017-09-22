@@ -757,8 +757,8 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def ambient_hecke_module(self):
         r"""
-        Return the ambient module associated to this module. As this is an
-        abstract base class, return NotImplementedError.
+        Return the ambient module associated to this module. As this is
+        an abstract base class, raise NotImplementedError.
 
         EXAMPLES::
 

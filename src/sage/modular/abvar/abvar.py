@@ -372,10 +372,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J0(33)[0] >= J0(33)[1]
             False
         """
-        if not isinstance(other, ModularAbelianVariety_abstract):
-            return NotImplementedError
         if self is other:
             return rich_to_bool(op, 0)
+        if not isinstance(other, ModularAbelianVariety_abstract):
+            return NotImplemented
 
         lx = self.groups()
         rx = other.groups()

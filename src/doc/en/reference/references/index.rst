@@ -856,6 +856,11 @@ REFERENCES:
              und Geometrie", Dissertation, University of
              Bayreuth, 2013.
 
+.. [FS2009] Philippe Flajolet and Robert Sedgewick,
+            `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
+            Cambridge University Press, Cambridge, 2009.
+            See also the `Errata list <http://ac.cs.princeton.edu/errata/>`_.
+
 .. [FM2014] Cameron Franc and Marc Masdeu, "Computing fundamental
             domains for the Bruhat-Tits tree for GL_2(Qp), p-adic
             automorphic forms, and the canonical embedding of Shimura

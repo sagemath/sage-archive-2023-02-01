@@ -62,11 +62,6 @@ ACKNOWLEDGEMENT:
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
-REFERENCES:
-
-.. [FS2009] Philippe Flajolet and Robert Sedgewick,
-   `Analytic combinatorics <http://algo.inria.fr/flajolet/Publications/AnaCombi/book.pdf>`_.
-   Cambridge University Press, Cambridge, 2009.
 
 Classes and Methods
 ===================
@@ -730,8 +725,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
         ALGORITHM:
 
-        See [FS2009]_ together with the
-        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+        See [FS2009]_.
 
 
         TESTS::
@@ -1015,8 +1009,7 @@ class AsymptoticExpansionGenerators(SageObject):
         Furthermore, it is assumed that there is a unique positive solution `\tau`
         of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
 
-        All details are given in Chapter VI.7 of [FS2009]_; also see the corresponding
-        `errata list <http://algo.inria.fr/flajolet/Publications/AnaCombi/errata.pdf>`_.
+        All details are given in Chapter VI.7 of [FS2009]_.
 
         INPUT:
 

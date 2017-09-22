@@ -1041,8 +1041,8 @@ class AsymptoticExpansionGenerators(SageObject):
         .. NOTE::
 
             In the given case, the radius of convergence of the function of
-            interest is known to be `\rho = \tau/\Phi(\tau)`. For technical
-            reasons, the variable in the returned asymptotic expansion
+            interest is known to be `\rho = \tau/\Phi(\tau)`.  Until :trac:`20050`
+            is implemented, the variable in the returned asymptotic expansion
             represents a singular element of the form `(1 - z/\rho)^{-1}`,
             for the variable `z\to\rho`.
 
@@ -1210,8 +1210,8 @@ class AsymptoticExpansionGenerators(SageObject):
         .. NOTE::
 
             In the given case, the radius of convergence of the function of
-            interest is known to be `\rho = \tau/\Phi(\tau)`. For technical
-            reasons, the variable in the returned asymptotic expansion
+            interest is known to be `\rho = \tau/\Phi(\tau)`. Until :trac:`20050`
+            is implemented, the variable in the returned asymptotic expansion
             represents a singular element of the form `(1 - z/\rho)^{-1}`,
             for the variable `z\to\rho`.
 

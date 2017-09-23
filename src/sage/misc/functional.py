@@ -1500,7 +1500,7 @@ def round(x, ndigits=0):
     This example addresses :trac:`23502`::
 
         sage: n = round(6); type(n)
-        <type `sage.rings.integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     Since we use floating-point with a limited range, some roundings can't
     be performed::

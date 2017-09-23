@@ -29,33 +29,21 @@ EXAMPLES::
 
 REFERENCES:
 
-.. [BeukersHeckman] \F. Beukers and \G. Heckman,
-   *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,
-   Invent. Math. 95 (1989)
+- [BeukersHeckman]_
 
-.. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
-   http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
+- [Benasque2009]_
 
-.. [MagmaHGM] *Hypergeometric motives* in Magma,
-   http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
+- [MagmaHGM]_
 
-.. [Fedorov2015] Roman Fedorov, *Variations of Hodge structures for hypergeometric 
-   differential operators and parabolic Higgs bundles*,
-   https://arxiv.org/pdf/1505.01704
+- [Fedorov2015]_
 
-.. [Roberts2017] David P. Roberts, *Hypergeometric motives and an unusual
-   application of the Guinand-Weil-Mestre explicit formula*,
-   https://www.matrix-inst.org.au/wp_Matrix2016/wp-content/uploads/2016/04/Roberts-2.pdf
+- [Roberts2017]_
 
-.. [Roberts2015] David P. Roberts, *Hypergeometric Motives I*, https://icerm.brown.edu/materials/Slides/sp-f15-offweeks/Hypergeomteric_Motives,_I_]_David_Roberts,_University_of_Minnesota_-_Morris.pdf
+- [Roberts2015]_
 
-.. [BeCoMe] Frits Beukers, Henri Cohen, Anton Mellit,
-   *Finite hypergeometric functions*,
-   https://arxiv.org/pdf/1505.02900.pdf
+- [BeCoMe]_
 
-.. [Watkins] Mark Watkins,
-   *Hypergeometric motives over Q and their L-functions*,
-   http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
+- [Watkins]_
 
 """
 #*****************************************************************************

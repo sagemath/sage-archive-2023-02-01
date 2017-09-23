@@ -248,12 +248,19 @@ REFERENCES:
               and Applications - FQ9, volume 518 of Contemporary Mathematics,
               pages 33–42. AMS, 2010.
 
+.. [BeCoMe] Frits Beukers, Henri Cohen, Anton Mellit,
+   *Finite hypergeometric functions*,
+   :arxiv:`1505.02900`
+
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
 
 .. [Bel2011] Belarusian State University,
              *Information technologies. Data protection. Cryptograpic algorithms for
              encryption and integrity control*; in STB 34.101.31-2011, (2011).
+
+.. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
+   http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
 .. [Ber2008] \W. Bertram : *Differential Geometry, Lie Groups and
              Symmetric Spaces over General Base Fields and Rings*,
@@ -262,6 +269,10 @@ REFERENCES:
 
 .. [Ber1991] \C. Berger, "Une version effective du théorème de
              Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
+
+.. [BeukersHeckman] \F. Beukers and \G. Heckman,
+   *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,
+   Invent. Math. 95 (1989)
 
 .. [BF1999] Thomas Britz, Sergey Fomin,
             *Finite posets and Ferrers shapes*,
@@ -835,6 +846,10 @@ REFERENCES:
 .. _ref-F:
 
 **F**
+
+.. [Fedorov2015] Roman Fedorov, *Variations of Hodge structures for hypergeometric
+   differential operators and parabolic Higgs bundles*,
+   :arxiv:`1505.01704`
 
 .. [Fe1997] Stefan Felsner, "On the Number of Arrangements of
             Pseudolines", Proceedings SoCG 96, 30-37. Discrete &
@@ -1536,6 +1551,9 @@ REFERENCES:
 
 **M**
 
+.. [MagmaHGM] *Hypergeometric motives* in Magma,
+   http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
+
 .. [Mas94] James L. Massey,
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
            FSE’93, Volume 809 of LNCS, pages 1-17.
@@ -1844,6 +1862,12 @@ REFERENCES:
               optimality constraints for the cone of positive
               polynomials. Mathematical Programming, Series B,
               129 (2011) 5-31.
+
+.. [Roberts2015] David P. Roberts, *Hypergeometric Motives I*, https://icerm.brown.edu/materials/Slides/sp-f15-offweeks/Hypergeomteric_Motives,_I_]_David_Roberts,_University_of_Minnesota_-_Morris.pdf
+
+.. [Roberts2017] David P. Roberts, *Hypergeometric motives and an unusual
+   application of the Guinand-Weil-Mestre explicit formula*,
+   https://www.matrix-inst.org.au/wp_Matrix2016/wp-content/uploads/2016/04/Roberts-2.pdf
 
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
@@ -2170,6 +2194,10 @@ REFERENCES:
 
 .. [Was1997] \L. C. Washington, *Cyclotomic Fields*, Springer-Verlag,
              GTM volume 83, 1997.
+
+.. [Watkins] Mark Watkins,
+   *Hypergeometric motives over Q and their L-functions*,
+   http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
 
 .. [Wat2003] Joel Watson. *Strategy: an introduction to game
              theory*. WW Norton, 2002.

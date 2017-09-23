@@ -5,6 +5,8 @@ Growth diagrams and dual graded graphs
 AUTHORS:
 
 - Martin Rubey (2016-09): Initial version
+- Martin Rubey (2017-09): generalize, more rules, improve documentation
+- Travis ScrimShaw (2017-09): switch to rule-based framework
 
 .. TODO::
 
@@ -199,7 +201,7 @@ So let us implement a few things::
     ....:     zero = 0
     ....:     def rank_function(self, x): return x
     ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
-    ....:     def normalize_labels(self, labels): return labels
+
 
 We can now compute the filling corresponding to a sequence of labels
 as follows::
@@ -225,7 +227,7 @@ Let us first provide the dual graded graphs::
 
 Are they really dual?::
 
-    sage: GrowthDiagram(RulePascal())._check_duality(3)
+    sage: RulePascal()._check_duality(3)
     Traceback (most recent call last):
     ...
     AssertionError: D U - U D differs from 1 I for vertex 3!
@@ -243,7 +245,7 @@ set it to ``None``::
 
 These are dual::
 
-    sage: GrowthDiagram(RulePascal())._check_duality(5)
+    sage: RulePascal()._check_duality(5)
 
 No result, so the first few levels of the graphs are really dual.
 Unfortunately, our backward rule can no longer work.  Let's provide
@@ -430,39 +432,6 @@ class GrowthDiagram(SageObject):
             self._check_labels(self._in_labels)
             self._grow()
 
-    def _check_duality(self, n):
-        """
-        Raise an error if the graphs are not r-dual at level n.
-
-        INPUT:
-
-        - ``n`` -- a positive integer specifying which rank of
-          the graph to test
-
-        TESTS:
-
-        For binary words, we have indeed provided dual graded graphs::
-
-            sage: GrowthDiagramBinWord._check_duality(3)
-        """
-        if self.rule.has_multiple_edges:
-            def check_vertex(w, P, Q):
-                DUw = [v[0] for uw in P.outgoing_edges(w) for v in Q.incoming_edges(uw[1])]
-                UDw = [v[1] for lw in Q.incoming_edges(w) for v in P.outgoing_edges(lw[0])]
-                UDw.extend([w]*self.rule.r)
-                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(rule.r, w)
-        else:
-            def check_vertex(w, P, Q):
-                DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
-                UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
-                UDw.extend([w]*self.rule.r)
-                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(rule.r, w)
-
-        P = self.P_graph(n + 2)
-        Q = self.Q_graph(n + 2)
-        for w in self.rule.vertices(n):
-            check_vertex(w, Q, P)
-
     def filling(self):
         r"""
         Return the filling of the diagram as a dictionary.
@@ -494,7 +463,7 @@ class GrowthDiagram(SageObject):
             True
         """
         F = {(j,i): v for (i,j),v in self._filling.items()}
-        return self.parent()(filling=F)
+        return self.parent()(self.rule, filling=F)
 
     def rotate(self):
         r"""
@@ -520,7 +489,7 @@ class GrowthDiagram(SageObject):
         max_row = max(i for i, _ in self._filling)
         max_col = max(j for _, j in self._filling)
         F = {(max_row-i,max_col-j): v for (i,j),v in self._filling.items()}
-        return self.parent()(filling=F)
+        return self.parent()(self.rule, filling=F)
 
     def shape(self):
         r"""
@@ -567,6 +536,12 @@ class GrowthDiagram(SageObject):
             [[2, 2], [2, 2], [2, 2], [3, 2]]
         """
         return self._in_labels
+
+    def P_symbol(self):
+        return self.rule.P_symbol(self.P_chain())
+
+    def Q_symbol(self):
+        return self.rule.Q_symbol(self.Q_chain())
 
     def P_chain(self):
         r"""
@@ -771,6 +746,7 @@ class GrowthDiagram(SageObject):
             False
         """
         return (self.parent() == other.parent() and
+                self.rule == other.rule and
                 self._lambda == other._lambda and
                 self._mu == other._mu and
                 self._filling == other._filling)
@@ -1275,12 +1251,7 @@ class Rule(UniqueRepresentation):
     """
     Abstract base class for a rule for a growth diagram.
 
-    Inheriting classes should provide an ``__init__`` method that
-    checks that ``labels``, when provided, are of the correct
-    type.  Finally, it should then call the ``__init__`` method
-    of the class :class:`GrowthDiagram` work.
-
-    All subclasses must provide the following attributes:
+    Subclasses should provide the following attributes:
 
     - ``zero`` -- the zero element of the vertices of the graphs
 
@@ -1294,7 +1265,9 @@ class Rule(UniqueRepresentation):
       edges of the graphs used for degenerate edges.  It is
       allowed to use this label also for other edges.
 
-    All subclasses must provide the following methods:
+    Subclasses should provide the following methods:
+
+    - ``normalize_labels``
 
     - ``vertices`` -- a function that takes a nonnegative integer
       as input and returns the list of vertices on this rank.
@@ -1329,6 +1302,45 @@ class Rule(UniqueRepresentation):
     has_multiple_edges = False # override when necessary
     zero_edge = 0              # override when necessary
     r = 1                      # override when necessary
+
+    # TODO: replace this by normalize_vertex
+    def normalize_labels(self, labels):
+        return labels
+
+    def _check_duality(self, n):
+        """
+        Raise an error if the graphs are not r-dual at level n.
+
+        INPUT:
+
+        - ``n`` -- a positive integer specifying which rank of
+          the graph to test
+
+        TESTS:
+
+        For binary words, we have indeed provided dual graded graphs::
+
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinWord._check_duality(3)
+        """
+        if self.has_multiple_edges:
+            def check_vertex(w, P, Q):
+                DUw = [v[0] for uw in P.outgoing_edges(w) for v in Q.incoming_edges(uw[1])]
+                UDw = [v[1] for lw in Q.incoming_edges(w) for v in P.outgoing_edges(lw[0])]
+                UDw.extend([w]*self.r)
+                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(self.r, w)
+        else:
+            def check_vertex(w, P, Q):
+                DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
+                UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
+                UDw.extend([w]*self.r)
+                assert sorted(DUw) == sorted(UDw), "D U - U D differs from %s I for vertex %s!"%(self.r, w)
+
+        P = self.P_graph(n + 2)
+        Q = self.Q_graph(n + 2)
+        for w in self.vertices(n):
+            check_vertex(w, Q, P)
+
 
     def P_graph(self, n):
         r"""
@@ -1745,7 +1757,12 @@ class RuleLLMS(Rule):
         TESTS::
 
             sage: LLMS3 = GrowthDiagram.rules.LLMS(3)
-            sage: LLMS3.normalize_labels([4,1,3,2])
+            sage: labels = [[], None, [1], None, [2], None, [3, 1], -1, [2], 1, [1], 0, []]
+            sage: G = GrowthDiagram(LLMS3, [1,3,2])
+            sage: G.out_labels() == labels
+            False
+            sage: LLMS3.normalize_labels(labels) == G.out_labels()
+            True
         """
         # TODO: should check that the filling is standard
         return [Core(labels[i], self.k) if is_even(i) else labels[i]
@@ -1811,7 +1828,7 @@ class RuleLLMS(Rule):
         else:
             return []
 
-    def P_symbol(self):
+    def P_symbol(self, P_chain):
         r"""
         Return the labels along the vertical boundary of a rectangular
         growth diagram as a skew tableau.
@@ -1824,7 +1841,7 @@ class RuleLLMS(Rule):
             -1 -2
             -3 -4
         """
-        C = self.P_chain()
+        C = P_chain
         T = SkewTableau(chain=C[::2])
         S = T.to_list()
         for entry, content in enumerate(C[1::2], 1):
@@ -1834,7 +1851,7 @@ class RuleLLMS(Rule):
                     break
         return StrongTableau(S, self.k-1)
 
-    def Q_symbol(self):
+    def Q_symbol(self, Q_chain):
         r"""
         Return the labels along the horizontal boundary of a rectangular
         growth diagram as a skew tableau.
@@ -1847,7 +1864,7 @@ class RuleLLMS(Rule):
             1 2
             3 4
         """
-        return WeakTableau(SkewTableau(chain=self.Q_chain()[::2]), self.k-1)
+        return WeakTableau(SkewTableau(chain=Q_chain[::2]), self.k-1)
 
     def forward_rule(self, y, e, t, f, x, content):
         r"""
@@ -1990,7 +2007,7 @@ class RuleBinWord(Rule):
         sage: BinWord = GrowthDiagram.rules.BinaryWord()
         sage: BinWord.zero
         word:
-        sage: G = GrothDiagram(BinWord, labels=[[1,1],[1,1,0],[0,1]])
+        sage: G = GrowthDiagram(BinWord, labels=[[1,1],[1,1,0],[0,1]])
         Traceback (most recent call last):
         ...
         AssertionError: 01 has smaller rank than 110 but isn't covered by it in P!
@@ -2763,7 +2780,7 @@ class RulePartitions(Rule):
     def rank_function(self, p):
         return p.size()
 
-    def P_symbol(self):
+    def P_symbol(self, P_chain):
         r"""
         Return the labels along the vertical boundary of a rectangular
         growth diagram as a skew tableau.
@@ -2776,9 +2793,9 @@ class RulePartitions(Rule):
             1  2  2
             2
         """
-        return SkewTableau(chain=self.P_chain())
+        return SkewTableau(chain=P_chain)
 
-    def Q_symbol(self):
+    def Q_symbol(self, Q_chain):
         r"""
         Return the labels along the horizontal boundary of a rectangular
         growth diagram as a skew tableau.
@@ -2791,7 +2808,7 @@ class RulePartitions(Rule):
             1  3  3
             2
         """
-        return SkewTableau(chain=self.Q_chain())
+        return SkewTableau(chain=Q_chain)
 
 class RuleRSK(RulePartitions):
     r"""
@@ -3066,7 +3083,7 @@ class RuleDomino(Rule):
     Check duality::
 
         sage: Domino = GrowthDiagram.rules.Domino()
-        sage: GrowthDiagramDomino._check_duality(3)
+        sage: Domino._check_duality(3)
 
         sage: G = GrowthDiagram(Domino, [[0,1,0],[0,0,-1],[1,0,0]]); G
         0  1  0
@@ -3128,7 +3145,7 @@ class RuleDomino(Rule):
         EXAMPLES::
 
             sage: Domino = GrowthDiagram.rules.Domino()
-            sage: GrowthDiagram(Domino, Domino.vertices(2))
+            sage: Domino.vertices(2)
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
         return [la for la in Partitions(2*n) if len(la.core(2)) == 0]
@@ -3172,7 +3189,7 @@ class RuleDomino(Rule):
 
     is_Q_edge = is_P_edge
 
-    def P_symbol(self):
+    def P_symbol(self, P_chain):
         r"""
         Return the labels along the vertical boundary of a rectangular
         growth diagram as a skew tableau.
@@ -3182,25 +3199,13 @@ class RuleDomino(Rule):
             sage: Domino = GrowthDiagram.rules.Domino()
             sage: G = GrowthDiagram(Domino, [[0,1,0],[0,0,-1],[1,0,0]])
             sage: G.P_symbol().pp()
-            1  2  2
-            2
+            1  1
+            2  3
+            2  3
         """
-        return SkewTableau(chain=self.P_chain())
+        return SkewTableau(chain=P_chain)
 
-    def Q_symbol(self):
-        r"""
-        Return the labels along the horizontal boundary of a rectangular
-        growth diagram as a skew tableau.
-
-        EXAMPLES::
-
-            sage: Domino = GrowthDiagram.rules.Domino()
-            sage: G = GrowthDiagram(Domino, [[0,1,0],[0,0,-1],[1,0,0]])
-            sage: G.Q_symbol().pp()
-            1  3  3
-            2
-        """
-        return SkewTableau(chain=self.Q_chain())
+    Q_symbol = P_symbol
 
     def forward_rule(self, shape3, shape2, shape1, content):
         r"""
@@ -3357,4 +3362,3 @@ class rules(object):
     Domino = RuleDomino
 
 GrowthDiagram.rules = rules
-

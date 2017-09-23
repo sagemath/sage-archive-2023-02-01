@@ -1097,6 +1097,10 @@ class AsymptoticExpansionGenerators(SageObject):
             sage: asymptotic_expansions.ImplicitExpansion('Z', phi=lambda u: 1 + 2*u + u^2, tau=3, precision=5)
             3 - 4*I*sqrt(3)*Z^(-1/2) + 6*I*sqrt(3)*Z^(-3/2) + O(Z^(-2))
 
+        .. SEEALSO::
+
+            :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`,
+            :meth:`~AsymptoticExpansionGenerators.InverseFunctionAnalysis`.
 
         TESTS::
 
@@ -1212,6 +1216,10 @@ class AsymptoticExpansionGenerators(SageObject):
             represents a singular element of the form `(1 - z/\rho)^{-1}`,
             for the variable `z\to\rho`.
 
+        .. SEEALSO::
+
+            :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`,
+            :meth:`~AsymptoticExpansionGenerators.InverseFunctionAnalysis`.
 
         EXAMPLES:
 
@@ -1318,6 +1326,11 @@ class AsymptoticExpansionGenerators(SageObject):
             ....:                                               tau=1, precision=8)
             2*sqrt(1/2)/sqrt(pi)*2^n*n^(-3/2) - 3/2*sqrt(1/2)/sqrt(pi)*2^n*n^(-5/2)
             + 25/16*sqrt(1/2)/sqrt(pi)*2^n*n^(-7/2) + O(2^n*n^(-9/2))
+
+        .. SEEALSO::
+
+            :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`,
+            :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`.
 
         """
         if tau is None:

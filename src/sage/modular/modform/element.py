@@ -31,7 +31,9 @@ import sage.modular.hecke.element as element
 
 from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
 from sage.rings.fast_arith import prime_range
+from sage.arith.misc import euler_phi
 from sage.rings.morphism import RingHomomorphism
+from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
@@ -43,6 +45,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
 from sage.structure.element import coercion_model, ModuleElement
 from sage.misc.cachefunc import cached_method
+from sage.functions.other import ceil
 
 
 def is_ModularFormElement(x):
@@ -2248,6 +2251,143 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         S = PowerSeriesRing(R, 'q')
         f_twist = S([self[i] * chi(i) for i in range(bound)], prec=bound)
         return M(f_twist)
+
+    def _q_expansion_bound(self, eps):
+        r"""
+        This function takes as input a modular form, ``self`` and a
+        Dirichlet character ``eps`` and returns an integer bound such
+        that if ``self`` and its twist by ``eps`` have the same
+        q-expansion up to this bound, then they are equal.
+
+        The bound is taken from [Murty]_. See [Shimura]_, Proposition 3.64.
+
+        INPUT:
+
+        - ``eps`` -- a Dirichlet character
+
+        OUTPUT:
+
+        A positive integer.
+
+        EXAMPLES:
+
+        Here is an example that can easily be checked by hand. ::
+
+            sage: M = ModularForms(Gamma0(11), 2)
+            sage: C = M.cuspidal_submodule()
+            sage: f = C.gens()[0]
+            sage: F = CyclotomicField(5)
+            sage: D = DirichletGroup(11, F)
+            sage: eps = D.gens()[0]
+            sage: f._q_expansion_bound(eps)
+            22
+
+        The level of `self` does not have to be related to the conductor
+        of eps. ::
+
+            sage: M = ModularForms(Gamma0(1), 12)
+            sage: C = M.cuspidal_submodule()
+            sage: Delta = C.gens()[0]
+            sage: F = CyclotomicField(12)
+            sage: D = DirichletGroup(13, F)
+            sage: eps = D.gens()[0]
+            sage: Delta._q_expansion_bound(eps)
+            182
+
+        REFERENCES:
+
+        .. [Murty] Murty, M. Ram
+            "Congruences between modular forms, in Analytic Number Theory", (ed. Y. Motohashi), London Mathematical Society Lecture Notes 247 (1997) 313-320, Cambridge University Press.
+
+        .. [Shimura] Shimura, Goro
+            "Introduction to the arithmetic theory of automorphic functions", (Princeton University Press, Princeton, 1971).
+        """
+        chi = self.character()
+        M = lcm([self.level(), eps.conductor()**2,
+                 chi.conductor() * eps.conductor()])
+        y = (float(self.weight()) / float(12)) * M
+        for p in prime_range(M + 1):
+            if (M % p == 0):
+                y = y * (1 + float(1/p))
+        return ceil(y)
+
+    def has_cm(self):
+        r"""
+        Return whether the modular form ``self`` has complex multiplication.
+
+        OUTPUT:
+
+        Boolean
+
+        .. SEEALSO::
+
+            :meth:`sage.schemes.elliptic_curves.ell_rational_field.has_cm`
+
+        EXAMPLES:
+
+        This example illustrates what happens when
+        candidate_characters(self) is the empty list. ::
+
+            sage: M = ModularForms(Gamma0(1), 12)
+            sage: C = M.cuspidal_submodule()
+            sage: Delta = C.gens()[0]
+            sage: Delta.has_cm()
+            False
+
+        We now compare the function has_cm between elliptic curves and
+        their associated modular forms. ::
+
+            sage: E = EllipticCurve([-1, 0])
+            sage: f = E.modular_form()
+            sage: f.has_cm()
+            True
+            sage: E.has_cm() == f.has_cm()
+            True
+
+        Here is a non-cm example coming from elliptic curves. ::
+
+            sage: E = EllipticCurve('11a')
+            sage: f = E.modular_form()
+            sage: f.has_cm()
+            False
+            sage: E.has_cm() == f.has_cm()
+            True
+
+        .. NOTE::
+
+            This can be quite slow when the level of ``self`` becomes
+            large (in the hundreds).
+        """
+        N = self.level()
+        K = CyclotomicField(euler_phi(N))
+        cand_chars = [x for x in DirichletGroup(N, K) if x.order() == 2 and
+                      x.is_odd() and N % (x.conductor() ** 2) == 0]
+
+        failed_chars = []
+
+        # If there are no candidate characters, then `self` cannot have CM.
+        if not cand_chars:
+            return False
+
+        # Test each candidate character to see if self has CM by that character.
+        for eps in cand_chars:
+            bound = self._q_expansion_bound(eps)
+            # calculate the Fourier coefficients of self up to bound
+            coeffs = self.coefficients(bound)
+            # We only have to test the CM condition at primes up to
+            # bound that do not divide the level of self.
+            for j in prime_range(1, bound):
+                if self.level() % j:
+                    if not coeffs[j - 1] == eps(j) * coeffs[j - 1]:
+                        failed_chars.append(eps)
+                        break
+            if eps not in failed_chars:
+                # In this case eps is the CM character for self
+                return True
+        # If the function has not returned anything by this point then
+        # we have shown that self does not have CM by any of the
+        # candidate characters. So self cannot have CM.
+        return False
 
 
 class ModularFormElement_elliptic_curve(ModularFormElement):

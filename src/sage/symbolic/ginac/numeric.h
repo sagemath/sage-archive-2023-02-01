@@ -252,6 +252,7 @@ public:
         {
                 return t == PYOBJECT;
         }
+        bool is_small_power(std::pair<int,int>& p) const;
         static ex try_py_method(const numeric& x, const std::string& s);
         static ex try_py_method(const numeric& x1,
                         const std::string& s,

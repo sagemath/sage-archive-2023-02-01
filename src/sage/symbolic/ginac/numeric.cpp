@@ -2625,6 +2625,53 @@ bool numeric::is_exact() const {
         }
 }
 
+static std::map<long,std::pair<int,int>> small_powers;
+
+static void fill_small_powers()
+{
+        static int lim[] = {30, 18, 15, 12, 11, 10, 10, 9, 9};
+        for (size_t b = 2; b < sizeof(lim)/sizeof(int) + 2; ++b) {
+                long p = b*b;
+                int c = 2;
+                while (c <= lim[b-2]) {
+                        small_powers[p] = std::make_pair(int(b), c);
+                        p *= b;
+                        ++c;
+                }
+        }
+}
+
+bool numeric::is_small_power(std::pair<int,int>& p) const
+{
+        int i;
+        switch (t) {
+                case LONG:
+                        if (v._long < 2)
+                                return false;
+                        i = v._long;
+                        break;
+                case MPZ:
+                        if (not mpz_fits_sint_p(v._bigint))
+                                return false;
+                        i = mpz_get_si(v._bigint);
+                        if (i<2)
+                                return false;
+                        break;
+                case MPQ:
+                case PYOBJECT:
+                        return false;
+                default:
+                        stub("invalid type -- is_small_power() type not handled");
+        }
+        if (small_powers.empty())
+                fill_small_powers();
+        auto it = small_powers.find(i);
+        if (it == small_powers.end())
+                return false;
+        p = it->second;
+        return true;
+} 
+
 bool numeric::operator==(const numeric &right) const {
         verbose3("operator==", *this, right);
 

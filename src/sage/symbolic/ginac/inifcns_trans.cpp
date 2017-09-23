@@ -234,23 +234,28 @@ static ex log_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
 		// log(float) -> float
+                numeric n = ex_to<numeric>(x);
 		if (x.info(info_flags::crational)) {
-                        if (x.is_zero())         // log(0) -> infinity
+                        if (n.is_zero())         // log(0) -> infinity
                                 //throw(pole_error("log_eval(): log(0)",0));
                                 return NegInfinity;
                         if (not x.info(info_flags::inexact) and x.info(info_flags::negative))
                                 return (log(-x)+I*Pi);
-                        if (x.is_equal(_ex1))  // log(1) -> 0
+                        if (n.is_one())  // log(1) -> 0
                                 return _ex0;
                         if (x.is_equal(I))       // log(I) -> Pi*I/2
                                 return (Pi*I*_ex1_2);
                         if (x.is_equal(-I))      // log(-I) -> -Pi*I/2
                                 return (Pi*I*_ex_1_2);
+                        std::pair<int,int> p;
+                        if (n.is_real() and n.is_integer()
+                            and n.is_small_power(p))
+                                return mul(p.second, log(p.first).hold());
                 }
                 else if (not x.info(info_flags::inexact))
                         return log(x).hold();
                 else
-			return log(ex_to<numeric>(x));
+			return log(n);
 	}
 
 	// log(exp(t)) -> t (if -Pi < t.imag() <= Pi):

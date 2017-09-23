@@ -1346,6 +1346,16 @@ class AsymptoticExpansionGenerators(SageObject):
             :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`,
             :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`.
 
+
+        TESTS::
+
+        Omitting the precision parameter does lead to an error::
+
+            sage: asymptotic_expansions.InverseFunctionAnalysis(n, phi=lambda u: 1 + 2*u + u^2,
+            ....:                                               tau=1)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'int' object has no attribute 'factorial'
         """
         if tau is None:
             tau = _fundamental_constant_implicit_function_(phi=phi)

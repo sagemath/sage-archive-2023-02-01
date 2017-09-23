@@ -4287,6 +4287,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def trunc(self):
+        """
+        Round this number to the nearest integer, which is self since
+        self is an integer.
+
+        EXAMPLES::
+
+            sage: n = 6
+            sage: n.trunc()
+            6
+        """
+        return self
+
+    def round(Integer self, mode="away"):
+        """
+        Returns the nearest integer to ``self``, which is self since
+        self is an integer.
+
+        EXAMPLES:
+
+        This example addresses :trac:`23502`::
+
+            sage: n = 6
+            sage: n.round()
+            6
+        """
+        return self
+
     def real(self):
         """
         Returns the real part of self, which is self.

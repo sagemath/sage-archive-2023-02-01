@@ -1303,6 +1303,9 @@ class Rule(UniqueRepresentation):
     zero_edge = 0              # override when necessary
     r = 1                      # override when necessary
 
+    def __call__(self, *args, **kwds):
+        return GrowthDiagram(self, *args, **kwds)
+    
     # TODO: replace this by normalize_vertex
     def normalize_labels(self, labels):
         return labels

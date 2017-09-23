@@ -6,8 +6,8 @@ AUTHORS:
 
 - Franco Saliola (2008-12-17) : merged into sage
 - Vincent Delecroix and Stepan Starosta (2012): remove classes for alphabet and
-  use other Sage classes otherwise (TotallyOrderFiniteSet, FiniteEnumeratedSet,
-  ...). More shortcut to standard alphabets.
+  use other Sage classes otherwise (TotallyOrderedFiniteSet,
+  FiniteEnumeratedSet, ...). More shortcut to standard alphabets.
 
 EXAMPLES::
 
@@ -46,7 +46,6 @@ from sage.rings.infinity import Infinity
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.positive_integers import PositiveIntegers
 
-import itertools
 
 set_of_letters = {
     'lower'       : "abcdefghijklmnopqrstuvwxyz",

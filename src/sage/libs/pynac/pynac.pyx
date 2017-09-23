@@ -1522,8 +1522,8 @@ cdef py_sin(x):
         0.909297426825682
         sage: sin(2.*I)
         3.62686040784702*I
-        sage: sin(QQbar(I))
-        sin(I)
+        sage: sin(QQbar(I))   # known bug
+        I*sinh(1)
     """
     try:
         return x.sin()
@@ -1544,8 +1544,8 @@ cdef py_cos(x):
         -0.416146836547142
         sage: cos(2.*I)
         3.76219569108363
-        sage: cos(QQbar(I))
-        cos(I)
+        sage: cos(QQbar(I))   # known bug
+        cosh(1)
     """
     try:
         return x.cos()

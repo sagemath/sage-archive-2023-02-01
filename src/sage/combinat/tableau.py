@@ -110,7 +110,7 @@ class Tableau(ClonableList):
 
     A tableau is abstractly a mapping from the cells in a partition to
     arbitrary objects (called entries). It is often represented as a
-    finite list of nonempty lists (or, more generallym an iterator of
+    finite list of nonempty lists (or, more generally an iterator of
     iterables) of weakly decreasing lengths. This list,
     in particular, can be empty, representing the empty tableau.
 
@@ -876,13 +876,13 @@ class Tableau(ClonableList):
             sage: c.parent()
             Standard tableaux
         """
-        conj_shape = self.shape().conjugate()
-
-        conj = [[None]*row_length for row_length in conj_shape]
-
-        for i in range(len(conj)):
-            for j in range(len(conj[i])):
-                conj[i][j] = self[j][i]
+        if self:
+            conj = [[] for i in range(len(self[0]))]
+            for row in self:
+                for j, x in enumerate(row):
+                    conj[j].append(x)
+        else:
+            conj = []
 
         if isinstance(self, StandardTableau):
             return StandardTableau(conj)

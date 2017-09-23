@@ -329,7 +329,6 @@ class CartanType(cartan_type.CartanType_decorator):
             sage: sorted(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).dynkin_diagram().edges())
             [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 1), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
         """
-        from copy import copy
         result = self._type.dynkin_diagram().copy()
         result._cartan_type = self
         return result

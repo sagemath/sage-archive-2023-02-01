@@ -2737,7 +2737,7 @@ class RauzyDiagram(SageObject):
         return (
             type(self) is type(other) and
             self._edge_types == other._edge_types and
-            self._succ.keys()[0] in other._succ)
+            next(iter(self._succ.keys())) in other._succ)
 
     def __ne__(self, other):
         r"""
@@ -2761,7 +2761,7 @@ class RauzyDiagram(SageObject):
         return (
             type(self) is not type(other) or
             self._edge_types != other._edge_types or
-            self._succ.keys()[0] not in other._succ)
+            next(iter(self._succ.keys())) not in other._succ)
 
     def vertices(self):
         r"""

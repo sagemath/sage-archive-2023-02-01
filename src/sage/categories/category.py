@@ -1718,6 +1718,14 @@ class Category(UniqueRepresentation, SageObject):
             sage: Algebras(ZZ['t']).element_class is Algebras(ZZ['t','x']).element_class
             True
 
+        These classes are constructed with ``__slots__ = []``, so they
+        behave like extension types::
+
+            sage: E = FiniteEnumeratedSets().element_class
+            sage: from sage.structure.misc import is_extension_type
+            sage: is_extension_type(E)
+            True
+
         .. SEEALSO:: :meth:`parent_class`
         """
         return self._make_named_class('element_class', 'ElementMethods')

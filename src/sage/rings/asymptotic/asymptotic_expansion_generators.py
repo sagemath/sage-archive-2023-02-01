@@ -49,6 +49,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.ImplicitExpansionPeriodicPart`
      - the singular expansion of the periodic part of a function `y(z)` satisfying `y(z) = z\Phi(y(z))`
 
+   * - :meth:`~AsymptoticExpansionGenerators.InverseFunctionAnalysis`
+     - coefficient growth of a function `y(z)` defined implicitly by `y(z) = z \Phi(y(z))`
+
 
 AUTHORS:
 
@@ -101,6 +104,7 @@ class AsymptoticExpansionGenerators(SageObject):
     - :meth:`~SingularityAnalysis`
     - :meth:`~ImplicitExpansion`
     - :meth:`~ImplicitExpansionPeriodicPart`
+    - :meth:`~InverseFunctionAnalysis`
     """
 
     @staticmethod

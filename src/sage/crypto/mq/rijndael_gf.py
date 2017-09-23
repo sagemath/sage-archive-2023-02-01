@@ -444,7 +444,7 @@ class RijndaelGF(SageObject):
         - ``Nb`` -- The block length of this instantiation. Must be between 4
           and 8.
 
-        - ``Nk`` -- The key length of this instantion. Must be between 4 and 8.
+        - ``Nk`` -- The key length of this instantiation. Must be between 4 and 8.
 
         - ``state_chr`` -- The variable name for polynomials representing
           elements from state matrices.
@@ -1103,7 +1103,7 @@ class RijndaelGF(SageObject):
         - ``PRm`` -- If ``PRm`` is a `4 \times Nb` matrix with entries from
           the multivariate PolynomialRing ``_all_PR``, this method does nothing
           `\GF{2^8}`, this method does nothing. Otherwise, this method raises
-          an error. Note that a matrix of elements from `\GF(2^8)` is regarded
+          an error. Note that a matrix of elements from `\GF{2^8}` is regarded
           as a matrix with entries from ``_all_PR`` and will pass this test.
 
         - ``keyword`` -- The name of the keyword ``PRm`` from where this

@@ -19,12 +19,12 @@ specified in the forward direction).
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import, division, print_function
 
 import math
 
-cdef add, sub, mul, div, pow, neg, inv
-from operator import add, sub, mul, div, pow, neg, inv
+cdef add, sub, mul, truediv, pow, neg, inv
+from operator import add, sub, mul, pow, neg, inv, truediv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
@@ -610,7 +610,7 @@ cdef class LazyFieldElement(FieldElement):
                 return left._new_wrapper((<LazyWrapper?>left)._value / (<LazyWrapper?>right)._value)
             except TypeError:
                 pass
-        return left._new_binop(left, right, div)
+        return left._new_binop(left, right, truediv)
 
     def __pow__(left, right, dummy):
         """
@@ -675,7 +675,7 @@ cdef class LazyFieldElement(FieldElement):
         TESTS::
 
             sage: from sage.rings.real_lazy import LazyBinop
-            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.div)
+            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.truediv)
             False
             sage: from sage.rings.real_lazy import LazyWrapper
             sage: LazyWrapper(RLF, 3) < LazyWrapper(RLF, 5/3)
@@ -826,7 +826,7 @@ cdef class LazyFieldElement(FieldElement):
         try:
             return self.eval(complex)
         except Exception:
-            from complex_field import ComplexField
+            from .complex_field import ComplexField
             return complex(self.eval(ComplexField(53)))
 
     cpdef eval(self, R):
@@ -1139,7 +1139,7 @@ cdef class LazyBinop(LazyFieldElement):
             return left * right
         elif self._op is sub:
             return left - right
-        elif self._op is div:
+        elif self._op is truediv:
             return left / right
         elif self._op is pow:
             return left ** right
@@ -1166,7 +1166,7 @@ cdef class LazyBinop(LazyFieldElement):
             return left * right
         elif self._op is sub:
             return left - right
-        elif self._op is div:
+        elif self._op is truediv:
             return left / right
         elif self._op is pow:
             return left ** right
@@ -1192,9 +1192,10 @@ cdef class LazyBinop(LazyFieldElement):
         """
         For pickling.
 
-        TEST:
+        TESTS::
+
             sage: from sage.rings.real_lazy import LazyBinop
-            sage: a = LazyBinop(CLF, 3, 2, operator.div)
+            sage: a = LazyBinop(CLF, 3, 2, operator.truediv)
             sage: loads(dumps(a)) == a
             True
         """

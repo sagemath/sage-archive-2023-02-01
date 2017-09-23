@@ -82,6 +82,9 @@ from sage.categories.enumerated_sets import EnumeratedSets
 _Rings = Rings()
 _Fields = Fields()
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.groups.matrix_gps.group_element', 'is_MatrixGroupElement', at_startup=True)
+lazy_import('sage.modular.arithgroup.arithgroup_element', 'ArithmeticSubgroupElement', at_startup=True)
 
 def is_MatrixSpace(x):
     """
@@ -128,7 +131,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
          (euclidean domains and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
         Category of infinite finite dimensional algebras with basis over
-         (quotient fields and metric spaces)
+         (number fields and quotient fields and metric spaces)
 
     TESTS::
 
@@ -233,7 +236,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                         sparse=False,
                         implementation='flint'):
         """
-        TEST:
+        TESTS:
 
         We test that in the real or complex double dense case,
         conversion from the base ring is done by a call morphism.
@@ -696,8 +699,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 if self.base_ring().has_coerce_map_from(x.base_ring()):
                     return self(x)
                 raise TypeError("no canonical coercion")
-        from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
-        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
         if ((is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement))
             and self.base_ring().has_coerce_map_from(x.base_ring())):
             return self(x)
@@ -1515,10 +1516,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
-        from sage.groups.matrix_gps.group_element import \
-            is_MatrixGroupElement
-        from sage.modular.arithgroup.arithgroup_element import \
-            ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
         if isinstance(x, (types.GeneratorType,)):

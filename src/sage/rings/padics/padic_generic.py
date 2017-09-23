@@ -108,7 +108,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             print_mode = {}
         elif isinstance(print_mode, str):
             print_mode = {'mode': print_mode}
-        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec']:
             if option not in print_mode:
                 print_mode[option] = self._printer.dict()[option]
         return print_mode
@@ -920,9 +920,9 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         ....:     print(R(45))
         5 * 9 + O(5^21)
 
-    NOTES::
+    .. NOTE::
 
-        For more documentation see localvars in parent_gens.pyx
+        For more documentation see ``localvars`` in parent_gens.pyx
     """
     if isinstance(print_options, str):
         print_options = {'mode': print_options}

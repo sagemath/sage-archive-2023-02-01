@@ -237,7 +237,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
     if grading_group is None:
         grading_group = ZZ
     if degree_of_differential != 1 and degree != 1:
-        raise(ValueError, 'specify only one of degree_of_differential or degree, not both')
+        raise ValueError('specify only one of degree_of_differential or degree, not both')
     if degree_of_differential != 1:
         degree = degree_of_differential
     try:
@@ -1851,8 +1851,8 @@ class ChainComplex_class(Parent):
         deg = self.degree_of_differential()
         ring = self.base_ring()
         if self.grading_group() != ZZ:
-            guess = dict.keys()[0]
-            if guess-deg in dict:
+            guess = next(iter(dict.keys()))
+            if guess - deg in dict:
                 string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
             string += _latex_module(ring, mat.ncols())
             string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)

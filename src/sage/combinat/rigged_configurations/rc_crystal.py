@@ -24,7 +24,6 @@ Kirillov-Reshetikhin structure, and we extend this to symmetrizable types.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -418,7 +417,7 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
     def from_virtual(self, vrc):
         """
-        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        Convert ``vrc`` in the virtual crystal into a rigged configuration of
         the original Cartan type.
 
         INPUT:

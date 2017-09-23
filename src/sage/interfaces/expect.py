@@ -652,7 +652,7 @@ If this all works, you can then make calls like:
         A string that provides a temporary filename and is unique for the
         given interface.
 
-        TEST:
+        TESTS:
 
         The filename is cached::
 
@@ -672,14 +672,14 @@ If this all works, you can then make calls like:
             sage: @parallel
             ....: def f(n):
             ....:     return gap._local_tmpfile()
-            sage: L = [t[1] for t in f(range(5))]
+            sage: L = [t[1] for t in f(list(range(5)))]
             sage: len(set(L))
             5
 
         The following used to fail::
 
             sage: s = gap._local_tmpfile()
-            sage: L = [t[1] for t in f(range(5))]
+            sage: L = [t[1] for t in f(list(range(5)))]
             sage: len(set(L))
             5
 

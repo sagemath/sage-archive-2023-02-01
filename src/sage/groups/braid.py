@@ -1676,7 +1676,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             return ()
         pl = p
         l = []
-        while pl.length() > 0:
+        while pl.length():
             i = 1
             while i<max(pl):
                 if pl(i)>pl(i+1):
@@ -1684,7 +1684,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
                     pl = Permutation([(i, i+1)])*pl
                     i = 1
                 else:
-                    i = i+1
+                    i += 1
         return tuple(l)
 
     @cached_method
@@ -1696,7 +1696,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         - The braid induces the given permutation.
 
-        - The braid is positive (that is, it can be writen without using the inverses of the generators).
+        - The braid is positive (that is, it can be written without
+          using the inverses of the generators).
 
         - Every two strands cross each other at most once.
 

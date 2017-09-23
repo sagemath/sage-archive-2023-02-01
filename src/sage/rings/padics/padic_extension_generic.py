@@ -321,6 +321,32 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #        xnew = x - x*delta*(1-q*delta)
     #    return x
 
+    def construction(self):
+        """
+        Returns the functorial construction of this ring, namely,
+        the algebraic extension of the base ring defined by the given
+        polynomial.
+
+        Also preserves other information that makes this ring unique
+        (e.g. precision, rounding, print mode).
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(25, 8, print_mode='val-unit')
+            sage: c, R0 = R.construction(); R0
+            5-adic Ring with capped relative precision 8
+            sage: c(R0)
+            Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 8 over 5-adic Ring
+            sage: c(R0) == R
+            True
+        """
+        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
+        print_mode = self._printer.dict()
+        return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
+                    prec=self.precision_cap(), print_mode=self._printer.dict(),
+                    implementation=self._implementation),
+                self.base_ring())
+
     def fraction_field(self, print_mode=None):
         r"""
         Returns the fraction field of this extension, which is just
@@ -346,18 +372,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         if self.is_field() and print_mode is None:
             return self
-        print_mode = self._modified_print_mode(print_mode)
-        ground_mode = print_mode.copy()
-        # We don't want to confuse the ground ring with different names.
-        ground_mode['ram_name'] = None
-        ground_mode['unram_name'] = None
-        K = self.ground_ring().fraction_field(ground_mode)
-        #we don't want to set the print options due to the ground ring since
-        #different extension fields (with different options) can share the same ground ring.
-        if self.is_lazy():
-            return K.extension(self._exact_modulus, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
+        if print_mode is None:
+            return self.change(field=True)
         else:
-            return K.extension(self._exact_modulus, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
+            return self.change(field=True, **print_mode)
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -385,18 +403,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
         if not self.is_field() and print_mode is None:
             return self
-        print_mode = self._modified_print_mode(print_mode)
-        ground_mode = print_mode.copy()
-        # We don't want to confuse the ground ring with different names.
-        ground_mode['ram_name'] = None
-        ground_mode['unram_name'] = None
-        K = self.ground_ring().integer_ring(ground_mode)
-        #we don't want to set the print options due to the ground ring since
-        #different extension fields (with different options) can share the same ground ring.
-        if self.is_lazy():
-            return K.extension(self._exact_modulus, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+        if print_mode is None:
+            return self.change(field=False)
         else:
-            return K.extension(self._exact_modulus, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return self.change(field=False, **print_mode)
 
     #def hasGNB(self):
     #    raise NotImplementedError

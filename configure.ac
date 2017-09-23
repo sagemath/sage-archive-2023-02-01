@@ -369,15 +369,22 @@ elif test -n "$SAGE_INSTALL_GCC"; then
 fi
 
 
-AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
-
-AC_LANG(C++)
 AC_PROG_CXX()
-
-AC_LANG(Fortran)
 AC_PROG_FC()
+
+AC_SUBST(CC)
+AC_SUBST(CXX)
+AC_SUBST(FC)
+
+# On darwin, also set the objective C/C++ compilers
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
 if test "x$CXX" = x
 then
@@ -416,12 +423,16 @@ AC_LANG(C)
 if test -z "$CC"; then
     SAGE_MUST_INSTALL_GCC([a C compiler is missing])
 else
+    # Save compiler before checking for C99 support
+    save_CC=$CC
     # Check that we can compile C99 code
     AC_PROG_CC_C99()
     if test "x$ac_cv_prog_cc_c99" = xno
     then
         SAGE_MUST_INSTALL_GCC([your C compiler cannot compile C99 code])
     fi
+    # restore original CC
+    CC=$save_CC
 fi
 
 # Check that the Fortran compiler accepts free-format source code

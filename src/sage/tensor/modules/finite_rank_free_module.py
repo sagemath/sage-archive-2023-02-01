@@ -370,7 +370,7 @@ created by ``VectorSpace`` is actually a Cartesian power of the base field::
     Vector space of dimension 3 over Rational Field
     sage: V.category()
     Category of finite dimensional vector spaces with basis
-     over (quotient fields and metric spaces)
+     over (number fields and quotient fields and metric spaces)
     sage: V is QQ^3
     True
     sage: V.basis()
@@ -822,7 +822,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Element of the Rank-3 free module M over the Integer Ring
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp:

@@ -250,7 +250,20 @@ class BipartiteGraph(Graph):
         sage: sorted(g.left.union(g.right))
         [0, 1, 2, 3, 4, 5, 6, 7]
 
+    Make sure that loops are not allowed (:trac:`23275`)::
 
+        sage: B = BipartiteGraph(loops=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: loops are not allowed in bipartite graphs
+        sage: B = BipartiteGraph(loops=None)
+        sage: B.allows_loops()
+        False
+        sage: B.add_edge(0,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot add edge from 0 to 0 in graph without loops
+        
     """
 
     def __init__(self, data=None, partition=None, check=True, *args, **kwds):
@@ -264,6 +277,13 @@ class BipartiteGraph(Graph):
             sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
+        if kwds is None:
+            kwds = {'loops': False}
+        else:
+            if kwds.has_key('loops') and kwds['loops'] is True:
+                raise ValueError('loops are not allowed in bipartite graphs')
+            kwds['loops'] = False
+                
         if data is None:
             if partition is not None and check:
                 if partition[0] or partition[1]:
@@ -797,6 +817,31 @@ class BipartiteGraph(Graph):
         # add the edge
         Graph.add_edge(self, u, v, label)
         return
+
+    def allow_loops(self, new, check=True):
+        """
+        Change whether loops are permitted in the (di)graph
+
+        .. NOTE::
+
+            This method overwrite the
+            :meth:`~sage.graphs.generic_graph.GenericGraph.allow_loops` method
+            to ensure that loops are forbidden in :class:`~BipartiteGraph`.
+
+        INPUT:
+
+        - ``new`` - boolean.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph()
+            sage: B.allow_loops(True)
+            Traceback (most recent call last):
+            ...
+            ValueError: loops are not allowed in bipartite graphs
+        """
+        if new is True:
+            raise ValueError("loops are not allowed in bipartite graphs")
 
     def complement(self):
         """

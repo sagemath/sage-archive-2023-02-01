@@ -218,7 +218,7 @@ from sage.modules.free_module_element import vector
 from sage.arith.all import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
-from sage.misc.functional import log, is_even
+from sage.misc.functional import is_even
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
@@ -1977,7 +1977,7 @@ class AbstractLinearCode(Module):
         F = self.base_ring()
         q = F.order()
         q0 = F0.order()
-        a = log(q,q0)  # test if F/F0 is a field extension
+        a = q.log(q0)  # test if F/F0 is a field extension
         if not isinstance(a, Integer):
             raise ValueError("Base field must be an extension of given field %s"%F0)
         n = len(G.columns())
@@ -3554,8 +3554,7 @@ class AbstractLinearCode(Module):
             s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
             sage: C.weight_enumerator(names="var1, var2")
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
-            sage: (var1, var2) = var('var1, var2')
-            sage: C.weight_enumerator(names=(var1, var2))
+            sage: C.weight_enumerator(names=('var1', 'var2'))
             var1^7 + 7*var1^4*var2^3 + 7*var1^3*var2^4 + var2^7
             sage: C.weight_enumerator(bivariate=False)
             x^7 + 7*x^4 + 7*x^3 + 1

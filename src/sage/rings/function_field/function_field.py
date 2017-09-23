@@ -64,14 +64,14 @@ and function fields as inseparable extensions::
 
 TESTS::
 
-    sage: TestSuite(K).run()
-    sage: TestSuite(L).run()  # long time (8s on sage.math, 2012)
-    sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
-    sage: TestSuite(N).run(skip = '_test_derivation')  # long time
-    sage: TestSuite(O).run(skip = '_test_derivation')  # long time
+    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
+    sage: TestSuite(L).run(max_runs=64)  # long time (10s)
+    sage: TestSuite(M).run(max_runs=32)  # long time (30s)
+    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation') # long time (8s)
+    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
 
     sage: TestSuite(R).run()
-    sage: TestSuite(S).run()
+    sage: TestSuite(S).run() # long time (3s)
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -407,11 +407,11 @@ class FunctionField(Field):
         from .function_field_order import FunctionFieldOrder
         if isinstance(source, FunctionFieldOrder):
             K = source.fraction_field()
-            source_to_K = K._generic_convert_map(source)
             if K is self:
-                return source_to_K
+                return self._generic_coerce_map(source)
+            source_to_K = K.coerce_map_from(source)
             K_to_self = self.coerce_map_from(K)
-            if K_to_self:
+            if source_to_K and K_to_self:
                 return K_to_self * source_to_K
         from sage.categories.function_fields import FunctionFields
         if source in FunctionFields():

@@ -490,7 +490,7 @@ class ChowCycle(FGP_Element):
         If the toric variety is not simplicial, that is, has worse
         than orbifold singularities, there is no way to associate a
         cohomology class of the correct degree. In this case,
-        :meth:`cohomology_class` rasies a ``ValueError``.
+        :meth:`cohomology_class` raises a ``ValueError``.
 
         EXAMPLES::
 
@@ -1102,7 +1102,7 @@ class ChowGroup_degree_class(SageObject):
     r"""
     A fixed-degree subgroup of the Chow group of a toric variety.
 
-    WARNING ..
+    .. WARNING::
 
         Use
         :meth:`~sage.schemes.toric.chow_group.ChowGroup_class.degree`

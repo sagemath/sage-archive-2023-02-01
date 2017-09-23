@@ -152,7 +152,7 @@ You can get at the underlying ntl unit::
     sage: y._ntl_rep_abs()
     ([5 95367431640505 25 95367431640560 5], 0)
 
-NOTES::
+.. NOTE::
 
     If you get an error ``internal error: can't grow this
     _ntl_gbigint,`` it indicates that moduli are being mixed
@@ -859,8 +859,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             '5563A4105291255628.148272'
             sage: repr(y*847)[3:]
             '000000000000000000000003'
-            sage: repr(W(77/3, relprec=0))[3:]
-            '000'
+            sage: repr(W(77/3, relprec=0))
+            '0'
             sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
             '011111.01A'
             sage: repr(c * 11)[3:]

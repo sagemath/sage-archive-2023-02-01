@@ -220,7 +220,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: s1 == CC(gp(s1))
             True
         """
-        return self.str(truncate=False)
+        return self.str()
 
     def _maxima_init_(self, I=None):
         """
@@ -234,7 +234,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(.5 + I)._maxima_init_()
             '0.50000000000000000 + 1.0000000000000000*%i'
         """
-        return self.str(truncate=False, istr='%i')
+        return self.str(istr='%i')
 
     @property
     def __array_interface__(self):
@@ -366,7 +366,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a._repr_()
             '2.00000000000000 + 1.00000000000000*I'
         """
-        return self.str(10)
+        return self.str(truncate=True)
 
     def __hash__(self):
         """
@@ -459,25 +459,27 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         self._multiplicative_order = integer.Integer(n)
 
-    def str(self, base=10, truncate=True, istr='I'):
+    def str(self, base=10, istr='I', **kwds):
         r"""
         Return a string representation of ``self``.
 
         INPUT:
 
-        - ``base`` --  (Default: 10) The base to use for printing
+        - ``base`` -- (default: 10) base for output
 
-        - ``truncate`` -- (Default: ``True``) Whether to print fewer
-          digits than are available, to mask errors in the last bits.
+        - ``istr`` -- (default: ``I``) String representation of the complex unit
 
-        - ``istr`` -- (Default: ``I``) String representation of the complex unit
+        - ``**kwds`` -- other arguments to pass to the ``str()``
+          method of the real numbers in the real and imaginary parts.
 
         EXAMPLES::
 
             sage: a = CC(pi + I*e)
-            sage: a.str()
+            sage: a
+            3.14159265358979 + 2.71828182845905*I
+            sage: a.str(truncate=True)
             '3.14159265358979 + 2.71828182845905*I'
-            sage: a.str(truncate=False)
+            sage: a.str()
             '3.1415926535897931 + 2.7182818284590451*I'
             sage: a.str(base=2)
             '11.001001000011111101101010100010001000010110100011000 + 10.101101111110000101010001011000101000101011101101001*I'
@@ -490,23 +492,23 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(0)
             0.000000000000000
             sage: CC.0.str(istr='%i')
-            '1.00000000000000*%i'
+            '1.0000000000000000*%i'
         """
         s = ""
-        if self.real() != 0:
-            s = self.real().str(base, truncate=truncate)
-        if self.imag() != 0:
-            y  =  self.imag()
-            if s!="":
+        if self.real():
+            s = self.real().str(base, **kwds)
+        if self.imag():
+            y = self.imag()
+            if s:
                 if y < 0:
-                    s = s+" - "
+                    s += " - "
                     y = -y
                 else:
-                    s = s+" + "
-            s = s+"{ystr}*{istr}".format(ystr=y.str(base, truncate=truncate),
-                    istr=istr)
-        if len(s) == 0:
-            s = self.real().str(base, truncate=truncate)
+                    s += " + "
+            ystr = y.str(base, **kwds)
+            s += ystr + "*" + istr
+        if not s:
+            s = self.real().str(base, **kwds)
         return s
 
     def _latex_(self):
@@ -540,7 +542,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             '-\\infty'
         """
         import re
-        s = self.str().replace('*I', 'i').replace('infinity','\\infty')
+        s = repr(self).replace('*I', 'i').replace('infinity','\\infty')
         return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
     def __pari__(self):
@@ -854,8 +856,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: magma(ComplexField(200)(1/3)) # indirect, optional - magma
             0.333333333333333333333333333333333333333333333333333333333333
         """
-        real_string = self.real().str(truncate=False)
-        imag_string = self.imag().str(truncate=False)
+        real_string = self.real().str()
+        imag_string = self.imag().str()
         digit_precision_bound = len(real_string)
         return "%s![%sp%s, %sp%s]" % (self.parent()._magma_init_(magma),
                                       real_string, digit_precision_bound,

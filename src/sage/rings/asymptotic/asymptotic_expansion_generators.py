@@ -1259,8 +1259,8 @@ class AsymptoticExpansionGenerators(SageObject):
         if we have `\Psi(u^p) = \Phi(u)` for a power series `\Psi`
         where `p` is maximal.
 
-        The fundamental constant `\tau` is assumed to be the unique positive
-        solution of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
+        Furthermore, it is assumed that there is a unique positive solution `\tau`
+        of `\Phi(\tau) - \tau\Phi'(\tau) = 0`.
 
         INPUT:
 
@@ -1269,12 +1269,12 @@ class AsymptoticExpansionGenerators(SageObject):
         - ``phi`` -- the function `\Phi`. See the extended description for
           assumptions on `\Phi`.
 
+        - ``tau`` -- (default: ``None``) the fundamental constant described
+          in the extended description. If ``None``, then `\tau` is determined
+          automatically if possible.
+
         - ``period`` -- (default: `1`) the period of the function `\Phi`. See
           the extended description for details.
-
-        - ``tau`` -- (default: ``None``) the fundamental constant described
-          in the extended description. If ``None``, then `\tau` is tried to
-          be determined automatically.
 
         - ``precision`` -- (default: ``None``) an integer. If ``None``, then
           the default precision of the asymptotic ring is used.

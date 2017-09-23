@@ -1120,6 +1120,7 @@ class AsymptoticExpansionGenerators(SageObject):
         """
         from sage.symbolic.ring import SR
         from sage.rings.rational_field import QQ
+        from sage.rings.integer_ring import ZZ
         from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
         from sage.arith.srange import srange
         y, u = SR('y'), SR('u')
@@ -1138,7 +1139,7 @@ class AsymptoticExpansionGenerators(SageObject):
                            coefficient_ring=SR,
                            default_prec=precision)
         if precision is None:
-            precision = A.default_prec
+            precision = ZZ(A.default_prec)
         Z = A.gen()
 
         def ansatz(prec=precision):

@@ -12,9 +12,11 @@ AUTHORS:
 
     - when shape is given, check that it is compatible with filling or labels
     - optimise rules, mainly for :class:`RuleRSK` and :class:`RuleBurge`
-    - make semistandard extension generic
     - implement backward rules for :class:`GrowthDiagramDomino`
     - implement backward rule from [LLMSSZ2013]_, [LS2007]_
+    - implement :meth:`GrowthDiagram.P_symbol` for Sylvester insertion
+    - make semistandard extension generic
+    - accommodate dual filtered graphs
 
 A guided tour
 -------------
@@ -72,23 +74,25 @@ However, in the case of a rectangular filling, it is more practical
 to split this sequence of labels in two.  We then obtain the `P` and
 `Q` symbols::
 
-    sage: [G.P_symbol(), G.Q_symbol()]
-    [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
-    sage: RSK(w)
-    [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
+    sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+    [   1  3  4  5    1  2  3  6 ]
+    [   2  6      ,   4  5       ]
+    sage: ascii_art(RSK(w))
+    [   1  3  4  5    1  2  3  6 ]
+    [   2  6      ,   4  5       ]
 
 A great advantage of growth diagrams is that we immediately have
 access also to the skew version of the RSK-correspondence, by
 providing different initialisation for the labels near the origin.
 We reproduce the original example of Bruce Sagan and Richard Stanley,
-see also Tom Roby's thesis [Rob1991]_.  We can represent the
-generalised permutation::
+see also Tom Roby's thesis [Rob1991]_.  We represent a generalised
+permutation as a dictionary of coordinates, subtracting `1` from all
+entries because lists are zero-based in Python.  For example::
 
     1 2 4
     4 2 3
 
-as a dictionary of coordinates, subtracting `1` from all entries
-because lists are zero-based::
+becomes::
 
     sage: w = {(1-1,4-1): 1, (2-1,2-1): 1, (4-1,3-1): 1}
     sage: T = SkewTableau([[None, None], [None,5], [1]])
@@ -199,14 +203,14 @@ So let us implement a few things::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
-    ....:     def rank_function(self, x): return x
+    ....:     def rank_function(self, v): return v
     ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
 
 
 We can now compute the filling corresponding to a sequence of labels
 as follows::
 
-    sage: GrowthDiagram(RulePascal(), labels=[0,1,2,1,2,1,0])
+    sage: RulePascal()(labels=[0,1,2,1,2,1,0])
     1  0  0
     0  0  1
     0  1
@@ -317,10 +321,10 @@ class GrowthDiagram(SageObject):
     A generalized Schensted growth diagram in the sense of Fomin.
 
     An instance of the class is a growth diagram consisting of a
-    filling and labels on the boundary.  To initialise it, it is
-    necessary to provide either a filling and labels for the
-    border on the side of the origin (forward growth), or labels
-    for the boundary opposite of the origin (backward growth).
+    filling and labels on the boundary.  To initialise it, provide
+    either a filling and labels for the border on the side of the
+    origin (forward growth), or labels for the boundary opposite of
+    the origin (backward growth).
 
     Coordinates are of the form (col, row) where the origin is in
     the upper left, to be consistent with permutation matrices
@@ -346,25 +350,27 @@ class GrowthDiagram(SageObject):
       or, if possible, inferred from ``labels``, if ``filling``
       is ``None``.
 
-    - ``labels`` is ``None`` or a list.  If it is a list, it
-      specifies a path whose length is the half-perimeter of
-      ``shape``.  Thus, when ``self.has_multiple_edges`` is
-      ``True``, it is of the form `(v_1, e_1, \ldots, e_{n-1}, v_n)`,
-      where `n` is the half-perimeter of ``shape``, and
-      `(v_{i-1}, e_i, v_i)` is an edge in the dual graded graph
-      for all `i`.  Otherwise, it is a list of `n` vertices.
+    - ``labels`` is ``None`` or a list.  If ``filling`` is ``None``,
+      the ``labels`` are interpreted as labelling the boundary
+      opposite of the origin.  Otherwise, they are labelling the
+      boundary on the side of the origin.
 
-      If ``filling`` is ``None``, its elements are the labels of
-      the boundary opposite of the origin.  Otherwise its
-      elements are the labels on the boundary on the side of the
-      origin.  If ``labels`` is ``None`` (in which case
-      ``filling`` must not be ``None``) the value of
-      ``self.zero`` is used to initialise ``labels``.
+      If ``labels`` is ``None`` (in which case ``filling`` must not
+      be ``None``) the value of ``self.zero`` is used to initialise
+      ``labels``.
+
+      If it is a list, it specifies a path whose length is the
+      half-perimeter of ``shape``.  Thus, when
+      ``self.has_multiple_edges`` is ``True``, it is of the form
+      `(v_1, e_1, \ldots, e_{n-1}, v_n)`, where `n` is the
+      half-perimeter of ``shape``, and `(v_{i-1}, e_i, v_i)` is an
+      edge in the dual graded graph for all `i`.  Otherwise, it is a
+      list of `n` vertices.
 
     TESTS::
 
-        sage: RuleRSK = GrowthDiagram.rules.RSK()
-        sage: G = GrowthDiagram(RuleRSK, [4, 1, 2, 3]); G
+        sage: RSKGrowth = GrowthDiagram.rules.RSK()
+        sage: G = GrowthDiagram(RSKGrowth, [4, 1, 2, 3]); G
         0  1  0  0
         0  0  1  0
         0  0  0  1
@@ -373,7 +379,7 @@ class GrowthDiagram(SageObject):
         [[], [1], [1, 1], [2, 1], [3, 1], [3], [2], [1], []]
 
         sage: shape = SkewPartition([[4,4,4,2],[1,1]])
-        sage: G = GrowthDiagram(RuleRSK, [4, 1, 2, 3], shape=shape); G
+        sage: G = GrowthDiagram(RSKGrowth, [4, 1, 2, 3], shape=shape); G
         .  1  0  0
         .  0  1  0
         0  0  0  1
@@ -381,7 +387,7 @@ class GrowthDiagram(SageObject):
         sage: G.out_labels()
         [[], [1], [1, 1], [1], [2], [3], [2], [1], []]
 
-        sage: GrowthDiagram(RuleRSK, labels=G.out_labels())
+        sage: GrowthDiagram(RSKGrowth, labels=G.out_labels())
         0  1  0  0
         0  0  1  0
         0  0  0  1
@@ -393,8 +399,8 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: w = [3,3,2,4,1]; G = GrowthDiagram(RuleRSK, w)
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: w = [3,3,2,4,1]; G = GrowthDiagram(RSKGrowth, w)
             sage: [G.P_symbol(), G.Q_symbol()]
             [[[1, 3, 4], [2], [3]], [[1, 2, 4], [3], [5]]]
             sage: RSK(w)
@@ -402,7 +408,7 @@ class GrowthDiagram(SageObject):
 
             sage: TestSuite(G).run()
 
-            sage: GrowthDiagram(RuleRSK)
+            sage: GrowthDiagram(RSKGrowth)
             Traceback (most recent call last):
             ...
             ValueError: please provide a filling or a sequence of labels
@@ -415,7 +421,7 @@ class GrowthDiagram(SageObject):
             if labels is None:
                 raise ValueError("please provide a filling or a sequence of labels")
 
-            labels = self.rule.normalize_labels(labels)
+            labels = self._normalize_labels(labels)
 
             if shape is None:
                 shape = self._shape_from_labels(labels)
@@ -427,10 +433,29 @@ class GrowthDiagram(SageObject):
         else:
             self._filling, (self._lambda, self._mu) = self._init_filling_and_shape_from_various_input(filling, shape)
             if labels is not None:
-                labels = self.rule.normalize_labels(labels)
+                labels = self._normalize_labels(labels)
             self._in_labels = self._init_labels_forward_from_various_input(labels)
             self._check_labels(self._in_labels)
             self._grow()
+
+    def _normalize_labels(self, labels):
+        r"""
+        Make sure that the elements of ``labels`` corresponding to
+        vertices have the correct type.
+
+        EXAMPLES::
+
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: labels = [[], [1], [1,1], [1], []]
+            sage: RSKGrowth(labels = labels).out_labels()[2].parent()           # indirect doctest
+            Partitions
+        """
+        rule = self.rule
+        if rule.has_multiple_edges:
+            return [rule.normalize_vertex(labels[i]) if is_even(i) else labels[i]
+                    for i in range(len(labels))]
+        else:
+            return [rule.normalize_vertex(la) for la in labels]
 
     def filling(self):
         r"""
@@ -438,8 +463,8 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
             sage: G.filling()
             {(0, 1): 1, (1, 0): 1, (2, 1): 2}
         """
@@ -456,8 +481,8 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
             sage: Gc = G.conjugate()
             sage: (Gc.P_symbol(), Gc.Q_symbol()) == (G.Q_symbol(), G.P_symbol())
             True
@@ -474,16 +499,16 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
             sage: Gc = G.rotate()
-            sage: ascii_art(Gc.P_symbol(), Gc.Q_symbol())
-            1  1  1  1  1  2
-            2        3
+            sage: ascii_art([Gc.P_symbol(), Gc.Q_symbol()])
+            [   1  1  1    1  1  2 ]
+            [   2      ,   3       ]
 
-            sage: ascii_art(SemistandardTableau(Tableau(G.P_symbol())).evacuation(), SemistandardTableau(Tableau(G.Q_symbol())).evacuation())
-            1  1  1  1  1  2
-            2        3
+            sage: ascii_art(map(lambda t: Tableau(t).evacuation(), [G.P_symbol(), G.Q_symbol()]))
+            [   1  1  1    1  1  2 ]
+            [   2      ,   3       ]
 
         """
         max_row = max(i for i, _ in self._filling)
@@ -504,8 +529,8 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: GrowthDiagram(RuleRSK, [1]).shape()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: GrowthDiagram(RSKGrowth, [1]).shape()
             [1] / []
         """
         return SkewPartition([self._lambda, self._mu])
@@ -516,8 +541,8 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
             sage: G.out_labels()
             [[], [1], [1, 1], [3, 1], [1], []]
         """
@@ -529,8 +554,8 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, labels=[[2,2],[3,2],[3,3],[3,2]]); G
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, labels=[[2,2],[3,2],[3,3],[3,2]]); G
             1 0
             sage: G.in_labels()
             [[2, 2], [2, 2], [2, 2], [3, 2]]
@@ -538,9 +563,34 @@ class GrowthDiagram(SageObject):
         return self._in_labels
 
     def P_symbol(self):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a generalized standard tableau.
+
+        EXAMPLES::
+
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
+            sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+            [   1  2  2    1  3  3 ]
+            [   2      ,   2       ]
+        """
         return self.rule.P_symbol(self.P_chain())
 
     def Q_symbol(self):
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a generalized standard tableau.
+
+        EXAMPLES::
+
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
+            sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+            [   1  2  2    1  3  3 ]
+            [   2      ,   2       ]
+
+        """
         return self.rule.Q_symbol(self.Q_chain())
 
     def P_chain(self):
@@ -587,10 +637,10 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: GrowthDiagram(RuleRSK, [2,3,1]).is_rectangular()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: GrowthDiagram(RSKGrowth, [2,3,1]).is_rectangular()
             True
-            sage: GrowthDiagram(RuleRSK, [[1,0,1],[0,1]]).is_rectangular()
+            sage: GrowthDiagram(RSKGrowth, [[1,0,1],[0,1]]).is_rectangular()
             False
         """
         return all(x == 0 for x in self._mu) and all(x == self._lambda[0] for x in self._lambda)
@@ -603,8 +653,8 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: w = [3,3,2,4,1]; G = GrowthDiagram(RuleRSK, w)
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: w = [3,3,2,4,1]; G = GrowthDiagram(RSKGrowth, w)
             sage: G
             0  0  0  0  1
             0  0  1  0  0
@@ -639,17 +689,17 @@ class GrowthDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: P = Tableau([[1,2,2],[2]]); Q = Tableau([[1,3,3],[2]])
             sage: bw = RSK_inverse(P, Q); bw
             [[1, 2, 3, 3], [2, 1, 2, 2]]
-            sage: G = GrowthDiagram(RuleRSK, labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
+            sage: G = GrowthDiagram(RSKGrowth, labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
             0  1  0
             1  0  2
 
             sage: P = SemistandardTableau([[1, 1, 2], [2]])
             sage: Q = SemistandardTableau([[1, 2, 2], [2]])
-            sage: G = GrowthDiagram(RuleRSK, labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
+            sage: G = GrowthDiagram(RSKGrowth, labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
             0  2
             1  1
             sage: G.to_biword()
@@ -676,13 +726,13 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, {(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, {(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
             sage: list(G)
             [[None, 1], [1]]
 
             sage: pi = Permutation([2,3,1,6,4,5])
-            sage: G = GrowthDiagram(RuleRSK, pi)
+            sage: G = GrowthDiagram(RSKGrowth, pi)
             sage: list(G)
             [[0, 0, 1, 0, 0, 0],
              [1, 0, 0, 0, 0, 0],
@@ -701,12 +751,12 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: GrowthDiagram(RuleRSK, {(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: GrowthDiagram(RSKGrowth, {(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
             .  1
             1
 
-            sage: GrowthDiagram(RuleRSK, {(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]]))
+            sage: GrowthDiagram(RSKGrowth, {(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]]))
             .  0  1
             1
         """
@@ -724,22 +774,22 @@ class GrowthDiagram(SageObject):
 
         Equality ignores zeros in fillings::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G1 = GrowthDiagram(RuleRSK, {(0, 1): 1, (1, 0): 1})
-            sage: G2 = GrowthDiagram(RuleRSK, {(0, 0): 0, (0, 1): 1, (1, 0): 1})
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G1 = GrowthDiagram(RSKGrowth, {(0, 1): 1, (1, 0): 1})
+            sage: G2 = GrowthDiagram(RSKGrowth, {(0, 0): 0, (0, 1): 1, (1, 0): 1})
             sage: G1 == G2
             True
 
         Growth diagrams with different shapes are different::
 
-            sage: G1 = GrowthDiagram(RuleRSK, [[0,1,0],[1,0]])
-            sage: G2 = GrowthDiagram(RuleRSK, [[0,1,0],[1]])
+            sage: G1 = GrowthDiagram(RSKGrowth, [[0,1,0],[1,0]])
+            sage: G2 = GrowthDiagram(RSKGrowth, [[0,1,0],[1]])
             sage: G1 == G2
             False
 
         Growth diagrams with different rules are different::
 
-            sage: G1 = GrowthDiagram(RuleRSK, {(0, 1): 1, (1, 0): 1})
+            sage: G1 = GrowthDiagram(RSKGrowth, {(0, 1): 1, (1, 0): 1})
             sage: BinWord = GrowthDiagram.rules.BinaryWord()
             sage: G2 = GrowthDiagram(BinWord, {(0, 1): 1, (1, 0): 1})
             sage: G1 == G2
@@ -760,24 +810,24 @@ class GrowthDiagram(SageObject):
 
         Equality ignores zeros in fillings::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G1 = GrowthDiagram(RuleRSK, {(0, 1): 1, (1, 0): 1})
-            sage: G2 = GrowthDiagram(RuleRSK, {(0, 0): 0, (0, 1): 1, (1, 0): 1})
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G1 = GrowthDiagram(RSKGrowth, {(0, 1): 1, (1, 0): 1})
+            sage: G2 = GrowthDiagram(RSKGrowth, {(0, 0): 0, (0, 1): 1, (1, 0): 1})
             sage: G1 != G2
             False
 
         Growth diagrams with different shapes are different::
 
-            sage: G1 = GrowthDiagram(RuleRSK, [[0,1,0],[1,0]])
-            sage: G2 = GrowthDiagram(RuleRSK, [[0,1,0],[1]])
+            sage: G1 = GrowthDiagram(RSKGrowth, [[0,1,0],[1,0]])
+            sage: G2 = GrowthDiagram(RSKGrowth, [[0,1,0],[1]])
             sage: G1 != G2
             True
 
         Growth diagrams with different rules are different::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: BinWord = GrowthDiagram.rules.BinaryWord()
-            sage: G1 = GrowthDiagram(RuleRSK, {(0, 1): 1, (1, 0): 1})
+            sage: G1 = GrowthDiagram(RSKGrowth, {(0, 1): 1, (1, 0): 1})
             sage: G2 = GrowthDiagram(BinWord, {(0, 1): 1, (1, 0): 1})
             sage: G1 != G2
             True
@@ -790,8 +840,8 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, {(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, {(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
             .  0  1
             1
             sage: G.half_perimeter()
@@ -816,15 +866,22 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: labels = [[],[2],[1],[],[1],[]]
-            sage: G = GrowthDiagram(RuleRSK, labels=labels); G
+            sage: G = GrowthDiagram(RSKGrowth, labels=labels); G
             0 1
             1
             1
             sage: G._shape_from_labels(G.out_labels())
             [2, 1, 1]
 
+            sage: SSh = GrowthDiagram.rules.ShiftedShapes()
+            sage: SSh({(0, 0): 1}).out_labels()
+            [[], 1, [1], 0, []]
+            sage: SSh(labels=[[], 1, [2], 0, []])                               # indirect doctest
+            Traceback (most recent call last):
+            ...
+            AssertionError: [] has smaller rank than [2] but there is no edge of color 1 in Q!
         """
         # we can determine the shape even if is_P_edge is not implemented
         rule = self.rule
@@ -867,13 +924,13 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: GrowthDiagram(RuleRSK, shape=[1], labels=[[], [1]])                 # indirect doctest
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: GrowthDiagram(RSKGrowth, shape=[1], labels=[[], [1]])         # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: the number of labels is 2, but for this shape we need 3
 
-            sage: GrowthDiagram(RuleRSK, labels=[[], [1], [2], [2,1]])                # indirect doctest
+            sage: GrowthDiagram(RSKGrowth, labels=[[], [1], [2], [2,1]])        # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: the number of labels is 4, but for this shape we need 1
@@ -903,10 +960,10 @@ class GrowthDiagram(SageObject):
 
         ``labels`` is None::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: filling = []
             sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
-            sage: G = GrowthDiagram(RuleRSK, filling, shape)
+            sage: G = GrowthDiagram(RSKGrowth, filling, shape)
             sage: G.in_labels()                                                 # indirect doctest
             [[], [], [], [], [], [], [], [], []]
 
@@ -915,10 +972,9 @@ class GrowthDiagram(SageObject):
             sage: filling = []
             sage: labels = [[],[1],[],[1],[]]
             sage: shape = SkewPartition([[2,1],[1]])
-            sage: G = GrowthDiagram(RuleRSK, filling=filling, shape=shape, labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, filling=filling, shape=shape, labels=labels)
             sage: G.in_labels()                                                 # indirect doctest
             [[], [1], [], [1], []]
-
         """
         if labels is not None:
             return labels
@@ -939,10 +995,10 @@ class GrowthDiagram(SageObject):
 
         ``shape`` is a skew partition::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: filling = []
             sage: shape = SkewPartition([[4,2,1,1],[2,1,1]])
-            sage: G = GrowthDiagram(RuleRSK, filling, shape)
+            sage: G = GrowthDiagram(RSKGrowth, filling, shape)
             sage: G._lambda, G._mu                                              # indirect doctest
             ([4, 2, 1, 1], [2, 1, 1, 0])
 
@@ -950,10 +1006,9 @@ class GrowthDiagram(SageObject):
 
             sage: filling = []
             sage: shape = Partition([3,2,1,1])
-            sage: G = GrowthDiagram(RuleRSK, filling, shape)
+            sage: G = GrowthDiagram(RSKGrowth, filling, shape)
             sage: G._lambda, G._mu                                              # indirect doctest
             ([3, 2, 1, 1], [0, 0, 0, 0])
-
         """
         try:
             shape = Partition(shape)
@@ -976,9 +1031,9 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a dict of coordinates::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: pi = Permutation([2,3,1,6,4,5])
-            sage: G = GrowthDiagram(RuleRSK, {(i,pi[i]-1):1 for i in range(len(pi))})
+            sage: G = GrowthDiagram(RSKGrowth, {(i,pi[i]-1):1 for i in range(len(pi))})
             sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
@@ -986,7 +1041,7 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a dict of dicts::
 
-            sage: G = GrowthDiagram(RuleRSK, {i:{pi[i]-1:1} for i in range(len(pi))})
+            sage: G = GrowthDiagram(RSKGrowth, {i:{pi[i]-1:1} for i in range(len(pi))})
             sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
@@ -994,7 +1049,7 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a matrix::
 
-            sage: G = GrowthDiagram(RuleRSK, pi.to_matrix())
+            sage: G = GrowthDiagram(RSKGrowth, pi.to_matrix())
             sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
@@ -1002,7 +1057,7 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a permutation::
 
-            sage: G = GrowthDiagram(RuleRSK, pi)
+            sage: G = GrowthDiagram(RSKGrowth, pi)
             sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 0): 1, (3, 5): 1, (4, 3): 1, (5, 4): 1}
             sage: G.shape()
@@ -1010,7 +1065,7 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a list::
 
-            sage: G = GrowthDiagram(RuleRSK, [3,1,4,1,5])
+            sage: G = GrowthDiagram(RSKGrowth, [3,1,4,1,5])
             sage: G._filling                                                    # indirect doctest
             {(0, 2): 1, (1, 0): 1, (2, 3): 1, (3, 0): 1, (4, 4): 1}
             sage: G.shape()
@@ -1018,7 +1073,7 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a list of lists::
 
-            sage: G = GrowthDiagram(RuleRSK, [[1,0,1],[0,1]])
+            sage: G = GrowthDiagram(RSKGrowth, [[1,0,1],[0,1]])
             sage: G._filling                                                    # indirect doctest
             {(0, 0): 1, (1, 1): 1, (2, 0): 1}
             sage: G.shape()
@@ -1026,7 +1081,7 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is a list of lists and shape is given::
 
-            sage: G = GrowthDiagram(RuleRSK, [[1,0,1],[0,1]], shape=SkewPartition([[3,2],[1]]))
+            sage: G = GrowthDiagram(RSKGrowth, [[1,0,1],[0,1]], shape=SkewPartition([[3,2],[1]]))
             sage: G._filling                                                    # indirect doctest
             {(0, 0): 1, (1, 1): 1, (2, 0): 1}
             sage: G.shape()
@@ -1034,10 +1089,9 @@ class GrowthDiagram(SageObject):
 
         ``filling`` is empty and shape is ``None``::
 
-            sage: G = GrowthDiagram(RuleRSK, {})
+            sage: G = GrowthDiagram(RSKGrowth, {})
             sage: (G.filling(), G.shape())
             ({}, [] / [])
-
         """
         if isinstance(filling, dict):
             try:
@@ -1096,27 +1150,27 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: pi = Permutation([1])
-            sage: G = GrowthDiagram(RuleRSK, pi)
+            sage: G = GrowthDiagram(RSKGrowth, pi)
             sage: G._out_labels                                                 # indirect doctest
             [[], [1], []]
 
             sage: pi = Permutation([1,2])
-            sage: G = GrowthDiagram(RuleRSK, pi)
+            sage: G = GrowthDiagram(RSKGrowth, pi)
             sage: G._out_labels                                                 # indirect doctest
             [[], [1], [2], [1], []]
 
             sage: pi = Permutation([2,1])
-            sage: G = GrowthDiagram(RuleRSK, pi)
+            sage: G = GrowthDiagram(RSKGrowth, pi)
             sage: G._out_labels                                                 # indirect doctest
             [[], [1], [1, 1], [1], []]
 
-            sage: G = GrowthDiagram(RuleRSK, {(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
+            sage: G = GrowthDiagram(RSKGrowth, {(0,1):1, (1,0):1}, SkewPartition([[2,1],[1]]))
             sage: G._out_labels                                                 # indirect doctest
             [[], [1], [], [1], []]
 
-            sage: G = GrowthDiagram(RuleRSK, {(1,1):1}, SkewPartition([[2,2],[1]]), labels=[[],[],[1],[],[]])
+            sage: G = GrowthDiagram(RSKGrowth, {(1,1):1}, SkewPartition([[2,2],[1]]), labels=[[],[],[1],[],[]])
             sage: G._out_labels                                                 # indirect doctest
             [[], [1], [2], [1], []]
 
@@ -1159,56 +1213,55 @@ class GrowthDiagram(SageObject):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
             sage: filling = [[0,0,1,0,0,0,0], [0,1,0,0,0,0,0], [1,0,0,0,0,0,0], [0,0,0,1,0,0,0], [0,0,0,0,0,0,1], [0,0,0,0,0,1,0], [0,0,0,0,1,0,0]]
-            sage: G = GrowthDiagram(RuleRSK, filling)
-            sage: list(GrowthDiagram(RuleRSK, labels=G._out_labels)) == filling
+            sage: G = GrowthDiagram(RSKGrowth, filling)
+            sage: list(GrowthDiagram(RSKGrowth, labels=G._out_labels)) == filling
             True
 
             sage: labels = [[], [1], []]
-            sage: G = GrowthDiagram(RuleRSK, labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, labels=labels)
             sage: G._filling
             {(0, 0): 1}
             sage: G._in_labels                                                  # indirect doctest
             [[], [], []]
 
             sage: labels = [[], [1], [2], [2,1], [1,1], [1], []]
-            sage: G = GrowthDiagram(RuleRSK, labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, labels=labels)
             sage: G._filling
             {(0, 1): 1, (1, 2): 1, (2, 0): 1}
             sage: G._in_labels                                                  # indirect doctest
             [[], [], [], [], [], [], []]
 
             sage: labels = [[], [1], [2], [3], [3, 1], [3, 2], [4, 2], [4, 1], [3, 1], [2, 1], [1, 1], [1], []]
-            sage: G = GrowthDiagram(RuleRSK, labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, labels=labels)
             sage: G._filling                                                    # indirect doctest
             {(0, 1): 1, (1, 2): 1, (2, 5): 1, (3, 0): 1, (4, 3): 1, (5, 4): 1}
 
             sage: labels = [[],[1],[1],[2],[2],[2,1],[2]]
-            sage: G = GrowthDiagram(RuleRSK, labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, labels=labels)
             Traceback (most recent call last):
             ...
             ValueError: can only determine the shape of the growth diagram if ranks of successive labels differ
-            sage: G = GrowthDiagram(RuleRSK, shape=[3,2,1], labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, shape=[3,2,1], labels=labels)
             sage: G._filling                                                    # indirect doctest
             {(1, 0): 1}
             sage: G._in_labels
             [[], [], [], [], [1], [1], [2]]
 
             sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
-            sage: G = GrowthDiagram(RuleRSK, shape=[5,4,3,2,1], labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, shape=[5,4,3,2,1], labels=labels)
             sage: G._filling
             {(1, 2): 1, (2, 1): 1, (4, 0): 1}
             sage: G._in_labels                                                  # indirect doctest
             [[], [], [], [], [], [], [1], [1], [1], [1, 1], [1, 1]]
 
             sage: labels = [[], [1],[1],[2],[2],[2,1],[2],[2,1],[1,1],[2,1],[1,1]]
-            sage: G = GrowthDiagram(RuleRSK, shape=SkewPartition([[5,4,3,2,1],[3,2,1]]), labels=labels)
+            sage: G = GrowthDiagram(RSKGrowth, shape=SkewPartition([[5,4,3,2,1],[3,2,1]]), labels=labels)
             sage: G._filling
             {(1, 2): 1, (2, 1): 1, (4, 0): 1}
             sage: G._in_labels                                                  # indirect doctest
             [[], [], [], [1], [1], [1], [1], [1], [1], [1, 1], [1, 1]]
-
         """
         F = dict()
         labels = copy(self._out_labels)
@@ -1248,7 +1301,7 @@ class GrowthDiagram(SageObject):
 ######################################################################
 
 class Rule(UniqueRepresentation):
-    """
+    r"""
     Abstract base class for a rule for a growth diagram.
 
     Subclasses should provide the following attributes:
@@ -1267,7 +1320,8 @@ class Rule(UniqueRepresentation):
 
     Subclasses should provide the following methods:
 
-    - ``normalize_labels``
+    - ``normalize_vertex`` -- a function that converts its input to a
+      vertex.
 
     - ``vertices`` -- a function that takes a nonnegative integer
       as input and returns the list of vertices on this rank.
@@ -1299,19 +1353,48 @@ class Rule(UniqueRepresentation):
       user input and providing the dual graded graph, and are
       therefore not mandatory.
     """
-    has_multiple_edges = False # override when necessary
-    zero_edge = 0              # override when necessary
-    r = 1                      # override when necessary
+    has_multiple_edges = False          # override when necessary
+    zero_edge = 0                       # override when necessary
+    r = 1                               # override when necessary
+
+    def normalize_vertex(self, v):      # override when necessary
+        r"""
+        Return ``v`` as a vertex of the dual graded graph.
+
+        This is a default implementation, returning its argument.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.growth import Rule
+            sage: class MinimalRule(Rule):
+            ....:     pass
+
+            sage: MinimalRule().normalize_vertex("hello") is "hello"
+            True
+        """
+        return v
 
     def __call__(self, *args, **kwds):
+        r"""
+        Return the growth diagram corresponding to the parameters.
+
+        EXAMPLES::
+
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth([2,3,1], shape=[3,2,2])
+            0  0  1
+            1  0
+            0  1
+
+            sage: RSKGrowth(labels=[[], [1], [2], [1], [], [1], []])
+            0  0  1
+            1  0
+            0  1
+        """
         return GrowthDiagram(self, *args, **kwds)
-    
-    # TODO: replace this by normalize_vertex
-    def normalize_labels(self, labels):
-        return labels
 
     def _check_duality(self, n):
-        """
+        r"""
         Raise an error if the graphs are not r-dual at level n.
 
         INPUT:
@@ -1343,7 +1426,6 @@ class Rule(UniqueRepresentation):
         Q = self.Q_graph(n + 2)
         for w in self.vertices(n):
             check_vertex(w, Q, P)
-
 
     def P_graph(self, n):
         r"""
@@ -1444,13 +1526,20 @@ class RuleShiftedShapes(Rule):
     zero = Partition([])
     has_multiple_edges = True
 
-    def normalize_labels(self, labels):
-        # TODO: should check that the filling is standard
-        return [Partition(labels[i]) if is_even(i) else ZZ(labels[i])
-                for i in range(len(labels))]
+    def normalize_vertex(self, v):
+        r"""
+        Return ``v`` as a partition.
+
+        EXAMPLES::
+
+            sage: SSh = GrowthDiagram.rules.ShiftedShapes()
+            sage: SSh.normalize_vertex([3,1]).parent()
+            Partitions
+        """
+        return Partition(v)
 
     def vertices(self, n):
-        """
+        r"""
         Return the vertices of the dual graded graph on level ``n``.
 
         EXAMPLES::
@@ -1464,8 +1553,8 @@ class RuleShiftedShapes(Rule):
         else:
             return Partitions(n, max_slope=-1)
 
-    def rank_function(self, w):
-        """
+    def rank_function(self, v):
+        r"""
         Return the size of the shifted partition.
 
         EXAMPLES::
@@ -1474,22 +1563,26 @@ class RuleShiftedShapes(Rule):
             sage: SSh.rank_function(SSh.vertices(3)[0])
             3
         """
-        return w.size()
+        return v.size()
 
     def is_Q_edge(self, v, w):
-        """
+        r"""
         ``(v, w)`` is an edge if ``w`` is obtained from ``v`` by adding a
         cell.  It is a black (color 1) edge, if the cell is on the
         diagonal, otherwise it can be blue or red (color 2 or 3).
 
-        TESTS::
+        EXAMPLES::
 
             sage: SSh = GrowthDiagram.rules.ShiftedShapes()
             sage: v = SSh.vertices(2)[0]; v
             [2]
             sage: [(w, SSh.is_Q_edge(v, w)) for w in SSh.vertices(3)]
             [([3], [2, 3]), ([2, 1], [1])]
+            sage: all(SSh.is_Q_edge(v, w) == [] for w in SSh.vertices(4))
+            True
         """
+        if self.rank_function(v) + 1 != self.rank_function(w):
+            return []
         try:
             l = SkewPartition([w, v]).cells()
         except ValueError:
@@ -1501,10 +1594,10 @@ class RuleShiftedShapes(Rule):
                 return [2,3] # blue, red
 
     def is_P_edge(self, v, w):
-        """
+        r"""
         ``(v, w)`` is an edge if ``w`` contains ``v``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: SSh = GrowthDiagram.rules.ShiftedShapes()
             sage: v = SSh.vertices(2)[0]; v
@@ -1512,6 +1605,8 @@ class RuleShiftedShapes(Rule):
             sage: [w for w in SSh.vertices(3) if SSh.is_P_edge(v, w)]
             [[3], [2, 1]]
         """
+        if self.rank_function(v) + 1 != self.rank_function(w):
+            return []
         return [0] if w.contains(v) else []
 
     def forward_rule(self, y, e, t, f, x, content):
@@ -1536,7 +1631,7 @@ class RuleShiftedShapes(Rule):
         The two colors and the fourth partition g, z, h according to
         Sagan - Worley insertion.
 
-        TESTS::
+        EXAMPLES::
 
             sage: G = GrowthDiagram.rules.ShiftedShapes()
             sage: G.forward_rule([], 0, [], 0, [], 1)
@@ -1632,7 +1727,7 @@ class RuleShiftedShapes(Rule):
         of the fourth word, the colours of the incident edges and the
         content of the cell acording to Sagan - Worley insertion.
 
-        TESTS::
+        EXAMPLES::
 
             sage: G = GrowthDiagram.rules.ShiftedShapes()
             sage: G.backward_rule([], 1, [1], 0, [])
@@ -1744,10 +1839,10 @@ class RuleLLMS(Rule):
     has_multiple_edges = True
 
     def __init__(self, k):
-        """
+        r"""
         Initialize ``self``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: LLMS3 = GrowthDiagram.rules.LLMS(3)
             sage: TestSuite(LLMS3).run()
@@ -1755,24 +1850,20 @@ class RuleLLMS(Rule):
         self.k = k
         self.zero = Core([], k)
 
-    def normalize_labels(self, labels):
-        """
-        TESTS::
+    def normalize_vertex(self, v):
+        r"""
+        Convert ``v`` to a `k`-core.
+
+        EXAMPLES::
 
             sage: LLMS3 = GrowthDiagram.rules.LLMS(3)
-            sage: labels = [[], None, [1], None, [2], None, [3, 1], -1, [2], 1, [1], 0, []]
-            sage: G = GrowthDiagram(LLMS3, [1,3,2])
-            sage: G.out_labels() == labels
-            False
-            sage: LLMS3.normalize_labels(labels) == G.out_labels()
-            True
+            sage: LLMS3.normalize_vertex([3,1]).parent()
+            3-Cores of length 3
         """
-        # TODO: should check that the filling is standard
-        return [Core(labels[i], self.k) if is_even(i) else labels[i]
-                for i in range(len(labels))]
+        return Core(v, self.k)
 
-    def rank_function(self, w):
-        """
+    def rank_function(self, v):
+        r"""
         Return the length of the core.
 
         EXAMPLES::
@@ -1781,10 +1872,10 @@ class RuleLLMS(Rule):
             sage: LLMS3.rank_function(LLMS3.vertices(3)[0])
             3
         """
-        return w.length()
+        return v.length()
 
     def vertices(self, n):
-        """
+        r"""
         Return the vertices of the dual graded graph on level ``n``.
 
         EXAMPLES::
@@ -1796,34 +1887,38 @@ class RuleLLMS(Rule):
         return Cores(self.k, length=n)
 
     def is_Q_edge(self, v, w):
-        """
+        r"""
         ``(v, w)`` is an edge if ``w`` is a weak cover of ``v``, see
         :meth:`~sage.combinat.core.Core.weak_covers()`.
 
-        TESTS::
+        EXAMPLES::
 
             sage: LLMS4 = GrowthDiagram.rules.LLMS(4)
             sage: v = LLMS4.vertices(3)[1]; v
             [2, 1]
             sage: [w for w in LLMS4.vertices(4) if len(LLMS4.is_Q_edge(v, w)) > 0]
             [[2, 2], [3, 1, 1]]
+            sage: all(LLMS4.is_Q_edge(v, w) == [] for w in LLMS4.vertices(5))
+            True
         """
         return [None] if w in v.weak_covers() else []
 
     def is_P_edge(self, v, w):
-        """
+        r"""
         For two k-cores v and w containing v, there are as many edges as
         there are components in the skew partition w/v.  These
         components are ribbons, and therefore contain a unique cell
         with maximal content.  We index the edge with this content.
 
-        TESTS::
+        EXAMPLES::
 
             sage: LLMS4 = GrowthDiagram.rules.LLMS(4)
             sage: v = LLMS4.vertices(2)[0]; v
             [2]
             sage: [(w, LLMS4.is_P_edge(v, w)) for w in LLMS4.vertices(3)]
             [([3], [2]), ([2, 1], [-1]), ([1, 1, 1], [])]
+            sage: all(LLMS4.is_P_edge(v, w) == [] for w in LLMS4.vertices(4))
+            True
         """
         if w in v.strong_covers():
             T = SkewPartition([w.to_partition(), v.to_partition()])
@@ -1891,7 +1986,7 @@ class RuleLLMS(Rule):
         The two colors and the fourth partition g, z, h according to
         LLMS insertion.
 
-        TESTS::
+        EXAMPLES::
 
             sage: LLMS3 = GrowthDiagram.rules.LLMS(3)
             sage: LLMS4 = GrowthDiagram.rules.LLMS(4)
@@ -1934,7 +2029,6 @@ class RuleLLMS(Rule):
             sage: Y = Core([2,1], 4); T = Core([1,1], 4); X = Core([2,1], 4)
             sage: LLMS4.forward_rule(Y, 1, T, None, X, 0)
             (None, [2, 2], 0)
-
         """
         assert f == None, "the Q-graph should not be colored"
         g = None
@@ -2043,17 +2137,26 @@ class RuleBinWord(Rule):
     """
     zero = Word([], alphabet=[0,1])
 
-    def normalize_labels(self, labels):
-        return [Word(la, alphabet=[0,1]) for la in labels]
+    def normalize_vertex(self, v):
+        r"""
+        Return ``v`` as a binary word.
+
+        EXAMPLES::
+
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinWord.normalize_vertex([0,1]).parent()
+            Finite words over {0, 1}
+        """
+        return Word(v, alphabet=[0,1])
 
     def vertices(self, n):
-        """
+        r"""
         Return the vertices of the dual graded graph on level ``n``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.growth import RuleBinWord
-            sage: RuleBinWord().vertices(3)
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinWord.vertices(3)
             [word: 100, word: 101, word: 110, word: 111]
         """
         if n == 0:
@@ -2062,47 +2165,49 @@ class RuleBinWord(Rule):
             w1 = Word([1], [0,1])
             return [w1 + w for w in Words([0,1], n-1)]
 
-    def rank_function(self, w):
-        """
+    def rank_function(self, v):
+        r"""
         Return the number of letters of the word.
 
         EXAMPLES::
 
-            sage: from sage.combinat.growth import RuleBinWord
-            sage: BW = RuleBinWord()
-            sage: BW.rank_function(BW.vertices(3)[0])
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinWord.rank_function(BinWord.vertices(3)[0])
             3
         """
-        return len(w)
+        return len(v)
 
     def is_Q_edge(self, v, w):
-        """
+        r"""
         ``(w, v)`` is an edge if ``w`` is obtained from ``v`` by
         appending a letter.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: from sage.combinat.growth import RuleBinWord
-            sage: BW = RuleBinWord()
-            sage: v = BW.vertices(2)[0]; v
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
+            sage: v = BinWord.vertices(2)[0]; v
             word: 10
-            sage: [w for w in BW.vertices(3) if BW.is_Q_edge(v, w)]
+            sage: [w for w in BinWord.vertices(3) if BinWord.is_Q_edge(v, w)]
             [word: 100, word: 101]
+            sage: [w for w in BinWord.vertices(4) if BinWord.is_Q_edge(v, w)]
+            []
         """
         return w[:-1] == v
 
     def is_P_edge(self, v, w):
-        """
-        ``(v, w)`` is an edge if ``w`` contains ``v`` as a subword.
+        r"""
+        ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by
+        deleting a letter.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: from sage.combinat.growth import RuleBinWord
-            sage: BW = RuleBinWord()
-            sage: v = BW.vertices(2)[1]; v
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
+            sage: v = BinWord.vertices(2)[1]; v
             word: 11
-            sage: [w for w in BW.vertices(3) if BW.is_P_edge(v, w)]
+            sage: [w for w in BinWord.vertices(3) if BinWord.is_P_edge(v, w)]
             [word: 101, word: 110, word: 111]
+            sage: [w for w in BinWord.vertices(4) if BinWord.is_P_edge(v, w)]
+            []
         """
         return len(w) == len(v) + 1 and v.is_subword_of(w)
 
@@ -2126,25 +2231,24 @@ class RuleBinWord(Rule):
 
         The fourth binary word z according to Viennot's bijection [Vie1983]_.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: from sage.combinat.growth import RuleBinWord
-            sage: BW = RuleBinWord()
+            sage: BinWord = GrowthDiagram.rules.BinaryWord()
 
-            sage: BW.forward_rule([], [], [], 1)
+            sage: BinWord.forward_rule([], [], [], 1)
             word: 1
 
-            sage: BW.forward_rule([1], [1], [1], 1)
+            sage: BinWord.forward_rule([1], [1], [1], 1)
             word: 11
 
         if ``x != y`` append last letter of ``x`` to ``y``::
 
-            sage: BW.forward_rule([1,0], [1], [1,1], 0)
+            sage: BinWord.forward_rule([1,0], [1], [1,1], 0)
             word: 101
 
         if ``x == y != t`` append ``0`` to ``y``::
 
-            sage: BW.forward_rule([1,1], [1], [1,1], 0)
+            sage: BinWord.forward_rule([1,1], [1], [1,1], 0)
             word: 110
         """
         if x == t == y:
@@ -2191,7 +2295,7 @@ class RuleBinWord(Rule):
 
             sage: BinWord = GrowthDiagram.rules.BinaryWord()
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(BinWord, w)
-            sage: GrowthDiagram(BinWord, labels=G.out_labels()).to_word() == w    # indirect doctest
+            sage: GrowthDiagram(BinWord, labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """
         if x == y == z:
@@ -2270,11 +2374,20 @@ class RuleSylvester(Rule):
     """
     zero = BinaryTree()
 
-    def normalize_labels(self, labels):
-        return [BinaryTree(la) for la in labels]
+    def normalize_vertex(self, v):
+        r"""
+        Return ``v`` as a binary tree.
+
+        EXAMPLES::
+
+            sage: SY = GrowthDiagram.rules.Sylvester()
+            sage: SY.normalize_vertex([[],[]]).parent()
+            Binary trees
+        """
+        return BinaryTree(v)
 
     def vertices(self, n):
-        """
+        r"""
         Return the vertices of the dual graded graph on level ``n``.
 
         EXAMPLES::
@@ -2285,8 +2398,8 @@ class RuleSylvester(Rule):
         """
         return BinaryTrees(n)
 
-    def rank_function(self, w):
-        """
+    def rank_function(self, v):
+        r"""
         Return the number of nodes of the tree.
 
         EXAMPLES::
@@ -2295,13 +2408,14 @@ class RuleSylvester(Rule):
             sage: Sylvester.rank_function(Sylvester.vertices(3)[0])
             3
         """
-        return w.node_number()
+        return v.node_number()
 
     def is_Q_edge(self, v, w):
-        """
-        ``(v, w)`` is an edge if ``v`` is a subtree of ``w``.
+        r"""
+        ``(v, w)`` is an edge if ``v`` is a subtree of ``w`` with one
+        node less.
 
-        TESTS::
+        EXAMPLES::
 
             sage: SY = GrowthDiagram.rules.Sylvester()
             sage: v = SY.vertices(2)[1]; ascii_art(v)
@@ -2314,6 +2428,9 @@ class RuleSylvester(Rule):
             [ o   o  o      o   ]
             [         \    /    ]
             [          o  o     ]
+            sage: [w for w in SY.vertices(4) if SY.is_Q_edge(v, w)]
+            []
+
         """
         def is_subtree(T1, T2):
             if T2.is_empty():
@@ -2328,11 +2445,11 @@ class RuleSylvester(Rule):
         return is_subtree(v, w)
 
     def is_P_edge(self, v, w):
-        """
+        r"""
         ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by deleting
         its right-most node.
 
-        TESTS::
+        EXAMPLES::
 
             sage: SY = GrowthDiagram.rules.Sylvester()
             sage: v = SY.vertices(2)[1]; ascii_art(v)
@@ -2346,6 +2463,9 @@ class RuleSylvester(Rule):
             [ o   o    o   ]
             [         /    ]
             [        o     ]
+
+            sage: [w for w in SY.vertices(4) if SY.is_P_edge(v, w)]
+            []
         """
         if w.is_empty():
             return False
@@ -2354,15 +2474,15 @@ class RuleSylvester(Rule):
 
     @staticmethod
     def _delete_right_most_node(b):
-        """
+        r"""
         Return the tree obtained by deleting the right most node from ``b``.
 
         TESTS::
 
-            sage: from sage.combinat.growth import RuleSylvester
+            sage: SY = GrowthDiagram.rules.Sylvester()
             sage: b = BinaryTree([]); b
             [., .]
-            sage: RuleSylvester._delete_right_most_node(b)
+            sage: SY._delete_right_most_node(b)
             .
             sage: b = BinaryTree([[[], []], None]); ascii_art(b)
                 o
@@ -2370,7 +2490,7 @@ class RuleSylvester(Rule):
               o
              / \
             o   o
-            sage: ascii_art(RuleSylvester._delete_right_most_node(b))
+            sage: ascii_art(SY._delete_right_most_node(b))
               o
              / \
             o   o
@@ -2402,7 +2522,7 @@ class RuleSylvester(Rule):
 
         The fourth binary tree z.
 
-        TESTS::
+        EXAMPLES::
 
             sage: SY = GrowthDiagram.rules.Sylvester()
             sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None])
@@ -2468,7 +2588,7 @@ class RuleSylvester(Rule):
 
         """
         def successors(b):
-            """
+            r"""
             Return all trees obtained from ``b`` by adding a node.
             """
             if b.is_empty():
@@ -2480,7 +2600,7 @@ class RuleSylvester(Rule):
                     yield BinaryTree([b[0], t])
 
         def union(x, y):
-            """
+            r"""
             Return the unique tree obtained by adding a node to ``x`` such
             that deleting the right most node gives ``y``.
             """
@@ -2525,7 +2645,7 @@ class RuleSylvester(Rule):
         A pair ``(t, content)`` consisting of the shape of the fourth
         binary tree t and the content of the cell.
 
-        TESTS::
+        EXAMPLES::
 
             sage: SY = GrowthDiagram.rules.Sylvester()
             sage: B = BinaryTree; E = B(); N = B([]); L = B([[],None]); R = B([None,[]]); T = B([[],[]])
@@ -2610,11 +2730,20 @@ class RuleYoungFibonacci(Rule):
     """
     zero = Word([], alphabet=[1,2])
 
-    def normalize_labels(self, labels):
-        return [Word(la, alphabet=[1,2]) for la in labels]
+    def normalize_vertex(self, v):
+        r"""
+        Return ``v`` as a word with letters 1 and 2.
+
+        EXAMPLES::
+
+            sage: YF = GrowthDiagram.rules.YoungFibonacci()
+            sage: YF.normalize_vertex([1,2,1]).parent()
+            Finite words over {1, 2}
+        """
+        return Word(v, alphabet=[1,2])
 
     def vertices(self, n):
-        """
+        r"""
         Return the vertices of the dual graded graph on level ``n``.
 
         EXAMPLES::
@@ -2628,8 +2757,8 @@ class RuleYoungFibonacci(Rule):
         else:
             return [Word(list(w), [1,2]) for w in Compositions(n, max_part=2)]
 
-    def rank_function(self, w):
-        """
+    def rank_function(self, v):
+        r"""
         Return the size of the corresponding composition.
 
         EXAMPLES::
@@ -2638,20 +2767,22 @@ class RuleYoungFibonacci(Rule):
             sage: YF.rank_function(YF.vertices(3)[0])
             3
         """
-        return sum(w)
+        return sum(v)
 
     def is_P_edge(self, v, w):
-        """
+        r"""
         ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by deleting
         a ``1`` or replacing the left-most ``2`` by a ``1``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
             sage: v = YF.vertices(5)[5]; v
             word: 1121
             sage: [w for w in YF.vertices(6) if YF.is_P_edge(v, w)]
             [word: 2121, word: 11121]
+            sage: [w for w in YF.vertices(7) if YF.is_P_edge(v, w)]
+            []
         """
         def covers(c):
             for i in range(len(c)+1):
@@ -2687,7 +2818,7 @@ class RuleYoungFibonacci(Rule):
 
         The fourth Fibonacci word.
 
-        TESTS::
+        EXAMPLES::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
 
@@ -2744,7 +2875,7 @@ class RuleYoungFibonacci(Rule):
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(YF, w);
-            sage: GrowthDiagram(YF, labels=G.out_labels()).to_word() == w    # indirect doctest
+            sage: GrowthDiagram(YF, labels=G.out_labels()).to_word() == w       # indirect doctest
             True
         """
         if x == y == z:
@@ -2769,7 +2900,7 @@ class RulePartitions(Rule):
         sage: Burge = GrowthDiagram.rules.Burge()
         sage: Burge.zero
         []
-        sage: G = GrowthDiagram(Burge, labels=[[1],[1]])  # indirect doctest
+        sage: G = GrowthDiagram(Burge, labels=[[1],[1]])                        # indirect doctest
         Traceback (most recent call last):
         ...
         ValueError: can only determine the shape of the growth diagram
@@ -2777,11 +2908,41 @@ class RulePartitions(Rule):
     """
     zero = Partition([])
 
-    def normalize_labels(self, labels):
-        return [Partition(la) for la in labels]
+    def vertices(self, n):
+        r"""
+        Return the vertices of the dual graded graph on level ``n``.
 
-    def rank_function(self, p):
-        return p.size()
+        EXAMPLES::
+
+            sage: RSK = GrowthDiagram.rules.RSK()
+            sage: RSK.vertices(3)
+            Partitions of the integer 3
+        """
+        return Partitions(n)
+
+    def normalize_vertex(self, v):
+        r"""
+        Return ``v`` as a partition.
+
+        EXAMPLES::
+
+            sage: RSK = GrowthDiagram.rules.RSK()
+            sage: RSK.normalize_vertex([3,1]).parent()
+            Partitions
+        """
+        return Partition(v)
+
+    def rank_function(self, v):
+        r"""
+        Return the size of the partition.
+
+        EXAMPLES::
+
+            sage: RSK = GrowthDiagram.rules.RSK()
+            sage: RSK.rank_function(RSK.vertices(3)[0])
+            3
+        """
+        return v.size()
 
     def P_symbol(self, P_chain):
         r"""
@@ -2790,8 +2951,8 @@ class RulePartitions(Rule):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
             sage: G.P_symbol().pp()
             1  2  2
             2
@@ -2805,8 +2966,8 @@ class RulePartitions(Rule):
 
         EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, [[0,1,0], [1,0,2]])
             sage: G.Q_symbol().pp()
             1  3  3
             2
@@ -2819,9 +2980,9 @@ class RuleRSK(RulePartitions):
 
     EXAMPLES::
 
-        sage: RuleRSK = GrowthDiagram.rules.RSK()
+        sage: RSKGrowth = GrowthDiagram.rules.RSK()
         sage: pi = Permutation([2,3,6,1,4,5])
-        sage: G = GrowthDiagram(RuleRSK, pi)
+        sage: G = GrowthDiagram(RSKGrowth, pi)
         sage: G.P_symbol(), G.Q_symbol()
         ([[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]])
         sage: RSK(pi)
@@ -2848,13 +3009,13 @@ class RuleRSK(RulePartitions):
         The fourth partition according to the Robinson-Schensted-Knuth
         correspondence.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: RuleRSK.forward_rule([2,1],[2,1],[2,1],1)
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: RSKGrowth.forward_rule([2,1],[2,1],[2,1],1)
             [3, 1]
 
-            sage: RuleRSK.forward_rule([1],[],[2],2)
+            sage: RSKGrowth.forward_rule([1],[],[2],2)
             [4, 1]
         """
         carry = content
@@ -2904,11 +3065,10 @@ class RuleRSK(RulePartitions):
 
         TESTS::
 
-            sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(RuleRSK, w)
-            sage: GrowthDiagram(RuleRSK, labels=G._out_labels).to_word() == w         # indirect doctest
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(RSKGrowth, w)
+            sage: GrowthDiagram(RSKGrowth, labels=G._out_labels).to_word() == w # indirect doctest
             True
-
         """
         carry = 0
         i = len(shape4)
@@ -2960,7 +3120,7 @@ class RuleBurge(RulePartitions):
 
         The fourth partition according to the Burge correspondence.
 
-        TESTS::
+        EXAMPLES::
 
             sage: Burge = GrowthDiagram.rules.Burge()
             sage: Burge.forward_rule([2,1],[2,1],[2,1],1)
@@ -2968,7 +3128,6 @@ class RuleBurge(RulePartitions):
 
             sage: Burge.forward_rule([1],[],[2],2)
             [2, 1, 1, 1]
-
         """
         carry = content
         shape4 = []
@@ -3017,16 +3176,17 @@ class RuleBurge(RulePartitions):
         partition acording to the Burge correspondence and the content of
         the cell.
 
-        TESTS::
+        EXAMPLES::
 
             sage: Burge = GrowthDiagram.rules.Burge()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(Burge, w)
-            sage: GrowthDiagram(Burge, labels=G._out_labels).to_word() == w       # indirect doctest
-            True
-
             sage: Burge.backward_rule([1,1,1],[2,1,1,1],[2,1,1])
             ([1, 1], 0)
 
+        TESTS::
+
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(Burge, w)
+            sage: GrowthDiagram(Burge, labels=G._out_labels).to_word() == w     # indirect doctest
+            True
         """
         carry = 0
         shape2 = []
@@ -3119,9 +3279,9 @@ class RuleDomino(Rule):
         ....:     n = len(pi1)
         ....:     pi2 = [-e for e in pi][::-1] + pi1
         ....:     return Permutation([e+n+1 if e<0 else e+n for e in pi2])
-        sage: RuleRSK = GrowthDiagram.rules.RSK()
+        sage: RSKGrowth = GrowthDiagram.rules.RSK()
         sage: def good(pi):
-        ....:     return GrowthDiagram(Domino, pi).P_chain()[-1] == GrowthDiagram(RuleRSK, to_permutation(pi)).P_chain()[-1]
+        ....:     return GrowthDiagram(Domino, pi).P_chain()[-1] == GrowthDiagram(RSKGrowth, to_permutation(pi)).P_chain()[-1]
         sage: all(good(pi) for pi in SignedPermutations(4))
         True
 
@@ -3138,11 +3298,20 @@ class RuleDomino(Rule):
     r = 2
     zero = Partition([])
 
-    def normalize_labels(self, labels):
-        return [Partition(la) for la in labels]
+    def normalize_vertex(self, v):
+        """
+        Return ``v`` as a partition.
+
+        EXAMPLES::
+
+            sage: Domino = GrowthDiagram.rules.Domino()
+            sage: Domino.normalize_vertex([3,1]).parent()
+            Partitions
+        """
+        return Partition(v)
 
     def vertices(self, n):
-        """
+        r"""
         Return the vertices of the dual graded graph on level ``n``.
 
         EXAMPLES::
@@ -3153,8 +3322,8 @@ class RuleDomino(Rule):
         """
         return [la for la in Partitions(2*n) if len(la.core(2)) == 0]
 
-    def rank_function(self, w):
-        """
+    def rank_function(self, v):
+        r"""
         Return half the size of the partition, which equals the number of
         dominoes in any filling.
 
@@ -3164,14 +3333,14 @@ class RuleDomino(Rule):
             sage: Domino.rank_function(Domino.vertices(3)[0])
             3
         """
-        return w.size() // 2
+        return v.size() // 2
 
     def is_P_edge(self, v, w):
-        """
+        r"""
         ``(v, w)`` is an edge if ``v`` is obtained from ``w`` by deleting
         a domino.
 
-        TESTS::
+        EXAMPLES::
 
             sage: Domino = GrowthDiagram.rules.Domino()
             sage: v = Domino.vertices(2)[1]; ascii_art(v)
@@ -3182,7 +3351,8 @@ class RuleDomino(Rule):
             [             *   ]
             [ *****  ***  *   ]
             [ *    , ***, *   ]
-
+            sage: [w for w in Domino.vertices(4) if Domino.is_P_edge(v, w)]
+            []
         """
         try:
             (row_1, col_1), (row_2, col_2) = SkewPartition([w, v]).cells()
@@ -3230,7 +3400,7 @@ class RuleDomino(Rule):
 
         The fourth partition according to domino insertion.
 
-        TESTS::
+        EXAMPLES::
 
             sage: G = GrowthDiagram.rules.Domino()
 
@@ -3276,7 +3446,7 @@ class RuleDomino(Rule):
             [4, 1, 1]
         """
         def union(la, mu):
-            """
+            r"""
             Return the union of the two partitions.
             """
             from six.moves import zip_longest

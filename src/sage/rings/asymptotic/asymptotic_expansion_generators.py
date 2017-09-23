@@ -1327,6 +1327,20 @@ class AsymptoticExpansionGenerators(SageObject):
             2*sqrt(1/2)/sqrt(pi)*2^n*n^(-3/2) - 3/2*sqrt(1/2)/sqrt(pi)*2^n*n^(-5/2)
             + 25/16*sqrt(1/2)/sqrt(pi)*2^n*n^(-7/2) + O(2^n*n^(-9/2))
 
+        The code in the aperiodic case is more efficient, however. Therefore,
+        it is recommended to use combinatorial identities to reduce to the
+        aperiodic case. In the example above, this is well-known: we now count
+        binary trees with `n` internal nodes. The corresponding generating function
+        satisfies `B(z) = z (1 + 2B(z) + B(z)^2)`::
+
+            sage: catalan_expansion
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
+            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-9/2))
+            sage: asymptotic_expansions.InverseFunctionAnalysis(n, phi=lambda u: 1 + 2*u + u^2,
+            ....:                                               tau=1, precision=8)
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2)
+            + 145/128/sqrt(pi)*4^n*n^(-7/2) + O(4^n*n^(-9/2))
+
         .. SEEALSO::
 
             :meth:`~AsymptoticExpansionGenerators.ImplicitExpansion`,

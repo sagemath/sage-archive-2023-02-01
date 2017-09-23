@@ -1058,7 +1058,9 @@ class ResidueReductionMap(Morphism):
             sage: f == g
             True
         """
-        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
 # A class for the Teichmuller lift would also be reasonable....
 
@@ -1183,7 +1185,9 @@ class ResidueLiftingMap(Morphism):
             sage: f == g
             True
         """
-        return richcmp((type(self), self.domain(), self.codomain()), (type(other), other.domain(), other.codomain()), op)
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
 def local_print_mode(obj, print_options, pos = None, ram_name = None):
     r"""

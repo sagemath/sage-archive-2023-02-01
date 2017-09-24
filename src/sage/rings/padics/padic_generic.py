@@ -341,7 +341,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def residue_ring(self, n):
         """
-        Returns the quotient of the ring of integers by the `n`th power of the maximal ideal.
+        Returns the quotient of the ring of integers by the `n`-th power of the maximal ideal.
 
         EXAMPLES::
 

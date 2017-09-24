@@ -8,7 +8,6 @@ Coxeter Groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.root_system.reflection_group_real import ReflectionGroup

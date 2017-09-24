@@ -61,7 +61,6 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import binomial, integer_floor, is_prime_power
 from .incidence_structures import IncidenceStructure
-from sage.misc.decorators import rename_keyword
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -812,7 +811,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     - ``F`` -- a finite field or a prime power.
 
     - ``point_coordinates`` -- (optional, default ``True``) whether we use
-      coordinates in `\GF(q)^n` or plain integers for the points of the design.
+      coordinates in `\GF{q}^n` or plain integers for the points of the design.
 
     - ``check`` -- (optional, default ``True``) whether to check the output.
 
@@ -937,7 +936,7 @@ def WittDesign(n):
         sage: print(BD)                      # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
     """
-    from sage.interfaces.gap import gap, GapElement
+    from sage.interfaces.gap import gap
     gap.load_package("design")
     gap.eval("B:=WittDesign(%s)"%n)
     v = eval(gap.eval("B.v"))
@@ -946,6 +945,7 @@ def WittDesign(n):
     for b in gblcks:
        gB.append([x-1 for x in b])
     return BlockDesign(v, gB, name="WittDesign", check=True)
+
 
 def HadamardDesign(n):
     """

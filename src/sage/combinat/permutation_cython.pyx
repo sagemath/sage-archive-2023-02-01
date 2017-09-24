@@ -31,10 +31,18 @@ from __future__ import print_function
 
 cimport cython
 
-from cpython.list cimport *
+from cpython.object cimport PyObject
+
 from cysignals.memory cimport sig_malloc, sig_free
 
-##########################################################
+cdef extern from "Python.h":
+    void Py_INCREF(PyObject *)
+    PyObject * PyInt_FromLong(long ival)
+    list PyList_New(Py_ssize_t size)
+    void PyList_SET_ITEM(list l, Py_ssize_t, PyObject *)
+    PyObject * PyTuple_GET_ITEM(PyObject *op, Py_ssize_t i)
+
+#########################################################
 #
 # The next two functions, reset_swap and next_swap do the
 # real work.  They've been implemented separately because
@@ -178,7 +186,7 @@ def permutation_iterator_transposition_list(int n):
 
     reset_swap(n,c,o)
     for m in range(N-1):
-        PyList_SET_ITEM(T, m, next_swap(n,c,o))
+        PyList_SET_ITEM(T, m, PyInt_FromLong(next_swap(n,c,o)))
     sig_free(c)
 
     return T
@@ -189,7 +197,7 @@ def permutation_iterator_transposition_list(int n):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef next_perm(array.array l):
+cpdef bint next_perm(array.array l):
     """
     Obtain the next permutation under lex order of ``l``
     by mutating ``l``.
@@ -268,9 +276,15 @@ cpdef next_perm(array.array l):
 
     return True
 
-cpdef list map_to_list(array.array l, tuple values, int n):
+cpdef list map_to_list(array.array l, values, int n):
     """
     Build a list by mapping the array ``l`` using ``values``.
+
+    .. WARNING::
+
+        There is no check of the input data at any point. Using wrong
+        types or values with wrong length is likely to result in a Sage
+        crash.
 
     INPUT:
 
@@ -291,11 +305,13 @@ cpdef list map_to_list(array.array l, tuple values, int n):
         ['a', 'b', 'a', 'd', 'd', 'a', 'b']
     """
     cdef int i
-    cdef list ret = []
-    for i in xrange(n):
-        ret.append(values[l.data.as_uints[i]])
+    cdef list ret = PyList_New(n)
+    cdef PyObject * t
+    for i in range(n):
+        t = PyTuple_GET_ITEM(<PyObject *> values, l.data.as_uints[i])
+        Py_INCREF(t)
+        PyList_SET_ITEM(ret, i, t)
     return ret
-
 
 #####################################################################
 ## Multiplication functions for permutations

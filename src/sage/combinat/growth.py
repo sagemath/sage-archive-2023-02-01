@@ -203,7 +203,7 @@ So let us implement a few things::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
-    ....:     def rank_function(self, v): return v
+    ....:     def rank(self, v): return v
     ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
 
 
@@ -438,25 +438,6 @@ class GrowthDiagram(SageObject):
             self._check_labels(self._in_labels)
             self._grow()
 
-    def _normalize_labels(self, labels):
-        r"""
-        Make sure that the elements of ``labels`` corresponding to
-        vertices have the correct type.
-
-        EXAMPLES::
-
-            sage: RSKGrowth = GrowthDiagram.rules.RSK()
-            sage: labels = [[], [1], [1,1], [1], []]
-            sage: RSKGrowth(labels = labels).out_labels()[2].parent()           # indirect doctest
-            Partitions
-        """
-        rule = self.rule
-        if rule.has_multiple_edges:
-            return [rule.normalize_vertex(labels[i]) if is_even(i) else labels[i]
-                    for i in range(len(labels))]
-        else:
-            return [rule.normalize_vertex(la) for la in labels]
-
     def filling(self):
         r"""
         Return the filling of the diagram as a dictionary.
@@ -515,6 +496,24 @@ class GrowthDiagram(SageObject):
         max_col = max(j for _, j in self._filling)
         F = {(max_row-i,max_col-j): v for (i,j),v in self._filling.items()}
         return self.parent()(self.rule, filling=F)
+
+    def half_perimeter(self):
+        r"""
+        Return half the perimeter of the shape of the growth diagram.
+
+        TESTS::
+
+            sage: RSKGrowth = GrowthDiagram.rules.RSK()
+            sage: G = GrowthDiagram(RSKGrowth, {(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
+            .  0  1
+            1
+            sage: G.half_perimeter()
+            6
+        """
+        # Assume that ``self._lambda`` is already set.
+        if not self._lambda:
+            return 1
+        return self._lambda[0] + len(self._lambda) + 1
 
     def shape(self):
         r"""
@@ -834,23 +833,24 @@ class GrowthDiagram(SageObject):
         """
         return not self == other
 
-    def half_perimeter(self):
+    def _normalize_labels(self, labels):
         r"""
-        Return half the perimeter of the shape of the growth diagram.
+        Make sure that the elements of ``labels`` corresponding to
+        vertices have the correct type.
 
-        TESTS::
+        EXAMPLES::
 
             sage: RSKGrowth = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RSKGrowth, {(0,1):1, (2,0):1}, SkewPartition([[3,1],[1]])); G
-            .  0  1
-            1
-            sage: G.half_perimeter()
-            6
+            sage: labels = [[], [1], [1,1], [1], []]
+            sage: RSKGrowth(labels = labels).out_labels()[2].parent()           # indirect doctest
+            Partitions
         """
-        # Assume that ``self._lambda`` is already set.
-        if not self._lambda:
-            return 1
-        return self._lambda[0] + len(self._lambda) + 1
+        rule = self.rule
+        if rule.has_multiple_edges:
+            return [rule.normalize_vertex(labels[i]) if is_even(i) else labels[i]
+                    for i in range(len(labels))]
+        else:
+            return [rule.normalize_vertex(la) for la in labels]
 
     def _shape_from_labels(self, labels):
         r"""
@@ -860,7 +860,7 @@ class GrowthDiagram(SageObject):
         The shape can be determined from the labels if the size of
         each label differs from the size of its successor.
 
-        Assumes that ``self.rank_function`` is set.
+        Assumes that ``self.rank`` is set.
 
         Otherwise raise an error.
 
@@ -889,11 +889,11 @@ class GrowthDiagram(SageObject):
         is_Q_edge = getattr(rule, "is_Q_edge", None)
         if rule.has_multiple_edges:
             def right_left(la, mu, e):
-                if rule.rank_function(la) < rule.rank_function(mu):
+                if rule.rank(la) < rule.rank(mu):
                     if is_Q_edge is not None:
                         assert e in is_Q_edge(la, mu), "%s has smaller rank than %s but there is no edge of color %s in Q!" % (la, mu, e)
                     return 1
-                elif rule.rank_function(la) > rule.rank_function(mu):
+                elif rule.rank(la) > rule.rank(mu):
                     if is_P_edge is not None:
                         assert e in is_P_edge(mu, la), "%s has smaller rank than %s but there is no edge of color %s in in P!" % (mu, la, e)
                     return 0
@@ -903,11 +903,11 @@ class GrowthDiagram(SageObject):
                                                for i in range(0, len(labels)-2, 2)])
         else:
             def right_left(la, mu):
-                if rule.rank_function(la) < rule.rank_function(mu):
+                if rule.rank(la) < rule.rank(mu):
                     if is_Q_edge is not None:
                         assert is_Q_edge(la, mu), "%s has smaller rank than %s but isn't covered by it in Q!" %(la, mu)
                     return 1
-                elif rule.rank_function(la) > rule.rank_function(mu):
+                elif rule.rank(la) > rule.rank(mu):
                     if is_P_edge is not None:
                         assert is_P_edge(mu, la), "%s has smaller rank than %s but isn't covered by it in P!" %(mu, la)
                     return 0
@@ -1326,8 +1326,7 @@ class Rule(UniqueRepresentation):
     - ``vertices`` -- a function that takes a nonnegative integer
       as input and returns the list of vertices on this rank.
 
-    - ``rank_function`` -- the rank function of the dual graded
-      graphs.
+    - ``rank`` -- the rank function of the dual graded graphs.
 
     - ``forward_rule`` -- a function with input ``(y, t, x,
       content)`` or ``(y, e, t, f, x, content)`` if
@@ -1553,14 +1552,14 @@ class RuleShiftedShapes(Rule):
         else:
             return Partitions(n, max_slope=-1)
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return the size of the shifted partition.
 
         EXAMPLES::
 
             sage: SSh = GrowthDiagram.rules.ShiftedShapes()
-            sage: SSh.rank_function(SSh.vertices(3)[0])
+            sage: SSh.rank(SSh.vertices(3)[0])
             3
         """
         return v.size()
@@ -1581,7 +1580,7 @@ class RuleShiftedShapes(Rule):
             sage: all(SSh.is_Q_edge(v, w) == [] for w in SSh.vertices(4))
             True
         """
-        if self.rank_function(v) + 1 != self.rank_function(w):
+        if self.rank(v) + 1 != self.rank(w):
             return []
         try:
             l = SkewPartition([w, v]).cells()
@@ -1605,7 +1604,7 @@ class RuleShiftedShapes(Rule):
             sage: [w for w in SSh.vertices(3) if SSh.is_P_edge(v, w)]
             [[3], [2, 1]]
         """
-        if self.rank_function(v) + 1 != self.rank_function(w):
+        if self.rank(v) + 1 != self.rank(w):
             return []
         return [0] if w.contains(v) else []
 
@@ -1862,14 +1861,14 @@ class RuleLLMS(Rule):
         """
         return Core(v, self.k)
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return the length of the core.
 
         EXAMPLES::
 
             sage: LLMS3 = GrowthDiagram.rules.LLMS(3)
-            sage: LLMS3.rank_function(LLMS3.vertices(3)[0])
+            sage: LLMS3.rank(LLMS3.vertices(3)[0])
             3
         """
         return v.length()
@@ -2165,14 +2164,14 @@ class RuleBinWord(Rule):
             w1 = Word([1], [0,1])
             return [w1 + w for w in Words([0,1], n-1)]
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return the number of letters of the word.
 
         EXAMPLES::
 
             sage: BinWord = GrowthDiagram.rules.BinaryWord()
-            sage: BinWord.rank_function(BinWord.vertices(3)[0])
+            sage: BinWord.rank(BinWord.vertices(3)[0])
             3
         """
         return len(v)
@@ -2398,14 +2397,14 @@ class RuleSylvester(Rule):
         """
         return BinaryTrees(n)
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return the number of nodes of the tree.
 
         EXAMPLES::
 
             sage: Sylvester = GrowthDiagram.rules.Sylvester()
-            sage: Sylvester.rank_function(Sylvester.vertices(3)[0])
+            sage: Sylvester.rank(Sylvester.vertices(3)[0])
             3
         """
         return v.node_number()
@@ -2757,14 +2756,14 @@ class RuleYoungFibonacci(Rule):
         else:
             return [Word(list(w), [1,2]) for w in Compositions(n, max_part=2)]
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return the size of the corresponding composition.
 
         EXAMPLES::
 
             sage: YF = GrowthDiagram.rules.YoungFibonacci()
-            sage: YF.rank_function(YF.vertices(3)[0])
+            sage: YF.rank(YF.vertices(3)[0])
             3
         """
         return sum(v)
@@ -2932,14 +2931,14 @@ class RulePartitions(Rule):
         """
         return Partition(v)
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return the size of the partition.
 
         EXAMPLES::
 
             sage: RSK = GrowthDiagram.rules.RSK()
-            sage: RSK.rank_function(RSK.vertices(3)[0])
+            sage: RSK.rank(RSK.vertices(3)[0])
             3
         """
         return v.size()
@@ -3322,7 +3321,7 @@ class RuleDomino(Rule):
         """
         return [la for la in Partitions(2*n) if len(la.core(2)) == 0]
 
-    def rank_function(self, v):
+    def rank(self, v):
         r"""
         Return half the size of the partition, which equals the number of
         dominoes in any filling.
@@ -3330,7 +3329,7 @@ class RuleDomino(Rule):
         EXAMPLES::
 
             sage: Domino = GrowthDiagram.rules.Domino()
-            sage: Domino.rank_function(Domino.vertices(3)[0])
+            sage: Domino.rank(Domino.vertices(3)[0])
             3
         """
         return v.size() // 2

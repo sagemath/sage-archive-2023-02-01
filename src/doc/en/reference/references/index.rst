@@ -1485,7 +1485,6 @@ REFERENCES:
                 *k-Schur functions and affine Schubert calculus*.
                 https://arxiv.org/pdf/1301.3569.pdf
 
-
 .. [LM2006] Vadim Lyubashevsky and Daniele Micciancio. Generalized
             compact knapsacks are collision resistant. ICALP,
             pp. 144--155, Springer, 2006.
@@ -1522,7 +1521,6 @@ REFERENCES:
 .. [LS2007] Thomas Lam and Mark Shimozono.  *Dual graded graphs for
             Kac-Moody algebras*.  Algebra & Number Theory 1.4 (2007)
             pp. 451-488.
-
 
 .. [LSS2009] \T. Lam, A. Schilling, M. Shimozono. *Schubert
              polynomials for the affine Grassmannian of the symplectic

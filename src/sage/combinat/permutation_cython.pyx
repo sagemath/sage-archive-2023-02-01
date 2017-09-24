@@ -22,11 +22,17 @@ speed, we provide a class that wraps our struct.
 
 
 """
-
-#  Free for any use.
-#  Unfit for any purpose.
+#*****************************************************************************
+#       Copyright (C) 2010 Tom Boothby <tomas.boothby@gmail.com>
+#       Copyright (C) 2017 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
-#  Copyright 2010, Tom Boothby
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import print_function
 
 cimport cython

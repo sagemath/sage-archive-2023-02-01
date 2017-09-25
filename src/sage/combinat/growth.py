@@ -10,11 +10,11 @@ AUTHORS:
 
 .. TODO::
 
+    - provide examples for the P and Q-symbol in the skew case
     - when shape is given, check that it is compatible with filling or labels
     - optimise rules, mainly for :class:`RuleRSK` and :class:`RuleBurge`
     - implement backward rules for :class:`GrowthDiagramDomino`
     - implement backward rule from [LLMSSZ2013]_, [LS2007]_
-    - implement :meth:`GrowthDiagram.P_symbol` for Sylvester insertion
     - make semistandard extension generic
     - accommodate dual filtered graphs
 
@@ -258,18 +258,22 @@ Are they really dual?::
     ...
     ValueError: D U - U D differs from 1 I for vertex 3
 
-With our current implementation, duality fails.  Well, we need
-multiple edges here.  The color ``self.zero_edge``, which defaults to
-``0`` is reserved for degenerate edges, but may be abused for the
-unique edge if one of the graphs has no multiple edges.  For greater
-clarity in this example we set it to ``None``::
+With our current definition, duality fails - in fact, there are no
+dual graded graphs on the integers without multiple edges.
+Consequently, also the backward rule cannot work.
+
+Let us thus continue with the example from Section 4.7 of [Fom1995]_
+instead, which defines dual graded graphs with multiple edges on the
+integers.  The color ``self.zero_edge``, which defaults to ``0`` is
+reserved for degenerate edges, but may be abused for the unique edge
+if one of the graphs has no multiple edges.  For greater clarity in
+this example we set it to ``None``::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
     ....:     has_multiple_edges = True
     ....:     zero_edge = None
     ....:     def rank(self, v): return v
-    ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
     ....:     def vertices(self, n): return [n]
     ....:     def is_P_edge(self, v, w): return [0] if w == v + 1 else []
     ....:     def is_Q_edge(self, v, w): return list(range(w)) if w == v+1 else []
@@ -284,7 +288,7 @@ the real one - note that the arguments of the rule are vertices
 together with the edge labels now.  The horizontal edges come from
 `Q`, whereas the vertical edges come from `P`.
 
-Thus, the definition in section 4.7 of [Fom1995]_ translates as
+Thus, the definition in Section 4.7 of [Fom1995]_ translates as
 follows::
 
     sage: class RulePascal(Rule):
@@ -292,7 +296,6 @@ follows::
     ....:     has_multiple_edges = True
     ....:     zero_edge = None
     ....:     def rank(self, v): return v
-    ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
     ....:     def vertices(self, n): return [n]
     ....:     def is_P_edge(self, v, w): return [0] if w == v + 1 else []
     ....:     def is_Q_edge(self, v, w): return list(range(w)) if w == v+1 else []
@@ -339,8 +342,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.posets.posets import Poset
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
-from sage.combinat.binary_tree import BinaryTree
-from sage.combinat.binary_tree import BinaryTrees
+from sage.combinat.binary_tree import BinaryTree, BinaryTrees, LabelledBinaryTree
 from sage.combinat.composition import Compositions
 from sage.combinat.partition import _Partitions, Partitions
 from sage.combinat.skew_partition import SkewPartition
@@ -2375,6 +2377,10 @@ class RuleSylvester(Rule):
     r"""
     A rule modelling a Schensted-like correspondence for binary trees.
 
+    For permutations the P-symbol is the binary search tree and the
+    Q-symbol is the increasing tree corresponding to the inverse
+    permutation.
+
     EXAMPLES::
 
         sage: Sylvester = GrowthDiagram.rules.Sylvester()
@@ -2388,25 +2394,29 @@ class RuleSylvester(Rule):
         0  0  0  1  0  0
         0  1  0  0  0  0
         0  0  0  0  0  1
-        sage: ascii_art(G.out_labels()[len(pi)])
-          __o__
+        sage: ascii_art(G.P_symbol())
+          __3__
          /     \
-        o       o
+        1       5
          \     / \
-          o   o   o
+          2   4   6
+        sage: ascii_art(G.Q_symbol())
+          __1__
+         /     \
+        3       2
+         \     / \
+          5   4   6
+
+        sage: all(Sylvester(pi).P_symbol() == pi.binary_search_tree() for pi in Permutations(5))
+        True
+
+        sage: all(Sylvester(pi).Q_symbol() == pi.inverse().increasing_tree() for pi in Permutations(5))
+        True
 
     TESTS::
 
-        sage: Sylvester = GrowthDiagram.rules.Sylvester()
         sage: Sylvester.zero
         .
-
-        sage: for pi in Permutations(5):
-        ....:     G = GrowthDiagram(Sylvester, pi)
-        ....:     R = LabelledBinaryTree(None)
-        ....:     for i in pi:
-        ....:         R = R.binary_search_insert(i)
-        ....:     assert BinaryTree(R) == G.P_chain()[-1]
 
         sage: B = BinaryTree; R = B([None,[]]); L = B([[],None])
         sage: T = B([[],[]]); S = B([L,None])
@@ -2538,6 +2548,100 @@ class RuleSylvester(Rule):
             return False
         else:
             return v == RuleSylvester._delete_right_most_node(w)
+
+    def P_symbol(self, P_chain):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a labelled binary tree.
+
+        For permutations, this coincides with the binary search tree.
+
+        EXAMPLES::
+
+            sage: Sylvester = GrowthDiagram.rules.Sylvester()
+            sage: pi = Permutation([2,4,3,1])
+            sage: ascii_art(Sylvester(pi).P_symbol())
+              _2_
+             /   \
+            1     4
+                 /
+                3
+            sage: Sylvester(pi).P_symbol() == pi.binary_search_tree()
+            True
+
+        We can also do the skew version::
+
+            sage: B = BinaryTree; E = B(); N = B([])
+            sage: ascii_art(Sylvester([3,2], shape=[3,3,3], labels=[N,N,N,E,E,E,N]).P_symbol())
+              __1___
+             /      \
+            None     3
+                    /
+                   2
+        """
+        def add_label(L, S, T, m):
+            if T[0] == S:
+                L = LabelledBinaryTree([L, None], m)
+            else:
+                assert T[0] == S[0]
+                l = L.label()
+                L = LabelledBinaryTree([L[0], add_label(L[1], S[1], T[1], m)], l)
+            return L
+
+        L = LabelledBinaryTree(P_chain[0])
+        for i in range(1, len(P_chain)):
+            S, T = P_chain[i-1], P_chain[i]
+            L = add_label(L, S, T, i)
+        return L
+
+    def Q_symbol(self, Q_chain):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a labelled binary tree.
+
+        For permutations, this coincides with the increasing tree.
+
+        EXAMPLES::
+
+            sage: Sylvester = GrowthDiagram.rules.Sylvester()
+            sage: pi = Permutation([2,4,3,1])
+            sage: ascii_art(Sylvester(pi).Q_symbol())
+              _1_
+             /   \
+            4     2
+                 /
+                3
+            sage: Sylvester(pi).Q_symbol() == pi.inverse().increasing_tree()
+            True
+
+        We can also do the skew version::
+
+            sage: B = BinaryTree; E = B(); N = B([])
+            sage: ascii_art(Sylvester([3,2], shape=[3,3,3], labels=[N,N,N,E,E,E,N]).Q_symbol())
+              _None_
+             /      \
+            3        1
+                    /
+                   2
+
+
+        """
+        def add_label(L, S, T, m):
+            if L.is_empty():
+                assert T.node_number() == 1
+                return LabelledBinaryTree([], m)
+            l = L.label()
+            if T[0] == S[0]:
+                return LabelledBinaryTree([L[0], add_label(L[1], S[1], T[1], m)], l)
+            else:
+                return LabelledBinaryTree([add_label(L[0], S[0], T[0], m), L[1]], l)
+
+        L = LabelledBinaryTree(Q_chain[0])
+        for i in range(1, len(Q_chain)):
+            S, T = Q_chain[i-1], Q_chain[i]
+            L = add_label(L, S, T, i)
+        return L
+
 
     @staticmethod
     def _delete_right_most_node(b):
@@ -3020,7 +3124,7 @@ class RulePartitions(Rule):
     def P_symbol(self, P_chain):
         r"""
         Return the labels along the vertical boundary of a rectangular
-        growth diagram as a skew tableau.
+        growth diagram as a (skew) tableau.
 
         EXAMPLES::
 
@@ -3442,7 +3546,7 @@ class RuleDomino(Rule):
     def P_symbol(self, P_chain):
         r"""
         Return the labels along the vertical boundary of a rectangular
-        growth diagram as a skew tableau.
+        growth diagram as a (skew) domino tableau.
 
         EXAMPLES::
 
@@ -3748,4 +3852,3 @@ def GrowthDiagramSylvester(filling=None, shape=None, labels=None):
     from sage.misc.superseded import deprecation
     deprecation(23319, "GrowthDiagramSylvester is deprecated; use GrowthDiagram with the Sylvester rule instead")
     return GrowthDiagram(RuleSylvester(), filling, shape, labels)
-

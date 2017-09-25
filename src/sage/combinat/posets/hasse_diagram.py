@@ -1467,7 +1467,7 @@ class HasseDiagram(DiGraph):
             sage: H.is_distributive_lattice()
             doctest:...: DeprecationWarning: This function will be removed in future versions. Convert ...
             False
-            """
+        """
         from sage.misc.superseded import deprecation
         deprecation(23111, "This function will be removed in future versions. Convert to lattice and use is_distributive().")
         try:

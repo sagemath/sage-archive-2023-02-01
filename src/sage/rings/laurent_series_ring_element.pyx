@@ -1423,7 +1423,7 @@ cdef class LaurentSeries(AlgebraElement):
         if isinstance(x[0], tuple):
             x = x[0]
 
-        return self.__u(x)*(x[0]**self.__n)
+        return self.__u(*x)*(x[0]**self.__n)
 
 def make_element_from_parent(parent, *args):
     return parent(*args)

@@ -3793,10 +3793,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ArithmeticError("Support of 0 not defined.")
         return sage.arith.all.prime_factors(self)
 
-    def coprime_integers(self, m):
+    def coprime_integers(self, m, algorithm = None):
         """
         Return the positive integers `< m` that are coprime to
-        self.
+        this integer.
 
         EXAMPLES::
 
@@ -3823,17 +3823,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         of p to ``False``. Afterwards return all integers n where the index
         at n is ``True``.
         """
-        # Naive method is faster for small inputs. Testing shows cutoff
-        # is ~1000
-        if self < 1000 and m < 1000:
-            return [Integer(n) for n in range(1, m) if self.gcd(n) == 1]
-
-        # Sieve
-        V = [True] * m
-        for p in self.prime_divisors():
-            for i in range(0, m, p):
-                V[i] = False
-        return [Integer(n) for n in range(1, m) if V[n]]
+        cdef Integer sieve, p, mInteger = Integer(m)
+        if mpz_cmp_ui(mInteger.value, 1) <= 0:
+            return []
+        if mpz_sgn(self.value) == 0:
+            return [one]
+        if mpz_fits_slong_p(mInteger.value) == 0:
+            raise ValueError("m is too large")
+        cdef long ilong, plong, mlong = mpz_get_si(mInteger.value)
+        if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
+            (mpz_sgn(self.value) > 0 and self.is_prime() or
+             mpz_sgn(self.value) < 0 and (-self).is_prime())):
+            return [Integer(ilong) for ilong in range(1, mlong)]
+        sieve = PY_NEW(Integer)
+        p = one
+        while True:
+            p = self.trial_division(mlong, mpz_get_si(p.value)+1)
+            if mpz_cmp_si(p.value, mlong) >= 0:
+                break
+            ilong = plong = mpz_get_si(p.value)
+            while ilong < mlong:
+                mpz_setbit(sieve.value, ilong)
+                ilong += plong
+        return [Integer(ilong) for ilong in range(1, mlong)
+                if mpz_tstbit(sieve.value, ilong) == 0]
 
     def divides(self, n):
         """

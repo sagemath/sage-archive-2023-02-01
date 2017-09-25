@@ -138,7 +138,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     def residue_ring(self, n):
         """
-        Return the quotient of the ring of integers by the `n`th power of its maximal ideal.
+        Return the quotient of the ring of integers by the nth power of its maximal ideal.
 
         EXAMPLES::
 

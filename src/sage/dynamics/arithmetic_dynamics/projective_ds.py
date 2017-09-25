@@ -89,7 +89,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import (RealField, is_RealField)
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_morphism import (
     SchemeMorphism_polynomial_projective_space,
     SchemeMorphism_polynomial_projective_space_field,

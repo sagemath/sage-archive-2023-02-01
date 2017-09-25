@@ -410,6 +410,11 @@ REFERENCES:
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
+.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
+            functions in a dynamical setting*, 
+            LMS Journal of Computation and Mathematics, Volume 15 (2012),
+            pp 400-417.
+
 .. [BS1996] Eric Bach, Jeffrey Shallit. *Algorithmic Number Theory,
             Vol. 1: Efficient Algorithms*. MIT Press, 1996. ISBN
             978-0262024051.

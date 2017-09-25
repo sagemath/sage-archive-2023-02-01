@@ -55,7 +55,7 @@ from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space_finite_field
 from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.affine.affine_space import AffineSpace
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.ring import is_SymbolicExpressionRing
 from sage.symbolic.ring import var

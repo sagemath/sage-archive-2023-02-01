@@ -146,7 +146,7 @@ import sage.rings.integer
 import sage.rings.rational
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.structure.element cimport ModuleElement, RingElement, Element, \
-  classify_elements, HAVE_SAME_PARENT, BOTH_ARE_ELEMENT
+  classify_elements, HAVE_SAME_PARENT, BOTH_ARE_ELEMENT, coercion_model
 from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
@@ -3935,7 +3935,6 @@ cdef class Expression(CommutativeRingElement):
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
         """
-        from sage.structure.element import get_coercion_model
         cdef Expression base, nexp
 
         cdef int cl = classify_elements(self, exp)
@@ -3951,10 +3950,10 @@ cdef class Expression(CommutativeRingElement):
                 x = g_pow(base._gobj, nexp._gobj)
             return new_Expression_from_GEx(base._parent, x)
         if BOTH_ARE_ELEMENT(cl):
-            return get_coercion_model().bin_op(self, exp, pow)
+            return coercion_model.bin_op(self, exp, pow)
 
         try:
-            return get_coercion_model().bin_op(self, exp, pow)
+            return coercion_model.bin_op(self, exp, pow)
         except TypeError:
             return NotImplemented
 

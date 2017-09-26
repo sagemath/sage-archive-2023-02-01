@@ -424,6 +424,11 @@ REFERENCES:
             cryptography,
             pp. 81-90. 2011. https://hal.inria.fr/inria-00607341/document
 
+.. [BS2012] Jonathan Bloom and Dan Saracino, *Modified growth
+            diagrams, permutation pivots, and the BWX map `Phi^*`*,
+            Journal of Combinatorial Theory, Series A Volume 119,
+            Number 6 (2012), pp. 1280-1298.
+
 .. [BSS2009] David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
              Polyhedral representation conversion up to symmetries,
              Proceedings of the 2006 CRM workshop on polyhedral

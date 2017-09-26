@@ -11,8 +11,12 @@ AUTHORS:
 .. TODO::
 
     - provide examples for the P and Q-symbol in the skew case
-    - when shape is given, check that it is compatible with filling or labels
-    - optimise rules, mainly for :class:`RuleRSK` and :class:`RuleBurge`
+    - implement a method providing a visualization of the growth
+      diagram with all labels, perhaps as LaTeX code
+    - when shape is given, check that it is compatible with filling
+      or labels
+    - optimise rules, mainly for :class:`RuleRSK` and
+      :class:`RuleBurge`
     - implement backward rules for :class:`GrowthDiagramDomino`
     - implement backward rule from [LLMSSZ2013]_, [LS2007]_
     - make semistandard extension generic
@@ -116,9 +120,12 @@ complete example::
     0  0  0  1  0
     1  0  0  0  0
     0  0  0  0  0
-    sage: G.P_symbol(), G.Q_symbol()
-    ([[None, None, 2, 3], [None, None], [None, 4], [1], [5]],
-     [[None, None, 1, 4], [None, None], [None, 2], [3], [5]])
+    sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+    [   .  .  2  3    .  .  1  4 ]
+    [   .  .          .  .       ]
+    [   .  4          .  2       ]
+    [   1             3          ]
+    [   5         ,   5          ]
 
 Moreover, we are not forced to use rectangular fillings.  For
 example, consider the Stanley-Sundaram correspondence between (skew)
@@ -170,8 +177,8 @@ Background
 ----------
 
 At the heart of Fomin's framework is the notion of dual graded
-graphs.  This is a pair of digraphs `P, Q`, multiple edges being
-allowed, on the same set of vertices `V`, that satisfy the following
+graphs.  This is a pair of digraphs `P, Q` (multiple edges being
+allowed) on the same set of vertices `V`, that satisfy the following
 conditions:
 
 * the graphs are graded, that is, there is a function `\rho :
@@ -203,12 +210,12 @@ Implementing your own growth diagrams
 -------------------------------------
 
 The class :class:`GrowthDiagram` is written so that it is easy to
-implement growth diagrams you come across in your research.  In
-particular, even with very limited knowledge, the framework provided
-here may be useful.  Moreover, the class tolerates some deviations
-from Fomin's definitions.  For example, although the general
-Robinson-Schensted-Knuth correspondence, strictly speaking, does not
-arise from dual graded graphs, it is supported by our framework.
+implement growth diagrams you come across in your research.
+Moreover, the class tolerates some deviations from Fomin's
+definitions.  For example, although the general
+Robinson-Schensted-Knuth correspondence between integer matrices and
+semistandard tableaux is, strictly speaking, not a growth on dual
+graded graphs, it is supported by our framework.
 
 For illustration, let us implement a growth diagram class with the
 backward rule only.  Suppose that the vertices of the graph are the
@@ -220,8 +227,9 @@ We first need to import the base class for a rule::
 
     sage: from sage.combinat.growth import Rule
 
-Now let us implement a few things required. For more information,
-see :class:`~sage.combinat.growth.Rule`::
+Next, we implement the backward rule and the rank function and
+provide the bottom element ``zero`` of the graph.  For more
+information, see :class:`~sage.combinat.growth.Rule`::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
@@ -286,10 +294,10 @@ These are dual::
     sage: RulePascal()._check_duality(5)
 
 No result, so the first few levels of the graphs are really dual.
-Unfortunately, our backward rule can no longer work.  Let us provide
-the real one - note that the arguments of the rule are vertices
-together with the edge labels now.  The horizontal edges come from
-`Q`, whereas the vertical edges come from `P`.
+Finally, let us provide the backward rule.  The arguments of the rule
+are vertices together with the edge labels now, specifying the path
+from the lower left to the upper right of the cell.  The horizontal
+edges come from `Q`, whereas the vertical edges come from `P`.
 
 Thus, the definition in Section 4.7 of [Fom1995]_ translates as
 follows::
@@ -364,7 +372,7 @@ class GrowthDiagram(SageObject):
     (RSK) correspondence between matrices with non-negative integer
     entries and pairs of semistandard Young tableaux of the same shape.
 
-    A growth diagram is based on the notation of *dual graded graphs*,
+    A growth diagram is based on the notion of *dual graded graphs*,
     a pair of digraphs `P, Q` (multiple edges being allowed) on the
     same set of vertices `V`, that satisfy the following conditions:
 
@@ -1420,6 +1428,38 @@ class Rule(UniqueRepresentation):
       respective graded graph.  These are only used for checking
       user input and providing the dual graded graph, and are
       therefore not mandatory.
+
+    Note that the class :class:`GrowthDiagram` is able to use
+    partially implemented subclasses just fine.  Suppose that
+    ``MyRule`` is such a subclass.  Then:
+
+    - ``GrowthDiagram(MyRule, my_filling)`` requires only an
+      implementation of ``forward_rule``, ``zero`` and possibly
+      ``has_multiple_edges``.
+
+    - ``GrowthDiagram(MyRule, labels=my_labels, shape=my_shape)``
+      requires only an implementation of ``backward_rule`` and
+      possibly ``has_multiple_edges``, provided that the labels
+      ``my_labels`` are given as needed by ``backward_rule``.
+
+    - ``GrowthDiagram(MyRule, labels=my_labels)`` additionally needs
+      an implementation of ``rank`` to deduce the shape.
+
+    In particular, this allows to implement rules which do not quite
+    fit Fomin's notion of dual graded graphs.  An example would be
+    Bloom and Saracino's variant of the RSK correspondence [BS2012]_,
+    where a backward rule is not available.
+
+    Similarly:
+
+    - ``MyRule.P_graph`` only requires an implementation of
+      ``vertices``, ``is_P_edge`` and possibly ``has_multiple_edges``
+      is required, mutatis mutandis for ``MyRule.Q_graph``.
+
+    - ``MyRule._check_duality`` requires ``P_graph`` and ``Q_graph``.
+
+    In particular, this allows to work with dual graded graphs
+    without local rules.
     """
     has_multiple_edges = False          # override when necessary
     zero_edge = 0                       # override when necessary
@@ -1565,12 +1605,21 @@ class RuleShiftedShapes(Rule):
     EXAMPLES::
 
         sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
-        sage: GrowthDiagram(Shifted, [3,4,1,2]).out_labels()
-        [[], 1, [1], 2, [2], 3, [3], 1, [3, 1], 0, [2, 1], 0, [2], 0, [1], 0, []]
+        sage: GrowthDiagram(Shifted, [3,1,2])
+        0  1  0
+        0  0  1
+        1  0  0
 
-    Check example just before Corollary 3.2 in [Sag1987]_::
+    The vertices of the dual graded graph are shifted shapes::
 
-        sage: G = GrowthDiagram(Shifted, [2,6,5,1,7,4,3])
+        sage: Shifted.vertices(3)
+        Partitions of the integer 3 satisfying constraints max_slope=-1
+
+    Let us check the example just before Corollary 3.2 in [Sag1987]_.
+    Note that, instead of passing the rule to :class:`GrowthDiagram`,
+    we can also call the rule to create growth diagrams::
+
+        sage: G = Shifted([2,6,5,1,7,4,3])
         sage: G.P_chain()
         [[], 0, [1], 0, [2], 0, [3], 0, [3, 1], 0, [3, 2], 0, [4, 2], 0, [5, 2]]
         sage: G.Q_chain()
@@ -1586,12 +1635,12 @@ class RuleShiftedShapes(Rule):
 
     Check that the rules are bijective::
 
-        sage: all(Shifted(labels=Shifted(pi).out_labels()).to_word()
+        sage: all(GrowthDiagram(Shifted, labels=GrowthDiagram(Shifted, pi).out_labels()).to_word()
         ....:      == pi for pi in Permutations(5))
         True
         sage: pi = Permutations(10).random_element()
-        sage: G = Shifted(pi)
-        sage: list(Shifted(labels=G.out_labels())) == list(G)
+        sage: G = GrowthDiagram(Shifted, pi)
+        sage: list(GrowthDiagram(Shifted, labels=G.out_labels())) == list(G)
         True
     """
     zero = _Partitions([])
@@ -1879,16 +1928,41 @@ class RuleLLMS(Rule):
     EXAMPLES::
 
         sage: LLMS3 = GrowthDiagram.rules.LLMS(3)
+        sage: GrowthDiagram(LLMS3, [3,1,2])
+        0  1  0
+        0  0  1
+        1  0  0
 
-    Check example of Figure 1 in [LS2007]_::
+    The vertices of the dual graded graph are
+    :class:`~sage.combinat.core.Cores`::
 
-        sage: G = LLMS3([4,1,2,6,3,5])
+        sage: LLMS3.vertices(4)
+        3-Cores of length 4
+
+    Let us check example of Figure 1 in [LS2007]_.  Note that,
+    instead of passing the rule to :class:`GrowthDiagram`, we can
+    also call the rule to create growth diagrams::
+
+        sage: G = LLMS3([4,1,2,6,3,5]); G
+        0  1  0  0  0  0
+        0  0  1  0  0  0
+        0  0  0  0  1  0
+        1  0  0  0  0  0
+        0  0  0  0  0  1
+        0  0  0  1  0  0
+
+    The :meth:`P_symbol` is a
+    :class:`~sage.combinat.k_tableau.StrongTableau`::
+
         sage: G.P_symbol().pp()
         -1 -2 -3 -5
          3  5
         -4 -6
          5
          6
+
+    The :meth:`Q_symbol` is a
+    :class:`~sage.combinat.k_tableau.WeakTableau`::
 
         sage: G.Q_symbol().pp()
         1  3  4  5
@@ -1897,7 +1971,7 @@ class RuleLLMS(Rule):
         5
         6
 
-    Check Example 6.2 in [LLMSSZ2013]_::
+    Let us also check Example 6.2 in [LLMSSZ2013]_::
 
         sage: G = LLMS3([4,1,3,2])
         sage: G.P_symbol().pp()
@@ -2013,8 +2087,9 @@ class RuleLLMS(Rule):
 
     def P_symbol(self, P_chain):
         r"""
-        Return the labels along the vertical boundary of a rectangular
-        growth diagram as a skew tableau.
+        Return the labels along the vertical boundary of a
+        rectangular growth diagram as a skew
+        :class:`~sage.combinat.k_tableau.StrongTableau`.
 
         EXAMPLES::
 
@@ -2036,8 +2111,9 @@ class RuleLLMS(Rule):
 
     def Q_symbol(self, Q_chain):
         r"""
-        Return the labels along the horizontal boundary of a rectangular
-        growth diagram as a skew tableau.
+        Return the labels along the horizontal boundary of a
+        rectangular growth diagram as a skew
+        :class:`~sage.combinat.k_tableau.WeakTableau`.
 
         EXAMPLES::
 
@@ -2168,8 +2244,30 @@ class RuleBinaryWord(Rule):
     EXAMPLES::
 
         sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+        sage: GrowthDiagram(BinaryWord, [3,1,2])
+        0  1  0
+        0  0  1
+        1  0  0
+
+    The vertices of the dual graded graph are binary words::
+
+        sage: BinaryWord.vertices(3)
+        [word: 100, word: 101, word: 110, word: 111]
+
+    Note that, instead of passing the rule to :class:`GrowthDiagram`,
+    we can also use call the rule to create growth diagrams.  For
+    example::
+
+        sage: BinaryWord([2,4,1,3]).P_chain()
+        [word: , word: 1, word: 10, word: 101, word: 1101]
+        sage: BinaryWord([2,4,1,3]).Q_chain()
+        [word: , word: 1, word: 11, word: 110, word: 1101]
+
+    The Kleitman Greene invariant is the descent word, encoded by the
+    positions of the zeros::
+
         sage: pi = Permutation([4,1,8,3,6,5,2,7,9])
-        sage: G = GrowthDiagram(BinaryWord, pi); G
+        sage: G = BinaryWord(pi); G
         0  1  0  0  0  0  0  0  0
         0  0  0  0  0  0  1  0  0
         0  0  0  1  0  0  0  0  0
@@ -2179,11 +2277,6 @@ class RuleBinaryWord(Rule):
         0  0  0  0  0  0  0  1  0
         0  0  1  0  0  0  0  0  0
         0  0  0  0  0  0  0  0  1
-        sage: G.out_labels()[9]
-        word: 101010011
-
-    The Kleitman Greene invariant is the descent word::
-
         sage: pi.descents(from_zero=False)
         [1, 3, 5, 6]
 
@@ -2387,7 +2480,7 @@ class RuleBinaryWord(Rule):
         TESTS::
 
             sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = BinaryWord(w)
+            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(BinaryWord, w)
             sage: GrowthDiagram(BinaryWord, labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """
@@ -2407,15 +2500,25 @@ class RuleSylvester(Rule):
     r"""
     A rule modelling a Schensted-like correspondence for binary trees.
 
-    For permutations the P-symbol is the binary search tree and the
-    Q-symbol is the increasing tree corresponding to the inverse
-    permutation.
-
     EXAMPLES::
 
         sage: Sylvester = GrowthDiagram.rules.Sylvester()
+        sage: GrowthDiagram(Sylvester, [3,1,2])
+        0  1  0
+        0  0  1
+        1  0  0
 
-    From [Nze2007]_::
+    The vertices of the dual graded graph are
+    :class:`~sage.combinat.binary_tree.BinaryTrees`::
+
+        sage: Sylvester.vertices(3)
+        Binary trees of size 3
+
+    The :meth:`P_symbol` is the binary search tree, the
+    :meth:`Q_symbol` is the increasing tree corresponding to the
+    inverse permutation.  Note that, instead of passing the rule to
+    :class:`GrowthDiagram`, we can also call the rule to create
+    growth diagrams.  From [Nze2007]_::
 
         sage: pi = Permutation([3,5,1,4,2,6]); G = Sylvester(pi); G
         0  0  1  0  0  0
@@ -2468,12 +2571,12 @@ class RuleSylvester(Rule):
 
     Check that the rules are bijective::
 
-        sage: all(Sylvester(labels=Sylvester(pi).out_labels()).to_word()
+        sage: all(GrowthDiagram(Sylvester, labels=GrowthDiagram(Sylvester, pi).out_labels()).to_word()
         ....:      == pi for pi in Permutations(4))
         True
         sage: pi = Permutations(10).random_element()
-        sage: G = Sylvester(pi)
-        sage: list(Sylvester(labels=G.out_labels())) == list(G)
+        sage: G = GrowthDiagram(Sylvester, pi)
+        sage: list(GrowthDiagram(Sylvester, labels=G.out_labels())) == list(G)
         True
     """
     zero = BinaryTree()
@@ -2877,22 +2980,36 @@ class RuleYoungFibonacci(Rule):
     EXAMPLES::
 
         sage: YF = GrowthDiagram.rules.YoungFibonacci()
-        sage: G = GrowthDiagram(YF, [4,1,8,3,6,5,2,7,9]); G
-        0  1  0  0  0  0  0  0  0
-        0  0  0  0  0  0  1  0  0
-        0  0  0  1  0  0  0  0  0
-        1  0  0  0  0  0  0  0  0
-        0  0  0  0  0  1  0  0  0
-        0  0  0  0  1  0  0  0  0
-        0  0  0  0  0  0  0  1  0
-        0  0  1  0  0  0  0  0  0
-        0  0  0  0  0  0  0  0  1
-        sage: G.out_labels()[9]
-        word: 122121
+        sage: GrowthDiagram(YF, [3,1,2])
+        0  1  0
+        0  0  1
+        1  0  0
+
+    The vertices of the dual graded graph are Fibonacci words -
+    compositions into parts of size at most two::
+
+        sage: YF.vertices(4)
+        [word: 22, word: 211, word: 121, word: 112, word: 1111]
+
+    Note that, instead of passing the rule to :class:`GrowthDiagram`,
+    we can also use call the rule to create growth diagrams.  For
+    example::
+
+        sage: G = YF([2, 3, 7, 4, 1, 6, 5]); G
+        0  0  0  0  1  0  0
+        1  0  0  0  0  0  0
+        0  1  0  0  0  0  0
+        0  0  0  1  0  0  0
+        0  0  0  0  0  0  1
+        0  0  0  0  0  1  0
+        0  0  1  0  0  0  0
 
     The Kleitman Greene invariant is: take the last letter and the
     largest letter of the permutation and remove them.  If they
-    coincide write 1, otherwise write 2.
+    coincide write 1, otherwise write 2::
+
+        sage: G.P_chain()[-1]
+        word: 21211
 
     TESTS::
 
@@ -3159,7 +3276,7 @@ class RulePartitions(Rule):
         EXAMPLES::
 
             sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: G = RuleRSK([[0,1,0], [1,0,2]])
             sage: G.P_symbol().pp()
             1  2  2
             2
@@ -3174,7 +3291,7 @@ class RulePartitions(Rule):
         EXAMPLES::
 
             sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: G = GrowthDiagram(RuleRSK, [[0,1,0], [1,0,2]])
+            sage: G = RuleRSK([[0,1,0], [1,0,2]])
             sage: G.Q_symbol().pp()
             1  3  3
             2
@@ -3188,12 +3305,61 @@ class RuleRSK(RulePartitions):
     EXAMPLES::
 
         sage: RuleRSK = GrowthDiagram.rules.RSK()
-        sage: pi = Permutation([2,3,6,1,4,5])
-        sage: G = GrowthDiagram(RuleRSK, pi)
-        sage: G.P_symbol(), G.Q_symbol()
-        ([[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]])
-        sage: RSK(pi)
-        [[[1, 3, 4, 5], [2, 6]], [[1, 2, 3, 6], [4, 5]]]
+        sage: GrowthDiagram(RuleRSK, [3,2,1,2,3])
+        0  0  1  0  0
+        0  1  0  1  0
+        1  0  0  0  1
+
+    The vertices of the dual graded graph are integer partitions::
+
+        sage: RuleRSK.vertices(3)
+        Partitions of the integer 3
+
+    The local rules implemented provide the RSK correspondence
+    between matrices with nonnegative integer entries and pairs of
+    semistandard tableaux, the
+    :meth:`~sage.combinat.growth.RulePartitions.P_symbol` and the
+    :meth:`~sage.combinat.growth.RulePartitions.Q_symbol`.  For
+    permutations, it reduces to classical Schensted insertion.
+
+    Instead of passing the rule to :class:`GrowthDiagram`, we can
+    also call the rule to create growth diagrams.  For example::
+
+        sage: m = matrix([[0,0,0,0,1],[1,1,0,2,0], [0,3,0,0,0]])
+        sage: G = RuleRSK(m); G
+        0  0  0  0  1
+        1  1  0  2  0
+        0  3  0  0  0
+
+        sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+        [   1  2  2  2  3    1  2  2  2  2 ]
+        [   2  3             4  4          ]
+        [   3            ,   5             ]
+
+    For rectangular fillings, the Kleitman-Greene invariant is the
+    shape of the :meth:`P_symbol` (or the :meth:`Q_symbol`).  Put
+    differently, it is the partition labelling the lower right corner
+    of the filling (recall that we are using matrix coordinates).  It
+    can be computed alternatively as the partition
+    `(\mu_1,\dots,\mu_n)`, where `\mu_1 + \dots + \mu_i` is the
+    maximal sum of entries in a collection of `i` pairwise disjoint
+    sequences of cells with weakly increasing coordinates.
+
+    For rectangular fillings, we could also use the (faster)
+    implementation provided via :func:`~sage.combinat.rsk.RSK`.
+    Unfortunately, the conventions differ slightly for matrices with
+    entries larger than one::
+
+        sage: [G.P_symbol(), G.Q_symbol()] == RSK(m.transpose())
+        True
+
+        sage: n=5; l=[(pi, RuleRSK(pi)) for pi in Permutations(n)]
+        sage: all([G.P_symbol(), G.Q_symbol()] == RSK(pi) for pi, G in l)
+        True
+
+        sage: n=5; l=[(w, RuleRSK(w)) for w in Words([1,2,3], 5)]
+        sage: all([G.P_symbol(), G.Q_symbol()] == RSK(pi) for pi, G in l)
+        True
     """
     def forward_rule(self, shape3, shape2, shape1, content):
         r"""
@@ -3306,7 +3472,46 @@ class RuleBurge(RulePartitions):
         0  1
         1  0
         1  0
+
+    The vertices of the dual graded graph are integer partitions::
+
+        sage: Burge.vertices(3)
+        Partitions of the integer 3
+
+    The local rules implemented provide Burge's correspondence
+    between matrices with nonnegative integer entries and pairs of
+    semistandard tableaux, the
+    :meth:`~sage.combinat.growth.RulePartitions.P_symbol` and the
+    :meth:`~sage.combinat.growth.RulePartitions.Q_symbol`.  For
+    permutations, it reduces to classical Schensted insertion.
+
+    Instead of passing the rule to :class:`GrowthDiagram`, we can
+    also call the rule to create growth diagrams.  For example::
+
+        sage: m = matrix([[2,0,0,1,0],[1,1,0,0,0], [0,0,0,0,3]])
+        sage: G = Burge(m); G
+        2  0  0  1  0
+        1  1  0  0  0
+        0  0  0  0  3
+
+        sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+        [   1  2  3    1  2  5 ]
+        [   1  3       1  5    ]
+        [   1  3       1  5    ]
+        [   2      ,   4       ]
+
+    For rectangular fillings, the Kleitman-Greene invariant is the
+    shape of the
+    :meth:`~sage.combinat.growth.RulePartitions.P_symbol`.  Put
+    differently, it is the partition labelling the lower right corner
+    of the filling (recall that we are using matrix coordinates).  It
+    can be computed alternatively as the transpose of the partition
+    `(\mu_1,\dots,\mu_n)`, where `\mu_1 + \dots + \mu_i` is the
+    maximal sum of entries in a collection of `i` pairwise disjoint
+    sequences of cells with weakly decreasing row indices and weakly
+    increasing column indices.
     """
+
     def forward_rule(self, shape3, shape2, shape1, content):
         r"""
         Return the output shape given three shapes and the content.
@@ -3415,19 +3620,31 @@ class RuleDomino(Rule):
     EXAMPLES::
 
         sage: Domino = GrowthDiagram.rules.Domino()
+        sage: GrowthDiagram(Domino, [[1,0,0],[0,0,1],[0,-1,0]])
+        1  0  0
+        0  0  1
+        0 -1  0
 
-    Figure 3 in [Lam2004]_::
+    The vertices of the dual graded graph are integer partitions
+    whose Ferrers diagram can be tiled with dominos::
 
-        sage: G = GrowthDiagram(Domino, [[0,0,0,-1],[0,0,1,0],[-1,0,0,0],[0,1,0,0]]); G
+        sage: Domino.vertices(2)
+        [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+
+    Instead of passing the rule to :class:`GrowthDiagram`, we can
+    also call the rule to create growth diagrams.  For example, let
+    us check Figure 3 in [Lam2004]_::
+
+        sage: G = Domino([[0,0,0,-1],[0,0,1,0],[-1,0,0,0],[0,1,0,0]]); G
          0  0  0 -1
          0  0  1  0
         -1  0  0  0
          0  1  0  0
 
-        sage: ascii_art(G.P_symbol(), G.Q_symbol())
-        1  2  4  1  2  2
-        1  2  4  1  3  3
-        3  3     4  4
+        sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+        [   1  2  4    1  2  2 ]
+        [   1  2  4    1  3  3 ]
+        [   3  3   ,   4  4    ]
 
     The spin of a domino tableau is half the number of vertical dominos::
 
@@ -3439,13 +3656,13 @@ class RuleDomino(Rule):
     associated tableaux::
 
         sage: pi = [3,-1,2,4,-5]
-        sage: G = GrowthDiagram(Domino, pi)
+        sage: G = Domino(pi)
         sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
 
-        sage: G.P_symbol() == GrowthDiagram(Domino, [-e for e in pi]).P_symbol().conjugate()
+        sage: G.P_symbol() == Domino([-e for e in pi]).P_symbol().conjugate()
         True
 
     TESTS:
@@ -3455,17 +3672,17 @@ class RuleDomino(Rule):
         sage: Domino = GrowthDiagram.rules.Domino()
         sage: Domino._check_duality(3)
 
-        sage: G = GrowthDiagram(Domino, [[0,1,0],[0,0,-1],[1,0,0]]); G
+        sage: G = Domino([[0,1,0],[0,0,-1],[1,0,0]]); G
         0  1  0
         0  0 -1
         1  0  0
 
-        sage: ascii_art(G.P_symbol(), "  ", G.Q_symbol())
-        1  1    1  1
-        2  3    2  2
-        2  3    3  3
+        sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+        [   1  1    1  1 ]
+        [   2  3    2  2 ]
+        [   2  3,   3  3 ]
 
-        sage: l = {pi: GrowthDiagram(Domino, pi) for pi in SignedPermutations(4)}
+        sage: l = {pi: Domino(pi) for pi in SignedPermutations(4)}
         sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
         384
 
@@ -3476,7 +3693,8 @@ class RuleDomino(Rule):
 
     Negating all signs transposes all the partitions::
 
-        sage: all(l[pi].P_symbol() == l[SignedPermutations(4)([-e for e in pi])].P_symbol().conjugate() for pi in l)
+        sage: W = SignedPermutations(4)
+        sage: all(l[pi].P_symbol() == l[W([-e for e in pi])].P_symbol().conjugate() for pi in l)
         True
 
     Check part of Theorem 4.2.3 in [Lee1996]_::
@@ -3581,7 +3799,7 @@ class RuleDomino(Rule):
         EXAMPLES::
 
             sage: Domino = GrowthDiagram.rules.Domino()
-            sage: G = GrowthDiagram(Domino, [[0,1,0],[0,0,-1],[1,0,0]])
+            sage: G = Domino([[0,1,0],[0,0,-1],[1,0,0]])
             sage: G.P_symbol().pp()
             1  1
             2  3

@@ -85,6 +85,7 @@ from __future__ import absolute_import
 
 from sage.misc.superseded import experimental
 from sage.structure.sage_object import SageObject
+from sage.misc.defaults import series_precision
 
 
 class AsymptoticExpansionGenerators(SageObject):
@@ -284,7 +285,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = A.gen()
 
         if precision is None:
-            precision = AsymptoticRing.__default_prec__
+            precision = series_precision()
 
         from sage.functions.log import log
         result = A.zero()
@@ -439,7 +440,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = A.gen()
 
         if precision is None:
-            precision = A.default_prec
+            precision = series_precision()
 
         from sage.functions.log import log
         result = A.zero()
@@ -927,7 +928,7 @@ class AsymptoticExpansionGenerators(SageObject):
             delta = ZZ(delta)
 
         if precision is None:
-            precision = AsymptoticRing.__default_prec__
+            precision = series_precision()
 
 
         if not normalized and not (beta in ZZ and delta in ZZ):

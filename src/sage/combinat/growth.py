@@ -149,19 +149,22 @@ As mentioned at the beginning, the Robinson-Schensted-Knuth
 correspondence is just a special case of growth diagrams.  In
 particular, we have implemented the following local rules:
 
-- RSK (:class:`RuleRSK`).
-- A variation of RSK originally due to Burge (:class:`RuleBurge`).
+- RSK (:class:`~sage.combinat.growth.RuleRSK`).
+- A variation of RSK originally due to Burge
+  (:class:`~sage.combinat.growth.RuleBurge`).
 - A correspondence producing binary words originally due to Viennot
-  (:class:`RuleBinaryWord`).
-- Aa correspondence producing domino tableaux
-  (:class:`RuleDomino`) originally due to Barbasch and Vogan.
-- A correspondence for shifted shapes (:class:`RuleShiftedShapes`),
-  where the original insertion algorithm is due to Sagan and Worley,
-  and Haiman.
+  (:class:`~sage.combinat.growth.RuleBinaryWord`).
+- A correspondence producing domino tableaux
+  (:class:`~sage.combinat.growth.RuleDomino`) originally due
+  to Barbasch and Vogan.
+- A correspondence for shifted shapes
+  (:class:`~sage.combinat.growth.RuleShiftedShapes`), where the
+  original insertion algorithm is due to Sagan and Worley, and Haiman.
 - The Sylvester correspondence, producing binary trees
-  (:class:`RuleSylvester`).
-- The Young-Fibonacci correspondence (:class:`RuleYoungFibonacci`).
-- LLMS insertion (:class:`RuleLLMS`).
+  (:class:`~sage.combinat.growth.RuleSylvester`).
+- The Young-Fibonacci correspondence
+  (:class:`~sage.combinat.growth.RuleYoungFibonacci`).
+- LLMS insertion (:class:`~sage.combinat.growth.RuleLLMS`).
 
 Background
 ----------
@@ -218,7 +221,7 @@ We first need to import the base class for a rule::
     sage: from sage.combinat.growth import Rule
 
 Now let us implement a few things required. For more information,
-see :class:`Rule`::
+see :class:`~sage.combinat.growth.Rule`::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
@@ -383,9 +386,29 @@ class GrowthDiagram(SageObject):
     so-called 'backward' rule that recovers the integer and `t` given `z`,
     `x` and `y`.
 
+    All implemented growth diagram rules are available by
+    ``GrowthDiagram.rules.<tab>``. The current list is:
+
+    - :class:`~sage.combinat.growth.RuleRSK` -- RSK
+    - :class:`~sage.combinat.growth.RuleBurge` -- a variation of RSK
+      originally due to Burge
+    - :class:`~sage.combinat.growth.RuleBinaryWord` -- a correspondence
+      producing binary words originally due to Viennot
+    - :class:`~sage.combinat.growth.RuleDomino` -- a correspondence
+      producing domino tableaux originally due to Barbasch and Vogan
+    - :class:`~sage.combinat.growth.RuleShiftedShapes` -- a correspondence
+      for shifted shapes, where the original insertion algorithm is due
+      to Sagan and Worley, and Haiman.
+    - :class:`~sage.combinat.growth.RuleSylvester` -- the Sylvester
+      correspondence, producing binary trees
+    - :class:`~sage.combinat.growth.RuleYoungFibonacci` -- the
+      Young-Fibonacci correspondence
+    - :class:`~sage.combinat.growth.RuleLLMS` -- LLMS insertion
+
     INPUT:
 
-    - ``rule`` -- the growth diagram rule
+    - ``rule`` -- :class:`~sage.combinat.growth.Rule`;
+      the growth diagram rule
 
     - ``filling`` -- (optional) a dictonary whose keys are coordinates
       and values are integers, a list of lists of integers, or a word
@@ -420,7 +443,9 @@ class GrowthDiagram(SageObject):
         and skew tableaux (in English convention).  This is different
         from Fomin's convention, who uses a Cartesian coordinate system.
 
-    TESTS::
+    EXAMPLES:
+
+    We create a growth diagram using the forward RSK rule and a permutation::
 
         sage: RuleRSK = GrowthDiagram.rules.RSK()
         sage: G = GrowthDiagram(RuleRSK, [4, 1, 2, 3]); G
@@ -431,6 +456,8 @@ class GrowthDiagram(SageObject):
         sage: G.out_labels()
         [[], [1], [1, 1], [2, 1], [3, 1], [3], [2], [1], []]
 
+    We give the same example but using a skew shape::
+
         sage: shape = SkewPartition([[4,4,4,2],[1,1]])
         sage: G = GrowthDiagram(RuleRSK, [4, 1, 2, 3], shape=shape); G
         .  1  0  0
@@ -439,6 +466,9 @@ class GrowthDiagram(SageObject):
         1  0
         sage: G.out_labels()
         [[], [1], [1, 1], [1], [2], [3], [2], [1], []]
+
+    We construct a growth diagram using the backwards RSK rule by
+    specifying the labels::
 
         sage: GrowthDiagram(RuleRSK, labels=G.out_labels())
         0  1  0  0

@@ -1351,13 +1351,12 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
-        Omitting the precision parameter does lead to an error::
+        Omitting the precision parameter does not lead to an error::
 
-            sage: asymptotic_expansions.InverseFunctionAnalysis(n, phi=lambda u: 1 + 2*u + u^2,
+            sage: set_series_precision(5)
+            sage: asymptotic_expansions.InverseFunctionAnalysis('n', phi=lambda u: 1 + 2*u + u^2,
             ....:                                               tau=1)
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'int' object has no attribute 'factorial'
+            1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))
         """
         if tau is None:
             tau = _fundamental_constant_implicit_function_(phi=phi)

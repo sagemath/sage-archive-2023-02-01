@@ -3823,7 +3823,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         of p to ``False``. Afterwards return all integers n where the index
         at n is ``True``.
         """
-        cdef Integer sieve, p, mInteger = Integer(m)
+        cdef Integer sieve, p, slf, mInteger = Integer(m)
         if mpz_cmp_ui(mInteger.value, 1) <= 0:
             return []
         if mpz_sgn(self.value) == 0:
@@ -3837,14 +3837,31 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return [Integer(ilong) for ilong in range(1, mlong)]
         sieve = PY_NEW(Integer)
         p = one
+        slf = PY_NEW(Integer)
+        mpz_set(slf.value, self.value)
         while True:
-            p = self.trial_division(mlong, mpz_get_si(p.value)+1)
+            p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
             if mpz_cmp_si(p.value, mlong) >= 0:
+                # p is larger than m, so no more primes are needed.
                 break
             ilong = plong = mpz_get_si(p.value)
+            if mpz_cmp(slf.value, p.value) == 0 and mpz_tstbit(sieve.value, plong):
+                # self == p occurs when self < m.  If p is composite, we can stop now
+                break
             while ilong < mlong:
+                # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
                 ilong += plong
+            if mpz_cmp(slf.value, p.value) == 0:
+                # We've now marked off multiples of self.
+                break
+            # Now divide by p until no ps remain
+            mpz_fdiv_q(slf.value, slf.value, p.value)
+            while mpz_divisible_p(slf.value, p.value):
+                mpz_fdiv_q(slf.value, slf.value, p.value)
+            # If we have found all factors, we break
+            if mpz_cmp_ui(slf.value, 1) == 0:
+                break
         return [Integer(ilong) for ilong in range(1, mlong)
                 if mpz_tstbit(sieve.value, ilong) == 0]
 

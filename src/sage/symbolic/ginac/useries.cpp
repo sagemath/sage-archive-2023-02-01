@@ -256,6 +256,8 @@ static funcmap_t& funcmap()
         return _funcmap;
 }
 
+static bool rational_ex_f;
+
 // Fast heuristic that rejects/accepts expressions for the fast
 // expansion via Flint. It can give false positives that must be
 // caught before Flint raises SIGABRT, because we want to use the
@@ -279,6 +281,7 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
                 return (not ex_to<symbol>(the_ex).is_equal(symb));
         }
         if (is_exactly_a<function>(the_ex)) {
+                rational_ex_f = false;
                 function f = ex_to<function>(the_ex);
                 if (funcmap().find(f.get_serial()) == funcmap().end())
                         return true;
@@ -289,6 +292,8 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
         }
         if (is_exactly_a<power>(the_ex)) {
                 power pow = ex_to<power>(the_ex);
+                if (not is_exactly_a<numeric>(pow.op(1)))
+                        rational_ex_f = false;
                 return (unhandled_elements_in(pow.op(0), symb)
                      or unhandled_elements_in(pow.op(1), symb));
         }
@@ -307,6 +312,7 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
 
 bool useries_can_handle(ex the_ex, const symbol& s)
 {
+        rational_ex_f = true;
         return (not unhandled_elements_in(the_ex, s));
 }
 

@@ -691,6 +691,21 @@ cdef class LaurentSeries(AlgebraElement):
         u = self.__u.add_bigoh(prec - self.__n)
         return type(self)(P, u, self.__n)
 
+    def O(self, prec):
+        r"""
+        Return the Laurent series of precission at most ``prec`` got by adding
+        `O(q^\text{prec})` to `f`, where `q` is the variable.
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^-5 + t^-4 + t^3 + O(t^10); f
+            t^-5 + t^-4 + t^3 + O(t^10)
+            sage: f.O(-4)
+            t^-5 + O(t^-4)
+        """
+        return self.add_bigoh(prec)
+
     def degree(self):
         """
         Return the degree of a polynomial equivalent to this power series

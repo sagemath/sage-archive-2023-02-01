@@ -550,7 +550,7 @@ class OperationTable(SageObject):
         Returns the element of the table, given the elements indexing its position.
 
         INPUT:
-        - pair - two elements of the structure
+        - pair -- two elements of the structure
 
         OUTPUT:
         The element of the structure computed by the operation for

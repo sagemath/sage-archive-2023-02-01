@@ -1525,7 +1525,7 @@ class Word_class(SageObject):
         -  ``mod`` - modulo (default: ``None``), can take the following
            values:
 
-           - integer - the modulo
+           - integer -- the modulo
 
            - ``None`` - the value ``base`` is considered for the modulo.
 

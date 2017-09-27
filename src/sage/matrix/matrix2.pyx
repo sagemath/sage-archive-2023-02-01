@@ -2358,7 +2358,7 @@ cdef class Matrix(Matrix1):
 
         OUTPUT:
 
-        - polynomial - the characteristic polynomial of ``self``
+        - polynomial -- the characteristic polynomial of ``self``
 
         EXAMPLES:
 
@@ -8833,7 +8833,7 @@ cdef class Matrix(Matrix1):
 
         OUTPUT:
 
-        - matrix - the adjoint of self
+        - matrix -- the adjoint of self
 
         EXAMPLES:
 

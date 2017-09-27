@@ -691,9 +691,9 @@ def random_vector(ring, degree=None, *args, **kwds):
 
     INPUT:
 
-    - ring - default: ``ZZ`` - the base ring for the entries
-    - degree - a non-negative integer for the number of entries in the vector
-    - sparse - default: ``False`` - whether to use a sparse implementation
+    - ring -- default: ``ZZ`` - the base ring for the entries
+    - degree -- a non-negative integer for the number of entries in the vector
+    - sparse -- default: ``False`` - whether to use a sparse implementation
     - args, kwds - additional arguments and keywords are passed
       to the ``random_element()`` method of the ring
 

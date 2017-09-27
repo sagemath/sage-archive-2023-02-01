@@ -959,11 +959,11 @@ class Sha(SageObject):
 
         OUTPUT:
 
-        - list - a list of primes such that if `p` divides `Sha(E/K)`, then
+        - list -- a list of primes such that if `p` divides `Sha(E/K)`, then
           `p` is in this list, unless `E/K` has complex multiplication or
           analytic rank greater than 2 (in which case we return 0).
 
-        - index - the odd part of the index of the Heegner point in the full
+        - index -- the odd part of the index of the Heegner point in the full
           group of `K`-rational points on E.  (If `E` has CM, returns 0.)
 
         REMARKS:

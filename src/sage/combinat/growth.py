@@ -451,12 +451,17 @@ class GrowthDiagram(SageObject):
         and skew tableaux (in English convention).  This is different
         from Fomin's convention, who uses a Cartesian coordinate system.
 
+        Conventions are chosen such that for permutations, the same
+        growth diagram is constructed when passing the permutation
+        matrix instead.
+
     EXAMPLES:
 
     We create a growth diagram using the forward RSK rule and a permutation::
 
         sage: RuleRSK = GrowthDiagram.rules.RSK()
-        sage: G = GrowthDiagram(RuleRSK, [4, 1, 2, 3]); G
+        sage: pi = Permutation([4, 1, 2, 3])
+        sage: G = GrowthDiagram(RuleRSK, pi); G
         0  1  0  0
         0  0  1  0
         0  0  0  1
@@ -464,10 +469,17 @@ class GrowthDiagram(SageObject):
         sage: G.out_labels()
         [[], [1], [1, 1], [2, 1], [3, 1], [3], [2], [1], []]
 
+    Passing the permutation matrix instead gives the same result::
+
+        sage: G = GrowthDiagram(RuleRSK, pi.to_matrix())
+        sage: ascii_art([G.P_symbol(), G.Q_symbol()])
+        [   1  2  3    1  3  4 ]
+        [   4      ,   2       ]
+
     We give the same example but using a skew shape::
 
         sage: shape = SkewPartition([[4,4,4,2],[1,1]])
-        sage: G = GrowthDiagram(RuleRSK, [4, 1, 2, 3], shape=shape); G
+        sage: G = GrowthDiagram(RuleRSK, pi, shape=shape); G
         .  1  0  0
         .  0  1  0
         0  0  0  1
@@ -3347,8 +3359,8 @@ class RuleRSK(RulePartitions):
 
     For rectangular fillings, we could also use the (faster)
     implementation provided via :func:`~sage.combinat.rsk.RSK`.
-    Unfortunately, the conventions differ slightly for matrices with
-    entries larger than one::
+    Because the of the coordinate conventions in
+    :func:`~sage.combinat.rsk.RSK`, we have to transpose matrices::
 
         sage: [G.P_symbol(), G.Q_symbol()] == RSK(m.transpose())
         True

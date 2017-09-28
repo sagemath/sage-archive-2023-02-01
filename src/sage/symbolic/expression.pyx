@@ -1196,10 +1196,8 @@ cdef class Expression(CommutativeRingElement):
             sage: e._eval_self(float)
             0.9036020036...
         """
-        cdef GEx res
-        sig_on()
         try:
-            res = self._gobj.evalf(0, {'parent':R})
+            res = self._convert({'parent':R})
         except TypeError as err:
             # try the evaluation again with the complex field
             # corresponding to the parent R
@@ -1210,12 +1208,10 @@ cdef class Expression(CommutativeRingElement):
                     R_complex = R.complex_field()
                 except (TypeError, AttributeError):
                     raise err
-            res = self._gobj.evalf(0, {'parent':R_complex})
-        finally:
-            sig_off()
+            res = self._convert({'parent':R_complex})
 
-        if is_a_numeric(res):
-            ans = py_object_from_numeric(res)
+        if res.is_numeric():
+            ans = res.pyobject()
             # Convert ans to R.
             if R is float and isinstance(ans, complex) and not ans.imag:
                 # Python does not automatically convert "real" complex
@@ -1605,25 +1601,19 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
 
-    def _rel_equal1(self, right):
-        cdef Expression l, r
-        l = self
-        r = right
+    cdef bint _rel_equal1(Expression self, Expression other) except -1:
         sig_on()
         try:
-            return (l._gobj.lhs().is_equal(r._gobj.lhs())
-                    and l._gobj.rhs().is_equal(r._gobj.rhs()))
+            return (self._gobj.lhs().is_equal(other._gobj.lhs())
+                    and self._gobj.rhs().is_equal(other._gobj.rhs()))
         finally:
             sig_off()
 
-    def _rel_equal2(self, right):
-        cdef Expression l, r
-        l = self
-        r = right
+    cdef bint _rel_equal2(Expression self, Expression other) except -1:
         sig_on()
         try:
-            return (l._gobj.lhs().is_equal(r._gobj.rhs())
-                    and l._gobj.rhs().is_equal(r._gobj.lhs()))
+            return (self._gobj.lhs().is_equal(other._gobj.rhs())
+                    and self._gobj.rhs().is_equal(other._gobj.lhs()))
         finally:
             sig_off()
 

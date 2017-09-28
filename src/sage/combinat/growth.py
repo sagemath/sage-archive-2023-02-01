@@ -6,7 +6,7 @@ AUTHORS:
 
 - Martin Rubey (2016-09): Initial version
 - Martin Rubey (2017-09): generalize, more rules, improve documentation
-- Travis ScrimShaw (2017-09): switch to rule-based framework
+- Travis Scrimshaw (2017-09): switch to rule-based framework
 
 .. TODO::
 
@@ -15,7 +15,7 @@ AUTHORS:
       diagram with all labels, perhaps as LaTeX code
     - when shape is given, check that it is compatible with filling
       or labels
-    - optimise rules, mainly for :class:`RuleRSK` and
+    - optimize rules, mainly for :class:`RuleRSK` and
       :class:`RuleBurge`
     - implement backward rules for :class:`GrowthDiagramDomino`
     - implement backward rule from [LLMSSZ2013]_, [LS2007]_
@@ -23,26 +23,26 @@ AUTHORS:
     - accommodate dual filtered graphs
 
 A guided tour
--------------
+=============
 
 Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
-generalisation of the Robinson-Schensted-Knuth (RSK) correspondence
+generalization of the Robinson-Schensted-Knuth (RSK) correspondence
 between matrices with non-negative integer entries and pairs of
 semistandard Young tableaux of the same shape.
 
 The main fact is that many correspondences similar to RSK can be
 defined by providing a pair of so-called local rules: a 'forward'
-rule, whose input are three vertices `x`, `y` and `t` of a certain
+rule, whose input are three vertices `y`, `t` and `x` of a certain
 directed graph (in the case of Robinson-Schensted: the directed graph
 corresponding to Young's lattice) and an integer (in the case of
 Robinson-Schensted: `0` or `1`), and whose output is a fourth vertex
-`z`.  This rule should be invertible in the following sense: there is a
-so-called 'backward' rule that recovers the integer and `t` given `z`,
-`x` and `y`.
+`z`.  This rule should be invertible in the following sense: there is
+a so-called 'backward' rule that recovers the integer and `t` given
+`y`, `z` and `x`.
 
 As an example, the growth rules for the classical RSK correspondence
-is provided by :class:`RuleRSK`.  To produce a growth diagram, pass
-the desired rule and the permutation to :class:`GrowthDiagram`::
+are provided by :class:`RuleRSK`.  To produce a growth diagram, pass
+the desired rule and a permutation to :class:`GrowthDiagram`::
 
     sage: RuleRSK = GrowthDiagram.rules.RSK()
     sage: w = [2,3,6,1,4,5]; G = GrowthDiagram(RuleRSK, w); G
@@ -53,22 +53,27 @@ the desired rule and the permutation to :class:`GrowthDiagram`::
     0  0  0  0  0  1
     0  0  1  0  0  0
 
-Note that a growth diagram is printed with matrix coordinates, the
-origin being in the top-left corner.  As a shorthand, one can
-alternatively pass the argument specifying the growth diagram
-directly to the rule::
+The forward rule just mentioned assigns partitions to the corners of
+each of the 36 cells of this matrix, with the exception of the
+corners on the left and top boundary, which are initialized with the
+empty partition.  More precisely, for each cell, the
+:meth:`~sage.combinat.growth.RuleRSK.forward_rule` computes the
+partition `z` labelling the lower right corner, given the content `c`
+of a cell and the other three partitions::
 
-    sage: RuleRSK([1,3,2])
-    1  0  0
-    0  0  1
-    0  1  0
+    t --- x
+    |  c  |
+    y --- z
 
-The 'forward' rule just mentioned assigns partitions to the corners
-of each of the 36 cells of this matrix, with the exception of the
-corners on the left and  boundary, which are initialized with the
-empty partition.  The partitions along the boundary opposite of the
-origin are obtained by using the method
-:meth:`~sage.combinat.growth.GrowthDiagram.out_labels`::
+.. WARNING::
+
+    Note that a growth diagram is printed with matrix coordinates,
+    the origin being in the top-left corner.  Therefore, the growth
+    is from the top left to the bottom right!
+
+The partitions along the boundary opposite of the origin, reading
+from the bottom left to the top right, are obtained by using the
+method :meth:`~sage.combinat.growth.GrowthDiagram.out_labels`::
 
     sage: G.out_labels()
     [[],
@@ -86,8 +91,14 @@ origin are obtained by using the method
      []]
 
 However, in the case of a rectangular filling, it is more practical
-to split this sequence of labels in two.  We then obtain the `P` and
-`Q` symbols::
+to split this sequence of labels in two.  Interpreting the sequence
+of partitions along the right boundary as a standard Young tableau,
+we then obtain the so-called
+:meth:`~sage.combinat.growth.RulePartitions.P_symbol`, the partitions
+along the bottom boundary yield the
+:meth:`~sage.combinat.growth.RulePartitions.Q_symbol`.  These
+coincide with the output of the classical
+:func:`~sage.combinat.rsk.RSK` insertion algorithm::
 
     sage: ascii_art([G.P_symbol(), G.Q_symbol()])
     [   1  3  4  5    1  2  3  6 ]
@@ -96,25 +107,112 @@ to split this sequence of labels in two.  We then obtain the `P` and
     [   1  3  4  5    1  2  3  6 ]
     [   2  6      ,   4  5       ]
 
-A great advantage of growth diagrams is that we immediately have
-access also to the skew version of the RSK-correspondence, by
-providing different initialisation for the labels near the origin.
-We reproduce the original example of Bruce Sagan and Richard Stanley,
-see also Tom Roby's thesis [Rob1991]_.  We represent a generalised
-permutation as a dictionary of coordinates (subtracting `1` from all
-entries because zero-based indexing is used).  For example::
+The filling can be recovered knowing the partitions labelling the
+corners of the bottom and the right boundary alone, by repeatedly
+applying the :meth:`~sage.combinat.growth.RuleRSK.backward_rule`.
+Therefore, to initialize a :class:`GrowthDiagram`, we can provide
+these labels instead of the filling::
+
+    sage: GrowthDiagram(RuleRSK, labels=G.out_labels())
+    0  0  0  1  0  0
+    1  0  0  0  0  0
+    0  1  0  0  0  0
+    0  0  0  0  1  0
+    0  0  0  0  0  1
+    0  0  1  0  0  0
+
+Invocation
+----------
+
+We now describe several ways to initialize a growth diagram.  Let us
+first mention that, to save typing, one can pass the arguments
+specifying a growth diagram directly to the rule::
+
+    sage: RuleRSK([3,1,2])
+    0  1  0
+    0  0  1
+    1  0  0
+
+In general, growth diagrams are defined for `0-1`-fillings of
+arbitrary skew shapes.  In the case of the Robinson-Schensted-Knuth
+correspondence, even arbitrary non-negative integers are allowed.  In
+other cases, entries may be either zero or an `r`-th root of unity -
+for example, :class:`~sage.combinat.growth.RuleDomino` insertion is
+defined for signed permutations, that is, `r=2`.  Traditionally, also
+words and permutations are also used to specify a filling in special
+cases.
+
+To accommodate all this, the filling may be passed in various ways.
+The most general possibility is to pass a dictionary of coordinates
+to (signed) entries, where zeros can be omitted.  In this case, when
+the parameter ``shape`` is not explicitly specified, it is assumed
+to be the minimal rectangle containing the origin and all coordinates
+with non-zero entries.
+
+For example, consider the following generalized permutation::
 
     1 2 2 2 4 4
-    4 2 2 2 3 3
+    4 2 3 3 2 3
 
-becomes ``{(1-1,4-1): 1, (2-1,2-1): 3, (4-1,3-1): 2}``.  Let us do a
-complete example::
+Subtracting `1` from all entries to obtain coordinates, with
+zero-based indexing, we obtain::
+
+    sage: RuleRSK({(1-1,4-1): 1, (2-1,2-1): 1, (2-1,3-1): 2, (4-1,2-1): 1, (4-1,3-1): 1})
+    0  0  0  0
+    0  1  0  1
+    0  2  0  1
+    1  0  0  0
+
+Alternatively, we could create the same growth diagram using a
+matrix.
+
+In contrast to the classical insertion algorithms, growth diagrams
+immediately generalize to fillings whose shape is an arbitrary skew
+partition::
+
+    sage: RuleRSK([3,1,2], shape=SkewPartition([[3,3,2],[1,1]]))
+    .  1  0
+    .  0  1
+    1  0
+
+As an important example, consider the Stanley-Sundaram correspondence
+between oscillating tableaux and (partial) perfect matchings.
+Perfect matchings of `\{1,...,2r\}` are in bijection with
+`0-1`-fillings of a triangular shape with `2r-1` rows, such that for
+each `k` there is either exactly one non-zero entry in row `k` or
+exactly one non-zero entry in column `2r-k`.  Explicitly, if `(i,j)`
+is a pair in the perfect matching, the entry in column `i-1` and row
+`2r-j` equals `1`.  For example::
+
+    sage: m = PerfectMatching([[1,5],[3,4],[2,7],[6,8]])
+    sage: G = RuleRSK({(i-1, 8-j): 1 for i,j in m}, shape=[7,6,5,4,3,2,1]); G
+    0  0  0  0  0  1  0
+    0  1  0  0  0  0
+    0  0  0  0  0
+    1  0  0  0
+    0  0  1
+    0  0
+    0
+
+The partitions labelling the bottom-right corners along the boundary
+opposite of the origin then form a so-called oscillating tableau -
+the remaining partitions along the bottom-right boundary are
+redundant::
+
+    sage: G.out_labels()[1::2]
+    [[1], [1, 1], [2, 1], [1, 1], [1], [1, 1], [1]]
+
+Another great advantage of growth diagrams is that we immediately
+have access to a skew version of the correspondence, by providing
+different initialization for the labels on the side of the origin.
+We reproduce the original example of Bruce Sagan and Richard Stanley,
+see also Tom Roby's thesis [Rob1991]_::
 
     sage: w = {(1-1,4-1): 1, (2-1,2-1): 1, (4-1,3-1): 1}
     sage: T = SkewTableau([[None, None], [None, 5], [1]])
     sage: U = SkewTableau([[None, None], [None, 3], [5]])
     sage: labels = T.to_chain()[::-1] + U.to_chain()[1:]
-    sage: G = GrowthDiagram(RuleRSK, filling=w, shape=[5]*5, labels=labels); G
+    sage: G = RuleRSK(filling=w, shape=[5,5,5,5,5], labels=labels); G
     0  0  0  0  0
     0  1  0  0  0
     0  0  0  1  0
@@ -127,17 +225,20 @@ complete example::
     [   1             3          ]
     [   5         ,   5          ]
 
-Moreover, we are not forced to use rectangular fillings.  For
-example, consider the Stanley-Sundaram correspondence between (skew)
-oscillating tableaux and (partial) perfect matchings.  Again, from
-[Rob1991]_::
+Similarly, there is a correspondence for skew oscillating tableau.
+Let us conclude by reproducing Example 4.2.6 from [Rob1991]_.  The
+oscillating tableau, as given, is::
 
     sage: o = [[2,1],[2,2],[3,2],[4,2],[4,1],[4,1,1],[3,1,1],[3,1],[3,2],[3,1],[2,1]]
-    sage: l = [None] * (2*len(o)-1)
-    sage: l[::2] = [Partition(la) for la in o]
-    sage: l[1::2] = [l[2*i] if l[2*i].size() < l[2*i+2].size() else l[2*i+2]
-    ....:            for i in range(len(o)-1)]
-    sage: G = GrowthDiagram(RuleRSK, labels=l[1:-1], shape=list(range(len(o)-2, 0, -1))); G
+
+From this, we have to construct the list of labels of the corners
+along the bottom-right boundary.  The labels with odd indices are
+given by the oscillating tableau, the other labels are obtained by
+taking the smaller of the two neighbouring partitions::
+
+    sage: l = [o[i//2] if is_even(i) else min(o[(i-1)//2],o[(i+1)//2])
+    ....:      for i in range(2*len(o)-1)]
+    sage: G = RuleRSK(labels=l[1:-1], shape=range(len(o)-2, 0, -1)); G
     0  0  0  0  0  0  0  1  0
     0  1  0  0  0  0  0  0
     0  0  0  0  0  0  0
@@ -147,10 +248,18 @@ oscillating tableaux and (partial) perfect matchings.  Again, from
     0  0  0
     0  0
     0
+
+The skew tableaux can now be read off the partitions labelling the
+left and the top boundary.  These can be accessed using the method
+:meth:`~sage.combinat.growth.GrowthDiagram.in_labels`::
+
     sage: ascii_art(SkewTableau(chain=G.in_labels()[len(o)-2:]),
-    ....:           SkewTableau(chain=G.in_labels()[:len(o)-1][::-1]))
+    ....:           SkewTableau(chain=G.in_labels()[len(o)-2::-1]))
     .  1  .  7
     5     4
+
+Rules currently available
+-------------------------
 
 As mentioned at the beginning, the Robinson-Schensted-Knuth
 correspondence is just a special case of growth diagrams.  In
@@ -181,15 +290,16 @@ graphs.  This is a pair of digraphs `P, Q` (multiple edges being
 allowed) on the same set of vertices `V`, that satisfy the following
 conditions:
 
-* the graphs are graded, that is, there is a function `\rho :
-  V \to \NN`, such that for any edge `(v, w)` of `P` and also of `Q` we
+* the graphs are graded, that is, there is a function `\rho : V \to
+  \NN`, such that for any edge `(v, w)` of `P` and also of `Q` we
   have `\rho(w) = \rho(v) + 1`,
 
 * there is a vertex `0` with rank zero, and
 
 * there is a positive integer `r` such that `DU = UD + rI`, where `D`
-  is the down operator of `Q`, assigning each vertex its predecessor,
-  `U` is the up operator of `P`, assigning each vertex its
+  is the down operator (on the free `\ZZ`-module of formal sums of
+  vertices) of `Q`, assigning each vertex its predecessor, `U` is the
+  up operator of `P`, assigning each vertex the formal sum of its
   successors, and `I` is the identity operator.
 
 For example, taking for both `P` and `Q` to be Young's lattice and `r=1`,
@@ -201,7 +311,7 @@ is a path in `P` from zero to a vertex of rank `k` and `q` is a path
 in `Q` from zero to the same vertex.
 
 It turns out that - in principle - this bijection can always be
-described by so called local forward and backward rules, see
+described by so-called local forward and backward rules, see
 [Fom1995]_ for a detailed description.  Knowing at least the forward
 rules, or the backward rules, you can implement your own growth
 diagram class.
@@ -219,7 +329,7 @@ graded graphs, it is supported by our framework.
 
 For illustration, let us implement a growth diagram class with the
 backward rule only.  Suppose that the vertices of the graph are the
-nonnegative integers, the rank is given by the integer itself, and
+non-negative integers, the rank is given by the integer itself, and
 the backward rule is `(y, z, x) \mapsto (\min(x,y), 0)` if `y = z`
 or `x = z` and `(y, z, x) \mapsto (\min(x,y), 1)` otherwise.
 
@@ -252,7 +362,7 @@ compute the labels belonging to a filling::
     ...
     AttributeError: 'RulePascal' object has no attribute 'forward_rule'
 
-We now reimplement the rule where we provide the dual graded graphs::
+We now re-implement the rule where we provide the dual graded graphs::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
@@ -368,7 +478,7 @@ class GrowthDiagram(SageObject):
     A generalized Schensted growth diagram in the sense of Fomin.
 
     Growth diagrams were introduced by Sergey Fomin [Fom1995]_
-    and provide a vast generalisation of the Robinson-Schensted-Knuth
+    and provide a vast generalization of the Robinson-Schensted-Knuth
     (RSK) correspondence between matrices with non-negative integer
     entries and pairs of semistandard Young tableaux of the same shape.
 
@@ -382,17 +492,18 @@ class GrowthDiagram(SageObject):
 
     * there is a vertex `0` with rank zero, and
 
-    * there is a positive integer `r` such that `DU = UD + rI`, where `D`
-      is the down operator of `Q`, assigning each vertex its predecessor,
-      `U` is the up operator of `P`, assigning each vertex its
-      successors, and `I` is the identity operator.
+    * there is a positive integer `r` such that `DU = UD + rI`, where
+      `D` is the down operator (on the free `\ZZ`-module of formal
+      sums of vertices) of `Q`, assigning each vertex its
+      predecessor, `U` is the up operator of `P`, assigning each
+      vertex its successors, and `I` is the identity operator.
 
     Growth diagrams are defined by providing a pair of local rules: a
-    'forward' rule, whose input are three vertices `x`, `y` and `t` of
-    the dual graded graphs and an integer and output is a fourth vertex `z`.
-    This rule should be invertible in the following sense: there is a
-    so-called 'backward' rule that recovers the integer and `t` given `z`,
-    `x` and `y`.
+    'forward' rule, whose input are three vertices `y`, `t` and `x`
+    of the dual graded graphs and an integer, and whose output is a
+    fourth vertex `z`.  This rule should be invertible in the
+    following sense: there is a so-called 'backward' rule that
+    recovers the integer and `t` given `y`, `z` and `x`.
 
     All implemented growth diagram rules are available by
     ``GrowthDiagram.rules.<tab>``. The current list is:
@@ -418,7 +529,7 @@ class GrowthDiagram(SageObject):
     - ``rule`` -- :class:`~sage.combinat.growth.Rule`;
       the growth diagram rule
 
-    - ``filling`` -- (optional) a dictonary whose keys are coordinates
+    - ``filling`` -- (optional) a dictionary whose keys are coordinates
       and values are integers, a list of lists of integers, or a word
       with integer values; if a word, then negative letters but without
       repetitions are allowed and interpreted as coloured permutations
@@ -587,7 +698,7 @@ class GrowthDiagram(SageObject):
         Return the growth diagram with the filling rotated by 180 degrees.
 
         For RSK-growth diagrams and rectangular fillings, this
-        corresponds to evacuation of the P- and the Q-symbol.
+        corresponds to evacuation of the `P`- and the `Q`-symbol.
 
         EXAMPLES::
 
@@ -824,7 +935,7 @@ class GrowthDiagram(SageObject):
                 w1.extend([i+1]*v)
                 w2.extend([j+1]*v)
             else:
-                raise ValueError("can only convert fillings with nonnegative entries to words")
+                raise ValueError("can only convert fillings with non-negative entries to words")
         return (w1, w2)
 
     def __iter__(self):
@@ -969,7 +1080,7 @@ class GrowthDiagram(SageObject):
     def _shape_from_labels(self, labels):
         r"""
         Determine the shape of the growth diagram given a list of labels
-        during initialisation.
+        during initialization.
 
         The shape can be determined from the labels if the size of
         each label differs from the size of its successor.
@@ -1412,7 +1523,7 @@ class Rule(UniqueRepresentation):
     - ``normalize_vertex`` -- a function that converts its input to a
       vertex.
 
-    - ``vertices`` -- a function that takes a nonnegative integer
+    - ``vertices`` -- a function that takes a non-negative integer
       as input and returns the list of vertices on this rank.
 
     - ``rank`` -- the rank function of the dual graded graphs.
@@ -1864,7 +1975,7 @@ class RuleShiftedShapes(Rule):
 
         A tuple ``(e, t, f, content)`` consisting of the shape ``t``
         of the fourth word, the colours of the incident edges and the
-        content of the cell acording to Sagan - Worley insertion.
+        content of the cell according to Sagan - Worley insertion.
 
         EXAMPLES::
 
@@ -2486,7 +2597,7 @@ class RuleBinaryWord(Rule):
         OUTPUT:
 
         A pair ``(t, content)`` consisting of the shape of the fourth
-        word and the content of the cell acording to Viennot's
+        word and the content of the cell according to Viennot's
         bijection [Vie1983]_.
 
         TESTS::
@@ -2526,11 +2637,15 @@ class RuleSylvester(Rule):
         sage: Sylvester.vertices(3)
         Binary trees of size 3
 
-    The :meth:`P_symbol` is the binary search tree, the
-    :meth:`Q_symbol` is the increasing tree corresponding to the
-    inverse permutation.  Note that, instead of passing the rule to
-    :class:`GrowthDiagram`, we can also call the rule to create
-    growth diagrams.  From [Nze2007]_::
+    In The :meth:`P_graph` is also known as the bracket tree, the
+    :meth:`Q_graph` is the lattice of finite order ideals of the
+    infinite binary tree.
+
+    For a permutation, the :meth:`P_symbol` is the binary search
+    tree, the :meth:`Q_symbol` is the increasing tree corresponding
+    to the inverse permutation.  Note that, instead of passing the
+    rule to :class:`GrowthDiagram`, we can also call the rule to
+    create growth diagrams.  From [Nze2007]_::
 
         sage: pi = Permutation([3,5,1,4,2,6]); G = Sylvester(pi); G
         0  0  1  0  0  0
@@ -2633,7 +2748,7 @@ class RuleSylvester(Rule):
         r"""
         Return whether ``(v, w)`` is a `Q`-edge of ``self``.
 
-        ``(v, w)`` is an edge if ``v`` is a subtree of ``w`` with one
+        ``(v, w)`` is an edge if ``v`` is a sub-tree of ``w`` with one
         node less.
 
         EXAMPLES::
@@ -2818,7 +2933,7 @@ class RuleSylvester(Rule):
         else:
             return BinaryTree([b[0], RuleSylvester._delete_right_most_node(b[1])])
 
-    def forward_rule(self, x, t, y, content):
+    def forward_rule(self, y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -2829,8 +2944,8 @@ class RuleSylvester(Rule):
         - ``y, t, x`` -- three binary trees from a cell in a growth
           diagram, labelled as::
 
-              t y
-              x
+              t x
+              y
 
         - ``content`` -- 0 or 1; the content of the cell
 
@@ -2861,8 +2976,8 @@ class RuleSylvester(Rule):
                \
                 o
 
-        If ``x != y``, obtain ``z`` from ``x`` adding a node such
-        that deleting the right most gives ``y``::
+        If ``y != x``, obtain ``z`` from ``y`` adding a node such
+        that deleting the right most gives ``x``::
 
             sage: ascii_art(Sylvester.forward_rule(R, N, L, 0))
               o
@@ -2876,7 +2991,7 @@ class RuleSylvester(Rule):
              \
               o
 
-        If ``x == y != t``, obtain ``z`` from ``y`` by adding a node
+        If ``y == x != t``, obtain ``z`` from ``x`` by adding a node
         as left child to the right most node::
 
             sage: ascii_art(Sylvester.forward_rule(N, E, N, 0))
@@ -2914,31 +3029,31 @@ class RuleSylvester(Rule):
                 for t in successors(b[1]):
                     yield BinaryTree([b[0], t])
 
-        def union(x, y):
+        def union(y, x):
             r"""
-            Return the unique tree obtained by adding a node to ``x`` such
-            that deleting the right most node gives ``y``.
+            Return the unique tree obtained by adding a node to ``y`` such
+            that deleting the right most node gives ``x``.
             """
-            for t in successors(x):
-                if RuleSylvester._delete_right_most_node(t) == y:
+            for t in successors(y):
+                if RuleSylvester._delete_right_most_node(t) == x:
                     return t
-            raise ValueError("could not find union of %s and %s" % (x,y))
+            raise ValueError("could not find union of %s and %s" % (y,x))
 
-        if x == t == y:
+        if y == t == x:
             if content == 0:
-                z = x
+                z = y
             elif content == 1:
                 z = t.over(BinaryTree([]))
             else:
                 raise NotImplementedError
         elif content != 0:
             raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
-        elif x != t == y:
-            z = x
-        elif x == t != y:
+        elif y != t == x:
             z = y
+        elif y == t != x:
+            z = x
         else:
-            z = union(x, y)
+            z = union(y, x)
         return z
 
     def backward_rule(self, y, z, x):
@@ -2952,8 +3067,8 @@ class RuleSylvester(Rule):
         - ``y, z, x`` -- three binary trees from a cell in a growth
           diagram, labelled as::
 
-                y
-              x z
+                x
+              y z
 
         OUTPUT:
 
@@ -3134,7 +3249,7 @@ class RuleYoungFibonacci(Rule):
 
     is_Q_edge = is_P_edge
 
-    def forward_rule(self, shape3, shape2, shape1, content):
+    def forward_rule(self, y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -3142,11 +3257,11 @@ class RuleYoungFibonacci(Rule):
 
         INPUT:
 
-        - ``shape3, shape2, shape1`` -- three Fibonacci words from a
+        - ``y, t, x`` -- three Fibonacci words from a
           cell in a growth diagram, labelled as::
 
-              shape2 shape1
-              shape3
+              t x
+              y
 
         - ``content`` -- 0 or 1; the content of the cell
 
@@ -3170,24 +3285,24 @@ class RuleYoungFibonacci(Rule):
             sage: YF.forward_rule([1,1], [1], [1,1], 0)
             word: 21
         """
-        if shape1 == shape2 == shape3:
+        if x == t == y:
             if content == 0:
-                r = shape1
+                r = x
             elif content == 1:
-                r = Word([1] + list(shape3), alphabet=[1,2])
+                r = Word([1] + list(y), alphabet=[1,2])
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("for shape3=%s, shape2=%s, shape1=%s, the content should be 0 but is %s" % (shape3, shape2, shape1, content))
-        elif shape1 == shape2:
-            r = shape3
-        elif shape3 == shape2:
-            r = shape1
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
+        elif x == t:
+            r = y
+        elif y == t:
+            r = x
         else:
-            if shape1 != shape2 != shape3:
-                r = Word([2] + list(shape2), alphabet=[1,2])
+            if x != t != y:
+                r = Word([2] + list(t), alphabet=[1,2])
             else:
-                raise NotImplementedError("for shape3=%s, shape2=%s, shape1=%s, content %s we have no rule" % (shape3, shape2, shape1, content))
+                raise NotImplementedError("for y=%s, t=%s, x=%s, content %s we have no rule" % (y, t, x, content))
         return r
 
     def backward_rule(self, y, z, x):
@@ -3328,7 +3443,7 @@ class RuleRSK(RulePartitions):
         Partitions of the integer 3
 
     The local rules implemented provide the RSK correspondence
-    between matrices with nonnegative integer entries and pairs of
+    between matrices with non-negative integer entries and pairs of
     semistandard tableaux, the
     :meth:`~sage.combinat.growth.RulePartitions.P_symbol` and the
     :meth:`~sage.combinat.growth.RulePartitions.Q_symbol`.  For
@@ -3373,7 +3488,7 @@ class RuleRSK(RulePartitions):
         sage: all([G.P_symbol(), G.Q_symbol()] == RSK(pi) for pi, G in l)
         True
     """
-    def forward_rule(self, shape3, shape2, shape1, content):
+    def forward_rule(self, y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -3381,11 +3496,11 @@ class RuleRSK(RulePartitions):
 
         INPUT:
 
-        - ``shape3, shape2, shape1`` -- three partitions from a cell in a
+        - ``y, t, x`` -- three partitions from a cell in a
           growth diagram, labelled as::
 
-              shape2 shape1
-              shape3
+              t x
+              y
 
         - ``content`` -- a non-negative integer; the content of the cell
 
@@ -3404,31 +3519,31 @@ class RuleRSK(RulePartitions):
             [4, 1]
         """
         carry = content
-        shape4 = []
+        z = []
         while True:
-            if shape1 == []:
+            if x == []:
                 row1 = 0
             else:
-                row1 = shape1[0]
-            if shape3 == []:
+                row1 = x[0]
+            if y == []:
                 row3 = 0
             else:
-                row3 = shape3[0]
+                row3 = y[0]
             newPart = max(row1, row3) + carry
             if newPart == 0:
                 # returning this as a Partition costs a lot of time
-                return shape4[::-1]
+                return z[::-1]
             else:
-                shape4 = [newPart] + shape4
-                if shape2 == []:
+                z = [newPart] + z
+                if t == []:
                     carry = min(row1, row3)
                 else:
-                    carry = min(row1, row3) - shape2[0]
-                shape1 = shape1[1:]
-                shape2 = shape2[1:]
-                shape3 = shape3[1:]
+                    carry = min(row1, row3) - t[0]
+                x = x[1:]
+                t = t[1:]
+                y = y[1:]
 
-    def backward_rule(self, shape3, shape4, shape1):
+    def backward_rule(self, y, z, x):
         r"""
         Return the content and the input shape.
 
@@ -3436,17 +3551,17 @@ class RuleRSK(RulePartitions):
 
         INPUT:
 
-        - ``shape3, shape4, shape1`` -- three partitions from a cell in a
+        - ``y, z, x`` -- three partitions from a cell in a
           growth diagram, labelled as::
 
-                   shape1
-            shape3 shape4
+              x
+            y z
 
         OUTPUT:
 
-        A pair ``(shape2, content)`` consisting of the shape of the
-        fourth word acording to the Robinson-Schensted-Knuth
-        correspondence and the content of the cell.
+        A pair ``(t, content)`` consisting of the shape of the fourth
+        word according to the Robinson-Schensted-Knuth correspondence
+        and the content of the cell.
 
         TESTS::
 
@@ -3456,21 +3571,21 @@ class RuleRSK(RulePartitions):
             True
         """
         carry = 0
-        i = len(shape4)
-        shape2 = []
+        i = len(z)
+        t = []
         while i > 0:
-            if len(shape1) < i:
+            if len(x) < i:
                 row1 = 0
             else:
-                row1 = shape1[i-1]
-            if len(shape3) < i:
+                row1 = x[i-1]
+            if len(y) < i:
                 row3 = 0
             else:
-                row3 = shape3[i-1]
-            shape2 = [min(row1, row3) - carry] + shape2
-            carry = shape4[i-1] - max(row1, row3)
+                row3 = y[i-1]
+            t = [min(row1, row3) - carry] + t
+            carry = z[i-1] - max(row1, row3)
             i = i-1
-        return (_Partitions(shape2), carry)
+        return (_Partitions(t), carry)
 
 class RuleBurge(RulePartitions):
     r"""
@@ -3491,7 +3606,7 @@ class RuleBurge(RulePartitions):
         Partitions of the integer 3
 
     The local rules implemented provide Burge's correspondence
-    between matrices with nonnegative integer entries and pairs of
+    between matrices with non-negative integer entries and pairs of
     semistandard tableaux, the
     :meth:`~sage.combinat.growth.RulePartitions.P_symbol` and the
     :meth:`~sage.combinat.growth.RulePartitions.Q_symbol`.  For
@@ -3523,8 +3638,7 @@ class RuleBurge(RulePartitions):
     sequences of cells with weakly decreasing row indices and weakly
     increasing column indices.
     """
-
-    def forward_rule(self, shape3, shape2, shape1, content):
+    def forward_rule(self, y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -3532,11 +3646,11 @@ class RuleBurge(RulePartitions):
 
         INPUT:
 
-        - ``shape3, shape2, shape1`` -- three  from a cell in a growth diagram,
+        - ``y, t, x`` -- three  from a cell in a growth diagram,
           labelled as::
 
-              shape2 shape1
-              shape3
+              t x
+              y
 
         - ``content`` -- a non-negative integer, the content of the cell.
 
@@ -3554,31 +3668,31 @@ class RuleBurge(RulePartitions):
             [2, 1, 1, 1]
         """
         carry = content
-        shape4 = []
+        z = []
         while True:
-            if shape1 == []:
+            if x == []:
                 row1 = 0
             else:
-                row1 = shape1[0]
-            if shape2 == []:
+                row1 = x[0]
+            if t == []:
                 row2 = 0
             else:
-                row2 = shape2[0]
-            if shape3 == []:
+                row2 = t[0]
+            if y == []:
                 row3 = 0
             else:
-                row3 = shape3[0]
+                row3 = y[0]
             newPart = max(row1, row3) + min(int(row1 == row2 == row3), carry)
             if newPart == 0:
-                return _Partitions(shape4[::-1])
+                return _Partitions(z[::-1])
             else:
-                shape4 = [newPart] + shape4
+                z = [newPart] + z
                 carry = carry - min(int(row1 == row2 == row3), carry) + min(row1, row3) - row2
-                shape1 = shape1[1:]
-                shape2 = shape2[1:]
-                shape3 = shape3[1:]
+                x = x[1:]
+                t = t[1:]
+                y = y[1:]
 
-    def backward_rule(self, shape3, shape4, shape1):
+    def backward_rule(self, y, z, x):
         r"""
         Return the content and the input shape.
 
@@ -3588,16 +3702,16 @@ class RuleBurge(RulePartitions):
 
         INPUT:
 
-        - ``shape3, shape4, shape1`` -- three partitions from a cell in a
+        - ``y, z, x`` -- three partitions from a cell in a
           growth diagram, labelled as::
 
-                   shape1
-            shape3 shape4
+              x
+            y z
 
         OUTPUT:
 
         A pair ``(t, content)`` consisting of the shape of the fourth
-        partition acording to the Burge correspondence and the content of
+        partition according to the Burge correspondence and the content of
         the cell.
 
         EXAMPLES::
@@ -3613,17 +3727,17 @@ class RuleBurge(RulePartitions):
             True
         """
         carry = 0
-        shape2 = []
-        i = len(shape4)
+        t = []
+        i = len(z)
         while i > 0:
-            mu_i = 0 if len(shape1) < i else shape1[i-1]
-            la_i = 0 if len(shape4) < i else shape4[i-1]
-            nu_i = 0 if len(shape3) < i else shape3[i-1]
+            mu_i = 0 if len(x) < i else x[i-1]
+            la_i = 0 if len(z) < i else z[i-1]
+            nu_i = 0 if len(y) < i else y[i-1]
 
-            shape2 = [min(mu_i, nu_i) - min(int(mu_i == nu_i == la_i), carry)] + shape2
+            t = [min(mu_i, nu_i) - min(int(mu_i == nu_i == la_i), carry)] + t
             carry = carry - min(int(mu_i == nu_i == la_i), carry) + la_i - max(mu_i, nu_i)
             i = i - 1
-        return (_Partitions(shape2), carry)
+        return (_Partitions(t), carry)
 
 class RuleDomino(Rule):
     r"""
@@ -3638,7 +3752,7 @@ class RuleDomino(Rule):
         0 -1  0
 
     The vertices of the dual graded graph are integer partitions
-    whose Ferrers diagram can be tiled with dominos::
+    whose Ferrers diagram can be tiled with dominoes::
 
         sage: Domino.vertices(2)
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
@@ -3658,7 +3772,7 @@ class RuleDomino(Rule):
         [   1  2  4    1  3  3 ]
         [   3  3   ,   4  4    ]
 
-    The spin of a domino tableau is half the number of vertical dominos::
+    The spin of a domino tableau is half the number of vertical dominoes::
 
         sage: def spin(T):
         ....:     return sum(2*len(set(row)) - len(row) for row in T)/4
@@ -3821,7 +3935,7 @@ class RuleDomino(Rule):
 
     Q_symbol = P_symbol
 
-    def forward_rule(self, shape3, shape2, shape1, content):
+    def forward_rule(self, y, t, x, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -3829,11 +3943,11 @@ class RuleDomino(Rule):
 
         INPUT:
 
-        - ``shape3, shape2, shape1`` -- three partitions from a cell in a
+        - ``y, t, x`` -- three partitions from a cell in a
           growth diagram, labelled as::
 
-              shape2 shape1
-              shape3
+              t x
+              y
 
         - ``content`` -- -1, 0 or 1, the content of the cell.
 
@@ -3897,71 +4011,71 @@ class RuleDomino(Rule):
             raise ValueError("domino: the content of the filling must be in {-1,0,1}")
 
         if content == 1:
-            if not (shape1 == shape2 == shape3):
+            if not (x == t == y):
                 raise ValueError("all shapes must be equal")
-            if shape2 == []:
-                shape4 = [2]
+            if t == []:
+                z = [2]
             else:
-                shape4 = [shape2[0] + 2] + shape2[1:]
+                z = [t[0] + 2] + t[1:]
 
         elif content == -1:
-            if not (shape1 == shape2 == shape3):
+            if not (x == t == y):
                 raise ValueError("all shapes must be equal")
-            shape4 = shape2 + [1,1]
+            z = t + [1,1]
 
-        elif content == 0 and (shape2 == shape1 or shape2 == shape3):
-            shape4 = union(shape1, shape3)
+        elif content == 0 and (t == x or t == y):
+            z = union(x, y)
 
         else:
-            # content == 0 and shape2 differs from shape1 and shape3 by
-            # dominos gamma1 and gamma3
+            # content == 0 and t differs from x and y by
+            # domino's gamma1 and gamma3
 
             # the following is certainly very slow
-            gamma3 = set(SkewPartition([shape3, shape2]).cells())
-            gamma1 = set(SkewPartition([shape1, shape2]).cells())
+            gamma3 = set(SkewPartition([y, t]).cells())
+            gamma1 = set(SkewPartition([x, t]).cells())
             diff = gamma1.intersection(gamma3)
             cell1, cell2 = gamma3
             if len(diff) == 0:
-                shape4 = union(shape1, shape3)
+                z = union(x, y)
 
             elif len(diff) == 1:
-                shape4 = copy(shape1)
+                z = copy(x)
                 # diff is a single cell
                 (k,l) = diff.pop()
-                # add (k+1, l+1) to shape1
+                # add (k+1, l+1) to x
                 # either (k, l+1) or (k+1, l) must also be added
-                if shape4[k] <= l + 1:
-                    shape4[k] += 1
-                    shape4[k+1] += 1
+                if z[k] <= l + 1:
+                    z[k] += 1
+                    z[k+1] += 1
                 else:
-                    if len(shape4) <= k + 1:
-                        shape4 += [2]
+                    if len(z) <= k + 1:
+                        z += [2]
                     else:
-                        shape4[k+1] += 2
+                        z[k+1] += 2
 
-            # diff has size 2, that is shape1 == shape3
+            # diff has size 2, that is x == y
             elif cell1[0] == cell2[0]:
-                shape4 = copy(shape1)
+                z = copy(x)
                 # a horizontal domino - add 2 to row below of gamma
-                if len(shape4) <= cell1[0] + 1:
-                    shape4 += [2]
+                if len(z) <= cell1[0] + 1:
+                    z += [2]
                 else:
-                    shape4[cell1[0]+1] += 2
+                    z[cell1[0]+1] += 2
 
             else:
-                shape4 = copy(shape1)
+                z = copy(x)
                 # a vertical domino - add 2 to column right of gamma
                 # find first row shorter than cell1[1]+1
-                for r, p in enumerate(shape4):
+                for r, p in enumerate(z):
                     if p <= cell1[1] + 1:
-                        shape4[r] += 1
-                        shape4[r+1] += 1
+                        z[r] += 1
+                        z[r+1] += 1
                         break
                 else:
                     raise NotImplementedError("domino: cannot call forward rule with shapes %s and content %s"
-                                              % ((shape3, shape2, shape1), content))
+                                              % ((y, t, x), content))
 
-        return shape4
+        return z
 
 #####################################################################
 ## Set the rules available from GrowthDiagram.rules.<tab>

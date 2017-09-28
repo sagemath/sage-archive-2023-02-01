@@ -693,7 +693,7 @@ cdef class LaurentSeries(AlgebraElement):
 
     def O(self, prec):
         r"""
-        Return the Laurent series of precission at most ``prec`` got by adding
+        Return the Laurent series of precision at most ``prec`` got by adding
         `O(q^\text{prec})` to `f`, where `q` is the variable.
 
         EXAMPLES::

@@ -1351,9 +1351,11 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
-        Omitting the precision parameter does not lead to an error::
+        Omitting the precision parameter does not lead to an error (per default,
+        the default series precision is a python integer, which led to an error
+        in an earlier version of the code)::
 
-            sage: set_series_precision(5)
+            sage: set_series_precision(int(5))
             sage: asymptotic_expansions.InverseFunctionAnalysis('n', phi=lambda u: 1 + 2*u + u^2,
             ....:                                               tau=1)
             1/sqrt(pi)*4^n*n^(-3/2) - 9/8/sqrt(pi)*4^n*n^(-5/2) + O(4^n*n^(-3))

@@ -694,8 +694,13 @@ cdef class LaurentSeries(AlgebraElement):
     def O(self, prec):
         r"""
         Return the Laurent series of precision at most ``prec`` got by adding
-        `O(q^\text{prec})` to `f`, where `q` is the variable.
-
+        `O(q^\text{prec})` to `f`, where `q` is the variable. 
+        
+        The precision of `f` and the integer ``prec`` can be arbitrary. The
+        resulting Laurent series will have precision equal to the minimum of
+        the precision of `f` and ``prec``. The term `O(q^\text{prec})` is the
+        zero series with precision ``prec``.
+       
         EXAMPLES::
 
             sage: R.<t> = LaurentSeriesRing(QQ)

@@ -87,7 +87,7 @@ static struct _stat_print {
 } stat_print;
 #endif
 
-
+#if 0
 /*
  *  Statistical information about symbols in polynomials
  */
@@ -198,6 +198,7 @@ static void get_symbol_stats(const ex &a, const ex &b, sym_desc_vec &v)
 	}
 #endif
 }
+#endif
 
 #if 0
 /** Exact polynomial division of a(X) by b(X) in Z[X].
@@ -405,7 +406,7 @@ ex lcm(const ex &a, const ex &b, bool check_args)
 	return ca * cb * g;
 }
 
-
+#if 0
 /*
  *  Square-free factorization
  */
@@ -615,6 +616,7 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
 
 	return red_poly + sum;
 }
+#endif
 
 #endif // HAVE_LIBGIAC
 

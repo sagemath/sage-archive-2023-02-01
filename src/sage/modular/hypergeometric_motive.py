@@ -945,7 +945,7 @@ class HypergeometricData(object):
             sage: [H.padic_H_value(11,i,-1) for i in range(1,3)]
             [0, -4972]
 
-        From slides (but note conventions regarding `t`)::
+        From [Roberts2015]_ (but note conventions regarding `t`)::
 
             sage: H = Hyp(gamma_list=[-6,-1,4,3])
             sage: t = 189/125

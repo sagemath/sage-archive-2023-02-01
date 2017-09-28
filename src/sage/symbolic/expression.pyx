@@ -1602,6 +1602,9 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
 
     cdef bint _rel_equal1(Expression self, Expression other) except -1:
+        """
+        Internal helper function.
+        """
         sig_on()
         try:
             return (self._gobj.lhs().is_equal(other._gobj.lhs())
@@ -1610,6 +1613,9 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
 
     cdef bint _rel_equal2(Expression self, Expression other) except -1:
+        """
+        Internal helper function.
+        """
         sig_on()
         try:
             return (self._gobj.lhs().is_equal(other._gobj.rhs())

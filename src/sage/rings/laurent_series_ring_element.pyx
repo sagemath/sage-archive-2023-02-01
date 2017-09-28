@@ -703,6 +703,8 @@ cdef class LaurentSeries(AlgebraElement):
             t^-5 + t^-4 + t^3 + O(t^10)
             sage: f.O(-4)
             t^-5 + O(t^-4)
+            sage: f.O(15)
+            t^-5 + t^-4 + t^3 + O(t^10)
         """
         return self.add_bigoh(prec)
 

@@ -468,6 +468,8 @@ static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
         std::set<int> roots;
         roots.insert(0);
         roots.insert(1);
+        if (msize == 0)
+                return roots;
         numeric c = ex_to<numeric>(C.determinant()).numer();
         c.divisors(roots);
         for (auto it = roots.begin(); it != roots.end(); )
@@ -494,6 +496,9 @@ ex gosper_term(ex e, ex n)
         symbol h;
         std::set<int> roots = resultant_roots(A,
                         B.subs(n == n+h).expand(), n, h);
+        if (std::any_of(roots.cbegin(), roots.cend(),
+                                [](int i){ return i < 0; }))
+                throw gosper_domain_error();
         for (int root : roots) {
                 ex d = gcd(A, B.subs(n == n+ex(root)).expand());
                 A = quo(A, d, n, false);
@@ -525,6 +530,8 @@ ex gosper_term(ex e, ex n)
         if (D.empty())
                 throw gosper_domain_error();
         int d = *std::max_element(D.begin(), D.end());
+        if (d < 0)
+                throw gosper_domain_error();
         exvector syms;
         for (int i=0; i<d+1; ++i)
                 syms.push_back((new symbol)->setflag(status_flags::dynallocated));

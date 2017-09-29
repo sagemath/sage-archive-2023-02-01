@@ -1631,6 +1631,11 @@ REFERENCES:
 .. [sudoku:wikipedia]  "Near worst case",
                        :wikipedia:`Algorithmics_of_sudoku`
 
+.. [Suth2008] Andrew V. Sutherland, *Structure computation and discrete
+              logarithms in finite abelian p-groups*.
+              Mathematics of Computation **80** (2011), pp. 477-500.
+              :arxiv:`0809.3413v3`.
+
 .. [SW2002] William Stein and Mark Watkins, *A database of elliptic
             curves---first report*. In *Algorithmic number theory
             (ANTS V), Sydney, 2002*, Lecture Notes in Computer Science

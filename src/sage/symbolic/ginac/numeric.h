@@ -94,7 +94,7 @@ union Value {
 class pole_error : public std::domain_error {
 public:
 	explicit pole_error(const std::string& what_arg, int degree);
-	int degree() const;
+	numeric degree() const;
 private:
 	int deg;
 };
@@ -149,8 +149,8 @@ public:
 	void dbgprint() const override;
 	bool info(unsigned inf) const override;
 	bool is_polynomial(const ex & var) const override;
-	int degree(const ex & s) const override;
-	int ldegree(const ex & s) const override;
+	numeric degree(const ex & s) const override;
+	numeric ldegree(const ex & s) const override;
 	ex coeff(const ex & s, const ex & n) const override;
 	bool has(const ex &other, unsigned options = 0) const override;
 	ex eval(int level = 0) const override;

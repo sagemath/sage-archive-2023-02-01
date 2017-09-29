@@ -29,6 +29,7 @@
 #endif
 
 #include "ex.h"
+#include "ex_utils.h"
 #include "numeric.h"
 #include "upoly.h"
 #include "symbol.h"
@@ -78,11 +79,11 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 	ex r = a.expand();
 	if (r.is_zero())
 		return r;
-	int bdeg = b.degree(x);
-	int rdeg = r.degree(x);
+	numeric bdeg = b.degree(x);
+	numeric rdeg = r.degree(x);
 	ex blcoeff = b.expand().coeff(x, bdeg);
 	bool blcoeff_is_numeric = is_exactly_a<numeric>(blcoeff);
-	exvector v; v.reserve(std::max(rdeg - bdeg + 1, 0));
+	exvector v; //v.reserve(std::max(rdeg - bdeg + 1, 0));
 	while (rdeg >= bdeg) {
 		ex term, rcoeff = r.coeff(x, rdeg);
 		if (blcoeff_is_numeric)
@@ -132,8 +133,8 @@ ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 	ex r = a.expand();
 	if (r.is_zero())
 		return r;
-	int bdeg = b.degree(x);
-	int rdeg = r.degree(x);
+	numeric bdeg = b.degree(x);
+        numeric rdeg = r.degree(x);
 	ex blcoeff = b.expand().coeff(x, bdeg);
 	bool blcoeff_is_numeric = is_exactly_a<numeric>(blcoeff);
 	while (rdeg >= bdeg) {
@@ -199,8 +200,8 @@ ex prem(const ex &a, const ex &b, const ex &x, bool check_args)
 	// Polynomial long division
 	ex r = a.expand();
 	ex eb = b.expand();
-	int rdeg = r.degree(x);
-	int bdeg = eb.degree(x);
+	numeric rdeg = r.degree(x);
+	numeric bdeg = eb.degree(x);
 	ex blcoeff;
 	if (bdeg <= rdeg) {
 		blcoeff = eb.coeff(x, bdeg);
@@ -211,7 +212,7 @@ ex prem(const ex &a, const ex &b, const ex &x, bool check_args)
 	} else
 		blcoeff = _ex1;
 
-	int delta = rdeg - bdeg + 1, i = 0;
+	numeric delta = rdeg - bdeg + 1, i = 0;
 	while (rdeg >= bdeg && !r.is_zero()) {
 		ex rlcoeff = r.coeff(x, rdeg);
 		ex term = (power(x, rdeg - bdeg) * eb * rlcoeff).expand();
@@ -251,8 +252,8 @@ ex sprem(const ex &a, const ex &b, const ex &x, bool check_args)
 	// Polynomial long division
 	ex r = a.expand();
 	ex eb = b.expand();
-	int rdeg = r.degree(x);
-	int bdeg = eb.degree(x);
+	numeric rdeg = r.degree(x);
+	numeric bdeg = eb.degree(x);
 	ex blcoeff;
 	if (bdeg <= rdeg) {
 		blcoeff = eb.coeff(x, bdeg);
@@ -390,11 +391,11 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 		q = _ex0;
 		return true;
 	}
-	int bdeg = b.degree(x);
-	int rdeg = r.degree(x);
+	numeric bdeg = b.degree(x);
+	numeric rdeg = r.degree(x);
 	ex blcoeff = b.expand().coeff(x, bdeg);
 	bool blcoeff_is_numeric = is_exactly_a<numeric>(blcoeff);
-	exvector v; v.reserve(std::max(rdeg - bdeg + 1, 0));
+	exvector v; //v.reserve(std::max(rdeg - bdeg + 1, 0));
 	while (rdeg >= bdeg) {
 		ex term, rcoeff = r.coeff(x, rdeg);
 		if (blcoeff_is_numeric)

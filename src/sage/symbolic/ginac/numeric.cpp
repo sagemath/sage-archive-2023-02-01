@@ -1017,13 +1017,13 @@ bool numeric::is_polynomial(const ex & var) const {
         return true;
 }
 
-int numeric::degree(const ex & s) const {
+numeric numeric::degree(const ex & s) const {
         // In sage deg (0) != 0 !!!
-        return 0;
+        return *_num0_p;
 }
 
-int numeric::ldegree(const ex & s) const {
-        return 0;
+numeric numeric::ldegree(const ex & s) const {
+        return *_num0_p;
 }
 
 ex numeric::coeff(const ex & s, const ex & n) const {

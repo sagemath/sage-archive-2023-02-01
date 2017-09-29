@@ -61,8 +61,8 @@ public:
 	ex & let_op(size_t i) override;
 	ex map(map_function & f) const override;
 	bool is_polynomial(const ex & var) const override;
-	int degree(const ex & s) const override;
-	int ldegree(const ex & s) const override;
+	numeric degree(const ex & s) const override;
+	numeric ldegree(const ex & s) const override;
 	ex coeff(const ex & s, const ex & n) const override;
 	ex eval(int level=0) const override;
 	ex evalf(int level=0, PyObject* parent=nullptr) const override;

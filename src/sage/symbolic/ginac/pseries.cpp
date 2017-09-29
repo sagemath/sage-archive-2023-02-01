@@ -281,7 +281,7 @@ const ex pseries::op(size_t i) const
 /** Return degree of highest power of the series.  This is usually the exponent
  *  of the Order term.  If s is not the expansion variable of the series, the
  *  series is examined termwise. */
-int pseries::degree(const ex &s) const
+numeric pseries::degree(const ex &s) const
 {
 	if (var.is_equal(s)) {
 		// Return last exponent
@@ -295,7 +295,7 @@ int pseries::degree(const ex &s) const
 			return 0;
 		int max_pow = std::numeric_limits<int>::min();
                 for (const auto & elem : seq) {
-			int pow = elem.rest.degree(s);
+			int pow = elem.rest.degree(s).to_int();
 			if (pow > max_pow)
 				max_pow = pow;
 		}
@@ -308,12 +308,12 @@ int pseries::degree(const ex &s) const
  *  series is examined termwise.  If s is the expansion variable but the
  *  expansion point is not zero the series is not expanded to find the degree.
  *  I.e.: (1-x) + (1-x)^2 + Order((1-x)^3) has ldegree(x) 1, not 0. */
-int pseries::ldegree(const ex &s) const
+numeric pseries::ldegree(const ex &s) const
 {
 	if (var.is_equal(s)) {
 		// Return first exponent
 		if (seq.size() != 0u)
-			return ex_to<numeric>((seq.begin())->coeff).to_int();
+			return ex_to<numeric>((seq.begin())->coeff);
 		else
 			return 0;
 	} else {
@@ -321,7 +321,7 @@ int pseries::ldegree(const ex &s) const
 			return 0;
 		int min_pow = std::numeric_limits<int>::max();
                 for (const auto & elem : seq) {
-			int pow = elem.rest.ldegree(s);
+			int pow = elem.rest.ldegree(s).to_int();
 			if (pow < min_pow)
 				min_pow = pow;
 		}
@@ -777,10 +777,10 @@ ex pseries::mul_series(const pseries &other) const
 	
 	// Series multiplication
 	epvector new_seq;
-	const int a_max = degree(var);
-	const int b_max = other.degree(var);
-	const int a_min = ldegree(var);
-	const int b_min = other.ldegree(var);
+	const int a_max = degree(var).to_int();
+	const int b_max = other.degree(var).to_int();
+	const int a_min = ldegree(var).to_int();
+	const int b_min = other.ldegree(var).to_int();
 	const int cdeg_min = a_min + b_min;
 	int cdeg_max = a_max + b_max;
 	
@@ -856,7 +856,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 		int real_ldegree = 0;
 		bool flag_redo = false;
 		try {
-			real_ldegree = buf.expand().ldegree(sym-r.rhs());
+			real_ldegree = buf.expand().ldegree(sym-r.rhs()).to_int();
 		} catch (std::runtime_error) {}
 
 		if (real_ldegree == 0) {
@@ -866,13 +866,13 @@ ex mul::series(const relational & r, int order, unsigned options) const
 				int orderloop = 0;
 				do {
 					orderloop++;
-					real_ldegree = buf.series(r, orderloop, options).ldegree(sym);
+					real_ldegree = buf.series(r, orderloop, options).ldegree(sym).to_int();
 				} while (real_ldegree == orderloop);
 			} else {
 				// Here it is possible that buf does not have a ldegree, therefore
 				// check only if ldegree is negative, otherwise reconsider the case
 				// in the second round.
-				real_ldegree = buf.series(r, 0, options).ldegree(sym);
+				real_ldegree = buf.series(r, 0, options).ldegree(sym).to_int();
 				if (real_ldegree == 0)
 					flag_redo = true;
 			}
@@ -902,7 +902,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 			int orderloop = 0;
 			do {
 				orderloop++;
-				real_ldegree = buf.series(r, orderloop, options).ldegree(sym);
+				real_ldegree = buf.series(r, orderloop, options).ldegree(sym).to_int();
 			} while ((real_ldegree == orderloop)
 					&& ( factor*real_ldegree < degbound));
 			ldegrees[j] = factor * real_ldegree;
@@ -975,7 +975,7 @@ ex pseries::power_const(const numeric &p, int deg) const
 			return *this;
 	}
 	
-	const int ldeg = ldegree(var);
+	const int ldeg = ldegree(var).to_int();
 	if (!(p*ldeg).is_integer())
 		throw std::runtime_error("pseries::power_const(): trying to assemble a Puiseux series");
 
@@ -1119,12 +1119,12 @@ ex power::series(const relational & r, int order, unsigned options) const
 	ex eb = basis.expand();
 	int real_ldegree = 0;
 	if (eb.info(info_flags::rational_function))
-		real_ldegree = eb.ldegree(sym-r.rhs());
+		real_ldegree = eb.ldegree(sym-r.rhs()).to_int();
 	if (real_ldegree == 0) {
 		int orderloop = 0;
 		do {
 			orderloop++;
-			real_ldegree = basis.series(r, orderloop, options).ldegree(sym);
+			real_ldegree = basis.series(r, orderloop, options).ldegree(sym).to_int();
 		} while (real_ldegree == orderloop);
 	}
 

@@ -384,30 +384,30 @@ bool power::is_polynomial(const ex & var) const
 	return false;
 }
 
-int power::degree(const ex & s) const
+numeric power::degree(const ex & s) const
 {
 	if (is_equal(ex_to<basic>(s)))
 		return 1;
-	else if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_integer()) {
+	else if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_real()) {
 		if (basis.is_equal(s))
-			return ex_to<numeric>(exponent).to_int();
+			return ex_to<numeric>(exponent);
 		else
-			return basis.degree(s) * ex_to<numeric>(exponent).to_int();
+			return basis.degree(s) * ex_to<numeric>(exponent);
 	} else if (basis.has(s))
 		throw(std::runtime_error("power::degree(): undefined degree because of non-integer exponent"));
 	else
 		return 0;
 }
 
-int power::ldegree(const ex & s) const 
+numeric power::ldegree(const ex & s) const 
 {
 	if (is_equal(ex_to<basic>(s)))
 		return 1;
-	else if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_integer()) {
+	else if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_real()) {
 		if (basis.is_equal(s))
-			return ex_to<numeric>(exponent).to_int();
+			return ex_to<numeric>(exponent);
 		else
-			return basis.ldegree(s) * ex_to<numeric>(exponent).to_int();
+			return basis.ldegree(s) * ex_to<numeric>(exponent);
 	} else if (basis.has(s))
 		throw(std::runtime_error("power::ldegree(): undefined degree because of non-integer exponent"));
 	else

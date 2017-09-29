@@ -163,27 +163,12 @@ ex ex::content(const ex &x) const
 	if (is_exactly_a<numeric>(*this))
 		return info(info_flags::negative) ? -*this : *this;
 
-	ex e = expand();
-	if (e.is_zero())
+	if (this->is_zero())
 		return _ex0;
 
-	// First, divide out the integer content (which we can calculate very efficiently).
-	// If the leading coefficient of the quotient is an integer, we are done.
-	ex c = e.integer_content();
-	ex r = e / c;
-	int deg = r.degree(x);
-	ex lcoef = r.coeff(x, deg);
-	if (lcoef.info(info_flags::integer))
-		return c;
-
-	// GCD of all coefficients
-	int ldeg = r.ldegree(x);
-	if (deg == ldeg)
-		return lcoef * c / lcoef.unit(x);
-	ex cont = _ex0; //???
-	for (int i=ldeg; i<=deg; i++)
-		cont = gcdpoly(r.coeff(x, i), cont, nullptr, nullptr, false);
-	return cont * c;
+	ex u, c, p;
+	unitcontprim(x, u, c, p);
+	return c;
 }
 
 
@@ -257,27 +242,23 @@ void ex::unitcontprim(const ex &x, ex &u, ex &c, ex &p) const
 		return;
 	}
 
-	// Expand input polynomial
-	ex e = expand();
-	if (e.is_zero()) {
-		u = _ex1;
-		c = p = _ex0;
-		return;
-	}
-
 	// Compute unit and content
 	u = unit(x);
-	c = content(x);
 
-	// Divide by unit and content to get primitive part
-	if (c.is_zero()) {
-		p = _ex0;
-		return;
-	}
-	if (is_exactly_a<numeric>(c))
-		p = *this / (c * u);
-	else
-		p = quo(e, c * u, x, false);
+        expairvec vec;
+        coefficients(x, vec);
+        c = vec[0].first;
+        for (const auto& pair : range(vec.begin()+1, vec.end())) {
+                c = gcdpoly(c, pair.first, nullptr, nullptr, false);
+        }
+
+        p = _ex0;
+        if (is_exactly_a<numeric>(c))
+                for (const auto& pair : vec)
+                        p += (pair.first / (c * u)) * pow(x, pair.second);
+        else
+                for (const auto& pair : vec)
+                        p += quo(pair.first, c * u, x, false) * pow(x, pair.second);
 }
 
 ex resultant(const ex & e1, const ex & e2, const ex & s)

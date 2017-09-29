@@ -22,6 +22,7 @@
 
 #include <Python.h>
 #include "ex.h"
+#include "ex_utils.h"
 #include "symbol.h"
 #include "add.h"
 #include "mul.h"
@@ -556,6 +557,16 @@ static bool match_monom(const ex& term, const symbol& symb,
         return false;
 }
 
+numeric ex::degree(const ex & s) const
+{
+        return bp->degree(s);
+}
+
+numeric ex::ldegree(const ex & s) const
+{
+        return bp->ldegree(s);
+}
+
 /**
  * Return in vec a list of pairs with (coefficient, exponent) of ex
  * when interpreted as polynomial in s (with s any expression).
@@ -626,6 +637,16 @@ void ex::coefficients(const ex & s, expairvec & vec) const
                 tmp_it = it;
         }
 
+}
+
+ex ex::lcoeff(const ex & s) const
+{
+        return coeff(s, degree(s));
+}
+
+ex ex::tcoeff(const ex & s) const
+{
+        return coeff(s, ldegree(s));
 }
 
 ex ex::deep_combine_fractions(ex e)

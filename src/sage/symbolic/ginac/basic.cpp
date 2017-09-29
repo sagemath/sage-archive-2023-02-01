@@ -22,6 +22,7 @@
 
 #include "basic.h"
 #include "ex.h"
+#include "ex_utils.h"
 #include "numeric.h"
 #include "power.h"
 #include "add.h"
@@ -333,13 +334,13 @@ bool basic::is_polynomial(const ex & var) const
 }
 
 /** Return degree of highest power in object s. */
-int basic::degree(const ex & s) const
+numeric basic::degree(const ex & s) const
 {
 	return is_equal(ex_to<basic>(s)) ? 1 : 0;
 }
 
 /** Return degree of lowest power in object s. */
-int basic::ldegree(const ex & s) const
+numeric basic::ldegree(const ex & s) const
 {
 	return is_equal(ex_to<basic>(s)) ? 1 : 0;
 }
@@ -380,7 +381,7 @@ ex basic::collect(const ex & s, bool distributed) const
 				ex key = _ex1;
                                 ex pre_coeff = xelem;
 				for (const auto & lelem : l) {
-					int cexp = pre_coeff.degree(lelem);
+					ex cexp = pre_coeff.degree(lelem);
 					pre_coeff = pre_coeff.coeff(lelem, cexp);
 					key *= pow(lelem, cexp);
 				}
@@ -410,10 +411,12 @@ ex basic::collect(const ex & s, bool distributed) const
 		}
 
 	} else {
-
 		// Only one object specified
-		for (int n=this->ldegree(s); n<=this->degree(s); ++n)
-			x += this->coeff(s,n)*power(s,n);
+                expairvec vec;
+                ex(*this).coefficients(s, vec);
+		for (const auto& term : vec)
+			x += term.first * power(s, term.second);
+                return x;
 	}
 	
 	// correct for lost fractional arguments and return

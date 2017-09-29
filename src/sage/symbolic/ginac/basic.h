@@ -228,8 +228,8 @@ public:
 
 	// degree/coeff
 	virtual bool is_polynomial(const ex & var) const;
-	virtual int degree(const ex & s) const;
-	virtual int ldegree(const ex & s) const;
+	virtual numeric degree(const ex & s) const;
+	virtual numeric ldegree(const ex & s) const;
 	virtual ex coeff(const ex & s, const ex & n) const;
 
 	// expand/collect

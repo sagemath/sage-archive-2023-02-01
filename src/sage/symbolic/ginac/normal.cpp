@@ -30,6 +30,7 @@
 #include "normal.h"
 #include "basic.h"
 #include "ex.h"
+#include "ex_utils.h"
 #include "add.h"
 #include "constant.h"
 #include "expairseq.h"

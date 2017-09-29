@@ -49,8 +49,8 @@ public:
 	unsigned precedence() const override {return 40;}
 	bool info(unsigned inf) const override;
 	bool is_polynomial(const ex & var) const override;
-	int degree(const ex & s) const override;
-	int ldegree(const ex & s) const override;
+	numeric degree(const ex & s) const override;
+	numeric ldegree(const ex & s) const override;
 	ex coeff(const ex & s, const ex & n) const override;
 	ex eval(int level=0) const override;
 	ex series(const relational & r, int order, unsigned options = 0) const override;

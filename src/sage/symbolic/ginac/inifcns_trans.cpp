@@ -22,6 +22,7 @@
 
 #include "inifcns.h"
 #include "ex.h"
+#include "ex_utils.h"
 #include "lst.h"
 #include "constant.h"
 #include "infinity.h"
@@ -322,7 +323,8 @@ static ex log_series(const ex &arg,
 
 		const symbol &s = ex_to<symbol>(rel.lhs());
 		const ex &point = rel.rhs();
-		const int n = argser.ldegree(s);
+		const numeric &num = argser.ldegree(s);
+                long n = num.to_long();
 		epvector seq;
 		// construct what we carelessly called the n*log(x) term above
 		const ex coeff = argser.coeff(s, n);
@@ -336,7 +338,7 @@ static ex log_series(const ex &arg,
 		if (!argser.is_terminating() || argser.nops()!=1) {
 			// in this case n more (or less) terms are needed
 			// (sadly, to generate them, we have to start from the beginning)
-			if (n == 0 && coeff == 1) {
+			if (n == 0 and coeff.is_integer_one()) {
 				epvector epv;
 				ex acc = (new pseries(rel, epv))->setflag(status_flags::dynallocated);
 				epv.reserve(2);

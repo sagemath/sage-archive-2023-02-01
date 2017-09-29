@@ -322,33 +322,31 @@ bool add::is_polynomial(const ex & var) const
 	return true;
 }
 
-int add::degree(const ex & s) const
+numeric add::degree(const ex & s) const
 {
-	int deg = std::numeric_limits<int>::min();
-	if (!overall_coeff.is_zero())
-		deg = 0;
-	
+	numeric deg(seq[0].rest.degree(s));
 	// Find maximum of degrees of individual terms
-        for (const auto & elem : seq) {
-		int cur_deg = elem.rest.degree(s);
-		if (cur_deg > deg)
-			deg = cur_deg;
+        for (const auto & elem : range(seq.begin()+1, seq.end())) {
+		const numeric& t = elem.rest.degree(s);
+                if (t > deg)
+                        deg = t;
 	}
+        if (deg.is_negative() and not overall_coeff.is_zero())
+                return *_num0_p;
 	return deg;
 }
 
-int add::ldegree(const ex & s) const
+numeric add::ldegree(const ex & s) const
 {
-	int deg = std::numeric_limits<int>::max();
-	if (!overall_coeff.is_zero())
-		deg = 0;
-	
+	numeric deg(seq[0].rest.ldegree(s));
 	// Find minimum of degrees of individual terms
-        for (const auto & elem : seq) {
-		int cur_deg = elem.rest.ldegree(s);
-		if (cur_deg < deg)
-			deg = cur_deg;
+        for (const auto & elem : range(seq.begin()+1, seq.end())) {
+		const numeric& t = elem.rest.ldegree(s);
+                if (t < deg)
+                        deg = t;
 	}
+        if (deg.is_positive() and not overall_coeff.is_zero())
+                return *_num0_p;
 	return deg;
 }
 

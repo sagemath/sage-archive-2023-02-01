@@ -363,7 +363,7 @@ static matrix solve_system(ex mpoly,
         if (not is_exactly_a<add>(mpoly))
                 throw gosper_domain_error();
         ex_int_map sym_idx;
-        const size_t nc = syms.size(), nr = mpoly.degree(msym) + 1;
+        const size_t nc = syms.size(), nr = mpoly.degree(msym).to_int() + 1;
         for (size_t i=0; i<nc; ++i)
                 sym_idx[syms[i]] = i;
         exmap zero_syms;
@@ -429,10 +429,10 @@ static bool check_root(const matrix& M,
 static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
                 const ex& s, const symbol& v)
 {
-	const int h1 = ee1.degree(s);
-	const int l1 = ee1.ldegree(s);
-	const int h2 = ee2.degree(s);
-	const int l2 = ee2.ldegree(s);
+	const int h1 = ee1.degree(s).to_int();
+	const int l1 = ee1.ldegree(s).to_int();
+	const int h2 = ee2.degree(s).to_int();
+	const int l2 = ee2.ldegree(s).to_int();
         symbolset s1 = ee1.symbols();
         const symbolset& s2 = ee2.symbols();
         s1.insert(s2.begin(), s2.end());
@@ -509,9 +509,9 @@ ex gosper_term(ex e, ex n)
         A = (A * ldq).normal(0, true, false);
         B = B.subs(n == n-1).expand();
         C = C.expand();
-        int N = A.degree(n);
-        int M = B.degree(n);
-        int K = C.degree(n);
+        int N = A.degree(n).to_int();
+        int M = B.degree(n).to_int();
+        int K = C.degree(n).to_int();
         std::unordered_set<int> D;
         if (N != M or not A.lcoeff(n).is_equal(B.lcoeff(n)))
                 D.insert(K - std::max(M,N));

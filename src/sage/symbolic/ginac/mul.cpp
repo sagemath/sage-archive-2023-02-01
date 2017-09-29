@@ -571,12 +571,12 @@ bool mul::is_polynomial(const ex & var) const
 	return true;
 }
 
-int mul::degree(const ex & s) const
+numeric mul::degree(const ex & s) const
 {
 	// Sum up degrees of factors
-	int deg_sum = 0;
+	numeric deg_sum(0);
         for (const auto & elem : seq)
-		if (ex_to<numeric>(elem.coeff).is_integer())
+		if (ex_to<numeric>(elem.coeff).is_real())
 			deg_sum += recombine_pair_to_ex(elem).degree(s);
 		else {
 			if (elem.rest.has(s))
@@ -585,12 +585,12 @@ int mul::degree(const ex & s) const
 	return deg_sum;
 }
 
-int mul::ldegree(const ex & s) const
+numeric mul::ldegree(const ex & s) const
 {
 	// Sum up degrees of factors
-	int deg_sum = 0;
+	numeric deg_sum(0);
         for (const auto & elem : seq)
-		if (ex_to<numeric>(elem.coeff).is_integer())
+		if (ex_to<numeric>(elem.coeff).is_real())
 			deg_sum += recombine_pair_to_ex(elem).ldegree(s);
 		else {
 			if (elem.rest.has(s))

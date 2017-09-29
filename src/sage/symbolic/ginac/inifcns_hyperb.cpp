@@ -25,6 +25,7 @@
 
 #include "inifcns.h"
 #include "ex.h"
+#include "ex_utils.h"
 #include "constant.h"
 #include "infinity.h"
 #include "numeric.h"

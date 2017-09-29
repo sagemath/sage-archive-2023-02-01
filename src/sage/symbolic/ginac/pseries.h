@@ -46,8 +46,8 @@ public:
 	unsigned precedence() const override {return 38;} // for clarity just below add::precedence
 	size_t nops() const override;
 	const ex op(size_t i) const override;
-	int degree(const ex &s) const override;
-	int ldegree(const ex &s) const override;
+	numeric degree(const ex &s) const override;
+	numeric ldegree(const ex &s) const override;
 	ex coeff(const ex &s, const ex & n) const override;
 	ex collect(const ex &s, bool distributed = false) const override;
 	ex eval(int level=0) const override;

@@ -39,7 +39,7 @@ pole_error::pole_error(const std::string& what_arg, int a_degree)
 	: domain_error(what_arg), deg(a_degree) { }
 
 /** Return the degree of the pole_error exception class. */
-int pole_error::degree() const
+numeric pole_error::degree() const
 {
 	return deg;
 }

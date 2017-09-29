@@ -75,6 +75,7 @@ from sage.rings.all import ZZ, QQ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
+from sage.combinat.set_partition import SetPartitions
 from sage.misc.latex import latex
 
 open_symbol = 1
@@ -218,7 +219,7 @@ class DyckWord(CombinatorialElement):
         sage: dw.height()
         1
         sage: dw.to_noncrossing_partition()
-        [[1], [2]]
+        {{1}, {2}}
 
     ::
 
@@ -2220,33 +2221,33 @@ class DyckWord_complete(DyckWord):
         EXAMPLES::
 
             sage: DyckWord([]).to_noncrossing_partition()
-            []
+            {}
             sage: DyckWord([1, 0]).to_noncrossing_partition()
-            [[1]]
+            {{1}}
             sage: DyckWord([1, 1, 0, 0]).to_noncrossing_partition()
-            [[1, 2]]
+            {{1, 2}}
             sage: DyckWord([1, 1, 1, 0, 0, 0]).to_noncrossing_partition()
-            [[1, 2, 3]]
+            {{1, 2, 3}}
             sage: DyckWord([1, 0, 1, 0, 1, 0]).to_noncrossing_partition()
-            [[1], [2], [3]]
+            {{1}, {2}, {3}}
             sage: DyckWord([1, 1, 0, 1, 0, 0]).to_noncrossing_partition()
-            [[2], [1, 3]]
+            {{1, 3}, {2}}
             sage: DyckWord([]).to_noncrossing_partition("Stump")
-            []
+            {}
             sage: DyckWord([1, 0]).to_noncrossing_partition("Stump")
-            [[1]]
+            {{1}}
             sage: DyckWord([1, 1, 0, 0]).to_noncrossing_partition("Stump")
-            [[1, 2]]
+            {{1, 2}}
             sage: DyckWord([1, 1, 1, 0, 0, 0]).to_noncrossing_partition("Stump")
-            [[1, 3], [2]]
+            {{1, 3}, {2}}
             sage: DyckWord([1, 0, 1, 0, 1, 0]).to_noncrossing_partition("Stump")
-            [[1], [2], [3]]
+            {{1}, {2}, {3}}
             sage: DyckWord([1, 1, 0, 1, 0, 0]).to_noncrossing_partition("Stump")
-            [[1, 2, 3]]
+            {{1, 2, 3}}
         """
+        P = SetPartitions(self.semilength())
         if bijection == "Stump":
-            return [[v for v in c]
-                    for c in self.to_noncrossing_permutation().cycle_tuples()]
+            return P(self.to_noncrossing_permutation().cycle_tuples())
         partition = []
         stack = []
         i = 0
@@ -2279,7 +2280,7 @@ class DyckWord_complete(DyckWord):
         if stack:
             raise ValueError("incorrect Dyck word")
 
-        return partition
+        return P(partition)
 
     def to_Catalan_code(self):
         r"""

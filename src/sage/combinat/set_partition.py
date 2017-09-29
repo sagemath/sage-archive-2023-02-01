@@ -1394,13 +1394,13 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         return True
 
-    def _element_constructor_(self, s):
+    def _element_constructor_(self, s, check=True):
         """
         Construct an element of ``self`` from ``s``.
 
         INPUT:
 
-        - ``s`` -- A set of sets
+        - ``s`` -- a set of sets
 
         EXAMPLES::
 
@@ -1415,12 +1415,10 @@ class SetPartitions(UniqueRepresentation, Parent):
             {}
         """
         if isinstance(s, SetPartition):
-            if s.parent() is self:
-                return s
             if isinstance(s.parent(), SetPartitions):
-                return self.element_class(self, list(s))
+                return self.element_class(self, list(s), check=check)
             raise ValueError("cannot convert %s into an element of %s"%(s, self))
-        return self.element_class(self, s)
+        return self.element_class(self, s, check=check)
 
     Element = SetPartition
 

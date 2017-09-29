@@ -293,7 +293,7 @@ def possible_mu0s(SUK,v):
 
     .. NOTE::
 
-        `n_0` is the valuation of the coefficient `\alpha_d` of the `S`-unit equation such that `|\alpha_d \tau_d|_v = 0`
+        `n_0` is the valuation of the coefficient `\alpha_d` of the `S`-unit equation such that `|\alpha_d \tau_d|_v = 1`
         We have set `n_0 = 0` here since the coefficients are roots of unity
         `\alpha_0` is not defined in the paper, we set it to be 1
 

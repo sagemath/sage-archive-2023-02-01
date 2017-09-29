@@ -303,9 +303,9 @@ conditions:
 
 * there is a positive integer `r` such that `DU = UD + rI` on the
   free `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of `Q`,
-  assigning to each vertex its predecessor, `U` is the up operator of
-  `P`, assigning to each vertex the formal sum of its successors, and
-  `I` is the identity operator.
+  assigning to each vertex the formal sum of its predecessors, `U` is
+  the up operator of `P`, assigning to each vertex the formal sum of
+  its successors, and `I` is the identity operator.
 
 Note that the condition `DU = UD + rI` is symmetric with respect to
 the interchange of the graphs `P` and `Q`, because the up operator of
@@ -508,9 +508,10 @@ class GrowthDiagram(SageObject):
 
     * there is a positive integer `r` such that `DU = UD + rI` on the
       free `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of
-      `Q`, assigning to each vertex its predecessor, `U` is the up
-      operator of `P`, assigning to each vertex the formal sum of its
-      successors, and `I` is the identity operator.
+      `Q`, assigning to each vertex the formal sum of its
+      predecessors, `U` is the up operator of `P`, assigning to each
+      vertex the formal sum of its successors, and `I` is the
+      identity operator.
 
     Growth diagrams are defined by providing a pair of local rules: a
     'forward' rule, whose input are three vertices `y`, `t` and `x`
@@ -1650,9 +1651,10 @@ class Rule(UniqueRepresentation):
 
         `P` and `Q` are `r`-dual if `DU = UD + rI` on the free
         `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of `Q`,
-        assigning to each vertex its predecessor, `U` is the up
-        operator of `P`, assigning to each vertex the formal sum of
-        its successors, and `I` is the identity operator.
+        assigning to each vertex the formal sum of its predecessor,
+        `U` is the up operator of `P`, assigning to each vertex the
+        formal sum of its successors, and `I` is the identity
+        operator.
 
         INPUT:
 

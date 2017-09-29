@@ -542,7 +542,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: type(f.as_dynamical_system())
             <class 'sage.dynamics.arithmetic_dynamics.projective_ds.DynamicalSystem_projective_finite_field'>
         """
-        if not self.domain() == self.codomain():
+        if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective_field

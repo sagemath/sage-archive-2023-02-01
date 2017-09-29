@@ -304,11 +304,16 @@ conditions:
 * there is a positive integer `r` such that `DU = UD + rI` on the
   free `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of `Q`,
   assigning to each vertex its predecessor, `U` is the up operator of
-  `P` (assigning to each vertex the formal sum of its successors),
-  and `I` is the identity operator.
+  `P`, assigning to each vertex the formal sum of its successors, and
+  `I` is the identity operator.
 
-For example, taking for both `P` and `Q` to be Young's lattice and `r=1`,
-we obtain the dual graded graphs for classical Schensted insertion.
+Note that the condition `DU = UD + rI` is symmetric with respect to
+the interchange of the graphs `P` and `Q`, because the up operator of
+a graph is the transpose of its down operator.
+
+For example, taking for both `P` and `Q` to be Young's lattice and
+`r=1`, we obtain the dual graded graphs for classical Schensted
+insertion.
 
 Given such a pair of graphs, there is a bijection between the
 `r`-colored permutations on `k` letters and pairs `(p, q)`, where `p`
@@ -384,7 +389,9 @@ Are they really dual? ::
     sage: RulePascal()._check_duality(3)
     Traceback (most recent call last):
     ...
-    ValueError: D U - U D differs from 1 I for vertex 3
+    ValueError: D U - U D differs from 1 I for vertex 3:
+    D U = [3]
+    U D + 1 I = [3, 3]
 
 With our current definition, duality fails - in fact, there are no
 dual graded graphs on the integers without multiple edges.
@@ -499,11 +506,11 @@ class GrowthDiagram(SageObject):
 
     * there is a vertex `0` with rank zero, and
 
-    * there is a positive integer `r` such that `DU = UD + rI`, where
-      `D` is the down operator (on the free `\ZZ`-module of formal
-      sums of vertices) of `Q`, assigning each vertex its
-      predecessor, `U` is the up operator of `P`, assigning each
-      vertex its successors, and `I` is the identity operator.
+    * there is a positive integer `r` such that `DU = UD + rI` on the
+      free `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of
+      `Q`, assigning to each vertex its predecessor, `U` is the up
+      operator of `P`, assigning to each vertex the formal sum of its
+      successors, and `I` is the identity operator.
 
     Growth diagrams are defined by providing a pair of local rules: a
     'forward' rule, whose input are three vertices `y`, `t` and `x`
@@ -654,15 +661,15 @@ class GrowthDiagram(SageObject):
         else:
             self._filling, (self._lambda, self._mu) = self._process_filling_and_shape(filling, shape)
 
-            if labels is not None:
-                labels = self._process_labels(labels)
-                self._in_labels = labels
-            else:
+            if labels is None:
                 rule = self.rule
                 if rule.has_multiple_edges:
                     self._in_labels = [rule.zero, rule.zero_edge]*(self.half_perimeter()-1) + [rule.zero]
                 else:
                     self._in_labels = [rule.zero] * self.half_perimeter()
+            else:
+                labels = self._process_labels(labels)
+                self._in_labels = labels
 
             self._check_labels(self._in_labels)
             self._grow()
@@ -1641,17 +1648,40 @@ class Rule(UniqueRepresentation):
         r"""
         Raise an error if the graphs are not `r`-dual at level ``n``.
 
+        `P` and `Q` are `r`-dual if `DU = UD + rI` on the free
+        `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of `Q`,
+        assigning to each vertex its predecessor, `U` is the up
+        operator of `P`, assigning to each vertex the formal sum of
+        its successors, and `I` is the identity operator.
+
         INPUT:
 
         - ``n`` -- a positive integer specifying which rank of
           the graph to test
 
-        TESTS:
+        EXAMPLES:
 
         For binary words, we have indeed provided dual graded graphs::
 
             sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
             sage: BinaryWord._check_duality(3)
+
+        The following two graphs are not `1`-dual::
+
+            sage: from sage.combinat.growth import Rule
+            sage: class RuleWrong(Rule):
+            ....:     def vertices(self, n): return Partitions(n)
+            ....:     def is_Q_edge(self, v, w):
+            ....:         return (v, w) in [([1],[2]), ([2],[3])]
+            ....:     def is_P_edge(self, v, w):
+            ....:         return (v, w) in [([1],[2]), ([1],[1,1]), ([2],[3])]
+
+            sage: RuleWrong()._check_duality(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: D U - U D differs from 1 I for vertex [2]:
+            D U = [[2]]
+            U D + 1 I = [[1, 1], [2], [2]]
         """
         if self.has_multiple_edges:
             def check_vertex(w, P, Q):
@@ -1659,19 +1689,25 @@ class Rule(UniqueRepresentation):
                 UDw = [v[1] for lw in Q.incoming_edges(w) for v in P.outgoing_edges(lw[0])]
                 UDw.extend([w]*self.r)
                 if sorted(DUw) != sorted(UDw):
-                    raise ValueError("D U - U D differs from %s I for vertex %s" % (self.r, w))
+                    raise ValueError("D U - U D differs from %s I for vertex %s:\n"
+                                     "D U = %s\n"
+                                     "U D + %s I = %s"
+                                     % (self.r, w, DUw, self.r, UDw))
         else:
             def check_vertex(w, P, Q):
                 DUw = [v for uw in P.upper_covers(w) for v in Q.lower_covers(uw)]
                 UDw = [v for lw in Q.lower_covers(w) for v in P.upper_covers(lw)]
                 UDw.extend([w]*self.r)
                 if sorted(DUw) != sorted(UDw):
-                    raise ValueError("D U - U D differs from %s I for vertex %s" % (self.r, w))
+                    raise ValueError("D U - U D differs from %s I for vertex %s:\n"
+                                     "D U = %s\n"
+                                     "U D + %s I = %s"
+                                     % (self.r, w, DUw, self.r, UDw))
 
         P = self.P_graph(n + 2)
         Q = self.Q_graph(n + 2)
         for w in self.vertices(n):
-            check_vertex(w, Q, P)
+            check_vertex(w, P, Q)
 
     def P_graph(self, n):
         r"""
@@ -4247,4 +4283,3 @@ def GrowthDiagramSylvester(filling=None, shape=None, labels=None):
     from sage.misc.superseded import deprecation
     deprecation(23319, "GrowthDiagramSylvester is deprecated; use GrowthDiagram with the Sylvester rule instead")
     return GrowthDiagram(RuleSylvester(), filling, shape, labels)
-

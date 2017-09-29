@@ -3241,10 +3241,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         else:
             other_new = other
 
-        if self.gens() == other_new.gens():
+        if set(self.gens()) == set(other_new.gens()):
             return rich_to_bool(op, 0)
 
-        # comparison for <= and <
+        # comparison for <=
         # needs just the Groebner basis for other
         if op == op_LE:
             l = self.gens()
@@ -3265,7 +3265,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 r = other_new.groebner_basis()
             return all(f.reduce(r) == 0 for f in l)
 
-        # comparison for == and !=
+        # comparison for == and != and <
         # needs both groebner bases for the same term order
         # first check whether the GBs are cached already
         if op in [op_EQ, op_NE, op_LT]:

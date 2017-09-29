@@ -240,6 +240,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         baby-step giant-step algorithm for products of cyclic groups.
 
         EXAMPLES::
+
             sage: G = AdditiveAbelianGroup([5, 5**2, 5**4, 5**4])
             sage: (a, b, c, d) = gs = G.gens()
             sage: A = AdditiveAbelianGroupWrapper(a.parent(), gs, [g.order() for g in gs])

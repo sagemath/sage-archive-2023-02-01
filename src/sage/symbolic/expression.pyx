@@ -145,7 +145,8 @@ from . import ring
 import sage.rings.integer
 import sage.rings.rational
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
-from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.structure.element cimport ModuleElement, RingElement, Element, \
+  classify_elements, HAVE_SAME_PARENT, BOTH_ARE_ELEMENT, coercion_model
 from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
@@ -3901,11 +3902,11 @@ cdef class Expression(CommutativeRingElement):
             sage: None^pi
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
+            TypeError: unsupported operand type(s) for ** or pow(): 'NoneType' and 'sage.symbolic.expression.Expression'
             sage: sin(x)^None
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
+            TypeError: unsupported operand type(s) for ** or pow(): 'sage.symbolic.expression.Expression' and 'NoneType'
 
         Check that :trac:`18088` is fixed::
 
@@ -3926,26 +3927,35 @@ cdef class Expression(CommutativeRingElement):
             0.000000000000000
             sage: exp(x)^1.0
             (e^x)^1.00000000000000
+
+        Check that :trac:`23921` is resolved::
+
+            sage: A.<n> = AsymptoticRing('SR^n * n^SR', SR)
+            sage: elem = SR(2)^n
+            sage: (elem, elem.parent())
+            (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
         """
         cdef Expression base, nexp
 
-        try:
-            # self is an Expression and exp might not be
-            base = <Expression?>self
-        except TypeError:
-            # exp is an Expression and self might not be
-            nexp = <Expression?>exp
-            base = nexp.coerce_in(self)
-        else:
-            nexp = base.coerce_in(exp)
+        cdef int cl = classify_elements(self, exp)
         cdef GEx x
-        if is_a_relational(base._gobj):
-            x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
-                           g_pow(base._gobj.rhs(), nexp._gobj),
-                           relational_operator(base._gobj))
-        else:
-            x = g_pow(base._gobj, nexp._gobj)
-        return new_Expression_from_GEx(base._parent, x)
+        if HAVE_SAME_PARENT(cl):
+            base = <Expression>self
+            nexp = <Expression>exp
+            if is_a_relational(base._gobj):
+                x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
+                               g_pow(base._gobj.rhs(), nexp._gobj),
+                               relational_operator(base._gobj))
+            else:
+                x = g_pow(base._gobj, nexp._gobj)
+            return new_Expression_from_GEx(base._parent, x)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(self, exp, pow)
+
+        try:
+            return coercion_model.bin_op(self, exp, pow)
+        except TypeError:
+            return NotImplemented
 
     def derivative(self, *args):
         """

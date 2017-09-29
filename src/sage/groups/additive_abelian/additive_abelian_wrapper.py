@@ -226,9 +226,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         return sum([self._gen_elements[i] * ZZ(v[i]) for i in range(len(v))], self.universe()(0))
 
     def _discrete_log_pgroup(self, p, aa, b):
-        from sage.arith.misc import valuation
-        from sage.functions.other import ceil, sqrt
-        from itertools import product as iproduct
         r"""
         Attempt to express an element of p-power order in terms of
         generators of a p-subgroup of self.
@@ -249,6 +246,9 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: A._discrete_log_pgroup(5, gs, a + 17 * b + 123 * c + 456 * d)
             (1, 17, 123, 456)
         """
+        from sage.arith.misc import valuation
+        from sage.functions.other import ceil, sqrt
+        from itertools import product as iproduct
 
         vals = [valuation(a.order(), p) for a in aa]
         qq = lambda j, k: vector(p ** (j + max(0, v - k)) for a, v in zip(aa, vals))

@@ -429,6 +429,11 @@ REFERENCES:
             cryptography,
             pp. 81-90. 2011. https://hal.inria.fr/inria-00607341/document
 
+.. [BS2012] Jonathan Bloom and Dan Saracino, *Modified growth
+            diagrams, permutation pivots, and the BWX map `Phi^*`*,
+            Journal of Combinatorial Theory, Series A Volume 119,
+            Number 6 (2012), pp. 1280-1298.
+
 .. [BSS2009] David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
              Polyhedral representation conversion up to symmetries,
              Proceedings of the 2006 CRM workshop on polyhedral
@@ -886,6 +891,14 @@ REFERENCES:
              Conjugating Sets and Automorphism Groups of Rational Functions.
              Journal of Algebra, 423 (2014), 1161-1190.
 
+.. [Fom1994] Sergey V. Fomin, "Duality of graded graphs". Journal of
+             Algebraic Combinatorics Volume 3, Number 4 (1994),
+             pp. 357-404.
+
+.. [Fom1995] Sergey V. Fomin, "Schensted algorithms for dual graded
+             graphs". Journal of Algebraic Combinatorics Volume 4,
+             Number 1 (1995), pp. 5-45.
+
 .. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
              Kirillov-Reshetikhin crystals for nonexceptional types*.
              Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
@@ -1102,6 +1115,10 @@ REFERENCES:
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
+
+.. [HN2006] Florent Hivert and Janvier Nzeutchap. *Dual Graded Graphs
+            in Combinatorial Hopf Algebras*.
+            https://www.lri.fr/~hivert/PAPER/commCombHopfAlg.pdf
 
 .. [HP2003] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
             Codes, Cambridge Univ. Press, 2003.
@@ -1342,6 +1359,11 @@ REFERENCES:
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at http://arxiv.org/abs/math/0106043
 
+.. [Kra2006] Christian Krattenthaler.  *Growth diagrams, and
+             increasing and decreasing chains in fillings of Ferrers
+             shapes*.  Advances in Applied Mathematics Volume 37,
+             Number 3 (2006), pp. 404-431.
+
 .. [Kr1971] \D. Kraines, "On excess in the Milnor basis," Bull. London
             Math. Soc. 3 (1971), 363-365.
 
@@ -1398,6 +1420,10 @@ REFERENCES:
 
 **L**
 
+.. [Lam2004] Thomas Lam, *Growth diagrams, domino insertion and
+             sign-imbalance*.  Journal of Combinatorial Theory,
+             Series A Volume 107, Number 1 (2004), pp. 87-115.
+
 .. [Lam2005] \T. Lam, Affine Stanley symmetric functions,
              Amer. J. Math.  128 (2006), no. 6, 1553--1586.
 
@@ -1422,6 +1448,11 @@ REFERENCES:
 .. [LdB1982] \A. Liberato de Brito, 'FORTRAN program for the integral
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
+
+.. [Lee1996] Marc van Leeuwen.  *The Robinson-Schensted and
+             Sch\"utzenberger algorithms, an elementary approach*.
+             Electronic Journal of Combinatorics 3, no. 2 (1996):
+             Research Paper 15, approx. 32 pp. (electronic)
 
 .. [Lee1997] \J. M. Lee, *Riemannian Manifolds*, Springer (New York) (1997);
              :doi:`10.1007/b98852`
@@ -1469,6 +1500,11 @@ REFERENCES:
 .. [LLZ2014] \K. Lee, \L. Li, and \A. Zelevinsky, *Greedy elements in rank 2
              cluster algebras*, Selecta Math. 20 (2014), 57-82.
 
+.. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne
+                Schilling, Mark Shimozono and Mike Zabrocki.
+                *k-Schur functions and affine Schubert calculus*.
+                https://arxiv.org/pdf/1301.3569.pdf
+
 .. [LM2006] Vadim Lyubashevsky and Daniele Micciancio. Generalized
             compact knapsacks are collision resistant. ICALP,
             pp. 144--155, Springer, 2006.
@@ -1501,6 +1537,10 @@ REFERENCES:
              Ideal Lattices and Learning with Errors over Rings. in
              Advances in Cryptology --
              EUROCRYPT 2010. Springer 2010. :doi:`10.1007/978-3-642-13190-5_1`
+
+.. [LS2007] Thomas Lam and Mark Shimozono.  *Dual graded graphs for
+            Kac-Moody algebras*.  Algebra & Number Theory 1.4 (2007)
+            pp. 451-488.
 
 .. [LSS2009] \T. Lam, A. Schilling, M. Shimozono. *Schubert
              polynomials for the affine Grassmannian of the symplectic
@@ -1685,6 +1725,10 @@ REFERENCES:
             Contemp. Math., vol. 565, Amer. Math. Soc.,
             Providence, RI, 2012, pp.  217-226.
 
+.. [Nze2007] Janvier Nzeutchap.  *Binary Search Tree insertion, the
+             Hypoplactic insertion, and Dual Graded Graphs*.
+             :arXiv:`0705.2689` (2007).
+
 .. _ref-O:
 
 **O**
@@ -1856,6 +1900,11 @@ REFERENCES:
               polynomials. Mathematical Programming, Series B,
               129 (2011) 5-31.
 
+.. [Rob1991] Tom Roby, "Applications and extensions of Fomin's
+             generalization of the Robinson-Schensted correspondence
+             to differential posets".  Ph.D. Thesis, M.I.T.,
+             Cambridge, Massachusetts, 1991.
+
 .. [Roc1970] \R.T. Rockafellar, *Convex Analysis*. Princeton
              University Press, Princeton, 1970.
 
@@ -1884,6 +1933,11 @@ REFERENCES:
 .. [Saa2011] \M-J. O. Saarinen,
              *Cryptographic Analysis of All 4 x 4-Bit S-Boxes*; in
              SAC, (2011), pp. 118-133.
+
+.. [Sag1987] Bruce E. Sagan.  *Shifted tableaux, Schur Q-functions,
+             and a conjecture of R. Stanley*.  Journal of
+             Combinatorial Theory, Series A Volume 45 (1987),
+             pp. 62-103.
 
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.
@@ -2141,6 +2195,11 @@ REFERENCES:
 
 .. [Ver] Helena Verrill, "Fundamental domain drawer", Java program,
          http://www.math.lsu.edu/~verrill/
+
+.. [Vie1983] Xavier G. Viennot.  *Maximal chains of subwords and
+             up-down sequences of permutations*.  Journal of
+             Combinatorial Theory, Series A Volume 34, (1983),
+             pp. 1-14.
 
 .. [VJ2004] \S. Vaudenay and P. Junod,
             *Device and method for encrypting and decryptiong a block of data

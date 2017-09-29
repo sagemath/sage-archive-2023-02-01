@@ -2245,9 +2245,9 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord([1, 1, 0, 1, 0, 0]).to_noncrossing_partition("Stump")
             {{1, 2, 3}}
         """
-        P = SetPartitions(self.semilength())
+        P = SetPartitions(len(self) // 2)
         if bijection == "Stump":
-            return P(self.to_noncrossing_permutation().cycle_tuples())
+            return P(self.to_noncrossing_permutation().cycle_tuples(), check=False)
         partition = []
         stack = []
         i = 0
@@ -2280,7 +2280,7 @@ class DyckWord_complete(DyckWord):
         if stack:
             raise ValueError("incorrect Dyck word")
 
-        return P(partition)
+        return P(partition, check=False)
 
     def to_Catalan_code(self):
         r"""

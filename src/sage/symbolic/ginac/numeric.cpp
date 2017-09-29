@@ -2630,7 +2630,7 @@ static std::map<long,std::pair<int,int>> small_powers;
 static void fill_small_powers()
 {
         static int lim[] = {30, 18, 15, 12, 11, 10, 10, 9, 9};
-        for (size_t b = 2; b < sizeof(lim)/sizeof(int) + 2; ++b) {
+        for (size_t b = sizeof(lim)/sizeof(int) + 1; b >= 2; --b) {
                 long p = b*b;
                 int c = 2;
                 while (c <= lim[b-2]) {

@@ -129,9 +129,9 @@ class SetPartition(ClonableArray):
             Set partitions
         """
         P = SetPartitions()
-        return P.element_class(P, parts)
+        return P.element_class(P, parts, check=check)
 
-    def __init__(self, parent, s):
+    def __init__(self, parent, s, check=True):
         """
         Initialize ``self``.
 
@@ -144,7 +144,7 @@ class SetPartition(ClonableArray):
             {}
         """
         self._latex_options = {}
-        ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min))
+        ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min), check=check)
 
     def check(self):
         """

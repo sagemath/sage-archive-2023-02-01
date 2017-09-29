@@ -53,10 +53,11 @@ the desired rule and a permutation to :class:`GrowthDiagram`::
     0  0  0  0  0  1
     0  0  1  0  0  0
 
-The forward rule just mentioned assigns partitions to the corners of
-each of the 36 cells of this matrix, with the exception of the
-corners on the left and top boundary, which are initialized with the
-empty partition.  More precisely, for each cell, the
+The forward rule just mentioned assigns 49 partitions to the corners
+of each of the 36 cells of this matrix (i.e., 49 the vertices of a
+`(6+1) \times (6+1)` grid graph), with the exception of the corners
+on the left and top boundary, which are initialized with the empty
+partition. More precisely, for each cell, the
 :meth:`~sage.combinat.growth.RuleRSK.forward_rule` computes the
 partition `z` labelling the lower right corner, given the content `c`
 of a cell and the other three partitions::
@@ -95,7 +96,7 @@ to split this sequence of labels in two.  Interpreting the sequence
 of partitions along the right boundary as a standard Young tableau,
 we then obtain the so-called
 :meth:`~sage.combinat.growth.RulePartitions.P_symbol`, the partitions
-along the bottom boundary yield the
+along the bottom boundary yield the so-called
 :meth:`~sage.combinat.growth.RulePartitions.Q_symbol`.  These
 coincide with the output of the classical
 :func:`~sage.combinat.rsk.RSK` insertion algorithm::
@@ -124,23 +125,13 @@ these labels instead of the filling::
 Invocation
 ----------
 
-We now describe several ways to initialize a growth diagram.  Let us
-first mention that, to save typing, one can pass the arguments
-specifying a growth diagram directly to the rule::
-
-    sage: RuleRSK([3,1,2])
-    0  1  0
-    0  0  1
-    1  0  0
-
 In general, growth diagrams are defined for `0-1`-fillings of
 arbitrary skew shapes.  In the case of the Robinson-Schensted-Knuth
 correspondence, even arbitrary non-negative integers are allowed.  In
 other cases, entries may be either zero or an `r`-th root of unity -
 for example, :class:`~sage.combinat.growth.RuleDomino` insertion is
-defined for signed permutations, that is, `r=2`.  Traditionally, also
-words and permutations are also used to specify a filling in special
-cases.
+defined for signed permutations, that is, `r=2`.  Traditionally, words
+and permutations are also used to specify a filling in special cases.
 
 To accommodate all this, the filling may be passed in various ways.
 The most general possibility is to pass a dictionary of coordinates
@@ -154,10 +145,14 @@ For example, consider the following generalized permutation::
     1 2 2 2 4 4
     4 2 3 3 2 3
 
-Subtracting `1` from all entries to obtain coordinates, with
+that we encode as the dictionary::
+
+    sage: P = {(1-1,4-1): 1, (2-1,2-1): 1, (2-1,3-1): 2, (4-1,2-1): 1, (4-1,3-1): 1}
+
+Note that we are subtracting `1` from all entries because of
 zero-based indexing, we obtain::
 
-    sage: RuleRSK({(1-1,4-1): 1, (2-1,2-1): 1, (2-1,3-1): 2, (4-1,2-1): 1, (4-1,3-1): 1})
+    sage: GrowthDiagram(RuleRSK, P)
     0  0  0  0
     0  1  0  1
     0  2  0  1
@@ -166,18 +161,27 @@ zero-based indexing, we obtain::
 Alternatively, we could create the same growth diagram using a
 matrix.
 
+Let us also mention that one can pass the arguments specifying
+a growth diagram directly to the rule::
+
+    sage: RuleRSK(P)
+    0  0  0  0
+    0  1  0  1
+    0  2  0  1
+    1  0  0  0
+
 In contrast to the classical insertion algorithms, growth diagrams
 immediately generalize to fillings whose shape is an arbitrary skew
 partition::
 
-    sage: RuleRSK([3,1,2], shape=SkewPartition([[3,3,2],[1,1]]))
+    sage: GrowthDiagram(RuleRSK, [3,1,2], shape=SkewPartition([[3,3,2],[1,1]]))
     .  1  0
     .  0  1
     1  0
 
 As an important example, consider the Stanley-Sundaram correspondence
 between oscillating tableaux and (partial) perfect matchings.
-Perfect matchings of `\{1,...,2r\}` are in bijection with
+Perfect matchings of `\{1, \ldots, 2r\}` are in bijection with
 `0-1`-fillings of a triangular shape with `2r-1` rows, such that for
 each `k` there is either exactly one non-zero entry in row `k` or
 exactly one non-zero entry in column `2r-k`.  Explicitly, if `(i,j)`
@@ -212,7 +216,7 @@ see also Tom Roby's thesis [Rob1991]_::
     sage: T = SkewTableau([[None, None], [None, 5], [1]])
     sage: U = SkewTableau([[None, None], [None, 3], [5]])
     sage: labels = T.to_chain()[::-1] + U.to_chain()[1:]
-    sage: G = RuleRSK(filling=w, shape=[5,5,5,5,5], labels=labels); G
+    sage: G = GrowthDiagram(RuleRSK, filling=w, shape=[5,5,5,5,5], labels=labels); G
     0  0  0  0  0
     0  1  0  0  0
     0  0  0  1  0
@@ -238,7 +242,8 @@ taking the smaller of the two neighbouring partitions::
 
     sage: l = [o[i//2] if is_even(i) else min(o[(i-1)//2],o[(i+1)//2])
     ....:      for i in range(2*len(o)-1)]
-    sage: G = RuleRSK(labels=l[1:-1], shape=range(len(o)-2, 0, -1)); G
+    sage: la = list(range(len(o)-2, 0, -1))
+    sage: G = RuleRSK(labels=l[1:-1], shape=la); G
     0  0  0  0  0  0  0  1  0
     0  1  0  0  0  0  0  0
     0  0  0  0  0  0  0
@@ -296,11 +301,11 @@ conditions:
 
 * there is a vertex `0` with rank zero, and
 
-* there is a positive integer `r` such that `DU = UD + rI`, where `D`
-  is the down operator (on the free `\ZZ`-module of formal sums of
-  vertices) of `Q`, assigning each vertex its predecessor, `U` is the
-  up operator of `P`, assigning each vertex the formal sum of its
-  successors, and `I` is the identity operator.
+* there is a positive integer `r` such that `DU = UD + rI` on the
+  free `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of `Q`,
+  assigning to each vertex its predecessor, `U` is the up operator of
+  `P` (assigning to each vertex the formal sum of its successors),
+  and `I` is the identity operator.
 
 For example, taking for both `P` and `Q` to be Young's lattice and `r=1`,
 we obtain the dual graded graphs for classical Schensted insertion.
@@ -339,12 +344,13 @@ We first need to import the base class for a rule::
 
 Next, we implement the backward rule and the rank function and
 provide the bottom element ``zero`` of the graph.  For more
-information, see :class:`~sage.combinat.growth.Rule`::
+information, see :class:`~sage.combinat.growth.Rule`. ::
 
     sage: class RulePascal(Rule):
     ....:     zero = 0
     ....:     def rank(self, v): return v
-    ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
+    ....:     def backward_rule(self, y, z, x):
+    ....:         return (min(x,y), 0 if y==z or x==z else 1)
 
 We can now compute the filling corresponding to a sequence of labels
 as follows::
@@ -367,12 +373,13 @@ We now re-implement the rule where we provide the dual graded graphs::
     sage: class RulePascal(Rule):
     ....:     zero = 0
     ....:     def rank(self, v): return v
-    ....:     def backward_rule(self, y, z, x): return (min(x,y), 0 if y==z or x==z else 1)
+    ....:     def backward_rule(self, y, z, x):
+    ....:         return (min(x,y), 0 if y==z or x==z else 1)
     ....:     def vertices(self, n): return [n]
     ....:     def is_P_edge(self, v, w): return w == v + 1
     ....:     def is_Q_edge(self, v, w): return w == v + 1
 
-Are they really dual?::
+Are they really dual? ::
 
     sage: RulePascal()._check_duality(3)
     Traceback (most recent call last):
@@ -381,7 +388,8 @@ Are they really dual?::
 
 With our current definition, duality fails - in fact, there are no
 dual graded graphs on the integers without multiple edges.
-Consequently, also the backward rule cannot work.
+Consequently, also the backward rule cannot work as ``backward_rule``
+requires additional information (the edge labels as arguments).
 
 Let us thus continue with the example from Section 4.7 of [Fom1995]_
 instead, which defines dual graded graphs with multiple edges on the
@@ -399,11 +407,10 @@ this example we set it to ``None``::
     ....:     def is_P_edge(self, v, w): return [0] if w == v + 1 else []
     ....:     def is_Q_edge(self, v, w): return list(range(w)) if w == v+1 else []
 
-These are dual::
+We verify these are `1` dual at level `5`::
 
     sage: RulePascal()._check_duality(5)
 
-No result, so the first few levels of the graphs are really dual.
 Finally, let us provide the backward rule.  The arguments of the rule
 are vertices together with the edge labels now, specifying the path
 from the lower left to the upper right of the cell.  The horizontal
@@ -863,7 +870,8 @@ class GrowthDiagram(SageObject):
             sage: GrowthDiagram(RuleRSK, [[1,0,1],[0,1]]).is_rectangular()
             False
         """
-        return all(x == 0 for x in self._mu) and all(x == self._lambda[0] for x in self._lambda)
+        return (all(x == 0 for x in self._mu)
+                and all(x == self._lambda[0] for x in self._lambda))
 
     def to_word(self):
         r"""
@@ -892,14 +900,17 @@ class GrowthDiagram(SageObject):
                     if w[i] == 0:
                         w[i] = j+1
                     else:
-                        raise ValueError("can only convert fillings with at most one entry per column to words")
+                        raise ValueError("can only convert fillings with at"
+                                         " most one entry per column to words")
                 elif v == -1:
                     if w[i] == 0:
                         w[i] = -(j+1)
                     else:
-                        raise ValueError("can only convert fillings with at most one entry per column to words")
+                        raise ValueError("can only convert fillings with at"
+                                         " most one entry per column to words")
                 else:
-                    raise ValueError("can only convert 0-1 fillings to words; try 'to_biword'")
+                    raise ValueError("can only convert 0-1 fillings to words;"
+                                     " try 'to_biword'")
         return w
 
     def to_biword(self):
@@ -909,16 +920,17 @@ class GrowthDiagram(SageObject):
         EXAMPLES::
 
             sage: RuleRSK = GrowthDiagram.rules.RSK()
-            sage: P = Tableau([[1,2,2],[2]]); Q = Tableau([[1,3,3],[2]])
+            sage: P = Tableau([[1,2,2],[2]])
+            sage: Q = Tableau([[1,3,3],[2]])
             sage: bw = RSK_inverse(P, Q); bw
             [[1, 2, 3, 3], [2, 1, 2, 2]]
-            sage: G = GrowthDiagram(RuleRSK, labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
+            sage: G = GrowthDiagram(RuleRSK, labels=Q.to_chain()[:-1]+P.to_chain()[::-1]); G
             0  1  0
             1  0  2
 
             sage: P = SemistandardTableau([[1, 1, 2], [2]])
             sage: Q = SemistandardTableau([[1, 2, 2], [2]])
-            sage: G = GrowthDiagram(RuleRSK, labels = Q.to_chain()[:-1] + P.to_chain()[::-1]); G
+            sage: G = GrowthDiagram(RuleRSK, labels=Q.to_chain()[:-1]+P.to_chain()[::-1]); G
             0  2
             1  1
             sage: G.to_biword()
@@ -935,7 +947,8 @@ class GrowthDiagram(SageObject):
                 w1.extend([i+1]*v)
                 w2.extend([j+1]*v)
             else:
-                raise ValueError("can only convert fillings with non-negative entries to words")
+                raise ValueError("can only convert fillings with"
+                                 " non-negative entries to words")
         return (w1, w2)
 
     def __iter__(self):
@@ -1051,7 +1064,7 @@ class GrowthDiagram(SageObject):
             sage: G1 != G2
             True
         """
-        return not self == other
+        return not (self == other)
 
     def _process_labels(self, labels):
         r"""
@@ -1073,7 +1086,7 @@ class GrowthDiagram(SageObject):
         rule = self.rule
         if rule.has_multiple_edges:
             return [rule.normalize_vertex(val) if i % 2 == 0 else val
-                    for i,val in enumerate(labels)]
+                    for i, val in enumerate(labels)]
         else:
             return [rule.normalize_vertex(la) for la in labels]
 
@@ -1504,7 +1517,7 @@ class Rule(UniqueRepresentation):
     r"""
     Generic base class for a rule for a growth diagram.
 
-    Subclasses should provide the following attributes:
+    Subclasses may provide the following attributes:
 
     - ``zero`` -- the zero element of the vertices of the graphs
 
@@ -1518,7 +1531,7 @@ class Rule(UniqueRepresentation):
       edges of the graphs used for degenerate edges.  It is
       allowed to use this label also for other edges.
 
-    Subclasses should provide the following methods:
+    Subclasses may provide the following methods:
 
     - ``normalize_vertex`` -- a function that converts its input to a
       vertex.
@@ -1626,7 +1639,7 @@ class Rule(UniqueRepresentation):
 
     def _check_duality(self, n):
         r"""
-        Raise an error if the graphs are not r-dual at level n.
+        Raise an error if the graphs are not `r`-dual at level ``n``.
 
         INPUT:
 
@@ -1758,12 +1771,12 @@ class RuleShiftedShapes(Rule):
 
     Check that the rules are bijective::
 
-        sage: all(GrowthDiagram(Shifted, labels=GrowthDiagram(Shifted, pi).out_labels()).to_word()
-        ....:      == pi for pi in Permutations(5))
+        sage: all(Shifted(labels=Shifted(pi).out_labels()).to_word() == pi
+        ....:     for pi in Permutations(5))
         True
         sage: pi = Permutations(10).random_element()
-        sage: G = GrowthDiagram(Shifted, pi)
-        sage: list(GrowthDiagram(Shifted, labels=G.out_labels())) == list(G)
+        sage: G = Shifted(pi)
+        sage: list(Shifted(labels=G.out_labels())) == list(G)
         True
     """
     zero = _Partitions([])
@@ -1871,7 +1884,7 @@ class RuleShiftedShapes(Rule):
               e
               y
 
-        - ``content`` -- `0` or `1`, the content of the cell
+        - ``content`` -- `0` or `1`; the content of the cell
 
         OUTPUT:
 
@@ -1926,7 +1939,8 @@ class RuleShiftedShapes(Rule):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s"
+                             % (y, t, x, content))
         elif x != t == y:
             g, z = f, x
         elif x == t != y:
@@ -2263,7 +2277,7 @@ class RuleLLMS(Rule):
               e
               y
 
-        - ``content`` -- 0 or 1, the content of the cell
+        - ``content`` -- `0` or `1`; the content of the cell
 
         OUTPUT:
 
@@ -2331,7 +2345,8 @@ class RuleLLMS(Rule):
             else:
                 assert False, "BUG in RuleLLMS"
         elif content != 0:
-            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" %(y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s"
+                             % (y, t, x, content))
         elif x != t == y:
             if e is not None:
                 raise ValueError("degenerate edge e should have color None")
@@ -2408,12 +2423,12 @@ class RuleBinaryWord(Rule):
         sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
         sage: BinaryWord.zero
         word:
-        sage: G = GrowthDiagram(BinaryWord, labels=[[1,1],[1,1,0],[0,1]])
+        sage: G = BinaryWord(labels=[[1,1],[1,1,0],[0,1]])
         Traceback (most recent call last):
         ...
         ValueError: 01 has smaller rank than 110 but is not covered by it in P
 
-        sage: G = GrowthDiagram(BinaryWord, labels=[[1,1],[1,0,1],[0,1]])
+        sage: G = BinaryWord(labels=[[1,1],[1,0,1],[0,1]])
         Traceback (most recent call last):
         ...
         ValueError: 11 has smaller rank than 101 but is not covered by it in Q
@@ -2434,9 +2449,10 @@ class RuleBinaryWord(Rule):
 
     Test that the Kleitman Greene invariant is indeed the descent word::
 
-        sage: r=4; all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)])
-        ....:           == BinaryWord(w).out_labels()[r]
-        ....:          for w in Permutations(r))
+        sage: r = 4
+        sage: all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)])
+        ....:      == BinaryWord(w).out_labels()[r]
+        ....:     for w in Permutations(r))
         True
     """
     zero = Word([], alphabet=[0,1])
@@ -2533,7 +2549,7 @@ class RuleBinaryWord(Rule):
               t x
               y
 
-        - ``content`` -- 0 or 1; the content of the cell
+        - ``content`` -- `0` or `1`; the content of the cell
 
         OUTPUT:
 
@@ -2568,7 +2584,8 @@ class RuleBinaryWord(Rule):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s"
+                             % (y, t, x, content))
         elif x != t == y:
             z = x
         elif x == t != y:
@@ -2604,7 +2621,7 @@ class RuleBinaryWord(Rule):
 
             sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagram(BinaryWord, w)
-            sage: GrowthDiagram(BinaryWord, labels=G.out_labels()).to_word() == w  # indirect doctest
+            sage: BinaryWord(labels=G.out_labels()).to_word() == w  # indirect doctest
             True
         """
         if x == y == z:
@@ -2667,10 +2684,12 @@ class RuleSylvester(Rule):
          \     / \
           5   4   6
 
-        sage: all(Sylvester(pi).P_symbol() == pi.binary_search_tree() for pi in Permutations(5))
+        sage: all(Sylvester(pi).P_symbol() == pi.binary_search_tree()
+        ....:     for pi in Permutations(5))
         True
 
-        sage: all(Sylvester(pi).Q_symbol() == pi.inverse().increasing_tree() for pi in Permutations(5))
+        sage: all(Sylvester(pi).Q_symbol() == pi.inverse().increasing_tree()
+        ....:     for pi in Permutations(5))
         True
 
     TESTS::
@@ -2680,13 +2699,13 @@ class RuleSylvester(Rule):
 
         sage: B = BinaryTree; R = B([None,[]]); L = B([[],None])
         sage: T = B([[],[]]); S = B([L,None])
-        sage: G = GrowthDiagram(Sylvester, labels=[R, T, R])
+        sage: G = Sylvester(labels=[R, T, R])
         Traceback (most recent call last):
         ...
         ValueError: [., [., .]] has smaller rank than [[., .], [., .]]
          but is not covered by it in P
 
-        sage: G = GrowthDiagram(Sylvester, labels=[R, S, R])
+        sage: G = Sylvester(labels=[R, S, R])
         Traceback (most recent call last):
         ...
         ValueError: [., [., .]] has smaller rank than [[[., .], .], .]
@@ -2698,12 +2717,12 @@ class RuleSylvester(Rule):
 
     Check that the rules are bijective::
 
-        sage: all(GrowthDiagram(Sylvester, labels=GrowthDiagram(Sylvester, pi).out_labels()).to_word()
+        sage: all(Sylvester(labels=GrowthDiagram(Sylvester, pi).out_labels()).to_word()
         ....:      == pi for pi in Permutations(4))
         True
         sage: pi = Permutations(10).random_element()
         sage: G = GrowthDiagram(Sylvester, pi)
-        sage: list(GrowthDiagram(Sylvester, labels=G.out_labels())) == list(G)
+        sage: list(Sylvester(labels=G.out_labels())) == list(G)
         True
     """
     zero = BinaryTree()
@@ -2883,8 +2902,6 @@ class RuleSylvester(Rule):
             3        1
                     /
                    2
-
-
         """
         def add_label(L, S, T, m):
             if L.is_empty():
@@ -2947,7 +2964,7 @@ class RuleSylvester(Rule):
               t x
               y
 
-        - ``content`` -- 0 or 1; the content of the cell
+        - ``content`` -- `0` or `1`; the content of the cell
 
         OUTPUT:
 
@@ -3170,7 +3187,6 @@ class RuleYoungFibonacci(Rule):
         sage: G = YF(pi)
         sage: list(YF(labels=G.out_labels())) == list(G)
         True
-
     """
     zero = Word([], alphabet=[1,2])
 
@@ -3263,7 +3279,7 @@ class RuleYoungFibonacci(Rule):
               t x
               y
 
-        - ``content`` -- 0 or 1; the content of the cell
+        - ``content`` -- `0` or `1`; the content of the cell
 
         OUTPUT:
 
@@ -3293,7 +3309,8 @@ class RuleYoungFibonacci(Rule):
             else:
                 raise NotImplementedError
         elif content != 0:
-            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s" % (y, t, x, content))
+            raise ValueError("for y=%s, t=%s, x=%s, the content should be 0 but is %s"
+                             % (y, t, x, content))
         elif x == t:
             r = y
         elif y == t:
@@ -3302,7 +3319,8 @@ class RuleYoungFibonacci(Rule):
             if x != t != y:
                 r = Word([2] + list(t), alphabet=[1,2])
             else:
-                raise NotImplementedError("for y=%s, t=%s, x=%s, content %s we have no rule" % (y, t, x, content))
+                raise NotImplementedError("for y=%s, t=%s, x=%s, content %s we have no rule"
+                                          % (y, t, x, content))
         return r
 
     def backward_rule(self, y, z, x):
@@ -3633,7 +3651,7 @@ class RuleBurge(RulePartitions):
     differently, it is the partition labelling the lower right corner
     of the filling (recall that we are using matrix coordinates).  It
     can be computed alternatively as the transpose of the partition
-    `(\mu_1,\dots,\mu_n)`, where `\mu_1 + \dots + \mu_i` is the
+    `(\mu_1, \ldots, \mu_n)`, where `\mu_1 + \cdots + \mu_i` is the
     maximal sum of entries in a collection of `i` pairwise disjoint
     sequences of cells with weakly decreasing row indices and weakly
     increasing column indices.
@@ -3652,7 +3670,7 @@ class RuleBurge(RulePartitions):
               t x
               y
 
-        - ``content`` -- a non-negative integer, the content of the cell.
+        - ``content`` -- a non-negative integer; the content of the cell
 
         OUTPUT:
 
@@ -3814,13 +3832,15 @@ class RuleDomino(Rule):
 
     Check the color-to-spin property for all permutations of size 4::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol()) for G in l.values())
+        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        ....:     for G in l.values())
         True
 
     Negating all signs transposes all the partitions::
 
         sage: W = SignedPermutations(4)
-        sage: all(l[pi].P_symbol() == l[W([-e for e in pi])].P_symbol().conjugate() for pi in l)
+        sage: all(l[pi].P_symbol() == l[W([-e for e in pi])].P_symbol().conjugate()
+        ....:     for pi in l)
         True
 
     Check part of Theorem 4.2.3 in [Lee1996]_::
@@ -3949,7 +3969,7 @@ class RuleDomino(Rule):
               t x
               y
 
-        - ``content`` -- -1, 0 or 1, the content of the cell.
+        - ``content`` -- `-1`, `0` or `1`; the content of the cell
 
         OUTPUT:
 
@@ -4099,6 +4119,7 @@ GrowthDiagram.rules = Rules
 #####################################################################
 ## Provide the old entry points
 #####################################################################
+
 def GrowthDiagramRSK(filling=None, shape=None, labels=None):
     r"""
     ``GrowthDiagramRSK`` is deprecated; use
@@ -4226,3 +4247,4 @@ def GrowthDiagramSylvester(filling=None, shape=None, labels=None):
     from sage.misc.superseded import deprecation
     deprecation(23319, "GrowthDiagramSylvester is deprecated; use GrowthDiagram with the Sylvester rule instead")
     return GrowthDiagram(RuleSylvester(), filling, shape, labels)
+

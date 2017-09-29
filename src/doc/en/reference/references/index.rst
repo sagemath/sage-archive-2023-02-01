@@ -883,6 +883,10 @@ REFERENCES:
              Conjugating Sets and Automorphism Groups of Rational Functions.
              Journal of Algebra, 423 (2014), 1161-1190.
 
+.. [Fom1994] Sergey V. Fomin, "Duality of graded graphs". Journal of
+             Algebraic Combinatorics Volume 3, Number 4 (1994),
+             pp. 357-404.
+
 .. [Fom1995] Sergey V. Fomin, "Schensted algorithms for dual graded
              graphs". Journal of Algebraic Combinatorics Volume 4,
              Number 1 (1995), pp. 5-45.

@@ -25,10 +25,10 @@ AUTHORS:
 A guided tour
 =============
 
-Growth diagrams, invented by Sergey Fomin [Fom1995]_, provide a vast
-generalization of the Robinson-Schensted-Knuth (RSK) correspondence
-between matrices with non-negative integer entries and pairs of
-semistandard Young tableaux of the same shape.
+Growth diagrams, invented by Sergey Fomin [Fom1994]_, [Fom1995]_,
+provide a vast generalization of the Robinson-Schensted-Knuth (RSK)
+correspondence between matrices with non-negative integer entries and
+pairs of semistandard Young tableaux of the same shape.
 
 The main fact is that many correspondences similar to RSK can be
 defined by providing a pair of so-called local rules: a 'forward'
@@ -491,10 +491,11 @@ class GrowthDiagram(SageObject):
     r"""
     A generalized Schensted growth diagram in the sense of Fomin.
 
-    Growth diagrams were introduced by Sergey Fomin [Fom1995]_
-    and provide a vast generalization of the Robinson-Schensted-Knuth
-    (RSK) correspondence between matrices with non-negative integer
-    entries and pairs of semistandard Young tableaux of the same shape.
+    Growth diagrams were introduced by Sergey Fomin [Fom1994]_,
+    [Fom1995]_ and provide a vast generalization of the
+    Robinson-Schensted-Knuth (RSK) correspondence between matrices
+    with non-negative integer entries and pairs of semistandard Young
+    tableaux of the same shape.
 
     A growth diagram is based on the notion of *dual graded graphs*,
     a pair of digraphs `P, Q` (multiple edges being allowed) on the
@@ -1651,7 +1652,7 @@ class Rule(UniqueRepresentation):
 
         `P` and `Q` are `r`-dual if `DU = UD + rI` on the free
         `\ZZ`-module `\ZZ[V]`, where `D` is the down operator of `Q`,
-        assigning to each vertex the formal sum of its predecessor,
+        assigning to each vertex the formal sum of its predecessors,
         `U` is the up operator of `P`, assigning to each vertex the
         formal sum of its successors, and `I` is the identity
         operator.
@@ -2692,9 +2693,10 @@ class RuleSylvester(Rule):
         sage: Sylvester.vertices(3)
         Binary trees of size 3
 
-    In The :meth:`P_graph` is also known as the bracket tree, the
-    :meth:`Q_graph` is the lattice of finite order ideals of the
-    infinite binary tree.
+    The :meth:`~sage.combinat.growth.Rule.P_graph` is also known as
+    the bracket tree, the :meth:`~sage.combinat.growth.Rule.Q_graph`
+    is the lattice of finite order ideals of the infinite binary
+    tree, see Example 2.4.6 in [Fom1994]_.
 
     For a permutation, the :meth:`P_symbol` is the binary search
     tree, the :meth:`Q_symbol` is the increasing tree corresponding

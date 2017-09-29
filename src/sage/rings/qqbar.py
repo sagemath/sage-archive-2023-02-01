@@ -519,7 +519,7 @@ import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import (richcmp,
+from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
                                     op_EQ, op_NE, op_LE, op_LT,
                                     op_GE, op_GT)
@@ -2197,6 +2197,8 @@ class AlgebraicGeneratorRelation(SageObject):
 
 algebraic_generator_counter = 0
 
+
+@richcmp_method
 class AlgebraicGenerator(SageObject):
     r"""
     An ``AlgebraicGenerator`` represents both an algebraic number `\alpha` and
@@ -2278,9 +2280,9 @@ class AlgebraicGenerator(SageObject):
         """
         return self._index
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self with another AlgebraicGenerator object.
+        Compare ``self`` with another ``AlgebraicGenerator`` object.
 
         EXAMPLES::
 
@@ -2290,16 +2292,10 @@ class AlgebraicGenerator(SageObject):
             sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
             sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
             sage: gen = AlgebraicGenerator(nf, root)
-            sage: gen.__cmp__(qq_generator)
-            1
+            sage: gen > qq_generator
+            True
         """
-        si = self._index
-        oi = other._index
-        if si < oi:
-            return -1
-        if si > oi:
-            return 1
-        return 0
+        return richcmp(self._index, other._index, op)
 
     def is_complex(self):
         r"""

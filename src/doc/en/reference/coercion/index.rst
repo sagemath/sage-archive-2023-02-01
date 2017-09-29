@@ -257,7 +257,7 @@ discovered between steps 1 and 2 above.
     Result lives in Univariate Polynomial Ring in x over Integer Ring
     Univariate Polynomial Ring in x over Integer Ring
 
-    sage: cm.explain(ZZ['x'], ZZ, operator.div)
+    sage: cm.explain(ZZ['x'], ZZ, operator.truediv)
     Action discovered.
        Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
        with precomposition on right by Natural morphism:

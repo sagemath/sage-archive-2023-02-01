@@ -1967,7 +1967,7 @@ class FindStatCollection(Element):
 
         """
         try:
-            self._sageconstructor(self._levels.keys()[0])
+            self._sageconstructor(next(iter(self._levels.keys())))
             return True
         except NotImplementedError:
             return False

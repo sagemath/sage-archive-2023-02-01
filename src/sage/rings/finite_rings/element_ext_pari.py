@@ -39,6 +39,7 @@ import sage.rings.finite_rings.integer_mod as integer_mod
 from .element_base import is_FiniteFieldElement
 from sage.modules.free_module_element import FreeModuleElement
 from sage.structure.dynamic_class import dynamic_class
+from sage.structure.richcmp import richcmp
 from sage.categories.finite_fields import FiniteFields
 
 class FiniteField_ext_pariElement(FinitePolyExtElement):
@@ -692,12 +693,12 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
         return integer_ring.IntegerRing()(self.__value.lift().lift())
 
-
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Compare an element of a finite field with other. If other is not an
-        element of a finite field, an attempt is made to coerce it so it is
-        one.
+        Compare an element of a finite field with other.
+
+        If other is not an element of a finite field, an attempt is
+        made to coerce it so it is one.
 
         EXAMPLES::
 
@@ -713,7 +714,8 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: a > a**2
             False
         """
-        return cmp(self.__value.lift().lift().Pol(), other.__value.lift().lift().Pol())
+        return richcmp(self.__value.lift().lift().Pol().Vec().sage(),
+                       other.__value.lift().lift().Pol().Vec().sage(), op)
 
     def log(self, base):
         """

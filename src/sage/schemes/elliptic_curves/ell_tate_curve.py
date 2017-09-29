@@ -54,7 +54,7 @@ from sage.structure.richcmp import richcmp, richcmp_method
 from sage.arith.all import LCM
 from sage.modular.modform.constructor import EisensteinForms, CuspForms
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.misc.all import denominator, prod
 import sage.matrix.all as matrix
 

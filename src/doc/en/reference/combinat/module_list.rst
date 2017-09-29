@@ -53,6 +53,7 @@ Comprehensive Module list
     sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
+    sage/combinat/crystals/bkk_crystals
     sage/combinat/crystals/catalog
     sage/combinat/crystals/catalog_elementary_crystals
     sage/combinat/crystals/catalog_infinity_crystals
@@ -65,6 +66,7 @@ Comprehensive Module list
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/induced_structure
     sage/combinat/crystals/infinity_crystals
+    sage/combinat/crystals/kac_modules
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
@@ -125,6 +127,7 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/growth
+    sage/combinat/grossman_larson_algebras
     sage/combinat/hall_polynomial
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists
@@ -236,6 +239,7 @@ Comprehensive Module list
     sage/combinat/root_system/root_lattice_realizations
     sage/combinat/root_system/root_space
     sage/combinat/root_system/root_system
+    sage/combinat/root_system/type_super_A
     sage/combinat/root_system/type_A
     sage/combinat/root_system/type_A_affine
     sage/combinat/root_system/type_A_infinity

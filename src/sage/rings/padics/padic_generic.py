@@ -920,9 +920,9 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         ....:     print(R(45))
         5 * 9 + O(5^21)
 
-    NOTES::
+    .. NOTE::
 
-        For more documentation see localvars in parent_gens.pyx
+        For more documentation see ``localvars`` in parent_gens.pyx
     """
     if isinstance(print_options, str):
         print_options = {'mode': print_options}

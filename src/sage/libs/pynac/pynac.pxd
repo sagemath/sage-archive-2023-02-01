@@ -302,7 +302,6 @@ cdef extern from "sage/libs/pynac/wrap.h":
     bint is_a_fderivative "is_a<GiNaC::fderivative>" (GEx e)
     bint is_a_function "is_a<GiNaC::function>" (GEx e)
     bint is_exactly_a_function "is_exactly_a<GiNaC::function>" (GEx e)
-    bint is_a_ncmul "is_a<GiNaC::ncmul>" (GEx e)
 
     # Arithmetic
     int ginac_error()

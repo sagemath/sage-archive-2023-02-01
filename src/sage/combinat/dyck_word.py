@@ -2042,14 +2042,15 @@ class DyckWord_complete(DyckWord):
         if n == 0:
             return Permutation([])
         D, touch_sequence = pealing(self, return_touches=True)
-        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        S = SymmetricGroup(n)
-        pi = S.one()
+        pi = list(range(1,n+1))
         while touch_sequence:
             for touches in touch_sequence:
-                pi = pi * S(tuple(touches))
+                a = pi[touches[0]-1]
+                for i in range(len(touches)-1):
+                    pi[touches[i]-1] = pi[touches[i+1]-1]
+                pi[touches[-1]-1] = a
             D, touch_sequence = pealing(D, return_touches=True)
-        return Permutation(pi)
+        return Permutations()(pi, check_input=False)
 
     @combinatorial_map(name='to 321 avoiding permutation')
     def to_321_avoiding_permutation(self):

@@ -1592,7 +1592,7 @@ class FGP_Module_class(Module):
         """
         if not self.is_finite():
             g = 0
-        elif self.cardinality()==0:
+        elif self.cardinality()==1:
             g=1
         else:
             g = reduce(lcm, self.invariants())

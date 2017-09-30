@@ -688,7 +688,6 @@ class FunctionField_polymod(FunctionField):
         if not isinstance(base_field, FunctionField):
             raise TypeError("polynomial must be over a FunctionField")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._base_field = base_field
         self._polynomial = polynomial
 
@@ -2035,7 +2034,6 @@ class RationalFunctionField(FunctionField):
         if not constant_field.is_field():
             raise TypeError("constant_field must be a field")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._constant_field = constant_field
         FunctionField.__init__(self, self, names=names, category = category)
         R = constant_field[names[0]]

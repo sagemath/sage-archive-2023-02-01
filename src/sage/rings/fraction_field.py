@@ -177,7 +177,6 @@ class FractionField_generic(ring.Field):
         """
         self._R = R
         self._element_class = element_class
-        self._element_init_pass_parent = False
         Parent.__init__(self, base=R, names=R._names, category=category)
 
     def __reduce__(self):

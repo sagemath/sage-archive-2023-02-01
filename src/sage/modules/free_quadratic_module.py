@@ -803,6 +803,15 @@ class FreeQuadraticModule_ambient(
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        
+        TESTS::
+        
+        We test that :trac:`23915` is fixed::
+        
+            sage: M1 = FreeQuadraticModule(ZZ,1,matrix.identity(1))
+            sage: M2 = FreeQuadraticModule(ZZ,1,matrix.identity(1)*2)
+            sage: M1 == M2
+            False
         """
         free_module.FreeModule_ambient.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix

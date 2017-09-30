@@ -1592,6 +1592,8 @@ class FGP_Module_class(Module):
         """
         if not self.is_finite():
             g = 0
+        elif self.cardinality()==0:
+            g=1
         else:
             g = reduce(lcm, self.invariants())
         return self.base_ring().ideal(g)

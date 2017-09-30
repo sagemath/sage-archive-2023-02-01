@@ -92,7 +92,7 @@ from sage.rings.all import (
 import sage.misc.all as misc
 from sage.misc.all import verbose
 
-from sage.misc.functional import log
+from sage.functions.log import log
 
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError

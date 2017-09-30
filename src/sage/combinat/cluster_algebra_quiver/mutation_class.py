@@ -23,11 +23,8 @@ from six.moves import range
 
 import time
 from sage.groups.perm_gps.partn_ref.refinement_graphs import *
-from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
-from copy import copy
 from sage.rings.all import ZZ, infinity
-from sage.graphs.all import Graph, DiGraph
-from sage.matrix.all import matrix
+from sage.graphs.all import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
 
 def _principal_part( mat ):

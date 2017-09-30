@@ -22,7 +22,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \
     TensorProductOfRegularCrystalsElement
-from sage.combinat.root_system.root_system import RootSystem
+
 
 class KyotoPathModel(TensorProductOfCrystals):
     r"""

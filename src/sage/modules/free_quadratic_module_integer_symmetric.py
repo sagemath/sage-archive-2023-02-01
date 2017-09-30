@@ -89,7 +89,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     EXAMPLES::
 
-        sage: 
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
+        sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]),basis=[vector([1,1])])
+        Lattice of degree 2 and rank 1 over Integer Ring
+        Basis matrix:
+        [1 1]
+        Inner product matrix:
+        [0 1]
+        [1 0]
     """
     def __init__(self, ambient, basis, inner_product_matrix, check=True, already_echelonized=False):
         r"""
@@ -210,14 +217,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L.discriminant_group()
             Finitely generated module V/W over Integer Ring with invariants ()
         """
-
         D = self.dual_lattice() / self
-        #This is a workaround
-        if D.cardinality() == 1:
-            d = 1
-        else:
-            d = D.annihilator().gen()
-        a = prime_to_m_part(d, s)
+        d = D.annihilator().gen()
+        a = d.prime_to_m_part(s)
         Dp_gens = [a*g for g in D.gens()]
         return D.submodule(Dp_gens)
 
@@ -281,7 +283,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         return FreeQuadraticModule_integer_symmetric(
             ambient=ambient, basis=basis, inner_product_matrix=ipm, already_echelonized=False)
 
-    def is_primitive(self,M):
+    def is_primitive(self, M):
         r"""
         Return whether ``M`` is a primitive submodule of this lattice.
 
@@ -306,7 +308,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: (L1+L2).index_in(U)
             2
         """
-        return(0==gcd((self/M).invariants()))
+        return (gcd((self/M).invariants()) == 0)
 
     def orthogonal_complement(self,M):
         r"""
@@ -327,7 +329,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         K = (self.inner_product_matrix()*M.basis_matrix().transpose()).kernel()
         K.base_extend(QQ)
-        return(self.sublattice(self.intersection(K).basis()))
+        return self.sublattice(self.intersection(K).basis())
 
     def sublattice(self,basis):
         r"""
@@ -368,7 +370,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     def overlattice(self, gens):
         r"""
-        Return the lattice spanned by this lattice and ``gens``
+        Return the lattice spanned by this lattice and ``gens``.
 
         INPUT:
 

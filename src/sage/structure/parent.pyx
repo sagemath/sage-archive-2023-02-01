@@ -594,10 +594,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: k = GF(5); k._element_constructor # indirect doctest
-            <bound method FiniteField_prime_modn_with_category._element_constructor_ of Finite Field of size 5>
+            sage: k = GF(5)
+            sage: k._set_element_constructor()
         """
-        try: #if hasattr(self, '_element_constructor_'):
+        try:
             _element_constructor_ = self._element_constructor_
         except (AttributeError, TypeError):
             # Remark: A TypeError can actually occur;

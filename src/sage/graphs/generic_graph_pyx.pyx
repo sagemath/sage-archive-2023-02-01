@@ -77,11 +77,11 @@ def spring_layout_fast_split(G, **options):
     buffer = 1/sqrt(len(G))
     for g in Gs:
         cur_pos = spring_layout_fast(g, **options)
-        xmin = min(x[0] for x in cur_pos.itervalues())
-        xmax = max(x[0] for x in cur_pos.itervalues())
+        xmin = min(x[0] for x in cur_pos.values())
+        xmax = max(x[0] for x in cur_pos.values())
         if len(g) > 1:
             buffer = (xmax - xmin)/sqrt(len(g))
-        for v, loc in cur_pos.iteritems():
+        for v, loc in cur_pos.items():
             loc[0] += left - xmin + buffer
             pos[v] = loc
         left += xmax - xmin + buffer

@@ -12,7 +12,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.modules.free_quadratic_module import FreeQuadraticModule_submodule_with_basis_pid, FreeQuadraticModule
 from sage.matrix.constructor import matrix
-from sage.arith.misc import prime_to_m_part,gcd
+from sage.arith.misc import gcd
 
 ###############################################################################
 #

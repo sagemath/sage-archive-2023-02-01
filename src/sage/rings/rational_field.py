@@ -426,6 +426,27 @@ class RationalField(Singleton, number_field_base.NumberField):
                     yield self(height/other)
                     yield self(-height/other)
 
+    def __truediv__(self, I):
+        """
+        Dividing one ring by another is not supported because there is no good
+        way to specify generator names.
+
+        EXAMPLES::
+
+            sage: QQ / ZZ
+            Traceback (most recent call last):
+            ...
+            TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
+        """
+        from sage.rings.ideal import Ideal_generic
+        from sage.groups.abelian_gps.qmodnz import QmodnZ
+        if I is ZZ:
+            return QmodnZ(1)
+        elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:
+            return QmodnZ(I.gen())
+        else:
+            return super(RationalField, self).__truediv__(I)
+
     def range_by_height(self, start, end=None):
         r"""
         Range function for rational numbers, ordered by height.

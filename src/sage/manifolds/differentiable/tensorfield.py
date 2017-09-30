@@ -2238,7 +2238,7 @@ class TensorField(ModuleElement):
                 resu_rr = self_rr(*args_rr)
                 if resu_rr.is_trivial_zero():
                     for chart in resu_rr._domain._atlas:
-                        resu._express[chart] = chart._zero_function
+                        resu._express[chart] = chart.zero_function()
                 else:
                     for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr

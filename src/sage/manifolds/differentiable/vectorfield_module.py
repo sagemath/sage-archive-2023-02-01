@@ -41,7 +41,6 @@ REFERENCES:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
-from sage.rings.integer import Integer
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule

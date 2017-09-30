@@ -28,12 +28,14 @@ class TorsionQuadraticModuleElement(FGP_Element):
         FGP_Element.__init__(self,parent=parent,x=x, check=check)
     
     def inner_product(self,other):
-        """
-        Compute the inner_product of self and other.
+        r"""
+        Compute the inner_product of `self` and `other`.
         
-        Output:
+        INPUT:
         
-        A rational number - a representative of the equivalence class of <self,other> modulo <V,W> \ZZ.
+        - ``other`` -- 
+        
+        OUTPUT: a rational number which is a representative of the equivalence class of <self,other> modulo <A,B> over `\Z`.
         """
         b = self.lift().inner_product(other.lift())
         modulus = self.parent()._modulus
@@ -43,12 +45,12 @@ class TorsionQuadraticModuleElement(FGP_Element):
         return(x)
     
     def quadratic_product(self):
-        """
-        Compute the inner_product of self and other.
+        r"""
+        Compute the quadratic_product of self.
         
-        Output:
+        OUTPUT: 
         
-        An element of the fraction field of R - a representative of the equivalence class of <x,x> modulo 2<V,W> R.
+        - an element of the fraction field of R which is a representative of the equivalence class of <x,x> modulo 2<V,W> R.
         """
         b = self.lift().inner_product(self.lift())
         modulus = 2 * self.parent()._modulus
@@ -59,9 +61,9 @@ class TorsionQuadraticModuleElement(FGP_Element):
     
     
 class TorsionQuadraticModule(FGP_Module_class):
-    """
-    Let $V$ be a symmetric FreeQuadraticModule and $W\subseteq V$ a submodule of the same rank as $V$. The quotient $V/W$ is a TorsionQuadraticModule. It inherits a bilinear form 
-    $b: V \times V \rightarrow QQ / m\ZZ$, where $m \ZZ = <V,W>$ and $b(x,y) = <x,y> + m\ZZ$. 
+    r"""
+    Let `V` be a symmetric FreeQuadraticModule and `W\subseteq V` a submodule of the same rank as `V`. The quotient `V/W` is a TorsionQuadraticModule. It inherits a bilinear form `b` where
+    `b: V \times V \rightarrow \Q /m\Z`$, where m\Z = <V,W> and b(x,y) = <x,y> + m\Z. 
     
     Examples::
     
@@ -69,7 +71,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         sage: V = FreeModule(ZZ,3)
         sage: T = TorsionQuadraticModule(V,5*V)
         sage: T
-
         Finite quadratic module V/W over Integer Ring with invariants (5, 5, 5).
         Gram matrix:
         [1 0 0]
@@ -82,17 +83,16 @@ class TorsionQuadraticModule(FGP_Module_class):
     # module. Should be overridden in derived classes.
     Element = TorsionQuadraticModuleElement
     def __init__(self,V,W,check=True,modulus=None):
-        """
+        r"""
         Constructor for TorsionQuadraticModules
         
         Input:
-        -- ``V`` a FreeModule with a symmetric inner_product_matrix
-        -- ``W`` a submodule of V of the same rank
-        -- ``check`` for extra checks on the input
-        -- ``modulus`` a rational number. The inner product is defined in QQ / modulus\ZZ.
+        - ``V`` -- a FreeModule with a symmetric inner_product_matrix
+        - ``W`` -- a submodule of V of the same rank as V
+        - ``check`` -- bool (default: True)
+        - ``modulus`` -- a rational number. The inner product is defined in `\Q / modulus\Z`.
         
-        Output:
-        -- a TorsionQuadraticModule
+        OUTPUT: a TorsionQuadraticModule
         """
     
         if check:
@@ -117,7 +117,7 @@ class TorsionQuadraticModule(FGP_Module_class):
                 
     @property
     def current_gens(self):
-        """
+        r"""
         Generators of self specified by the user
         """
         return(self._current_gens)
@@ -130,7 +130,7 @@ class TorsionQuadraticModule(FGP_Module_class):
     current_gens = current_gens.setter(_set_gens)
 
     def _repr_(self):
-        """
+        r"""
         The printing representation of self.
         """
         s = "Finite quadratic module V/W over %s with invariants %s.\n"%(self.base_ring(),self.invariants()) + \
@@ -138,10 +138,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         return(s)
     
     def submodule(self,x):
-        """
-        Return the submodule defined by x as a TorsionQuadraticModule 
-        
-        The modulus of the inner product is inherited from self.
+        r"""
+        Return the submodule defined by `x` as a TorsionQuadraticModule. The modulus of the inner product is inherited from self.
 
         INPUT:
 
@@ -154,11 +152,10 @@ class TorsionQuadraticModule(FGP_Module_class):
         return(TorsionQuadraticModule(temp.V(),temp.W(),modulus=self._modulus))
 
     def gram_matrix_bilinear(self):
-        """
+        r"""
         The gram matrix with respect to the current generators
         
-        Output:
-        -- a rational matrix G with G[i,j]=<gens[i],gens[j]>
+        OUTPUT: a rational matrix G with G[i,j]=<gens[i],gens[j]>
         """
 
         from sage.matrix.special import matrix
@@ -170,11 +167,10 @@ class TorsionQuadraticModule(FGP_Module_class):
         return(G)
         
     def gram_matrix_quadratic(self):
-        """
+        r"""
         The gram matrix of the quadratic form with respect to the current generators
         
-        Output:
-        -- a rational matrix
+        OUTPUT: a rational matrix
         """
         
         from sage.matrix.special import matrix
@@ -189,14 +185,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         return(G)
         
     def orthogonal_submodule_to(self,S):
-        """
-        Return the orthogonal subspace of self to S
+        r"""
+        Return the orthogonal subspace of self to ``S``
         
-        Input:
-        --``S`` - a submodule of self
+        INPUT:
         
-        Output:
-        -- A TorsionQuadraticModule
+        - ``S`` -- a submodule of self
+        
+        OUTPUT: a TorsionQuadraticModule
         """
         from sage.matrix.special import matrix
         if not S.is_submodule(self):

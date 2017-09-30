@@ -7845,6 +7845,96 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.all_roots_in_interval()
 
+    def reciprocal_transform(self, R=1, q=1):
+        r"""
+        Transform a general polynomial into a self-reciprocal polynomial.
+
+        The input `Q` and output `P` satisfy the relation
+            `P(x) = Q(x + q/x) x^{\deg(Q)} R(x)`.
+
+        In this relation, `Q` has all roots in the real interval 
+        `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
+        circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
+
+        INPUT:
+            - ``R`` -- polynomial
+            - ``q`` -- scalar (default: `1`)
+
+        EXAMPLES::
+
+            sage: pol.<x> = PolynomialRing(Rationals())
+            sage: u = x^2+x-1
+            sage: u.reciprocal_transform()
+            x^4 + x^3 + x^2 + x + 1
+            sage: u.reciprocal_transform(R=x-1)
+            x^5 - 1
+            sage: u.reciprocal_transform(q=3)
+            x^4 + x^3 + 5*x^2 + 3*x + 9
+
+        .. SEEALSO::
+
+            :meth:`inverse_reciprocal_transform`
+        """
+        S = self.parent()
+        x = S.gen()
+        return S(x**(self.degree()) * self(x + q/x)) * R
+
+    def inverse_reciprocal_transform(self):
+        r"""
+        Undo the reciprocal transform.
+
+        The input `P` and output `Q` satisfy the relation
+            `P(x) = Q(x + q/x) x^{\deg(Q)} R(x)`.
+
+        In this relation, `Q` has all roots in the real interval 
+        `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
+        circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
+
+        OUTPUT:
+            - ``Q`` -- polynomial
+            - ``R`` -- polynomial
+            - ``q`` -- nonzero scalar
+
+        EXAMPLES::
+
+            sage: pol.<x> = PolynomialRing(Rationals())
+            sage: u = x^5 - 1; u.inverse_reciprocal_transform()
+            (x^2 + x - 1, x - 1, 1)
+            sage: u = x^4 + x^3 + 5*x^2 + 3*x + 9
+            sage: u.inverse_reciprocal_transform()
+            (x^2 + x - 1, 1, 3)
+
+        .. SEEALSO::
+
+            :meth:`reciprocal_transform`
+         """
+        S = self.parent()
+        x = S.gen()
+        if self[0] == 0:
+            raise ValueError, "Polynomial not self-reciprocal"
+        d = self.degree()
+        sg = (self[0]/self[d]).sign()
+        q = abs(self[0]/self[d])**(2/d)
+        if not q in S.base_ring():
+            raise ValueError, "Polynomial not self-reciprocal"
+        for i in range(d+1):
+            if self[d-i] != sg*self[i]/q**(d/2-i):
+                raise ValueError, "Polynomial not self-reciprocal"
+        cofactor = S(1)
+        Q = self
+        if sg == -1:
+            cofactor *= x-q
+            Q //= x-q
+        if Q.degree() %2 == 1:
+            cofactor *= x+q
+            Q //= x+q
+        coeffs = []
+        m = Q.degree() // 2
+        for i in reversed(range(m+1)):
+            coeffs.insert(0, Q.leading_coefficient())
+            Q = (Q % (x**2 + q)**i) // x
+        return S(coeffs), cofactor, q
+
     def variable_name(self):
         """
         Return name of variable used in this polynomial as a string.

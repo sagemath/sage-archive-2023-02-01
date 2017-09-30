@@ -941,7 +941,7 @@ class DiffScalarField(ScalarField):
 
         INPUT:
 
-        - ``other`` -- a multivector field, of degree `p`
+        - ``other`` -- a multivector field of degree `p`
 
         OUTPUT:
 

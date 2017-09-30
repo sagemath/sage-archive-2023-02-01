@@ -566,14 +566,15 @@ class MultivectorField(TensorField):
 
         INPUT:
 
-        - ``other`` -- a multivector field, `b` say
+        - ``other`` -- a multivector field
 
         OUTPUT:
 
         - instance of :class:`MultivectorField` (or of
           :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
           if `p=1` and `q=0`) representing the
-          Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self``
+          Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self`` and `b` is
+          ``other``
 
         EXAMPLES:
 
@@ -653,7 +654,8 @@ class MultivectorField(TensorField):
             return MultivectorFieldParal.bracket(self_r, other_r)
         # otherwise, the result is created here:
         # Name of the result:
-        resu_name = None ; resu_latex_name = None
+        resu_name = None
+        resu_latex_name = None
         if self._name is not None and other._name is not None:
             resu_name = '[' + self._name + ',' + other._name + ']'
         if self._latex_name is not None and other._latex_name is not None:
@@ -844,8 +846,6 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         sage: ab.lie_der(a)
         2-vector field on the 3-dimensional differentiable manifold R3
-
-
 
     """
     def __init__(self, vector_field_module, degree, name=None,
@@ -1215,14 +1215,15 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
 
         INPUT:
 
-        - ``other`` -- a multivector field, `b` say
+        - ``other`` -- a multivector field
 
         OUTPUT:
 
         - instance of :class:`MultivectorFieldParal` (or of
           :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
           if `p=1` and `q=0`) representing the
-          Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self``
+          Schouten-Nijenhuis bracket `[a,b]`, where `a` is ``self`` and `b` is
+          ``other``
 
         EXAMPLES:
 
@@ -1491,7 +1492,8 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
                 else:
                     resuc[[ind]] += sum
         # Name of the result:
-        resu_name = None ; resu_latex_name = None
+        resu_name = None
+        resu_latex_name = None
         if self._name is not None and other._name is not None:
             resu_name = '[' + self._name + ',' + other._name + ']'
         if self._latex_name is not None and other._latex_name is not None:

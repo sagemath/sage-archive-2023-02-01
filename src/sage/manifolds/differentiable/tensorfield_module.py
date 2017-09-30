@@ -326,8 +326,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                                       latex_name=form._latex_name,
                                       antisym=asym)
             for dom, rst in form._restrictions.items():
-                resu._restrictions[dom] = \
-                                     dom.tensor_field_module((0,p))(rst)
+                resu._restrictions[dom] = dom.tensor_field_module((0,p))(rst)
             return resu
         if isinstance(comp, MultivectorField):
             # coercion of a p-vector field to a type-(p,0) tensor:
@@ -346,8 +345,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                                       latex_name=pvect._latex_name,
                                       antisym=asym)
             for dom, rst in pvect._restrictions.items():
-                resu._restrictions[dom] = \
-                                     dom.tensor_field_module((p,0))(rst)
+                resu._restrictions[dom] = dom.tensor_field_module((p,0))(rst)
             return resu
         if isinstance(comp, AutomorphismField):
             # coercion of an automorphism to a type-(1,1) tensor:
@@ -360,8 +358,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                                       name=autom._name,
                                       latex_name=autom._latex_name)
             for dom, rest in autom._restrictions.items():
-                resu._restrictions[dom] = \
-                                    dom.tensor_field_module((1,1))(rest)
+                resu._restrictions[dom] = dom.tensor_field_module((1,1))(rest)
             return resu
         if isinstance(comp, TensorField):
             # coercion by domain restriction

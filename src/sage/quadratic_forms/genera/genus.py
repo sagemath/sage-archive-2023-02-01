@@ -1609,6 +1609,7 @@ class GenusSymbol_global_ring(object):
             True
             
         TESTS::
+        
             sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
             sage: G=D4.global_genus_symbol()
             sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)

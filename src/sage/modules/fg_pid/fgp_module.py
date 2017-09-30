@@ -1589,11 +1589,17 @@ class FGP_Module_class(Module):
             Finitely generated module V/W over Integer Ring with invariants (0, 0)
             sage: Q.annihilator()
             Principal ideal (0) of Integer Ring
+            
+        We check that :trac:`22720` is resolved::
+            
+            sage: H=AdditiveAbelianGroup([])
+            sage: H.annihilator()
+            Principal ideal (1) of Integer Ring
         """
         if not self.is_finite():
             g = 0
-        elif self.cardinality()==1:
-            g=1
+        elif self.cardinality() == 1:
+            g = 1
         else:
             g = reduce(lcm, self.invariants())
         return self.base_ring().ideal(g)

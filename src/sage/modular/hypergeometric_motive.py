@@ -167,9 +167,9 @@ def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     return ring(data)
 
 
-def possible_hypergeometric_data(d, weight=None):
-    """
-    Return the list of possible parameters of hypergeometric motives.
+def enumerate_hypergeometric_data(d, weight=None):
+    r"""
+    Return an iterator over parameters of hypergeometric motives (up to swapping).
 
     INPUT:
 
@@ -179,35 +179,44 @@ def possible_hypergeometric_data(d, weight=None):
 
     EXAMPLES::
 
-        sage: from sage.modular.hypergeometric_motive import possible_hypergeometric_data
-        sage: P = possible_hypergeometric_data
-        sage: [len(P(i,weight=2)) for i in range(1, 7)]
-        [0, 0, 10, 30, 93, 234]
+        sage: from sage.modular.hypergeometric_motive import enumerate_hypergeometric_data as enum
+        sage: l = [H for H in enum(6, weight=2) if H.hodge_numbers()[0] == 1]
+        sage: len(l)
+        112
     """
     bound = 2 * d * d  # to make sure that phi(n) <= d
     possible = [(i, euler_phi(i)) for i in range(1, bound + 1)
                 if euler_phi(i) <= d]
     poids = [z[1] for z in possible]
     N = len(poids)
-    vectors = list(WeightedIntegerVectors(d, poids))
-
-    def iterator():
-        for i, u in enumerate(vectors):
-            supp_u = [j for j in range(N) if u[j]]
-            for v in vectors[i + 1:]:
-                if not any(v[j] for j in supp_u):
-                    yield (u, v)
+    vectors = WeightedIntegerVectors(d, poids)
 
     def formule(u):
         return [possible[j][0] for j in range(N) for _ in range(u[j])]
 
-    data = [HypergeometricData(cyclotomic=(formule(a), formule(b)))
-            for a, b in iterator()]
-    if weight is None:
-        return data
-    else:
-        return [H for H in data if H.weight() == weight]
+    for a,b in combinations(vectors, 2):
+        if not any(a[j] and b[j] for j in range(N)):
+            H = HypergeometricData(cyclotomic=(formule(a), formule(b)))
+            if weight is None or H.weight() == weight:
+                yield H
 
+def possible_hypergeometric_data(d, weight=None):
+    """
+    Return the list of possible parameters of hypergeometric motives (up to swapping).
+
+    INPUT:
+
+    - ``d`` -- the degree
+
+    - ``weight`` -- optional integer, to specify the motivic weight
+
+    EXAMPLES::
+
+        sage: from sage.modular.hypergeometric_motive import possible_hypergeometric_data as P
+        sage: [len(P(i,weight=2)) for i in range(1, 7)]
+        [0, 0, 10, 30, 93, 234]
+    """
+    return list(enumerate_hypergeometric_data(d, weight))
 
 def cyclotomic_to_alpha(cyclo):
     """

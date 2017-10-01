@@ -6311,7 +6311,7 @@ cdef class Expression(CommutativeRingElement):
             0
         """
         cdef Expression ss = self.coerce_in(s)
-        return self._gobj.ldegree(ss._gobj)
+        return new_Expression_from_GEx(self._parent, GEx(self._gobj.ldegree(ss._gobj)))
 
     def degree(self, s):
         """
@@ -6337,7 +6337,7 @@ cdef class Expression(CommutativeRingElement):
             0
         """
         cdef Expression ss = self.coerce_in(s)
-        return self._gobj.degree(ss._gobj)
+        return new_Expression_from_GEx(self._parent, GEx(self._gobj.degree(ss._gobj)))
 
     def unit(self, s):
         """

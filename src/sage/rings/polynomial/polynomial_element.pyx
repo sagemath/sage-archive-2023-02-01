@@ -9132,7 +9132,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             i += 1
         return(ans // ans.leading_coefficient())
 
-    def has_cyclotomic_factor(pol):
+    def has_cyclotomic_factor(self):
         r"""
         Return True if the given polynomial has a nontrivial cyclotomic factor.
 
@@ -9148,25 +9148,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: pol.<x> = PolynomialRing(Rationals())
-            sage: has_cyclotomic_factor(x^5-1)
+            sage: u = x^5-1; u.has_cyclotomic_factor()
             True
-            sage: has_cyclotomic_factor(x^5-2)
+            sage: u = x^5-2; u.has_cyclotomic_factor()
             False
-    """
+        """
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
-        polRing = pol.parent()
+        polRing = self.parent()
         x = polRing.gen()
 
-        pol1 = pol
+        pol1 = self
         pol2 = pol1.gcd(pol1(-x))
         while not pol2.is_constant():
-            pol1 = (pol1 // pol2) * polRing(list(pol2)[::2])
+            pol1 = (pol1 // pol2) * polRing(pol2.list()[::2])
             pol2 = pol1.gcd(pol1(-x))
-        pol1 = polRing(list(pol1*pol1(-x))[::2])
+        pol1 = polRing((pol1*pol1(-x)).list()[::2])
         while True:
             if pol1.is_constant(): return(False)
-            pol2 = pol1.gcd(polRing(list(pol1*pol1(-x))[::2]))
+            pol2 = pol1.gcd(polRing((pol1*pol1(-x)).list()[::2]))
             if pol1.degree() == pol2.degree(): return(True)
             pol1 = pol2
 

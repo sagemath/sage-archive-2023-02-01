@@ -58,6 +58,8 @@ from sage.structure.category_object import normalize_names
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
 from sage.all import sage_eval, parent
 
+from sage.structure.richcmp import richcmp
+
 
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
@@ -470,12 +472,12 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             raise TypeError("unable to convert %r to an element of %s"%(x, self))
 
     def _coerce_map_from_(self, R):
-        """
-        Anything coercing into ``self``'s polynomial ring coerces into ``self``.
-        Any quotient polynomial ring whose polynomial ring coerces into
-        ``self``'s polynomial ring and whose modulus is divided by the modulus
-        of ``self`` coerces into ``self``. There is no coercion if the division
-        of the moduli fails.
+        r"""
+        Return a coerce map from ``R``.
+
+        Anything coercing into the underlying polynomial ring coerces into this
+        quotient. Furthermore, for quotients `R=A[x]/(f)` and `S=B[x]/(g)` with
+        a coercion `R\to S` there is a coercion iff `f` divides `g`.
 
         AUTHOR:
 
@@ -513,7 +515,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                     return False
             except (ZeroDivisionError,ArithmeticError):
                 return False
-            return self.__ring.has_coerce_map_from(R.polynomial_ring())
+            from sage.all import Hom
+            parent = Hom(R, self, category=self.category()._meet_(R.category()))
+            return parent.__make_element_class__(PolynomialQuotientRing_coercion)(R, self, category=parent.homset_category())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -572,9 +576,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         return x.lift()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare self and other.
+        Check whether ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -593,10 +597,31 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             True
         """
         if not isinstance(other, PolynomialQuotientRing_generic):
-            return cmp(type(self), type(other))
-        c = cmp(self.polynomial_ring(), other.polynomial_ring())
-        if c: return c
-        return cmp(self.modulus(), other.modulus())
+            return False
+        return (self.polynomial_ring() == other.polynomial_ring() and
+                self.modulus() == other.modulus())
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: Rx.<x> = PolynomialRing(QQ)
+            sage: Ry.<y> = PolynomialRing(QQ)
+            sage: Rx != Ry
+            True
+            sage: Qx = Rx.quotient(x^2+1)
+            sage: Qy = Ry.quotient(y^2+1)
+            sage: Qx != Qy
+            True
+            sage: Qx != Qx
+            False
+            sage: Qz = Rx.quotient(x^2+1)
+            sage: Qz != Qx
+            False
+        """
+        return  not (self == other)
 
     def _singular_init_(self, S=None):
         """
@@ -1787,6 +1812,125 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             tester.assertIn(y, ring)
             tester.assertEqual(from_isomorphic_ring(y), x)
 
+from sage.structure.coerce_maps import DefaultConvertMap_unique
+class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
+    r"""
+    A coercion map from a :class:`PolynomialQuotientRing` to a
+    :class:`PolynomialQuotientRing` that restricts to the coercion map on the
+    underlying ring of constants.
+
+    EXAMPLES::
+
+        sage: R.<x> = ZZ[]
+        sage: S.<x> = QQ[]
+        sage: f = S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)); f
+        Coercion map:
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+          To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_coercion
+        sage: isinstance(f, PolynomialQuotientRing_coercion)
+        True
+        sage: TestSuite(f).run(skip=['_test_pickling'])
+
+    Pickling works but the returned value is not compare equal to the original
+    morphism::
+
+        sage: g = loads(dumps(f)); g
+        Coercion map:
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+          To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+        sage: f == g
+        False
+
+    The reason for this is that pickling of the domain is currently broken, and
+    therefore the parent of `f` and `g` are different::
+
+        sage: loads(dumps(f.domain())) is f.domain()
+        False
+        sage: f.parent() is g.parent()
+        False
+
+    """
+    def is_injective(self):
+        r"""
+        Return whether this coercion is injective.
+
+        EXAMPLES:
+
+        If the modulus of the domain and the codomain is the same and the
+        leading coefficient is a unit in the domain, then the map is injective
+        if the underlying map on the constants is::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = QQ[]
+            sage: f = S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1))
+            sage: f.is_injective()
+            True
+
+        """
+        if (self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus()
+            and self.domain().modulus().leading_coefficient().is_unit()):
+            if self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective():
+                return True
+            else:
+                return self.domain().modulus().degree() == 0 # domain and codomain are the zero ring
+        return super(PolynomialQuotientRing_coercion, self).is_injective()
+
+    def is_surjective(self):
+        r"""
+        Return whether this coercion is surjective.
+
+        EXAMPLES:
+
+        If the underlying map on constants is surjective, then this coercion is
+        surjective since the modulus of the codomain divides the modulus of the
+        domain::
+
+            sage: R.<x> = ZZ[]
+            sage: f = R.quo(x).coerce_map_from(R.quo(x^2))
+            sage: f.is_surjective()
+            True
+
+        If the modulus of the domain and the codomain is the same, then the map
+        is surjective iff the underlying map on the constants is::
+
+            sage: A.<a> = ZqCA(9)
+            sage: R.<x> = A[]
+            sage: S.<x> = A.fraction_field()[]
+            sage: f = S.quo(x^2 + 2).coerce_map_from(R.quo(x^2 + 2))
+            sage: f.is_surjective()
+            False
+
+        """
+        constant_map_is_surjective = self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_surjective()
+        if constant_map_is_surjective:
+            return True
+        if self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus():
+            return constant_map_is_surjective
+        return super(PolynomialQuotientRing_coercion, self).is_surjective()
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this morphism to ``other``.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = ZZ[]
+            sage: f = S.quo(x).coerce_map_from(R.quo(x^2))
+            sage: g = S.quo(x).coerce_map_from(R.quo(x^3))
+            sage: f == g
+            False
+            sage: f == f
+            True
+
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.parent(), other.parent(), op)
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """

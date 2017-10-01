@@ -1270,9 +1270,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [   y -2*x    w    0]
             [   z   -y   -x    w]
             [   0    z -2*y    x]
-            
+
         This example addresses ticket :trac:`20512`::
-        
+
             sage: X = P3.subscheme([])
             sage: X.Jacobian_matrix().base_ring() == P3.coordinate_ring()
             True
@@ -1320,9 +1320,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: twisted_cubic.defining_ideal()
             Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
             in w, x, y, z over Rational Field
-        
+
         This example addresses ticket :trac:`20512`::
-        
+
             sage: X = P3.subscheme([])
             sage: X.Jacobian() == P3.coordinate_ring().unit_ideal()
             True
@@ -2416,7 +2416,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
         # Apply a linear change of coordinates to self so that P is sent to the origin
-        # and then compute the multiplicity of the local ring of the translated subscheme 
+        # and then compute the multiplicity of the local ring of the translated subscheme
         # corresponding to the point (0,...,0)
         AA = self.ambient_space()
         chng_coords = [AA.gens()[i] + P[i] for i in range(AA.dimension_relative())]
@@ -2857,7 +2857,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``f`` -- a :class:`SchemeMorphism_polynomial` with ``self`` in ``f.domain()``
+        - ``f`` -- a dynamical system with ``self`` in ``f.domain()``
 
         - ``N`` -- a non-negative integer or list or tuple of two non-negative integers
 
@@ -2868,8 +2868,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: H = End(P)
-            sage: f = H([(x-2*y)^2,(x-2*z)^2,(x-2*w)^2,x^2])
+            sage: f = DynamicalSystem_projective([(x-2*y)^2,(x-2*z)^2,(x-2*w)^2,x^2], domain=P)
             sage: f.orbit(P.subscheme([x]),5)
             [Closed subscheme of Projective Space of dimension 3 over Rational Field
             defined by:
@@ -2940,7 +2939,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
-        - ``f`` -- a SchmemMorphism_polynomial with ``self`` in ``f.domain()``
+        - ``f`` -- a dynamical system with ``self`` in ``f.domain()``
 
         - ``n`` -- a positive integer.
 
@@ -2951,8 +2950,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: H = End(P)
-            sage: f = H([y^2, z^2, x^2, w^2])
+            sage: f = DynamicalSystem_projective([y^2, z^2, x^2, w^2], domain=P)
             sage: f.nth_iterate(P.subscheme([x-w,y-z]), 3)
             Closed subscheme of Projective Space of dimension 3 over Rational Field
             defined by:
@@ -2962,8 +2960,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
-            sage: H = End(PS)
-            sage: f = H([x^2, y^2, z^2])
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2], domain=PS)
             sage: X = PS.subscheme([x-y])
             sage: X.nth_iterate(f,-2)
             Traceback (most recent call last):
@@ -3192,7 +3189,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         The subscheme that maps to this scheme by the map `f^k`.
 
         In particular, `f^{-k}(V(h_1,\ldots,h_t)) = V(h_1 \circ f^k, \ldots, h_t \circ f^k)`.
-        Map must be a morphism and also must be an endomorphism for `k > 1`.
+        Map must be a morphism and also a dynamical system for `k > 1`.
 
         INPUT:
 
@@ -3282,8 +3279,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: Y = P.subscheme([x-y])
-            sage: H = End(P)
-            sage: f = H([x^2, y^2, z^2])
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2], domain=P)
             sage: Y.preimage(f, k=2)
             Closed subscheme of Projective Space of dimension 2 over Rational Field
             defined by:
@@ -3302,7 +3298,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             if k > 1 and not f.is_endomorphism():
                 raise TypeError("map must be an endomorphism")
         R = codom.coordinate_ring()
-        F = f.nth_iterate_map(k)
+        if k > 1:
+            F = f.nth_iterate_map(k)
+        else:
+            F = f
         dict = {R.gen(i): F[i] for i in range(codom.dimension_relative()+1)}
         return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
 
@@ -4724,6 +4723,139 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         self._smooth = all(self.affine_patch(i).is_smooth() for i in range(0,npatches))
         return self._smooth
 
+    def is_nondegenerate(self):
+        r"""
+        Check if ``self`` is nondegenerate.
+
+        OUTPUT:
+
+        Whether the variety is nondegenerate, that is, the intersection
+        with every open torus orbit is smooth and transversal.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: P2.subscheme([x^3 + y^3 + z^3]).is_nondegenerate()
+            True
+            sage: P2.subscheme([x*y*z]).is_nondegenerate()
+            False
+            sage: X = P2.subscheme([(x-y)^2*(x+y) + x*y*z + z^3])
+            sage: X.is_smooth()
+            True
+            sage: X.is_nondegenerate()
+            False
+
+        A K3 surface in `\mathbf{P}^1 \times \mathbf{P}^1 \times \mathbf{P}^1`::
+
+            sage: diamond = lattice_polytope.cross_polytope(3)
+            sage: fan = FaceFan(diamond)
+            sage: P1xP1xP1 = ToricVariety(fan)
+            sage: z0, z1, z2, z3, z4, z5 = P1xP1xP1.gens()
+            sage: t = 5;
+            sage: F = z0^2*z1^2*z2^2 + z1^2*z2^2*z3^2 + z0^2*z2^2*z4^2\
+            ....: + z2^2*z3^2*z4^2 + t*z0*z1*z2*z3*z4*z5 + z0^2*z1^2*z5^2\
+            ....: + z1^2*z3^2*z5^2 + z0^2*z4^2*z5^2 + z3^2*z4^2*z5^2
+            sage: X = P1xP1xP1.subscheme([F])
+            sage: X.is_smooth()
+            True
+            sage: X.is_nondegenerate()
+            False
+
+        Taking a random change of variables breaks the symmetry, but 
+        makes the surface nondegenerate::
+
+            sage: F1 = F.subs(z0 = 1*z0 + 1*z3, z3 = 1*z0 + 2*z3,\
+            ....: z1 = -2*z1 + -1*z4, z4 = 1*z1 + 2*z4,\
+            ....: z2 = -3*z2 + -1*z5, z5 = -3*z2 + 2*z5 )
+            sage: Y = P1xP1xP1.subscheme([F1])
+            sage: Y.is_smooth()
+            True
+            sage: Y.is_nondegenerate()
+            True
+
+         This example is from Hamm, arXiv:1106.1826v1. It addresses 
+         an issue raised at :trac:`15239`::
+
+            sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')
+            sage: X.inject_variables()
+            Defining z0, z1, z2, z3
+            sage: g0 = z1^3 + z2^6 +z3^4
+            sage: g = g0-2*z3^2*z0^6+z2*z0^10+z0^12
+            sage: Y = X.subscheme([g])
+            sage: Y.is_nondegenerate()
+            False
+
+        It handles nonzero characteristic::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: f = x^5 + 2*x*y^4 + y^5 - 2*y^3*z^2 + x*z^4 - 2*z^5
+            sage: P2.change_ring(GF(5)).subscheme([f]).is_nondegenerate()
+            True
+            sage: P2.change_ring(GF(7)).subscheme([f]).is_nondegenerate()
+            False
+
+        TESTS:
+
+        Some corner cases discussed at :trac:`15239`::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: P2.subscheme([]).is_nondegenerate()
+            False
+            sage: P2.subscheme([x]).is_nondegenerate()
+            False
+
+        """
+        X = self.ambient_space()
+        fan = X.fan()
+        SR = X.Stanley_Reisner_ideal()
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(X.base_ring(), fan.nrays() + SR.ngens(), 't')
+        slack = R.gens()[fan.nrays():]
+        SR = SR.change_ring(R)
+
+        def restrict(cone):
+            patch = dict()
+            divide = dict()
+            for i in cone.ambient_ray_indices():
+                patch[R.gen(i)] = R.zero()   # restrict to torus orbit
+                # divide out highest power of R.gen(i)
+                divide[R.gen(i)] = R.one()   
+            ideal = self.defining_ideal().change_ring(R)
+            ideal = ideal.subs(patch)
+            mat = jacobian(ideal.gens(), R.gens()[:fan.nrays()])
+            minors = mat.minors(self.codimension())
+            minors = tuple([ideal.reduce(m) for m in minors])
+            Jac_patch = R.ideal(ideal.gens() + minors)
+            SR_patch = R.ideal([monomial * slack[i] - R.one()
+                                for i, monomial in
+                                enumerate(SR.subs(divide).gens())])
+            return ideal, Jac_patch + SR_patch
+
+        for dim in range(0, fan.dim() + 1):
+            for cone in fan(dim):
+                ideal1, ideal2 = restrict(cone)
+                if ideal1.is_zero() or ideal2.dimension() != -1:
+                    return False
+
+        return True
+
+    def is_schon(self):
+        r"""
+        Check if ``self`` is schon (nondegenerate).
+
+        See `is_nondegenerate` for further documentation.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: X = P2.subscheme([(x-y)^2*(x+y) + x*y*z + z^3])
+            sage: X.is_smooth()
+            True
+            sage: X.is_schon()
+            False
+
+        """
+        return self.is_nondegenerate()
 
 class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
     r"""
@@ -4908,6 +5040,3 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
             self._smooth = self.affine_algebraic_patch().is_smooth()
 
         return self._smooth
-
-
-

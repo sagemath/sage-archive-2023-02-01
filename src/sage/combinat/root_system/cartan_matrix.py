@@ -264,8 +264,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if dynkin_diagram is not None:
                 n = dynkin_diagram.rank()
                 index_set = dynkin_diagram.index_set()
+                oir = dynkin_diagram.odd_isotropic_roots()
                 reverse = {a: i for i,a in enumerate(index_set)}
-                data = {(i, i): 2 for i in range(n)}
+                data = {(i, i): 2 if index_set[i] not in oir else 0
+                        for i in range(n)}
                 for (i,j,l) in dynkin_diagram.edge_iterator():
                     data[(reverse[j], reverse[i])] = -l
             else:

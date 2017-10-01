@@ -49,7 +49,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 
 from sage.structure.parent import Parent
-from sage.structure.element_wrapper import ElementWrapper
 
 from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 

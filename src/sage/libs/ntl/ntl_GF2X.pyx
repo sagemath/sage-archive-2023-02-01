@@ -14,7 +14,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division
+from __future__ import absolute_import, division
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -24,7 +24,7 @@ include 'decl.pxi'
 from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 
-from ntl_ZZ import unpickle_class_value
+from .ntl_ZZ import unpickle_class_value
 from .ntl_GF2 cimport ntl_GF2
 
 

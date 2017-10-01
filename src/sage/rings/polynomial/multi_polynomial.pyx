@@ -10,7 +10,7 @@ Base class for elements of multivariate polynomial rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -33,7 +33,7 @@ from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
 
-from polydict cimport ETuple
+from .polydict cimport ETuple
 
 cdef class MPolynomial(CommutativeRingElement):
 
@@ -517,7 +517,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: id_ringA = ideal([a^2-b,b^2-c,c^2-a])
             sage: id_ringB = ideal(id_ringA.gens()).change_ring(PolynomialRing(QQ,'c,b,a'))
         """
-        from polydict import ETuple
+        from .polydict import ETuple
         if not self:
             return {}
 

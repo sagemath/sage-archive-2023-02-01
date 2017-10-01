@@ -198,11 +198,15 @@ class Category_over_base(CategoryWithParameters):
              and Category of infinite enumerated sets
              and Category of metric spaces
             sage: Modules(QQ)._make_named_class_key('parent_class')
-            Join of Category of quotient fields and Category of metric spaces
+            Join of Category of number fields
+             and Category of quotient fields
+             and Category of metric spaces
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
             Category of schemes
             sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
-            Join of Category of quotient fields and Category of metric spaces
+            Join of Category of number fields
+             and Category of quotient fields
+             and Category of metric spaces
             sage: Algebras(Fields())._make_named_class_key('morphism_class')
             Category of fields
         """

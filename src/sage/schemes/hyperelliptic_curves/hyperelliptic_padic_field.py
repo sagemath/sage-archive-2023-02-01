@@ -12,7 +12,7 @@ from six.moves import range
 from . import hyperelliptic_generic
 
 from sage.rings.all import PowerSeriesRing, PolynomialRing, ZZ, QQ, O, pAdicField, GF, RR, RationalField, Infinity
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix
 from sage.modules.all import vector

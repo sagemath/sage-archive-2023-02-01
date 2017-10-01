@@ -510,6 +510,43 @@ def TadpoleGraph(n1, n2):
     return G
 
 
+def AztecDiamondGraph(n):
+    """
+    Return the Aztec Diamond graph of order ``n``.
+
+    EXAMPLES::
+
+        sage: graphs.AztecDiamondGraph(2)
+        Aztec Diamond graph of order 2
+
+        sage: [graphs.AztecDiamondGraph(i).num_verts() for i in range(8)]
+        [0, 4, 12, 24, 40, 60, 84, 112]
+
+        sage: [graphs.AztecDiamondGraph(i).num_edges() for i in range(8)]
+        [0, 4, 16, 36, 64, 100, 144, 196]
+
+        sage: G = graphs.AztecDiamondGraph(3)
+        sage: sum(1 for p in G.perfect_matchings())
+        64
+
+    REFERENCE:
+
+    - :wikipedia:`Aztec_diamond`
+    """
+    from sage.graphs.generators.basic import Grid2dGraph
+    if n:
+        N = 2 * n
+        G = Grid2dGraph(N, N)
+        H = G.subgraph([(i, j) for i in range(N) for j in range(N)
+                        if i - n <= j <= n + i and
+                        n - 1 - i <= j <= 3 * n - i - 1])
+    else:
+        H = Graph()
+    H.rename('Aztec Diamond graph of order {}'.format(n))
+    return H
+
+
+
 def DipoleGraph(n):
     r"""
     Returns a dipole graph with n edges.

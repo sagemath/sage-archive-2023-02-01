@@ -508,7 +508,7 @@ cdef class RingMap_lift(RingMap):
         _slots['S'] = self.S
         return Morphism._extra_slots(self, _slots)
 
-    def _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         Compare a ring lifting maps ``self`` to ``other``.
 
@@ -773,7 +773,7 @@ cdef class RingHomomorphism(RingMap):
         - Simon King (2010-05)
         - Francis Clarke (2011-02)
         """
-        from sage.all import Rings
+        from sage.categories.rings import Rings
         if homset.homset_category().is_subcategory(Rings()):
             if isinstance(right, RingHomomorphism_im_gens):
                 try:
@@ -906,7 +906,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return "Ring Coercion"
 
-    def _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         Compare a ring coercion morphism ``self`` to ``other``.
 
@@ -1599,7 +1599,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         return self.codomain().defining_ideal()
 
-    def _richcmp_(self, other, int op):
+    cpdef _richcmp_(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -1796,7 +1796,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         """
         return self.phi
 
-    def _richcmp_(self, other, op):
+    cpdef _richcmp_(self, other, int op):
         """
         Compare ``self`` to ``other``.
 

@@ -112,6 +112,8 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         [0.00..., 0.03...]
         sage: pos[902] # abs tol 0.03
         [-0.48..., -0.10...]
+        sage: len(pos) == G.order()
+        True
 
     With ``split=True``, each component of G is layed out separately,
     placing them adjacent to each other. This is done because on a
@@ -131,6 +133,8 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         [2.21..., -0.00...]
         sage: pos[902] # abs tol 0.03
         [3.07..., 0.86...]
+        sage: len(pos) == G.order()
+        True
     """
 
     if by_component:

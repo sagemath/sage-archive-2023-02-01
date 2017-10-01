@@ -8854,6 +8854,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             :meth:`is_cyclotomic_product`
             :meth:`cyclotomic_part`
+            :meth:`has_cyclotomic_factor`
 
         INPUT:
 
@@ -9025,6 +9026,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             :meth:`is_cyclotomic`
             :meth:`cyclotomic_part`
+            :meth:`has_cyclotomic_factor`
 
         EXAMPLES::
 
@@ -9059,7 +9061,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return bool(self.__pari__().poliscycloprod())
 
     def cyclotomic_part(self):
-        """
+        r"""
         Return the product of the irreducible factors of this polynomial
         which are cyclotomic polynomials.
 
@@ -9067,6 +9069,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             :meth:`is_cyclotomic`
             :meth:`is_cyclotomic_product`
+            :meth:`has_cyclotomic_factor`
 
         EXAMPLES::
 
@@ -9128,6 +9131,55 @@ cdef class Polynomial(CommutativeAlgebraElement):
             t0 = R(list(t1)[::2])
             i += 1
         return(ans // ans.leading_coefficient())
+
+    def has_cyclotomic_factor(pol, assume_irreducible=False):
+        r"""
+        Return True if the given polynomial has a nontrivial cyclotomic factor.
+
+        If the polynomial is specified to be irreducible, a more efficient
+        test is used.
+
+        .. SEEALSO::
+            :meth:`is_cyclotomic`
+            :meth:`is_cyclotomic_product`
+            :meth:`cyclotomic_part`
+ 
+        EXAMPLES::
+            sage: pol.<x> = PolynomialRing(Rationals())
+            sage: has_cyclotomic_factor(x^5-1)
+            True
+            sage: has_cyclotomic_factor(x^5-2, assume_irreducible=True)
+            False
+
+    """
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError("not implemented in non-zero characteristic")
+        polRing = pol.parent()
+        x = polRing.gen()
+
+        if assume_irreducible:
+            pol1 = pol
+            pol2 = pol(-x)
+            while pol2 == pol1: # Force pol1 not to be even
+                pol1 = polRing(list(pol1)[::2])
+                pol2 = pol1(-x)
+            if not pol1.gcd(pol2).is_constant(): return(True) # zeta_{*}, v_2(*) >= 2
+            pol3 = polRing(list(pol1*pol2)[::2])
+            if not pol1.gcd(pol3).is_constant(): return(True) # zeta_{*}, v_2(*) = 0
+            pol4 = pol3(-x)
+            if not pol1.gcd(pol4).is_constant(): return(True) # zeta_{*}, v_2(*) = 1
+            return(False)
+        pol1 = pol
+        pol2 = pol1.gcd(pol1(-x))
+        while not pol2.is_constant():
+            pol1 = (pol1 // pol2) * polRing(list(pol2)[::2])
+            pol2 = pol1.gcd(pol1(-x))
+        pol1 = polRing(list(pol1*pol1(-x))[::2])
+        while True:
+            if pol1.is_constant(): return(False)
+            pol2 = pol1.gcd(polRing(list(pol1*pol1(-x))[::2]))
+            if pol1.degree() == pol2.degree(): return(True)
+            pol1 = pol2
 
     def homogenize(self, var='h'):
         r"""

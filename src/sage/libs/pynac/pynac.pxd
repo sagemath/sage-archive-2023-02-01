@@ -97,6 +97,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
     cdef cppclass GEx "ex":
         GEx()
+        GEx(GNumeric o)
         GEx(GSymbol m)
         GEx(GEx m)
         GEx(long n)
@@ -127,8 +128,8 @@ cdef extern from "sage/libs/pynac/wrap.h":
         GEx numer()                   except +
         GEx denom()                   except +
         GEx numer_denom()             except +
-        int degree(GEx expr)          except +
-        int ldegree(GEx expr)         except +
+        GNumeric degree(GEx expr)          except +
+        GNumeric ldegree(GEx expr)         except +
         GEx unit(GEx expr)            except +
         GEx content(GEx expr)         except +
         GEx primpart(GEx expr)        except +
@@ -161,6 +162,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
     # Algorithms
     GEx g_gcd "gcd"(GEx a, GEx b) except +
+    bint g_factor "factor"(GEx expr, GEx res) except +
     GEx g_gosper_term "gosper_term"(GEx the_ex, GEx n) except +
     GEx g_gosper_sum_definite "gosper_sum_definite"(GEx the_ex,
             GEx n, GEx a, GEx b, int* p) except +

@@ -3339,7 +3339,7 @@ class ExactTerm(TermWithCoefficient):
             sage: T(x^1234).log_term()
             (1234*log(x),)
             sage: T(49*x^7).log_term(base=7)
-            (log(49)/log(7), 7/log(7)*log(x))
+            (2, 7/log(7)*log(x))
 
         ::
 
@@ -3347,7 +3347,7 @@ class ExactTerm(TermWithCoefficient):
             sage: T('x * y').log_term()
             (log(x), log(y))
             sage: T('4 * x * y').log_term(base=2)
-            (log(4)/log(2), 1/log(2)*log(x), 1/log(2)*log(y))
+            (2, 1/log(2)*log(x), 1/log(2)*log(y))
 
         .. SEEALSO::
 

@@ -121,12 +121,12 @@ class Function_exp(GinacFunction):
             sage: model_exp = exp(II)**a*(b)
             sage: sol1_l={b: 5.0, a: 1.1}
             sage: model_exp.subs(sol1_l)
-            5.00000000000000*(e^II)^1.10000000000000
+            5.00000000000000*e^(1.10000000000000*II)
 
         ::
 
             sage: exp(3)^II*exp(x)
-            (e^3)^II*e^x
+            e^(3*II + x)
             sage: exp(x)*exp(x)
             e^(2*x)
             sage: exp(x)*exp(a)
@@ -137,7 +137,7 @@ class Function_exp(GinacFunction):
         Another instance of the same problem (:trac:`7394`)::
 
             sage: 2*sqrt(e)
-            2*sqrt(e)
+            2*e^(1/2)
 
         Check that :trac:`19918` is fixed::
 
@@ -271,7 +271,7 @@ class Function_log(GinacFunction):
             sage: RDF(log(1024, 2))
             10.0
             sage: log(10, 4)
-            log(10)/log(4)
+            1/2*log(10)/log(2)
             sage: RDF(log(10, 4))
             1.6609640474436813
             sage: log(10, 2)

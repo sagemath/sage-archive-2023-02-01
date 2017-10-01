@@ -973,7 +973,7 @@ class Genus_Symbol_p_adic_ring(object):
 
     def __repr__(self):
         r"""
-        Gives a string representation for the p-adic genus symbol
+        String representation for the p-adic genus symbol
 
         INPUT:
 
@@ -994,25 +994,16 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G.__repr__()
             'Genus symbol at 2 :  1^2_4 2^1_1 4^1_1'
         """
+        return "Genus symbol at %s : %s" % (self._prime, self._CS_symbol_string())
+    
+    def _latex_(self):
+        """
+        The latex representation of this local genus symbol
+        """
+        return "\\mathrm{Genus symbol at } %s\mathrm{:} %s" % (self._prime, self._CS_symbol_string())
         
-        p=self._prime
-        temp = ""
-        if p==2:
-            for s in self._symbol:
-                pm = ""; 
-                if s[1] == -1: pm = "-"
-                if s[3] == 0: oddity = "II"
-                if s[3] == 1: oddity = str(s[4])
-                temp += " %s^%s%s_%s" % (p**s[0],pm,s[1],oddity)
-        else:
-            for s in self._symbol:
-                pm = "+"; 
-                if s[1]==-1: pm = "-" 
-                temp += " %s^%s%s" % (p**s[0],pm,s[1])
-            
-
-        return "Genus symbol at %s : %s" % (self._prime, temp)
-
+        
+    
     def __eq__(self, other):
         """
         Determines if two genus symbols are equal (not just equivalent!).
@@ -1096,7 +1087,28 @@ class Genus_Symbol_p_adic_ring(object):
     #    return len(self._symbol)
     ## ------------------------------------------------------
 
-
+    def _CS_symbol_string(self):
+        """
+        Return the string of the Conway Sloane genus symbols.
+        
+        This function is for internal use in _repr_ and _latex_
+        """
+        p=self._prime
+        CS_string = ""
+        if p==2:
+            for s in self._symbol:
+                pm = ""; 
+                if s[1] == -1: pm = "-"
+                if s[3] == 0: oddity = "II"
+                if s[3] == 1: oddity = str(s[4])
+                CS_string += " %s^%s%s_%s" % (p**s[0],pm,s[1],oddity)
+        else:
+            for s in self._symbol:
+                pm = "+"; 
+                if s[1]==-1: pm = "-" 
+                CS_string += " %s^%s%s" % (p**s[0],pm,s[1])
+        return(CS_string)
+        
     def canonical_symbol(self):
         """
         Return (and cache) the canonical p-adic genus symbol.  This is
@@ -1602,7 +1614,17 @@ class GenusSymbol_global_ring(object):
         for s in self._local_symbols:
             local_symbols += "\n" + s.__repr__()
         return "Genus of\n%s\n%s" % (self._representative,local_symbols[1:])
-
+    
+    def _latex_(self):
+        """
+        The Latex representation of this lattice.
+        """
+        local_symbols = ""
+        for s in self._local_symbols:
+            local_symbols += "\n" + s._latex_()
+        return "\\mathrm{Genus of}\n%s\n%s" % (self._representative,local_symbols)
+    
+    
 
     def __eq__(self, other):
         """

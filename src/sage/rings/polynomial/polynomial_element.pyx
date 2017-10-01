@@ -26,6 +26,8 @@ AUTHORS:
 
 -  Kiran Kedlaya (2017-09): Added reciprocal transform, trace polynomial.
 
+-  David Zureick-Brown (2017-09): Added is_weil_polynomial.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -7938,6 +7940,56 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Q = (Q % (x**2 + q)**i) // x
         return S(coeffs), cofactor, q
 
+    def is_weil_polynomial(self, return_q=False):
+        r"""
+        Return ``True`` if this is a Weil polynomial.
+
+        INPUT:
+            - self -- polynomial with rational or integer coefficients
+    
+            - return_q`` -- (default ``False``), if ``True`` return a pair
+            bool,q)`` where q is the prime power with respect to which this is q-Weil,
+            or the pair ``(bool,0)`` otherwise.
+
+        EXAMPLES::
+
+            sage: polRing.<x> = PolynomialRing(Rationals())
+            sage: P0 = x**4 + 5*x**3 + 15*x**2 + 25*x + 25
+            sage: P1 = x**4 + 25*x**3 + 15*x**2 + 5*x + 25
+            sage: P2 = x**4 + 5*x**3 + 25*x**2 + 25*x + 25
+            sage: P0.is_weil_polynomial(return_q=True)
+            (True, 5)
+            sage: P0.is_weil_polynomial(return_q=False)
+            True
+            sage: P1.is_weil_polynomial(return_q=True)
+            (False, 0)
+            sage: P1.is_weil_polynomial(return_q=False)
+            False
+            sage: P2.is_weil_polynomial()
+            False
+
+        AUTHORS:
+
+        David Zureick-Brown (2017-10-01)
+
+        """
+
+        polRing = self.parent()
+        x = polRing.gen()
+        self = polRing(list(self(x)*self(-x))[::2])
+        q = self.constant_coefficient()**( 2/self.degree() )
+        is_reciprocal = q**(-self.degree()/2) * self(q/x)*x**(self.degree()) == self    
+        if is_reciprocal:
+            self = self.trace_polynomial()[0]
+            bool = self.all_roots_in_interval(-2*q.sqrt(),2*q.sqrt())
+        else:
+            bool = False
+        if return_q:
+            return (bool,ZZ(q.sqrt())) if bool else (bool, 0)
+        else:
+            return bool
+
+
     def variable_name(self):
         """
         Return name of variable used in this polynomial as a string.
@@ -11009,3 +11061,4 @@ cdef class PolynomialBaseringInjection(Morphism):
 
         """
         return False
+

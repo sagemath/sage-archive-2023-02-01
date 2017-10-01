@@ -186,7 +186,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         Since our lattices are always integral, a lattice is contained in its dual::
 
-            sage: Ldual.is_submodule(L)
+            sage: L.is_submodule(Ldual)
             True
         """
         return self.span(self.gram_matrix().inverse()*self.basis_matrix())
@@ -355,10 +355,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Traceback (most recent call last):
             ...
             ValueError: Lattices must be integral. Use FreeQuadraticModule instead
+            
             sage: S.sublattice([vector([1,-1])])
             Traceback (most recent call last):
             ...
-            ValueError: Argument basis (= [(1, -1)]) does not span a submodule of self
+            ValueError: Argument basis (= [(1, -1)]) does not span a submodule of this lattice
+
         """
         M = FreeQuadraticModule_integer_symmetric(
             ambient=self.ambient_module(), basis=basis,

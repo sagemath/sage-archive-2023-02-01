@@ -29,12 +29,14 @@ def IntegralLattice(inner_product_matrix, basis=None, already_echelonized=False,
     Here, lattices have an ambient quadratic space `\Q^n` and a distinguished basis.
 
     INPUT:
-
-    - ``ambient`` -- a free quadratic module
+    
+    - ``inner_product_matrix`` -- a symmetric matrix over the rationals
 
     - ``basis`` -- a list of elements of ambient or a matrix
-
-    - ``inner_product_matrix`` -- a symmetric matrix over the rationals
+    
+    TODO:
+    
+    - Make sure inner_product_matrix is a matrix
 
     EXAMPLES::
 
@@ -79,14 +81,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     r"""
     This class represents non-degenerate, integral, symmetric free quadratic `\Z`-modules.
 
-    INPUT:
-
-    - ``ambient`` -- a free quadratic module
-
-    - ``basis`` -- a list of elements of ``ambient``, or a matrix
-
-    - ``inner_product_matrix`` -- a symmetric matrix over the rationals
-
     EXAMPLES::
 
         sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
@@ -101,6 +95,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     def __init__(self, ambient, basis, inner_product_matrix, check=True, already_echelonized=False):
         r"""
         Create the integral lattice spanned by ``basis`` in the ambient space.
+        
+        INPUT:
+        
+        - ``ambient`` --
+        
+        - ``basis`` --
+        
+        - ``inner_product_matrix`` -- 
 
         TESTS::
 
@@ -146,7 +148,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     def is_even(self):
         r"""
-        Return whether the diagonal entries of the Gram matrix are even.
+        Returns true if the diagonal entries of the Gram matrix are even.
 
         EXAMPLES::
 
@@ -159,7 +161,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             True
         """
         for d in self.gram_matrix().diagonal():
-            if d % 2 !=0:
+            if d % 2 != 0:
                 return False
         return True
 
@@ -191,7 +193,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return self.span(self.gram_matrix().inverse()*self.basis_matrix())
 
-    def discriminant_group(self,s=0):
+    def discriminant_group(self, s=0):
         r"""
         Return the discriminant group `L^\vee / L` of this lattice.
 
@@ -259,6 +261,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     def direct_sum(self, M):
         r"""
         Return the direct sum of this lattice with ``M``.
+        
+        INPUT: 
+        
+        - ``M`` -- a module over `\Z`
 
         EXAMPLES::
 
@@ -289,6 +295,18 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         A `\Z`-submodule ``M`` of a `\Z`-module `L` is called primitive if
         the quotient ``L/M`` is torsion free.
+        
+        INPUT:
+        
+        - ``M`` -- a module 
+        
+        TODO:
+        
+        - Check that M is the right type 
+        
+        - make sure there is the same ambient space
+        
+        - describe the input M in more detail
 
         EXAMPLES::
 
@@ -310,9 +328,21 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return (gcd((self/M).invariants()) == 0)
 
-    def orthogonal_complement(self,M):
+    def orthogonal_complement(self, M):
         r"""
         Return the orthogonal complement of ``M`` in this lattice.
+        
+        INPUT:
+        
+        - ``M`` --
+        
+        TODO:
+        
+        - make sure the input is a free module 
+        
+        - make sure there is the same ambient space
+        
+        - describe the input M in more detail
 
         EXAMPLES::
 
@@ -327,17 +357,23 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 2  1]
             [ 1 -2]
         """
-        K = (self.inner_product_matrix()*M.basis_matrix().transpose()).kernel()
+        K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()
         K.base_extend(QQ)
         return self.sublattice(self.intersection(K).basis())
 
-    def sublattice(self,basis):
+    def sublattice(self, basis):
         r"""
         Return the sublattice spanned by ``basis``.
 
         INPUT:
 
-        - ``gens`` -- a list of elements of this lattice, or a rational matrix.
+        - ``basis`` --
+        
+        TODO:
+        
+        - Check that basis input is of the right type
+        
+        - describe the input in more detail 
 
         EXAMPLES::
 
@@ -377,6 +413,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         INPUT:
 
         - ``gens`` -- a list of elements of this lattice, or a rational matrix
+        
+        TODO:
+        
+        - make sure input ``gens`` is of the right type
 
         EXAMPLES::
 

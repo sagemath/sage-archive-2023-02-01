@@ -9132,7 +9132,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             i += 1
         return(ans // ans.leading_coefficient())
 
-    def has_cyclotomic_factor(pol, assume_irreducible=False):
+    def has_cyclotomic_factor(pol):
         r"""
         Return True if the given polynomial has a nontrivial cyclotomic factor.
 
@@ -9150,7 +9150,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol.<x> = PolynomialRing(Rationals())
             sage: has_cyclotomic_factor(x^5-1)
             True
-            sage: has_cyclotomic_factor(x^5-2, assume_irreducible=True)
+            sage: has_cyclotomic_factor(x^5-2)
             False
     """
         if self.base_ring().characteristic() != 0:

@@ -439,7 +439,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
         """
         from sage.rings.ideal import Ideal_generic
-        from sage.groups.abelian_gps.qmodnz import QmodnZ
+        from sage.groups.additive_abelian.qmodnz import QmodnZ
         if I is ZZ:
             return QmodnZ(1)
         elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:

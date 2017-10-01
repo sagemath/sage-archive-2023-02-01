@@ -32,9 +32,9 @@ There is an iterator over the (infinitly many) elements::
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, QQ
-from sage.groups.abelian_gps.qmodnz_element import QmodnZ_Element
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.arith import srange
+from .qmodnz_element import QmodnZ_Element
 
 class QmodnZ(Parent, UniqueRepresentation):
     r"""
@@ -59,7 +59,7 @@ class QmodnZ(Parent, UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+        sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
         sage: QQ/(19*ZZ)
         Q/19Z
 
@@ -77,7 +77,7 @@ class QmodnZ(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(2)
             sage: G
             Q/2Z
@@ -98,7 +98,7 @@ class QmodnZ(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(1); G
             Q/Z
 
@@ -125,7 +125,7 @@ class QmodnZ(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(2/3)
             sage: G(5/6)
             1/6

@@ -104,7 +104,7 @@ class QmodnZ_Element(AdditiveGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(5/7)
             sage: g = G(13/21)
             sage: -g
@@ -132,7 +132,7 @@ class QmodnZ_Element(AdditiveGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(9/10)
             sage: g = G(5)
             sage: h = G(1/2)
@@ -159,7 +159,7 @@ class QmodnZ_Element(AdditiveGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(9/10)
             sage: g = G(4)
             sage: h = G(1/2)
@@ -185,7 +185,7 @@ class QmodnZ_Element(AdditiveGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(5/7)
             sage: g = G(13/21)
             sage: g*6
@@ -200,7 +200,7 @@ class QmodnZ_Element(AdditiveGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.abelian_gps.qmodnz import QmodnZ
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
             sage: G = QmodnZ(5/7)
             sage: g = G(13/21)
             sage: 6*g

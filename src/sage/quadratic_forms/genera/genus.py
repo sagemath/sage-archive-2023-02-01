@@ -994,13 +994,41 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G.__repr__()
             'Genus symbol at 2 :  1^2_4 2^1_1 4^1_1'
         """
-        return "Genus symbol at %s : %s" % (self._prime, self._CS_symbol_string())
+        p=self._prime
+        CS_string = ""
+        if p==2:
+            for s in self._symbol:
+                pm = ""; 
+                if s[1] == -1: pm = "-"
+                if s[3] == 0: oddity = "II"
+                if s[3] == 1: oddity = str(s[4])
+                CS_string += " %s^%s%s_%s" % (p**s[0],pm,s[1],oddity)
+        else:
+            for s in self._symbol:
+                pm = "+"; 
+                if s[1]==-1: pm = "-" 
+                CS_string += " %s^%s%s" % (p**s[0],pm,s[1])
+        return "Genus symbol at %s : %s" % (self._prime, CS_string)
     
     def _latex_(self):
         """
         The latex representation of this local genus symbol
         """
-        return "\\mathrm{Genus symbol at } %s\mathrm{:} %s" % (self._prime, self._CS_symbol_string())
+        p=self._prime
+        CS_string = ""
+        if p==2:
+            for s in self._symbol:
+                pm = ""; 
+                if s[1] == -1: pm = "-"
+                if s[3] == 0: oddity = "II"
+                if s[3] == 1: oddity = str(s[4])
+                CS_string += " %s^{%s%s}_{%s}" % (p**s[0],pm,s[1],oddity)
+        else:
+            for s in self._symbol:
+                pm = "+"; 
+                if s[1] == -1: pm = "-" 
+                CS_string += " %s^{%s%s}" % (p**s[0],pm,s[1])
+        return "\\mbox{Genus symbol at } %s\mbox{:  } %s" % (self._prime,CS_string)
         
         
     
@@ -1086,28 +1114,6 @@ class Genus_Symbol_p_adic_ring(object):
     #def len(self):
     #    return len(self._symbol)
     ## ------------------------------------------------------
-
-    def _CS_symbol_string(self):
-        """
-        Return the string of the Conway Sloane genus symbols.
-        
-        This function is for internal use in _repr_ and _latex_
-        """
-        p=self._prime
-        CS_string = ""
-        if p==2:
-            for s in self._symbol:
-                pm = ""; 
-                if s[1] == -1: pm = "-"
-                if s[3] == 0: oddity = "II"
-                if s[3] == 1: oddity = str(s[4])
-                CS_string += " %s^%s%s_%s" % (p**s[0],pm,s[1],oddity)
-        else:
-            for s in self._symbol:
-                pm = "+"; 
-                if s[1]==-1: pm = "-" 
-                CS_string += " %s^%s%s" % (p**s[0],pm,s[1])
-        return(CS_string)
         
     def canonical_symbol(self):
         """
@@ -1621,8 +1627,8 @@ class GenusSymbol_global_ring(object):
         """
         local_symbols = ""
         for s in self._local_symbols:
-            local_symbols += "\n" + s._latex_()
-        return "\\mathrm{Genus of}\n%s\n%s" % (self._representative,local_symbols)
+            local_symbols += "\\\\" + s._latex_()
+        return "\\mbox{Genus of}\\\\%s\\\\%s" % (self._representative._latex_(),local_symbols)
     
     
 

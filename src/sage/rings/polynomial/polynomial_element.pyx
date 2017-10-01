@@ -9136,8 +9136,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return True if the given polynomial has a nontrivial cyclotomic factor.
 
-        If the polynomial is specified to be irreducible, a more efficient
-        test is used.
+        If the polynomial is known to be irreducible, it may be slightly more
+        efficient to call `is_cyclotomic` instead.
 
         .. SEEALSO::
 
@@ -9158,18 +9158,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         polRing = pol.parent()
         x = polRing.gen()
 
-        if assume_irreducible:
-            pol1 = pol
-            pol2 = pol(-x)
-            while pol2 == pol1: # Force pol1 not to be even
-                pol1 = polRing(list(pol1)[::2])
-                pol2 = pol1(-x)
-            if not pol1.gcd(pol2).is_constant(): return(True) # zeta_{*}, v_2(*) >= 2
-            pol3 = polRing(list(pol1*pol2)[::2])
-            if not pol1.gcd(pol3).is_constant(): return(True) # zeta_{*}, v_2(*) = 0
-            pol4 = pol3(-x)
-            if not pol1.gcd(pol4).is_constant(): return(True) # zeta_{*}, v_2(*) = 1
-            return(False)
         pol1 = pol
         pol2 = pol1.gcd(pol1(-x))
         while not pol2.is_constant():

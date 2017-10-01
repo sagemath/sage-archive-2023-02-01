@@ -9065,6 +9065,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Return the product of the irreducible factors of this polynomial
         which are cyclotomic polynomials.
 
+        The algorithm assumes that the polynomial has rational coefficients.
+
         .. SEEALSO::
 
             :meth:`is_cyclotomic`
@@ -9136,6 +9138,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return True if the given polynomial has a nontrivial cyclotomic factor.
 
+        The algorithm assumes that the polynomial has rational coefficients.
+
         If the polynomial is known to be irreducible, it may be slightly more
         efficient to call `is_cyclotomic` instead.
 
@@ -9159,11 +9163,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
         x = polRing.gen()
 
         pol1 = self
+        # First, while pol1 has a nontrivial even factor, replace
+        # that factor with the polynomials whose roots are the squares of
+        # the roots of that factor. This replaces any roots of unity of order
+        # divisible by 4 with roots of unity of order not divisible by 4.
+
         pol2 = pol1.gcd(pol1(-x))
         while not pol2.is_constant():
             pol1 = (pol1 // pol2) * polRing(pol2.list()[::2])
             pol2 = pol1.gcd(pol1(-x))
+
+        # Next, replace pol1 with the polynomial whose roots are the
+        # squares of pol1. This replaces any roots of unity of even order
+        # with roots of unity of odd order.
         pol1 = polRing((pol1*pol1(-x)).list()[::2])
+
+        # Finally, find the largest factor of pol1 whose roots are
+        # stable under squaring. This factor is constant if and only if
+        # the original polynomial has no cyclotomic factor.
         while True:
             if pol1.is_constant(): return(False)
             pol2 = pol1.gcd(polRing((pol1*pol1(-x)).list()[::2]))

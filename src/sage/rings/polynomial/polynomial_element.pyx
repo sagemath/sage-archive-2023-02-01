@@ -7852,7 +7852,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Transform a general polynomial into a self-reciprocal polynomial.
 
         The input `Q` and output `P` satisfy the relation
-            `P(x) = Q(x + q/x) x^{\deg(Q)} R(x)`.
+
+        .. MATH::
+
+            P(x) = Q(x + q/x) x^{\deg(Q)} R(x).
 
         In this relation, `Q` has all roots in the real interval 
         `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
@@ -7863,8 +7866,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             The inverse operation is :meth:`trace_polynomial`.
 
         INPUT:
-            - ``R`` -- polynomial
-            - ``q`` -- scalar (default: `1`)
+
+        - ``R`` -- polynomial
+        - ``q`` -- scalar (default: `1`)
 
         EXAMPLES::
 
@@ -7886,20 +7890,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Compute the trace polynomial and cofactor.
 
         The input `P` and output `Q` satisfy the relation
-            `P(x) = Q(x + q/x) x^{\deg(Q)} R(x)`.
 
-        In this relation, `Q` has all roots in the real interval 
+        .. MATH::
+
+            P(x) = Q(x + q/x) x^{\deg(Q)} R(x).
+
+        In this relation, `Q` has all roots in the real interval
         `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
-        circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
+        circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.  We thus require
+        that the base ring of this polynomial have a coercion to the real
+        numbers.
 
         .. SEEALSO::
 
             The inverse operation is :meth:`reciprocal_transform`.
 
         OUTPUT:
-            - ``Q`` -- trace polynomial
-            - ``R`` -- cofactor
-            - ``q`` -- scaling factor
+
+        - ``Q`` -- trace polynomial
+        - ``R`` -- cofactor
+        - ``q`` -- scaling factor
 
         EXAMPLES::
 
@@ -7910,27 +7920,51 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: u.trace_polynomial()
             (x^2 + x - 1, 1, 3)
 
+        We check that this function works for rings
+        that have a coercion to the reals::
+
+            sage: K.<a> = NumberField(x^2-2,embedding=1.4)
+            sage: u = x^4 + a*x^3 + 3*x^2 + 2*a*x + 4
+            sage: u.trace_polynomial()
+            (x^2 + a*x - 1, 1, 2)
+            sage: (u*(x^2-2)).trace_polynomial()
+            (x^2 + a*x - 1, x^2 - 2, 2)
+            sage: (u*(x^2-2)^2).trace_polynomial()
+            (x^4 + a*x^3 - 9*x^2 - 8*a*x + 8, 1, 2)
+            sage: (u*(x^2-2)^3).trace_polynomial()
+            (x^4 + a*x^3 - 9*x^2 - 8*a*x + 8, x^2 - 2, 2)
+            sage: u = x^4 + a*x^3 + 3*x^2 + 4*a*x + 16
+            sage: u.trace_polynomial()
+            (x^2 + a*x - 5, 1, 4)
+            sage: (u*(x-2)).trace_polynomial()
+            (x^2 + a*x - 5, x - 2, 4)
+            sage: (u*(x+2)).trace_polynomial()
+            (x^2 + a*x - 5, x + 2, 4)
          """
         S = self.parent()
+        A = S.base_ring()
         x = S.gen()
         if self[0] == 0:
-            raise ValueError, "Polynomial not self-reciprocal"
+            raise ValueError("Polynomial not self-reciprocal")
         d = self.degree()
         sg = (self[0]/self[d]).sign()
-        q = abs(self[0]/self[d])**(2/d)
-        if not q in S.base_ring():
-            raise ValueError, "Polynomial not self-reciprocal"
-        for i in range(d+1):
+        try:
+            q = A(abs(self[0]/self[d])**(2/d))
+        except (TypeError, ValueError):
+            raise ValueError("Polynomial not self-reciprocal")
+        for i in range(d/2+1):
             if self[d-i] != sg*self[i]/q**(d/2-i):
-                raise ValueError, "Polynomial not self-reciprocal"
-        cofactor = S(1)
+                raise ValueError("Polynomial not self-reciprocal")
         Q = self
-        if sg == -1:
-            cofactor *= x-q
-            Q //= x-q
-        if Q.degree() %2 == 1:
-            cofactor *= x+q
-            Q //= x+q
+        if sg == -1 and Q.degree() % 2 == 0:
+            cofactor = x**2 - q
+        elif sg == -1:
+            cofactor = x - q.sqrt()
+        elif Q.degree() % 2 == 1:
+            cofactor = x + q.sqrt()
+        else:
+            cofactor = S(1)
+        Q //= cofactor
         coeffs = []
         m = Q.degree() // 2
         for i in reversed(range(m+1)):

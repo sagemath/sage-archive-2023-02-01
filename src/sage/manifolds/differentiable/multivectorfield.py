@@ -1381,7 +1381,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             True
 
         """
-        from sage.sets.set import Set
+        from itertools import combinations
         from sage.combinat.permutation import Permutation
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullyAntiSym)
@@ -1454,16 +1454,14 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
                 dbb[[ind+(k,)]] = val.coord_function(chart).diff(k)
         # Computation
         for ind in resuc.non_redundant_index_generator():
-            sind = Set(ind)  # {i_1, i_2, ..., i_{p+q-1}}
+            sind = set(ind)  # {i_1, i_2, ..., i_{p+q-1}}
             # Term a^{l j_2 ... j_p} \partial_l b^{k_1 ... k_q}
             # with (j_2,...,j_p,k_1,...,k_q) spanning all permutations of
             # (i_1, i_2, ..., i_{p+q-1})
-            sub_sind_p = sind.subsets(pp-1)
-            for sind_a in sub_sind_p:
+            for sind_a in combinations(sind, pp-1):
                 sind_b = sind.difference(sind_a)
                 ind_a = tuple(sorted(sind_a))
                 ind_b = tuple(sorted(sind_b))
-                ## print 'ind, ind_a, ind_b:', ind, ind_a, ind_b
                 sum = 0
                 for l in fmodule.irange():
                     sum += aa[[(l,) + ind_a]] * dbb[[ind_b + (l,)]]
@@ -1476,12 +1474,10 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             # Term b^{l k_2 ... k_q} \partial_l a^{j_1 ... j_p}
             # with (j_1,...,j_p,k_2,...,k_q) spanning all permutations of
             # (i_1, i_2, ..., i_{p+q-1})
-            sub_sind_q = sind.subsets(qq-1)
-            for sind_b in sub_sind_q:
+            for sind_b in combinations(sind, qq-1):
                 sind_a = sind.difference(sind_b)
                 ind_a = tuple(sorted(sind_a))
                 ind_b = tuple(sorted(sind_b))
-                ## print 'ind, ind_a, ind_b:', ind, ind_a, ind_b
                 sum = 0
                 for l in fmodule.irange():
                     sum += bb[[(l,) + ind_b]] * daa[[ind_a + (l,)]]

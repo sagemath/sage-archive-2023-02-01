@@ -9140,17 +9140,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         test is used.
 
         .. SEEALSO::
+
             :meth:`is_cyclotomic`
             :meth:`is_cyclotomic_product`
             :meth:`cyclotomic_part`
- 
+
         EXAMPLES::
+
             sage: pol.<x> = PolynomialRing(Rationals())
             sage: has_cyclotomic_factor(x^5-1)
             True
             sage: has_cyclotomic_factor(x^5-2, assume_irreducible=True)
             False
-
     """
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")

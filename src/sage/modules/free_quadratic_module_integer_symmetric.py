@@ -169,7 +169,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         Let `L` be a lattice. Its dual lattice is
 
-        .. math::
+        .. MATH::
 
             L^\vee = \{x \in L \otimes \QQ : \langle x, l \rangle \forall y \in L \}.
 

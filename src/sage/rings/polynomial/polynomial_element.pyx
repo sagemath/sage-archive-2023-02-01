@@ -24,6 +24,8 @@ AUTHORS:
 
 -  Edgar Costa (2017-07): Added rational reconstruction.
 
+-  Kiran Kedlaya (2017-09): Added reciprocal transform, trace polynomial.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -7856,6 +7858,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
         circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
 
+        .. SEEALSO::
+
+            The inverse operation is :meth:`trace_polynomial`.
+
         INPUT:
             - ``R`` -- polynomial
             - ``q`` -- scalar (default: `1`)
@@ -7870,18 +7876,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^5 - 1
             sage: u.reciprocal_transform(q=3)
             x^4 + x^3 + 5*x^2 + 3*x + 9
-
-        .. SEEALSO::
-
-            :meth:`inverse_reciprocal_transform`
         """
         S = self.parent()
         x = S.gen()
         return S(x**(self.degree()) * self(x + q/x)) * R
 
-    def inverse_reciprocal_transform(self):
+    def trace_polynomial(self):
         r"""
-        Undo the reciprocal transform.
+        Compute the trace polynomial and cofactor.
 
         The input `P` and output `Q` satisfy the relation
             `P(x) = Q(x + q/x) x^{\deg(Q)} R(x)`.
@@ -7890,23 +7892,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
         `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
         circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
 
+        .. SEEALSO::
+
+            The inverse operation is :meth:`reciprocal_transform`.
+
         OUTPUT:
-            - ``Q`` -- polynomial
-            - ``R`` -- polynomial
-            - ``q`` -- nonzero scalar
+            - ``Q`` -- trace polynomial
+            - ``R`` -- cofactor
+            - ``q`` -- scaling factor
 
         EXAMPLES::
 
             sage: pol.<x> = PolynomialRing(Rationals())
-            sage: u = x^5 - 1; u.inverse_reciprocal_transform()
+            sage: u = x^5 - 1; u.trace_polynomial()
             (x^2 + x - 1, x - 1, 1)
             sage: u = x^4 + x^3 + 5*x^2 + 3*x + 9
-            sage: u.inverse_reciprocal_transform()
+            sage: u.trace_polynomial()
             (x^2 + x - 1, 1, 3)
 
-        .. SEEALSO::
-
-            :meth:`reciprocal_transform`
          """
         S = self.parent()
         x = S.gen()

@@ -13,7 +13,7 @@ You can create random elements::
     sage: [G.random_element() for _ in range(4)]
     [15/16, 0, 1/2, 139/190]
 
-There is an iterator over the (infinitly many) elements::
+There is an iterator over the (infinitely many) elements::
 
     sage: import itertools
     sage: list(itertools.islice(G, 10))
@@ -33,7 +33,6 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, QQ
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
-from sage.arith import srange
 from .qmodnz_element import QmodnZ_Element
 
 class QmodnZ(Parent, UniqueRepresentation):
@@ -189,7 +188,7 @@ class QmodnZ(Parent, UniqueRepresentation):
 
         EXAMPLES:
 
-            The first 19 elements of Q/5Z::
+            The first 19 elements of `\Q/5\Z`::
 
             sage: import itertools
             sage: list(itertools.islice(QQ/(5*ZZ),19))

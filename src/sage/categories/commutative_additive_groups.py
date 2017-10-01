@@ -13,6 +13,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.additive_groups import AdditiveGroups
+from sage.categories.topological_spaces import TopologicalSpacesCategory
 
 class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
     """
@@ -96,3 +97,14 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
     class Algebras(AlgebrasCategory):
         pass
 
+    class Topological(TopologicalSpacesCategory):
+        """
+        Category of topological additive abelian groups.
+
+        A topological additive group `G` is a group which has a topology such that
+        addition and negation are continuous functions.
+
+        REFERENCES:
+
+        - :wikipedia:`Topological_group`
+        """

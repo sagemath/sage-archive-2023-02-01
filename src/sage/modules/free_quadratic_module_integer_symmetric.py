@@ -342,11 +342,20 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Inner product matrix:
             [ 2  1]
             [ 1 -2]
+            
+            sage: L = IntegralLattice(matrix.identity(2))
+            sage: L.orthogonal_complement([vector(ZZ,[1,0])])
+            Lattice of degree 2 and rank 1 over Integer Ring
+            Basis matrix:
+            [0 1]
+            Inner product matrix:
+            [1 0]
+            [0 1]
         """
         from sage.modules.free_module import FreeModule_generic
         if not isinstance(M,FreeModule_generic):
             M = self.span(M)
-        else if M.ambient_vector_space()!=self.ambient_vector_space():
+        elif M.ambient_vector_space()!=self.ambient_vector_space():
             raise ValueError("M must have the same ambient vector space as this lattice.")
             
         K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()

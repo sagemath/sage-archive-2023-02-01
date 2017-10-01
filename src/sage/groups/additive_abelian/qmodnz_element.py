@@ -47,9 +47,7 @@ class QmodnZ_Element(AdditiveGroupElement):
         sage: G = QQ/(19*ZZ)
         sage: G(400/19)
         39/19
-
     """
-
     def __init__(self, parent, x, construct=False):
         r"""
         Create an element of `\Q/n\Z`.
@@ -95,7 +93,6 @@ class QmodnZ_Element(AdditiveGroupElement):
             sage: q.parent() is QQ
             True
         """
-
         return self._x
 
     def __neg__(self):
@@ -119,7 +116,6 @@ class QmodnZ_Element(AdditiveGroupElement):
             sage: g + -g == G(0)
             True
         """
-
         if self._x == 0:
             return self
         else:
@@ -146,7 +142,6 @@ class QmodnZ_Element(AdditiveGroupElement):
             sage: h + g == G(1/10)
             True
         """
-
         QZ = self.parent()
         ans = self._x + other._x
         if ans >= QZ.n:
@@ -172,7 +167,6 @@ class QmodnZ_Element(AdditiveGroupElement):
             sage: h - g == G(1/10)
             True
         """
-
         QZ = self.parent()
         ans = self._x - other._x
         if ans < 0:

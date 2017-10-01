@@ -33,6 +33,8 @@ REFERENCES:
 
 - [Benasque2009]_
 
+- [Kat1991]_
+
 - [MagmaHGM]_
 
 - [Fedorov2015]_
@@ -146,6 +148,8 @@ def characteristic_polynomial_from_traces(traces, d, q, i, sign):
     """
     if len(traces) < d // 2:
         raise ValueError('not enough traces were given')
+    if i % 2 and d % 2:
+        raise ValueError('i and d may not both be odd')
     t = PowerSeriesRing(QQ, 't').gen()
     ring = PolynomialRing(ZZ, 'T')
 
@@ -235,9 +239,8 @@ def cyclotomic_to_alpha(cyclo):
         if d == 1:
             alpha.append(QQ.zero())
         else:
-            for k in range(1, d):
-                if gcd(k, d) == 1:
-                    alpha.append(QQ((k, d)))
+            for k in ZZ(d).coprime_integers(d):
+                alpha.append(QQ((k, d)))
     return sorted(alpha)
 
 
@@ -248,7 +251,7 @@ def alpha_to_cyclotomic(alpha):
     The input represents arguments of some roots of unity.
 
     The output represent a product of cyclotomic polynomials with exactly
-    the given roots. Note that the multiplicity of `r/s` in the list 
+    the given roots. Note that the multiplicity of `r/s` in the list
     must be independent of `r`; otherwise, a ValueError will be raised.
 
     This is the inverse of :func:`cyclotomic_to_alpha`.
@@ -271,9 +274,10 @@ def alpha_to_cyclotomic(alpha):
     Alpha = list(alpha)
     while Alpha:
         q = QQ(Alpha.pop())
+        n = q.numerator()
         d = q.denominator()
-        for k in range(1, d):
-            if gcd(k, d) == 1 and QQ((k, d)) != q:
+        for k in d.coprime_integers(d):
+            if k != n:
                 try:
                     Alpha.remove(QQ((k, d)))
                 except ValueError:
@@ -311,8 +315,8 @@ def cyclotomic_to_gamma(cyclo_up, cyclo_down):
 
     INPUT:
 
-    - ``cyclo_up`` -- list of indices of cyclotomic polynomials
-    - ``cyclo_down`` -- list of indices of cyclotomic polynomials
+    - ``cyclo_up`` -- list of indices of cyclotomic polynomials in the numerator
+    - ``cyclo_down`` -- list of indices of cyclotomic polynomials in the denominator
 
     OUTPUT:
 
@@ -325,13 +329,13 @@ def cyclotomic_to_gamma(cyclo_up, cyclo_down):
         sage: cyclotomic_to_gamma([6], [1])
         {2: -1, 3: -1, 6: 1}
     """
-    dico = defaultdict(lambda: 0)
+    dico = defaultdict(int)
     for d in cyclo_up:
         dico[d] += 1
     for d in cyclo_down:
         dico[d] -= 1
 
-    resu = defaultdict(lambda: 0)
+    resu = defaultdict(int)
     for n in dico:
         for d in divisors(n):
             resu[d] += moebius(n / d) * dico[n]
@@ -369,7 +373,7 @@ def gamma_list_to_cyclotomic(galist):
         sage: gamma_list_to_cyclotomic([8,2,2,2,-6,-4,-3,-1])
         ([2, 2, 8], [3, 3, 6])
     """
-    resu = defaultdict(lambda: 0)
+    resu = defaultdict(int)
     for n in galist:
         eps = sgn(n)
         for d in divisors(abs(n)):
@@ -386,7 +390,8 @@ class HypergeometricData(object):
 
         INPUT:
 
-        three possibilities are offered:
+        three possibilities are offered, each describing a quotient
+        of products of cyclotomic polynomials.
 
         - ``cyclotomic`` -- a pair of lists of nonnegative integers,
           each integer `k` represents a cyclotomic polynomial `\Phi_k`
@@ -394,7 +399,7 @@ class HypergeometricData(object):
         - ``alpha_beta`` -- a pair of lists of rationals,
           each rational represents a root of unity
 
-        - ``gamma_list`` -- a pair of list of nonnegative integers,
+        - ``gamma_list`` -- a pair of lists of nonnegative integers,
           each integer `n` represents a polynomial `x^n - 1`
 
         In the last case, it is also allowed to send just one list of signed
@@ -404,17 +409,17 @@ class HypergeometricData(object):
 
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(cyclotomic=([2],[1]))
-            Hypergeometric motive for [1/2] and [0]
+            Hypergeometric data for [1/2] and [0]
 
             sage: Hyp(alpha_beta=([1/2],[0]))
-            Hypergeometric motive for [1/2] and [0]
+            Hypergeometric data for [1/2] and [0]
             sage: Hyp(alpha_beta=([1/5,2/5,3/5,4/5],[0,0,0,0]))
-            Hypergeometric motive for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
+            Hypergeometric data for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
 
             sage: Hyp(gamma_list=([5],[1,1,1,1,1]))
-            Hypergeometric motive for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
+            Hypergeometric data for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
             sage: Hyp(gamma_list=([5,-1,-1,-1,-1,-1]))
-            Hypergeometric motive for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
+            Hypergeometric data for [1/5, 2/5, 3/5, 4/5] and [0, 0, 0, 0]
         """
         if gamma_list is not None:
             if isinstance(gamma_list[0], (list, tuple)):
@@ -469,14 +474,14 @@ class HypergeometricData(object):
 
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: Hyp(alpha_beta=([1/2],[0]))
-            Hypergeometric motive for [1/2] and [0]
+            Hypergeometric data for [1/2] and [0]
         """
-        txt = "Hypergeometric motive for {} and {}"
+        txt = "Hypergeometric data for {} and {}"
         return txt.format(self._alpha, self._beta)
 
     def twist(self):
         r"""
-        Return the twist of ``self``.
+        Return the twist of this data.
 
         This is defined by adding `1/2` to each rational in `\alpha`
         and `\beta`.
@@ -488,7 +493,7 @@ class HypergeometricData(object):
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2],[0]))
             sage: H.twist()
-            Hypergeometric motive for [0] and [1/2]
+            Hypergeometric data for [0] and [1/2]
 
             sage: Hyp(cyclotomic=([6],[1,2])).twist().cyclotomic_data()
             ([3], [1, 2])
@@ -499,14 +504,14 @@ class HypergeometricData(object):
 
     def swap_alpha_beta(self):
         """
-        Return the hypergeometric motive with ``alpha`` and ``beta`` exchanged.
+        Return the hypergeometric data with ``alpha`` and ``beta`` exchanged.
 
         EXAMPLES::
 
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
             sage: H = Hyp(alpha_beta=([1/2],[0]))
             sage: H.swap_alpha_beta()
-            Hypergeometric motive for [0] and [1/2]
+            Hypergeometric data for [0] and [1/2]
         """
         alpha, beta = self.alpha_beta()
         return HypergeometricData(alpha_beta=(beta, alpha))
@@ -533,7 +538,7 @@ class HypergeometricData(object):
 
     def zigzag(self, x, flip_beta=False):
         """
-        Count ``alpha``'s up to ``x`` minus ``beta``'s up to ``x``.
+        Count ``alpha``'s at most ``x`` minus ``beta``'s at most ``x``.
 
         This function is used to compute the weight and the Hodge numbers.
         With `flip_beta` set to True, replace each `b` in `\beta` with `1-b`.
@@ -564,7 +569,7 @@ class HypergeometricData(object):
 
     def weight(self):
         """
-        Return the motivic weight of ``self``.
+        Return the motivic weight of this motivic data.
 
         EXAMPLES:
 
@@ -735,13 +740,13 @@ class HypergeometricData(object):
         """
         gamma = self.gamma_array()
         resu = []
-        for v in gamma:
-            resu += [sgn(gamma[v]) * v] * abs(gamma[v])
+        for v, n in gamma.items():
+            resu += [sgn(n) * v] * abs(n)
         return resu
 
     def __eq__(self, other):
         """
-        Return whether ``self`` is equal to ``other``.
+        Return whether two data are equal.
 
         EXAMPLES::
 
@@ -758,7 +763,7 @@ class HypergeometricData(object):
 
     def __ne__(self, other):
         """
-        Return whether ``self`` is not equal to ``other``.
+        Return whether two data are unequal.
 
         EXAMPLES::
 
@@ -774,7 +779,7 @@ class HypergeometricData(object):
 
     def is_primitive(self):
         """
-        Return whether ``self`` is primitive.
+        Return whether this data is primitive.
 
         .. SEEALSO::
 
@@ -790,7 +795,7 @@ class HypergeometricData(object):
             sage: Hyp(gamma_list=[-3, 6, 9, -12]).is_primitive()
             False
         """
-        return self.primitive_index() == 1  # ?
+        return self.primitive_index() == 1
 
     def primitive_index(self):
         """
@@ -874,7 +879,7 @@ class HypergeometricData(object):
         alpha = [(x, 'a') for x in self._alpha]
         beta = [(x, 'b') for x in self._beta]
         height = 0
-        hodge = defaultdict(lambda: 0)
+        hodge = defaultdict(int)
         for x, letter in sorted(alpha + beta):
             if letter == 'a':
                 hodge[height] += 1
@@ -968,7 +973,7 @@ class HypergeometricData(object):
         m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
-#        D = (self.weight() + 1 - m[0]) // 2
+        # also: D = (self.weight() + 1 - m[0]) // 2
 
         gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
 
@@ -1053,7 +1058,7 @@ class HypergeometricData(object):
 
         m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
-#        D = (self.weight() + 1 - m[0]) // 2
+        # also: D = (self.weight() + 1 - m[0]) // 2
         M = self.M_value()
 
         Fq = GF(q)
@@ -1086,7 +1091,7 @@ class HypergeometricData(object):
 
         - `t` -- rational number, not 0 or 1
 
-        - `p` -- prime number
+        - `p` -- prime number of good reduction
 
         - ``degree`` -- optional integer (default 0)
 
@@ -1168,9 +1173,9 @@ class HypergeometricData(object):
         if not is_prime(p):
             raise ValueError('p not prime')
         if not all(x.denominator() % p for x in self._alpha + self._beta):
-            raise ValueError('p is wild')
+            raise NotImplementedError('p is wild')
         if (t.valuation(p) or (t - 1).valuation(p) > 0):
-            raise ValueError('p is tame')
+            raise NotImplementedError('p is tame')
         # now p is good
         if degree == 0:
             d = self.degree()
@@ -1192,6 +1197,8 @@ class HypergeometricData(object):
         """
         Return the canonical scheme.
 
+        This is a scheme that contains this hypergeometric motive in its cohomology.
+
         EXAMPLES::
 
             sage: from sage.modular.hypergeometric_motive import HypergeometricData as Hyp
@@ -1210,6 +1217,10 @@ class HypergeometricData(object):
             in X0, X1, Y0, Y1 over Fraction Field of Univariate Polynomial Ring
             in t over Rational Field by the ideal
             (X0 + X1 - 1, Y0 + Y1 - 1, (-t)*X0^3*X1^4 + 1728/3125*Y0^2*Y1^5)
+
+        REFERENCES:
+
+        [Kat1991]_, section 5.4
         """
         if t is None:
             t = FractionField(QQ['t']).gen()

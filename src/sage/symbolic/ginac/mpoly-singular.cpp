@@ -233,7 +233,12 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                                 ex b = it->first.subs(symbol_E == exp(1));
                                 revmap[var.level()-1] = GiNaC::power(b,
                                                                it->second[0]);
-                                return ::power(var, n.to_int());
+                                try {
+                                        return ::power(var, n.to_long());
+                                }
+                                catch (std::runtime_error) {
+                                        throw std::runtime_error("exponent too big");
+                                }
                         }
                 }
                 else {
@@ -256,7 +261,12 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                         numeric n = oc.div(it->second[0]);
                         ex b = it->first.subs(symbol_E == exp(1));
                         revmap[var.level()-1] = GiNaC::power(b, it->second[0]);
-                        return ::power(var, n.to_int());
+                        try {
+                                return ::power(var, n.to_long());
+                        }
+                        catch (std::runtime_error) {
+                                throw std::runtime_error("exponent too big");
+                        }
                 }
                 return replace_with_symbol(*this, map, revmap);
         }

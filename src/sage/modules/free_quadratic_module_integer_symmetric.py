@@ -29,16 +29,15 @@ def IntegralLattice(inner_product_matrix, basis=None):
     Here, lattices have an ambient quadratic space `\Q^n` and a distinguished basis.
 
     INPUT:
-    
+
     - ``inner_product_matrix`` -- a symmetric matrix over the rationals
 
     - ``basis`` -- a list of elements of ambient or a matrix
-    
+
     Output:
-    
+
     A lattice in the ambient space defined by the inner_product_matrix.
-    Unless specified the basis of the lattice is the standard basis.
-    
+    Unless specified, the basis of the lattice is the standard basis.
 
     EXAMPLES::
 
@@ -82,14 +81,15 @@ def IntegralLattice(inner_product_matrix, basis=None):
 class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_basis_pid):
     r"""
     This class represents non-degenerate, integral, symmetric free quadratic `\Z`-modules.
-    
+
     INPUT:
-        
-        - ``ambient`` --
-        
-        - ``basis`` --
-        
-        - ``inner_product_matrix`` -- 
+
+    - ``ambient`` -- an ambient free quadratic module
+
+    - ``basis`` -- a list of elements of ambient or a matrix
+
+    - ``inner_product_matrix`` -- a symmetric matrix over the rationals
+
     EXAMPLES::
 
         sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
@@ -111,10 +111,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: TestSuite(L).run()
         """
-        FreeQuadraticModule_submodule_with_basis_pid.__init__(self, ambient, basis, inner_product_matrix, check=True, already_echelonized=False)
+        FreeQuadraticModule_submodule_with_basis_pid.__init__(self, ambient, basis, inner_product_matrix, check=check, already_echelonized=already_echelonized)
         if self.determinant() == 0:
             raise ValueError("Lattices must be nondegenerate. Use FreeQuadraticModule instead")
-        if self.gram_matrix().base_ring() != ZZ:
+        if self.gram_matrix().base_ring() is not ZZ:
             if self.gram_matrix().denominator() != 1:
                 raise ValueError("Lattices must be integral. Use FreeQuadraticModule instead")
 
@@ -161,10 +161,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L.is_even()
             True
         """
-        for d in self.gram_matrix().diagonal():
-            if d % 2 != 0:
-                return False
-        return True
+        return all(d % 2 == 0 for d in self.gram_matrix().diagonal())
 
     def dual_lattice(self):
         r"""
@@ -200,7 +197,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         INPUT:
 
-        - ``s`` -- an integer
+        - ``s`` -- an integer (default: 0)
+
+        OUTPUT:
+
+        The `s` primary part of the discriminant group.
+        If `s=0`, returns the whole discriminant group.
 
         EXAMPLES::
 
@@ -244,7 +246,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     def signature_pair(self):
         r"""
-        Returns the signature tuple `(n_+,n_-)` of this lattice.
+        Return the signature tuple `(n_+,n_-)` of this lattice.
 
         Here `n_+` (resp. `n_-`) is the number of positive (resp. negative)
         eigenvalues of the Gram matrix.
@@ -262,9 +264,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     def direct_sum(self, M):
         r"""
         Return the direct sum of this lattice with ``M``.
-        
-        INPUT: 
-        
+
+        INPUT:
+
         - ``M`` -- a module over `\Z`
 
         EXAMPLES::
@@ -294,13 +296,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return whether ``M`` is a primitive submodule of this lattice.
 
-        A `\Z`-submodule ``M`` of a `\Z`-module `L` is called primitive if
+        A `\Z`-submodule ``M`` of a `\Z`-module ``L`` is called primitive if
         the quotient ``L/M`` is torsion free.
-        
+
         INPUT:
-        
+
         - ``M`` -- a submodule of this lattice
-        
+
         EXAMPLES::
 
             sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
@@ -324,10 +326,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     def orthogonal_complement(self, M):
         r"""
         Return the orthogonal complement of ``M`` in this lattice.
-        
+
         INPUT:
-        
-        - ``M`` -- a Module in the same ambient space or
+
+        - ``M`` -- a module in the same ambient space or
                    a list of elements of the ambient space
 
         EXAMPLES::
@@ -342,7 +344,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Inner product matrix:
             [ 2  1]
             [ 1 -2]
-            
+
             sage: L = IntegralLattice(matrix.identity(2))
             sage: L.orthogonal_complement([vector(ZZ,[1,0])])
             Lattice of degree 2 and rank 1 over Integer Ring
@@ -357,7 +359,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             M = self.span(M)
         elif M.ambient_vector_space()!=self.ambient_vector_space():
             raise ValueError("M must have the same ambient vector space as this lattice.")
-            
+
         K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()
         K.base_extend(QQ)
         return self.sublattice(self.intersection(K).basis())
@@ -386,12 +388,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Traceback (most recent call last):
             ...
             ValueError: Lattices must be integral. Use FreeQuadraticModule instead
-            
+
             sage: S.sublattice([vector([1,-1])])
             Traceback (most recent call last):
             ...
             ValueError: Argument basis (= [(1, -1)]) does not span a submodule of this lattice
-
         """
         M = FreeQuadraticModule_integer_symmetric(
             ambient=self.ambient_module(), basis=basis,

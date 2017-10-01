@@ -695,6 +695,10 @@ class GrowthDiagram(SageObject):
         the growth diagram with the filling reflected over the
         main diagonal.
 
+        The sequence of labels along the boundary on the side of the
+        origin is the reversal of the corresponding sequence of the
+        original growth diagram.
+
         When the filling is a permutation, the conjugate filling
         corresponds to its inverse.
 
@@ -727,6 +731,10 @@ class GrowthDiagram(SageObject):
     def rotate(self):
         r"""
         Return the growth diagram with the filling rotated by 180 degrees.
+
+        The rotated growth diagram is initialized with
+        ``labels=None``, that is, all labels along the boundary on
+        the side of the origin are set to ``rule.zero``.
 
         For RSK-growth diagrams and rectangular fillings, this
         corresponds to evacuation of the `P`- and the `Q`-symbol.

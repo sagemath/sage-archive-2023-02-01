@@ -273,7 +273,6 @@ class QmodnZ_Element(AdditiveGroupElement):
             sage: x / 4
             3/32
         """
-        #TODO: This needs to be implemented.
         QZ = self.parent()
         other = ZZ(other)
         return QZ.element_class(QZ, self._x / other, True)
@@ -285,7 +284,7 @@ class QmodnZ_Element(AdditiveGroupElement):
         EXAMPLES::
 
             sage: G = QQ/(8*ZZ)
-            sage: g = G(25/7); g;
+            sage: g = G(25/7); g
             25/7
         """
         return repr(self._x)

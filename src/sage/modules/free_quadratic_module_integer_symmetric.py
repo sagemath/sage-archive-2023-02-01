@@ -82,7 +82,14 @@ def IntegralLattice(inner_product_matrix, basis=None):
 class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_basis_pid):
     r"""
     This class represents non-degenerate, integral, symmetric free quadratic `\Z`-modules.
-
+    
+    INPUT:
+        
+        - ``ambient`` --
+        
+        - ``basis`` --
+        
+        - ``inner_product_matrix`` -- 
     EXAMPLES::
 
         sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
@@ -97,14 +104,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     def __init__(self, ambient, basis, inner_product_matrix, check=True, already_echelonized=False):
         r"""
         Create the integral lattice spanned by ``basis`` in the ambient space.
-        
-        INPUT:
-        
-        - ``ambient`` --
-        
-        - ``basis`` --
-        
-        - ``inner_product_matrix`` -- 
 
         TESTS::
 
@@ -150,7 +149,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     def is_even(self):
         r"""
-        Returns true if the diagonal entries of the Gram matrix are even.
+        Return whether the diagonal entries of the Gram matrix are even.
 
         EXAMPLES::
 

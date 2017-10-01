@@ -20,7 +20,7 @@ from sage.arith.misc import gcd
 #
 ###############################################################################
 
-def IntegralLattice(inner_product_matrix, basis=None, already_echelonized=False, check=True):
+def IntegralLattice(inner_product_matrix, basis=None):
     r"""
     Return the integral lattice spanned by ``basis`` in the ambient space.
 
@@ -34,9 +34,11 @@ def IntegralLattice(inner_product_matrix, basis=None, already_echelonized=False,
 
     - ``basis`` -- a list of elements of ambient or a matrix
     
-    TODO:
+    Output:
     
-    - Make sure inner_product_matrix is a matrix
+    A lattice in the ambient space defined by the inner_product_matrix.
+    Unless specified the basis of the lattice is the standard basis.
+    
 
     EXAMPLES::
 
@@ -61,7 +63,7 @@ def IntegralLattice(inner_product_matrix, basis=None, already_echelonized=False,
         [1 0]
     """
     if basis is None:
-        basis = matrix.identity(QQ, inner_product_matrix.ncols())
+        basis = matrix.identity(ZZ, inner_product_matrix.ncols())
     if inner_product_matrix != inner_product_matrix.transpose():
         raise ValueError("Argument inner_product_matrix must be symmetric\n%s" % inner_product_matrix)
 
@@ -298,16 +300,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         
         INPUT:
         
-        - ``M`` -- a module 
+        - ``M`` -- a submodule of this lattice
         
-        TODO:
-        
-        - Check that M is the right type 
-        
-        - make sure there is the same ambient space
-        
-        - describe the input M in more detail
-
         EXAMPLES::
 
             sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
@@ -334,15 +328,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         
         INPUT:
         
-        - ``M`` --
-        
-        TODO:
-        
-        - make sure the input is a free module 
-        
-        - make sure there is the same ambient space
-        
-        - describe the input M in more detail
+        - ``M`` -- a Module in the same ambient space or
+                   a list of elements of the ambient space
 
         EXAMPLES::
 
@@ -357,6 +344,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 2  1]
             [ 1 -2]
         """
+        from sage.modules.free_module import FreeModule_generic
+        if not isinstance(M,FreeModule_generic):
+            M = self.span(M)
+        else if M.ambient_vector_space()!=self.ambient_vector_space():
+            raise ValueError("M must have the same ambient vector space as this lattice.")
+            
         K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()
         K.base_extend(QQ)
         return self.sublattice(self.intersection(K).basis())
@@ -367,13 +360,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         INPUT:
 
-        - ``basis`` --
-        
-        TODO:
-        
-        - Check that basis input is of the right type
-        
-        - describe the input in more detail 
+        - ``basis`` -- A list of elements of this lattice.
 
         EXAMPLES::
 
@@ -413,10 +400,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         INPUT:
 
         - ``gens`` -- a list of elements of this lattice, or a rational matrix
-        
-        TODO:
-        
-        - make sure input ``gens`` is of the right type
 
         EXAMPLES::
 

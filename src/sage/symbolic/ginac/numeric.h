@@ -523,6 +523,11 @@ inline bool is_a_python_object(const ex & x)
                 and ex_to<numeric>(x).is_pyobject());
 }
 
+class conversion_error : public std::runtime_error {
+    public:
+        conversion_error() : std::runtime_error("") {}
+};
+
 } // namespace GiNaC
 
 #endif // ndef __GINAC_NUMERIC_H__

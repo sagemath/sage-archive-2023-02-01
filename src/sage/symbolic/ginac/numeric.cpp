@@ -2906,7 +2906,7 @@ int numeric::to_int() const
                 case MPZ:
                         if (mpz_fits_sint_p(v._bigint))
                                 return mpz_get_si(v._bigint);
-                        throw std::runtime_error("to_int");
+                        throw conversion_error();
                 case MPQ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -2917,7 +2917,7 @@ int numeric::to_int() const
                                 return n;
                         }
                         mpz_clear(bigint);
-                        throw std::runtime_error("to_int");
+                        throw conversion_error();
                 case PYOBJECT:
                         return to_bigint().to_int();
                 default:
@@ -2935,7 +2935,7 @@ long numeric::to_long() const {
                 case MPZ:
                         if (mpz_fits_sint_p(v._bigint))
                                 return (long int) mpz_get_si(v._bigint);
-                        throw std::runtime_error("to_long");
+                        throw conversion_error();
                 case MPQ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -2946,7 +2946,7 @@ long numeric::to_long() const {
                                 return n;
                         }
                         mpz_clear(bigint);
-                        throw std::runtime_error("to_long");
+                        throw conversion_error();
                 case PYOBJECT:
                         return to_bigint().to_long();
                 default:

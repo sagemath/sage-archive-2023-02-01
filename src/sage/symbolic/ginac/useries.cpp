@@ -322,9 +322,10 @@ bool useries_can_handle(ex the_ex, const symbol& s)
                         long dhdeg = nd.op(1).degree(s).to_long();
                         long dldeg = nd.op(1).ldegree(s).to_long();
                 }
-                catch (std::runtime_error) {
+                catch (conversion_error) {
                         throw std::runtime_error("exponent too big");
                 }
+                catch (std::runtime_error) {}
         }
         return ok;
 }

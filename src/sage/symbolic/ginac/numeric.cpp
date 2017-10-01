@@ -2895,24 +2895,58 @@ bool numeric::operator>=(const numeric &right) const {
         }
 }
 
+int numeric::to_int() const
+{
+        switch (t) {
+                case LONG:
+                        if (v._long < std::numeric_limits<int>::max()
+                            and v._long > std::numeric_limits<int>::min())
+                                return v._long;
+                        throw std::runtime_error("to_int");
+                case MPZ:
+                        if (mpz_fits_sint_p(v._bigint))
+                                return mpz_get_si(v._bigint);
+                        throw std::runtime_error("to_int");
+                case MPQ:
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_fdiv_q(bigint, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
+                        if (mpz_fits_sint_p(bigint)) {
+                                int n = mpz_get_si(bigint);
+                                mpz_clear(bigint);
+                                return n;
+                        }
+                        mpz_clear(bigint);
+                        throw std::runtime_error("to_int");
+                case PYOBJECT:
+                        return to_bigint().to_int();
+                default:
+                        stub("invalid type: operator long int() type not handled");
+        }
+}
 /** Converts numeric types to machine's long.  You should check with
  *  is_integer() if the number is really an integer before calling this method.
  *  You may also consider checking the range first. */
 long numeric::to_long() const {
         verbose("operator long int");
-        signed long int n;
         switch (t) {
                 case LONG:
                         return v._long;
                 case MPZ:
-                        return (long int) mpz_get_si(v._bigint);
+                        if (mpz_fits_sint_p(v._bigint))
+                                return (long int) mpz_get_si(v._bigint);
+                        throw std::runtime_error("to_long");
                 case MPQ:
                         mpz_t bigint;
                         mpz_init(bigint);
                         mpz_fdiv_q(bigint, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
-                        n = mpz_get_si(bigint);
+                        if (mpz_fits_sint_p(v._bigint)) {
+                                long n = mpz_get_si(bigint);
+                                mpz_clear(bigint);
+                                return n;
+                        }
                         mpz_clear(bigint);
-                        return n;
+                        throw std::runtime_error("to_long");
                 case PYOBJECT:
                         return to_bigint().to_long();
                 default:

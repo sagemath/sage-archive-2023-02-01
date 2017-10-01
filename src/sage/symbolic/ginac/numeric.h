@@ -235,10 +235,7 @@ public:
 	bool operator>=(const numeric &other) const;
 	bool is_parent_pos_char() const;
 	int get_parent_char() const;
-	int to_int() const
-	{
-		return (int)to_long();
-	}
+	int to_int() const;
 	long to_long() const;
 	double to_double() const;
         bool is_long() const { return t == LONG; }

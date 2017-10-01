@@ -7944,9 +7944,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return ``True`` if this is a Weil polynomial.
 
+        This polynomial must have rational or integer coefficients.
+
         INPUT:
-            - self -- polynomial with rational or integer coefficients
-    
+
+        - ``self`` -- polynomial with rational or integer coefficients
+
             - return_q`` -- (default ``False``), if ``True`` return a pair
             bool,q)`` where q is the prime power with respect to which this is q-Weil,
             or the pair ``(bool,0)`` otherwise.
@@ -7954,9 +7957,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: polRing.<x> = PolynomialRing(Rationals())
-            sage: P0 = x**4 + 5*x**3 + 15*x**2 + 25*x + 25
-            sage: P1 = x**4 + 25*x**3 + 15*x**2 + 5*x + 25
-            sage: P2 = x**4 + 5*x**3 + 25*x**2 + 25*x + 25
+            sage: P0 = x^4 + 5*x^3 + 15*x^2 + 25*x + 25
+            sage: P1 = x^4 + 25*x^3 + 15*x^2 + 5*x + 25
+            sage: P2 = x^4 + 5*x^3 + 25*x^2 + 25*x + 25
             sage: P0.is_weil_polynomial(return_q=True)
             (True, 5)
             sage: P0.is_weil_polynomial(return_q=False)
@@ -7971,23 +7974,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHORS:
 
         David Zureick-Brown (2017-10-01)
-
         """
-
+        from sage.rings.rational_field import QQ
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError
         polRing = self.parent()
         x = polRing.gen()
+        # the following is the polynomial whose roots are the squares
+        # of the roots of self.
         self = polRing(list(self(x)*self(-x))[::2])
-        q = self.constant_coefficient()**( 2/self.degree() )
-        is_reciprocal = q**(-self.degree()/2) * self(q/x)*x**(self.degree()) == self    
-        if is_reciprocal:
-            self = self.trace_polynomial()[0]
-            bool = self.all_roots_in_interval(-2*q.sqrt(),2*q.sqrt())
+        try:
+            self, q, R = self.trace_polynomial()[0]
+        except ValueError:
+            b = False
         else:
-            bool = False
+            b = self.all_roots_in_interval(-2*q.sqrt(), 2*q.sqrt())
         if return_q:
-            return (bool,ZZ(q.sqrt())) if bool else (bool, 0)
+            return (b, ZZ(q.sqrt())) if b else (b, 0)
         else:
-            return bool
+            return b
 
 
     def variable_name(self):
@@ -11061,4 +11066,3 @@ cdef class PolynomialBaseringInjection(Morphism):
 
         """
         return False
-

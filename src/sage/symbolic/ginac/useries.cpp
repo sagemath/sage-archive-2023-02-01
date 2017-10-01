@@ -313,7 +313,20 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
 bool useries_can_handle(ex the_ex, const symbol& s)
 {
         rational_ex_f = true;
-        return (not unhandled_elements_in(the_ex, s));
+        bool ok = (not unhandled_elements_in(the_ex, s));
+        if (ok) {
+                ex nd = the_ex.numer_denom();
+                try {
+                        long nhdeg = nd.op(0).degree(s).to_long();
+                        long nldeg = nd.op(0).ldegree(s).to_long();
+                        long dhdeg = nd.op(1).degree(s).to_long();
+                        long dldeg = nd.op(1).ldegree(s).to_long();
+                }
+                catch (std::runtime_error) {
+                        throw std::runtime_error("exponent too big");
+                }
+        }
+        return ok;
 }
 
 class ldegree_error : public std::runtime_error {

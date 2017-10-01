@@ -488,7 +488,10 @@ def cython(filename, verbose=0, compile_message=False,
                     language=language)
 
     try:
-        ext, = cythonize([ext], aliases=cython_aliases(), quiet=not verbose)
+        ext, = cythonize([ext],
+                         aliases=cython_aliases(),
+                         include_path=includes,
+                         quiet=not verbose)
     except CompileError:
         msg = "Error converting {} to C".format(filename)
         # Check for names in old_pxi_names

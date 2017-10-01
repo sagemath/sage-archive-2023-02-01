@@ -107,10 +107,11 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
-        sage: spring_layout_fast(G)
-        {0: [0.00..., 0.04...],     # abs tol 0.03
-         ...                        # abs tol 0.03
-         902: [-0.47..., -0.10...]} # abs tol 0.03
+        sage: pos = spring_layout_fast(G)
+        sage: pos[0]   # abs tol 0.03
+        [0.00..., 0.03...]
+        sage: pos[902] # abs tol 0.03
+        [-0.48..., -0.10...]
 
     With ``split=True``, each component of G is layed out separately,
     placing them adjacent to each other. This is done because on a
@@ -125,10 +126,11 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
-        sage: spring_layout_fast(G, by_component = True)
-        {0: [2.21..., -0.00...],  # abs tol 0.03
-         ...                      # abs tol 0.03
-         902: [3.07..., 0.86...]} # abs tol 0.03
+        sage: pos = spring_layout_fast(G, by_component = True)
+        sage: pos[0]   # abs tol 0.03
+        [2.21..., -0.00...]
+        sage: pos[902] # abs tol 0.03
+        [3.07..., 0.86...]
     """
 
     if by_component:

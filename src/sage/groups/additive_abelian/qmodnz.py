@@ -115,6 +115,36 @@ class QmodnZ(Parent, UniqueRepresentation):
         else:
             return "Q/(%s)Z"%(self.n)
 
+    def _coerce_map_from_(self, S):
+        r"""
+        Coercion from a parent ``S``.
+
+        There is a coercion from ``S`` if ``S`` has a coerce map to `\Q`
+        or if `S = \Q/m\Z` for `m` a multiple of `n`.
+
+        TESTS::
+
+            sage: G2 = QQ/(2*ZZ)
+            sage: G3 = QQ/(3*ZZ)
+            sage: G4 = QQ/(4*ZZ)
+            sage: G2.has_coerce_map_from(QQ)
+            True
+            sage: G2.has_coerce_map_from(ZZ)
+            True
+            sage: G2.has_coerce_map_from(ZZ['x'])
+            False
+            sage: G2.has_coerce_map_from(G3)
+            False
+            sage: G2.has_coerce_map_from(G4)
+            True
+            sage: G4.has_coerce_map_from(G2)
+            False
+        """
+        if QQ.has_coerce_map_from(S):
+            return True
+        if isinstance(S, QmodnZ) and (S.n / self.n in ZZ):
+            return True
+
     #TODO: Disallow order comparisons between different Q/nZ's
     # e.g., sage: QmodnZ(10/3) > QmodnZ(5/3)
     # returns False.

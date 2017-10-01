@@ -95,6 +95,52 @@ class QmodnZ_Element(AdditiveGroupElement):
         """
         return self._x
 
+    def _rational_(self):
+        r"""
+        Lift to `\Q`.
+
+        TESTS::
+
+            sage: QQ((QQ/ZZ)(4/3)) # indirect doctest
+            1/3
+        """
+        return self._x
+
+    def _integer_(self, Z):
+        r"""
+        Lift to `\Z`.
+
+        This is the smallest non-negative integer reducing to this element,
+        or a ``ValueError`` if none exists.
+
+        TESTS::
+
+            sage: G = QQ/(2*ZZ)
+            sage: ZZ(G(3))
+            1
+            sage: from sage.groups.additive_abelian.qmodnz import QmodnZ
+            sage: G = QmodnZ(8/3)
+            sage: ZZ(G(1/3))
+            3
+
+            sage: all(ZZ(G(i)) == i for i in range(8))
+            True
+
+            sage: G = QmodnZ(101/34)
+            sage: all(ZZ(G(i)) == i for i in range(101))
+            True
+        """
+        QZ = self.parent()
+        b = self._x.denominator()
+        n = QZ.n.numerator()
+        m = QZ.n.denominator()
+        if not b.divides(m):
+            raise ValueError("No integral lift")
+        a = self._x.numerator() * (m // b)
+        # a/m + q*(n/m) = (a + qn)/m = km/m so a + qn = km,
+        # k = a*m^(-1) mod n.
+        return (a * m.inverse_mod(n)) % n
+
     def __neg__(self):
         r"""
         Return the additive inverse of this element in `\Q/n\Z`.

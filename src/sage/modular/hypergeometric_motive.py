@@ -66,6 +66,7 @@ from sage.arith.misc import gauss_sum, kronecker_symbol
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.functions.generalized import sgn
 from sage.functions.other import floor
+from sage.misc.cachefunc import cached_method
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.misc_c import prod
 from sage.rings.fraction_field import FractionField
@@ -916,6 +917,7 @@ class HypergeometricData(object):
                    (T**z(a) - 1) // (T - 1)
                    for a in set(alpha))
 
+    @cached_method
     def padic_H_value(self, p, f, t, prec=20):
         """
         Return the `p`-adic trace of Frobenius, computed using the
@@ -989,6 +991,7 @@ class HypergeometricData(object):
         resu = ZZ(-1) ** m[0] / (1 - q) * sigma
         return IntegerModRing(p**prec)(resu).lift_centered()
 
+    @cached_method
     def H_value(self, p, f, t, ring=None):
         """
         Return the trace of the Frobenius, computed in terms of Gauss sums
@@ -1083,6 +1086,7 @@ class HypergeometricData(object):
             resu = resu.real_part().round()
         return resu
 
+    @cached_method
     def euler_factor(self, t, p, degree=0):
         """
         Return the Euler factor of the motive `H_t` at prime `p`.

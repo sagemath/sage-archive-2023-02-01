@@ -5,8 +5,7 @@ from .types cimport ZZ_c, vec_ZZ_c, ZZX_c
 
 cdef extern from "ccobject.h":
     void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
-    void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
-    object ZZX_to_PyString "_to_PyString<ZZX>"(ZZX_c *x)
+
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct pair_ZZX_long_c "pair_ZZX_long":

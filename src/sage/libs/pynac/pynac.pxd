@@ -256,7 +256,6 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
     # Conversions
     double GEx_to_double(GEx e, int* success) except +
-    GEx_to_str "_to_PyString<ex>"(GEx *s) except +
     GEx_to_str_latex "_to_PyString_latex<ex>"(GEx *s) except +
 
     bint is_a_symbol "is_a<symbol>" (GEx e)
@@ -326,10 +325,6 @@ cdef extern from "sage/libs/pynac/wrap.h":
         void archive_ex(GEx e, char* name) except +
         GEx unarchive_ex(GExList sym_lst, unsigned ind) except +
         void printraw "printraw(std::cout); " (int t)
-
-    GArchive_to_str "_to_PyString<archive>"(GArchive *s)
-    void GArchive_from_str "_from_str_len<archive>"(GArchive *ar, char* s,
-            unsigned int l)
 
 
     GEx g_abs "GiNaC::abs" (GEx x)                      except + # absolute value

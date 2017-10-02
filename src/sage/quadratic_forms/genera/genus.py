@@ -1088,9 +1088,7 @@ class Genus_Symbol_p_adic_ring(object):
             
         else:
             for s in self._symbol:
-                pm = ""
-                if s[2] == -1: pm = "-"
-                CS_string += " %s^{%s}" % (p**s[0], s[2]*s[1])
+                CS_string += " {%s}^{%s}" % (p**s[0], s[2]*s[1])
         return "\\mbox{Genus symbol at } %s\mbox{: }%s" % (p,CS_string)
         
         

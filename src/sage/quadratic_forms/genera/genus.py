@@ -67,13 +67,13 @@ def LocalGenusSymbol(A,p):
         sage: LocalGenusSymbol(A, 2)
         Genus symbol at 2 : 1^2_2 
         sage: LocalGenusSymbol(A, 3)
-        Genus symbol at 3 : 1^+2 
+        Genus symbol at 3 : 1^2
 
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: LocalGenusSymbol(A, 2)
         Genus symbol at 2 : 1^1_1 2^1_1 
         sage: LocalGenusSymbol(A, 3)
-        Genus symbol at 3 : 1^+2 
+        Genus symbol at 3 : 1^-2
     """
     val = A.determinant().valuation(p)
     symbol = p_adic_symbol(A, p, val = val)
@@ -950,7 +950,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: s2 = p_adic_symbol(A, p, 2); s2
             [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
             sage: G = Genus_Symbol_p_adic_ring(p,s2);G
-            Genus symbol at 2 : 1^2_4 2^1_1 4^1_1 
+            Genus symbol at 2 : 1^2_4 2^1_1 4^1_1
             sage: G == loads(dumps(G))
             True
 
@@ -959,7 +959,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: s3 = p_adic_symbol(A, p, 1); s3
             [[0, 3, -1], [1, 1, 1]]
             sage: G = Genus_Symbol_p_adic_ring(p,s3);G
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^-3 3^1
             sage: G == loads(dumps(G))
             True
 
@@ -998,17 +998,17 @@ class Genus_Symbol_p_adic_ring(object):
         CS_string = ""
         if p==2:
             for s in self._symbol:
-                pm = ""; 
-                if s[1] == -1: pm = "-"
+                pm = "";
+                if s[2] == -1: pm = "-"
                 if s[3] == 0: oddity = "II"
                 if s[3] == 1: oddity = str(s[4])
                 CS_string += " %s^%s%s_%s" % (p**s[0],pm,s[1],oddity)
         else:
             for s in self._symbol:
-                pm = "+"; 
-                if s[1]==-1: pm = "-" 
+                pm = "";
+                if s[2] == -1: pm = "-" 
                 CS_string += " %s^%s%s" % (p**s[0],pm,s[1])
-        return "Genus symbol at %s : %s" % (self._prime, CS_string)
+        return "Genus symbol at %s :%s" % (p, CS_string)
     
     def _latex_(self):
         """
@@ -1019,16 +1019,16 @@ class Genus_Symbol_p_adic_ring(object):
         if p==2:
             for s in self._symbol:
                 pm = ""; 
-                if s[1] == -1: pm = "-"
+                if s[2] == -1: pm = "-"
                 if s[3] == 0: oddity = "II"
                 if s[3] == 1: oddity = str(s[4])
                 CS_string += " %s^{%s%s}_{%s}" % (p**s[0],pm,s[1],oddity)
         else:
             for s in self._symbol:
-                pm = "+"; 
-                if s[1] == -1: pm = "-" 
+                pm = ""; 
+                if s[2] == -1: pm = "-"
                 CS_string += " %s^{%s%s}" % (p**s[0],pm,s[1])
-        return "\\mbox{Genus symbol at } %s\mbox{:  } %s" % (self._prime,CS_string)
+        return "\\mbox{Genus symbol at } %s\mbox{: }%s" % (p,CS_string)
         
         
     
@@ -1166,7 +1166,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^3 3^-1
             sage: G3.canonical_symbol()
             [[0, 3, 1], [1, 1, -1]]
 
@@ -1208,7 +1208,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^3 3^-1
             sage: G3.symbol_tuple_list()
             [[0, 3, 1], [1, 1, -1]]
             sage: type(G3.symbol_tuple_list())
@@ -1255,7 +1255,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^3 3^-1
             sage: G3.number_of_blocks()
             2
 
@@ -1293,7 +1293,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^3 3^-1
             sage: G3.determinant()
             3
         """
@@ -1332,7 +1332,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^3 3^-1
             sage: G3.rank()
             4
 
@@ -1366,7 +1366,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^+3 3^+1 
+            Genus symbol at 3 : 1^3 3^-1
             sage: G3.dimension()
             4
 
@@ -1556,13 +1556,13 @@ class GenusSymbol_global_ring(object):
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: G = GenusSymbol_global_ring(A);G
-            Genus of 
+            Genus of
             [2 0 0 0]
             [0 4 0 0]
             [0 0 6 0]
-            [0 0 0 8] 
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
-            Genus symbol at 3 : 1^+3 3^+1 
+            [0 0 0 8]
+            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1
+            Genus symbol at 3 : 1^3 3^-1
             sage: G == loads(dumps(G))
             True
 
@@ -1599,21 +1599,21 @@ class GenusSymbol_global_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: GS = GenusSymbol_global_ring(A)
             sage: GS
-            Genus of 
+            Genus of
             [2 0 0 0]
             [0 4 0 0]
             [0 0 6 0]
-            [0 0 0 8] 
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
-            Genus symbol at 3 : 1^+3 3^+1 
+            [0 0 0 8]
+            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1
+            Genus symbol at 3 : 1^3 3^-1
         
             sage: A2 = Matrix(ZZ,2,2,[2,-1,-1,2])
             sage: GenusSymbol_global_ring(A2)
-            Genus of 
+            Genus of
             [ 2 -1]
-            [-1  2] 
-            Genus symbol at 2 : 1^2_II 
-            Genus symbol at 3 : 1^+1 3^+1 
+            [-1  2]
+            Genus symbol at 2 : 1^2_II
+            Genus symbol at 3 : 1^-1 3^-1
 
         """
         local_symbols = ""

@@ -12,10 +12,16 @@ rm -rf "$SAGE_LOCAL"/share/polybori
 
 cd src
 
-# C++11 workaround https://trac.sagemath.org/ticket/20926
-export CXXFLAGS="$CXXFLAGS -std=c++98"
+# Use C++11 to compile BRiAl, see https://trac.sagemath.org/ticket/21083
+export CXXFLAGS="$CXXFLAGS -std=c++11"
 
 export PYTHON=sage-python23
+
+#
+# BRiAl consists of a C++ library and a Python module
+#
+# First, install the library
+#
 
 ./configure \
     --prefix="$SAGE_LOCAL" \
@@ -32,8 +38,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE install -j1
+$MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing BRiAl"
+    exit 1
+fi
+
+#
+# Next, install the Python module
+#
+
+cd sage-brial && $PIP_INSTALL .
+if [ $? -ne 0 ]; then
+    echo "Error installing BRiAl Python module"
     exit 1
 fi

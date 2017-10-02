@@ -1,4 +1,5 @@
 # distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
 
 cdef extern from "sage/libs/polybori/pb_wrap.h":
     ctypedef struct std_string "std::string":

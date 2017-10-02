@@ -37,10 +37,10 @@ def Genus(A):
         sage: from sage.quadratic_forms.genera.genus import Genus
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: Genus(A)
-        Genus of 
+        Genus of
         [1 1]
-        [1 2] 
-        Genus symbol at 2 : 1^2_2 
+        [1 2]
+        Genus symbol at 2:    [1^2]_2
     """
     return GenusSymbol_global_ring(A)
 
@@ -65,15 +65,15 @@ def LocalGenusSymbol(A,p):
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: LocalGenusSymbol(A, 2)
-        Genus symbol at 2 : 1^2_2 
+        Genus symbol at 2:    [1^2]_2
         sage: LocalGenusSymbol(A, 3)
-        Genus symbol at 3 : 1^2
+        Genus symbol at 3:     1^2
 
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: LocalGenusSymbol(A, 2)
-        Genus symbol at 2 : 1^1_1 2^1_1 
+        Genus symbol at 2:    [1^1 2^1]_2
         sage: LocalGenusSymbol(A, 3)
-        Genus symbol at 3 : 1^-2
+        Genus symbol at 3:     1^-2
     """
     val = A.determinant().valuation(p)
     symbol = p_adic_symbol(A, p, val = val)
@@ -227,25 +227,25 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^2_2 
+        Genus symbol at 2:    [1^2]_2
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())
         [[0]]
 
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^1_1 2^1_1 
+        Genus symbol at 2:    [1^1 2^1]_2
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())
         [[0, 1]]
 
         sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+        Genus symbol at 2:    [2^-2 4^1 8^1]_6
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())
         [[0, 1, 2]]
 
         sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^2_II 
+        Genus symbol at 2:    
         sage: canonical_2_adic_compartments(G2.symbol_tuple_list())   ## No compartments here!
         []
 
@@ -302,7 +302,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^2_2 
+        Genus symbol at 2:    [1^2]_2
         sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c
         [[0]]
         sage: canonical_2_adic_trains(G2.symbol_tuple_list(), c)
@@ -310,7 +310,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^1_1 2^1_1 
+        Genus symbol at 2:    [1^1 2^1]_2
         sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c
         [[0, 1]]
         sage: canonical_2_adic_trains(G2.symbol_tuple_list(), c)
@@ -320,7 +320,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
         sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+        Genus symbol at 2:    [2^-2 4^1 8^1]_6
         sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c
         [[0, 1, 2]]
         sage: canonical_2_adic_trains(G2.symbol_tuple_list())
@@ -328,7 +328,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
         sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^2_II 
+        Genus symbol at 2:    
         sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c   ## No compartments here!
         []
         sage: canonical_2_adic_trains(G2.symbol_tuple_list())
@@ -403,25 +403,25 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^2_2 
+        Genus symbol at 2:    [1^2]_2
         sage: canonical_2_adic_reduction(G2.symbol_tuple_list())
         [[0, 2, 1, 1, 2]]
 
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^1_1 2^1_1 
+        Genus symbol at 2:    [1^1 2^1]_2
         sage: canonical_2_adic_reduction(G2.symbol_tuple_list())   ## Oddity fusion occurred here!
         [[0, 1, 1, 1, 2], [1, 1, 1, 1, 0]]
 
         sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+        Genus symbol at 2:    [2^-2 4^1 8^1]_6
         sage: canonical_2_adic_reduction(G2.symbol_tuple_list())   ## Oddity fusion occurred here!
         [[1, 2, -1, 1, 6], [2, 1, 1, 1, 0], [3, 1, 1, 1, 0]]
 
         sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
-        Genus symbol at 2 : 1^2_II 
+        Genus symbol at 2:    
         sage: canonical_2_adic_reduction(G2.symbol_tuple_list())
         [[0, 2, -1, 0, 0]]
 
@@ -960,7 +960,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: s2 = p_adic_symbol(A, p, 2); s2
             [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
             sage: G = Genus_Symbol_p_adic_ring(p,s2);G
-            Genus symbol at 2 : 1^2_4 2^1_1 4^1_1
+            Genus symbol at 2:    [1^-2 2^1 4^1]_6
             sage: G == loads(dumps(G))
             True
 
@@ -969,7 +969,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: s3 = p_adic_symbol(A, p, 1); s3
             [[0, 3, -1], [1, 1, 1]]
             sage: G = Genus_Symbol_p_adic_ring(p,s3);G
-            Genus symbol at 3 : 1^-3 3^1
+            Genus symbol at 3:     1^-3 3^1
             sage: G == loads(dumps(G))
             True
 
@@ -995,49 +995,99 @@ class Genus_Symbol_p_adic_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import two_adic_symbol
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
-            sage: A = diagonal_matrix(ZZ, [1,2,3,4])
-            sage: s2 = two_adic_symbol(A, 2); s2
-            [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
-            sage: G = Genus_Symbol_p_adic_ring(2, s2)
-            sage: G.__repr__()
-            'Genus symbol at 2 :  1^2_4 2^1_1 4^1_1'
+            sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
+            sage: g = Genus_Symbol_p_adic_ring(2,symbol)
+            sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
+            sage: g
+            Genus symbol at 2:    1^4 [2^2 4^1]_1 :16^4 [32^1]_1
+
+
         """
         p=self._prime
         CS_string = ""
         if p==2:
-            for s in self._symbol:
-                pm = "";
-                if s[2] == -1: pm = "-"
-                if s[3] == 0: oddity = "II"
-                if s[3] == 1: oddity = str(s[4])
-                CS_string += " %s^%s%s_%s" % (p**s[0],pm,s[1],oddity)
+            CS = self.canonical_symbol()
+            for train in self.trains():
+                #mark the beginning of a train with a colon
+                CS_string += " :" 
+                #collect the indices where compartments begin and end
+                compartment_begins = []
+                compartment_ends = []
+                for comp in self.compartments():
+                    compartment_begins.append(comp[0])
+                    compartment_ends.append(comp[-1])
+
+                for block_index in train:
+                    if block_index in compartment_begins:
+                        #mark the beginning of this compartment with [
+                        CS_string += "["
+                    block = CS[block_index]
+                    block_string = "%s^%s " % (p**block[0],block[2]*block[1])
+                    CS_string += block_string
+                    if block_index in compartment_ends:
+                        #close this compartment with ] and remove a space
+                        CS_string = CS_string[:-1] + "]"
+                        #the oddity belongs to the compartment
+                        oddity = CS[comp[0]][4] 
+                        CS_string +="_%s" % oddity
+            #remove the first colon
+            CS_string = CS_string[2:]
+            
         else:
             for s in self._symbol:
-                pm = "";
-                if s[2] == -1: pm = "-" 
-                CS_string += " %s^%s%s" % (p**s[0],pm,s[1])
-        return "Genus symbol at %s :%s" % (p, CS_string)
+                CS_string += " %s^%s" % (p**s[0], s[2]*s[1])
+        return "Genus symbol at %s:    %s" % (p, CS_string)
     
     def _latex_(self):
         """
         The latex representation of this local genus symbol
+        
+        TESTS::
+        
+            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+            sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
+            sage: g = Genus_Symbol_p_adic_ring(2,symbol)
+            sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
+            sage: g._latex_()
+            '\\mbox{Genus symbol at } 2\\mbox{: }1^{4} [2^{2} 4^{1}]_{1} :16^{4} [32^{1}]_{1}'
+
         """
         p=self._prime
         CS_string = ""
         if p==2:
-            for s in self._symbol:
-                pm = ""; 
-                if s[2] == -1: pm = "-"
-                if s[3] == 0: oddity = "II"
-                if s[3] == 1: oddity = str(s[4])
-                CS_string += " %s^{%s%s}_{%s}" % (p**s[0],pm,s[1],oddity)
+            CS = self.canonical_symbol()
+            for train in self.trains():
+                #mark the beginning of a train with a colon
+                CS_string += " :" 
+                #collect the indices where compartments begin and end
+                compartment_begins = []
+                compartment_ends = []
+                for comp in self.compartments():
+                    compartment_begins.append(comp[0])
+                    compartment_ends.append(comp[-1])
+
+                for block_index in train:
+                    if block_index in compartment_begins:
+                        #mark the beginning of this compartment with [
+                        CS_string += "["
+                    block = CS[block_index]
+                    block_string = "%s^{%s} " % (p**block[0],block[2]*block[1])
+                    CS_string += block_string
+                    if block_index in compartment_ends:
+                        #close this compartment with ] and remove a space
+                        CS_string = CS_string[:-1] + "]"
+                        #the oddity belongs to the compartment
+                        oddity = CS[comp[0]][4] 
+                        CS_string +="_{%s}" % oddity
+            #remove the first colon
+            CS_string = CS_string[2:]
+            
         else:
             for s in self._symbol:
-                pm = ""; 
+                pm = ""
                 if s[2] == -1: pm = "-"
-                CS_string += " %s^{%s%s}" % (p**s[0],pm,s[1])
+                CS_string += " %s^{%s}" % (p**s[0], s[2]*s[1])
         return "\\mbox{Genus symbol at } %s\mbox{: }%s" % (p,CS_string)
         
         
@@ -1147,28 +1197,28 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 1^2_2 
+            Genus symbol at 2:    [1^2]_2
             sage: G2.canonical_symbol()
             [[0, 2, 1, 1, 2]]
 
             sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 1^1_1 2^1_1 
+            Genus symbol at 2:    [1^1 2^1]_2
             sage: G2.canonical_symbol()   ## Oddity fusion occurred here!
             [[0, 1, 1, 1, 2], [1, 1, 1, 1, 0]]
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.canonical_symbol()   ## Oddity fusion occurred here!
             [[1, 2, -1, 1, 6], [2, 1, 1, 1, 0], [3, 1, 1, 1, 0]]
 
             sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 1^2_II 
+            Genus symbol at 2:    
             sage: G2.canonical_symbol()
             [[0, 2, -1, 0, 0]]
 
@@ -1176,7 +1226,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 3:     1^3 3^-1
             sage: G3.canonical_symbol()
             [[0, 3, 1], [1, 1, -1]]
 
@@ -1218,7 +1268,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 3:     1^3 3^-1
             sage: G3.symbol_tuple_list()
             [[0, 3, 1], [1, 1, -1]]
             sage: type(G3.symbol_tuple_list())
@@ -1227,7 +1277,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.symbol_tuple_list()
             [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
             sage: type(G2.symbol_tuple_list())
@@ -1258,14 +1308,14 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.number_of_blocks()
             3
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 3:     1^3 3^-1
             sage: G3.number_of_blocks()
             2
 
@@ -1296,14 +1346,14 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.determinant()
             128
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 3:     1^3 3^-1
             sage: G3.determinant()
             3
         """
@@ -1335,14 +1385,14 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.rank()
             4
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 3:     1^3 3^-1
             sage: G3.rank()
             4
 
@@ -1369,14 +1419,14 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.dimension()
             4
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 3
             sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 3:     1^3 3^-1
             sage: G3.dimension()
             4
 
@@ -1486,7 +1536,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.trains()
             [[0, 1, 2]]
 
@@ -1521,7 +1571,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1 
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
             sage: G2.compartments()
             [[0, 1, 2]]
 
@@ -1531,11 +1581,6 @@ class Genus_Symbol_p_adic_ring(object):
             raise TypeError("compartments() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
         return canonical_2_adic_compartments(symbol)
-
-
-
-
-
 
 class GenusSymbol_global_ring(object):
     """
@@ -1571,8 +1616,8 @@ class GenusSymbol_global_ring(object):
             [0 4 0 0]
             [0 0 6 0]
             [0 0 0 8]
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
+            Genus symbol at 3:     1^3 3^-1
             sage: G == loads(dumps(G))
             True
 
@@ -1614,16 +1659,16 @@ class GenusSymbol_global_ring(object):
             [0 4 0 0]
             [0 0 6 0]
             [0 0 0 8]
-            Genus symbol at 2 : 2^2_4 4^1_1 8^1_1
-            Genus symbol at 3 : 1^3 3^-1
+            Genus symbol at 2:    [2^-2 4^1 8^1]_6
+            Genus symbol at 3:     1^3 3^-1
         
             sage: A2 = Matrix(ZZ,2,2,[2,-1,-1,2])
             sage: GenusSymbol_global_ring(A2)
             Genus of
             [ 2 -1]
             [-1  2]
-            Genus symbol at 2 : 1^2_II
-            Genus symbol at 3 : 1^-1 3^-1
+            Genus symbol at 2:    
+            Genus symbol at 3:     1^-1 3^-1
 
         """
         local_symbols = ""

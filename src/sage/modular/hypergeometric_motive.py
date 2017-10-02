@@ -60,6 +60,7 @@ REFERENCES:
 #*****************************************************************************
 
 from collections import defaultdict
+from itertools import combinations
 
 from sage.arith.misc import divisors, gcd, euler_phi, moebius, is_prime
 from sage.arith.misc import gauss_sum, kronecker_symbol

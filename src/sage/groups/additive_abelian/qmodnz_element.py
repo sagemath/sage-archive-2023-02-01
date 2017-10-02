@@ -298,9 +298,11 @@ class QmodnZ_Element(AdditiveGroupElement):
             sage: G = QQ/(4*ZZ)
             sage: g = G(4/5)
             sage: hash(g)
-            -7046029254386353128
+            2135587864 # 32-bit
+            -7046029254386353128 # 64-bit
             sage: hash(G(3/4))
-            3938850096065010962
+            527949074 # 32-bit
+            3938850096065010962 # 64-bit
             sage: hash(G(1))
             1
         """

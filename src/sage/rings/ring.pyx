@@ -645,7 +645,7 @@ cdef class Ring(ParentWithGens):
 
         EXAMPLES::
 
-            sage: QQ / ZZ
+            sage: QQ['x'] / ZZ
             Traceback (most recent call last):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.

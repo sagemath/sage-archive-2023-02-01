@@ -87,7 +87,7 @@ class QmodnZ(Parent, UniqueRepresentation):
             sage: TestSuite(G).run()
         """
         self.n = QQ(n).abs()
-        category = CommutativeAdditiveGroups().Topological().Infinite()
+        category = CommutativeAdditiveGroups().Infinite()
         Parent.__init__(self, base=ZZ, category=category)
         self._populate_coercion_lists_(coerce_list=[QQ])
 

@@ -3816,12 +3816,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         - Naqi Jaffery (2006-01-24): examples
 
-        - Simon Spicer (2013-11-12): Now uses sieving for larger inputs
+        - David Roe (2017-10-02): Now uses sieving for larger inputs
 
-        ALGORITHM: Create a list of ``True`` booleans of length m, then for
-        all primes p dividing self, set the boolean at index a multiple
-        of p to ``False``. Afterwards return all integers n where the index
-        at n is ``True``.
+        ALGORITHM:
+
+        Create an integer with `m` bits and set bits at every multiple
+        of a prime `p` that divides this integer and is less than `m`.
+        Then return a list of integers corresponding to the unset bits.
         """
         cdef Integer sieve, p, slf, mInteger = Integer(m)
         if mpz_cmp_ui(mInteger.value, 1) <= 0:
@@ -3830,7 +3831,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return [one]
         if mpz_fits_slong_p(mInteger.value) == 0:
             raise ValueError("m is too large")
-        cdef long ilong, plong, mlong = mpz_get_si(mInteger.value)
+        cdef long mlong = mpz_get_si(mInteger.value)
+        cdef unsigned long ilong, plong
         if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
             (mpz_sgn(self.value) > 0 and self.is_prime() or
              mpz_sgn(self.value) < 0 and (-self).is_prime())):
@@ -3841,24 +3843,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_set(slf.value, self.value)
         while True:
             p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
-            if mpz_cmp_si(p.value, mlong) >= 0:
+            ilong = plong = mpz_get_ui(p.value)
+            if plong >= mlong:
                 # p is larger than m, so no more primes are needed.
                 break
-            ilong = plong = mpz_get_si(p.value)
-            if mpz_cmp(slf.value, p.value) == 0 and mpz_tstbit(sieve.value, plong):
+            if mpz_cmp_ui(slf.value, plong) == 0 and mpz_tstbit(sieve.value, plong):
                 # self == p occurs when self < m.  If p is composite, we can stop now
                 break
             while ilong < mlong:
                 # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
                 ilong += plong
-            if mpz_cmp(slf.value, p.value) == 0:
+            if mpz_cmp_ui(slf.value, plong) == 0:
                 # We've now marked off multiples of self.
                 break
             # Now divide by p until no ps remain
-            mpz_fdiv_q(slf.value, slf.value, p.value)
-            while mpz_divisible_p(slf.value, p.value):
-                mpz_fdiv_q(slf.value, slf.value, p.value)
+            mpz_divexact_ui(slf.value, slf.value, plong)
+            while mpz_divisible_ui_p(slf.value, plong):
+                mpz_divexact_ui(slf.value, slf.value, plong)
             # If we have found all factors, we break
             if mpz_cmp_ui(slf.value, 1) == 0:
                 break

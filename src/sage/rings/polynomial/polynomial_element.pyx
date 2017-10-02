@@ -8016,13 +8016,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         x = polRing.gen()
         # the following is the polynomial whose roots are the squares
         # of the roots of self.
-        self = polRing(list(self(x)*self(-x))[::2])
+        Q = polRing(list(self(x)*self(-x))[::2])
         try:
-            self, q, R = self.trace_polynomial()[0]
+            Q, _, q = Q.trace_polynomial()
         except ValueError:
             b = False
         else:
-            b = self.all_roots_in_interval(-2*q.sqrt(), 2*q.sqrt())
+            b = Q.all_roots_in_interval(-2*q.sqrt(), 2*q.sqrt())
         if return_q:
             return (b, ZZ(q.sqrt())) if b else (b, 0)
         else:

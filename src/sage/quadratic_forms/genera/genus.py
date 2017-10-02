@@ -443,7 +443,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         genus_symbol_quintuple_list[compart[0]][4] = oddity
     #print "End oddity fusion:", canonical_symbol
     # Sign walking:
-    trains = canonical_2_adic_trains(genus_symbol_quintuple_list, compartments)
+    trains = canonical_2_adic_trains(genus_symbol_quintuple_list)
     for train in trains:
         t = len(train)
         for i in range(t-1):
@@ -1452,8 +1452,7 @@ class Genus_Symbol_p_adic_ring(object):
         if self._prime != 2:
             raise TypeError("trains() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
-        compartments = canonical_2_adic_compartments(symbol)
-        return canonical_2_adic_trains(symbol, compartments)
+        return canonical_2_adic_trains(symbol)
 
 
     def compartments(self):

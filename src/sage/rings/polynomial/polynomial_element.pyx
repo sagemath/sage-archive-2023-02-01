@@ -9156,9 +9156,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: u = x^5-2; u.has_cyclotomic_factor()
             False
+            sage: u = pol(cyclotomic_polynomial(7)) * pol.random_element() #random
+            sage: u.has_cyclotomic_factor()
+            True
         """
-        if self.base_ring().characteristic() != 0:
-            raise NotImplementedError("not implemented in non-zero characteristic")
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError("coefficients not rational")
         polRing = self.parent()
         x = polRing.gen()
 

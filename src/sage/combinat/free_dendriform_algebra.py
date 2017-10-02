@@ -115,7 +115,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
     - [LodayRonco]_
     """
     @staticmethod
-    def __classcall_private__(cls, R, names):
+    def __classcall_private__(cls, R, names=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -127,10 +127,15 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: F1 is F2 and F1 is F3
             True
         """
+        if names is not None:
+            if ',' in names:
+                names = [u for u in names if u != ',']
+            names = Alphabet(names)
+
         if R not in Rings():
             raise TypeError("argument R must be a ring")
         return super(FreeDendriformAlgebra, cls).__classcall__(cls, R,
-                                                               Alphabet(names))
+                                                               names)
 
     def __init__(self, R, names=None):
         """
@@ -698,3 +703,194 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False
+
+    def construction(self):
+        """
+        Return a pair ``(F, R)``, where ``F`` is a :class:`DendriformFunctor`
+        and `R` is a ring, such that ``F(R)`` returns ``self``.
+
+        EXAMPLES::
+
+            sage: P = algebras.FreeDendriform(ZZ, 'x,y')
+            sage: x,y = P.gens()
+            sage: F, R = P.construction()
+            sage: F
+            Dendriform[x,y]
+            sage: R
+            Integer Ring
+            sage: F(ZZ) is P
+            True
+            sage: F(QQ)
+            Free Dendriform algebra on 2 generators ['x', 'y'] over Rational Field
+        """
+        return DendriformFunctor(self.variable_names()), self.base_ring()
+
+
+class DendriformFunctor(ConstructionFunctor):
+    """
+    A constructor for dendriform algebras.
+
+    EXAMPLES::
+
+        sage: P = algebras.FreeDendriform(ZZ, 'x,y')
+        sage: x,y = P.gens()
+        sage: F = P.construction()[0]; F
+        Dendriform[x,y]
+
+        sage: A = GF(5)['a,b']
+        sage: a, b = A.gens()
+        sage: F(A)
+        Free Dendriform algebra on 2 generators ['x', 'y'] over Multivariate Polynomial Ring in a, b over Finite Field of size 5
+
+        sage: f = A.hom([a+b,a-b],A)
+        sage: F(f)
+        Generic endomorphism of Free Dendriform algebra on 2 generators ['x', 'y']
+        over Multivariate Polynomial Ring in a, b over Finite Field of size 5
+
+        sage: F(f)(a * F(A)(x))
+        (a+b)*B[x[]]
+    """
+    rank = 9
+
+    def __init__(self, vars):
+        """
+        EXAMPLES::
+
+            sage: F = sage.combinat.free_prelie_algebra.DendriformFunctor(['x','y'])
+            sage: F
+            Dendriform[x,y]
+            sage: F(ZZ)
+            Free Dendriform algebra on 2 generators ['x', 'y']  over Integer Ring
+        """
+        Functor.__init__(self, Rings(), Magmas())
+        self.vars = vars
+
+    def _apply_functor(self, R):
+        """
+        Apply the functor to an object of ``self``'s domain.
+
+        EXAMPLES::
+
+            sage: R = algebras.FreeDendriform(ZZ, 'x,y,z')
+            sage: F = R.construction()[0]; F
+            Dendriform[x,y,z]
+            sage: type(F)
+            <class 'sage.combinat.free_prelie_algebra.DendriformFunctor'>
+            sage: F(ZZ)          # indirect doctest
+            Free Dendriform algebra on 3 generators ['x', 'y', 'z'] over Integer Ring
+        """
+        return FreeDendriformAlgebra(R, self.vars)
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the ring morphism `f`.
+
+        TESTS::
+
+            sage: R = algebras.FreeDendriform(ZZ, 'x').construction()[0]
+            sage: R(ZZ.hom(GF(3)))  # indirect doctest
+            Generic morphism:
+              From: Free Dendriform algebra on one generator ['x'] over Integer Ring
+              To:   Free Dendriform algebra on one generator ['x'] over Finite Field of size 3
+        """
+        dom = self(f.domain())
+        codom = self(f.codomain())
+
+        def action(x):
+            return codom._from_dict({a: f(b)
+                                     for a, b in iteritems(x.monomial_coefficients())})
+        return dom.module_morphism(function=action, codomain=codom)
+
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: F = algebras.FreeDendriform(ZZ, 'x,y,z').construction()[0]
+            sage: G = algebras.FreeDendriform(QQ, 'x,y,z').construction()[0]
+            sage: F == G
+            True
+            sage: G == loads(dumps(G))
+            True
+            sage: G = algebras.FreeDendriform(QQ, 'x,y').construction()[0]
+            sage: F == G
+            False
+        """
+        if not isinstance(other, DendriformFunctor):
+            return False
+        return self.vars == other.vars
+
+    def __mul__(self, other):
+        """
+        If two Dendriform functors are given in a row, form a single Dendriform functor
+        with all of the variables.
+
+        EXAMPLES::
+
+            sage: F = sage.combinat.free_prelie_algebra.DendriformFunctor(['x','y'])
+            sage: G = sage.combinat.free_prelie_algebra.DendriformFunctor(['t'])
+            sage: G * F
+            Dendriform[x,y,t]
+        """
+        if isinstance(other, IdentityConstructionFunctor):
+            return self
+        if isinstance(other, DendriformFunctor):
+            if set(self.vars).intersection(other.vars):
+                raise CoercionException("Overlapping variables (%s,%s)" %
+                                        (self.vars, other.vars))
+            return DendriformFunctor(other.vars + self.vars)
+        elif (isinstance(other, CompositeConstructionFunctor) and
+              isinstance(other.all[-1], DendriformFunctor)):
+            return CompositeConstructionFunctor(other.all[:-1],
+                                                self * other.all[-1])
+        else:
+            return CompositeConstructionFunctor(other, self)
+
+    def merge(self, other):
+        """
+        Merge ``self`` with another construction functor, or return None.
+
+        EXAMPLES::
+
+            sage: F = sage.combinat.free_prelie_algebra.DendriformFunctor(['x','y'])
+            sage: G = sage.combinat.free_prelie_algebra.DendriformFunctor(['t'])
+            sage: F.merge(G)
+            Dendriform[x,y,t]
+            sage: F.merge(F)
+            Dendriform[x,y]
+
+        Now some actual use cases::
+
+            sage: R = algebras.FreeDendriform(ZZ, 'xyz')
+            sage: x,y,z = R.gens()
+            sage: 1/2 * x
+            1/2*B[x[]]
+            sage: parent(1/2 * x)
+            Free Dendriform algebra on 3 generators ['x', 'y', 'z'] over Rational Field
+
+            sage: S = algebras.FreeDendriform(QQ, 'zt')
+            sage: z,t = S.gens()
+            sage: x + t
+            B[t[]] + B[x[]]
+            sage: parent(x + t)
+            Free Dendriform algebra on 4 generators ['z', 't', 'x', 'y'] over Rational Field
+        """
+        if isinstance(other, DendriformFunctor):
+            if self.vars == other.vars:
+                return self
+            ret = list(self.vars)
+            cur_vars = set(ret)
+            for v in other.vars:
+                if v not in cur_vars:
+                    ret.append(v)
+            return DendriformFunctor(Alphabet(ret))
+        else:
+            return None
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: algebras.FreeDendriform(QQ,'x,y,z,t').construction()[0]
+            Dendriform[x,y,z,t]
+        """
+        return "Dendriform[%s]" % ','.join(self.vars)

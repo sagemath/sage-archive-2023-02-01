@@ -1643,6 +1643,7 @@ class TopologicalManifold(ManifoldSubset):
 
 
         Same tests with ``sympy``::
+
             sage: c_xyz.set_calculus_method('sympy')
             sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
             Scalar field F on the Open subset U of the 3-dimensional topological manifold M

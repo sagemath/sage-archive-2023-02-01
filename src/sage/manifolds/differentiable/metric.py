@@ -1013,6 +1013,7 @@ class PseudoRiemannianMetric(TensorField):
 
 
         Test with ``sympy``::
+
             sage: M.set_calculus_method('sympy')
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2] = a**2, a**2*sin(th)**2
@@ -2223,6 +2224,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [         0 -1/(x - 1)]
 
         Test with ``sympy``::
+
             sage: M.set_calculus_method('sympy')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
             sage: g[:]  # components in the manifold's default frame

@@ -295,6 +295,7 @@ class AffineConnection(SageObject):
         True
 
     Same tests with ``sympy``::
+
         sage: M.set_calculus_method('sympy')
 
         sage: nab = M.affine_connection('nabla', r'\nabla')

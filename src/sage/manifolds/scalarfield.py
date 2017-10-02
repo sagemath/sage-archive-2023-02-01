@@ -599,6 +599,7 @@ class ScalarField(CommutativeAlgebraElement):
 
 
     Same tests with ``sympy``::
+
         sage: M.set_calculus_method('sympy')
         sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
         ....:                                intersection_name='W',

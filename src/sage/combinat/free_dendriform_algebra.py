@@ -14,6 +14,7 @@ Frédéric Chapoton (2017)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+from six import iteritems
 
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -21,6 +22,12 @@ from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.binary_tree import (BinaryTrees, BinaryTree,
                                        LabelledBinaryTrees,
                                        LabelledBinaryTree)
+from sage.categories.pushout import (ConstructionFunctor,
+                                     CompositeConstructionFunctor,
+                                     IdentityConstructionFunctor)
+from sage.categories.rings import Rings
+from sage.categories.magmas import Magmas
+from sage.categories.functor import Functor
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
@@ -104,7 +111,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     When there is only one generator, unlabelled trees are used instead::
 
-        sage: F1 = algebras.FreeDendriform(QQ, 'w')
+        sage: F1 = algebras.FreeDendriform(QQ)
         sage: w = F1.gen(0); w
         B[[., .]]
         sage: w * w * w
@@ -150,15 +157,17 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: F = algebras.FreeDendriform(QQ, 'xy')
             sage: TestSuite(F).run() # long time (3s)
         """
-        if names.cardinality() == 1:
+        if names is None:
             Trees = BinaryTrees()
             key = BinaryTree._sort_key
+            self._alphabet = Alphabet(['o'])
         else:
             Trees = LabelledBinaryTrees()
             key = LabelledBinaryTree._sort_key
+            self._alphabet = names
         # Here one would need LabelledBinaryTrees(names)
         # so that one can restrict the labels to some fixed set
-        self._alphabet = names
+        
         cat = HopfAlgebras(R).WithBasis().Graded().Connected()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
@@ -244,6 +253,23 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         """
         Trees = self.basis().keys()
         return Family(self._alphabet, lambda a: self.monomial(Trees([], a)))
+ 
+    def change_ring(self, R):
+        """
+        Return the free dendriform algebra in the same variables over `R`.
+
+        INPUT:
+
+        - `R` -- a ring
+
+        EXAMPLES::
+
+            sage: A = algebras.FreeDendriform(ZZ, 'fgh')
+            sage: A.change_ring(QQ)
+            Free Dendriform algebra on 3 generators ['f', 'g', 'h'] over
+            Rational Field
+        """
+        return FreeDendriformAlgebra(R, names=self.variable_names())
 
     def gens(self):
         """
@@ -293,7 +319,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ,'@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: A.some_elements()
             [B[.],
              B[[., .]],
@@ -346,9 +372,9 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
-            sage: x = RT([], '@')
+            sage: x = RT([])
             sage: A.product_on_basis(x, x)
             B[[., [., .]]] + B[[[., .], .]]
         """
@@ -370,9 +396,9 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
-            sage: x = RT([], '@')
+            sage: x = RT([])
             sage: A.succ_product_on_basis(x, x)
             B[[[., .], .]]
 
@@ -418,7 +444,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
             sage: x = A.gen(0)
             sage: A.succ(x, x)
@@ -446,9 +472,9 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
-            sage: x = RT([], '@')
+            sage: x = RT([])
             sage: A.prec_product_on_basis(x, x)
             B[[., [., .]]]
 
@@ -492,7 +518,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
             sage: x = A.gen(0)
             sage: A.prec(x, x)
@@ -519,7 +545,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
             sage: x = A.gen(0)
             sage: A.over(x, x)
@@ -547,7 +573,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: RT = A.basis().keys()
             sage: x = A.gen(0)
             sage: A.under(x, x)
@@ -565,7 +591,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: A = algebras.FreeDendriform(QQ)
             sage: x = A.gen(0)
             sage: ascii_art(A.coproduct(A.one()))  # indirect doctest
             1 # 1
@@ -748,7 +774,7 @@ class DendriformFunctor(ConstructionFunctor):
         over Multivariate Polynomial Ring in a, b over Finite Field of size 5
 
         sage: F(f)(a * F(A)(x))
-        (a+b)*B[x[]]
+        (a+b)*B[x[., .]]
     """
     rank = 9
 
@@ -756,13 +782,13 @@ class DendriformFunctor(ConstructionFunctor):
         """
         EXAMPLES::
 
-            sage: F = sage.combinat.free_prelie_algebra.DendriformFunctor(['x','y'])
+            sage: F = sage.combinat.free_dendriform_algebra.DendriformFunctor(['x','y'])
             sage: F
             Dendriform[x,y]
             sage: F(ZZ)
             Free Dendriform algebra on 2 generators ['x', 'y']  over Integer Ring
         """
-        Functor.__init__(self, Rings(), Magmas())
+        Functor.__init__(self, Rings(), Rings())
         self.vars = vars
 
     def _apply_functor(self, R):
@@ -775,7 +801,7 @@ class DendriformFunctor(ConstructionFunctor):
             sage: F = R.construction()[0]; F
             Dendriform[x,y,z]
             sage: type(F)
-            <class 'sage.combinat.free_prelie_algebra.DendriformFunctor'>
+            <class 'sage.combinat.free_dendriform_algebra.DendriformFunctor'>
             sage: F(ZZ)          # indirect doctest
             Free Dendriform algebra on 3 generators ['x', 'y', 'z'] over Integer Ring
         """
@@ -826,8 +852,8 @@ class DendriformFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F = sage.combinat.free_prelie_algebra.DendriformFunctor(['x','y'])
-            sage: G = sage.combinat.free_prelie_algebra.DendriformFunctor(['t'])
+            sage: F = sage.combinat.free_dendriform_algebra.DendriformFunctor(['x','y'])
+            sage: G = sage.combinat.free_dendriform_algebra.DendriformFunctor(['t'])
             sage: G * F
             Dendriform[x,y,t]
         """
@@ -851,8 +877,8 @@ class DendriformFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F = sage.combinat.free_prelie_algebra.DendriformFunctor(['x','y'])
-            sage: G = sage.combinat.free_prelie_algebra.DendriformFunctor(['t'])
+            sage: F = sage.combinat.free_dendriform_algebra.DendriformFunctor(['x','y'])
+            sage: G = sage.combinat.free_dendriform_algebra.DendriformFunctor(['t'])
             sage: F.merge(G)
             Dendriform[x,y,t]
             sage: F.merge(F)
@@ -860,10 +886,10 @@ class DendriformFunctor(ConstructionFunctor):
 
         Now some actual use cases::
 
-            sage: R = algebras.FreeDendriform(ZZ, 'xyz')
+            sage: R = algebras.FreeDendriform(ZZ, 'x,y,z')
             sage: x,y,z = R.gens()
             sage: 1/2 * x
-            1/2*B[x[]]
+            1/2*B[x[., .]]
             sage: parent(1/2 * x)
             Free Dendriform algebra on 3 generators ['x', 'y', 'z'] over Rational Field
 

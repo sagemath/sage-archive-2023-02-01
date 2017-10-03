@@ -272,6 +272,9 @@ REFERENCES:
              algebras. III. Upper bounds and double Bruhat cells*,
              Duke Math. J. 126 (2005), no. 1, 1–52.
 
+.. [BG1980] \R. L. Bishop and S. L. Goldberg, *Tensor analysis on
+            Manifolds*, Dover (New York) (1980)
+
 .. [BG1985] \M. Blum and S. Goldwasser. An Efficient Probabilistic
             Public-Key Encryption Scheme Which Hides All Partial
             Information. In *Proceedings of CRYPTO 84 on Advances in
@@ -1347,10 +1350,14 @@ REFERENCES:
              1998), Advanced Studies in Pure Mathematics, 30,
              177-196, 2000.
 
-.. [Koh2007] \A. Kohnert, Constructing two-weight codes with prescribed
-             groups of automorphisms, Discrete applied mathematics 155,
+.. [Koh2007] \A. Kohnert, *Constructing two-weight codes with prescribed
+             groups of automorphisms*, Discrete applied mathematics 155,
              no. 11 (2007):
              1451-1457. http://linearcodes.uni-bayreuth.de/twoweight/
+
+.. [Kos1985] \J.-L. Koszul, *Crochet de Schouten-Nijenhuis et
+             cohomologie*, in *Élie Cartan et les mathématiques
+             d'aujourd'hui*, Astérisque hors série (1985), p. 257
 
 .. [KP2002] Volker Kaibel and Marc E. Pfetsch, "Computing the Face
             Lattice of a Polytope from its Vertex-Facet Incidences",
@@ -1473,6 +1480,10 @@ REFERENCES:
 .. [Li1995] Peter Littelmann, Crystal graphs and Young
             tableaux, J. Algebra 175 (1995), no. 1, 65--87.
 
+.. [Lic1977] \A. Lichnerowicz, *Les variétés de Poisson et leurs
+             algèbres de Lie associées*, Journal of Differential
+             Geometry **12**, 253 (1977); :doi:`10.4310/jdg/1214433987`
+
 .. [Lic1997] William B. Raymond Lickorish. An Introduction to Knot
              Theory, volume 175 of Graduate Texts in
              Mathematics. Springer-Verlag, New York, 1997. ISBN
@@ -1485,8 +1496,7 @@ REFERENCES:
 .. [Lim2001] \C. H. Lim,
              *A Revised Version of CRYPTON: CRYPTON V1.0*; in FSE'01, pp. 31--45.
 
-
-.. [Lin1999] J. van Lint, Introduction to coding theory, 3rd ed.,
+.. [Lin1999] \J. van Lint, Introduction to coding theory, 3rd ed.,
              Springer-Verlag GTM, 86, 1999.
 
 .. [Liv2006] \M. Livernet, *A rigidity theorem for pre-Lie algebras*, J. Pure Appl.
@@ -1609,6 +1619,10 @@ REFERENCES:
              Notes in Computer Science, volume 5856, pp 272-278,
              Springer, Berlin (2009).
 
+.. [Mar1997] \C.-M. Marle, *The Schouten-Nijenhuis bracket and interior
+             products*, Journal of Geometry and Physics **23**, 350
+             (1997); :doi:`10.1016/S0393-0440(97)80009-5`
+
 .. [Mas1969] James L. Massey, "Shift-Register Synthesis and BCH
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.
@@ -1708,6 +1722,10 @@ REFERENCES:
 
 .. [Nie] Johan S. R. Nielsen, Codinglib,
          https://bitbucket.org/jsrn/codinglib/.
+
+.. [Nij1955] \A. Nijenhuis, *Jacobi-type identities for bilinear
+             differential concomitants of certain tensor fields. I*,
+             Indagationes Mathematicae (Proceedings) **58**, 390 (1955).
 
 .. [NN2007] Nisan, Noam, et al., eds. *Algorithmic game theory.*
             Cambridge University Press, 2007.
@@ -2183,6 +2201,10 @@ REFERENCES:
 .. _ref-V:
 
 **V**
+
+.. [Vai1994] \I. Vaisman, *Lectures on the Geometry of Poisson
+             Manifolds*, Springer Basel AG (Basel) (1994);
+             :doi:`10.1007/978-3-0348-8495-2`
 
 .. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*, :arxiv:`0810.4789v1`.
 

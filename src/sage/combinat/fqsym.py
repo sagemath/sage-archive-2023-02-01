@@ -18,20 +18,19 @@ Frédéric Chapoton (2017)
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
-from sage.combinat.binary_tree import (BinaryTrees, BinaryTree,
-                                       LabelledBinaryTrees,
-                                       LabelledBinaryTree)
+from sage.combinat.permutation import Permutations, Permutation
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
 from sage.sets.family import Family
+from sage.combinat.words.word import Word
 
 
-class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
+class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
     r"""
     The free quasi-symmetric functions.
 
-    Quasi-symmetric functions are associative algebras, where the associative
+    Quasi-symmetric functions form an associative algebra, where the associative
     product `*` is decomposed as a sum of two binary operations
 
     .. MATH::
@@ -52,8 +51,8 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         (x * y) \succ z = x \succ (y \succ z).
 
-    The free Quasi-symmetric functions on a given set `E` has an explicit
-    description using (planar) binary trees, just as the free
+    The free quasi-symmetric functions on a given set `E` have an explicit
+    description using permutations, just as the free
     associative algebra can be described using words. The underlying
     vector space has a basis indexed by finite binary trees endowed
     with a map from their vertices to `E`. In this basis, the
@@ -64,12 +63,9 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
     The decomposition of the associative product as the sum of two
     binary operations `\succ` and
     `\prec` is made by separating the terms according to the origin of
-    the root vertex. For `x \succ y`, one keeps the terms where the root
-    vertex comes from `y`, whereas for `x \prec y` one keeps the terms
-    where the root vertex comes from `x`.
-
-    The free quasi-symmetric functions can also be considered as the free
-    algebra over the Quasi-symmetric operad.
+    the first letter. For `x \succ y`, one keeps the terms where the
+    first letter comes from `y`, whereas for `x \prec y` one keeps the terms
+    where the first letter comes from `x`.
 
     .. NOTE::
 
@@ -78,12 +74,12 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
     EXAMPLES::
 
-        sage: F = algebras.FreeQuasisymmetric(ZZ, 'xyz')
-        sage: x,y,z = F.gens()
+        sage: F = algebras.FQSYM(ZZ)
+        sage: x,y,z = F([1]), F([1,2]), F([1,3,2])
         sage: (x * y) * z
-        B[x[., y[., z[., .]]]] + B[x[., z[y[., .], .]]] + B[y[x[., .], z[., .]]] + B[z[x[., y[., .]], .]] + B[z[y[x[., .], .], .]]
+        F[[1, 2, 3, 4, 6, 5]] + ...
 
-    The free quasi-symmetric functions is associative::
+    The free quasi-symmetric functions product is associative::
 
         sage: x * (y * z) == (x * y) * z
         True
@@ -93,7 +89,7 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
         sage: x * y == F.prec(x, y) + F.succ(x, y)
         True
 
-    The axioms hold::
+    The axioms of dendriform algebra hold::
 
         sage: F.prec(F.succ(x, y), z) == F.succ(x, F.prec(y, z))
         True
@@ -101,14 +97,6 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
         True
         sage: F.succ(x * y, z) == F.succ(x, F.succ(y, z))
         True
-
-    When there is only one generator, unlabelled trees are used instead::
-
-        sage: F1 = algebras.FreeQuasisymmetric(QQ, 'w')
-        sage: w = F1.gen(0); w
-        B[[., .]]
-        sage: w * w * w
-        B[[., [., [., .]]]] + B[[., [[., .], .]]] + B[[[., .], [., .]]] + B[[[., [., .]], .]] + B[[[[., .], .], .]]
 
     REFERENCES:
 
@@ -121,14 +109,14 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: F1 = algebras.FreeQuasisymmetric(QQ)
-            sage: F2 = algebras.FreeQuasisymmetric(QQ)
+            sage: F1 = algebras.FQSYM(QQ)
+            sage: F2 = algebras.FQSYM(QQ)
             sage: F1 is F2
             True
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        return super(FreeQuasisymmetricAlgebra, cls).__classcall__(cls, R)
+        return super(FreeQuasisymmetricFunctions, cls).__classcall__(cls, R)
 
     def __init__(self, R):
         """
@@ -136,16 +124,16 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@'); A
-            Free Quasi-symmetric functions on one generator ['@'] over Rational Field
+            sage: A = algebras.FQSYM(QQ); A
+            Free Quasi-symmetric functions over Rational Field
             sage: TestSuite(A).run()  # long time (3s)
 
-            sage: F = algebras.FreeQuasisymmetric(QQ, 'xy')
+            sage: F = algebras.FQSYM(QQ)
             sage: TestSuite(F).run() # long time (3s)
         """
         cat = HopfAlgebras(R).WithBasis().Graded().Connected()
         CombinatorialFreeModule.__init__(self, R, Permutations(),
-                                         latex_prefix="",
+                                         latex_prefix="", prefix='F',
                                          category=cat)
 
     def _repr_(self):
@@ -154,24 +142,24 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: algebras.FreeQuasisymmetric(QQ, '@')  # indirect doctest
-            Free Quasi-symmetric functions on one generator ['@'] over Rational Field
+            sage: algebras.FQSYM(QQ)  # indirect doctest
+            Free Quasi-symmetric functions over Rational Field
         """
         s = "Free Quasi-symmetric functions over {}"
-        return s.format(gen, self.base_ring())
+        return s.format(self.base_ring())
 
     def degree_on_basis(self, t):
         """
-        Return the degree of a binary tree in the free Quasi-symmetric functions.
+        Return the degree of a permutation in
+        the algebra of free quasi-symmetric functions.
 
-        This is the number of vertices.
+        This is the length.
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ,'@')
-            sage: RT = A.basis().keys()
-            sage: u = RT([], '@')
-            sage: A.degree_on_basis(u.over(u))
+            sage: A = algebras.FQSYM(QQ)
+            sage: u = Permutation([2,1])
+            sage: A.degree_on_basis(u)
             2
         """
         return len(t)
@@ -183,11 +171,11 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, 'xy')
+            sage: A = algebras.FQSYM(QQ)
             sage: A.an_element()
-            B[x[., .]] + 2*B[x[., x[., .]]] + 2*B[x[x[., .], .]]
+            F[[1]] + 2*F[[1, 2]] + 2*F[[2, 1]]
         """
-        o = self.gen(0)
+        o = self([1])
         return o + 2 * o * o
 
     def some_elements(self):
@@ -196,24 +184,13 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ,'@')
+            sage: A = algebras.FQSYM(QQ)
             sage: A.some_elements()
-            [B[.],
-             B[[., .]],
-             B[[., [., .]]] + B[[[., .], .]],
-             B[.] + B[[., [., .]]] + B[[[., .], .]]]
-
-        With several generators::
-
-            sage: A = algebras.FreeQuasisymmetric(QQ, 'xy')
-            sage: A.some_elements()
-            [B[.],
-             B[x[., .]],
-             B[x[., x[., .]]] + B[x[x[., .], .]],
-             B[.] + B[x[., x[., .]]] + B[x[x[., .], .]]]
+            [F[[]], F[[1]], F[[1, 2]] + F[[2, 1]],
+             F[[]] + F[[1, 2]] + F[[2, 1]]]
         """
         u = self.one()
-        o = self.gen(0)
+        o = self([1])
         x = o * o
         y = u + x
         return [u, o, x, y]
@@ -224,24 +201,18 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
+            sage: A = algebras.FQSYM(QQ)
             sage: A.one_basis()
-            .
-            sage: A = algebras.FreeQuasisymmetric(QQ, 'xy')
-            sage: A.one_basis()
-            .
+            []
         """
         Perm = self.basis().keys()
         return Perm([])
 
     def product_on_basis(self, x, y):
         r"""
-        Return the `*` associative quasi-symmetric product of two trees.
+        Return the `*` associative product of two permutations.
 
-        This is the sum over all possible ways of identifying the
-        rightmost path in `x` and the leftmost path in `y`. Every term
-        corresponds to a shuffle of the vertices on the rightmost path
-        in `x` and the vertices on the leftmost path in `y`.
+        This is the shifted shuffle of `x` and `y`.
 
         .. SEEALSO::
 
@@ -249,18 +220,17 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
-            sage: RT = A.basis().keys()
-            sage: x = RT([], '@')
+            sage: A = algebras.FQSYM(QQ)
+            sage: x = Permutation([1])
             sage: A.product_on_basis(x, x)
-            B[[., [., .]]] + B[[[., .], .]]
+            F[[1, 2]] + F[[2, 1]]
         """
         n = len(x)
-        return self.sum(self.basis()[u] for u in x.dendriform_shuffle(y))
+        return self.sum(self.basis()[u] for u in x.shifted_shuffle(y))
 
     def succ_product_on_basis(self, x, y):
         r"""
-        Return the `\succ` quasi-symmetric product of two trees.
+        Return the `\succ` product of two permutations.
 
         This is the sum over all possible ways to identify the rightmost path
         in `x` and the leftmost path in `y`, with the additional condition
@@ -274,11 +244,10 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
-            sage: RT = A.basis().keys()
-            sage: x = RT([], '@')
+            sage: A = algebras.FQSYM(QQ)
+            sage: x = Permutation([1,2])
             sage: A.succ_product_on_basis(x, x)
-            B[[[., .], .]]
+            F[[3, 1, 2, 4]] + F[[3, 1, 4, 2]] + F[[3, 4, 1, 2]]
 
         TESTS::
 
@@ -286,28 +255,26 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
             sage: A.succ_product_on_basis(u, u)
             Traceback (most recent call last):
             ...
-            ValueError: quasi-symmetric products | < | and | > | are not defined
+            ValueError: products | < | and | > | are not defined
         """
-        if y.is_empty():
-            if x.is_empty():
-                raise ValueError("dendriform products | < | and | > | are "
+        if not y:
+            if not x:
+                raise ValueError("products | < | and | > | are "
                                  "not defined")
             else:
                 return []
-        if x.is_empty():
+        if not x:
             return [y]
         K = self.basis().keys()
-        if hasattr(y, 'label'):
-            return self.sum(self.basis()[K([u, y[1]], y.label())]
-                            for u in x.dendriform_shuffle(y[0]))
-
-        return self.sum(self.basis()[K([u, y[1]])]
-                        for u in x.dendriform_shuffle(y[0]))
+        n = len(x)
+        shy = Word([a + n for a in y])
+        return self.sum(self.basis()[K([shy[0]] + list(u))]
+                        for u in Word(x).shuffle(Word(shy[1:])))
 
     @lazy_attribute
     def succ(self):
         r"""
-        Return the `\succ` quasi-symmetric product.
+        Return the `\succ` product.
 
         This is the sum over all possible ways of identifying the
         rightmost path in `x` and the leftmost path in `y`, with the
@@ -322,11 +289,10 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
-            sage: RT = A.basis().keys()
-            sage: x = A.gen(0)
+            sage: A = algebras.FQSYM(QQ)
+            sage: x = A([1])
             sage: A.succ(x, x)
-            B[[[., .], .]]
+            F[[2, 1]]
         """
         suc = self.succ_product_on_basis
         return self._module_morphism(self._module_morphism(suc, position=0,
@@ -335,7 +301,7 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
     def prec_product_on_basis(self, x, y):
         r"""
-        Return the `\prec` quasi-symmetric product of two trees.
+        Return the `\prec` product of two permutations.
 
         This is the sum over all possible ways of identifying the
         rightmost path in `x` and the leftmost path in `y`, with the
@@ -350,11 +316,10 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
-            sage: RT = A.basis().keys()
-            sage: x = RT([], '@')
+            sage: A = algebras.FQSYM(QQ)
+            sage: x = Permutation([1,2])
             sage: A.prec_product_on_basis(x, x)
-            B[[., [., .]]]
+            F[[1, 2, 3, 4]] + F[[1, 3, 2, 4]] + F[[1, 3, 4, 2]]
 
         TESTS::
 
@@ -364,25 +329,23 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
             ...
             ValueError: quasi-symmetric products | < | and | > | are not defined
         """
-        if x.is_empty() and y.is_empty():
-            raise ValueError("dendriform products | < | and | > | are "
+        if not x and not y:
+            raise ValueError("quasi-symmetric products | < | and | > | are "
                              "not defined")
-        if x.is_empty():
+        if not x:
             return []
-        if y.is_empty():
+        if not y:
             return [x]
         K = self.basis().keys()
-        if hasattr(y, 'label'):
-            return self.sum(self.basis()[K([x[0], u], x.label())]
-                            for u in x[1].dendriform_shuffle(y))
-
-        return self.sum(self.basis()[K([x[0], u])]
-                        for u in x[1].dendriform_shuffle(y))
+        n = len(x)
+        shy = Word([a + n for a in y])
+        return self.sum(self.basis()[K([x[0]] + list(u))]
+                        for u in Word(x[1:]).shuffle(shy))
 
     @lazy_attribute
     def prec(self):
         r"""
-        Return the `\prec` quasi-symmetric product.
+        Return the `\prec` product.
 
         This is the sum over all possible ways to identify the rightmost path
         in `x` and the leftmost path in `y`, with the additional condition
@@ -396,11 +359,10 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
-            sage: RT = A.basis().keys()
-            sage: x = A.gen(0)
+            sage: A = algebras.FQSYM(QQ)
+            sage: x = A([2,1])
             sage: A.prec(x, x)
-            B[[., [., .]]]
+            F[[2, 1, 4, 3]] + F[[2, 4, 1, 3]] + F[[2, 4, 3, 1]]
         """
         pre = self.prec_product_on_basis
         return self._module_morphism(self._module_morphism(pre, position=0,
@@ -408,46 +370,31 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
                                      position=1)
 
     def coproduct_on_basis(self, x):
-        """
-        Return the coproduct of a binary tree.
+        r"""
+        Return the coproduct of `F_{\sigma}` for `\sigma` a permutation.
 
         EXAMPLES::
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, '@')
-            sage: x = A.gen(0)
+            sage: A = algebras.FQSYM(QQ)
+            sage: x = A([1])
             sage: ascii_art(A.coproduct(A.one()))  # indirect doctest
             1 # 1
 
             sage: ascii_art(A.coproduct(x))  # indirect doctest
-            1 # B  + B  # 1
-                 o    o
+            1 # F    + F    # 1
+                 [1]    [1]
 
-            sage: A = algebras.FreeQuasisymmetric(QQ, 'xyz')
-            sage: x, y, z = A.gens()
-            sage: w = A.under(z,A.over(x,y))
+            sage: A = algebras.FQSYM(QQ)
+            sage: x, y, z = A([1]), A([2,1]), A([3,2,1])
             sage: A.coproduct(z)
-            B[.] # B[z[., .]] + B[z[., .]] # B[.]
-            sage: A.coproduct(w)
-            B[.] # B[x[z[., .], y[., .]]] + B[x[., .]] # B[z[., y[., .]]] +
-            B[x[., .]] # B[y[z[., .], .]] + B[x[., y[., .]]] # B[z[., .]] +
-            B[x[z[., .], .]] # B[y[., .]] + B[x[z[., .], y[., .]]] # B[.]
+            F[[]] # F[[3, 2, 1]] + F[[1]] # F[[2, 1]] + F[[2, 1]] # F[[1]]
+            + F[[3, 2, 1]] # F[[]]
         """
-        B = self.basis()
-        Perm = B.keys()
-        if not x.node_number():
+        if not len(x):
             return self.one().tensor(self.one())
-        L, R = list(x)
-        try:
-            root = x.label()
-        except AttributeError:
-            root = '@'
-        resu = self.one().tensor(self.monomial(x))
-        resu += sum(cL * cR *
-                    self.monomial(Trees([LL[0], RR[0]], root)).tensor(
-                        self.monomial(LL[1]) * self.monomial(RR[1]))
-                    for LL, cL in self.coproduct_on_basis(L)
-                    for RR, cR in self.coproduct_on_basis(R))
-        return resu
+        return sum(self(Word(x[:i]).standard_permutation()).tensor(
+                            self(Word(x[i:]).standard_permutation()))
+                    for i in range(len(x) + 1))
 
     # after this line : coercion
     def _element_constructor_(self, x):
@@ -456,26 +403,25 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: R = algebras.FreeQuasisymmetric(QQ, 'xy')
-            sage: x, y = R.gens()
+            sage: R = algebras.FQSYM(QQ)
+            sage: x, y, z = R([1]), R([2,1]), R([3,2,1])
             sage: R(x)
-            B[x[., .]]
+            F[[1]]
             sage: R(x+4*y)
-            B[x[., .]] + 4*B[y[., .]]
+            F[[1]] + 4*F[[2, 1]]
 
-            sage: Trees = R.basis().keys()
-            sage: R(Trees([],'x'))
-            B[x[., .]]
-            sage: D = algebras.FreeQuasisymmetric(ZZ, 'xy')
-            sage: X, Y = D.gens()
+            sage: D = algebras.FQSYM(ZZ)
+            sage: X, Y, Z = D([1]), D([2,1]), D([3,2,1])
             sage: R(X-Y).parent()
-            Free Quasi-symmetric functions on 2 generators ['x', 'y'] over Rational Field
+            Free Quasi-symmetric functions over Rational Field
         """
+        if isinstance(x, (list, tuple)):
+            x = Permutation(x)
         if x in self.basis().keys():
             return self.monomial(x)
         try:
             P = x.parent()
-            if isinstance(P, FreeQuasisymmetricAlgebra):
+            if isinstance(P, FreeQuasisymmetricFunctions):
                 if P is self:
                     return x
                 return self.element_class(self, x.monomial_coefficients())
@@ -490,64 +436,60 @@ class FreeQuasisymmetricAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - free quasi-symmetric functions in the same variables over a base with
+        - free quasi-symmetric functions over a base with
           a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 
-            sage: F = algebras.FreeQuasisymmetric(GF(7), 'xyz'); F
-            Free Quasi-symmetric functions on 3 generators ['x', 'y', 'z']
-             over Finite Field of size 7
+            sage: F = algebras.FQSYM(GF(7)); F
+            Free Quasi-symmetric functions over Finite Field of size 7
 
         Elements of the free quasi-symmetric functions canonically coerce in::
 
-            sage: x, y, z = F.gens()
+            sage: x, y, z = F([1]), F([2,1]), F([1,3,2])
             sage: F.coerce(x+y) == x+y
             True
 
-        The free quasi-symmetric functions over `\ZZ` on `x, y, z` coerces in, since
-        `\ZZ` coerces to `\GF{7}`::
+        The free quasi-symmetric functions over `\ZZ` coerces in,
+        since `\ZZ` coerces to `\GF{7}`::
 
-            sage: G = algebras.FreeQuasisymmetric(ZZ, 'xyz')
-            sage: Gx,Gy,Gz = G.gens()
+            sage: G = algebras.FQSYM(ZZ)
+            sage: Gx, Gy = G([1]), G([2,1])
             sage: z = F.coerce(Gx+Gy); z
-            B[x[., .]] + B[y[., .]]
+            F[[1]] + F[[2, 1]]
             sage: z.parent() is F
             True
 
-        However, `\GF{7}` does not coerce to `\ZZ`, so the free dendriform
-        algebra over `\GF{7}` does not coerce to the one over `\ZZ`::
+        However, `\GF{7}` does not coerce to `\ZZ`, so free quasisymmetric
+        functions over `\GF{7}` does not coerce to the same algebra over `\ZZ`::
 
             sage: G.coerce(y)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Free Quasi-symmetric functions
-             on 3 generators ['x', 'y', 'z'] over Finite Field of size
-             7 to Free Quasi-symmetric functions on 3 generators ['x', 'y', 'z']
-             over Integer Ring
+            over Finite Field of size 7 to
+            Free Quasi-symmetric functions over Integer Ring
 
         TESTS::
 
-            sage: F = algebras.FreeQuasisymmetric(ZZ, 'xyz')
-            sage: G = algebras.FreeQuasisymmetric(QQ, 'xyz')
-            sage: H = algebras.FreeQuasisymmetric(ZZ, 'y')
+            sage: F = algebras.FQSYM(ZZ)
+            sage: G = algebras.FQSYM(QQ)
             sage: F._coerce_map_from_(G)
             False
             sage: G._coerce_map_from_(F)
             True
-            sage: F._coerce_map_from_(H)
-            False
             sage: F._coerce_map_from_(QQ)
             False
             sage: G._coerce_map_from_(QQ)
-            False
+            True
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # free prelie algebras in the same variables
+        # free quasisymmetric functions in the same variables
         # over any base that coerces in:
-        if isinstance(R, FreeQuasisymmetricAlgebra):
-            if R.variable_names() == self.variable_names():
-                if self.base_ring().has_coerce_map_from(R.base_ring()):
-                    return True
+        if isinstance(R, FreeQuasisymmetricFunctions):
+            if self.base_ring().has_coerce_map_from(R.base_ring()):
+                return True
+        if self.base_ring().has_coerce_map_from(R):
+            return True
         return False

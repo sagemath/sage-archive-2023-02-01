@@ -337,7 +337,14 @@ class ChartFunction(AlgebraElement):
 
         """
 
-        return str(self.expr(self._calc_method._current))
+        curr = self._calc_method._current
+
+        if curr == 'SR' and self.parent()._chart.manifold().options.textbook_output:
+            return str(ExpressionNice(self.expr(curr)))
+        else:
+            return str(self.expr(curr))
+
+
 
 
     def _latex_(self):
@@ -355,9 +362,15 @@ class ChartFunction(AlgebraElement):
             \cos\left(\frac{1}{2} \, x y\right)
 
         """
-        from sage.misc.latex import latex
-        return latex(self._express[self._calc_method._current])
 
+        curr = self._calc_method._current
+
+        if curr == 'SR' and self.parent()._chart.manifold().options.textbook_output:
+            out_expr = ExpressionNice(self._express[curr])
+        else:
+            out_expr = self._express[curr]
+
+        return self._calc_method._latex_dict[curr](out_expr)
 
     def display(self):
         r"""
@@ -393,12 +406,18 @@ class ChartFunction(AlgebraElement):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         from sage.misc.latex import latex
 
-        expr = self.expr('SR')
+
+        curr = self._calc_method._current
+        expr = self.expr(curr)
+        if curr == 'SR': expr = ExpressionNice(expr)
+
+        latex_func = self._calc_method._latex_dict[curr]
 
         resu_txt = str(self.parent()._chart[:]) + ' |--> ' + \
-                   str(ExpressionNice(expr))
-        resu_latex = latex(self.parent()._chart[:]) + r' \mapsto' + \
-                     latex(ExpressionNice(expr))
+                       str(expr)
+        resu_latex = latex_func(self.parent()._chart[:]) + r' \mapsto' + \
+                         latex_func(expr)
+
         return FormattedExpansion(resu_txt, resu_latex)
 
     disp = display
@@ -443,7 +462,6 @@ class ChartFunction(AlgebraElement):
         """
         if len(coords) != self._nc:
             raise ValueError("bad number of coordinates")
-
 
 
         substitutions = dict(zip(self.parent()._chart._xx, coords))
@@ -869,7 +887,7 @@ class ChartFunction(AlgebraElement):
         TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart(calc_method='sympy')
+            sage: X.<x,y> = M.chart(calc_method='SR')
 
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
@@ -895,20 +913,20 @@ class ChartFunction(AlgebraElement):
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
-            sage: s = f + g; s.expr()
-            2*x + y**2 + 1
-            sage: (f + 0).expr()
-            x + y**2
-            sage: (f + X.zero_function()).expr()
-            x + y**2
-            sage: (f + 1).expr()
-            x + y**2 + 1
-            sage: (f + pi).expr()
-            x + y**2 + pi
-            sage: (f + x).expr()
-             2*x + y**2
-            sage: (f + -f).expr()
-            0
+            sage: s = f + g; s.display()
+            (x, y) |--> 2*x + y**2 + 1
+            sage: (f + 0).display()
+            (x, y) |--> x + y**2
+            sage: (f + X.zero_function()).display()
+            (x, y) |--> x + y**2
+            sage: (f + 1).display()
+            (x, y) |--> x + y**2 + 1
+            sage: (f + pi).display()
+            (x, y) |--> x + y**2 + pi
+            sage: (f + x).display()
+             (x, y) |--> 2*x + y**2
+            sage: (f + -f).display()
+            (x, y) |--> 0
 
 
 
@@ -965,7 +983,7 @@ class ChartFunction(AlgebraElement):
             sage: h = X.function(2*(x+y^2))
             sage: s = h - f
             sage: s.display()
-            (x, y) |--> y^2 + x
+            (x, y) |--> x + y**2
             sage: s.expr()
             x + y**2
         """
@@ -1085,10 +1103,10 @@ class ChartFunction(AlgebraElement):
 
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x+y)
-            sage: (f * 2).expr()
-            2*x + 2*y
-            sage: (f * pi).expr()
-            pi*(x + y)
+            sage: (f * 2).display()
+            (x, y) |--> 2*x + 2*y
+            sage: (f * pi).display()
+            (x, y) |--> pi*(x + y)
 
         """
         curr = self._calc_method._current
@@ -1145,7 +1163,7 @@ class ChartFunction(AlgebraElement):
             sage: f = X.function(x+y)
             sage: g = X.function(1+x**2+y**2)
             sage: s = f._div_(g); s.display()
-            (x, y) |--> (x + y)/(x^2 + y^2 + 1)
+            (x, y) |--> (x + y)/(x**2 + y**2 + 1)
             sage: (f / g) == ~(g / f)
             True
 
@@ -1194,7 +1212,7 @@ class ChartFunction(AlgebraElement):
             sage: exp(f) # equivalent to f.exp()
             exp(x + y)
             sage: exp(f).display()
-            (x, y) |--> e^(x + y)
+            (x, y) |--> exp(x + y)
             sage: exp(X.zero_function())
             1
 
@@ -1306,15 +1324,13 @@ class ChartFunction(AlgebraElement):
             sage: f^3  # equivalent to f.__pow__(3)
             x**3 + 3*x**2*y + 3*x*y**2 + y**3
             sage: f.__pow__(3).display()
-            (x, y) |--> x^3 + 3*x^2*y + 3*x*y^2 + y^3
+            (x, y) |--> x**3 + 3*x**2*y + 3*x*y**2 + y**3
             sage: pow(f,3).display()
-            (x, y) |--> x^3 + 3*x^2*y + 3*x*y^2 + y^3
+            (x, y) |--> x**3 + 3*x**2*y + 3*x*y**2 + y**3
             sage: (f^3).display()
-            (x, y) |--> x^3 + 3*x^2*y + 3*x*y^2 + y^3
+            (x, y) |--> x**3 + 3*x**2*y + 3*x*y**2 + y**3
             sage: pow(X.zero_function(), 3).display()
             (x, y) |--> 0
-
-
 
         """
         curr = self._calc_method._current
@@ -1533,7 +1549,7 @@ class ChartFunction(AlgebraElement):
             sage: acos(f)  # equivalent to f.arccos()
             acos(x*y)
             sage: arccos(f).display()
-            (x, y) |--> arccos(x*y)
+            (x, y) |--> acos(x*y)
 
         """
         curr = self._calc_method._current
@@ -2058,7 +2074,7 @@ class ChartFunction(AlgebraElement):
             sage: X.set_calculus_method('sympy')
             sage: g = X.function(x^2 + 2*x*y + y^2)
             sage: g.display()
-            (x, y) |--> x^2 + 2*x*y + y^2
+            (x, y) |--> x**2 + 2*x*y + y**2
             sage: g.factor()
             (x + y)**2
 
@@ -2143,7 +2159,7 @@ class ChartFunction(AlgebraElement):
             sage: X.set_calculus_method('sympy')
             sage: f = X.function(x^2*y + x*y + (x*y)^2)
             sage: f.display()
-            (x, y) |--> x^2*y^2 + x^2*y + x*y
+            (x, y) |--> x**2*y**2 + x**2*y + x*y
             sage: f.collect(y)
             x**2*y**2 + y*(x**2 + x)
 
@@ -2189,7 +2205,7 @@ class ChartFunction(AlgebraElement):
             sage: X.set_calculus_method('sympy')
             sage: g = X.function(x/(x^2*y + x*y))
             sage: g.display()
-            (x, y) |--> x/(x^2*y + x*y)
+            (x, y) |--> x/(x**2*y + x*y)
             sage: g.collect_common_factors()
             1/(y*(x + 1))
 

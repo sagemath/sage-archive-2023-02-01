@@ -26,8 +26,9 @@ from sage.manifolds.utilities import (simplify_chain_real,
                                       simplify_chain_generic,
                                       simplify_chain_real_sympy,
                                       simplify_chain_generic_sympy,)
-
+from sage.misc.latex import latex
 import sympy
+
 
 
 # conversion functions
@@ -149,6 +150,8 @@ class CalculusMethod(SageObject):
     _methods = ('SR','sympy') # implemented methods
     _tranf = {'SR':  _Sympy_to_SR,'sympy' : _SR_to_Sympy} # translators
 
+
+
     def __init__(self, current=None, bf_type='complex'):
         r"""
         Construct the single instance of the class.
@@ -189,6 +192,9 @@ class CalculusMethod(SageObject):
             self._simplify_dict['SR'] = simplify_chain_generic
 
         self._bf_type = bf_type
+
+        self._latex_dict = {'sympy': sympy.latex, 'SR': latex}
+
 
 
     def simplify(self, expression, method=None):

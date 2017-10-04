@@ -427,7 +427,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 from sage.structure.dynamic_class import dynamic_class
                 clazz = NonClassicalRationalFunctionFieldValuation
                 if valuation.is_discrete_valuation():
-                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_discrete", (clazz, DiscreteValuation))
+                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_discrete", (clazz, DiscreteFunctionFieldValuation_base))
                 else:
                     clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_negative_infinite", (clazz, NegativeInfiniteDiscretePseudoValuation))
                 return parent.__make_element_class__(clazz)(parent, valuation)

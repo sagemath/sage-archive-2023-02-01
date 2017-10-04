@@ -1777,7 +1777,7 @@ cdef class NCPolynomial_plural(RingElement):
         return s
 
     def _latex_(self):
-        """
+        r"""
         Return a polynomial LaTeX representation of this polynomial.
 
         EXAMPLES::

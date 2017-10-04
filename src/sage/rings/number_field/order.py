@@ -1091,8 +1091,6 @@ class AbsoluteOrder(Order):
         Quadratic elements have a special optimized type:
 
         """
-        Order.__init__(self, K, is_maximal=is_maximal)
-
         if K.degree() == 2:
             self._element_type = OrderElement_quadratic
             # adding the following attribute makes the comparison of elements
@@ -1102,7 +1100,9 @@ class AbsoluteOrder(Order):
             self._element_type = OrderElement_absolute
 
         self._module_rep = module_rep
-        V, from_v, to_v = self._K.vector_space()
+        V, from_v, to_v = K.vector_space()
+        Order.__init__(self, K, is_maximal=is_maximal)
+
         if check:
             if not K.is_absolute():
                 raise ValueError("AbsoluteOrder must be called with an absolute number field.")
@@ -1473,9 +1473,9 @@ class RelativeOrder(Order):
             sage: loads(dumps(O)) == O
             True
         """
-        Order.__init__(self, K, is_maximal=is_maximal)
         self._absolute_order = absolute_order
         self._module_rep = absolute_order._module_rep
+        Order.__init__(self, K, is_maximal=is_maximal)
 
     def _element_constructor_(self, x):
         """

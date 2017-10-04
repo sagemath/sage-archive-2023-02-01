@@ -113,6 +113,7 @@ from __future__ import print_function, absolute_import
 include 'sage/data_structures/bitset.pxi'
 from cpython.object cimport Py_EQ, Py_NE
 
+from sage.structure.richcmp cimport rich_to_bool
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from .lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
@@ -1221,19 +1222,12 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         """
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if not isinstance(left, LinearMatroid) or not isinstance(right, LinearMatroid):
+        if type(left) is not type(right):
             return NotImplemented
-        if left.__class__ != right.__class__:   # since we have some subclasses, an extra test
-            return NotImplemented
-        if op == Py_EQ:
-            res = True
-        if op == Py_NE:
-            res = False
-        # res gets inverted if matroids are deemed different.
         if left.is_field_equivalent(right):
-            return res
+            return rich_to_bool(op, 0)
         else:
-            return not res
+            return rich_to_bool(op, 1)
 
     def __hash__(self):
         r"""

@@ -966,7 +966,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: c.display(Y.frame(), Y)
             c = (u + 1) d/du + u*v d/dv
 
-        There is no common ccordinate frame::
+        There is no common coordinate frame::
 
             sage: a._common_coord_frame(c)
 

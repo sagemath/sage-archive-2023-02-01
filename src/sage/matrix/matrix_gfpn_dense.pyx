@@ -32,15 +32,9 @@ from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
-## Define an environment variable that enables MeatAxe to find
-## its multiplication tables.
-
-from sage.env import DOT_SAGE
 import os
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-    char* PyString_AsString(object string)
-MtxLibDir = PyString_AsString(os.path.join(DOT_SAGE,'meataxe'))
+
+meataxe_init()
 
 ####################
 #
@@ -58,7 +52,6 @@ from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
-from libc.stdlib cimport free
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
@@ -68,8 +61,6 @@ cimport sage.matrix.matrix0
 # auxiliary functions
 #
 ####################
-import sys
-from libc.string cimport memcpy
 
 # Fast conversion from field to int and int to field
 cdef class FieldConverter_class:
@@ -260,36 +251,6 @@ cdef FieldConverter_class FieldConverter(field):
         return _converter_cache.setdefault(field, FieldConverter_class(field))
 
 ######################################
-## Error handling for MeatAxe, to prevent immediate exit of the program
-
-cdef dict ErrMsg = {
-    "Not enough memory": MemoryError,
-    "Time limit exceeded": RuntimeError,
-    "Division by zero": ZeroDivisionError,
-    "Bad file format": IOError,
-    "Bad argument": ValueError,
-    "Argument out of range": IndexError,
-
-    "Matrix not in echelon form": ValueError,
-    "Matrix not square": ArithmeticError,
-    "Incompatible objects": TypeError,
-
-    "Bad syntax, try `-help'": SyntaxError,
-    "Bad usage of option, try `-help'": ValueError,
-    "Bad number of arguments, try `-help'": ValueError,
-
-    "Not a matrix": TypeError,
-    "Not a permutation": TypeError
-}
-
-from cpython.exc cimport PyErr_SetObject
-
-cdef void ErrorHandler(MtxErrorRecord_t *err):
-    PyErr_SetObject(ErrMsg.get(err.Text, SystemError), "{} in file {} (line {})".format(err.Text, err.FileInfo.BaseName, err.LineNo))
-
-MtxSetErrorHandler(ErrorHandler)
-
-######################################
 ##
 ## Wrapper for MeatAxe matrices
 ##
@@ -403,7 +364,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
                 Traceback (most recent call last):
                 ...
-                SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
                 sage: Matrix_gfpn_dense('')                             # optional: meataxe
                 Traceback (most recent call last):
                 ...
@@ -1542,7 +1503,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                     dest = self.Data.Data+FfCurrentRowSize*i
                     memcpy(dest, old+FfCurrentRowSize*j, FfCurrentRowSize)
                     self.Data.PivotTable[i] = pos
-                free(old)
+                sig_free(old)
                 self.Data.Nor = self._nrows
             # Now, the pivot columns are strictly increasing.
             # We now normalize each row, and annulate everything

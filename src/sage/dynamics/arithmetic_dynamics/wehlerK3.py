@@ -8,24 +8,13 @@ AUTHORS:
 
 .. TODO::
 
-    Riemann Zeta Function
+    Hasse-Weil Zeta Function
 
     Picard Number
 
     Number Fields
 
-REFERENCES:
-
-.. [FaHu] \J. A. de Faria, B. Hutz. Combinatorics of Cycle Lengths on
-   Wehler K3 Surfaces over finite fields
-   :arxiv:`1309.6598`, 2013.
-.. [CaSi] \G. Call and J. Silverman. Computing the Canonical Height on
-   K3 Surfaces. Mathematics of Comp. , 65 (1996), 259-290.
-.. [Wehl] \J. Wehler. Hypersurfaces of the Flag Variety: Deformation
-   Theory and the Theorems of Kodaira-Spencer, Torelli,
-   Lefschetz, M. Noether, and Serre. Math. Z. 198 (1988), 21-38
-.. [Hutzthesis] \B. Hutz. Arithmetic Dynamics on Varieties of dimension greater
-   than one. PhD Thesis, Brown University 2007
+REFERENCES: [FH2015]_, [CS1996]_, [Weh1998]_, [Hutz2007]
 
 """
 
@@ -64,11 +53,11 @@ _Fields = Fields()
 def WehlerK3Surface(polys):
     r"""
     Defines a K3 Surface over `\mathbb{P}^2 \times \mathbb{P}^2` defined as
-    the intersection of a bilinear and biquadratic form. [Wehl]_
+    the intersection of a bilinear and biquadratic form. [Weh1998]_
 
-    INPUT: Bilinear and biquadratic polynomials as a tuple or list.
+    INPUT: Bilinear and biquadratic polynomials as a tuple or list
 
-    OUTPUT: :class:`WehlerK3Surface_ring`.
+    OUTPUT: :class:`WehlerK3Surface_ring`
 
     EXAMPLES::
 
@@ -98,11 +87,11 @@ def WehlerK3Surface(polys):
 def random_WehlerK3Surface(PP):
     r"""
     Produces a random K3 surface in `\mathbb{P}^2 \times \mathbb{P}^2` defined as the
-    intersection of a bilinear and biquadratic form. [Wehl]_
+    intersection of a bilinear and biquadratic form. [Weh1998]_
 
-    INPUT: Projective space cartesian product.
+    INPUT: Projective space cartesian product
 
-    OUTPUT: :class:`WehlerK3Surface_ring`.
+    OUTPUT: :class:`WehlerK3Surface_ring`
 
     EXAMPLES::
 
@@ -130,7 +119,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     r"""
 
     A K3 surface in `\mathbb{P}^2 \times \mathbb{P}^2` defined as the
-    intersection of a bilinear and biquadratic form. [Wehl]_
+    intersection of a bilinear and biquadratic form. [Weh1998]_
 
     EXAMPLES::
 
@@ -175,9 +164,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Changes the base ring on which the Wehler K3 Surface is defined.
 
-        INPUT: ``R`` - ring.
+        INPUT: ``R`` - ring
 
-        OUTPUT: K3 Surface defined over input ring.
+        OUTPUT: K3 Surface defined over input ring
 
         EXAMPLES::
 
@@ -200,9 +189,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Function checks to see if point ``P`` lies on the K3 Surface.
 
-        INPUT: ``P`` - point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        INPUT: ``P`` - point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
-        OUTPUT: AttributeError True if the point is not on the surface.
+        OUTPUT: AttributeError True if the point is not on the surface
 
         EXAMPLES::
 
@@ -250,15 +239,15 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
             `L^y_i` = the coefficients of `x_i` in `L(x, y)` (Component = 1)
 
-            Definition and Notation from: [CaSi]_
+            Definition and Notation from: [CS1996]_
 
         INPUT:
 
-        - ``component`` - Integer: 0 or 1.
+        - ``component`` - Integer: 0 or 1
 
-        - ``i`` - Integer: 0, 1 or 2.
+        - ``i`` - Integer: 0, 1 or 2
 
-        OUTPUT: Polynomial in terms of either y (Component = 0) or x (Component = 1).
+        OUTPUT: polynomial in terms of either y (Component = 0) or x (Component = 1)
 
         EXAMPLES::
 
@@ -298,17 +287,17 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
             `Q^y_{ij}` = the coefficients of `x_{i}x_{j}` in `Q(x, y)` (Component = 1).
 
-            Definition and Notation from: [CaSi]_.
+            Definition and Notation from: [CS1996]_.
 
         INPUT:
 
-        - ``component`` - Integer: 0 or 1.
+        - ``component`` - Integer: 0 or 1
 
-        - ``i`` - Integer: 0, 1 or 2.
+        - ``i`` - Integer: 0, 1 or 2
 
-        - ``j`` - Integer: 0, 1 or 2.
+        - ``j`` - Integer: 0, 1 or 2
 
-        OUTPUT: Polynomial in terms of either y (Component = 0) or x (Component = 1).
+        OUTPUT: polynomial in terms of either y (Component = 0) or x (Component = 1)
 
         EXAMPLES::
 
@@ -352,11 +341,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``component`` - Integer: 0 or 1.
+        - ``component`` - Integer: 0 or 1
 
-        - ``k`` - Integer: 0, 1 or 2.
+        - ``k`` - Integer: 0, 1 or 2
 
-        OUTPUT: Polynomial in terms of either y (Component = 0) or x (Component = 1).
+        OUTPUT: polynomial in terms of either y (Component = 0) or x (Component = 1)
 
         EXAMPLES::
 
@@ -396,13 +385,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``component`` - Integer: 0 or 1.
+        - ``component`` - Integer: 0 or 1
 
-        - ``i`` - Integer: 0, 1 or 2.
+        - ``i`` - Integer: 0, 1 or 2
 
-        - ``j`` - Integer: 0, 1 or 2.
+        - ``j`` - Integer: 0, 1 or 2
 
-        OUTPUT: Polynomial in terms of either y (Component = 0) or x (Component = 1).
+        OUTPUT: polynomial in terms of either y (Component = 0) or x (Component = 1)
 
         EXAMPLES::
 
@@ -440,11 +429,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `L^{x}_{a} = \{(a, y) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon L(a, y) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
-        INPUT: ``a`` - Point in `\mathbb{P}^2`.
+        INPUT: ``a`` - Point in `\mathbb{P}^2`
 
-        OUTPUT: A polynomial representing the fiber.
+        OUTPUT: A polynomial representing the fiber
 
         EXAMPLES::
 
@@ -478,11 +467,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `Q^{x}_{a} = \{(a,y) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon Q(a,y) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
-        INPUT: ``a`` - Point in `\mathbb{P}^2`.
+        INPUT: ``a`` - Point in `\mathbb{P}^2`
 
-        OUTPUT: A polynomial representing the fiber.
+        OUTPUT: A polynomial representing the fiber
 
         EXAMPLES::
 
@@ -515,11 +504,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `S^{x}_{a} = L^{x}_{a} \cap Q^{x}_{a}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
-        INPUT: ``a`` - Point in `\mathbb{P}^2`.
+        INPUT: ``a`` - Point in `\mathbb{P}^2`
 
-        OUTPUT: A subscheme representing the fiber.
+        OUTPUT: A subscheme representing the fiber
 
         EXAMPLES::
 
@@ -551,11 +540,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `L^{y}_{b} = \{(x,b) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon L(x,b) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
-        INPUT: ``b`` - Point in projective space.
+        INPUT: ``b`` - Point in projective space
 
-        OUTPUT: A polynomial representing the fiber.
+        OUTPUT: A polynomial representing the fiber
 
         EXAMPLES::
 
@@ -590,11 +579,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `Q^{y}_{b} = \{(x,b) \in \mathbb{P}^{2} \times \mathbb{P}^{2} \colon Q(x,b) = 0\}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
-        INPUT: ``b`` - Point in projective space.
+        INPUT: ``b`` - Point in projective space
 
-        OUTPUT: A polynomial representing the fiber.
+        OUTPUT: A polynomial representing the fiber
 
         EXAMPLES::
 
@@ -626,11 +615,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         `S^{y}_{b} = L^{y}_{b} \cap Q^{y}_{b}`.
 
-        Notation and definition from: [CaSi]_
+        Notation and definition from: [CS1996]_
 
-        INPUT: ``b`` - Point in `\mathbb{P}^2`.
+        INPUT: ``b`` - Point in `\mathbb{P}^2`
 
-        OUTPUT: A subscheme representing the fiber.
+        OUTPUT: A subscheme representing the fiber
 
         EXAMPLES::
 
@@ -663,11 +652,11 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         `g^* = \frac{\left(H^*_{ij}\right)^2 - 4G^*_iG^*_j}{\left(L^*_k\right)^2}`.
 
         The roots of this polynomial will either be degenerate fibers or fixed points
-        of the involutions `\sigma_x` or `\sigma_y` for more information, see [CaSi]_.
+        of the involutions `\sigma_x` or `\sigma_y` for more information, see [CS1996]_.
 
-        INPUT: ``i`` - Integer, either 0 (polynomial in y) or 1 (polynomial in x).
+        INPUT: ``i`` - Integer, either 0 (polynomial in y) or 1 (polynomial in x)
 
-        OUTPUT: Polynomial in the coordinate ring of the ambient space.
+        OUTPUT: Polynomial in the coordinate ring of the ambient space
 
         EXAMPLES::
 
@@ -702,7 +691,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         Function will return True if there is a fiber (over the algebraic closure of the
         base ring) of dimension greater than 0 and False otherwise.
 
-        OUTPUT: Boolean value of True or False.
+        OUTPUT: boolean
 
         EXAMPLES::
 
@@ -743,7 +732,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         vars = list(PS.gens())
         R0 = PolynomialRing(K, 3, vars) #for dimension calculation to work,
             #must be done with Polynomial ring over a field
-        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CaSi]_
+        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CS1996]_
         I = R.ideal(self.Gpoly(1, 0), self.Gpoly(1, 1), self.Gpoly(1, 2), self.Hpoly(1, 0, 1),
                     self.Hpoly(1, 0, 2), self.Hpoly(1, 1, 2))
         phi = R.hom(vars + [0, 0, 0], R0)
@@ -755,7 +744,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         vars = list(PS.gens())
         R0 = PolynomialRing(K,3,vars) #for dimension calculation to work,
         #must be done with Polynomial ring over a field
-        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CaSi]_
+        #Degenerate is equivalent to a common zero, see Prop 1.4 in [CS1996]_
         I = R.ideal(self.Gpoly(0, 0), self.Gpoly(0, 1), self.Gpoly(0, 2), self.Hpoly(0, 0, 1),
                     self.Hpoly(0, 0, 2), self.Hpoly(0, 1, 2))
         phi = R.hom([0, 0, 0] + vars, R0)
@@ -776,16 +765,16 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ``self.Gpoly(1, 0)``, ``self.Gpoly(1, 1)``, ``self.Gpoly(1, 2)``,
         ``self.Hpoly(1, 0, 1)``,``self.Hpoly(1, 0, 2)``,
         ``self.Hpoly(1, 1, 2)`` (for the first component), is from Proposition 1.4
-        in the following article: [CaSi]_.
+        in the following article: [CS1996]_.
 
         This function finds the common solution through elimination via Groebner bases
         by using the .variety() function on the three affine charts in each component.
 
         OUTPUT: The output is a list of lists where the elements of lists are
-                points in the appropriate projective space.
-                The first list is the points whose pullback by the projection to the
-                first component (projective space) is dimension greater than 0.
-                The second list is points in the second component.
+        points in the appropriate projective space.
+        The first list is the points whose pullback by the projection to the
+        first component (projective space) is dimension greater than 0.
+        The second list is points in the second component
 
         EXAMPLES::
 
@@ -894,7 +883,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         Raises an error if the surface is degenerate.
         Works only for ``ZZ`` or ``QQ``.
 
-        INPUT: ``check`` - Boolean (Default: True) then the primes are verified.
+        INPUT: ``check`` -- (default: True) boolean, whether the primes are verified
 
         ALGORITHM:
 
@@ -1000,7 +989,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         Checks to confirm that all of the 2x2 minors of the Jacobian generated from
         the biquadratic and bilinear forms have no common vanishing points.
 
-        OUTPUT:  Boolean.
+        OUTPUT:  Boolean
 
         EXAMPLES::
 
@@ -1052,20 +1041,20 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`, `\phi`,
-        and `\psi`" in [CaSi]_.
-        For the degenerate case refer to [FaHu]_.
+        and `\psi`" in [CS1996FH2015.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
-        - ``P`` - a point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        - ``P`` - a point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - (default: ``True``) boolean checks to see if point is on the surface
 
-        - ``normalize`` -- boolean (optional - default: ``True``) normalizes the point.
+        - ``normalize`` -- (default: ``True``) boolean normalizes the point
 
-        OUTPUT: A point on the K3 surface.
+        OUTPUT: A point on the K3 surface
 
         EXAMPLES::
 
@@ -1297,20 +1286,20 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`, `\phi`,
-        and `\psi`" in [CaSi]_.
-        For the degenerate case refer to [FaHu]_.
+        and `\psi`" in [CS1996]_.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
-        - ``P`` - a point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        - ``P`` - a point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - (default: ``True``) boolean checks to see if point is on the surface
 
-        - ``normalize`` -- Boolean (optional - default: ``True``) normalizes the point.
+        - ``normalize`` -- (default: ``True``) boolean normalizes the point
 
-        OUTPUT: A point on the K3 surface.
+        OUTPUT: A point on the K3 surface
 
         EXAMPLES::
 
@@ -1530,21 +1519,21 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`,
-        `\phi`, and `\psi`" in [CaSi]_.
+        `\phi`, and `\psi`" in [CS1996]_.
 
-        For the degenerate case refer to [FaHu]_.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
-        - ``a`` - Point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        - ``a`` - Point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - (default: ``True``) boolean checks to see if point is on the surface
 
-        - ``normalize`` -- Boolean (optional - default: ``True``) normalizes the point.
+        - ``normalize`` -- (default: ``True``) boolean normalizes the point
 
-        OUTPUT: A point on this surface.
+        OUTPUT: A point on this surface
 
         EXAMPLES::
 
@@ -1570,21 +1559,21 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Refer to Section 6: "An algorithm to compute `\sigma_x`, `\sigma_y`,
-        `\phi`, and `\psi`" in [CaSi]_.
+        `\phi`, and `\psi`" in [CS1996]_.
 
-        For the degenerate case refer to [FaHu]_.
+        For the degenerate case refer to [FH2015]_.
 
         INPUT:
 
-        - ``a`` - Point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        - ``a`` - Point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - (default: ``True``) boolean checks to see if point is on the surface
 
-        - ``normalize`` -- Boolean (optional - default: ``True``) normalizes the point.
+        - ``normalize`` -- (default: ``True``) boolean normalizes the point
 
-        OUTPUT: A point on this surface.
+        OUTPUT: A point on this surface
 
         EXAMPLES::
 
@@ -1613,22 +1602,22 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over local heights using convergent series, for more details,
-        see section 4 of [CaSi]_.
+        see section 4 of [CS1996]_.
 
         INPUT:
 
-        - ``P`` - a surface point.
+        - ``P`` -- a surface point
 
-        - ``N`` - positive integer. number of terms of the series to use.
+        - ``N`` -- positive integer. number of terms of the series to use
 
-        - ``v`` - non-negative integer. a place, use v = 0 for the Archimedean place.
+        - ``v`` -- non-negative integer. a place, use v = 0 for the Archimedean place
 
-        - ``m,n`` - positive integers, We compute the local height for the divisor `E_{mn}^{+}`.
-                    These must be indices of non-zero coordinates of the point ``P``.
+        - ``m,n`` -- positive integers, We compute the local height for the divisor `E_{mn}^{+}`.
+                     These must be indices of non-zero coordinates of the point ``P``.
 
-        - ``prec`` - float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100) float point or p-adic precision
 
-        OUTPUT: A real number.
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1643,7 +1632,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
             0.89230705169161608922595928129
         """
         if not (v == 0 or v.is_prime()):
-            raise ValueError("invalid valuation (= %s) entered."%v)
+            raise ValueError("invalid valuation (= %s) entered"%v)
         R = RealField(prec)
         if v == 0:
             K = R
@@ -1712,22 +1701,22 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over local heights using convergent series, for more details,
-        see section 4 of [CaSi]_.
+        see section 4 of [CS1996]_.
 
         INPUT:
 
-        - ``P`` - a projective point.
+        - ``P`` -- a projective point
 
-        - ``N`` - positive integer. number of terms of the series to use.
+        - ``N`` -- positive integer. number of terms of the series to use
 
-        - ``v`` - non-negative integer. a place, use v = 0 for the Archimedean place.
+        - ``v`` -- non-negative integer. a place, use v = 0 for the Archimedean place
 
-        - ``m,n`` - positive integers, We compute the local height for the divisor `E_{mn}^{+}`.
+        - ``m,n`` -- positive integers, We compute the local height for the divisor `E_{mn}^{+}`.
                     These must be indices of non-zero coordinates of the point ``P``.
 
-        - ``prec`` - float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100) float point or p-adic precision
 
-        OUTPUT: A real number.
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1806,19 +1795,19 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over the lambda plus heights (local heights) in a convergent series,
-        for more detail see section 7 of [CaSi]_.
+        for more detail see section 7 of [CS1996]_.
 
         INPUT:
 
-        - ``P`` - a surface point,
+        - ``P`` -- a surface point
 
-        - ``N`` - positive integer. Number of terms of the series to use.
+        - ``N`` -- positive integer. Number of terms of the series to use
 
-        - ``badprimes`` - list of integer primes (where the surface is degenerate) (optional).
+        - ``badprimes`` -- (optional) list of integer primes (where the surface is degenerate)
 
-        - ``prec`` - float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100) float point or p-adic precision
 
-        OUTPUT: A real number.
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1870,19 +1859,19 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         Sum over the lambda minus heights (local heights) in a convergent series,
-        for more detail see section 7 of [CaSi]_.
+        for more detail see section 7 of [CS1996]_.
 
         INPUT:
 
-        - ``P`` - a surface point.
+        - ``P`` -- a surface point
 
-        - ``N`` - positive integer (number of terms of the series to use).
+        - ``N`` -- positive integer (number of terms of the series to use)
 
-        - ``badprimes`` - list of integer primes (where the surface is degenerate) (optional).
+        - ``badprimes`` -- (optional) list of integer primes (where the surface is degenerate)
 
-        - ``prec`` - float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100) float point or p-adic precision
 
-        OUTPUT: A real number.
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1932,19 +1921,19 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         ALGORITHM:
 
         The sum of the canonical height minus and canonical height plus,
-        for more info see section 4 of [CaSi]_.
+        for more info see section 4 of [CS1996]_.
 
         INPUT:
 
-        - ``P`` - a surface point.
+        - ``P`` -- a surface point
 
-        - ``N`` - positive integer (number of terms of the series to use).
+        - ``N`` -- positive integer (number of terms of the series to use)
 
-        - ``badprimes`` - list of integer primes (where the surface is degenerate) (optional).
+        - ``badprimes`` -- (optional) list of integer primes (where the surface is degenerate)
 
-        - ``prec`` - float point or p-adic precision, default: 100.
+        - ``prec`` -- (default: 100) float point or p-adic precision
 
-        OUTPUT: A real number.
+        OUTPUT: A real number
 
         EXAMPLES::
 
@@ -1982,15 +1971,13 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         Returns the fibers [y (component = 1) or x (Component = 0)] of a point on a
         K3 Surface, will work for nondegenerate fibers only.
 
-        For algorithm, see [Hutzthesis]_.
+        For algorithm, see [Hutz2007]_.
 
         INPUT:
 
-        -``p`` - a point in `\mathbb{P}^2`.
+        -``p`` - a point in `\mathbb{P}^2`
 
-        OUTPUT:
-
-        - The corresponding fiber (as a list).
+        OUTPUT: The corresponding fiber (as a list)
 
         EXAMPLES::
 
@@ -2153,20 +2140,18 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``P`` -- - a point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        - ``P`` -- - a point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
-        - ``n`` -- an integer.
+        - ``n`` -- an integer
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - (default: ``True``) boolean checks to see if point is on the surface
 
-        - ``normalize`` -- Boolean (optional - default: ``False``) normalizes the point.
+        - ``normalize`` -- (default: ``False``) boolean normalizes the point
 
-        OUTPUT:
-
-        The nth iterate of the point given the phi function (if ``n`` is positive), or the
-        psi function (if ``n`` is negative).
+        OUTPUT: The nth iterate of the point given the phi function (if ``n`` is positive), or the
+        psi function (if ``n`` is negative)
 
         EXAMPLES::
 
@@ -2220,20 +2205,18 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``P`` -- - a point in `\mathbb{P}^2 \times \mathbb{P}^2`.
+        - ``P`` -- - a point in `\mathbb{P}^2 \times \mathbb{P}^2`
 
-        - ``n`` -- an integer.
+        - ``n`` -- an integer
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` -- (default: ``True``) boolean, checks to see if point is on the surface
 
-        - ``normalize`` -- Boolean (optional - default: ``False``) normalizes the point.
+        - ``normalize`` -- (default: ``False``) boolean, normalizes the point
 
-        OUTPUT:
-
-        The nth iterate of the point given the psi function (if ``n`` is positive),
-        or the phi function (if ``n`` is negative).
+        OUTPUT: The nth iterate of the point given the psi function (if ``n`` is positive),
+        or the phi function (if ``n`` is negative)
 
         EXAMPLES::
 
@@ -2273,21 +2256,21 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
     def orbit_phi(self,P,N, **kwds):
         r"""
         Returns the orbit of the `\phi` function defined by `\phi = \sigma_y \circ \sigma_x`
-        Function is defined in [CaSi]_.
+        Function is defined in [CS1996]_.
 
         INPUT:
 
-        - ``P`` - Point on the K3 surface.
+        - ``P`` - Point on the K3 surface
 
-        - ``N`` - a non-negative integer or list or tuple of two non-negative integers.
+        - ``N`` - a non-negative integer or list or tuple of two non-negative integers
 
         kwds:
 
-        - ``check`` - Boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` -- (default: ``True``) boolean, checks to see if point is on the surface
 
-        - ``normalize`` -- Boolean (optional - default: ``False``) normalizes the point.
+        - ``normalize`` -- (default: ``False``) boolean, normalizes the point
 
-        OUTPUT: List of points in the orbit.
+        OUTPUT: List of points in the orbit
 
         EXAMPLES::
 
@@ -2332,21 +2315,21 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
         r"""
         Returns the orbit of the `\psi` function defined by `\psi = \sigma_x \circ \sigma_y`.
 
-        Function is defined in [CaSi]_.
+        Function is defined in [CS1996]_.
 
         INPUT:
 
-        - ``P`` - a point on the K3 surface.
+        - ``P`` - a point on the K3 surface
 
-        - ``N`` - a non-negative integer or list or tuple of two non-negative integers.
+        - ``N`` - a non-negative integer or list or tuple of two non-negative integers
 
         kwds:
 
-        - ``check`` - boolean (optional - default: ``True``) checks to see if point is on the surface.
+        - ``check`` - (default: ``True``) boolean, checks to see if point is on the surface
 
-        - ``normalize`` -- boolean (optional - default: ``False``) normalizes the point.
+        - ``normalize`` -- (default: ``False``) boolean, normalizes the point
 
-        OUTPUT: List of points in the orbit.
+        OUTPUT: a list of points in the orbit
 
         EXAMPLES::
 
@@ -2390,9 +2373,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``right`` - the K3 surface to compare to the original.
+        - ``right`` - the K3 surface to compare to the original
 
-        OUTPUT: Boolean.
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -2429,9 +2412,9 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
 
         INPUT:
 
-        - ``orbit``- a periodic cycle of either psi or phi.
+        - ``orbit``- a periodic cycle of either psi or phi
 
-        OUTPUT: Boolean.
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -2485,7 +2468,7 @@ class WehlerK3Surface_finite_field( WehlerK3Surface_field):
         Enumerate points over `\mathbb{P}^2`, and then count the points on the fiber of
         each of those points.
 
-        OUTPUT: Integer - total number of points on the surface.
+        OUTPUT: Integer - total number of points on the surface
 
         EXAMPLES::
 

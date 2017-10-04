@@ -43,8 +43,6 @@ Projective Schemes
    sage/schemes/projective/projective_morphism
    sage/schemes/projective/projective_rational_point
    sage/schemes/projective/projective_homset
-   sage/schemes/projective/endPN_automorphism_group
-   sage/schemes/projective/endPN_minimal_model
 
 Products of Projective Spaces
 -----------------------------
@@ -56,7 +54,6 @@ Products of Projective Spaces
    sage/schemes/product_projective/homset
    sage/schemes/product_projective/morphism
    sage/schemes/product_projective/point
-   sage/schemes/product_projective/wehlerK3
 
 Toric Varieties
 ---------------

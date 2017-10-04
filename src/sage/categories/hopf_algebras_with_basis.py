@@ -146,9 +146,14 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 #         """
 #         return self
 
-    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_hopf_algebras_with_basis', 'FiniteDimensionalHopfAlgebrasWithBasis')
-    Graded = LazyImport('sage.categories.graded_hopf_algebras_with_basis', 'GradedHopfAlgebrasWithBasis')
-    Super = LazyImport('sage.categories.super_hopf_algebras_with_basis',  'SuperHopfAlgebrasWithBasis')
+    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_hopf_algebras_with_basis',
+                                   'FiniteDimensionalHopfAlgebrasWithBasis')
+    Filtered = LazyImport('sage.categories.filtered_hopf_algebras_with_basis',
+                          'FilteredHopfAlgebrasWithBasis')
+    Graded = LazyImport('sage.categories.graded_hopf_algebras_with_basis',
+                        'GradedHopfAlgebrasWithBasis')
+    Super = LazyImport('sage.categories.super_hopf_algebras_with_basis',
+                       'SuperHopfAlgebrasWithBasis')
 
     class ParentMethods:
 

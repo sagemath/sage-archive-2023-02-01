@@ -14,8 +14,8 @@ from six import integer_types
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
-from sage.rings.ring import is_Ring
 from sage.rings.rational_field import is_RationalField
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.map import Map
@@ -88,7 +88,7 @@ def AffineSpace(n, R=None, names='x'):
         sage: A.coordinate_ring() is R
         True
     """
-    if is_MPolynomialRing(n) and R is None:
+    if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         R = n
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R
@@ -794,48 +794,48 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
     def chebyshev_polynomial(self, n, kind='first'):
         """
         Generates an endomorphism of this affine line by a Chebyshev polynomial.
-        
+
         Chebyshev polynomials are a sequence of recursively defined orthogonal
         polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
         `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
         the second kind are defined as `U_0(x) = 1`,
         `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
-    
+
         INPUT:
-    
+
         - ``n`` -- a non-negative integer.
-    
+
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
-    
+
         OUTPUT: :class:`SchemeMorphism_polynomial_affine_space`
-    
+
         EXAMPLES::
-    
+
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: A.chebyshev_polynomial(5, 'first')
             Scheme endomorphism of Affine Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x) to
             (16*x^5 - 20*x^3 + 5*x)
-    
+
         ::
-    
+
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: A.chebyshev_polynomial(3, 'second')
             Scheme endomorphism of Affine Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x) to
             (8*x^3 - 4*x)
-    
+
         ::
-    
+
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: A.chebyshev_polynomial(3, 2)
             Traceback (most recent call last):
             ...
             ValueError: keyword 'kind' must have a value of either 'first' or 'second'
-    
+
         ::
-    
+
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: A.chebyshev_polynomial(-4, 'second')
             Traceback (most recent call last):

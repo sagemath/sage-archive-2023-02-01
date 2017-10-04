@@ -2726,7 +2726,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             Fractional ideal (a^2 - 4*a + 2)
             68
             sage: r = A.element_1_mod(B); r
-            -a^2 + 4*a - 1
+            -33
             sage: r in A
             True
             sage: 1-r in B

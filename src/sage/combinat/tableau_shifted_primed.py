@@ -255,6 +255,186 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         return repr([tuple(_) for _ in self])
 
+    def _repr_tab(self):
+        """
+        Return a nested list of strings representing the elements.
+
+        TEST::
+
+            sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
+            sage: t._repr_tab()
+            [[' 1 ', " 2'", ' 2 ', ' 2 '], [' 2 ', " 3'"]]
+        """
+        max_len = len(str(self.max_element()))+1
+        string_tab = []
+        for i, row in enumerate(self):
+            string_row = []
+            for val in row:
+                if int(val) == val:
+                    string_row.append(' '*(max_len-len(str(int(val))))
+                                      + str(int(val)) + ' ')
+                else:
+                    string_row.append(' '*(max_len-len(str(int(val+.5))))
+                                      + str(int(val+.5)) + "'")
+            string_tab.append(string_row)
+        return string_tab
+
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as an array.
+
+        EXAMPLES::
+
+            sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
+            sage: print(t._repr_diagram())
+            1  2' 2  2
+               2  3'
+            sage: t = ShiftedPrimedTableau([[10,'11p',11,11],[11,'12']])
+            sage: print(t._repr_diagram())
+            10  11' 11  11
+                11  12
+
+        """
+        max_len = len(str(self.max_element()))+2
+        string_list = ""
+        for i, row in enumerate(self):
+            string_list += ' '
+            string_list += ' ' * i * (max_len)
+            for val in row:
+                if int(val) == val:
+                    string_list += (str(int(val))
+                                    + ' ' * (max_len-len(str(int(val)))))
+                else:
+                    string_list += (str(int(val+.5)) + "'"
+                                    + ' '*(max_len-1 - len(str(int(val+.5)))))
+            string_list += '\n'
+        string_list = string_list[:-2]
+        return string_list
+
+    def _ascii_art_(self):
+        """
+        Return ASCII representaion of a tableau.
+
+        EXAMPLE::
+
+            sage: ascii_art(ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']]))
+            +---+---+---+---+
+            | 1 | 2'| 2 | 2 |
+            +---+---+---+---+
+                | 2 | 3'|
+                +---+---+
+
+        TEST::
+
+            sage: ascii_art(ShiftedPrimedTableau([]))
+            ++
+            ++
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        return AsciiArt(self._ascii_art_table(unicode=False).splitlines())
+
+    def _unicode_art_(self):
+        """
+        Return a Unicode representation of a tableau.
+
+        EXAMPLE::
+
+            sage: unicode_art(ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']]))
+            ┌───┬───┬───┬───┐
+            │ 1 │ 2'│ 2 │ 2 │
+            └───┼───┼───┼───┘
+                │ 2 │ 3'│
+                └───┴───┘
+
+        TEST::
+            sage: unicode_art(ShiftedPrimedTableau([]))
+            ┌┐
+            └┘
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
+
+    def _ascii_art_table(self, unicode=False):
+        """
+        TESTS::
+
+            sage: t = ShiftedPrimedTableau([[1,'2p',2],[2,'3p']])
+            sage: print(t._ascii_art_table(unicode=True))
+            ┌───┬───┬───┐
+            │ 1 │ 2'│ 2 │
+            └───┼───┼───┤
+                │ 2 │ 3'│
+                └───┴───┘
+            sage: print(t._ascii_art_table())
+            +---+---+---+
+            | 1 | 2'| 2 |
+            +---+---+---+
+                | 2 | 3'|
+                +---+---+
+            sage: s = ShiftedPrimedTableau([[1,'2p',2, 23],[2,'30p']])
+            sage: print(s._ascii_art_table(unicode=True))
+            ┌────┬────┬────┬────┐
+            │  1 │  2'│  2 │ 23 │
+            └────┼────┼────┼────┘
+                 │  2 │ 30'│
+                 └────┴────┘
+            sage: print(s._ascii_art_table(unicode=False))
+            +----+----+----+----+
+            |  1 |  2'|  2 | 23 |
+            +----+----+----+----+
+                 |  2 | 30'|
+                 +----+----+
+
+        """
+        if unicode:
+            import unicodedata
+            v = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            h = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            dl = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND LEFT')
+            dr = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND RIGHT')
+            ul = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND LEFT')
+            ur = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND RIGHT')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND LEFT')
+            uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
+            dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
+            vh = unicodedata.lookup(
+                'BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            v = '|'
+            h = '-'
+            dl = dr = ul = ur = vl = uh = dh = vh = '+'
+
+        if self.shape() == []:
+            return dr + dl + '\n' + ur + ul
+
+        # Get the widths of the columns
+        str_tab = self._repr_tab()
+        width = len(str_tab[0][0])
+        str_list = [dr + (h*width + dh)*(len(str_tab[0])-1) + h*width + dl]
+        for nrow, row in enumerate(str_tab):
+            l1 = " " * (width+1) * nrow
+            l2 = " " * (width+1) * nrow
+            n = len(str_tab[nrow+1]) if nrow+1 < len(str_tab) else -1
+            for i, e in enumerate(row):
+                if i == 0:
+                    l1 += ur + h*width
+                elif i <= n+1:
+                    l1 += vh + h*width
+                else:
+                    l1 += uh + h*width
+                if unicode:
+                    l2 += u"{}{:^{width}}".format(v, e, width=width)
+                else:
+                    l2 += "{}{:^{width}}".format(v, e, width=width)
+            if i <= n:
+                l1 += vl
+            else:
+                l1 += ul
+            l2 += v
+            str_list.append(l2)
+            str_list.append(l1)
+        return "\n".join(str_list)
+
     def pp(self):
         """
         Print out a nice version of ``self``.
@@ -270,26 +450,7 @@ class ShiftedPrimedTableau(ClonableArray):
             10  11' 11  11
                 11  12
         """
-        if [item for sublist in self for item in sublist] == []:
-            max_ind = 0
-        else:
-            max_ind = max([item for sublist in self for item in sublist])
-        max_len = len(str(round(max_ind)))
-        string_list = ''
-        for i, row in enumerate(self):
-            string_list += ' '
-            string_list += ' ' * i * (max_len)
-            for val in row:
-                if int(val) == val:
-                    string_list += (str(int(val))
-                                    + ' ' * (max_len-len(str(int(val)))))
-                else:
-                    string_list += (str(int(val+.5)) + "'"
-                                    + ' '*(max_len-1 - len(str(int(val+.5)))))
-            string_list += '\n'
-        string_list = string_list[:-2]
-        print(string_list)
-        return
+        print(self._repr_diagram())
 
     def _latex_(self):
         r"""
@@ -316,7 +477,6 @@ class ShiftedPrimedTableau(ClonableArray):
                 else:
                     num_list.append(str(int(let+0.5))+"'")
             L.append(num_list)
-
         return tex_from_array(L)
 
     def max_element(self):

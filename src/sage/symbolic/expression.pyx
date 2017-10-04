@@ -138,6 +138,7 @@ Test if :trac:`9947` is fixed::
 from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 from inspect import ismethod
 import operator
@@ -399,7 +400,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GConstant* c
         if is_a_constant(self._gobj):
             from sage.symbolic.constants import constants_name_table
-            return constants_name_table[GEx_to_str(&self._gobj)]
+            return constants_name_table[ccrepr(self._gobj)]
 
         if is_a_infinity(self._gobj):
             if (ex_to_infinity(self._gobj).is_unsigned_infinity()): return unsigned_infinity
@@ -467,8 +468,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GArchive ar
         ar.archive_ex(self._gobj, "sage_ex")
-        ar_str = GArchive_to_str(&ar)
-        return (0, map(repr, self.variables()), ar_str)
+        return (0, [repr(x) for x in self.variables()], ccrepr(ar))
 
     def _dbgprint(self):
         r"""
@@ -570,7 +570,7 @@ cdef class Expression(CommutativeRingElement):
 
         # initialize archive
         cdef GArchive ar
-        GArchive_from_str(&ar, state[2], len(state[2]))
+        ccreadstr(ar, state[2])
 
         # extract the expression from the archive
         self._gobj = GEx(ar.unarchive_ex(sym_lst, <unsigned>0))

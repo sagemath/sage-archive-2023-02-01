@@ -1,8 +1,5 @@
 from .types cimport GF2_c
 
-cdef extern from "ccobject.h":
-    void GF2_from_str "_from_str<GF2>"(GF2_c* dest, char* s)
-    object GF2_to_PyString "_to_PyString<GF2>"(GF2_c *x)
 
 cdef extern from "ntlwrap.cpp":
     int GF2_IsOne "IsOne"(GF2_c x)

@@ -260,7 +260,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - `R` -- a ring
+        - ``R`` -- a ring
 
         EXAMPLES::
 
@@ -668,8 +668,8 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         The things that coerce into ``self`` are
 
-        - free dendriform algebras in the same variables over a base with
-          a coercion map into ``self.base_ring()``
+        - free dendriform algebras in a subset of variables of ``self``
+          over a base with a coercion map into ``self.base_ring()``
 
         EXAMPLES::
 
@@ -714,7 +714,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: G._coerce_map_from_(F)
             True
             sage: F._coerce_map_from_(H)
-            False
+            True
             sage: F._coerce_map_from_(QQ)
             False
             sage: G._coerce_map_from_(QQ)
@@ -722,10 +722,10 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # free prelie algebras in the same variables
+        # free dendriform algebras in a subset of variables
         # over any base that coerces in:
         if isinstance(R, FreeDendriformAlgebra):
-            if R.variable_names() == self.variable_names():
+            if all(x in self.variable_names() for x in R.variable_names()):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False
@@ -766,12 +766,13 @@ class DendriformFunctor(ConstructionFunctor):
         sage: A = GF(5)['a,b']
         sage: a, b = A.gens()
         sage: F(A)
-        Free Dendriform algebra on 2 generators ['x', 'y'] over Multivariate Polynomial Ring in a, b over Finite Field of size 5
+        Free Dendriform algebra on 2 generators ['x', 'y']
+         over Multivariate Polynomial Ring in a, b over Finite Field of size 5
 
         sage: f = A.hom([a+b,a-b],A)
         sage: F(f)
         Generic endomorphism of Free Dendriform algebra on 2 generators ['x', 'y']
-        over Multivariate Polynomial Ring in a, b over Finite Field of size 5
+         over Multivariate Polynomial Ring in a, b over Finite Field of size 5
 
         sage: F(f)(a * F(A)(x))
         (a+b)*B[x[., .]]
@@ -845,6 +846,22 @@ class DendriformFunctor(ConstructionFunctor):
             return False
         return self.vars == other.vars
 
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: F = algebras.FreeDendriform(ZZ, 'x,y,z').construction()[0]
+            sage: G = algebras.FreeDendriform(QQ, 'x,y,z').construction()[0]
+            sage: F != G
+            False
+            sage: G != loads(dumps(G))
+            False
+            sage: G = algebras.FreeDendriform(QQ, 'x,y').construction()[0]
+            sage: F != G
+            True
+        """
+        return not (self == other)
+
     def __mul__(self, other):
         """
         If two Dendriform functors are given in a row, form a single Dendriform functor
@@ -873,7 +890,7 @@ class DendriformFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Merge ``self`` with another construction functor, or return None.
+        Merge ``self`` with another construction functor, or return ``None``.
 
         EXAMPLES::
 
@@ -920,3 +937,4 @@ class DendriformFunctor(ConstructionFunctor):
             Dendriform[x,y,z,t]
         """
         return "Dendriform[%s]" % ','.join(self.vars)
+

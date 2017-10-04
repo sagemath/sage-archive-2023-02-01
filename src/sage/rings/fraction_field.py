@@ -864,7 +864,7 @@ class FractionField_1poly_field(FractionField_generic):
             sage: R.<x> = K[]
             sage: f = x^3 + a
             sage: f.factor()
-            (t + 2*a + 1)^3
+            (x + 2*a + 1)^3
 
         """
         # The default implementation would try to convert this element to singular and factor there.

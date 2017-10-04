@@ -3993,9 +3993,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: factor(x)
             x
             sage: factor(x^2 - q^2)
-            (-1) * (-x + q) * (x + q)
+            (x - q) * (x + q)
             sage: factor(x^2 - q^-2)
-            (1/q^2) * (q*x - 1) * (q*x + 1)
+            (x - 1/q) * (x + 1/q)
 
             sage: P.<a,b,c> = PolynomialRing(ZZ)
             sage: R.<x> = PolynomialRing(FractionField(P))

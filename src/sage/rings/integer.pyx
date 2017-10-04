@@ -3847,16 +3847,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if plong >= mlong:
                 # p is larger than m, so no more primes are needed.
                 break
-            if mpz_cmp_ui(slf.value, plong) == 0 and mpz_tstbit(sieve.value, plong):
-                # self == p occurs when self < m.  If p is composite, we can stop now
-                break
             while ilong < mlong:
                 # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
                 ilong += plong
-            if mpz_cmp_ui(slf.value, plong) == 0:
-                # We've now marked off multiples of self.
-                break
             # Now divide by p until no ps remain
             mpz_divexact_ui(slf.value, slf.value, plong)
             while mpz_divisible_ui_p(slf.value, plong):

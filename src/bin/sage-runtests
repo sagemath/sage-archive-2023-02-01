@@ -108,6 +108,10 @@ if __name__ == "__main__":
         if lim == resource.RLIM_INFINITY or lim > memlimit:
             resource.setrlimit(resource.RLIMIT_AS, (memlimit, hard))
 
+    # Limit the number of OMP threads to 2 to save system resources
+    # See Trac #23892
+    os.environ["OMP_NUM_THREADS"] = "2"
+
     from sage.doctest.control import DocTestController
     DC = DocTestController(options, args)
     err = DC.run()

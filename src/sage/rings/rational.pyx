@@ -4102,7 +4102,7 @@ cdef class int_to_Q(Morphism):
 
             sage: sage.rings.rational.int_to_Q()
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Rational Field
         """
         from . import rational_field

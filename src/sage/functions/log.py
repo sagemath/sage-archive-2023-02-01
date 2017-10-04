@@ -315,7 +315,7 @@ class Function_log(GinacFunction):
             sage: log(a,3)
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 8 found to base 3
+            ValueError: No discrete log of 8 found to base 3 modulo 13
             sage: log(F(9), 3)
             2
 

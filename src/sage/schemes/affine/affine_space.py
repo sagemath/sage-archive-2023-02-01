@@ -732,9 +732,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         INPUT:
 
-
         -  ``X`` - a list or tuple of equations.
-
 
         EXAMPLES::
 
@@ -770,7 +768,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: X.dimension()
             0
         """
-        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+        from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
         return AlgebraicScheme_subscheme_affine(self, X)
 
     def _an_element_(self):
@@ -1015,8 +1013,8 @@ class AffineSpace_field(AffineSpace_generic):
 
         INPUT:
 
-        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
-          of this affine space.
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in
+          the coordinate ring of this affine space.
 
         EXAMPLES::
 

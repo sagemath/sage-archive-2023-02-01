@@ -453,9 +453,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if basis_keys in Sets().Finite():
             category = category.FiniteDimensional()
 
-        Parent.__init__(self, base=R, category=category, names=names,
-                        # Could we get rid of this?
-                        element_constructor=self._element_constructor_)
+        Parent.__init__(self, base=R, category=category, names=names)
 
         self._order = None
 

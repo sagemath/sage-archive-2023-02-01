@@ -1614,7 +1614,7 @@ class TernaryCubic(AlgebraicForm):
     Invariant theory of a ternary cubic.
 
     You should use the :class:`invariant_theory
-    <InvariantTheoryFactory>` factory object to contstruct instances
+    <InvariantTheoryFactory>` factory object to construct instances
     of this class. See :meth:`~InvariantTheoryFactory.ternary_cubic`
     for details.
 

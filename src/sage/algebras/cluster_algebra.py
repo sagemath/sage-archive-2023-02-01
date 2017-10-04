@@ -1212,9 +1212,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
-        A Cluster Algebra with cluster variables x0, x1 and no coefficients
-         over Integer Ring
+            sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
+            A Cluster Algebra with cluster variables x0, x1 and no coefficients
+            over Integer Ring
         """
         Q = ClusterQuiver(data)
         for key in kwargs:

@@ -41,11 +41,23 @@ unset CFLAGS
 
 if [ "$UNAME" = Darwin ]; then
     PYTHON_CONFIGURE="--disable-toolbox-glue $PYTHON_CONFIGURE"
-    # Workaround for El Capitan, Trac #19626
-    xcode=$(xcode-select --print-path)
-    mkdir "$CUR"/include
-    cp -rp "${xcode}"/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr/include/openssl "$CUR"/include
-    export CFLAGS="-I$CUR/include"
+
+    mkdir "$CUR/include"
+    if ![ -z "$OPENSSL_INCLUDE" ];  then
+        # If the user explicitely states where to get the openssl
+        # includes, use that.
+        cp -rp "$OPENSSL_INCLUDE" "$CUR/include"
+        export CFLAGS="-I$CUR/include"
+    else
+        # Otherwise try using homebrew version
+        brew_openssl="/usr/local/opt/openssl/include"
+        if [ -d "$brew_openssl" ]; then
+            export LDFLAGS="$LDFLAGS -L/usr/local/opt/openssl/lib"
+            export CPPFLAGS="$CPPFLAGS -I/usr/local/opt/openssl/include"
+            export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/opt/openssl/lib/pkgconfig"
+        fi
+    fi
+
     if [ $MACOSX_VERSION -ge 16 ]; then
         echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
         CC=clang
@@ -160,4 +172,3 @@ if $import_errors; then
     echo >&2 "Error: One or more modules failed to import."
     exit 1
 fi
-

@@ -61,7 +61,7 @@ class LocalGeneric(CommutativeRing):
         category = category.Metric().Complete()
         if default_category is not None:
             category = check_default_category(default_category, category)
-        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
+        Parent.__init__(self, base, names=(names,), normalize=False, category=category)
 
     def is_capped_relative(self):
         """

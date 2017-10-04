@@ -79,7 +79,7 @@ cdef class ConvexityProperties:
           the same graph, or if you want to compute the hull number itself as it
           involves many calls to :meth:`hull`
 
-        * Using this class on non-conected graphs is a waste of space and
+        * Using this class on non-connected graphs is a waste of space and
           efficiency ! If your graph is disconnected, the best for you is to
           deal independently with each connected component, whatever you are
           doing.
@@ -399,7 +399,7 @@ cdef class ConvexityProperties:
         answer `S` infeasible, and another solution computed.
 
         This being said, simply adding the constraint corresponding to `h(S)` is
-        a bit slow, as these sets can be large (and the corresponding constrait
+        a bit slow, as these sets can be large (and the corresponding constraint
         a bit weak). To improve it a bit, before being added, the set `h(S)` is
         "greedily enriched" to a set `S'` with vertices for as long as
         `h(S')\neq V(G)`. This way, we obtain a set `S'` with `h(S)\subseteq

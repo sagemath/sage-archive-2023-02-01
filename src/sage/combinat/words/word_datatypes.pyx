@@ -44,7 +44,7 @@ cdef class WordDatatype(object):
 
             sage: w = Word([0,1,1,0,0,1])
             sage: w.__reduce__()
-            (Finite words over Set of Python objects of type 'object', ([0, 1, 1, 0, 0, 1],))
+            (Finite words over Set of Python objects of class 'object', ([0, 1, 1, 0, 0, 1],))
         """
         return self._parent, (list(self),)
 

@@ -250,20 +250,20 @@ cdef class ModularSymbols:
             sage: M = CremonaModularSymbols(5001)
             sage: T = M.sparse_hecke_matrix(2)
             sage: U = M.hecke_matrix(2).sage_matrix_over_ZZ(sparse=True)
-            sage: print T == U
+            sage: print(T == U)
             True
             sage: T = M.sparse_hecke_matrix(2, dual=True)
-            sage: print T == U.transpose()
+            sage: print(T == U.transpose())
             True
             sage: T = M.sparse_hecke_matrix(2, base_ring=GF(7))
-            sage: print T == U.change_ring(GF(7))
+            sage: print(T == U.change_ring(GF(7)))
             True
 
         This concerns an issue reported on :trac:`21303`::
             sage: C = CremonaModularSymbols(45, cuspidal=True,sign=-1)
             sage: T2a = C.hecke_matrix(2).sage_matrix_over_ZZ()
             sage: T2b = C.sparse_hecke_matrix(2)
-            sage: print T2a == T2b
+            sage: print(T2a == T2b)
             True
         """
         cdef long n = self.dimension()

@@ -518,6 +518,7 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^3 - x^4 - 1)
             sage: v.extensions(L)
+            [2-adic valuation]
 
         """
         K = self.domain()

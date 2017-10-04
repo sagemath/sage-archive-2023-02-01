@@ -986,7 +986,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism):
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCoercion_ZZ_CA'>
         """
         RingHomomorphism.__init__(self, ZZ.Hom(R))
-        self._zero = R._element_constructor(R, 0)
+        self._zero = R.element_class(R, 0)
         self._section = pAdicConvert_CA_ZZ(R)
 
     cdef dict _extra_slots(self, dict _slots):
@@ -1180,7 +1180,7 @@ cdef class pAdicConvert_QQ_CA(Morphism):
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicConvert_QQ_CA'>
         """
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
-        self._zero = R._element_constructor(R, 0)
+        self._zero = R.element_class(R, 0)
 
     cdef dict _extra_slots(self, dict _slots):
         """

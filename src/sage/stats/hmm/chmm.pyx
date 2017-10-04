@@ -305,7 +305,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         return [(RDF(self.B[2*i]),RDF(self.B[2*i+1])) for i in range(self.N)]
 
     def __repr__(self):
-        """
+        r"""
         Return string representation.
 
         EXAMPLES::
@@ -1091,7 +1091,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             raise ValueError("number of GaussianMixtures must be the same as number of entries of pi")
 
     def __repr__(self):
-        """
+        r"""
         Return string representation.
 
         EXAMPLES::

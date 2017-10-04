@@ -22,7 +22,6 @@ from __future__ import print_function
 
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
-from cvxopt import solvers
 from .generic_sdp_backend cimport GenericSDPBackend
 
 

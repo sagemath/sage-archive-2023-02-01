@@ -1260,6 +1260,10 @@ cdef class GapElement_Integer(GapElement):
         if self.is_C_int():
             return ring(libGAP_INT_INTOBJ(self.value))
         else:
+            # TODO: waste of time!
+            # gap integers are stored as a mp_limb_t and we have a much more direct
+            # conversion implemented in mpz_get_pylong(mpz_srcptr z)
+            # (see sage.libs.gmp.pylong)
             string = self.String().sage()
             return ring(string)
 
@@ -1280,6 +1284,18 @@ cdef class GapElement_Integer(GapElement):
             <type 'long'>
         """
         return self.sage(ring=int)
+
+    def __index__(self):
+        r"""
+        TESTS:
+
+        Check that gap integers can be used as indices (:trac:`23878`)::
+
+            sage: s = 'abcd'
+            sage: s[libgap(1)]
+            'b'
+        """
+        return int(self)
 
 ############################################################################
 ### GapElement_IntegerMod #####################################################

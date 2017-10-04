@@ -89,7 +89,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import (RealField, is_RealField)
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
 from sage.schemes.projective.projective_morphism import (
     SchemeMorphism_polynomial_projective_space,
     SchemeMorphism_polynomial_projective_space_field,
@@ -2851,12 +2851,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.critical_point_portrait()
             Traceback (most recent call last):
             ...
-            TypeError: map be be post-critically finite
+            TypeError: map must be post-critically finite
         """
         #input checking done in is_postcritically_finite
         if check:
             if not self.is_postcritically_finite():
-                raise TypeError("map be be post-critically finite")
+                raise TypeError("map must be post-critically finite")
         if embedding is None:
             F = self.change_ring(QQbar)
         else:
@@ -3825,12 +3825,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: Q = P(-1, 1)
             sage: f._is_preperiodic(Q)
             True
+
+        Check that :trac:`23814` is fixed (works even if domain is not specified)::
+
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(X^2 + X - 1)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem_projective([x^2-2*y^2, y^2])
+            sage: Q = P.point([a,1])
+            sage: Q.is_preperiodic(f)
+            True
         """
         if not is_ProjectiveSpace(self.codomain()):
             raise NotImplementedError("must be over projective space")
         if not self.is_morphism():
             raise TypeError("must be a morphism")
-        if not P.codomain() is self.domain():
+        if not P.codomain() == self.domain():
             raise TypeError("point must be in domain of map")
 
         K = FractionField(self.codomain().base_ring())

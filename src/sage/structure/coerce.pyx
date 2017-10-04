@@ -671,7 +671,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.explain(QQ, int)
             Coercion on right operand via
                 Native morphism:
-                  From: Set of Python objects of type 'int'
+                  From: Set of Python objects of class 'int'
                   To:   Rational Field
             Arithmetic performed after coercions.
             Result lives in Rational Field
@@ -741,7 +741,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.explain(int, ZZ, operator.truediv)
             Coercion on left operand via
                 Native morphism:
-                  From: Set of Python objects of type 'int'
+                  From: Set of Python objects of class 'int'
                   To:   Integer Ring
             Arithmetic performed after coercions.
             Result lives in Rational Field
@@ -1596,7 +1596,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.get_action(QQx, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
 
             sage: A = cm.get_action(QQx, ZZ, operator.truediv); A
@@ -1722,7 +1722,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.discover_action(P, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
 
         If op in an inplace operation, look for the non-inplace action::

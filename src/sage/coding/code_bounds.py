@@ -156,12 +156,12 @@ PROBLEM: In this module we shall typically either (a) seek bounds
 on k, given n, d, q, (b) seek bounds on R, delta, q (assuming n is
 "infinity").
 
-TODO:
+.. TODO::
 
-- Johnson bounds for binary codes.
+    - Johnson bounds for binary codes.
 
-- mrrw2_bound_asymp(delta,q), "second" asymptotic
-  McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
+    - mrrw2_bound_asymp(delta,q), "second" asymptotic
+      McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 """
 from __future__ import absolute_import
 

@@ -343,7 +343,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             0
             sage: f = QQ.coerce_map_from(int); f # indirect doctest
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Rational Field
             sage: f(44)
             44
@@ -352,10 +352,10 @@ class RationalField(Singleton, number_field_base.NumberField):
 
             sage: QQ.coerce_map_from(long) # indirect doctest
             Composite map:
-              From: Set of Python objects of type 'long'
+              From: Set of Python objects of class 'long'
               To:   Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'long'
+                      From: Set of Python objects of class 'long'
                       To:   Integer Ring
                     then
                       Natural morphism:

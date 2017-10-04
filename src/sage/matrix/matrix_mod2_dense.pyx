@@ -79,14 +79,14 @@ TESTS::
     [1 1 0]
     [0 0 1]
 
-TODO:
+.. TODO::
 
-- make LinBox frontend and use it
+    - make LinBox frontend and use it
 
-    - charpoly ?
-    - minpoly ?
+        - charpoly ?
+        - minpoly ?
 
-- make Matrix_modn_frontend and use it (?)
+    - make Matrix_modn_frontend and use it (?)
 """
 
 #*****************************************************************************

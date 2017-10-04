@@ -2357,7 +2357,7 @@ class MappingClassGroupAction(Action):
     You should left multiplication of the free group element by the
     braid to compute the action. Alternatively, use the
     :meth:`~sage.groups.braid.BraidGroup_class.mapping_class_action`
-    method of the braid group to constuct this action.
+    method of the braid group to construct this action.
 
     EXAMPLES::
 

@@ -1652,15 +1652,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Returns the square of this polynomial.
 
-        TODO:
+        .. TODO::
 
-        - This is just a placeholder; for now it just uses ordinary
-          multiplication. But generally speaking, squaring is faster than
-          ordinary multiplication, and it's frequently used, so subclasses
-          may choose to provide a specialised squaring routine.
+            - This is just a placeholder; for now it just uses ordinary
+              multiplication. But generally speaking, squaring is faster than
+              ordinary multiplication, and it's frequently used, so subclasses
+              may choose to provide a specialised squaring routine.
 
-        - Perhaps this even belongs at a lower level? RingElement or
-          something?
+            - Perhaps this even belongs at a lower level? RingElement or
+              something?
 
         AUTHORS:
 
@@ -5064,9 +5064,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: a.coefficients()
             []
         """
-        if a:
-            return self.__class__(P,[a], check=False) #P._element_constructor(a, check=False)
-        return self.__class__(P,[], check=False)
+        t = type(self)
+        return t(P, [a] if a else [], check=False)
 
     def is_monic(self):
         """
